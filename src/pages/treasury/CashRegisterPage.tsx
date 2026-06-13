@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import type { DBCashRegisterSession, DBCashMovement } from '../../lib/db';
@@ -193,9 +194,12 @@ const CashRegisterPage: React.FC = () => {
             Ouverture, mouvements et cl\u00f4ture des sessions de caisse
           </p>
         </div>
-        <button onClick={loadData} className="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">
-          <RefreshCw className="w-4 h-4" /> Actualiser
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions />
+          <button onClick={loadData} className="inline-flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600">
+            <RefreshCw className="w-4 h-4" /> Actualiser
+          </button>
+        </div>
       </div>
 
       {/* Active Session */}

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
@@ -675,6 +676,7 @@ const ReconciliationPage: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-3">
+            <PageHeaderActions />
             <Button
               variant="outline"
               onClick={() => setReconciliationMode(reconciliationMode === 'manual' ? 'auto' : 'manual')}

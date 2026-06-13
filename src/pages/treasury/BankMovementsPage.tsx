@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData, useAdapterQuery } from '../../contexts/DataContext';
 import { getSoldesBancaires } from '../../services/treasury/positionService';
@@ -88,6 +89,7 @@ const BankMovementsPage: React.FC = () => {
             <p className="text-sm text-[var(--color-text-secondary)]">Gestion des flux de trésorerie</p>
           </div>
           <div className="flex items-center space-x-3">
+            <PageHeaderActions />
             <div className="text-xs text-[var(--color-text-secondary)]">
               Dernière MAJ: {lastUpdate.toLocaleTimeString('fr-FR')}
             </div>

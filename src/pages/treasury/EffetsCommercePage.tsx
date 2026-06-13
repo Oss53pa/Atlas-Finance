@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import FeatureGuard from '../../components/auth/FeatureGuard';
@@ -48,6 +49,7 @@ const EffetsCommercePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [filterStatut, setFilterStatut] = useState<string>('all');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
 
   const loadEffets = async () => {
     setLoading(true);
@@ -114,10 +116,17 @@ const EffetsCommercePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <button onClick={() => setShowModal(true)} className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:bg-[#404040]">
-              <Plus className="w-4 h-4" />
-              <span>Nouvel effet</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <PageHeaderActions
+                onToggleFilters={() => setShowFilters((v) => !v)}
+                filtersOpen={showFilters}
+                activeFilters={[filterStatut !== 'all'].filter(Boolean).length}
+              />
+              <button onClick={() => setShowModal(true)} className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:bg-[#404040]">
+                <Plus className="w-4 h-4" />
+                <span>Nouvel effet</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -129,6 +138,7 @@ const EffetsCommercePage: React.FC = () => {
               {label}
             </button>
           ))}
+          {showFilters && (
           <div className="ml-auto flex items-center gap-2">
             <Filter className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)} className="text-sm border border-[var(--color-border)] rounded-lg px-3 py-2">
@@ -136,6 +146,7 @@ const EffetsCommercePage: React.FC = () => {
               {Object.entries(STATUT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </div>
+          )}
         </div>
 
         {/* Table */}

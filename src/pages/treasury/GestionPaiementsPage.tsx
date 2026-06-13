@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
@@ -160,13 +161,16 @@ const GestionPaiementsPage: React.FC = () => {
               </p>
             </div>
             
-            <button
-              onClick={() => setShowNewPaymentModal(true)}
-              className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              Nouveau paiement
-            </button>
+            <div className="flex items-center gap-2">
+              <PageHeaderActions />
+              <button
+                onClick={() => setShowNewPaymentModal(true)}
+                className="inline-flex items-center px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                Nouveau paiement
+              </button>
+            </div>
           </div>
         </div>
 

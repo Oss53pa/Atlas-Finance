@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import type { DBCheck } from '../../lib/db';
@@ -310,11 +311,14 @@ const ChecksRegisterPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Registre des ch\u00e8ques</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Suivi des ch\u00e8ques entrants et sortants
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Registre des ch\u00e8ques</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Suivi des ch\u00e8ques entrants et sortants
+          </p>
+        </div>
+        <PageHeaderActions />
       </div>
 
       {/* Tabs */}

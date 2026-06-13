@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import type { DBPaymentOrder } from '../../lib/db';
@@ -186,13 +187,16 @@ const PaymentOrdersPage: React.FC = () => {
             G\u00e9rez le cycle de vie des ordres de paiement
           </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Nouvel ordre
-        </button>
+        <div className="flex items-center gap-2">
+          <PageHeaderActions />
+          <button
+            onClick={() => setShowModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nouvel ordre
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

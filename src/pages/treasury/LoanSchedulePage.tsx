@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import type { DBLoanSchedule } from '../../lib/db';
@@ -169,11 +170,14 @@ const LoanSchedulePage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tableau d'amortissement</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          G\u00e9n\u00e9rez et g\u00e9rez les \u00e9ch\u00e9anciers d'emprunt
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tableau d'amortissement</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            G\u00e9n\u00e9rez et g\u00e9rez les \u00e9ch\u00e9anciers d'emprunt
+          </p>
+        </div>
+        <PageHeaderActions />
       </div>
 
       {/* Generate Form */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import type { DBExchangeRate, DBHedgingPosition } from '../../lib/db';
 import { motion } from 'framer-motion';
@@ -284,6 +285,7 @@ const MultiCurrency: React.FC = () => {
           icon={Globe}
           action={
             <div className="flex gap-3">
+              <PageHeaderActions />
               <ElegantButton variant="outline" icon={RefreshCw}>
                 Actualiser Taux
               </ElegantButton>

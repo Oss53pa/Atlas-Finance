@@ -1,5 +1,6 @@
 import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
@@ -171,6 +172,7 @@ const PositionTresoreriePage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-3">
+              <PageHeaderActions />
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"

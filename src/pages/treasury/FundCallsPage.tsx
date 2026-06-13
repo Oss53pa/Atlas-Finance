@@ -3,6 +3,7 @@
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -911,6 +912,7 @@ const FundCallsPage: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center gap-4">
+            <PageHeaderActions />
             <Button className="bg-white text-primary-800 hover:bg-primary-100">
               <Plus className="h-4 w-4 mr-2" />
               Nouveau
