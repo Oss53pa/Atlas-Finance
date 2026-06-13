@@ -317,7 +317,8 @@
       "Bash(sed -i '744,790d' src/pages/treasury/TreasuryPositions.tsx)",
       "Bash(sed -n '740,748p' src/pages/treasury/TreasuryPositions.tsx)",
       "Bash(echo \"TSC=$?\")",
-      "Bash(python3 -)"
+      "Bash(python3 -)",
+      "Bash(xargs grep -li \"Bell\\\\|unread\\\\|markAsRead\\\\|NotificationPanel\\\\|notifications.map\\\\|mock\\\\|setNotifications\")"
     ],
     "deny": [],
     "ask": []

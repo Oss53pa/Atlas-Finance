@@ -22,6 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTenantPlan, hasFeature } from '../../features/platform/hooks/useTenantPlan';
 import { useFeatureAccess } from '../../components/gating';
 import { useBadgeCounts } from '../../hooks/useBadgeCounts';
+import { useNotifications } from '../../hooks/useNotifications';
 import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChange';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { MobileConsultationBanner } from './MobileConsultationBanner';
@@ -107,24 +108,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showThemeMenu, setShowThemeMenu] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      title: 'Nouvelle facture',
-      message: '3 nouvelles factures en attente de validation',
-      type: 'info',
-      timestamp: new Date(),
-      read: false
-    },
-    {
-      id: '2',
-      title: 'Clôture périodique',
-      message: 'La clôture de janvier est prête',
-      type: 'success',
-      timestamp: new Date(),
-      read: false
-    }
-  ]);
+  // Notifications connectées aux données réelles (écritures à valider /
+  // déséquilibrées, échéances fiscales en retard / urgentes).
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   // Navigation clavier
   useEffect(() => {
@@ -377,12 +363,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     return breadcrumbs;
   };
 
-  // Mark notification as read
-  const markNotificationAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => n.id === id ? { ...n, read: true } : n)
-    );
-  };
 
   return (
     <div className="flex h-screen bg-[var(--color-background)] overflow-hidden">
@@ -870,12 +850,14 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 className="relative p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                 onClick={() => setShowNotifications(!showNotifications)}
-                aria-label={`Notifications ${notifications.filter(n => !n.read).length > 0 ? `(${notifications.filter(n => !n.read).length} non lues)` : ''}`}
+                aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} non lues)` : ''}`}
                 aria-expanded={showNotifications}
               >
                 <Bell className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                {notifications.filter(n => !n.read).length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-[var(--color-error)] rounded-full"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center text-[10px] font-bold text-white bg-[var(--color-error)] rounded-full">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
 
@@ -885,10 +867,25 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                   role="region"
                   aria-label="Centre de notifications"
                 >
-                  <div className="p-4 border-b border-[var(--color-border)]">
+                  <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between">
                     <h3 className="font-semibold text-[var(--color-text-primary)]">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
+                        className="text-xs text-[var(--color-primary)] hover:underline"
+                      >
+                        Tout marquer lu
+                      </button>
+                    )}
                   </div>
                   <div className="divide-y divide-[var(--color-border)]">
+                    {notifications.length === 0 && (
+                      <div className="p-6 text-center">
+                        <p className="text-sm text-[var(--color-text-secondary)]">Aucune notification</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Tout est à jour ✓</p>
+                      </div>
+                    )}
                     {notifications.map((notif) => (
                       <div
                         key={notif.id}
@@ -896,7 +893,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                           "p-4 hover:bg-[var(--color-surface-hover)] cursor-pointer",
                           !notif.read && "bg-[var(--color-primary-light)] bg-opacity-10"
                         )}
-                        onClick={() => markNotificationAsRead(notif.id)}
+                        onClick={() => {
+                          markAsRead(notif.id);
+                          if (notif.path) { setShowNotifications(false); navigate(notif.path); }
+                        }}
                       >
                         <div className="flex items-start gap-3">
                           <div className={cn(
