@@ -81,6 +81,13 @@ const TreasuryPositions: React.FC = () => {
   // trésorerie (classe 5 SYSCOHADA : 52 banques, 53 ét. financiers, 57 caisse…),
   // car le registre des comptes bancaires dédié n'est pas saisi.
   const [glTreasury, setGlTreasury] = useState<{ code: string; name: string; balance: number }[]>([]);
+  // Position TEMPS RÉEL par compte de trésorerie : solde comptable + ventilation
+  // rapproché (lettré) / à rapprocher (non lettré, hors À-Nouveau). Le « à rapprocher »
+  // est scindé en reçus non crédités (débits) et émis non débités (crédits).
+  const [glPosition, setGlPosition] = useState<{
+    code: string; name: string; solde: number; rappro: number; recus: number; emis: number;
+  }[]>([]);
+  const [posTab, setPosTab] = useState<'temps-reel' | 'comptes'>('temps-reel');
 
   useEffect(() => {
     const load = async () => {
@@ -96,12 +103,28 @@ const TreasuryPositions: React.FC = () => {
       const nameByCode = new Map<string, string>();
       for (const a of accounts) nameByCode.set(String(a.code), a.name || a.code);
       const bal: Record<string, number> = {};
+      // Ventilation rapproché / à rapprocher (reçus = débits, émis = crédits).
+      const pos: Record<string, { solde: number; rappro: number; recus: number; emis: number }> = {};
+      const ensure = (c: string) => (pos[c] ||= { solde: 0, rappro: 0, recus: 0, emis: 0 });
       for (const e of entries) {
         if (e.status === 'draft') continue;
+        const isAN = e.journal === 'AN' || e.journal === 'RAN';
         for (const l of (e.lines || [])) {
           const code = String(l.accountCode || '');
           if (/^5/.test(code) && !/^59/.test(code)) {
-            bal[code] = (bal[code] || 0) + (l.debit || 0) - (l.credit || 0);
+            const d = l.debit || 0, c = l.credit || 0;
+            bal[code] = (bal[code] || 0) + d - c;
+            const p = ensure(code);
+            p.solde += d - c;
+            const lettre = !!(l.lettrageCode || l.lettrage_code);
+            if (lettre || isAN) {
+              // À-Nouveau = solde d'ouverture (déjà en banque) ; lettré = rapproché.
+              p.rappro += d - c;
+            } else {
+              // Non rapproché : débit = encaissement reçu non crédité ; crédit = paiement émis non débité.
+              p.recus += d;
+              p.emis += c;
+            }
           }
         }
       }
@@ -110,6 +133,12 @@ const TreasuryPositions: React.FC = () => {
           .filter(([, v]) => Math.abs(v) > 0.001)
           .map(([code, balance]) => ({ code, name: nameByCode.get(code) || code, balance }))
           .sort((a, b) => b.balance - a.balance),
+      );
+      setGlPosition(
+        Object.entries(pos)
+          .filter(([, v]) => Math.abs(v.solde) > 0.001 || v.recus > 0.001 || v.emis > 0.001)
+          .map(([code, v]) => ({ code, name: nameByCode.get(code) || code, ...v }))
+          .sort((a, b) => b.solde - a.solde),
       );
     };
     load();
@@ -315,6 +344,110 @@ const TreasuryPositions: React.FC = () => {
           />
         </div>
 
+        {/* Onglets : Position temps réel | Comptes bancaires (table) */}
+        <div className="flex gap-1 border-b border-neutral-200">
+          {([
+            { key: 'temps-reel', label: 'Position temps réel' },
+            { key: 'comptes', label: 'Comptes bancaires' },
+          ] as const).map(tb => (
+            <button
+              key={tb.key}
+              onClick={() => setPosTab(tb.key)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+                posTab === tb.key ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-neutral-500 hover:text-neutral-700'
+              }`}
+            >
+              {tb.label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── ONGLET : Position TEMPS RÉEL ───────────────────────────────── */}
+        {posTab === 'temps-reel' && (() => {
+          const tot = glPosition.reduce(
+            (a, p) => ({ solde: a.solde + p.solde, rappro: a.rappro + p.rappro, recus: a.recus + p.recus, emis: a.emis + p.emis }),
+            { solde: 0, rappro: 0, recus: 0, emis: 0 },
+          );
+          return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-xl bg-white border border-neutral-200">
+                  <p className="text-xs text-neutral-500 uppercase tracking-wide">Solde comptable (réel)</p>
+                  <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(tot.solde)}</p>
+                  <p className="text-xs text-neutral-400 mt-1">Ce qui est dans les comptes (classe 5)</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-green-200">
+                  <p className="text-xs text-green-700 uppercase tracking-wide">Reçus non crédités (+)</p>
+                  <p className="text-2xl font-bold text-green-700 mt-1">{formatCurrency(tot.recus)}</p>
+                  <p className="text-xs text-neutral-400 mt-1">Encaissements en instance</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-red-200">
+                  <p className="text-xs text-red-700 uppercase tracking-wide">Émis non débités (−)</p>
+                  <p className="text-2xl font-bold text-red-700 mt-1">{formatCurrency(tot.emis)}</p>
+                  <p className="text-xs text-neutral-400 mt-1">Paiements en instance</p>
+                </div>
+                <div className="p-4 rounded-xl bg-white border border-neutral-200">
+                  <p className="text-xs text-neutral-500 uppercase tracking-wide">Rapproché (lettré + À-nouveau)</p>
+                  <p className="text-2xl font-bold text-neutral-800 mt-1">{formatCurrency(tot.rappro)}</p>
+                  <p className="text-xs text-neutral-400 mt-1">Confirmé vs banque</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  « En circulation » = mouvements de trésorerie <span className="font-semibold">non encore rapprochés</span> (non
+                  lettrés, hors à-nouveau). Importez et rapprochez vos relevés dans le module <span className="font-semibold">Rapprochement
+                  bancaire</span> pour ne garder que les vrais règlements en attente. Les prévisions d'atterrissage se pilotent dans
+                  <span className="font-semibold"> Prévisions de trésorerie</span>.
+                </span>
+              </div>
+
+              <UnifiedCard variant="elevated" size="lg">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-200 text-neutral-600">
+                        <th className="text-left py-2 px-3 font-medium">Compte</th>
+                        <th className="text-right py-2 px-3 font-medium">Solde comptable</th>
+                        <th className="text-right py-2 px-3 font-medium">Reçus non crédités (+)</th>
+                        <th className="text-right py-2 px-3 font-medium">Émis non débités (−)</th>
+                        <th className="text-right py-2 px-3 font-medium">Rapproché</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {glPosition.length === 0 ? (
+                        <tr><td colSpan={5} className="py-6 text-center text-neutral-400">Aucun compte de trésorerie mouvementé.</td></tr>
+                      ) : glPosition.map(p => (
+                        <tr key={p.code} className="border-b border-neutral-100 hover:bg-neutral-50">
+                          <td className="py-2 px-3"><span className="font-mono text-xs text-[var(--color-primary)] mr-2">{p.code}</span>{p.name}</td>
+                          <td className="py-2 px-3 text-right font-mono font-semibold">{formatCurrency(p.solde)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-green-600">{p.recus > 0 ? formatCurrency(p.recus) : '—'}</td>
+                          <td className="py-2 px-3 text-right font-mono text-red-600">{p.emis > 0 ? formatCurrency(p.emis) : '—'}</td>
+                          <td className="py-2 px-3 text-right font-mono text-neutral-500">{formatCurrency(p.rappro)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    {glPosition.length > 0 && (
+                      <tfoot>
+                        <tr className="border-t-2 border-neutral-300 font-bold">
+                          <td className="py-2 px-3">TOTAL</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.solde)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-green-700">{formatCurrency(tot.recus)}</td>
+                          <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(tot.emis)}</td>
+                          <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.rappro)}</td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              </UnifiedCard>
+            </div>
+          );
+        })()}
+
+        {/* ── ONGLET : Comptes bancaires (graphique + filtres + table) ───── */}
+        {posTab === 'comptes' && (<>
         {/* Chart Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -579,6 +712,7 @@ const TreasuryPositions: React.FC = () => {
             )}
           </div>
         </UnifiedCard>
+        </>)}
 
         {/* Position Detail Modal */}
         {positionModal.isOpen && (
