@@ -368,6 +368,28 @@ const JournalsPage: React.FC = () => {
     });
   }, [dbEntries, t]);
 
+  // N° de pièce INCRÉMENTAL par journal (SYSCOHADA : numérotation continue par
+  // journal, classée par date). Remplace le « JOURNAL|date » issu de la bascule.
+  // Calculé sur TOUTES les écritures (indépendant du filtre de date) → numéro
+  // stable quand on filtre/pagine. Une pièce = une écriture (toutes ses lignes
+  // partagent le même numéro).
+  const pieceNumbers = useMemo(() => {
+    const byJournal = new Map<string, any[]>();
+    for (const e of dbEntries) {
+      const j = String(e.journal || 'OD').toUpperCase().trim();
+      if (!byJournal.has(j)) byJournal.set(j, []);
+      byJournal.get(j)!.push(e);
+    }
+    const map = new Map<string, string>();
+    for (const [j, list] of byJournal) {
+      list.sort((a, b) =>
+        String(a.date || '').localeCompare(String(b.date || '')) ||
+        String(a.entryNumber || a.entry_number || a.id).localeCompare(String(b.entryNumber || b.entry_number || b.id)));
+      list.forEach((e, i) => map.set(e.id, `${j}-${String(i + 1).padStart(6, '0')}`));
+    }
+    return map;
+  }, [dbEntries]);
+
   // Écritures par journal — depuis données réelles, avec filtre de date appliqué
   const getEcrituresJournal = (journalCode: string): EcritureJournal[] => {
     let filtered = journalCode === 'TOUS'
@@ -391,8 +413,9 @@ const JournalsPage: React.FC = () => {
           mvt: entry.entryNumber || entry.entry_number || entry.id || '',
           jnl: (entry.journal || '').toUpperCase(),
           date: entry.date ? new Date(entry.date).toLocaleDateString('fr-FR') : '',
-          piece: entry.reference || entry.entryNumber || entry.entry_number || '',
-          echeance: '',
+          piece: pieceNumbers.get(entry.id) || entry.reference || entry.entryNumber || entry.entry_number || '',
+          echeance: (line.dateEcheance || line.date_echeance)
+            ? new Date(line.dateEcheance || line.date_echeance).toLocaleDateString('fr-FR') : '',
           compte: line.accountCode || '',
           compteLib: line.accountName || '',
           libelle: line.label || entry.label || '',
