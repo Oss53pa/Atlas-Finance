@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import PrintButton from './PrintButton';
+import { collectTablesHtml, getReportTitle, type PrintOrientation } from '../../utils/printReport';
 import {
   ChevronLeft,
   ChevronRight,
@@ -91,6 +93,7 @@ function DataTable<T extends Record<string, unknown>>({
   const [filters, setFilters] = useState<Record<string, unknown>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const printAreaRef = useRef<HTMLDivElement>(null);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
@@ -199,21 +202,18 @@ function DataTable<T extends Record<string, unknown>>({
     }
   };
 
-  // Impression intégrée : si aucun onPrint n'est fourni, on imprime la table
-  // elle-même — TOUTES les lignes filtrées (sans pagination) — en réutilisant le
-  // CSS @media print global (chrome masqué, .print-area visible).
-  useEffect(() => {
-    if (!printing) return;
-    document.body.classList.add('printing');
-    const id = window.setTimeout(() => {
-      window.print();
-      document.body.classList.remove('printing');
-      setPrinting(false);
-    }, 150);
-    return () => { window.clearTimeout(id); document.body.classList.remove('printing'); };
-  }, [printing]);
-
-  const handlePrint = onPrint || (() => setPrinting(true));
+  // Impression « rapport » : déplie TOUTES les lignes filtrées (printing=true),
+  // attend le rendu, puis capture le tableau pour printReport (A4 portrait/paysage
+  // au choix, strictement limité aux données). buildBody est appelé par PrintButton.
+  const buildPrintBody = async (_orientation: PrintOrientation, anchor: HTMLElement) => {
+    setPrinting(true);
+    await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+    const root = printAreaRef.current;
+    const bodyHtml = root ? collectTablesHtml(root) : '';
+    setPrinting(false);
+    const pageRoot = (anchor.closest('main') as HTMLElement | null) || document.body;
+    return { title: getReportTitle(pageRoot), bodyHtml };
+  };
 
   // Gestion de la sélection
   const handleSelectAll = () => {
@@ -317,13 +317,16 @@ function DataTable<T extends Record<string, unknown>>({
               </button>
             )}
 
-            {printable && (
+            {printable && onPrint && (
               <button
-                onClick={handlePrint}
+                onClick={onPrint}
                 className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 print-hide"
                 title={t('common.print')} aria-label="Imprimer">
                 <Printer className="w-4 h-4" />
               </button>
+            )}
+            {printable && !onPrint && (
+              <PrintButton buildBody={buildPrintBody} />
             )}
 
             {refreshable && onRefresh && (
@@ -378,7 +381,7 @@ function DataTable<T extends Record<string, unknown>>({
       {/* Table — scroll PROPRE (vertical + horizontal) avec en-tête FIGÉ :
           le tableau défile dans sa zone, pas avec la page. À l'impression,
           .print-area enlève la contrainte de hauteur (toutes les lignes). */}
-      <div className="overflow-auto max-h-[65vh] print-area">
+      <div ref={printAreaRef} className="overflow-auto max-h-[65vh] print-area">
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200 sticky top-0 z-10 shadow-[0_1px_0_#e5e7eb]">
             <tr>

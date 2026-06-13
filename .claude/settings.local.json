@@ -315,7 +315,8 @@
       "mcp__visualize__read_me",
       "mcp__visualize__show_widget",
       "Bash(sed -i '744,790d' src/pages/treasury/TreasuryPositions.tsx)",
-      "Bash(sed -n '740,748p' src/pages/treasury/TreasuryPositions.tsx)"
+      "Bash(sed -n '740,748p' src/pages/treasury/TreasuryPositions.tsx)",
+      "Bash(echo \"TSC=$?\")"
     ],
     "deny": [],
     "ask": []

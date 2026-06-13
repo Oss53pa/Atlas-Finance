@@ -14,7 +14,7 @@ import {
   Search, Filter, Save, RefreshCw, CheckCircle, XCircle,
   Link2, Unlink, Calendar, Download, Eye, AlertTriangle,
   Users, FileText, TrendingUp, ArrowUpDown, Hash, Calculator,
-  Clock, Check, X, ChevronRight, ChevronDown, Info,
+  Clock, Check, X, Info,
   History, Settings, Database, Zap, FileSpreadsheet, BarChart3,
   DollarSign, Activity, Lock, Unlock, AlertCircle, ChevronUp
 } from 'lucide-react';
@@ -74,9 +74,13 @@ const Lettrage: React.FC = () => {
   const [selectedCompte, setSelectedCompte] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showOnlyNonLettrage, setShowOnlyNonLettrage] = useState(true);
+  const [compteFilter, setCompteFilter] = useState<string>('all');
+  const [detailCompte, setDetailCompte] = useState<string | null>(null);
+  const [modalOnlyNonLettre, setModalOnlyNonLettre] = useState(true);
+  const [modalSearch, setModalSearch] = useState('');
+  const [modalSortByAmount, setModalSortByAmount] = useState(true);
   const [selectedEntries, setSelectedEntries] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<'manual' | 'automatic' | 'analysis' | 'history' | 'config'>('manual');
-  const [expandedAccounts, setExpandedAccounts] = useState<Set<string>>(new Set());
   const [lettrageMode, setLettrageMode] = useState<'complete' | 'partial'>('complete');
   const [showStats, setShowStats] = useState(true);
   const [tolerance, setTolerance] = useState(0.01);
@@ -140,8 +144,11 @@ const Lettrage: React.FC = () => {
   const groupedEntries = useMemo(() => {
     const filtered = lettrageEntries.filter(entry => {
       if (showOnlyNonLettrage && entry.lettrage) return false;
+      if (compteFilter !== 'all' && !entry.compte.startsWith(compteFilter)) return false;
       if (searchTerm && !entry.libelle.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          !entry.piece.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+          !entry.piece.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !(entry.tiers || '').toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !entry.compte.includes(searchTerm)) return false;
       return true;
     });
 
@@ -175,18 +182,77 @@ const Lettrage: React.FC = () => {
       return acc;
     }, {} as Record<string, GroupedAccount>);
 
-    return Object.values(grouped);
-  }, [lettrageEntries, showOnlyNonLettrage, searchTerm]);
+    return Object.values(grouped).sort((a, b) => b.nonLettres - a.nonLettres || a.compte.localeCompare(b.compte));
+  }, [lettrageEntries, showOnlyNonLettrage, searchTerm, compteFilter]);
 
-  const toggleAccountExpansion = (compte: string) => {
-    const newExpanded = new Set(expandedAccounts);
-    if (newExpanded.has(compte)) {
-      newExpanded.delete(compte);
-    } else {
-      newExpanded.add(compte);
+  // Détail d'un compte ouvert dans la modale (toutes les écritures du compte, indép. du filtre liste)
+  const detailEntries = useMemo(() => {
+    if (!detailCompte) return [] as LettrageEntry[];
+    const q = modalSearch.trim().toLowerCase();
+    const qNum = q.replace(/[\s.,]/g, '');
+    return lettrageEntries
+      .filter(e => e.compte === detailCompte && (!modalOnlyNonLettre || !e.lettrage))
+      .filter(e => {
+        if (!q) return true;
+        const montant = String(Math.max(e.debit, e.credit));
+        return e.libelle.toLowerCase().includes(q)
+          || e.piece.toLowerCase().includes(q)
+          || (e.tiers || '').toLowerCase().includes(q)
+          || (qNum.length > 0 && montant.includes(qNum));
+      })
+      .sort((a, b) => {
+        if (modalSortByAmount) {
+          const ma = Math.max(a.debit, a.credit);
+          const mb = Math.max(b.debit, b.credit);
+          // Montants égaux regroupés ; débit avant crédit pour voir la paire
+          if (ma !== mb) return mb - ma;
+          return (b.debit > 0 ? 1 : 0) - (a.debit > 0 ? 1 : 0);
+        }
+        return a.date.localeCompare(b.date);
+      });
+  }, [detailCompte, lettrageEntries, modalOnlyNonLettre, modalSearch, modalSortByAmount]);
+
+  // Compteur vivant de la sélection (Débit / Crédit / Écart)
+  const selDetail = useMemo(() => {
+    const sel = lettrageEntries.filter(e => e.compte === detailCompte && selectedEntries.has(e.id));
+    const debit = sel.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0);
+    const credit = sel.reduce((s, e) => money(s).add(money(e.credit)).toNumber(), 0);
+    return { count: sel.length, debit, credit, ecart: money(debit).subtract(money(credit)).toNumber() };
+  }, [lettrageEntries, detailCompte, selectedEntries]);
+
+  // Suggestion : lignes candidates (montant opposé identique à une ligne cochée non lettrée)
+  const suggestedIds = useMemo(() => {
+    const ids = new Set<string>();
+    const sel = detailEntries.filter(e => selectedEntries.has(e.id) && !e.lettrage);
+    if (sel.length === 0) return ids;
+    for (const cand of detailEntries) {
+      if (cand.lettrage || selectedEntries.has(cand.id)) continue;
+      const candMag = Math.max(cand.debit, cand.credit);
+      const candIsDebit = cand.debit > 0;
+      for (const s of sel) {
+        const sMag = Math.max(s.debit, s.credit);
+        const sIsDebit = s.debit > 0;
+        if (candIsDebit !== sIsDebit && Math.abs(candMag - sMag) <= tolerance) { ids.add(cand.id); break; }
+      }
     }
-    setExpandedAccounts(newExpanded);
-  };
+    return ids;
+  }, [detailEntries, selectedEntries, tolerance]);
+
+  const detailMeta = useMemo(() => {
+    if (!detailCompte) return null;
+    const all = lettrageEntries.filter(e => e.compte === detailCompte);
+    const totalDebit = all.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0);
+    const totalCredit = all.reduce((s, e) => money(s).add(money(e.credit)).toNumber(), 0);
+    return {
+      compte: detailCompte,
+      compteLib: all.find(e => e.compteLib)?.compteLib || '',
+      tiers: all.find(e => e.tiers)?.tiers || '',
+      solde: money(totalDebit).subtract(money(totalCredit)).toNumber(),
+      nonLettres: all.filter(e => !e.lettrage).length,
+      lettrees: all.filter(e => e.lettrage).length,
+      total: all.length,
+    };
+  }, [detailCompte, lettrageEntries]);
 
   const toggleEntrySelection = (entryId: string) => {
     const newSelected = new Set(selectedEntries);
@@ -429,79 +495,45 @@ const Lettrage: React.FC = () => {
         <div className="flex-1 p-6 space-y-6">
           {/* Barre de recherche et filtres */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4 flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Rechercher par libellé ou numéro de pièce..."
-                    className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  />
-                </div>
-
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={showOnlyNonLettrage}
-                    onChange={(e) => setShowOnlyNonLettrage(e.target.checked)}
-                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                  />
-                  <span className="text-sm text-gray-600">Écritures non lettrées uniquement</span>
-                </label>
-
-                <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                  <option value="all">Tous les comptes</option>
-                  <option value="411">411 - Clients</option>
-                  <option value="401">401 - Fournisseurs</option>
-                  <option value="42">42 - Personnel</option>
-                  <option value="44">44 - État et collectivités</option>
-                </select>
+            <div className="flex items-center flex-wrap gap-4">
+              <div className="relative flex-1 min-w-[260px] max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher un compte, tiers, libellé ou n° de pièce..."
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
               </div>
 
-              <div className="flex items-center space-x-2">
-                {/* Toggle lettrage partiel */}
-                <label className="flex items-center space-x-2 mr-4">
-                  <input
-                    type="checkbox"
-                    checked={lettrageMode === 'partial'}
-                    onChange={(e) => setLettrageMode(e.target.checked ? 'partial' : 'complete')}
-                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-                  />
-                  <span className="text-sm text-gray-600">Lettrage partiel</span>
-                </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={showOnlyNonLettrage}
+                  onChange={(e) => setShowOnlyNonLettrage(e.target.checked)}
+                  className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                />
+                <span className="text-sm text-gray-600">Comptes avec écritures non lettrées</span>
+              </label>
 
-                <button
-                  onClick={handleLettrage}
-                  disabled={!canLettrage.valid || isSaving}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    canLettrage.valid
-                      ? canLettrage.partial
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                      : 'bg-gray-200 text-gray-700 cursor-not-allowed'
-                  }`}
-                  title={canLettrage.reason} aria-label="Valider">
-                  {canLettrage.partial ? (
-                    <>
-                      <Lock className="w-4 h-4 mr-2 inline" />
-                      Lettrage Partiel
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 mr-2 inline" />
-                      Lettrer
-                    </>
-                  )}
-                  ({selectedEntries.size})
-                </button>
-                <button className="px-4 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50 text-sm">
-                  <Unlink className="w-4 h-4 mr-2 inline" />
-                  Délettrer
-                </button>
-              </div>
+              <select
+                value={compteFilter}
+                onChange={(e) => setCompteFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              >
+                <option value="all">Tous les comptes</option>
+                <option value="411">411 - Clients</option>
+                <option value="401">401 - Fournisseurs</option>
+                <option value="42">42 - Personnel</option>
+                <option value="44">44 - État et collectivités</option>
+                <option value="46">46 - Débiteurs / créditeurs divers</option>
+              </select>
+
+              <span className="ml-auto text-xs text-gray-500 flex items-center gap-1">
+                <Info className="w-3.5 h-3.5" />
+                Cliquez sur un compte pour lettrer ses écritures
+              </span>
             </div>
           </div>
 
@@ -572,173 +604,69 @@ const Lettrage: React.FC = () => {
             </div>
           </div>
 
-          {/* Liste des comptes et écritures */}
+          {/* Liste des comptes tiers — cliquer pour ouvrir le détail/lettrage */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="max-h-[600px] overflow-y-auto">
-              {groupedEntries.map((group) => (
-                <div key={group.compte} className="border-b border-gray-200 last:border-b-0">
-                  {/* En-tête du compte */}
-                  <div
-                    className="bg-gray-50 p-4 flex items-center justify-between cursor-pointer hover:bg-gray-100"
-                    onClick={() => toggleAccountExpansion(group.compte)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      {expandedAccounts.has(group.compte) ? (
-                        <ChevronDown className="w-5 h-5 text-gray-700" />
-                      ) : (
-                        <ChevronRight className="w-5 h-5 text-gray-700" />
-                      )}
-                      <div>
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Compte</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Libellé / Tiers</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Solde</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrées</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Non lettrées</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {groupedEntries.length === 0 && (
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">Aucun compte à afficher pour ces critères.</td></tr>
+                )}
+                {groupedEntries.map((group) => {
+                  const lettrees = group.entries.filter((e: LettrageEntry) => e.lettrage).length;
+                  return (
+                    <tr
+                      key={group.compte}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => { setSelectedEntries(new Set()); setModalOnlyNonLettre(true); setModalSearch(''); setDetailCompte(group.compte); }}
+                    >
+                      <td className="px-4 py-3">
                         <span className="font-mono font-bold text-[var(--color-primary)]">{group.compte}</span>
-                        <span className="ml-2 text-gray-700">
-                          {group.compteLib ||
-                           (group.compte.startsWith('411') ? t('thirdParty.customers') :
-                            group.compte.startsWith('401') ? t('thirdParty.suppliers') :
-                            'Compte tiers')}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-6">
-                      <div className="text-sm">
-                        <span className="text-gray-600">Solde:</span>
-                        <span className={`ml-2 font-bold ${group.solde > 0 ? 'text-red-600' : group.solde < 0 ? 'text-green-600' : 'text-gray-900'}`}>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {group.compteLib ||
+                         (group.compte.startsWith('411') ? t('thirdParty.customers') :
+                          group.compte.startsWith('401') ? t('thirdParty.suppliers') :
+                          'Compte tiers')}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm">
+                        <span className={`font-bold ${group.solde > 0 ? 'text-red-600' : group.solde < 0 ? 'text-green-600' : 'text-gray-900'}`}>
                           {fmt(Math.abs(group.solde))}
                         </span>
-                        <span className="ml-1 text-gray-700">
-                          {group.solde > 0 ? '(Débiteur)' : group.solde < 0 ? '(Créditeur)' : '(Soldé)'}
+                        <span className="ml-1 text-xs text-gray-500">
+                          {group.solde > 0 ? '(D)' : group.solde < 0 ? '(C)' : ''}
                         </span>
-                      </div>
-                      {group.nonLettres > 0 && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">
-                          {group.nonLettres} non lettrées
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-500">{lettrees}</td>
+                      <td className="px-4 py-3 text-center">
+                        {group.nonLettres > 0 ? (
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-medium">
+                            {group.nonLettres}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-green-600">soldé</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium">
+                          <Eye className="w-3.5 h-3.5" /> Détailler
                         </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Écritures du compte */}
-                  {expandedAccounts.has(group.compte) && (
-                    <div className="bg-white">
-                      <table className="w-full">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
-                              <input
-                                type="checkbox"
-                                className="rounded border-gray-300"
-                                onChange={(e) => {
-                                  const accountEntries = group.entries.filter((e: LettrageEntry) => !e.lettrage);
-                                  if (e.target.checked) {
-                                    const newSelected = new Set(selectedEntries);
-                                    accountEntries.forEach((entry: LettrageEntry) => newSelected.add(entry.id));
-                                    setSelectedEntries(newSelected);
-                                  } else {
-                                    const newSelected = new Set(selectedEntries);
-                                    accountEntries.forEach((entry: LettrageEntry) => newSelected.delete(entry.id));
-                                    setSelectedEntries(newSelected);
-                                  }
-                                }}
-                              />
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('common.date')}</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.piece')}</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.label')}</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Tiers</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('accounting.journal')}</th>
-                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.debit')}</th>
-                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.credit')}</th>
-                            <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('thirdParty.matching')}</th>
-                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Échéance</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {group.entries.map((entry: LettrageEntry, index: number) => (
-                            <tr
-                              key={entry.id}
-                              className={`border-t hover:bg-gray-50 ${
-                                selectedEntries.has(entry.id) ? 'bg-blue-50' : ''
-                              }`}
-                            >
-                              <td className="px-4 py-2">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedEntries.has(entry.id)}
-                                  onChange={() => toggleEntrySelection(entry.id)}
-                                  disabled={!!entry.lettrage}
-                                  className="rounded border-gray-300 disabled:opacity-50"
-                                />
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-600">
-                                {new Date(entry.date).toLocaleDateString('fr-FR')}
-                              </td>
-                              <td className="px-4 py-2 text-sm font-mono text-gray-800">{entry.piece}</td>
-                              <td className="px-4 py-2 text-sm text-gray-900">{entry.libelle}</td>
-                              <td className="px-4 py-2 text-sm text-gray-600">{entry.tiers}</td>
-                              <td className="px-4 py-2 text-center">
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">
-                                  {entry.journal}
-                                </span>
-                              </td>
-                              <td className="px-4 py-2 text-right text-sm text-red-600 font-medium">
-                                {entry.debit > 0 ? fmt(entry.debit) : '-'}
-                              </td>
-                              <td className="px-4 py-2 text-right text-sm text-green-600 font-medium">
-                                {entry.credit > 0 ? fmt(entry.credit) : '-'}
-                              </td>
-                              <td className="px-4 py-2 text-center">
-                                {entry.lettrage ? (
-                                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-mono">
-                                    {entry.lettrage}
-                                  </span>
-                                ) : (
-                                  <span className="text-gray-700">-</span>
-                                )}
-                              </td>
-                              <td className="px-4 py-2 text-sm text-gray-600">
-                                {entry.echeance ? new Date(entry.echeance).toLocaleDateString('fr-FR') : '-'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-
-          {/* Barre d'information sur la sélection */}
-          {selectedEntries.size > 0 && (
-            <div className="fixed bottom-6 right-6 bg-white rounded-lg shadow-lg border border-gray-200 p-4 max-w-md">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {selectedEntries.size} écritures sélectionnées
-                  </p>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {canLettrage ? (
-                      <span className="text-green-600 flex items-center">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Équilibré - Prêt pour le lettrage
-                      </span>
-                    ) : (
-                      <span className="text-orange-600 flex items-center">
-                        <AlertTriangle className="w-3 h-3 mr-1" />
-                        Non équilibré - Sélectionnez d'autres écritures
-                      </span>
-                    )}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSelectedEntries(new Set())}
-                  className="text-gray-700 hover:text-gray-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -1337,6 +1265,210 @@ const Lettrage: React.FC = () => {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal détail / lettrage d'un compte tiers */}
+      {detailCompte && detailMeta && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/50" onClick={() => { setDetailCompte(null); setSelectedEntries(new Set()); }} />
+          <div className="relative z-[10000] w-full max-w-5xl bg-white rounded-xl shadow-2xl max-h-[90vh] flex flex-col">
+            {/* En-tête */}
+            <div className="flex items-start justify-between p-5 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
+                  <Link2 className="w-5 h-5 text-[var(--color-primary)]" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    <span className="font-mono">{detailMeta.compte}</span>
+                    <span className="ml-2 font-normal text-gray-600">
+                      {detailMeta.compteLib ||
+                       (detailMeta.compte.startsWith('411') ? t('thirdParty.customers') :
+                        detailMeta.compte.startsWith('401') ? t('thirdParty.suppliers') : 'Compte tiers')}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Solde&nbsp;
+                    <span className={`font-semibold ${detailMeta.solde > 0 ? 'text-red-600' : detailMeta.solde < 0 ? 'text-green-600' : 'text-gray-700'}`}>
+                      {fmt(Math.abs(detailMeta.solde))} {detailMeta.solde > 0 ? '(Débiteur)' : detailMeta.solde < 0 ? '(Créditeur)' : '(Soldé)'}
+                    </span>
+                    {' · '}{detailMeta.nonLettres} non lettrées · {detailMeta.lettrees} lettrées
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => { setDetailCompte(null); setSelectedEntries(new Set()); }} className="text-gray-400 hover:text-gray-700">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Barre d'actions */}
+            <div className="px-5 py-3 bg-gray-50 border-b border-gray-200 space-y-3">
+              <div className="flex items-center flex-wrap gap-3">
+                <div className="relative flex-1 min-w-[220px] max-w-sm">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={modalSearch}
+                    onChange={(e) => setModalSearch(e.target.value)}
+                    placeholder="Filtrer : montant, pièce, libellé…"
+                    className="pl-9 pr-3 py-2 w-full border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={modalSortByAmount}
+                    onChange={(e) => setModalSortByAmount(e.target.checked)}
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                  />
+                  <span className="text-sm text-gray-600 flex items-center gap-1"><ArrowUpDown className="w-3.5 h-3.5" />Trier par montant</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={!modalOnlyNonLettre}
+                    onChange={(e) => setModalOnlyNonLettre(!e.target.checked)}
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                  />
+                  <span className="text-sm text-gray-600">Voir les lettrées</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={lettrageMode === 'partial'}
+                    onChange={(e) => setLettrageMode(e.target.checked ? 'partial' : 'complete')}
+                    className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                  />
+                  <span className="text-sm text-gray-600">Partiel</span>
+                </label>
+              </div>
+
+              {/* Compteur vivant + action */}
+              <div className="flex items-center flex-wrap gap-3">
+                <div className="flex items-center gap-4 text-sm bg-white border border-gray-200 rounded-lg px-3 py-1.5">
+                  <span className="text-gray-500">{selDetail.count} sélectionnée(s)</span>
+                  <span className="text-red-600">Débit&nbsp;<span className="font-semibold">{fmt(selDetail.debit)}</span></span>
+                  <span className="text-green-600">Crédit&nbsp;<span className="font-semibold">{fmt(selDetail.credit)}</span></span>
+                  <span className={`font-semibold ${Math.abs(selDetail.ecart) <= tolerance ? 'text-green-700' : 'text-orange-600'}`}>
+                    Écart&nbsp;{fmt(Math.abs(selDetail.ecart))}
+                  </span>
+                </div>
+                <div className="ml-auto flex items-center gap-3">
+                  {selectedEntries.size > 0 && (
+                    <span className={`text-xs font-medium flex items-center gap-1 ${canLettrage.valid ? 'text-green-600' : 'text-orange-600'}`}>
+                      {canLettrage.valid ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                      {canLettrage.reason}
+                    </span>
+                  )}
+                  <button
+                    onClick={handleLettrage}
+                    disabled={!canLettrage.valid || isSaving}
+                    title={canLettrage.reason}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      canLettrage.valid
+                        ? (canLettrage as any).partial ? 'bg-yellow-600 text-white hover:bg-yellow-700' : 'bg-green-600 text-white hover:bg-green-700'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {(canLettrage as any).partial ? <Lock className="w-4 h-4 mr-2 inline" /> : <Check className="w-4 h-4 mr-2 inline" />}
+                    {(canLettrage as any).partial ? 'Lettrage partiel' : 'Lettrer'} ({selectedEntries.size})
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tableau des écritures */}
+            <div className="flex-1 overflow-y-auto">
+              <table className="w-full">
+                <thead className="bg-white sticky top-0 border-b border-gray-200 shadow-sm">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        checked={detailEntries.filter(e => !e.lettrage).length > 0 && detailEntries.filter(e => !e.lettrage).every(e => selectedEntries.has(e.id))}
+                        onChange={(e) => {
+                          const next = new Set(selectedEntries);
+                          detailEntries.filter(en => !en.lettrage).forEach(en => e.target.checked ? next.add(en.id) : next.delete(en.id));
+                          setSelectedEntries(next);
+                        }}
+                      />
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('common.date')}</th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.piece')}</th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.label')}</th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Tiers</th>
+                    <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('accounting.journal')}</th>
+                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.debit')}</th>
+                    <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.credit')}</th>
+                    <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('thirdParty.matching')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailEntries.length === 0 && (
+                    <tr><td colSpan={9} className="px-4 py-10 text-center text-sm text-gray-500">
+                      {modalOnlyNonLettre ? 'Toutes les écritures de ce compte sont lettrées.' : 'Aucune écriture.'}
+                    </td></tr>
+                  )}
+                  {detailEntries.map((entry) => (
+                    <tr
+                      key={entry.id}
+                      className={`border-t hover:bg-gray-50 ${
+                        selectedEntries.has(entry.id) ? 'bg-blue-50' :
+                        suggestedIds.has(entry.id) ? 'bg-amber-50 ring-1 ring-inset ring-amber-300' : ''
+                      } ${entry.lettrage ? 'opacity-70' : 'cursor-pointer'}`}
+                      title={suggestedIds.has(entry.id) ? 'Montant correspondant à votre sélection' : undefined}
+                      onClick={() => { if (!entry.lettrage) toggleEntrySelection(entry.id); }}
+                    >
+                      <td className="px-4 py-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedEntries.has(entry.id)}
+                          onChange={() => toggleEntrySelection(entry.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          disabled={!!entry.lettrage}
+                          className="rounded border-gray-300 disabled:opacity-50"
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{new Date(entry.date).toLocaleDateString('fr-FR')}</td>
+                      <td className="px-4 py-2 text-sm font-mono text-gray-800">{entry.piece}</td>
+                      <td className="px-4 py-2 text-sm text-gray-900">{entry.libelle}</td>
+                      <td className="px-4 py-2 text-sm text-gray-600">{entry.tiers}</td>
+                      <td className="px-4 py-2 text-center">
+                        <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">{entry.journal}</span>
+                      </td>
+                      <td className="px-4 py-2 text-right text-sm text-red-600 font-medium whitespace-nowrap">{entry.debit > 0 ? fmt(entry.debit) : '-'}</td>
+                      <td className="px-4 py-2 text-right text-sm text-green-600 font-medium whitespace-nowrap">{entry.credit > 0 ? fmt(entry.credit) : '-'}</td>
+                      <td className="px-4 py-2 text-center">
+                        {entry.lettrage ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); if (window.confirm(`Délettrer le code ${entry.lettrage} ?`)) handleDelettrage(entry.lettrage!); }}
+                            title="Cliquer pour délettrer"
+                            className="px-2 py-1 bg-green-100 text-green-800 hover:bg-red-100 hover:text-red-700 rounded text-xs font-mono inline-flex items-center gap-1"
+                          >
+                            {entry.lettrage} <Unlink className="w-3 h-3" />
+                          </button>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pied */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-gray-200 bg-gray-50">
+              <p className="text-xs text-gray-500">
+                Cochez une ligne : les montants correspondants sont surlignés en <span className="text-amber-600 font-medium">orange</span>. Équilibrez débit = crédit pour lettrer, ou cliquez un code pour délettrer.
+              </p>
+              <button onClick={() => { setDetailCompte(null); setSelectedEntries(new Set()); }} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white">
+                Fermer
+              </button>
             </div>
           </div>
         </div>
