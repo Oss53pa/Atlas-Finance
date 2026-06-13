@@ -52,8 +52,8 @@ import AffectationTab from './components/AffectationTab';
 
 type ClotureMode = 'mensuelle' | 'annuelle';
 
-type MonthlyTabId = 'dashboard' | 'verification' | 'regularisations' | 'controles' | 'verrouillage' | 'etats';
-type AnnualTabId = 'dashboard' | 'travaux' | 'inventaire' | 'controles' | 'etats' | 'validation' | 'affectation';
+type MonthlyTabId = 'dashboard' | 'cycle' | 'verification' | 'regularisations' | 'controles' | 'verrouillage' | 'etats';
+type AnnualTabId = 'dashboard' | 'cycle' | 'travaux' | 'inventaire' | 'controles' | 'etats' | 'validation' | 'affectation';
 
 type TabId = MonthlyTabId | AnnualTabId;
 
@@ -87,6 +87,7 @@ const STEP_ICON: Record<string, React.ReactNode> = {
 
 const MONTHLY_TABS: { id: MonthlyTabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard',        label: 'Tableau de bord',   icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'cycle',            label: 'Cycle de clôture',  icon: <Play className="w-4 h-4" /> },
   { id: 'verification',     label: 'Vérification',      icon: <ClipboardCheck className="w-4 h-4" /> },
   { id: 'regularisations',  label: 'Régularisations',   icon: <BookOpen className="w-4 h-4" /> },
   { id: 'controles',        label: 'Contrôles',         icon: <Shield className="w-4 h-4" /> },
@@ -96,6 +97,7 @@ const MONTHLY_TABS: { id: MonthlyTabId; label: string; icon: React.ReactNode }[]
 
 const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard',   label: 'Tableau de bord',       icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'cycle',       label: 'Cycle de clôture',       icon: <Play className="w-4 h-4" /> },
   { id: 'travaux',     label: 'Travaux préparatoires',  icon: <Settings className="w-4 h-4" /> },
   { id: 'inventaire',  label: 'Écritures d\'inventaire', icon: <BookOpen className="w-4 h-4" /> },
   { id: 'controles',   label: 'Contrôles',              icon: <Shield className="w-4 h-4" /> },
@@ -422,26 +424,28 @@ function CloturesPeriodiquesPage() {
       <div>
         {/* ===== SHARED: Dashboard ===== */}
         {tab === 'dashboard' && (
-          <>
-            <DashboardSection
-              mode={mode}
-              loading={dashLoading}
-              activeFY={selectedFY}
-              stats={fyStats}
-              sessions={sessions}
-              periods={periods}
-              selectedPeriod={selectedPeriod}
-            />
-            <CycleExecutionSection
-              mode={mode}
-              steps={steps}
-              executing={executing}
-              selectedFYId={selectedFYId}
-              selectedPeriodId={selectedPeriodId}
-              onExecuteStep={handleExecuteStep}
-              onExecuteAll={handleExecuteAll}
-            />
-          </>
+          <DashboardSection
+            mode={mode}
+            loading={dashLoading}
+            activeFY={selectedFY}
+            stats={fyStats}
+            sessions={sessions}
+            periods={periods}
+            selectedPeriod={selectedPeriod}
+          />
+        )}
+
+        {/* ===== SHARED: Cycle de clôture (onglet dédié) ===== */}
+        {tab === 'cycle' && (
+          <CycleExecutionSection
+            mode={mode}
+            steps={steps}
+            executing={executing}
+            selectedFYId={selectedFYId}
+            selectedPeriodId={selectedPeriodId}
+            onExecuteStep={handleExecuteStep}
+            onExecuteAll={handleExecuteAll}
+          />
         )}
 
         {/* ===== MONTHLY TABS ===== */}
