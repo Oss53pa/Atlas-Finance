@@ -120,6 +120,8 @@ const TreasuryPositions: React.FC = () => {
   // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
   const [planLines, setPlanLines] = useState<{ date: string; net: number }[]>([]);
   const [horizon, setHorizon] = useState<7 | 30 | 90>(30);
+  // Sélecteur de banque/compte du cockpit ('all' = consolidé).
+  const [selectedPosBank, setSelectedPosBank] = useState<string>('all');
 
   useEffect(() => {
     const load = async () => {
@@ -430,12 +432,16 @@ const TreasuryPositions: React.FC = () => {
             if (a >= 1e6) return s + (a / 1e6).toFixed(0) + ' M';
             return formatCurrency(n);
           };
-          const tot = glPosition.reduce(
+          // Filtrage par banque/compte sélectionné ('all' = consolidé).
+          const view = selectedPosBank === 'all' ? glPosition : glPosition.filter(p => p.code === selectedPosBank);
+          const floatView = selectedPosBank === 'all' ? glFloat : glFloat.filter(f => f.code === selectedPosBank);
+          const tot = view.reduce(
             (a, p) => ({ solde: a.solde + p.solde, recus: a.recus + p.recus, emis: a.emis + p.emis, rappro: a.rappro + p.rappro }),
             { solde: 0, recus: 0, emis: 0, rappro: 0 },
           );
           const theorique = tot.solde - tot.emis + tot.recus;
 
+          // Concentration : toujours sur l'ENSEMBLE des banques (sinon 100 % trivial).
           const totalReel = glPosition.reduce((s, p) => s + Math.max(0, p.solde), 0);
           const concentration = glPosition
             .map(p => ({ nom: p.name, code: p.code, pct: totalReel ? (Math.max(0, p.solde) / totalReel) * 100 : 0 }))
@@ -443,7 +449,7 @@ const TreasuryPositions: React.FC = () => {
 
           // Moteur déterministe (données réelles) : alertes + recommandations.
           const alertes: { sev: 'critique' | 'attention' | 'info'; titre: string; banque: string; detail: string }[] = [];
-          glPosition.filter(p => p.solde < 0).forEach(p => alertes.push({
+          view.filter(p => p.solde < 0).forEach(p => alertes.push({
             sev: 'critique', titre: 'Solde négatif', banque: `${p.code} ${p.name}`,
             detail: `Position débitrice de ${formatCurrency(Math.abs(p.solde))}. Régulariser ou niveler.`,
           }));
@@ -485,6 +491,24 @@ const TreasuryPositions: React.FC = () => {
 
           return (
             <div className="space-y-5">
+              {/* Sélecteur de banque/compte (chips) — filtre KPIs, détail et flux. */}
+              <div className="flex flex-wrap gap-2">
+                {[{ code: 'all', name: 'Toutes les banques' }, ...glPosition.map(p => ({ code: p.code, name: p.name }))].map(b => (
+                  <button
+                    key={b.code}
+                    onClick={() => setSelectedPosBank(b.code)}
+                    className="text-sm px-3.5 py-1.5 rounded-full border transition-colors"
+                    style={{
+                      borderColor: selectedPosBank === b.code ? AMBER : 'var(--color-border)',
+                      background: selectedPosBank === b.code ? 'rgba(232,154,46,0.12)' : 'var(--color-surface)',
+                      color: selectedPosBank === b.code ? AMBER : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {b.code === 'all' ? b.name : `${b.code} · ${b.name}`}
+                  </button>
+                ))}
+              </div>
+
               {/* KPIs */}
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))' }}>
                 <KpiCard label="Solde réel" value={tot.solde} sub="Ce qui est dans les comptes" color={PETROL} />
@@ -587,7 +611,7 @@ const TreasuryPositions: React.FC = () => {
 
               {/* Détail par compte */}
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
-                {glPosition.map(p => {
+                {view.map(p => {
                   const th = p.solde - p.emis + p.recus;
                   const tension = p.solde < 0;
                   return (
@@ -623,10 +647,10 @@ const TreasuryPositions: React.FC = () => {
                 </div>
                 <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
                   <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span></h3>
-                  {glFloat.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
+                  {floatView.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
                     <div className="flex flex-col gap-1" style={{ maxHeight: 280, overflowY: 'auto' }}>
-                      {glFloat.map((f, i) => (
-                        <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < glFloat.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                      {floatView.map((f, i) => (
+                        <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < floatView.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center" style={{ background: f.sens === 'emis' ? 'rgba(226,75,74,0.12)' : 'rgba(29,158,117,0.12)', color: f.sens === 'emis' ? ROUGE : VERT }}>{f.sens === 'emis' ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span>
                             <div className="min-w-0"><div className="text-sm truncate text-[var(--color-text-primary)]">{f.libelle}</div><div className="text-xs text-[var(--color-text-secondary)]">{f.code} {f.accountName}</div></div>
