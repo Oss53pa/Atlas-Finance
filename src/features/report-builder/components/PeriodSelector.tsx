@@ -30,6 +30,8 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
   const [year, setYear] = useState(currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
   const [quarter, setQuarter] = useState(Math.floor(new Date().getMonth() / 3));
+  const [customStart, setCustomStart] = useState(doc?.period.startDate || `${currentYear}-01-01`);
+  const [customEnd, setCustomEnd] = useState(doc?.period.endDate || new Date().toISOString().split('T')[0]);
 
   const handleApply = () => {
     let period: PeriodSelection;
@@ -55,12 +57,23 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
         period = { type, startDate: `${year}-01-01`, endDate, label: `YTD ${year}`, includeYTD: true };
         break;
       }
+      case 'custom': {
+        if (!customStart || !customEnd || customStart > customEnd) {
+          // garde-fou : dates invalides → on n'applique pas
+          return;
+        }
+        const fmt = (d: string) => new Date(d).toLocaleDateString('fr-FR');
+        period = { type: 'custom', startDate: customStart, endDate: customEnd, label: `${fmt(customStart)} → ${fmt(customEnd)}` };
+        break;
+      }
       default:
         period = { type: 'annual', startDate: `${year}-01-01`, endDate: `${year}-12-31`, label: `Exercice ${year}` };
     }
     setPeriod(period);
     onClose();
   };
+
+  const customInvalid = type === 'custom' && (!customStart || !customEnd || customStart > customEnd);
 
   return (
     <div className="bg-white rounded-lg shadow-xl border border-neutral-200 p-4 w-[300px]" onClick={e => e.stopPropagation()}>
@@ -86,14 +99,44 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
         </div>
       </div>
 
-      <div className="mb-3">
-        <label className="text-[11px] text-neutral-500 mb-1 block">Année</label>
-        <select value={year} onChange={e => setYear(Number(e.target.value))} className="w-full text-xs border border-neutral-200 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-neutral-500">
-          {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
-            <option key={y} value={y}>{y}</option>
-          ))}
-        </select>
-      </div>
+      {type !== 'custom' && (
+        <div className="mb-3">
+          <label className="text-[11px] text-neutral-500 mb-1 block">Année</label>
+          <select value={year} onChange={e => setYear(Number(e.target.value))} className="w-full text-xs border border-neutral-200 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-neutral-500">
+            {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {type === 'custom' && (
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-[11px] text-neutral-500 mb-1 block">Du</label>
+            <input
+              type="date"
+              value={customStart}
+              max={customEnd || undefined}
+              onChange={e => setCustomStart(e.target.value)}
+              className="w-full text-xs border border-neutral-200 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-neutral-500"
+            />
+          </div>
+          <div>
+            <label className="text-[11px] text-neutral-500 mb-1 block">Au</label>
+            <input
+              type="date"
+              value={customEnd}
+              min={customStart || undefined}
+              onChange={e => setCustomEnd(e.target.value)}
+              className="w-full text-xs border border-neutral-200 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-neutral-500"
+            />
+          </div>
+          {customInvalid && (
+            <p className="col-span-2 text-[10px] text-red-600">La date de début doit précéder la date de fin.</p>
+          )}
+        </div>
+      )}
 
       {type === 'monthly' && (
         <div className="mb-3">
@@ -135,7 +178,8 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
 
       <button
         onClick={handleApply}
-        className="w-full mt-2 py-2 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-md"
+        disabled={customInvalid}
+        className="w-full mt-2 py-2 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-md disabled:opacity-40 disabled:cursor-not-allowed"
       >
         Appliquer
       </button>
