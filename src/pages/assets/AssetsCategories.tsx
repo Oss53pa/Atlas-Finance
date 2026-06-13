@@ -9,6 +9,7 @@ import {
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
+import { formatCurrency } from '../../utils/formatters';
 
 interface SubCategory {
   id: number;
@@ -355,7 +356,7 @@ const AssetsCategories: React.FC = () => {
                           </td>
                           <td className="p-3 text-right">
                             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                              {(category.value / 1000).toLocaleString()}K
+                              {formatCurrency(category.value)}
                             </span>
                           </td>
                           <td className="p-3 text-center">
@@ -395,7 +396,7 @@ const AssetsCategories: React.FC = () => {
                             </td>
                             <td className="p-3 text-right">
                               <span className="text-sm text-[var(--color-text-primary)]">
-                                {(child.value / 1000).toLocaleString()}K
+                                {formatCurrency(child.value)}
                               </span>
                             </td>
                             <td className="p-3 text-center">
@@ -468,7 +469,7 @@ const AssetsCategories: React.FC = () => {
                       <div>
                         <p className="text-xs text-[var(--color-text-secondary)]">Valeur</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
-                          {(category.value / 1000000).toFixed(2)}M
+                          {formatCurrency(category.value)}
                         </p>
                       </div>
                       <div>
@@ -497,7 +498,7 @@ const AssetsCategories: React.FC = () => {
                             </div>
                             <div className="text-right">
                               <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                                {(child.value / 1000).toFixed(0)}K
+                                {formatCurrency(child.value)}
                               </p>
                               <p className="text-xs text-[var(--color-text-secondary)]">
                                 {child.depreciationRate}

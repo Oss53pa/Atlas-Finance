@@ -588,27 +588,36 @@ const AssetsRegistry: React.FC = () => {
     }
   };
 
-  // Calculer les catégories dynamiquement depuis les immobilisations chargées
+  // Calculer les catégories par CLASSE SYSCOHADA (le champ `category` vaut une
+  // seule valeur en base → tout tombait dans « Autre »). On dérive la classe du
+  // n° de compte (asset_class « 23 - … » → 23) et on l'étiquette officiellement.
   const assetCategories: AssetCategory[] = useMemo(() => {
+    const CLASS_LABELS: Record<string, string> = {
+      '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
+      '23': 'Bâtiments & installations', '24': 'Matériel, mobilier & transport',
+      '25': 'Avances & acomptes', '26': 'Titres de participation', '27': 'Autres immo. financières',
+    };
     const catMap: Record<string, { count: number; totalValue: number; totalAge: number; totalRate: number }> = {};
     const now = new Date();
     for (const asset of assets) {
-      const cat = asset.category || 'Autre';
-      if (!catMap[cat]) catMap[cat] = { count: 0, totalValue: 0, totalAge: 0, totalRate: 0 };
-      catMap[cat].count++;
-      catMap[cat].totalValue += asset.acquisition_cost || 0;
+      const code = (asset.asset_class || '').substring(0, 2) || '21';
+      if (!catMap[code]) catMap[code] = { count: 0, totalValue: 0, totalAge: 0, totalRate: 0 };
+      catMap[code].count++;
+      catMap[code].totalValue += asset.acquisition_cost || 0;
       const acqDate = new Date(asset.acquisition_date || now);
-      catMap[cat].totalAge += (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      catMap[cat].totalRate += asset.depreciation_rate || 0;
+      catMap[code].totalAge += (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+      catMap[code].totalRate += asset.depreciation_rate || 0;
     }
-    return Object.entries(catMap).map(([name, data]) => ({
-      code: name.toLowerCase().replace(/\s+/g, '_'),
-      name,
-      count: data.count,
-      totalValue: data.totalValue,
-      averageAge: data.count > 0 ? new Money(data.totalAge).divide(data.count).round(1).toNumber() : 0,
-      depreciationRate: data.count > 0 ? new Money(data.totalRate).divide(data.count).divide(100).round(4).toNumber() : 0,
-    }));
+    return Object.entries(catMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([code, data]) => ({
+        code,
+        name: CLASS_LABELS[code] || `Classe ${code}`,
+        count: data.count,
+        totalValue: data.totalValue,
+        averageAge: data.count > 0 ? new Money(data.totalAge).divide(data.count).round(1).toNumber() : 0,
+        depreciationRate: data.count > 0 ? new Money(data.totalRate).divide(data.count).divide(100).round(4).toNumber() : 0,
+      }));
   }, [assets]);
 
   // Filter assets based on search and filters
@@ -711,14 +720,15 @@ const AssetsRegistry: React.FC = () => {
 
   const uniqueLocations = [...new Set(assets.map(a => a.location.split(' - ')[0]))];
 
-  const chartData = assetCategories.map(cat => ({
-    label: cat.name.replace(' ', '\n'),
-    value: cat.totalValue / 1000,
-    color: cat.code === 'materiel_informatique' ? 'bg-[var(--color-primary)]' :
-           cat.code === 'vehicules' ? 'bg-green-500' :
-           cat.code === 'mobilier' ? 'bg-[var(--color-text-secondary)]' :
-           cat.code === 'equipements' ? 'bg-orange-500' : 'bg-red-500'
-  }));
+  const CHART_PALETTE = ['bg-[var(--color-primary)]', 'bg-green-500', 'bg-orange-500', 'bg-[var(--color-text-secondary)]', 'bg-red-500', 'bg-blue-500'];
+  const chartData = [...assetCategories]
+    .filter(c => c.totalValue > 0)
+    .sort((a, b) => b.totalValue - a.totalValue)
+    .map((cat, i) => ({
+      label: cat.name,
+      value: cat.totalValue,
+      color: CHART_PALETTE[i % CHART_PALETTE.length],
+    }));
 
   const conditionChartData = [
     { label: 'En Service', value: filteredAssets.filter(a => a.status === 'en_service').length, color: 'bg-green-500' },

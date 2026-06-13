@@ -171,8 +171,12 @@ const AssetsSummary: React.FC = () => {
     () => (dbAssets.length ? dbAssets.reduce((sum, a) => sum + a.acquisitionValue, 0) : glAssets.gross),
     [dbAssets, glAssets],
   );
+  // VNC = valeur brute − amortissements cumulés. `residualValue` vaut 0 dans la
+  // base (non renseignée) → utiliser acquisitionValue − cumulDepreciation.
   const totalResidualValue = useMemo(
-    () => (dbAssets.length ? dbAssets.reduce((sum, a) => sum + a.residualValue, 0) : Math.max(glAssets.gross - glAssets.amort, 0)),
+    () => (dbAssets.length
+      ? dbAssets.reduce((sum, a) => sum + Math.max(0, (a.acquisitionValue || 0) - ((a as any).cumulDepreciation || 0)), 0)
+      : Math.max(glAssets.gross - glAssets.amort, 0)),
     [dbAssets, glAssets],
   );
   const activeAssets = useMemo(() => dbAssets.filter(a => a.status === 'active'), [dbAssets]);
