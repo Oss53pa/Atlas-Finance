@@ -83,7 +83,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('account_management');
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   // Onglet « Transactions futures » : banque sélectionnée (pilote selectedAccounts).
-  const [futureBank, setFutureBank] = useState<string>('');
+  // 'all' par défaut → cartes Cash remplies d'emblée.
+  const [futureBank, setFutureBank] = useState<string>('all');
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<TreasuryPlan | null>(null);
   const [detailPlan, setDetailPlan] = useState<TreasuryPlan | null>(null);
@@ -184,6 +185,15 @@ const PrevisionsTresoreriePage: React.FC = () => {
       return { number: acct.code, description: acct.name, iban: '-', swift: '-', amount: balance, bank: bankName };
     });
   }, [treasurySettingRaw, dbAccounts, journalEntries]);
+
+  // Présélection : avec « Toutes les banques » par défaut, sélectionner tous les
+  // comptes dès qu'ils sont chargés → cartes Cash + transactions futures remplies.
+  useEffect(() => {
+    if (futureBank === 'all' && selectedAccounts.length === 0 && allTreasuryAccounts.length > 0) {
+      setSelectedAccounts(allTreasuryAccounts.map(a => a.number));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allTreasuryAccounts]);
 
   // ──────── Future transactions ────────
 
