@@ -82,6 +82,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('account_management');
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
+  // Onglet « Transactions futures » : banque sélectionnée (pilote selectedAccounts).
+  const [futureBank, setFutureBank] = useState<string>('');
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<TreasuryPlan | null>(null);
   const [detailPlan, setDetailPlan] = useState<TreasuryPlan | null>(null);
@@ -480,6 +482,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
         <nav className="flex space-x-8">
           {[
             { key: 'account_management', label: 'Account Management' },
+            { key: 'future', label: 'Transactions futures' },
             { key: 'prevision_tresorerie', label: 'Prévision de trésorerie' },
           ].map(tab => (
             <button
@@ -520,13 +523,11 @@ const PrevisionsTresoreriePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Comptes de trésorerie ⇄ Transactions futures + Cash : CÔTE À CÔTE. */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
-          {/* Account table (gauche) */}
+          {/* Comptes de trésorerie — pleine largeur. */}
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Comptes de trésorerie</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Cochez des comptes pour voir leurs flux à droite →</p>
+              <p className="text-xs text-gray-500 mt-0.5">Les transactions futures par banque sont dans l'onglet « Transactions futures ».</p>
             </div>
             <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto">
               <table className="w-full">
@@ -580,67 +581,116 @@ const PrevisionsTresoreriePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Future transactions table */}
-          <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Future transaction</h3>
+        </div>
+      )}
+
+      {/* ═══════════ TAB: Transactions futures ═══════════ */}
+      {activeTab === 'future' && (
+        <div className="space-y-3">
+          {/* Sélecteur de banque : filtre les transactions et alimente les cartes Cash. */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-wrap items-center gap-3">
+            <label className="text-sm font-medium text-[var(--color-text-primary)]">Banque</label>
+            <select
+              value={futureBank}
+              onChange={(e) => {
+                const v = e.target.value;
+                setFutureBank(v);
+                if (v === 'all') setSelectedAccounts(allTreasuryAccounts.map(a => a.number));
+                else if (v === '') setSelectedAccounts([]);
+                else setSelectedAccounts(allTreasuryAccounts.filter(a => a.bank === v).map(a => a.number));
+              }}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              <option value="">— Choisir une banque —</option>
+              <option value="all">Toutes les banques</option>
+              {[...new Set(allTreasuryAccounts.map(a => a.bank))].sort().map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+            <span className="text-xs text-gray-500">Affiche les transactions futures de la banque et alimente les cartes Cash ci-dessous.</span>
+          </div>
+
+          {/* Cartes Cash (alimentées par la sélection) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600">Incoming</div>
+              <div className="font-bold text-green-600">{formatCurrency(totalIncoming)}</div>
             </div>
-            <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto mb-4">
-              <table className="w-full">
-                <thead className="bg-gray-50 sticky top-0">
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600">Outcoming</div>
+              <div className="font-bold text-red-600">{formatCurrency(totalOutgoing)}</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600">Total</div>
+              <div className="font-bold">{formatCurrency(getTotalAmount())}</div>
+            </div>
+            <div className="text-center p-3 bg-[var(--color-primary)]/10 rounded-lg border border-[var(--color-primary)]">
+              <div className="text-sm text-[var(--color-text-primary)] font-medium">Solde Final</div>
+              <div className={`font-bold ${(getTotalAmount() + getFilteredTransactionsTotal()) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(getTotalAmount() + getFilteredTransactionsTotal())}
+              </div>
+            </div>
+          </div>
+
+          {/* Table des transactions futures — pleine largeur, colonnes compactes, scroll horizontal. */}
+          <div className="bg-white border border-gray-200 rounded-lg">
+            <div className="p-3 border-b border-gray-200">
+              <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Future transaction</h3>
+            </div>
+            <div style={{ maxHeight: '60vh' }} className="overflow-auto">
+              <table className="w-full min-w-[1080px] text-sm">
+                <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Code journal</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">N°facture</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">N° de pièce</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Document date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Transaction date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">GL Account</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">GL description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Cash transaction</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Transaction amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Collection date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Accountant</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Journal</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N°facture</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° pièce</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date doc.</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date trans.</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Compte</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
+                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-700 uppercase">Sens</th>
+                    <th className="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Encaiss.</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Comptable</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {getFilteredTransactions().length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-4 py-8 text-center text-gray-700">
+                      <td colSpan={11} className="px-3 py-8 text-center text-gray-500">
                         {selectedAccounts.length === 0
-                          ? 'Sélectionnez des comptes ci-dessus pour voir les événements'
-                          : 'Aucun événement pour les comptes sélectionnés'}
+                          ? 'Choisissez une banque ci-dessus pour voir les transactions futures.'
+                          : 'Aucune transaction future pour cette banque.'}
                       </td>
                     </tr>
                   ) : (
                     getFilteredTransactions().map((transaction, index) => (
                       <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{transaction.codeJournal}</td>
-                        <td className="px-4 py-3">{transaction.numFacture}</td>
-                        <td className="px-4 py-3">{transaction.numPiece}</td>
-                        <td className="px-4 py-3">{transaction.docDate}</td>
-                        <td className="px-4 py-3">{transaction.transDate}</td>
-                        <td className="px-4 py-3 font-mono text-sm">{transaction.glAccount}</td>
-                        <td className="px-4 py-3">{transaction.glDescription}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        <td className="px-2 py-1.5 font-medium">{transaction.codeJournal}</td>
+                        <td className="px-2 py-1.5 text-xs">{transaction.numFacture}</td>
+                        <td className="px-2 py-1.5 text-xs">{transaction.numPiece}</td>
+                        <td className="px-2 py-1.5 text-xs whitespace-nowrap">{transaction.docDate}</td>
+                        <td className="px-2 py-1.5 text-xs whitespace-nowrap">{transaction.transDate}</td>
+                        <td className="px-2 py-1.5 font-mono text-xs">{transaction.glAccount}</td>
+                        <td className="px-2 py-1.5 text-xs max-w-[220px] truncate" title={transaction.glDescription}>{transaction.glDescription}</td>
+                        <td className="px-2 py-1.5 text-center">
+                          <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full ${
                             transaction.cashTransaction === 'IN' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
                             {transaction.cashTransaction}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-bold">
+                        <td className="px-2 py-1.5 text-right font-bold whitespace-nowrap">
                           <span className={transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'}>
                             {formatCurrency(transaction.amount)}
                           </span>
                         </td>
-                        <td className="px-4 py-3">{transaction.collectionDate}</td>
-                        <td className="px-4 py-3">{transaction.accountant}</td>
+                        <td className="px-2 py-1.5 text-xs whitespace-nowrap">{transaction.collectionDate}</td>
+                        <td className="px-2 py-1.5 text-xs">{transaction.accountant}</td>
                       </tr>
                     ))
                   )}
                   <tr className="bg-gray-50 border-t-2 border-gray-300">
-                    <td colSpan={8} className="px-4 py-3 font-bold text-[var(--color-text-primary)]">Solde :</td>
-                    <td className="px-4 py-3 text-right font-bold text-[var(--color-text-primary)]">
+                    <td colSpan={8} className="px-2 py-2 font-bold text-[var(--color-text-primary)]">Solde :</td>
+                    <td className="px-2 py-2 text-right font-bold text-[var(--color-text-primary)] whitespace-nowrap">
                       {formatCurrency(getFilteredTransactionsTotal())}
                     </td>
                     <td colSpan={2}></td>
@@ -648,32 +698,6 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* Cash Summary */}
-            <div className="p-4 bg-gray-50 rounded-b-lg">
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Cash</h4>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="text-center p-3 bg-white rounded border">
-                  <div className="text-sm text-gray-600">Incoming</div>
-                  <div className="font-bold text-green-600">{formatCurrency(totalIncoming)}</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded border">
-                  <div className="text-sm text-gray-600">Outcoming</div>
-                  <div className="font-bold text-red-600">{formatCurrency(totalOutgoing)}</div>
-                </div>
-                <div className="text-center p-3 bg-white rounded border">
-                  <div className="text-sm text-gray-600">Total</div>
-                  <div className="font-bold">{formatCurrency(getTotalAmount())}</div>
-                </div>
-                <div className="text-center p-3 bg-[var(--color-primary)]/10 rounded border border-[var(--color-primary)]">
-                  <div className="text-sm text-[var(--color-text-primary)] font-medium">Solde Final</div>
-                  <div className={`font-bold ${(getTotalAmount() + getFilteredTransactionsTotal()) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {formatCurrency(getTotalAmount() + getFilteredTransactionsTotal())}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
           </div>
         </div>
       )}
