@@ -59,6 +59,9 @@ const AdvancedGeneralLedger: React.FC = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [selectedClasse, setSelectedClasse] = useState<string>('all');
+  // Affichage du solde dans le Grand Livre : 'progressif' (solde cumulé ligne à ligne)
+  // ou 'dc' (colonnes Solde Débiteur / Solde Créditeur).
+  const [soldeMode, setSoldeMode] = useState<'progressif' | 'dc'>('progressif');
   const [showFilters, setShowFilters] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -1663,6 +1666,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <option value="6">Classe 6 - Comptes de charges</option>
                     <option value="7">Classe 7 - Comptes de produits</option>
                   </select>
+                  <select
+                    value={soldeMode}
+                    onChange={(e) => setSoldeMode(e.target.value as 'progressif' | 'dc')}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+                    title="Affichage du solde"
+                  >
+                    <option value="progressif">Solde progressif</option>
+                    <option value="dc">Solde Débiteur / Créditeur</option>
+                  </select>
                   <button className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
                     <Calendar className="w-4 h-4 mr-1 inline" />
                     Période
@@ -1861,7 +1873,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                                       <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('thirdParty.reconciliation')}</th>
                                       <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.debit')}</th>
                                       <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.credit')}</th>
-                                      <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
+                                      {soldeMode === 'progressif' ? (
+                                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde progressif</th>
+                                      ) : (
+                                        <>
+                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde Débiteur</th>
+                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde Créditeur</th>
+                                        </>
+                                      )}
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -1893,9 +1912,20 @@ const AdvancedGeneralLedger: React.FC = () => {
                                         <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">
                                           {mouvement.credit > 0 ? fmt(mouvement.credit) : '-'}
                                         </td>
-                                        <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">
-                                          {fmt(mouvement.solde)}
-                                        </td>
+                                        {soldeMode === 'progressif' ? (
+                                          <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">
+                                            {fmt(mouvement.solde)}
+                                          </td>
+                                        ) : (
+                                          <>
+                                            <td className="px-3 py-2 text-right font-semibold text-red-700 text-xs">
+                                              {mouvement.solde > 0 ? fmt(mouvement.solde) : '-'}
+                                            </td>
+                                            <td className="px-3 py-2 text-right font-semibold text-green-700 text-xs">
+                                              {mouvement.solde < 0 ? fmt(Math.abs(mouvement.solde)) : '-'}
+                                            </td>
+                                          </>
+                                        )}
                                       </tr>
                                     ))}
                                   </tbody>
