@@ -263,6 +263,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-control', label: 'Contrôle Budgétaire', path: '/budgeting/control', icon: <ChartBar className="w-4 h-4" /> },
       { id: 'analytical', label: 'Comptabilité Analytique', path: '/analytics', icon: <PieChart className="w-4 h-4" /> },
+      { id: 'analytique-sections', label: 'Sections & Performance', path: '/analytique', icon: <Target className="w-4 h-4" /> },
       { id: 'cost-centers', label: 'Centres de Coûts', path: '/analytics/cost-centers', icon: <Database className="w-4 h-4" /> },
       { id: 'variance', label: 'Analyse des Écarts', path: '/financial-analysis-advanced', icon: <Activity className="w-4 h-4" /> },
       { id: 'dashboards', label: 'Tableaux de Bord', path: '/budgeting/list', icon: <BarChart3 className="w-4 h-4" /> },
