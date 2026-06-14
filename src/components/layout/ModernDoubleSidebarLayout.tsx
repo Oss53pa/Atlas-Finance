@@ -254,6 +254,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'effets-commerce', label: 'Effets de Commerce', path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
     ],
     control: [
+      { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
+      { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-control', label: 'Contrôle Budgétaire', path: '/budgeting/control', icon: <ChartBar className="w-4 h-4" /> },
       { id: 'analytical', label: 'Comptabilité Analytique', path: '/analytics', icon: <PieChart className="w-4 h-4" /> },

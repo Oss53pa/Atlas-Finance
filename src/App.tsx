@@ -140,6 +140,8 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 
 // Tresorerie
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
+const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
+const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
 const BankAccountsPage = lazyRetry(() => import('./pages/treasury/BankAccountsPage'));
 const FundCallsPage = lazyRetry(() => import('./pages/treasury/FundCallsPage'));
 const TreasuryPositions = lazyRetry(() => import('./pages/treasury/TreasuryPositions'));
@@ -403,6 +405,8 @@ function App() {
                           <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
                           <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
                           <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
+                          <Route path="/budget/cockpit" element={work(<BudgetCockpitPage />)} />
+                          <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
                         </Route>
 
                         {/* Tiers */}
