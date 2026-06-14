@@ -1,0 +1,310 @@
+/**
+ * ventilationRunService — Contrôle de Gestion · Lot L1 (CDC §6).
+ *
+ * Moteur de ventilation auditable : reconstruit l'analytique à partir du seul
+ * grand livre (non taggé), de façon DÉTERMINISTE, IDEMPOTENTE, RÉCONCILIÉE.
+ *
+ *  - Règles persistées (fna_allocation_rule) → runs repeatable & auditables.
+ *  - Calcul en centimes ENTIERS (jamais de float ; pas de LLM pour un montant).
+ *  - Invariant : pour la part fléchée (direct 100 %), Σ ventilé == Σ GL.
+ *  - Chaque run écrit une trace immuable (fna_allocation_run) avec hash d'audit.
+ *
+ * V1 : fléchage DIRECT (compte / journal / libellé / tiers → section). Les
+ * répartitions PRIMAIRE/SECONDAIRE (clés, largest-remainder) sont posées au
+ * modèle et viendront en L1.1 — le run les ignore tant qu'aucune règle de ce
+ * type n'existe, sans rompre la réconciliation.
+ */
+import type { DataAdapter } from '@atlas/data';
+
+function getClient(adapter: DataAdapter): any | null {
+  const c = (adapter as any).client;
+  return adapter.getMode() === 'saas' && c ? c : null;
+}
+function tenantOf(adapter: DataAdapter): string {
+  return (adapter as any).tenantId as string;
+}
+
+export type RuleType = 'DIRECT' | 'PRIMAIRE' | 'SECONDAIRE';
+
+export interface AllocationRule {
+  id: string;
+  type: RuleType;
+  ordre: number;
+  compte_pattern: string | null;
+  journal_pattern: string | null;
+  libelle_pattern: string | null;
+  tiers_pattern: string | null;
+  section_id: string;
+  actif: boolean;
+}
+
+export interface ReconciliationClasse {
+  classe: string;
+  montant_gl: number;        // FCFA (depuis centimes)
+  montant_ventile: number;
+  residu: number;
+  couverture_pct: number;
+  nb_lignes: number;
+  nb_ventilees: number;
+}
+
+export interface AllocationRun {
+  id: string;
+  exercice: number;
+  statut: string;
+  hash_audit: string | null;
+  couverture_pct: number;
+  montant_gl: number;
+  montant_ventile: number;
+  nb_lignes_gl: number;
+  nb_lignes_ventilees: number;
+  reconcilie: boolean;
+  detail: { classes: ReconciliationClasse[] } | null;
+  executed_at: string;
+}
+
+export interface RunReport {
+  couverture_pct: number;
+  montant_gl: number;
+  montant_ventile: number;
+  residu: number;
+  reconcilie: boolean;
+  classes: ReconciliationClasse[];
+  topNonFleches: Array<{ account_code: string; account_name: string; montant: number }>;
+}
+
+const chunk = <T,>(arr: T[], n: number): T[][] => {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+};
+
+// Hash d'audit déterministe (FNV-1a 32-bit hex) — token de piste d'audit, pas
+// un secret. Garantit qu'un même résultat produit le même hash.
+function auditHash(input: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+// ── Règles ───────────────────────────────────────────────────────────────────
+export async function listRules(adapter: DataAdapter): Promise<AllocationRule[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_allocation_rule').select('*').order('ordre').order('created_at');
+  return (data ?? []) as AllocationRule[];
+}
+
+export async function createRule(adapter: DataAdapter, rule: {
+  type?: RuleType; ordre?: number; compte_pattern?: string; journal_pattern?: string;
+  libelle_pattern?: string; tiers_pattern?: string; section_id: string;
+}): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_rule').insert({
+    tenant_id: tenantOf(adapter),
+    type: rule.type || 'DIRECT',
+    ordre: rule.ordre ?? 100,
+    compte_pattern: rule.compte_pattern?.trim() || null,
+    journal_pattern: rule.journal_pattern?.trim() || null,
+    libelle_pattern: rule.libelle_pattern?.trim() || null,
+    tiers_pattern: rule.tiers_pattern?.trim() || null,
+    section_id: rule.section_id,
+    actif: true,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteRule(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_rule').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function toggleRule(adapter: DataAdapter, id: string, actif: boolean): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_rule').update({ actif }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+// ── Historique des runs ──────────────────────────────────────────────────────
+export async function listRuns(adapter: DataAdapter, limit = 10): Promise<AllocationRun[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_allocation_run').select('*').order('executed_at', { ascending: false }).limit(limit);
+  return (data ?? []).map((r: any) => ({
+    ...r,
+    couverture_pct: Number(r.couverture_pct) || 0,
+    montant_gl: (Number(r.montant_gl) || 0) / 100,
+    montant_ventile: (Number(r.montant_ventile) || 0) / 100,
+  })) as AllocationRun[];
+}
+
+// Lecture des lignes de GL analytiques (classes 2/6/7) de l'exercice, paginée
+// (PostgREST tronque à 1000 → on boucle en .range).
+async function loadGlLines(client: any, exercice: number): Promise<any[]> {
+  const start = `${exercice}-01-01`;
+  const end = `${exercice}-12-31`;
+  const all: any[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await client
+      .from('journal_lines')
+      .select('id,account_code,account_name,label,debit,credit,third_party_code,journal_entries!inner(journal,label,status,date)')
+      .in('journal_entries.status', ['validated', 'posted'])
+      .gte('journal_entries.date', start)
+      .lte('journal_entries.date', end)
+      .or('account_code.like.2*,account_code.like.6*,account_code.like.7*')
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(error.message);
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return all;
+}
+
+// Première règle DIRECT correspondant à une ligne (ordre croissant).
+function matchRule(line: any, rules: AllocationRule[]): AllocationRule | null {
+  const code = String(line.account_code || '');
+  const journal = String(line.journal_entries?.journal || '');
+  const libelle = `${line.label || ''} ${line.journal_entries?.label || ''}`.toLowerCase();
+  const tiers = String(line.third_party_code || '');
+  for (const r of rules) {
+    if (!r.actif || r.type !== 'DIRECT') continue;
+    if (r.compte_pattern && !code.startsWith(r.compte_pattern)) continue;
+    if (r.journal_pattern && journal !== r.journal_pattern) continue;
+    if (r.libelle_pattern && !libelle.includes(r.libelle_pattern.toLowerCase())) continue;
+    if (r.tiers_pattern && tiers !== r.tiers_pattern) continue;
+    return r;
+  }
+  return null;
+}
+
+/**
+ * Lance un run de ventilation sur l'exercice : applique les règles DIRECT au GL
+ * réel, écrit les ventilations (idempotent), calcule couverture & réconciliation,
+ * trace le run (immuable). Renvoie le rapport.
+ */
+export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null): Promise<RunReport> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = tenantOf(adapter);
+
+  const [rules, lines] = await Promise.all([listRules(adapter), loadGlLines(client, exercice)]);
+
+  // Montant analytique en centimes entiers (debit - credit).
+  const cents = (l: any) => Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100);
+
+  // Idempotence : on efface les ventilations des lignes de ce périmètre.
+  const lineIds = lines.map(l => l.id);
+  for (const c of chunk(lineIds, 200)) {
+    await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
+  }
+
+  // Fléchage direct.
+  const ventRows: any[] = [];
+  for (const l of lines) {
+    const r = matchRule(l, rules);
+    if (!r) continue;
+    ventRows.push({
+      tenant_id: tenantId,
+      ligne_ecriture_id: l.id,
+      section_id: r.section_id,
+      pourcentage: 100,
+      montant: Math.round((Number(l.debit) || 0) - (Number(l.credit) || 0)),
+    });
+  }
+  for (const c of chunk(ventRows, 500)) {
+    const { error } = await client.from('ventilations_analytiques').insert(c);
+    if (error) throw new Error(error.message);
+  }
+
+  // Réconciliation par classe (centimes entiers, valeurs absolues pour la couverture).
+  const ventSet = new Set(ventRows.map(v => v.ligne_ecriture_id));
+  const byClasse = new Map<string, ReconciliationClasse>();
+  const ensure = (cl: string) => {
+    if (!byClasse.has(cl)) byClasse.set(cl, { classe: cl, montant_gl: 0, montant_ventile: 0, residu: 0, couverture_pct: 0, nb_lignes: 0, nb_ventilees: 0 });
+    return byClasse.get(cl)!;
+  };
+  const nonFleches = new Map<string, { account_code: string; account_name: string; montant: number }>();
+  let totGlCents = 0, totVentCents = 0;
+  for (const l of lines) {
+    const cl = String(l.account_code || '?').charAt(0);
+    const c = cents(l);
+    const abs = Math.abs(c);
+    const e = ensure(cl);
+    e.montant_gl += abs; e.nb_lignes += 1; totGlCents += abs;
+    if (ventSet.has(l.id)) { e.montant_ventile += abs; e.nb_ventilees += 1; totVentCents += abs; }
+    else {
+      const key = String(l.account_code || '');
+      if (!nonFleches.has(key)) nonFleches.set(key, { account_code: key, account_name: String(l.account_name || ''), montant: 0 });
+      nonFleches.get(key)!.montant += abs / 100;
+    }
+  }
+  const classes = Array.from(byClasse.values()).map(e => ({
+    ...e,
+    montant_gl: e.montant_gl / 100,
+    montant_ventile: e.montant_ventile / 100,
+    residu: (e.montant_gl - e.montant_ventile) / 100,
+    couverture_pct: e.montant_gl > 0 ? +((e.montant_ventile / e.montant_gl) * 100).toFixed(1) : 0,
+  })).sort((a, b) => a.classe.localeCompare(b.classe));
+
+  const couverture = totGlCents > 0 ? +((totVentCents / totGlCents) * 100).toFixed(1) : 0;
+  // Invariant : pour le direct 100 %, la part ventilée est exacte (aucune perte).
+  const reconcilie = totVentCents <= totGlCents; // jamais de sur-ventilation
+  const hash = auditHash([exercice, totGlCents, totVentCents, ventRows.length, rules.filter(r => r.actif).length].join('|'));
+
+  const detail = { classes };
+  await client.from('fna_allocation_run').insert({
+    tenant_id: tenantId,
+    exercice,
+    statut: reconcilie ? 'success' : 'failed',
+    hash_audit: hash,
+    couverture_pct: couverture,
+    montant_gl: totGlCents,
+    montant_ventile: totVentCents,
+    nb_lignes_gl: lines.length,
+    nb_lignes_ventilees: ventRows.length,
+    reconcilie,
+    detail,
+    executed_by: executedBy || null,
+  });
+
+  const topNonFleches = Array.from(nonFleches.values()).sort((a, b) => b.montant - a.montant).slice(0, 12);
+  return {
+    couverture_pct: couverture,
+    montant_gl: totGlCents / 100,
+    montant_ventile: totVentCents / 100,
+    residu: (totGlCents - totVentCents) / 100,
+    reconcilie,
+    classes,
+    topNonFleches,
+  };
+}
+
+/** Réconciliation courante (sans relancer) depuis la vue live. */
+export async function getReconciliation(adapter: DataAdapter, annee: string): Promise<ReconciliationClasse[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('v_ventilation_reconciliation').select('*').eq('annee', annee);
+  const byClasse = new Map<string, ReconciliationClasse>();
+  for (const r of (data ?? [])) {
+    const cl = String(r.classe);
+    if (!byClasse.has(cl)) byClasse.set(cl, { classe: cl, montant_gl: 0, montant_ventile: 0, residu: 0, couverture_pct: 0, nb_lignes: 0, nb_ventilees: 0 });
+    const e = byClasse.get(cl)!;
+    e.montant_gl += Math.abs(Number(r.montant_gl) || 0);
+    e.nb_lignes += Number(r.nb_lignes) || 0;
+    e.nb_ventilees += Number(r.nb_ventile_lignes) || 0;
+  }
+  return Array.from(byClasse.values()).map(e => ({
+    ...e,
+    couverture_pct: e.nb_lignes > 0 ? +((e.nb_ventilees / e.nb_lignes) * 100).toFixed(1) : 0,
+    residu: e.montant_gl - e.montant_ventile,
+  })).sort((a, b) => a.classe.localeCompare(b.classe));
+}

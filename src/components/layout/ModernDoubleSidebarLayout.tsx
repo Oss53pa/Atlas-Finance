@@ -14,7 +14,7 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { themes } from '../../styles/theme';
@@ -273,6 +273,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
       // — Analytique — (sections = centres de coûts/profit, sur données live)
       { id: 'analytique-sections', label: 'Comptabilité Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" /> },
+      { id: 'ventilation', label: 'Moteur de Ventilation', path: '/budget/ventilation', icon: <Split className="w-4 h-4" /> },
       // — Analyse avancée —
       { id: 'variance', label: 'Analyse Financière Avancée', path: '/financial-analysis-advanced', icon: <ChartBar className="w-4 h-4" /> },
     ],

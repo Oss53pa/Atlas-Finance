@@ -146,6 +146,7 @@ const BudgetInvestissementPage = lazyRetry(() => import('./pages/budget/BudgetIn
 const BudgetEcartsPage = lazyRetry(() => import('./pages/budget/BudgetEcartsPage'));
 const BudgetVersionsPage = lazyRetry(() => import('./pages/budget/BudgetVersionsPage'));
 const AnalyticsSectionsPage = lazyRetry(() => import('./pages/budget/AnalyticsSectionsPage'));
+const VentilationRunPage = lazyRetry(() => import('./pages/budget/VentilationRunPage'));
 const TresoreriePrevisionLFTPage = lazyRetry(() => import('./pages/budget/TresoreriePrevisionLFTPage'));
 const BankAccountsPage = lazyRetry(() => import('./pages/treasury/BankAccountsPage'));
 const FundCallsPage = lazyRetry(() => import('./pages/treasury/FundCallsPage'));
@@ -415,6 +416,7 @@ function App() {
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/analytique" element={work(<AnalyticsSectionsPage />)} />
+                          <Route path="/budget/ventilation" element={work(<VentilationRunPage />)} />
                           <Route path="/tresorerie/prevision-lft" element={work(<TresoreriePrevisionLFTPage />)} />
                         </Route>
 
