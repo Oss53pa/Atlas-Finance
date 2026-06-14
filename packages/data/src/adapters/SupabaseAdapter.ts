@@ -108,6 +108,24 @@ function normalizeFiscalYear(r: any): any {
   }
 }
 
+// periodes_comptables : sans ce normaliseur, fiscalYearId/startDate étaient
+// undefined à la lecture → les périodes ne s'affichaient jamais (le bouton
+// « Créer les périodes mensuelles » restait, l'opération semblait sans effet).
+function normalizeFiscalPeriod(r: any): any {
+  return {
+    ...r,
+    fiscalYearId: r.fiscal_year_id || r.fiscalYearId || '',
+    startDate:    r.start_date     || r.startDate    || '',
+    endDate:      r.end_date       || r.endDate      || '',
+    progression:  Number(r.progression ?? 0),
+    closedAt:     r.closed_at      || r.closedAt,
+    closedBy:     r.closed_by      || r.closedBy,
+    reopenedAt:   r.reopened_at    || r.reopenedAt,
+    reopenedBy:   r.reopened_by    || r.reopenedBy,
+    createdAt:    r.created_at      || r.createdAt,
+  }
+}
+
 function normalizeAccount(r: any): any {
   return {
     ...r,
@@ -148,6 +166,7 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   journal_entries: normalizeJournalEntry,
   journal_lines:   normalizeJournalLine,
   fiscal_years:    normalizeFiscalYear,
+  periodes_comptables: normalizeFiscalPeriod,
   accounts:        normalizeAccount,
   third_parties:   normalizeThirdParty,
   assets:          normalizeAsset,
