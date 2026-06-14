@@ -14,6 +14,7 @@ import { KPICard } from '../../components/ui/DesignSystem';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
+import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import {
   listRules, createRule, deleteRule, toggleRule, runVentilation, listRuns, getReconciliation,
   listKeys, createKey, deleteKey, listKeyValues, setKeyValue,
@@ -21,8 +22,16 @@ import {
   type AllocationKey, type RuleType,
 } from '../../features/budget/services/ventilationRunService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen,
 } from 'lucide-react';
+
+// Mapping dual-GAAP (CDC §3) — référence posée V1, lecture seule.
+const IFRS_MAPPING: Array<{ theme: string; syscohada: string; ifrs: string }> = [
+  { theme: 'Immobilisations corporelles', syscohada: 'Classe 2', ifrs: 'IAS 16 — contrôle, avantages futurs, coût fiable, seuil' },
+  { theme: 'Immobilisations en cours', syscohada: 'Compte 23', ifrs: 'IAS 16 — assets under construction' },
+  { theme: "Coûts d'emprunt (construction)", syscohada: 'Incorporation au coût', ifrs: 'IAS 23 — capitalisation des intérêts' },
+  { theme: "Dépréciation d'actifs", syscohada: 'Provisions', ifrs: 'IAS 36 — test d’impairment' },
+];
 
 const CLASSE_LABEL: Record<string, string> = { '2': 'Immobilisations (2)', '6': 'Charges (6)', '7': 'Produits (7)' };
 
@@ -45,6 +54,8 @@ const VentilationRunPage: React.FC = () => {
   const [nk, setNk] = useState({ code: '', libelle: '', unite: '' });
   const [editKey, setEditKey] = useState<string>(''); // key_id en cours d'édition des poids
   const [weights, setWeights] = useState<Record<string, string>>({}); // section_id → valeur
+  const [prophet, setProphet] = useState<string | null>(null);
+  const [prophetLoading, setProphetLoading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -118,6 +129,20 @@ const VentilationRunPage: React.FC = () => {
     finally { setRunning(false); }
   };
 
+  const runProphet = async () => {
+    setProphetLoading(true); setProphet(null);
+    try {
+      const cls = (report?.classes ?? recon).map(c => `classe ${c.classe}: couverture ${c.couverture_pct}%, résidu ${Math.round(c.residu)}`).join(' ; ');
+      const top = (report?.topNonFleches ?? []).slice(0, 6).map(t => `${t.account_code} (${Math.round(t.montant)})`).join(', ');
+      const res = await askProph3t({
+        message: `En tant que contrôleur de gestion SYSCOHADA, commente brièvement (5 lignes max, français) la QUALITÉ de ventilation analytique sans inventer de chiffres. ${cls}. Comptes non fléchés majeurs : ${top || 'aucun'}. Propose 2-3 règles de fléchage concrètes (par compte/journal) pour améliorer la couverture.`,
+        sensitivity: 'confidential',
+      });
+      setProphet(res.answer || 'Aucun commentaire.');
+    } catch (e: any) { setProphet('PROPH3T indisponible : ' + (e?.message || 'erreur')); }
+    finally { setProphetLoading(false); }
+  };
+
   // Affiche le rapport du dernier run si dispo, sinon la réconciliation live.
   const classes: ReconciliationClasse[] = report?.classes ?? recon;
   const couverture = report?.couverture_pct ?? (recon.length ? +((recon.reduce((s, c) => s + c.nb_ventilees, 0) / Math.max(1, recon.reduce((s, c) => s + c.nb_lignes, 0))) * 100).toFixed(1) : 0);
@@ -144,6 +169,11 @@ const VentilationRunPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Moteur de Ventilation</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Reconstruction analytique du grand livre · Exercice {annee} · déterministe & réconcilié</p>
         </div>
+        {isProph3tCoreConfigured() && (
+          <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
+            <Bot className="w-4 h-4" />{prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
+          </button>
+        )}
         <button onClick={launch} disabled={running} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
           <Play className="w-4 h-4" />{running ? 'Run en cours…' : 'Lancer le run'}
         </button>
@@ -171,6 +201,14 @@ const VentilationRunPage: React.FC = () => {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 flex items-center justify-between">
           <span>Aucune section analytique. Créez vos centres / sections avant de ventiler.</span>
           <button onClick={() => navigate('/analytique')} className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs">Aller à la Comptabilité Analytique</button>
+        </div>
+      )}
+
+      {prophet && (
+        <div className="bg-white rounded-xl p-5 border border-[var(--color-primary)]/30 shadow-sm">
+          <div className="flex items-center gap-2 text-[var(--color-primary)] font-semibold text-sm mb-2"><Bot className="w-4 h-4" />Lecture PROPH3T — qualité de ventilation</div>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{prophet}</p>
+          <p className="text-[10px] text-gray-400 mt-2">Analyse indicative — PROPH3T ne produit jamais les chiffres comptables.</p>
         </div>
       )}
 
@@ -354,6 +392,33 @@ const VentilationRunPage: React.FC = () => {
                 <td className="px-4 py-2.5 text-center text-gray-600">{r.nb_lignes_ventilees}/{r.nb_lignes_gl}</td>
                 <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.statut === 'success' ? 'bg-green-100 text-green-700' : r.statut === 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>{r.statut}</span></td>
                 <td className="px-4 py-2.5 text-gray-400 font-mono text-xs flex items-center gap-1"><Hash className="w-3 h-3" />{r.hash_audit}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mapping dual-GAAP (IFRS) — référence posée V1 */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-[var(--color-primary)]" />
+          <div>
+            <h2 className="font-semibold text-[var(--color-primary)]">Correspondance SYSCOHADA ↔ IFRS (dual-GAAP)</h2>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Référence posée — restitution IFRS activable en V2.</p>
+          </div>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-[var(--color-border)]"><tr>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Thème</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">SYSCOHADA</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">IFRS</th>
+          </tr></thead>
+          <tbody className="divide-y divide-gray-100">
+            {IFRS_MAPPING.map(m => (
+              <tr key={m.theme} className="hover:bg-gray-50">
+                <td className="px-4 py-2.5 text-gray-800">{m.theme}</td>
+                <td className="px-4 py-2.5 text-gray-600">{m.syscohada}</td>
+                <td className="px-4 py-2.5 text-gray-600">{m.ifrs}</td>
               </tr>
             ))}
           </tbody>
