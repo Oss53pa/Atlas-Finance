@@ -114,7 +114,9 @@ const TreasuryPositions: React.FC = () => {
   const [glPosition, setGlPosition] = useState<{
     code: string; name: string; solde: number; rappro: number; recus: number; emis: number;
   }[]>([]);
-  const [posTab, setPosTab] = useState<'temps-reel' | 'cockpit' | 'comptes' | 'flux'>('cockpit');
+  const [posTab, setPosTab] = useState<'positions' | 'cockpit' | 'comptes' | 'flux'>('cockpit');
+  // Multi-affichage de l'onglet « Positions par compte » : cartes ou tableau.
+  const [posDisplay, setPosDisplay] = useState<'cards' | 'table'>('cards');
   // Flux EN CIRCULATION (lignes de trésorerie non lettrées, hors À-Nouveau) — réel.
   const [glFloat, setGlFloat] = useState<{ id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[]>([]);
   // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
@@ -389,7 +391,7 @@ const TreasuryPositions: React.FC = () => {
         <div className="flex gap-1 border-b border-neutral-200">
           {([
             { key: 'cockpit', label: 'Cockpit trésorerie' },
-            { key: 'temps-reel', label: 'Position temps réel' },
+            { key: 'positions', label: 'Positions par compte' },
             { key: 'flux', label: 'Flux en circulation' },
             { key: 'comptes', label: 'Comptes bancaires' },
           ] as const).map(tb => (
@@ -406,7 +408,8 @@ const TreasuryPositions: React.FC = () => {
         </div>
 
         {/* ── ONGLET : Position TEMPS RÉEL (tableau simple par compte) ───── */}
-        {posTab === 'temps-reel' && (() => {
+        {posTab === 'positions' && (() => {
+          const PETROL = '#235A6E', AMBER = '#E89A2E', VERT = '#1D9E75', ROUGE = '#E24B4A';
           const tot = glPosition.reduce(
             (a, p) => ({ solde: a.solde + p.solde, rappro: a.rappro + p.rappro, recus: a.recus + p.recus, emis: a.emis + p.emis }),
             { solde: 0, rappro: 0, recus: 0, emis: 0 },
@@ -455,6 +458,48 @@ const TreasuryPositions: React.FC = () => {
                 </span>
               </div>
 
+              {/* Multi-affichage : Cartes / Tableau */}
+              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+                {([['cards', 'Cartes'], ['table', 'Tableau']] as const).map(([k, lbl]) => (
+                  <button
+                    key={k}
+                    onClick={() => setPosDisplay(k)}
+                    className={`px-3 py-1.5 text-sm rounded-md transition-all ${posDisplay === k ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium' : 'text-gray-600 hover:bg-white/50'}`}
+                  >
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+
+              {posDisplay === 'cards' && (
+                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
+                  {glPosition.length === 0 ? (
+                    <p className="text-sm text-[var(--color-text-tertiary)]">Aucun compte de trésorerie mouvementé.</p>
+                  ) : glPosition.map(p => {
+                    const th = p.solde - p.emis + p.recus;
+                    const tension = p.solde < 0;
+                    return (
+                      <div key={p.code} className="bg-white rounded-xl border p-4" style={{ borderColor: tension ? 'rgba(226,75,74,0.4)' : 'var(--color-border)' }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--color-surface-hover)', color: PETROL }}><Building2 className="h-4 w-4" /></div>
+                            <div><div className="text-sm font-medium text-[var(--color-text-primary)]">{p.name}</div><div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div></div>
+                          </div>
+                          {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>négatif</span>}
+                        </div>
+                        <PosLigne label="Solde réel" value={p.solde} />
+                        <PosLigne label="Émis non débités" value={-p.emis} color={ROUGE} />
+                        <PosLigne label="Reçus non crédités" value={p.recus} color={VERT} prefixPlus />
+                        <div className="h-px bg-[var(--color-border)] my-2" />
+                        <PosLigne label="Solde théorique" value={th} color={AMBER} bold />
+                        <PosLigne label="Rapproché" value={p.rappro} color="var(--color-text-secondary)" />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {posDisplay === 'table' && (
               <UnifiedCard variant="elevated" size="lg">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -494,13 +539,14 @@ const TreasuryPositions: React.FC = () => {
                   </table>
                 </div>
               </UnifiedCard>
+              )}
             </div>
           );
         })()}
 
         {/* ── ONGLET : Cockpit trésorerie (pilotage, données réelles) ───── */}
         {posTab === 'cockpit' && (() => {
-          const PETROL = '#235A6E', AMBER = '#E89A2E', VERT = '#1D9E75', ROUGE = '#E24B4A';
+          const AMBER = '#E89A2E', VERT = '#1D9E75', ROUGE = '#E24B4A';
           const fmtCourt = (n: number) => {
             const a = Math.abs(n), s = n < 0 ? '−' : '';
             if (a >= 1e9) return s + (a / 1e9).toFixed(2).replace('.', ',') + ' Md';
@@ -693,33 +739,8 @@ const TreasuryPositions: React.FC = () => {
               </div>
               </div>
 
-              {/* Détail par compte */}
-              <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
-                {view.map(p => {
-                  const th = p.solde - p.emis + p.recus;
-                  const tension = p.solde < 0;
-                  return (
-                    <div key={p.code} className="bg-white rounded-xl border p-4" style={{ borderColor: tension ? 'rgba(226,75,74,0.4)' : 'var(--color-border)' }}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--color-surface-hover)', color: PETROL }}><Building2 className="h-4 w-4" /></div>
-                          <div><div className="text-sm font-medium text-[var(--color-text-primary)]">{p.name}</div><div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div></div>
-                        </div>
-                        {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>négatif</span>}
-                      </div>
-                      <PosLigne label="Solde réel" value={p.solde} />
-                      <PosLigne label="Émis non débités" value={-p.emis} color={ROUGE} />
-                      <PosLigne label="Reçus non crédités" value={p.recus} color={VERT} prefixPlus />
-                      <div className="h-px bg-[var(--color-border)] my-2" />
-                      <PosLigne label="Solde théorique" value={th} color={AMBER} bold />
-                      <PosLigne label="Rapproché" value={p.rappro} color="var(--color-text-secondary)" />
-                    </div>
-                  );
-                })}
-              </div>
-
               <p className="text-xs text-[var(--color-text-tertiary)]">
-                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. « En circulation » = mouvements de trésorerie non lettrés (hors à-nouveau) ; rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. Le détail par compte (cartes / tableau) est dans l'onglet <span className="font-medium">Positions par compte</span>.
               </p>
             </div>
           );
