@@ -17,6 +17,8 @@ import {
 import {
   TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, Gauge, Upload,
 } from 'lucide-react';
+import BudgetImportModal from './BudgetImportModal';
+import BudgetSaisieModal from './BudgetSaisieModal';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -30,6 +32,9 @@ const BudgetCockpitPage: React.FC = () => {
   const [atterr, setAtterr] = useState<{ resultatAtterrissage: number; resultatBudget: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showImport, setShowImport] = useState(false);
+  const [showSaisie, setShowSaisie] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +60,7 @@ const BudgetCockpitPage: React.FC = () => {
       }
     })();
     return () => { cancelled = true; };
-  }, [adapter]);
+  }, [adapter, refreshKey]);
 
   const tresorerieNette = useMemo(() => treasury.reduce((s, t) => s + t.flux_net, 0), [treasury]);
 
@@ -206,18 +211,21 @@ const BudgetCockpitPage: React.FC = () => {
           Détail Budget vs Réalisé (exploitation) →
         </button>
         <button
-          onClick={() => navigate('/budget/saisie')}
+          onClick={() => setShowSaisie(true)}
           className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
         >
           <Target className="w-4 h-4" /> Saisir le budget
         </button>
         <button
-          onClick={() => navigate('/budget/import')}
+          onClick={() => setShowImport(true)}
           className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
         >
           <Upload className="w-4 h-4" /> Importer un budget
         </button>
       </div>
+
+      <BudgetImportModal open={showImport} onClose={() => setShowImport(false)} onImported={() => setRefreshKey(k => k + 1)} />
+      <BudgetSaisieModal open={showSaisie} onClose={() => setShowSaisie(false)} onSaved={() => setRefreshKey(k => k + 1)} />
     </div>
   );
 };

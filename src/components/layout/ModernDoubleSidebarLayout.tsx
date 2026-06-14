@@ -265,21 +265,16 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'effets-commerce', label: 'Effets de Commerce', path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
     ],
     control: [
+      // — Pilotage budgétaire — (saisie & import = actions en modale depuis le cockpit)
       { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
-      { id: 'budget-saisie', label: 'Saisie du Budget', path: '/budget/saisie', icon: <Database className="w-4 h-4" /> },
-      { id: 'budget-import', label: 'Importer un Budget', path: '/budget/import', icon: <Upload className="w-4 h-4" /> },
-      { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
-      { id: 'budget-control', label: 'Contrôle Budgétaire', path: '/budgeting/control', icon: <ChartBar className="w-4 h-4" /> },
-      { id: 'analytical', label: 'Comptabilité Analytique', path: '/analytics', icon: <PieChart className="w-4 h-4" /> },
-      { id: 'analytique-sections', label: 'Sections & Performance', path: '/analytique', icon: <Target className="w-4 h-4" /> },
-      { id: 'cost-centers', label: 'Centres de Coûts', path: '/analytics/cost-centers', icon: <Database className="w-4 h-4" /> },
-      { id: 'variance', label: 'Analyse des Écarts', path: '/financial-analysis-advanced', icon: <Activity className="w-4 h-4" /> },
-      { id: 'dashboards', label: 'Tableaux de Bord', path: '/budgeting/list', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'ai-anomaly', label: 'Détection Anomalies IA', path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> }
+      // — Analytique — (sections = centres de coûts/profit, sur données live)
+      { id: 'analytique-sections', label: 'Comptabilité Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" /> },
+      // — Analyse avancée —
+      { id: 'variance', label: 'Analyse Financière Avancée', path: '/financial-analysis-advanced', icon: <ChartBar className="w-4 h-4" /> },
     ],
     assets: [
       { id: 'summary', label: 'Synthèse', path: '/assets/summary', icon: <BarChart3 className="w-4 h-4" /> },

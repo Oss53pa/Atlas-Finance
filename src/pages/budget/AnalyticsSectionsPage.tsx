@@ -3,7 +3,7 @@
  * Peupler (axes/sections) + câbler + afficher : performance par section
  * (réalisé via v_actual_by_section + budget annuel). Zéro mock.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
@@ -13,7 +13,8 @@ import {
   applyVentilationRule, getVentilationCoverage,
   type Axe, type SectionPerformance,
 } from '../../features/budget/services/analyticsService';
-import { PieChart, Plus, Save, Layers, Target, Split } from 'lucide-react';
+import { KPICard } from '../../components/ui/DesignSystem';
+import { PieChart, Plus, Save, Layers, Target, Split, TrendingUp, TrendingDown, Percent } from 'lucide-react';
 
 const AnalyticsSectionsPage: React.FC = () => {
   const { adapter } = useData();
@@ -78,6 +79,12 @@ const AnalyticsSectionsPage: React.FC = () => {
     catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
+  const kpi = useMemo(() => {
+    const produits = perf.reduce((s, p) => s + p.produits, 0);
+    const charges = perf.reduce((s, p) => s + p.charges, 0);
+    return { produits, charges, marge: produits - charges, sections: perf.filter(p => p.produits !== 0 || p.charges !== 0 || p.budget_annuel !== 0).length };
+  }, [perf]);
+
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-full space-y-6">
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
@@ -86,6 +93,15 @@ const AnalyticsSectionsPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Comptabilité Analytique</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Axes & sections · performance par section · Exercice {annee}</p>
         </div>
+      </div>
+
+      {/* Bandeau KPI — vue d'ensemble par axes & centres (sections) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <KPICard title="Produits ventilés" value={formatCurrency(kpi.produits)} icon={TrendingUp} color="success" valueFontSize="1.05rem" />
+        <KPICard title="Charges ventilées" value={formatCurrency(kpi.charges)} icon={TrendingDown} color="warning" valueFontSize="1.05rem" />
+        <KPICard title="Marge analytique" value={formatCurrency(kpi.marge)} icon={Percent} color={kpi.marge >= 0 ? 'success' : 'error'} valueFontSize="1.05rem" subtitle={kpi.produits ? `${Math.round((kpi.marge / kpi.produits) * 100)}%` : undefined} />
+        <KPICard title="Sections actives" value={String(kpi.sections)} icon={Target} color="primary" />
+        <KPICard title="Lignes ventilées" value={String(ventCoverage)} icon={Split} color="neutral" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

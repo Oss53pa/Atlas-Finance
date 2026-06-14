@@ -142,8 +142,6 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
-const BudgetImportPage = lazyRetry(() => import('./pages/budget/BudgetImportPage'));
-const BudgetSaisiePage = lazyRetry(() => import('./pages/budget/BudgetSaisiePage'));
 const BudgetInvestissementPage = lazyRetry(() => import('./pages/budget/BudgetInvestissementPage'));
 const BudgetEcartsPage = lazyRetry(() => import('./pages/budget/BudgetEcartsPage'));
 const BudgetVersionsPage = lazyRetry(() => import('./pages/budget/BudgetVersionsPage'));
@@ -217,7 +215,6 @@ const RolesPage = lazyRetry(() => import('./pages/security/RolesPage'));
 const PermissionsPage = lazyRetry(() => import('./pages/security/PermissionsPage'));
 
 // Analytics
-const AnalyticsDashboard = lazyRetry(() => import('./pages/analytics/AnalyticsDashboard'));
 const AnalyticalAxesPage = lazyRetry(() => import('./pages/analytics/AnalyticalAxesPage'));
 const CostCentersPage = lazyRetry(() => import('./pages/analytics/CostCentersPage'));
 
@@ -414,8 +411,6 @@ function App() {
                           <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
                           <Route path="/budget/cockpit" element={work(<BudgetCockpitPage />)} />
                           <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
-                          <Route path="/budget/import" element={work(<BudgetImportPage />)} />
-                          <Route path="/budget/saisie" element={work(<BudgetSaisiePage />)} />
                           <Route path="/budget/investissement" element={work(<BudgetInvestissementPage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
@@ -522,7 +517,8 @@ function App() {
 
                         {/* Analytics */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
-                          <Route path="/analytics" element={<AnalyticsDashboard />} />
+                          {/* Ancien tableau de bord analytique (blocs vides, non pratique) → page consolidée /analytique */}
+                          <Route path="/analytics" element={<Navigate to="/analytique" replace />} />
                           <Route path="/analytics/axes" element={work(<AnalyticalAxesPage />)} />
                           <Route path="/analytics/cost-centers" element={work(<CostCentersPage />)} />
                           <Route path="/financial-analysis-advanced" element={<FinancialAnalysisDashboard />} />
