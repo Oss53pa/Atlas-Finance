@@ -493,21 +493,30 @@ interface ColorfulBarChartProps {
     color: string;
   }>;
   height?: number;
+  /** Afficher la valeur au-dessus de chaque barre (défaut: true). */
+  showValues?: boolean;
+  /** Formateur de la valeur affichée (défaut: séparateur de milliers fr-FR). */
+  formatValue?: (value: number) => string;
 }
 
 const BAR_SERIES = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF', '#9E6322', '#2C6E86'];
 
 export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
   data,
-  height = 200
+  height = 200,
+  showValues = true,
+  formatValue = (v: number) => v.toLocaleString('fr-FR'),
 }) => {
-  const maxValue = Math.max(...data.map(d => d.value), 1);
+  // Échelle sur les valeurs ABSOLUES : les soldes peuvent être négatifs
+  // (passif/produits) — sans ça, maxValue serait faussé et certaines barres
+  // invisibles. La valeur affichée reste signée.
+  const maxValue = Math.max(...data.map(d => Math.abs(d.value)), 1);
 
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between gap-2" style={{ height }}>
         {data.map((item, index) => {
-          const barHeight = (item.value / maxValue) * 100;
+          const barHeight = (Math.abs(item.value) / maxValue) * 100;
           const c = BAR_SERIES[index % BAR_SERIES.length];
           return (
             <div
@@ -516,14 +525,22 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
             >
               {/* zone de barre à hauteur fixe : le % de la barre se calcule sur CETTE
                   zone (sinon un % sur un parent auto-hauteur = 0 → barres invisibles). */}
-              <div className="w-full flex-1 flex items-end justify-center min-h-0">
+              <div className="w-full flex-1 flex flex-col items-center justify-end min-h-0">
+                {showValues && (
+                  <span
+                    className="text-[11px] font-semibold text-neutral-700 mb-1 whitespace-nowrap leading-none"
+                    title={String(item.value)}
+                  >
+                    {formatValue(item.value)}
+                  </span>
+                )}
                 <motion.div
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ delay: index * 0.08, duration: 0.5 }}
                   className="w-full max-w-[64px] rounded-t-lg origin-bottom"
                   style={{
-                    height: `${Math.max(barHeight, item.value > 0 ? 2 : 0)}%`,
+                    height: `${Math.max(barHeight, item.value !== 0 ? 2 : 0)}%`,
                     background: `linear-gradient(180deg, ${c} 0%, ${c}D9 60%, ${c}A6 100%)`,
                     boxShadow: `0 6px 14px -6px ${c}66`,
                   }}
