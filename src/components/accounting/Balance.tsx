@@ -105,35 +105,47 @@ const Balance: React.FC = () => {
           adapter.getAll<any>('journalEntries'),
         ]);
 
-        // Compute debit/credit per account code from journal lines
-        const stats: Record<string, { debit: number; credit: number }> = {};
+        // Sépare À-Nouveau (journal AN/RAN = soldes d'OUVERTURE) et mouvements de
+        // période, par code de compte. La balance SYSCOHADA distingue les colonnes
+        // « Soldes à Nouveau » (ouverture) des « Mouvements » (période).
+        type Stat = { anDebit: number; anCredit: number; movDebit: number; movCredit: number };
+        const EMPTY: Stat = { anDebit: 0, anCredit: 0, movDebit: 0, movCredit: 0 };
+        const stats: Record<string, Stat> = {};
         for (const entry of dbEntries) {
           if (!entry.lines) continue;
+          const j = String((entry as any).journal || '').toUpperCase();
+          const isAN = j === 'AN' || j === 'RAN';
           for (const line of entry.lines) {
             const code = String(line.accountCode || '');
             if (!code) continue;
-            if (!stats[code]) stats[code] = { debit: 0, credit: 0 };
-            stats[code].debit = money(stats[code].debit).add(money(line.debit || 0)).toNumber();
-            stats[code].credit = money(stats[code].credit).add(money(line.credit || 0)).toNumber();
+            if (!stats[code]) stats[code] = { anDebit: 0, anCredit: 0, movDebit: 0, movCredit: 0 };
+            const d = money(line.debit || 0), c = money(line.credit || 0);
+            if (isAN) {
+              stats[code].anDebit = money(stats[code].anDebit).add(d).toNumber();
+              stats[code].anCredit = money(stats[code].anCredit).add(c).toNumber();
+            } else {
+              stats[code].movDebit = money(stats[code].movDebit).add(d).toNumber();
+              stats[code].movCredit = money(stats[code].movCredit).add(c).toNumber();
+            }
           }
         }
 
-        // Build flat account list with computed soldes
-        const flatAccounts: { code: string; name: string; debit: number; credit: number }[] = [];
+        // Build flat account list : debit/credit = MOUVEMENTS ; anDebit/anCredit = À-Nouveau.
+        const flatAccounts: { code: string; name: string; anDebit: number; anCredit: number; debit: number; credit: number }[] = [];
 
         // From DB accounts
         for (const acc of dbAccounts) {
           const code = String(acc.code || acc.number || '');
           if (!code) continue;
-          const s = stats[code] || { debit: 0, credit: 0 };
-          flatAccounts.push({ code, name: acc.name || acc.libelle || code, debit: s.debit, credit: s.credit });
+          const s = stats[code] || EMPTY;
+          flatAccounts.push({ code, name: acc.name || acc.libelle || code, anDebit: s.anDebit, anCredit: s.anCredit, debit: s.movDebit, credit: s.movCredit });
         }
 
         // Also include accounts found only in entries (not in chart)
         const dbCodes = new Set(flatAccounts.map(a => a.code));
         for (const [code, s] of Object.entries(stats)) {
           if (!dbCodes.has(code)) {
-            flatAccounts.push({ code, name: code, debit: s.debit, credit: s.credit });
+            flatAccounts.push({ code, name: code, anDebit: s.anDebit, anCredit: s.anCredit, debit: s.movDebit, credit: s.movCredit });
           }
         }
 
@@ -177,15 +189,21 @@ const Balance: React.FC = () => {
             classeNode.children!.push(parent2);
           }
 
+          // À-Nouveau net (ouverture) du compte → colonnes Soldes à Nouveau D/C.
+          const anNetAcc = money(acc.anDebit).subtract(money(acc.anCredit)).toNumber();
+          const accAnD = anNetAcc > 0 ? anNetAcc : 0;
+          const accAnC = anNetAcc < 0 ? Math.abs(anNetAcc) : 0;
+
           // Add as level 3 if code >= 3 digits
           if (acc.code.length >= 3 && parent2) {
-            const soldeNet = money(acc.debit).subtract(money(acc.credit)).toNumber();
+            // Solde de CLÔTURE = À-Nouveau + mouvements de période.
+            const soldeNet = money(acc.debit).subtract(money(acc.credit)).add(money(anNetAcc)).toNumber();
             const leaf: BalanceAccount = {
               code: acc.code,
               libelle: acc.name,
               niveau: 3,
               parent: code2,
-              soldeDebiteurAN: 0, soldeCrediteurAN: 0,
+              soldeDebiteurAN: accAnD, soldeCrediteurAN: accAnC,
               mouvementsDebit: acc.debit,
               mouvementsCredit: acc.credit,
               soldeDebiteur: soldeNet > 0 ? soldeNet : 0,
@@ -194,32 +212,43 @@ const Balance: React.FC = () => {
             };
             parent2.children!.push(leaf);
 
-            // Aggregate to parent
+            // Aggregate to parent : mouvements + À-Nouveau (D/C bruts cumulés).
             parent2.mouvementsDebit = money(parent2.mouvementsDebit).add(money(acc.debit)).toNumber();
             parent2.mouvementsCredit = money(parent2.mouvementsCredit).add(money(acc.credit)).toNumber();
-            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit)).toNumber();
+            parent2.soldeDebiteurAN = money(parent2.soldeDebiteurAN).add(money(accAnD)).toNumber();
+            parent2.soldeCrediteurAN = money(parent2.soldeCrediteurAN).add(money(accAnC)).toNumber();
+            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit))
+              .add(money(parent2.soldeDebiteurAN)).subtract(money(parent2.soldeCrediteurAN)).toNumber();
             parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
             parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
           } else if (acc.code.length === 2 && parent2) {
-            // 2-digit account: update its own name
+            // 2-digit account: update its own name + À-Nouveau propre
             parent2.libelle = acc.name;
             parent2.mouvementsDebit = money(parent2.mouvementsDebit).add(money(acc.debit)).toNumber();
             parent2.mouvementsCredit = money(parent2.mouvementsCredit).add(money(acc.credit)).toNumber();
-            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit)).toNumber();
+            parent2.soldeDebiteurAN = money(parent2.soldeDebiteurAN).add(money(accAnD)).toNumber();
+            parent2.soldeCrediteurAN = money(parent2.soldeCrediteurAN).add(money(accAnC)).toNumber();
+            const p2Net = money(parent2.mouvementsDebit).subtract(money(parent2.mouvementsCredit))
+              .add(money(parent2.soldeDebiteurAN)).subtract(money(parent2.soldeCrediteurAN)).toNumber();
             parent2.soldeDebiteur = p2Net > 0 ? p2Net : 0;
             parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
           } else if (acc.code.length === 1) {
             // 1-digit only — aggregate directly
             classeNode.mouvementsDebit = money(classeNode.mouvementsDebit).add(money(acc.debit)).toNumber();
             classeNode.mouvementsCredit = money(classeNode.mouvementsCredit).add(money(acc.credit)).toNumber();
+            classeNode.soldeDebiteurAN = money(classeNode.soldeDebiteurAN).add(money(accAnD)).toNumber();
+            classeNode.soldeCrediteurAN = money(classeNode.soldeCrediteurAN).add(money(accAnC)).toNumber();
           }
         }
 
-        // Aggregate class totals from children
+        // Aggregate class totals from children (mouvements + À-Nouveau).
         for (const cls of Object.values(classeMap)) {
           cls.mouvementsDebit = (cls.children || []).reduce((s, c) => money(s).add(money(c.mouvementsDebit)).toNumber(), 0);
           cls.mouvementsCredit = (cls.children || []).reduce((s, c) => money(s).add(money(c.mouvementsCredit)).toNumber(), 0);
-          const netCls = money(cls.mouvementsDebit).subtract(money(cls.mouvementsCredit)).toNumber();
+          cls.soldeDebiteurAN = (cls.children || []).reduce((s, c) => money(s).add(money(c.soldeDebiteurAN)).toNumber(), 0);
+          cls.soldeCrediteurAN = (cls.children || []).reduce((s, c) => money(s).add(money(c.soldeCrediteurAN)).toNumber(), 0);
+          const netCls = money(cls.mouvementsDebit).subtract(money(cls.mouvementsCredit))
+            .add(money(cls.soldeDebiteurAN)).subtract(money(cls.soldeCrediteurAN)).toNumber();
           cls.soldeDebiteur = netCls > 0 ? netCls : 0;
           cls.soldeCrediteur = netCls < 0 ? Math.abs(netCls) : 0;
         }
