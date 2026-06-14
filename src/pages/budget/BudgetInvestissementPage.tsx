@@ -17,6 +17,7 @@ const BudgetInvestissementPage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
+  const [tab, setTab] = useState<'synthese' | 'detail'>('synthese');
   const [sum, setSum] = useState<InvestmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,12 +64,22 @@ const BudgetInvestissementPage: React.FC = () => {
         <KPICard title="Reste à engager" value={formatCurrency(resteTotal)} icon={Hourglass} color="warning" valueFontSize="1.125rem" />
       </div>
 
-      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-        <h2 className="font-semibold text-[var(--color-primary)] mb-1">CAPEX mensuel réalisé</h2>
-        <p className="text-xs text-[var(--color-text-tertiary)] mb-4">En milliers FCFA</p>
-        {chart.some(d => d.value !== 0) ? <ColorfulBarChart data={chart} height={220} /> : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">Aucune acquisition sur l'exercice.</div>}
+      {/* Onglets : Synthèse (évolution) / Détail par compte */}
+      <div className="flex gap-1 bg-white rounded-xl p-1 border border-[var(--color-border)] shadow-sm w-fit">
+        {([['synthese', 'Synthèse'], ['detail', `Détail par compte (${s.parCompte.length})`]] as const).map(([k, lbl]) => (
+          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium rounded-lg ${tab === k ? 'bg-[var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{lbl}</button>
+        ))}
       </div>
 
+      {tab === 'synthese' && (
+        <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
+          <h2 className="font-semibold text-[var(--color-primary)] mb-1">CAPEX mensuel réalisé</h2>
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">En milliers FCFA</p>
+          {chart.some(d => d.value !== 0) ? <ColorfulBarChart data={chart} height={220} /> : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">Aucune acquisition sur l'exercice.</div>}
+        </div>
+      )}
+
+      {tab === 'detail' && (
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-[var(--color-border)]">
           <h2 className="font-semibold text-[var(--color-primary)]">Détail par compte d'immobilisation</h2>
@@ -97,6 +108,7 @@ const BudgetInvestissementPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 };

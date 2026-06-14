@@ -139,8 +139,11 @@ export interface ExploitationSummary {
   chargesBudget: number;
   resultatBudget: number;
   tauxRealisationResultat: number | null; // %
-  /** Par nature (2 premiers chiffres de compte) cumulé sur l'année. */
-  parNature: Array<{ code: string; classe: string; label: string; realise: number; budget: number; ecart: number }>;
+  /** Par nature (2 premiers chiffres de compte) cumulé sur l'année + détail des comptes. */
+  parNature: Array<{
+    code: string; classe: string; label: string; realise: number; budget: number; ecart: number;
+    comptes: Array<{ account_code: string; label: string; realise: number; budget: number; ecart: number }>;
+  }>;
   /** Mensuel : produits / charges / résultat par mois (1..12). */
   mensuel: Array<{ period: number; produits: number; charges: number; resultat: number }>;
 }
@@ -163,20 +166,35 @@ export async function getExploitationSummary(adapter: DataAdapter, annee: string
     ? Math.round((resultatRealise / resultatBudget) * 100)
     : null;
 
-  // Par nature (2 chiffres) cumulé
+  // Par nature (2 chiffres) cumulé + détail des comptes agrégés
   const natureMap = new Map<string, { code: string; classe: string; label: string; realise: number; budget: number }>();
+  const comptesMap = new Map<string, Map<string, { account_code: string; label: string; realise: number; budget: number }>>();
+  const addCompte = (code2: string, account_code: string, label: string) => {
+    if (!comptesMap.has(code2)) comptesMap.set(code2, new Map());
+    const m = comptesMap.get(code2)!;
+    if (!m.has(account_code)) m.set(account_code, { account_code, label, realise: 0, budget: 0 });
+    return m.get(account_code)!;
+  };
   for (const r of rows) {
     const code = r.account_code.slice(0, 2);
     if (!natureMap.has(code)) natureMap.set(code, { code, classe: r.classe, label: r.account_name, realise: 0, budget: 0 });
     natureMap.get(code)!.realise += r.montant_realise;
+    addCompte(code, r.account_code, r.account_name).realise += r.montant_realise;
   }
   for (const b of expBudget) {
     const code = b.account_code.slice(0, 2);
     if (!natureMap.has(code)) natureMap.set(code, { code, classe: code[0], label: code, realise: 0, budget: 0 });
     natureMap.get(code)!.budget += b.budget;
+    addCompte(code, b.account_code, b.account_code).budget += b.budget;
   }
   const parNature = Array.from(natureMap.values())
-    .map(n => ({ ...n, ecart: n.realise - n.budget }))
+    .map(n => ({
+      ...n,
+      ecart: n.realise - n.budget,
+      comptes: Array.from(comptesMap.get(n.code)?.values() || [])
+        .map(c => ({ ...c, ecart: c.realise - c.budget }))
+        .sort((a, b) => Math.abs(b.realise) - Math.abs(a.realise)),
+    }))
     .sort((a, b) => Math.abs(b.realise) - Math.abs(a.realise));
 
   // Mensuel

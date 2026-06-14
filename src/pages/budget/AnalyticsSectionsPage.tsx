@@ -26,6 +26,7 @@ const AnalyticsSectionsPage: React.FC = () => {
   const [newAxe, setNewAxe] = useState({ code: '', libelle: '' });
   const [newSection, setNewSection] = useState({ code: '', libelle: '', axe_id: '', budget_annuel: '' });
   const [editBudget, setEditBudget] = useState<Record<string, string>>({});
+  const [anaTab, setAnaTab] = useState<'gestion' | 'performance'>('gestion');
   const [vent, setVent] = useState({ sectionId: '', accountPrefix: '', journal: '', tiersCode: '' });
   const [ventCoverage, setVentCoverage] = useState(0);
   const [ventBusy, setVentBusy] = useState(false);
@@ -95,15 +96,14 @@ const AnalyticsSectionsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Bandeau KPI — vue d'ensemble par axes & centres (sections) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <KPICard title="Produits ventilés" value={formatCurrency(kpi.produits)} icon={TrendingUp} color="success" valueFontSize="1.05rem" />
-        <KPICard title="Charges ventilées" value={formatCurrency(kpi.charges)} icon={TrendingDown} color="warning" valueFontSize="1.05rem" />
-        <KPICard title="Marge analytique" value={formatCurrency(kpi.marge)} icon={Percent} color={kpi.marge >= 0 ? 'success' : 'error'} valueFontSize="1.05rem" subtitle={kpi.produits ? `${Math.round((kpi.marge / kpi.produits) * 100)}%` : undefined} />
-        <KPICard title="Sections actives" value={String(kpi.sections)} icon={Target} color="primary" />
-        <KPICard title="Lignes ventilées" value={String(ventCoverage)} icon={Split} color="neutral" />
+      {/* Onglets : Axes & Sections (gestion) / Performance */}
+      <div className="flex gap-1 bg-white rounded-xl p-1 border border-[var(--color-border)] shadow-sm w-fit">
+        {([['gestion', 'Axes & Sections'], ['performance', 'Performance par section']] as const).map(([k, lbl]) => (
+          <button key={k} onClick={() => setAnaTab(k)} className={`px-4 py-2 text-sm font-medium rounded-lg ${anaTab === k ? 'bg-[var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{lbl}</button>
+        ))}
       </div>
 
+      {anaTab === 'gestion' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Axes */}
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
@@ -173,6 +173,17 @@ const AnalyticsSectionsPage: React.FC = () => {
         </button>
         <p className="text-[11px] text-gray-400 mt-2">Attribue 100% des lignes correspondantes à la section (remplace les ventilations existantes de ces lignes). Combinable : compte + journal et/ou tiers.</p>
       </div>
+      )}
+
+      {anaTab === 'performance' && (<>
+      {/* Bandeau KPI — vue d'ensemble par axes & centres (sections) */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <KPICard title="Produits ventilés" value={formatCurrency(kpi.produits)} icon={TrendingUp} color="success" valueFontSize="1.05rem" />
+        <KPICard title="Charges ventilées" value={formatCurrency(kpi.charges)} icon={TrendingDown} color="warning" valueFontSize="1.05rem" />
+        <KPICard title="Marge analytique" value={formatCurrency(kpi.marge)} icon={Percent} color={kpi.marge >= 0 ? 'success' : 'error'} valueFontSize="1.05rem" subtitle={kpi.produits ? `${Math.round((kpi.marge / kpi.produits) * 100)}%` : undefined} />
+        <KPICard title="Sections actives" value={String(kpi.sections)} icon={Target} color="primary" />
+        <KPICard title="Lignes ventilées" value={String(ventCoverage)} icon={Split} color="neutral" />
+      </div>
 
       {/* Performance par section */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
@@ -217,6 +228,7 @@ const AnalyticsSectionsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+      </>)}
     </div>
   );
 };
