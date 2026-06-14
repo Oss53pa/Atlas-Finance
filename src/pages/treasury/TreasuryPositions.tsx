@@ -122,16 +122,28 @@ const TreasuryPositions: React.FC = () => {
   const [horizon, setHorizon] = useState<7 | 30 | 90>(30);
   // Sélecteur de banque/compte du cockpit ('all' = consolidé).
   const [selectedPosBank, setSelectedPosBank] = useState<string>('all');
+  // Vrai si AUCUN rapprochement bancaire n'existe (ni relevé importé, ni ligne 5x
+  // lettrée) → on ne peut pas déterminer les « en instance » : on n'affiche rien.
+  const [reconNotStarted, setReconNotStarted] = useState<boolean>(false);
 
   useEffect(() => {
     const load = async () => {
-      const [er, hp, entries, accounts, plansSetting] = await Promise.all([
+      const [er, hp, entries, accounts, plansSetting, bankLines] = await Promise.all([
         adapter.getAll('exchangeRates'),
         adapter.getAll('hedgingPositions'),
         adapter.getAll<any>('journalEntries'),
         adapter.getAll<any>('accounts'),
         adapter.getById('settings', 'treasury_plans').catch(() => undefined),
+        adapter.getAll<any>('bankStatementLines').catch(() => [] as any[]),
       ]);
+
+      // État de rapprochement RÉEL : écritures pointées via un relevé bancaire.
+      const reconciledEntryIds = new Set<string>();
+      for (const bl of (bankLines as any[]) || []) {
+        const mid = bl.matchedEntryId ?? bl.matched_entry_id;
+        if (mid && (bl.reconciled || bl.reconciled === 1 || bl.reconciled === '1')) reconciledEntryIds.add(String(mid));
+      }
+      let anyClass5Lettre = false;
       setExchangeRatesData(er as Record<string, unknown>[]);
       setHedgingPositionsData(hp as Record<string, unknown>[]);
 
@@ -153,8 +165,10 @@ const TreasuryPositions: React.FC = () => {
             const p = ensure(code);
             p.solde += d - c;
             const lettre = !!(l.lettrageCode || l.lettrage_code);
-            if (lettre || isAN) {
-              // À-Nouveau = solde d'ouverture (déjà en banque) ; lettré = rapproché.
+            if (lettre) anyClass5Lettre = true;
+            const reconcile = lettre || isAN || reconciledEntryIds.has(String(e.id));
+            if (reconcile) {
+              // À-Nouveau = solde d'ouverture (déjà en banque) ; lettré/pointé = rapproché.
               p.rappro += d - c;
             } else {
               // Non rapproché : débit = encaissement reçu non crédité ; crédit = paiement émis non débité.
@@ -174,6 +188,15 @@ const TreasuryPositions: React.FC = () => {
             }
           }
         }
+      }
+      // Sans aucune référence de rapprochement (aucune écriture pointée par un
+      // relevé, aucun lettrage 5x), on ne peut PAS qualifier d'« en instance » :
+      // afficher tout le flux serait faux → on neutralise et on l'indique.
+      const hasReconData = reconciledEntryIds.size > 0 || anyClass5Lettre;
+      setReconNotStarted(!hasReconData);
+      if (!hasReconData) {
+        for (const k of Object.keys(pos)) { pos[k].recus = 0; pos[k].emis = 0; }
+        floats.length = 0;
       }
       setGlFloat(floats.sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 200));
 
@@ -389,6 +412,16 @@ const TreasuryPositions: React.FC = () => {
           );
           return (
             <div className="space-y-4">
+              {reconNotStarted && (
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    Aucun rapprochement bancaire n'a encore été effectué (pas de relevé pointé ni de lettrage classe 5).
+                    Les « reçus non crédités / émis non débités » ne peuvent donc pas être déterminés et sont affichés à 0 :
+                    importez et pointez vos relevés dans le module <strong>Rapprochement</strong> pour les calculer.
+                  </span>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-white border border-[var(--color-border)]">
                   <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Solde comptable (réel)</p>
