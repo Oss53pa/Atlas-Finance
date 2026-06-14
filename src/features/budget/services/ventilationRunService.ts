@@ -15,6 +15,7 @@
  * type n'existe, sans rompre la réconciliation.
  */
 import type { DataAdapter } from '@atlas/data';
+import { largestRemainderAllocate } from '../../../utils/allocation';
 
 function getClient(adapter: DataAdapter): any | null {
   const c = (adapter as any).client;
@@ -35,7 +36,24 @@ export interface AllocationRule {
   libelle_pattern: string | null;
   tiers_pattern: string | null;
   section_id: string;
+  key_id: string | null;
+  source_section_id: string | null;
   actif: boolean;
+}
+
+export interface AllocationKey {
+  id: string;
+  code: string;
+  libelle: string;
+  unite: string | null;
+  actif: boolean;
+}
+
+export interface KeyValue {
+  id: string;
+  key_id: string;
+  section_id: string;
+  valeur: number;
 }
 
 export interface ReconciliationClasse {
@@ -101,6 +119,7 @@ export async function listRules(adapter: DataAdapter): Promise<AllocationRule[]>
 export async function createRule(adapter: DataAdapter, rule: {
   type?: RuleType; ordre?: number; compte_pattern?: string; journal_pattern?: string;
   libelle_pattern?: string; tiers_pattern?: string; section_id: string;
+  key_id?: string | null; source_section_id?: string | null;
 }): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
@@ -113,8 +132,50 @@ export async function createRule(adapter: DataAdapter, rule: {
     libelle_pattern: rule.libelle_pattern?.trim() || null,
     tiers_pattern: rule.tiers_pattern?.trim() || null,
     section_id: rule.section_id,
+    key_id: rule.key_id || null,
+    source_section_id: rule.source_section_id || null,
     actif: true,
   });
+  if (error) throw new Error(error.message);
+}
+
+// ── Clés de répartition (primaire/secondaire & ABC) ──────────────────────────
+export async function listKeys(adapter: DataAdapter): Promise<AllocationKey[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_allocation_key').select('*').order('code');
+  return (data ?? []) as AllocationKey[];
+}
+
+export async function createKey(adapter: DataAdapter, key: { code: string; libelle: string; unite?: string }): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_key').insert({
+    tenant_id: tenantOf(adapter), code: key.code.trim(), libelle: key.libelle.trim(), unite: key.unite?.trim() || null, actif: true,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteKey(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_key').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function listKeyValues(adapter: DataAdapter, keyId: string): Promise<KeyValue[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_allocation_key_value').select('*').eq('key_id', keyId);
+  return (data ?? []).map((v: any) => ({ ...v, valeur: Number(v.valeur) || 0 })) as KeyValue[];
+}
+
+/** Upsert d'une valeur de clé pour une section (poids de répartition). */
+export async function setKeyValue(adapter: DataAdapter, keyId: string, sectionId: string, valeur: number): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_key_value')
+    .upsert({ tenant_id: tenantOf(adapter), key_id: keyId, section_id: sectionId, valeur }, { onConflict: 'key_id,section_id' });
   if (error) throw new Error(error.message);
 }
 
@@ -169,14 +230,14 @@ async function loadGlLines(client: any, exercice: number): Promise<any[]> {
   return all;
 }
 
-// Première règle DIRECT correspondant à une ligne (ordre croissant).
-function matchRule(line: any, rules: AllocationRule[]): AllocationRule | null {
+// Première règle d'un type donné correspondant à une ligne (ordre croissant).
+function matchRuleOfType(line: any, rules: AllocationRule[], type: RuleType): AllocationRule | null {
   const code = String(line.account_code || '');
   const journal = String(line.journal_entries?.journal || '');
   const libelle = `${line.label || ''} ${line.journal_entries?.label || ''}`.toLowerCase();
   const tiers = String(line.third_party_code || '');
   for (const r of rules) {
-    if (!r.actif || r.type !== 'DIRECT') continue;
+    if (!r.actif || r.type !== type) continue;
     if (r.compte_pattern && !code.startsWith(r.compte_pattern)) continue;
     if (r.journal_pattern && journal !== r.journal_pattern) continue;
     if (r.libelle_pattern && !libelle.includes(r.libelle_pattern.toLowerCase())) continue;
@@ -207,19 +268,42 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
   }
 
-  // Fléchage direct.
-  const ventRows: any[] = [];
-  for (const l of lines) {
-    const r = matchRule(l, rules);
-    if (!r) continue;
-    ventRows.push({
-      tenant_id: tenantId,
-      ligne_ecriture_id: l.id,
-      section_id: r.section_id,
-      pourcentage: 100,
-      montant: Math.round((Number(l.debit) || 0) - (Number(l.credit) || 0)),
-    });
+  // Charge les valeurs des clés utilisées par les règles PRIMAIRE.
+  const primaireRules = rules.filter(r => r.actif && r.type === 'PRIMAIRE' && r.key_id);
+  const keyWeightsMap = new Map<string, KeyValue[]>();
+  for (const kid of new Set(primaireRules.map(r => r.key_id!))) {
+    keyWeightsMap.set(kid, (await listKeyValues(adapter, kid)).filter(w => w.valeur > 0));
   }
+
+  const lineFcfa = (l: any) => Math.round((Number(l.debit) || 0) - (Number(l.credit) || 0));
+  const ventRows: any[] = [];
+  const assigned = new Set<string>();
+
+  // Stage 1 — fléchage DIRECT (100 % sur une section).
+  for (const l of lines) {
+    const r = matchRuleOfType(l, rules, 'DIRECT');
+    if (!r) continue;
+    assigned.add(l.id);
+    ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: r.section_id, pourcentage: 100, montant: lineFcfa(l) });
+  }
+
+  // Stage 2 — répartition PRIMAIRE du résidu (charges indirectes) par clé,
+  // méthode du plus fort reste → Σ parts == montant ligne (exact, zéro fuite).
+  for (const l of lines) {
+    if (assigned.has(l.id)) continue;
+    const r = matchRuleOfType(l, primaireRules, 'PRIMAIRE');
+    if (!r || !r.key_id) continue;
+    const weights = keyWeightsMap.get(r.key_id) || [];
+    if (weights.length === 0) continue;
+    const fcfa = lineFcfa(l);
+    const parts = largestRemainderAllocate(fcfa, weights.map(w => w.valeur));
+    weights.forEach((w, i) => {
+      if (parts[i] === 0) return;
+      ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: w.section_id, pourcentage: fcfa !== 0 ? +((parts[i] / fcfa) * 100).toFixed(4) : 0, montant: parts[i] });
+    });
+    assigned.add(l.id);
+  }
+
   for (const c of chunk(ventRows, 500)) {
     const { error } = await client.from('ventilations_analytiques').insert(c);
     if (error) throw new Error(error.message);
@@ -270,7 +354,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     montant_gl: totGlCents,
     montant_ventile: totVentCents,
     nb_lignes_gl: lines.length,
-    nb_lignes_ventilees: ventRows.length,
+    nb_lignes_ventilees: assigned.size,
     reconcilie,
     detail,
     executed_by: executedBy || null,

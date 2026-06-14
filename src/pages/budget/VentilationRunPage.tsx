@@ -16,10 +16,12 @@ import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
 import {
   listRules, createRule, deleteRule, toggleRule, runVentilation, listRuns, getReconciliation,
+  listKeys, createKey, deleteKey, listKeyValues, setKeyValue,
   type AllocationRule, type AllocationRun, type ReconciliationClasse, type RunReport,
+  type AllocationKey, type RuleType,
 } from '../../features/budget/services/ventilationRunService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save,
 } from 'lucide-react';
 
 const CLASSE_LABEL: Record<string, string> = { '2': 'Immobilisations (2)', '6': 'Charges (6)', '7': 'Produits (7)' };
@@ -38,30 +40,69 @@ const VentilationRunPage: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [nr, setNr] = useState({ compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '' });
+  const [nr, setNr] = useState<{ type: RuleType; compte_pattern: string; journal_pattern: string; libelle_pattern: string; tiers_pattern: string; section_id: string; key_id: string }>({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '' });
+  const [keys, setKeys] = useState<AllocationKey[]>([]);
+  const [nk, setNk] = useState({ code: '', libelle: '', unite: '' });
+  const [editKey, setEditKey] = useState<string>(''); // key_id en cours d'édition des poids
+  const [weights, setWeights] = useState<Record<string, string>>({}); // section_id → valeur
 
   const load = async () => {
     setLoading(true);
     try {
       const a = annee || await getDefaultAnnee(adapter);
-      const [secs, rl, rn, rc] = await Promise.all([
-        listSections(adapter), listRules(adapter), listRuns(adapter), getReconciliation(adapter, a),
+      const [secs, rl, rn, rc, ks] = await Promise.all([
+        listSections(adapter), listRules(adapter), listRuns(adapter), getReconciliation(adapter, a), listKeys(adapter),
       ]);
-      setAnnee(a); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc);
+      setAnnee(a); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc); setKeys(ks);
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [adapter]);
 
   const sectionLabel = (id: string) => { const s = sections.find(x => x.id === id); return s ? `${s.code} · ${s.libelle}` : '—'; };
+  const keyLabel = (id: string | null) => { const k = keys.find(x => x.id === id); return k ? `clé ${k.code}` : '—'; };
 
   const addRule = async () => {
-    if (!nr.section_id) { toast.error('Choisissez une section cible'); return; }
     if (!nr.compte_pattern && !nr.journal_pattern && !nr.libelle_pattern && !nr.tiers_pattern) { toast.error('Au moins un critère (compte, journal, libellé ou tiers)'); return; }
+    if (nr.type === 'DIRECT' && !nr.section_id) { toast.error('Choisissez une section cible'); return; }
+    if (nr.type === 'PRIMAIRE' && !nr.key_id) { toast.error('Choisissez une clé de répartition'); return; }
     try {
-      await createRule(adapter, { ...nr, ordre: (rules.length + 1) * 10 });
-      setNr({ compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '' });
+      await createRule(adapter, {
+        type: nr.type, ordre: (rules.length + 1) * 10,
+        compte_pattern: nr.compte_pattern, journal_pattern: nr.journal_pattern,
+        libelle_pattern: nr.libelle_pattern, tiers_pattern: nr.tiers_pattern,
+        section_id: nr.type === 'DIRECT' ? nr.section_id : (sections[0]?.id || nr.section_id), // section_id requis NOT NULL ; ignoré en primaire
+        key_id: nr.type === 'PRIMAIRE' ? nr.key_id : null,
+      });
+      setNr({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '' });
       toast.success('Règle ajoutée'); load();
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  const addKey = async () => {
+    if (!nk.code.trim() || !nk.libelle.trim()) { toast.error('Code et libellé requis'); return; }
+    try { await createKey(adapter, nk); setNk({ code: '', libelle: '', unite: '' }); toast.success('Clé créée'); load(); }
+    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  const openKeyWeights = async (keyId: string) => {
+    if (editKey === keyId) { setEditKey(''); return; }
+    setEditKey(keyId);
+    try {
+      const vals = await listKeyValues(adapter, keyId);
+      const m: Record<string, string> = {};
+      for (const v of vals) m[v.section_id] = String(v.valeur);
+      setWeights(m);
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  const saveWeights = async () => {
+    try {
+      for (const s of sections) {
+        const v = parseFloat(weights[s.id] || '');
+        if (!isNaN(v)) await setKeyValue(adapter, editKey, s.id, v);
+      }
+      toast.success('Poids enregistrés'); setEditKey('');
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
@@ -189,22 +230,78 @@ const VentilationRunPage: React.FC = () => {
         </div>
       )}
 
-      {/* Règles de ventilation (direct) */}
+      {/* Clés de répartition (primaire / ABC) */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2">
+          <Scale className="w-4 h-4 text-[var(--color-primary)]" />
+          <div>
+            <h2 className="font-semibold text-[var(--color-primary)]">Clés de répartition</h2>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Poids par section (surface m², effectif, CA, inducteur ABC). Utilisées par les règles « primaire ».</p>
+          </div>
+        </div>
+        <div className="p-4 grid grid-cols-1 md:grid-cols-4 gap-2 border-b border-[var(--color-border)] bg-gray-50/50">
+          <input value={nk.code} onChange={e => setNk(s => ({ ...s, code: e.target.value }))} placeholder="Code (ex. SURFACE_M2)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm font-mono" />
+          <input value={nk.libelle} onChange={e => setNk(s => ({ ...s, libelle: e.target.value }))} placeholder="Libellé" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+          <input value={nk.unite} onChange={e => setNk(s => ({ ...s, unite: e.target.value }))} placeholder="Unité (m², pers.…)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+          <button onClick={addKey} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center justify-center gap-1"><Plus className="w-4 h-4" />Clé</button>
+        </div>
+        <div className="divide-y divide-gray-100">
+          {keys.length === 0 && <div className="px-4 py-8 text-center text-gray-400 text-sm">Aucune clé. Créez-en une pour la répartition primaire.</div>}
+          {keys.map(k => (
+            <div key={k.id} className="px-4 py-2.5">
+              <div className="flex items-center justify-between">
+                <div className="text-sm"><span className="font-mono text-gray-500">{k.code}</span> <span className="text-gray-800">{k.libelle}</span>{k.unite && <span className="text-xs text-gray-400 ml-1">({k.unite})</span>}</div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => openKeyWeights(k.id)} className="text-xs text-[var(--color-primary)] hover:underline">{editKey === k.id ? 'Fermer' : 'Définir les poids'}</button>
+                  <button onClick={() => deleteKey(adapter, k.id).then(load)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+              {editKey === k.id && (
+                <div className="mt-3 bg-gray-50 rounded-lg p-3">
+                  {sections.length === 0 && <p className="text-xs text-gray-400">Créez des sections d’abord.</p>}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {sections.map(s => (
+                      <div key={s.id} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-600 flex-1 truncate"><span className="font-mono text-gray-400">{s.code}</span> {s.libelle}</span>
+                        <input type="number" value={weights[s.id] ?? ''} onChange={e => setWeights(w => ({ ...w, [s.id]: e.target.value }))} placeholder="0" className="w-24 border border-gray-300 rounded px-2 py-1 text-sm text-right" />
+                      </div>
+                    ))}
+                  </div>
+                  {sections.length > 0 && <button onClick={saveWeights} className="mt-3 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs flex items-center gap-1"><Save className="w-3.5 h-3.5" />Enregistrer les poids</button>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Règles de ventilation (direct / primaire) */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-[var(--color-border)]">
-          <h2 className="font-semibold text-[var(--color-primary)]">Règles de fléchage (direct)</h2>
-          <p className="text-xs text-[var(--color-text-tertiary)]">compte / journal / libellé / tiers → section. Appliquées dans l’ordre au prochain run.</p>
+          <h2 className="font-semibold text-[var(--color-primary)]">Règles de ventilation</h2>
+          <p className="text-xs text-[var(--color-text-tertiary)]">Direct : compte/journal/libellé/tiers → section. Primaire : résidu réparti par clé. Appliquées dans l’ordre.</p>
         </div>
         {/* Ajout */}
-        <div className="p-4 grid grid-cols-1 md:grid-cols-6 gap-2 border-b border-[var(--color-border)] bg-gray-50/50">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-7 gap-2 border-b border-[var(--color-border)] bg-gray-50/50">
+          <select value={nr.type} onChange={e => setNr(s => ({ ...s, type: e.target.value as RuleType }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+            <option value="DIRECT">Direct</option>
+            <option value="PRIMAIRE">Primaire (clé)</option>
+          </select>
           <input value={nr.compte_pattern} onChange={e => setNr(s => ({ ...s, compte_pattern: e.target.value }))} placeholder="Compte (préfixe)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm font-mono" />
           <input value={nr.journal_pattern} onChange={e => setNr(s => ({ ...s, journal_pattern: e.target.value }))} placeholder="Journal" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
           <input value={nr.libelle_pattern} onChange={e => setNr(s => ({ ...s, libelle_pattern: e.target.value }))} placeholder="Libellé contient…" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
           <input value={nr.tiers_pattern} onChange={e => setNr(s => ({ ...s, tiers_pattern: e.target.value }))} placeholder="Code tiers" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm font-mono" />
-          <select value={nr.section_id} onChange={e => setNr(s => ({ ...s, section_id: e.target.value }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-            <option value="">→ Section cible…</option>
-            {sections.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}
-          </select>
+          {nr.type === 'DIRECT' ? (
+            <select value={nr.section_id} onChange={e => setNr(s => ({ ...s, section_id: e.target.value }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+              <option value="">→ Section cible…</option>
+              {sections.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}
+            </select>
+          ) : (
+            <select value={nr.key_id} onChange={e => setNr(s => ({ ...s, key_id: e.target.value }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+              <option value="">→ Clé de répartition…</option>
+              {keys.map(k => <option key={k.id} value={k.id}>{k.code} · {k.libelle}</option>)}
+            </select>
+          )}
           <button onClick={addRule} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center justify-center gap-1"><Plus className="w-4 h-4" />Ajouter</button>
         </div>
         <table className="w-full text-sm">
@@ -219,11 +316,14 @@ const VentilationRunPage: React.FC = () => {
             {filteredRules.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">{rules.length === 0 ? 'Aucune règle. Ajoutez-en une ci-dessus.' : 'Aucune règle ne correspond.'}</td></tr>}
             {filteredRules.map(r => (
               <tr key={r.id} className={`hover:bg-gray-50 ${!r.actif ? 'opacity-50' : ''}`}>
-                <td className="px-4 py-2.5 text-gray-500">{r.ordre}</td>
+                <td className="px-4 py-2.5 text-gray-500">
+                  <span className="inline-block mr-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">{r.type === 'PRIMAIRE' ? 'PRIM.' : r.type === 'SECONDAIRE' ? 'SEC.' : 'DIR.'}</span>
+                  {r.ordre}
+                </td>
                 <td className="px-4 py-2.5 text-gray-700 text-xs">
                   {[r.compte_pattern && `compte ${r.compte_pattern}*`, r.journal_pattern && `journal ${r.journal_pattern}`, r.libelle_pattern && `libellé « ${r.libelle_pattern} »`, r.tiers_pattern && `tiers ${r.tiers_pattern}`].filter(Boolean).join(' · ')}
                 </td>
-                <td className="px-4 py-2.5 text-gray-800">{sectionLabel(r.section_id)}</td>
+                <td className="px-4 py-2.5 text-gray-800">{r.type === 'PRIMAIRE' ? keyLabel(r.key_id) : sectionLabel(r.section_id)}</td>
                 <td className="px-4 py-2.5 text-center"><input type="checkbox" checked={r.actif} onChange={e => toggleRule(adapter, r.id, e.target.checked).then(load)} /></td>
                 <td className="px-4 py-2.5 text-right"><button onClick={() => deleteRule(adapter, r.id).then(load)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button></td>
               </tr>
