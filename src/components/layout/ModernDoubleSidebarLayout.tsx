@@ -52,6 +52,13 @@ interface Notification {
   read: boolean;
 }
 
+/**
+ * Active le masquage de modules selon le plan d'abonnement. Désactivé tant
+ * qu'aucun plan n'est réellement stocké par tenant (cf. note sur le filtre
+ * « control »). Passer à true quand l'infra de plan existera.
+ */
+const PLAN_GATING_ENABLED = false;
+
 const ModernDoubleSidebarLayout: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
@@ -206,10 +213,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       icon: <FileBarChart className="w-5 h-5" />,
       ariaLabel: 'Accéder aux états et rapports'
     }
-    // Plan gating: retire Contrôle de Gestion (Budget & Analytique) pour les plans Starter
-    // qui n'ont pas la feature budget_analytique.
+    // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
+    // societes) → `tenant.plan` est toujours undefined → tout le monde retombait
+    // sur Starter et le module Contrôle de Gestion (Budget & Analytique) était
+    // masqué en permanence, même pour un compte Premium. À réactiver quand un vrai
+    // plan sera stocké par tenant.
   ].filter(item => {
-    if (item.id === 'control' && isStarter && !hasFeature(tenantPlan, 'budget_analytique')) {
+    if (PLAN_GATING_ENABLED && item.id === 'control' && isStarter && !hasFeature(tenantPlan, 'budget_analytique')) {
       return false;
     }
     return true;
