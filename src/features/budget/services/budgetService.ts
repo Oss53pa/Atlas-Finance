@@ -217,32 +217,35 @@ export async function getExploitationSummary(adapter: DataAdapter, annee: string
 export interface InvestmentSummary {
   totalRealise: number;
   totalBudget: number;
-  parCompte: Array<{ account_code: string; label: string; realise: number; budget: number; ecart: number; resteAEngager: number }>;
+  totalExistant: number;
+  totalNouveau: number;
+  parCompte: Array<{ account_code: string; label: string; existant: number; nouveau: number; realise: number; budget: number; ecart: number; resteAEngager: number }>;
   mensuel: Array<{ period: number; realise: number }>;
 }
 
 export async function getInvestmentSummary(adapter: DataAdapter, annee: string): Promise<InvestmentSummary> {
   const client = getClient(adapter);
-  if (!client) return { totalRealise: 0, totalBudget: 0, parCompte: [], mensuel: [] };
-  // Budget CAPEX = demandes CAR validées/engagées (approuvé, fonds disponibles, clos).
-  const [{ data: actual }, { data: cars }] = await Promise.all([
+  if (!client) return { totalRealise: 0, totalBudget: 0, totalExistant: 0, totalNouveau: 0, parCompte: [], mensuel: [] };
+  // split : existant (À-Nouveaux) vs nouveau (acquisitions). Budget = CAR validées+.
+  const [{ data: split }, { data: actual }, { data: cars }] = await Promise.all([
+    client.from('v_capex_by_account').select('*').eq('annee', annee),
     client.from('v_actual_investment').select('*').eq('annee', annee),
     client.from('capex_requests').select('account_code,montant,statut').in('statut', ['approuve', 'fonds_disponibles', 'clos']),
   ]);
   const rows = (actual ?? []).map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
 
-  const map = new Map<string, { account_code: string; label: string; realise: number; budget: number }>();
-  for (const r of rows) {
-    if (!map.has(r.account_code)) map.set(r.account_code, { account_code: r.account_code, label: r.account_name, realise: 0, budget: 0 });
-    map.get(r.account_code)!.realise += r.montant_realise;
+  const map = new Map<string, { account_code: string; label: string; existant: number; nouveau: number; realise: number; budget: number }>();
+  for (const r of (split ?? [])) {
+    const code = String(r.account_code);
+    map.set(code, { account_code: code, label: r.account_name || code, existant: Number(r.existant) || 0, nouveau: Number(r.nouveau) || 0, realise: Number(r.total) || 0, budget: 0 });
   }
   for (const c of (cars ?? [])) {
     const code = String(c.account_code);
-    if (!map.has(code)) map.set(code, { account_code: code, label: code, realise: 0, budget: 0 });
+    if (!map.has(code)) map.set(code, { account_code: code, label: code, existant: 0, nouveau: 0, realise: 0, budget: 0 });
     map.get(code)!.budget += Number(c.montant) || 0;
   }
   const parCompte = Array.from(map.values())
-    .map(c => ({ ...c, ecart: c.realise - c.budget, resteAEngager: Math.max(0, c.budget - c.realise) }))
+    .map(c => ({ ...c, ecart: c.nouveau - c.budget, resteAEngager: Math.max(0, c.budget - c.nouveau) }))
     .sort((a, b) => b.realise - a.realise);
 
   const mensuel: Array<{ period: number; realise: number }> = [];
@@ -251,6 +254,8 @@ export async function getInvestmentSummary(adapter: DataAdapter, annee: string):
   return {
     totalRealise: parCompte.reduce((s, c) => s + c.realise, 0),
     totalBudget: parCompte.reduce((s, c) => s + c.budget, 0),
+    totalExistant: parCompte.reduce((s, c) => s + c.existant, 0),
+    totalNouveau: parCompte.reduce((s, c) => s + c.nouveau, 0),
     parCompte, mensuel,
   };
 }
@@ -312,6 +317,27 @@ export async function createCapexRequest(
     justification: req.justification || null,
     statut: 'demande',
   });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateCapexRequest(
+  adapter: DataAdapter,
+  id: string,
+  req: { libelle: string; account_code: string; section_id?: string | null; montant: number; date_prevue?: string | null; duree_amortissement: number; methode: 'lineaire' | 'degressif'; valeur_residuelle?: number; justification?: string | null },
+): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('capex_requests').update({
+    libelle: req.libelle.trim(),
+    account_code: req.account_code.trim(),
+    section_id: req.section_id || null,
+    montant: req.montant,
+    date_prevue: req.date_prevue || null,
+    duree_amortissement: req.duree_amortissement,
+    methode: req.methode,
+    valeur_residuelle: req.valeur_residuelle ?? 0,
+    justification: req.justification || null,
+  }).eq('id', id);
   if (error) throw new Error(error.message);
 }
 

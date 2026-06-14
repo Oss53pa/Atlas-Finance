@@ -14,7 +14,7 @@ import {
 } from '../../features/budget/services/budgetService';
 import CapexRequestModal from './CapexRequestModal';
 import { useToast } from '../../hooks/useToast';
-import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock } from 'lucide-react';
+import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 const CAR_BADGE: Record<string, string> = {
@@ -37,6 +37,7 @@ const BudgetInvestissementPage: React.FC = () => {
   const [sum, setSum] = useState<InvestmentSummary | null>(null);
   const [requests, setRequests] = useState<CapexRequest[]>([]);
   const [showCar, setShowCar] = useState(false);
+  const [editingCar, setEditingCar] = useState<CapexRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -105,6 +106,7 @@ const BudgetInvestissementPage: React.FC = () => {
       </div>
 
       <CapexRequestModal open={showCar} onClose={() => setShowCar(false)} onCreated={() => setRefreshKey(k => k + 1)} />
+      <CapexRequestModal open={!!editingCar} editing={editingCar} onClose={() => setEditingCar(null)} onCreated={() => setRefreshKey(k => k + 1)} />
 
       {tab === 'demandes' && (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
@@ -146,6 +148,9 @@ const BudgetInvestissementPage: React.FC = () => {
                     <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{CAR_LABEL[r.statut]}</span></td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => setEditingCar(r)} title={(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? 'Consulter le détail' : 'Voir / modifier'} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1 text-gray-600">
+                          {(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? <><Eye className="w-3 h-3" />Voir</> : <><Pencil className="w-3 h-3" />Détail</>}
+                        </button>
                         {r.statut === 'demande' && <>
                           <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'approuve'), 'Demande validée')} title="Valider la demande" className="px-2 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"><Check className="w-3 h-3" />Valider</button>
                           <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'rejete'), 'Demande rejetée')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
@@ -184,19 +189,21 @@ const BudgetInvestissementPage: React.FC = () => {
           <thead className="bg-gray-50 border-b border-[var(--color-border)]">
             <tr>
               <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Compte</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Solde issu des À-Nouveaux : déjà immobilisé en comptabilité">Déjà en compte</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Acquisitions de la période (hors À-Nouveaux)">Nouveaux invest.</th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budgété</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
               <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Reste à engager</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {s.parCompte.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">Aucune immobilisation.</td></tr>}
+            {s.parCompte.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune immobilisation.</td></tr>}
             {s.parCompte.map(c => (
               <tr key={c.account_code} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/accounting/general-ledger?compte=${c.account_code}`)}>
                 <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{c.account_code}</span> <span className="text-gray-800">{c.label}</span></td>
+                <td className="px-4 py-2.5 text-right text-gray-400">{c.existant ? formatCurrency(c.existant) : '—'}</td>
+                <td className="px-4 py-2.5 text-right font-medium text-gray-900">{c.nouveau ? formatCurrency(c.nouveau) : '—'}</td>
                 <td className="px-4 py-2.5 text-right text-gray-500">{c.budget ? formatCurrency(c.budget) : '—'}</td>
-                <td className="px-4 py-2.5 text-right font-medium text-gray-900">{formatCurrency(c.realise)}</td>
                 <td className={`px-4 py-2.5 text-right ${c.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{c.budget ? formatCurrency(c.ecart) : '—'}</td>
                 <td className="px-4 py-2.5 text-right text-amber-700">{c.budget ? formatCurrency(c.resteAEngager) : '—'}</td>
               </tr>
