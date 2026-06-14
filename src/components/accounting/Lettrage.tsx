@@ -1309,7 +1309,7 @@ const Lettrage: React.FC = () => {
       {detailCompte && detailMeta && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/50" onClick={() => { setDetailCompte(null); setSelectedEntries(new Set()); }} />
-          <div className="relative z-[10000] w-full max-w-5xl bg-white rounded-xl shadow-2xl max-h-[90vh] flex flex-col">
+          <div className="relative z-[10000] w-full max-w-7xl bg-white rounded-xl shadow-2xl max-h-[90vh] flex flex-col">
             {/* En-tête */}
             <div className="flex items-start justify-between p-5 border-b border-gray-200">
               <div className="flex items-center gap-3">
@@ -1490,6 +1490,22 @@ const Lettrage: React.FC = () => {
                     </tr>
                   ))}
                 </tbody>
+                {detailEntries.length > 0 && (
+                  <tfoot className="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300">
+                    <tr className="text-sm font-bold text-gray-900">
+                      <td className="px-4 py-2.5" colSpan={6}>
+                        Total ({detailEntries.length} ligne{detailEntries.length > 1 ? 's' : ''})
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-red-700 whitespace-nowrap">
+                        {fmt(detailEntries.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0))}
+                      </td>
+                      <td className="px-4 py-2.5 text-right text-green-700 whitespace-nowrap">
+                        {fmt(detailEntries.reduce((s, e) => money(s).add(money(e.credit)).toNumber(), 0))}
+                      </td>
+                      <td className="px-4 py-2.5"></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
 

@@ -56,6 +56,7 @@ const AdvancedGeneralLedger: React.FC = () => {
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [selectedClasse, setSelectedClasse] = useState<string>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [showPeriodModal, setShowPeriodModal] = useState(false);
@@ -119,7 +120,7 @@ const AdvancedGeneralLedger: React.FC = () => {
   });
 
   // Charger les données du Grand Livre depuis Dexie
-  const { data: accountsData = [] } = useQuery<AccountData[]>({
+  const { data: rawAccountsData = [] } = useQuery<AccountData[]>({
     queryKey: ['advanced-general-ledger', dateRange.start, dateRange.end],
     queryFn: async () => {
       const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
@@ -162,6 +163,15 @@ const AdvancedGeneralLedger: React.FC = () => {
       return Array.from(accountMap.values()).sort((a, b) => a.compte.localeCompare(b.compte));
     },
   });
+
+  // Filtre par CLASSE (dropdown de l'en-tête) appliqué à la source : tous les
+  // affichages (Détaillé / Arborescence / Liste) en héritent automatiquement.
+  const accountsData = useMemo(
+    () => (selectedClasse === 'all'
+      ? rawAccountsData
+      : rawAccountsData.filter((a) => String(a.compte).startsWith(selectedClasse))),
+    [rawAccountsData, selectedClasse],
+  );
 
   // Plan comptable complet — pour distinguer les comptes sans mouvement (réel).
   const { data: allAccounts = [] } = useQuery<DBAccount[]>({
@@ -1575,7 +1585,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-3">
-                  <select className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+                  <select
+                    value={selectedClasse}
+                    onChange={(e) => setSelectedClasse(e.target.value)}
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
+                  >
                     <option value="all">Tous les comptes</option>
                     <option value="1">Classe 1 - Comptes de ressources durables</option>
                     <option value="2">Classe 2 - Comptes d'actif immobilisé</option>
