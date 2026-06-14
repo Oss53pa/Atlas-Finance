@@ -114,7 +114,7 @@ const TreasuryPositions: React.FC = () => {
   const [glPosition, setGlPosition] = useState<{
     code: string; name: string; solde: number; rappro: number; recus: number; emis: number;
   }[]>([]);
-  const [posTab, setPosTab] = useState<'temps-reel' | 'cockpit' | 'comptes'>('cockpit');
+  const [posTab, setPosTab] = useState<'temps-reel' | 'cockpit' | 'comptes' | 'flux'>('cockpit');
   // Flux EN CIRCULATION (lignes de trésorerie non lettrées, hors À-Nouveau) — réel.
   const [glFloat, setGlFloat] = useState<{ id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[]>([]);
   // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
@@ -390,6 +390,7 @@ const TreasuryPositions: React.FC = () => {
           {([
             { key: 'cockpit', label: 'Cockpit trésorerie' },
             { key: 'temps-reel', label: 'Position temps réel' },
+            { key: 'flux', label: 'Flux en circulation' },
             { key: 'comptes', label: 'Comptes bancaires' },
           ] as const).map(tb => (
             <button
@@ -508,7 +509,6 @@ const TreasuryPositions: React.FC = () => {
           };
           // Filtrage par banque/compte sélectionné ('all' = consolidé).
           const view = selectedPosBank === 'all' ? glPosition : glPosition.filter(p => p.code === selectedPosBank);
-          const floatView = selectedPosBank === 'all' ? glFloat : glFloat.filter(f => f.code === selectedPosBank);
           const tot = view.reduce(
             (a, p) => ({ solde: a.solde + p.solde, recus: a.recus + p.recus, emis: a.emis + p.emis, rappro: a.rappro + p.rappro }),
             { solde: 0, recus: 0, emis: 0, rappro: 0 },
@@ -718,11 +718,37 @@ const TreasuryPositions: React.FC = () => {
                 })}
               </div>
 
-              {/* Flux en circulation (la Concentration bancaire est dans son propre onglet). */}
+              <p className="text-xs text-[var(--color-text-tertiary)]">
+                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. « En circulation » = mouvements de trésorerie non lettrés (hors à-nouveau) ; rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* ── ONGLET : Flux en circulation (non rapprochés) ───── */}
+        {posTab === 'flux' && (() => {
+          const VERT = '#1D9E75', ROUGE = '#E24B4A';
+          const floatView = selectedPosBank === 'all' ? glFloat : glFloat.filter(f => f.code === selectedPosBank);
+          return (
+            <div className="space-y-4">
+              {reconNotStarted && (
+                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <span>
+                    Aucun rapprochement bancaire effectué : aucun flux « en circulation » ne peut être déterminé.
+                    Importez et pointez vos relevés dans le module <strong>Rapprochement</strong>.
+                  </span>
+                </div>
+              )}
               <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
-                <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span></h3>
-                {floatView.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p> : (
-                  <div className="flex flex-col gap-1" style={{ maxHeight: 320, overflowY: 'auto' }}>
+                <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
+                  Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span>
+                  {floatView.length > 0 && <span className="ml-2 text-xs font-normal text-[var(--color-text-tertiary)]">({floatView.length})</span>}
+                </h3>
+                {floatView.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p>
+                ) : (
+                  <div className="flex flex-col gap-1">
                     {floatView.map((f, i) => (
                       <div key={f.id + i} className="flex items-center justify-between gap-3 py-2" style={{ borderBottom: i < floatView.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                         <div className="flex items-center gap-3 min-w-0">
@@ -735,9 +761,8 @@ const TreasuryPositions: React.FC = () => {
                   </div>
                 )}
               </div>
-
               <p className="text-xs text-[var(--color-text-tertiary)]">
-                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. « En circulation » = mouvements de trésorerie non lettrés (hors à-nouveau) ; rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+                « En circulation » = mouvements de trésorerie non encore rapprochés à un relevé bancaire. Rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
               </p>
             </div>
           );
