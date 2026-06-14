@@ -15,7 +15,7 @@ import {
   type ExploitationSummary, type TreasuryActualRow, type BudgetVersion,
 } from '../../features/budget/services/budgetService';
 import {
-  TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, Gauge,
+  TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, Gauge, Upload,
 } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -168,12 +168,20 @@ const BudgetCockpitPage: React.FC = () => {
         </div>
       </div>
 
-      <button
-        onClick={() => navigate('/budget/exploitation')}
-        className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90"
-      >
-        Détail Budget vs Réalisé (exploitation) →
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={() => navigate('/budget/exploitation')}
+          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90"
+        >
+          Détail Budget vs Réalisé (exploitation) →
+        </button>
+        <button
+          onClick={() => navigate('/budget/import')}
+          className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
+        >
+          <Upload className="w-4 h-4" /> Importer un budget
+        </button>
+      </div>
     </div>
   );
 };

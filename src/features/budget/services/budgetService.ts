@@ -193,3 +193,234 @@ export async function getExploitationSummary(adapter: DataAdapter, annee: string
     parNature, mensuel,
   };
 }
+
+// ── Investissement (CAPEX) ───────────────────────────────────────────────────
+
+export interface InvestmentSummary {
+  totalRealise: number;
+  totalBudget: number;
+  parCompte: Array<{ account_code: string; label: string; realise: number; budget: number; ecart: number; resteAEngager: number }>;
+  mensuel: Array<{ period: number; realise: number }>;
+}
+
+export async function getInvestmentSummary(adapter: DataAdapter, annee: string): Promise<InvestmentSummary> {
+  const client = getClient(adapter);
+  if (!client) return { totalRealise: 0, totalBudget: 0, parCompte: [], mensuel: [] };
+  const [{ data: actual }, bva] = await Promise.all([
+    client.from('v_actual_investment').select('*').eq('annee', annee),
+    getBudgetVsActual(adapter),
+  ]);
+  const rows = (actual ?? []).map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
+  const invBudget = bva.filter(b => b.budget_type === 'investissement' && b.annee === annee);
+
+  const map = new Map<string, { account_code: string; label: string; realise: number; budget: number }>();
+  for (const r of rows) {
+    if (!map.has(r.account_code)) map.set(r.account_code, { account_code: r.account_code, label: r.account_name, realise: 0, budget: 0 });
+    map.get(r.account_code)!.realise += r.montant_realise;
+  }
+  for (const b of invBudget) {
+    if (!map.has(b.account_code)) map.set(b.account_code, { account_code: b.account_code, label: b.account_code, realise: 0, budget: 0 });
+    map.get(b.account_code)!.budget += b.budget;
+  }
+  const parCompte = Array.from(map.values())
+    .map(c => ({ ...c, ecart: c.realise - c.budget, resteAEngager: Math.max(0, c.budget - c.realise) }))
+    .sort((a, b) => b.realise - a.realise);
+
+  const mensuel: Array<{ period: number; realise: number }> = [];
+  for (let p = 1; p <= 12; p++) mensuel.push({ period: p, realise: rows.filter((r: any) => r.period === p).reduce((s: number, r: any) => s + r.montant_realise, 0) });
+
+  return {
+    totalRealise: parCompte.reduce((s, c) => s + c.realise, 0),
+    totalBudget: parCompte.reduce((s, c) => s + c.budget, 0),
+    parCompte, mensuel,
+  };
+}
+
+// ── Gestion des versions (validation DG → verrouillage) ──────────────────────
+
+export interface BudgetVersionFull extends BudgetVersion {
+  validated_at: string | null;
+  created_at: string;
+  fiscal_year_code?: string;
+  nb_lignes?: number;
+}
+
+export async function listBudgetVersions(adapter: DataAdapter): Promise<BudgetVersionFull[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client
+    .from('budget_versions')
+    .select('id,fiscal_year_id,libelle,type,statut,is_active,validated_at,created_at')
+    .order('created_at', { ascending: false });
+  const versions = (data ?? []) as BudgetVersionFull[];
+  // compteur de lignes par version
+  const ids = versions.map(v => v.id);
+  if (ids.length) {
+    const { data: lignes } = await client.from('budget_lines').select('version_id').in('version_id', ids);
+    const counts = new Map<string, number>();
+    (lignes ?? []).forEach((l: any) => counts.set(l.version_id, (counts.get(l.version_id) || 0) + 1));
+    versions.forEach(v => { v.nb_lignes = counts.get(v.id) || 0; });
+  }
+  return versions;
+}
+
+/** Transition de statut. validate => 'valide' (validated_at/by) ; lock => 'verrouille'. */
+export async function setVersionStatut(
+  adapter: DataAdapter,
+  versionId: string,
+  statut: 'brouillon' | 'valide' | 'verrouille',
+): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const patch: any = { statut };
+  if (statut === 'valide') {
+    patch.validated_at = new Date().toISOString();
+    const { data: u } = await client.auth.getUser();
+    if (u?.user?.id) patch.validated_by = u.user.id;
+  }
+  const { error } = await client.from('budget_versions').update(patch).eq('id', versionId);
+  if (error) throw new Error(error.message);
+}
+
+export async function setVersionActive(adapter: DataAdapter, versionId: string, fiscalYearId: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  // au plus une active par exercice : désactiver les autres puis activer
+  await client.from('budget_versions').update({ is_active: false }).eq('fiscal_year_id', fiscalYearId);
+  const { error } = await client.from('budget_versions').update({ is_active: true }).eq('id', versionId);
+  if (error) throw new Error(error.message);
+}
+
+// ── Import de budget ─────────────────────────────────────────────────────────
+
+export interface BudgetImportLine {
+  account_code: string;
+  budget_type: 'exploitation' | 'investissement';
+  section_code?: string | null;
+  /** Montants mensuels indexés 1..12. */
+  periods: Record<number, number>;
+}
+
+export interface FiscalYearLite { id: string; code: string; name?: string }
+
+/** Exercice actif (is_active) sinon le plus récent. */
+export async function getActiveFiscalYear(adapter: DataAdapter): Promise<FiscalYearLite | null> {
+  const client = getClient(adapter);
+  if (!client) return null;
+  const { data: act } = await client
+    .from('fiscal_years').select('id,code,name').eq('is_active', true).limit(1);
+  if (act?.[0]) return act[0];
+  const { data } = await client
+    .from('fiscal_years').select('id,code,name').order('code', { ascending: false }).limit(1);
+  return data?.[0] ?? null;
+}
+
+/** Déduit le type budgétaire depuis le compte si non fourni (classe 2 = investissement). */
+export function inferBudgetType(accountCode: string): 'exploitation' | 'investissement' {
+  return accountCode.trim().startsWith('2') ? 'investissement' : 'exploitation';
+}
+
+/**
+ * Importe des lignes budgétaires dans une version (créée si nécessaire).
+ * mode 'replace' : vide les lignes existantes de la version avant insertion
+ * (ré-import idempotent). Écrit en réel (tables budget_*, RLS par société).
+ */
+export async function importBudget(
+  adapter: DataAdapter,
+  params: {
+    fiscalYearId: string;
+    versionLibelle: string;
+    lines: BudgetImportLine[];
+    replace: boolean;
+  },
+): Promise<{ versionId: string; linesCreated: number; periodsCreated: number }> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Import budget indisponible (mode hors-ligne).');
+  const tenantId = (adapter as any).tenantId as string;
+  if (!tenantId) throw new Error('Société non résolue.');
+
+  // 1) Version active pour l'exercice, sinon création.
+  let versionId: string;
+  const { data: existing } = await client
+    .from('budget_versions')
+    .select('id,statut')
+    .eq('fiscal_year_id', params.fiscalYearId)
+    .eq('is_active', true)
+    .limit(1);
+  if (existing?.[0]) {
+    if (existing[0].statut === 'verrouille') throw new Error('La version active est verrouillée : import impossible.');
+    versionId = existing[0].id;
+    if (params.replace) {
+      await client.from('budget_lines').delete().eq('version_id', versionId);
+    }
+  } else {
+    const { data: created, error } = await client
+      .from('budget_versions')
+      .insert({ tenant_id: tenantId, fiscal_year_id: params.fiscalYearId, libelle: params.versionLibelle, type: 'initial', statut: 'brouillon', is_active: true })
+      .select('id').single();
+    if (error) throw new Error(error.message);
+    versionId = created.id;
+  }
+
+  // 2) Résoudre les sections par code (optionnel ; table vide aujourd'hui → null).
+  const sectionCodes = [...new Set(params.lines.map(l => (l.section_code || '').trim()).filter(Boolean))];
+  const sectionMap = new Map<string, string>();
+  if (sectionCodes.length) {
+    const { data: secs } = await client
+      .from('sections_analytiques').select('id,code').in('code', sectionCodes);
+    (secs ?? []).forEach((s: any) => sectionMap.set(String(s.code), s.id));
+  }
+
+  // 3) Dédupliquer par clé (version,type,compte,section) en fusionnant les périodes.
+  const merged = new Map<string, BudgetImportLine>();
+  for (const l of params.lines) {
+    const sec = (l.section_code || '').trim();
+    const key = `${l.budget_type}|${l.account_code.trim()}|${sec}`;
+    if (!merged.has(key)) merged.set(key, { account_code: l.account_code.trim(), budget_type: l.budget_type, section_code: sec || null, periods: { ...l.periods } });
+    else { const m = merged.get(key)!; for (let p = 1; p <= 12; p++) m.periods[p] = (m.periods[p] || 0) + (l.periods[p] || 0); }
+  }
+  const lines = [...merged.values()];
+
+  // 4) Insérer les lignes puis leurs périodes.
+  const lineRecords = lines.map(l => ({
+    tenant_id: tenantId,
+    version_id: versionId,
+    budget_type: l.budget_type,
+    account_code: l.account_code,
+    section_id: l.section_code ? (sectionMap.get(l.section_code) ?? null) : null,
+  }));
+  if (lineRecords.length === 0) return { versionId, linesCreated: 0, periodsCreated: 0 };
+
+  const { error: insErr } = await client
+    .from('budget_lines')
+    .upsert(lineRecords, { onConflict: 'version_id,budget_type,account_code,section_id' });
+  if (insErr) throw new Error(insErr.message);
+
+  // Corrélation par CLÉ (robuste, indépendante de l'ordre retourné par l'upsert) :
+  // on relit les ids de la version et on les associe par (type, compte, section).
+  const { data: allLines } = await client
+    .from('budget_lines')
+    .select('id,budget_type,account_code,section_id')
+    .eq('version_id', versionId);
+  const idByKey = new Map<string, string>();
+  (allLines ?? []).forEach((r: any) => idByKey.set(`${r.budget_type}|${r.account_code}|${r.section_id ?? ''}`, r.id));
+
+  const periodRecords: any[] = [];
+  for (const l of lines) {
+    const secId = l.section_code ? (sectionMap.get(l.section_code) ?? '') : '';
+    const lineId = idByKey.get(`${l.budget_type}|${l.account_code}|${secId}`);
+    if (!lineId) continue;
+    for (let p = 1; p <= 12; p++) {
+      periodRecords.push({ tenant_id: tenantId, budget_line_id: lineId, period: p, montant_prevu: Math.round((l.periods[p] || 0) * 100) / 100 });
+    }
+  }
+  const linesCreated = lineRecords.length;
+  if (periodRecords.length) {
+    const { error: perErr } = await client
+      .from('budget_line_periods')
+      .upsert(periodRecords, { onConflict: 'budget_line_id,period' });
+    if (perErr) throw new Error(perErr.message);
+  }
+
+  return { versionId, linesCreated, periodsCreated: periodRecords.length };
+}

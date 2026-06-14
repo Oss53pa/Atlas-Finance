@@ -142,6 +142,10 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
+const BudgetImportPage = lazyRetry(() => import('./pages/budget/BudgetImportPage'));
+const BudgetInvestissementPage = lazyRetry(() => import('./pages/budget/BudgetInvestissementPage'));
+const BudgetEcartsPage = lazyRetry(() => import('./pages/budget/BudgetEcartsPage'));
+const BudgetVersionsPage = lazyRetry(() => import('./pages/budget/BudgetVersionsPage'));
 const BankAccountsPage = lazyRetry(() => import('./pages/treasury/BankAccountsPage'));
 const FundCallsPage = lazyRetry(() => import('./pages/treasury/FundCallsPage'));
 const TreasuryPositions = lazyRetry(() => import('./pages/treasury/TreasuryPositions'));
@@ -407,6 +411,10 @@ function App() {
                           <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
                           <Route path="/budget/cockpit" element={work(<BudgetCockpitPage />)} />
                           <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
+                          <Route path="/budget/import" element={work(<BudgetImportPage />)} />
+                          <Route path="/budget/investissement" element={work(<BudgetInvestissementPage />)} />
+                          <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
+                          <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                         </Route>
 
                         {/* Tiers */}

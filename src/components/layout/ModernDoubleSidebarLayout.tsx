@@ -256,6 +256,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     control: [
       { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
+      { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
+      { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
+      { id: 'budget-import', label: 'Importer un Budget', path: '/budget/import', icon: <Upload className="w-4 h-4" /> },
       { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-control', label: 'Contrôle Budgétaire', path: '/budgeting/control', icon: <ChartBar className="w-4 h-4" /> },
       { id: 'analytical', label: 'Comptabilité Analytique', path: '/analytics', icon: <PieChart className="w-4 h-4" /> },
