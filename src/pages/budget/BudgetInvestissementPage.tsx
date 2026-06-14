@@ -12,10 +12,15 @@ import {
   getDefaultAnnee, getInvestmentSummary, listCapexRequests, setCapexStatut, deleteCapexRequest,
   dotationAnnuelle, type InvestmentSummary, type CapexRequest,
 } from '../../features/budget/services/budgetService';
+import {
+  listApprovalMatrix, ensureDefaultMatrix, requiredApprover, recordApproval, type ApprovalBracket,
+} from '../../features/budget/services/capexCarService';
 import CapexRequestModal from './CapexRequestModal';
+import CapexPirModal from './CapexPirModal';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useToast } from '../../hooks/useToast';
-import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil, Search } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil, Search, ClipboardCheck } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 const CAR_BADGE: Record<string, string> = {
@@ -32,13 +37,16 @@ const CAR_LABEL: Record<string, string> = {
 const BudgetInvestissementPage: React.FC = () => {
   const { adapter } = useData();
   const { toast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
   const [tab, setTab] = useState<'synthese' | 'demandes' | 'detail'>('synthese');
   const [sum, setSum] = useState<InvestmentSummary | null>(null);
   const [requests, setRequests] = useState<CapexRequest[]>([]);
+  const [matrix, setMatrix] = useState<ApprovalBracket[]>([]);
   const [showCar, setShowCar] = useState(false);
   const [editingCar, setEditingCar] = useState<CapexRequest | null>(null);
+  const [pirCar, setPirCar] = useState<CapexRequest | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -51,9 +59,12 @@ const BudgetInvestissementPage: React.FC = () => {
       setLoading(true); setError(null);
       try {
         const a = await getDefaultAnnee(adapter);
-        const [s, reqs] = await Promise.all([getInvestmentSummary(adapter, a), listCapexRequests(adapter)]);
+        const [s, reqs, mtx] = await Promise.all([
+          getInvestmentSummary(adapter, a), listCapexRequests(adapter),
+          ensureDefaultMatrix(adapter).catch(() => listApprovalMatrix(adapter)),
+        ]);
         if (cancelled) return;
-        setAnnee(a); setSum(s); setRequests(reqs);
+        setAnnee(a); setSum(s); setRequests(reqs); setMatrix(mtx);
       } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
       finally { if (!cancelled) setLoading(false); }
     })();
@@ -63,6 +74,19 @@ const BudgetInvestissementPage: React.FC = () => {
   const carAction = async (fn: () => Promise<void>, ok: string) => {
     try { await fn(); toast.success(ok); setRefreshKey(k => k + 1); }
     catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  // Validation/rejet avec trace d'approbation immuable (audit + niveau requis).
+  const decideCar = async (r: CapexRequest, statut: 'approuve' | 'rejete') => {
+    const br = requiredApprover(matrix, r.montant);
+    await carAction(async () => {
+      await setCapexStatut(adapter, r.id, statut);
+      await recordApproval(adapter, {
+        requestId: r.id, niveau: br?.niveau ?? 1, role: br?.role_requis ?? '—',
+        statut: statut === 'approuve' ? 'approved' : 'rejected',
+        decidedBy: user?.id || null,
+      });
+    }, statut === 'approuve' ? 'Demande validée (tracée)' : 'Demande rejetée (tracée)');
   };
 
   const chart = useMemo(() => (sum?.mensuel || []).map((m, i) => ({ label: MOIS[i], value: Math.round(m.realise / 1000), color: '' })), [sum]);
@@ -130,6 +154,7 @@ const BudgetInvestissementPage: React.FC = () => {
 
       <CapexRequestModal open={showCar} onClose={() => setShowCar(false)} onCreated={() => setRefreshKey(k => k + 1)} />
       <CapexRequestModal open={!!editingCar} editing={editingCar} onClose={() => setEditingCar(null)} onCreated={() => setRefreshKey(k => k + 1)} />
+      <CapexPirModal open={!!pirCar} request={pirCar} onClose={() => setPirCar(null)} onSaved={() => setRefreshKey(k => k + 1)} />
 
       {tab === 'demandes' && (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
@@ -154,12 +179,13 @@ const BudgetInvestissementPage: React.FC = () => {
                   <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Date prév.</th>
                   <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Durée</th>
                   <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Dotation/an</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Valeur Actuelle Nette / Taux de Rentabilité Interne">VAN / TRI</th>
                   <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Statut</th>
                   <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredRequests.length === 0 && <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">{requests.length === 0 ? 'Aucune demande. Cliquez « Nouvelle demande CAPEX ».' : 'Aucune demande ne correspond au filtre.'}</td></tr>}
+                {filteredRequests.length === 0 && <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">{requests.length === 0 ? 'Aucune demande. Cliquez « Nouvelle demande CAPEX ».' : 'Aucune demande ne correspond au filtre.'}</td></tr>}
                 {filteredRequests.map(r => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-gray-800">{r.libelle}</td>
@@ -168,6 +194,9 @@ const BudgetInvestissementPage: React.FC = () => {
                     <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.date_prevue || '—'}</td>
                     <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.duree_amortissement ? `${r.duree_amortissement} ans` : '—'}</td>
                     <td className="px-4 py-2.5 text-right text-gray-600 text-xs">{formatCurrency(dotationAnnuelle(r))}</td>
+                    <td className="px-4 py-2.5 text-right text-xs">
+                      {r.van != null ? <><span className={r.van >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>{formatCurrency(r.van)}</span>{r.tri != null && <span className="text-gray-400"> · {(r.tri * 100).toFixed(0)}%</span>}</> : <span className="text-gray-300">—</span>}
+                    </td>
                     <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{CAR_LABEL[r.statut]}</span></td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-2">
@@ -175,14 +204,15 @@ const BudgetInvestissementPage: React.FC = () => {
                           {(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? <><Eye className="w-3 h-3" />Voir</> : <><Pencil className="w-3 h-3" />Détail</>}
                         </button>
                         {r.statut === 'demande' && <>
-                          <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'approuve'), 'Demande validée')} title="Valider la demande" className="px-2 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"><Check className="w-3 h-3" />Valider</button>
-                          <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'rejete'), 'Demande rejetée')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
+                          <button onClick={() => decideCar(r, 'approuve')} title="Valider la demande (trace d'audit)" className="px-2 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"><Check className="w-3 h-3" />Valider</button>
+                          <button onClick={() => decideCar(r, 'rejete')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
                         </>}
                         {r.statut === 'approuve' && <>
                           <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'fonds_disponibles'), 'Fonds mis à disposition')} title="Mettre les fonds à disposition" className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-1"><Banknote className="w-3 h-3" />Mettre les fonds à dispo.</button>
-                          <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'rejete'), 'Demande rejetée')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
+                          <button onClick={() => decideCar(r, 'rejete')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
                         </>}
                         {r.statut === 'fonds_disponibles' && <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'clos'), 'Demande clôturée')} title="Clôturer (fonds utilisés)" className="px-2 py-1 text-xs rounded-lg bg-amber-600 text-white hover:bg-amber-700 flex items-center gap-1"><Lock className="w-3 h-3" />Clôturer</button>}
+                        {r.statut === 'clos' && <button onClick={() => setPirCar(r)} title="Post-Implementation Review" className="px-2 py-1 text-xs rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 flex items-center gap-1"><ClipboardCheck className="w-3 h-3" />PIR</button>}
                         {r.statut === 'rejete' && <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'demande'), 'Réactivée')} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50">Réactiver</button>}
                         <button onClick={() => { if (window.confirm('Supprimer cette demande ?')) carAction(() => deleteCapexRequest(adapter, r.id), 'Supprimée'); }} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>

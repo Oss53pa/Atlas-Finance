@@ -278,6 +278,46 @@ export interface CapexRequest {
   statut: CapexStatut;
   montant_utilise: number;
   created_at?: string;
+  // L3 — stage-gate / évaluation financière
+  categorie?: string | null;
+  business_case?: string | null;
+  contingence_pct?: number | null;
+  taux_actualisation?: number | null;
+  cashflows?: number[] | null;
+  van?: number | null;
+  tri?: number | null;
+  payback_simple_mois?: number | null;
+  payback_actualise_mois?: number | null;
+  indice_profitabilite?: number | null;
+  roi?: number | null;
+  test_capitalisation?: Record<string, boolean> | null;
+}
+
+/** Persiste l'évaluation financière (catégorie, flux, métriques, test IAS 16). */
+export async function saveCapexEvaluation(adapter: DataAdapter, id: string, ev: {
+  categorie?: string | null; business_case?: string | null; contingence_pct?: number | null;
+  taux_actualisation?: number | null; cashflows?: number[] | null;
+  van?: number | null; tri?: number | null; payback_simple_mois?: number | null;
+  payback_actualise_mois?: number | null; indice_profitabilite?: number | null; roi?: number | null;
+  test_capitalisation?: Record<string, boolean> | null;
+}): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('capex_requests').update({
+    categorie: ev.categorie ?? null,
+    business_case: ev.business_case ?? null,
+    contingence_pct: ev.contingence_pct ?? 0,
+    taux_actualisation: ev.taux_actualisation ?? 0.1,
+    cashflows: ev.cashflows ?? null,
+    van: ev.van ?? null,
+    tri: ev.tri ?? null,
+    payback_simple_mois: ev.payback_simple_mois ?? null,
+    payback_actualise_mois: ev.payback_actualise_mois ?? null,
+    indice_profitabilite: ev.indice_profitabilite ?? null,
+    roi: ev.roi ?? null,
+    test_capitalisation: ev.test_capitalisation ?? null,
+  }).eq('id', id);
+  if (error) throw new Error(error.message);
 }
 
 export async function listCapexRequests(adapter: DataAdapter): Promise<CapexRequest[]> {
@@ -285,7 +325,7 @@ export async function listCapexRequests(adapter: DataAdapter): Promise<CapexRequ
   if (!client) return [];
   const { data } = await client
     .from('capex_requests')
-    .select('id,libelle,account_code,section_id,montant,date_prevue,duree_amortissement,methode,valeur_residuelle,justification,statut,montant_utilise,created_at')
+    .select('id,libelle,account_code,section_id,montant,date_prevue,duree_amortissement,methode,valeur_residuelle,justification,statut,montant_utilise,created_at,categorie,business_case,contingence_pct,taux_actualisation,cashflows,van,tri,payback_simple_mois,payback_actualise_mois,indice_profitabilite,roi,test_capitalisation')
     .order('created_at', { ascending: false });
   return (data ?? []).map((r: any) => ({
     ...r,
@@ -293,17 +333,22 @@ export async function listCapexRequests(adapter: DataAdapter): Promise<CapexRequ
     duree_amortissement: Number(r.duree_amortissement) || 0,
     valeur_residuelle: Number(r.valeur_residuelle) || 0,
     montant_utilise: Number(r.montant_utilise) || 0,
+    van: r.van != null ? Number(r.van) : null,
+    tri: r.tri != null ? Number(r.tri) : null,
+    roi: r.roi != null ? Number(r.roi) : null,
+    indice_profitabilite: r.indice_profitabilite != null ? Number(r.indice_profitabilite) : null,
+    cashflows: Array.isArray(r.cashflows) ? r.cashflows.map((x: any) => Number(x) || 0) : null,
   }));
 }
 
 export async function createCapexRequest(
   adapter: DataAdapter,
   req: { fiscalYearId?: string | null; libelle: string; account_code: string; section_id?: string | null; montant: number; date_prevue?: string | null; duree_amortissement: number; methode: 'lineaire' | 'degressif'; valeur_residuelle?: number; justification?: string | null },
-): Promise<void> {
+): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = (adapter as any).tenantId as string;
-  const { error } = await client.from('capex_requests').insert({
+  const { data, error } = await client.from('capex_requests').insert({
     tenant_id: tenantId,
     fiscal_year_id: req.fiscalYearId || null,
     libelle: req.libelle.trim(),
@@ -316,8 +361,9 @@ export async function createCapexRequest(
     valeur_residuelle: req.valeur_residuelle ?? 0,
     justification: req.justification || null,
     statut: 'demande',
-  });
+  }).select('id').single();
   if (error) throw new Error(error.message);
+  return data?.id as string;
 }
 
 export async function updateCapexRequest(
