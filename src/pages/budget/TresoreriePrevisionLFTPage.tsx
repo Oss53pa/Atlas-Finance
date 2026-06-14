@@ -20,14 +20,15 @@ const TresoreriePrevisionLFTPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ libelle: '', sens: 'decaissement' as 'encaissement' | 'decaissement', date_prevue: '', montant: '' });
   const [saving, setSaving] = useState(false);
+  const [includeBudget, setIncludeBudget] = useState(true);
 
   const load = async () => {
     setLoading(true);
-    try { setData(await buildForecast(adapter, new Date().toISOString(), 12)); }
+    try { setData(await buildForecast(adapter, new Date().toISOString(), 12, { includeBudget })); }
     catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [adapter]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [adapter, includeBudget]);
 
   const chart = useMemo(() => (data?.months || []).map(m => ({ label: m.label, value: Math.round(m.soldeProjete / 1000), color: '' })), [data]);
   const lowest = useMemo(() => {
@@ -55,10 +56,14 @@ const TresoreriePrevisionLFTPage: React.FC = () => {
     <div className="p-6 bg-[var(--color-border)] min-h-full space-y-6">
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center"><Activity className="w-5 h-5 text-[var(--color-primary)]" /></div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Prévision de Trésorerie — LFT</h1>
-          <p className="text-sm text-[var(--color-text-tertiary)]">Rolling forecast 12 mois · solde réel + postes ouverts + flux manuels</p>
+          <p className="text-sm text-[var(--color-text-tertiary)]">Rolling forecast 12 mois · solde réel + postes ouverts + budget + flux manuels</p>
         </div>
+        <label className="flex items-center gap-2 text-sm text-gray-600">
+          <input type="checkbox" checked={includeBudget} onChange={e => setIncludeBudget(e.target.checked)} className="rounded border-gray-300" />
+          Déverser le budget d'exploitation
+        </label>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

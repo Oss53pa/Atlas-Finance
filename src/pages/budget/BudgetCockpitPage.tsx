@@ -11,7 +11,7 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { KPICard, ColorfulBarChart } from '../../components/ui/DesignSystem';
 import {
-  getDefaultAnnee, getActiveBudgetVersion, getExploitationSummary, getTreasuryActual,
+  getDefaultAnnee, getActiveBudgetVersion, getExploitationSummary, getTreasuryActual, getAtterrissage,
   type ExploitationSummary, type TreasuryActualRow, type BudgetVersion,
 } from '../../features/budget/services/budgetService';
 import {
@@ -27,6 +27,7 @@ const BudgetCockpitPage: React.FC = () => {
   const [version, setVersion] = useState<BudgetVersion | null>(null);
   const [summary, setSummary] = useState<ExploitationSummary | null>(null);
   const [treasury, setTreasury] = useState<TreasuryActualRow[]>([]);
+  const [atterr, setAtterr] = useState<{ resultatAtterrissage: number; resultatBudget: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,13 +38,16 @@ const BudgetCockpitPage: React.FC = () => {
       try {
         const a = await getDefaultAnnee(adapter);
         if (cancelled) return;
-        const [v, s, t] = await Promise.all([
+        const moisCourant = new Date().getMonth() + 1;
+        const [v, s, t, at] = await Promise.all([
           getActiveBudgetVersion(adapter),
           getExploitationSummary(adapter, a),
           getTreasuryActual(adapter, a),
+          getAtterrissage(adapter, a, moisCourant),
         ]);
         if (cancelled) return;
         setAnnee(a); setVersion(v); setSummary(s); setTreasury(t);
+        setAtterr({ resultatAtterrissage: at.resultatAtterrissage, resultatBudget: at.resultatBudget });
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Erreur de chargement');
       } finally {
@@ -135,6 +139,32 @@ const BudgetCockpitPage: React.FC = () => {
         </div>
       )}
 
+      {/* Atterrissage (LFT budgétaire) : réalisé YTD + budget des mois restants */}
+      {hasBudget && atterr && (
+        <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex-1">
+            <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2"><Gauge className="w-4 h-4" />Atterrissage prévisionnel (LFT)</h2>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Résultat estimé fin d'exercice = réalisé cumulé + budget des mois restants.</p>
+          </div>
+          <div className="flex gap-6">
+            <div className="text-right">
+              <p className="text-xs text-[var(--color-text-tertiary)]">Résultat budgété</p>
+              <p className="text-lg font-bold text-gray-700">{formatCurrency(atterr.resultatBudget)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-[var(--color-text-tertiary)]">Atterrissage</p>
+              <p className={`text-lg font-bold ${atterr.resultatAtterrissage >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(atterr.resultatAtterrissage)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-[var(--color-text-tertiary)]">Δ vs budget</p>
+              <p className={`text-lg font-bold ${atterr.resultatAtterrissage - atterr.resultatBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {atterr.resultatAtterrissage - atterr.resultatBudget >= 0 ? '+' : ''}{formatCurrency(atterr.resultatAtterrissage - atterr.resultatBudget)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Résultat mensuel */}
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
@@ -174,6 +204,12 @@ const BudgetCockpitPage: React.FC = () => {
           className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90"
         >
           Détail Budget vs Réalisé (exploitation) →
+        </button>
+        <button
+          onClick={() => navigate('/budget/saisie')}
+          className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
+        >
+          <Target className="w-4 h-4" /> Saisir le budget
         </button>
         <button
           onClick={() => navigate('/budget/import')}

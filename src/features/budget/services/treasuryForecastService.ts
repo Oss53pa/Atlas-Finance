@@ -74,6 +74,47 @@ export async function getOpenItemFlows(adapter: DataAdapter): Promise<ForecastFl
   return flows;
 }
 
+/** Budget d'exploitation déversé en flux (CDC §3) : charges (6) = décaissement,
+ *  produits (7) = encaissement, à la mi-mois de l'exercice de la version active. */
+export async function getBudgetFlows(adapter: DataAdapter): Promise<ForecastFlow[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data: ver } = await client
+    .from('budget_versions')
+    .select('id, fiscal_years(code)')
+    .eq('is_active', true).limit(1);
+  const v = ver?.[0];
+  if (!v) return [];
+  const annee = v.fiscal_years?.code || String(new Date().getFullYear());
+  const { data: lines } = await client
+    .from('budget_lines')
+    .select('id,account_code,budget_type')
+    .eq('version_id', v.id).eq('budget_type', 'exploitation');
+  const lineMeta = new Map<string, string>(); // id -> account_code
+  (lines ?? []).forEach((l: any) => lineMeta.set(l.id, String(l.account_code)));
+  const ids = [...lineMeta.keys()];
+  if (ids.length === 0) return [];
+  const { data: periods } = await client
+    .from('budget_line_periods')
+    .select('budget_line_id,period,montant_prevu')
+    .in('budget_line_id', ids);
+  const flows: ForecastFlow[] = [];
+  for (const p of (periods ?? [])) {
+    const montant = Number(p.montant_prevu) || 0;
+    if (montant === 0) continue;
+    const code = lineMeta.get(p.budget_line_id) || '';
+    const isProduit = code.startsWith('7');
+    flows.push({
+      libelle: `Budget ${code}`,
+      sens: isProduit ? 'encaissement' : 'decaissement',
+      date_prevue: `${annee}-${String(p.period).padStart(2, '0')}-15`,
+      montant: Math.abs(montant),
+      source: 'budget',
+    });
+  }
+  return flows;
+}
+
 export async function getManualFlows(adapter: DataAdapter): Promise<ForecastFlow[]> {
   const client = getClient(adapter);
   if (!client) return [];
@@ -109,11 +150,13 @@ export interface ForecastResult {
 }
 
 /** Construit la prévision glissante sur `horizon` mois à partir d'aujourd'hui (passé via nowIso). */
-export async function buildForecast(adapter: DataAdapter, nowIso: string, horizon = 12): Promise<ForecastResult> {
-  const [currentCash, openFlows, manualFlows] = await Promise.all([
+export async function buildForecast(adapter: DataAdapter, nowIso: string, horizon = 12, opts?: { includeBudget?: boolean }): Promise<ForecastResult> {
+  const includeBudget = opts?.includeBudget ?? true;
+  const [currentCash, openFlows, manualFlows, budgetFlows] = await Promise.all([
     getCurrentCash(adapter), getOpenItemFlows(adapter), getManualFlows(adapter),
+    includeBudget ? getBudgetFlows(adapter) : Promise.resolve([] as ForecastFlow[]),
   ]);
-  const flows = [...openFlows, ...manualFlows];
+  const flows = [...openFlows, ...manualFlows, ...budgetFlows];
   const now = new Date(nowIso);
   const startY = now.getFullYear(), startM = now.getMonth();
 

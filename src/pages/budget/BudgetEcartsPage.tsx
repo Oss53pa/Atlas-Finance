@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
+import { ArrowLeft, TrendingUp, AlertTriangle, Bot } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -17,6 +18,8 @@ const BudgetEcartsPage: React.FC = () => {
   const navigate = useNavigate();
   const [rows, setRows] = useState<BudgetVsActualRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [prophet, setProphet] = useState<string | null>(null);
+  const [prophetLoading, setProphetLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +47,32 @@ const BudgetEcartsPage: React.FC = () => {
     const realise = rows.reduce((s, r) => s + r.realise, 0);
     return { budget, realise, ecart: realise - budget };
   }, [rows]);
+
+  // Alertes de dépassement (substitut @atlas/insights) : charges en sur-réalisation
+  // (>10% du budget) = défavorable ; produits en sous-réalisation = défavorable.
+  const alertes = useMemo(() => {
+    return parNature.filter(n => {
+      if (n.budget === 0) return false;
+      const pct = ((n.realise - n.budget) / Math.abs(n.budget)) * 100;
+      const classe = n.code[0];
+      return classe === '6' ? pct > 10 : (classe === '7' ? pct < -10 : false);
+    }).map(n => ({ ...n, pct: Math.round(((n.realise - n.budget) / Math.abs(n.budget)) * 100), classe: n.code[0] }));
+  }, [parNature]);
+
+  const runProphet = async () => {
+    setProphetLoading(true); setProphet(null);
+    try {
+      const lignes = parNature.filter(n => n.budget !== 0).slice(0, 12)
+        .map(n => `${n.code} (classe ${n.code[0]}): budget ${Math.round(n.budget)}, réalisé ${Math.round(n.realise)}, écart ${Math.round(n.ecart)}`).join(' ; ');
+      const res = await askProph3t({
+        message: `En tant qu'analyste de gestion SYSCOHADA, commente brièvement (5 lignes max, en français) ces écarts budgétaires sans recalculer ni inventer de chiffres. Identifie les dépassements de charges et les manques de produits, et propose 2 actions. Données: ${lignes}. Écart global réalisé−budget: ${Math.round(totals.ecart)}.`,
+        sensitivity: 'confidential',
+      });
+      setProphet(res.answer || 'Aucun commentaire.');
+    } catch (e: any) {
+      setProphet('PROPH3T indisponible : ' + (e?.message || 'erreur'));
+    } finally { setProphetLoading(false); }
+  };
 
   // Heatmap : nature × mois
   const heatmap = useMemo(() => {
@@ -81,11 +110,39 @@ const BudgetEcartsPage: React.FC = () => {
     <div className="p-6 bg-[var(--color-border)] min-h-full space-y-6">
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
         <button onClick={() => navigate('/budget/cockpit')} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"><ArrowLeft className="w-4 h-4" /></button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Analyse des Écarts</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Réalisé − budget · favorable (vert) / défavorable (rouge)</p>
         </div>
+        {isProph3tCoreConfigured() && (
+          <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
+            <Bot className="w-4 h-4" /> {prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
+          </button>
+        )}
       </div>
+
+      {/* Alertes de dépassement */}
+      {alertes.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 text-red-800 font-semibold text-sm mb-2"><AlertTriangle className="w-4 h-4" />{alertes.length} dépassement(s) significatif(s)</div>
+          <div className="flex flex-wrap gap-2">
+            {alertes.map(a => (
+              <span key={a.code} className="text-xs bg-white border border-red-200 rounded-full px-2.5 py-1 text-red-700">
+                <span className="font-mono">{a.code}</span> {a.classe === '6' ? 'charges' : 'produits'} {a.pct >= 0 ? '+' : ''}{a.pct}%
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Commentaire PROPH3T (advisory, jamais les chiffres) */}
+      {prophet && (
+        <div className="bg-white rounded-xl p-5 border border-[var(--color-primary)]/30 shadow-sm">
+          <div className="flex items-center gap-2 text-[var(--color-primary)] font-semibold text-sm mb-2"><Bot className="w-4 h-4" />Lecture PROPH3T</div>
+          <p className="text-sm text-gray-700 whitespace-pre-wrap">{prophet}</p>
+          <p className="text-[10px] text-gray-400 mt-2">Analyse indicative — PROPH3T ne produit jamais les chiffres comptables.</p>
+        </div>
+      )}
 
       {/* Waterfall simplifié budget → réalisé */}
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">

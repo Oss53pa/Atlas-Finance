@@ -260,6 +260,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
+      { id: 'budget-saisie', label: 'Saisie du Budget', path: '/budget/saisie', icon: <Database className="w-4 h-4" /> },
       { id: 'budget-import', label: 'Importer un Budget', path: '/budget/import', icon: <Upload className="w-4 h-4" /> },
       { id: 'budgets', label: 'Budgets & Prévisions', path: '/budgeting', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-control', label: 'Contrôle Budgétaire', path: '/budgeting/control', icon: <ChartBar className="w-4 h-4" /> },

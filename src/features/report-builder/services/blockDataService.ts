@@ -715,6 +715,16 @@ export async function fetchTableData(
 
     case 'financial.compte_resultat': {
       const classes = ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69', '70', '71', '72', '73', '74', '75', '76', '77', '78', '79'];
+      // Budget par classe (2 chiffres) depuis la vue live, si dispo (CDC §5 : CR enrichi budget/écart)
+      const budgetByClass = new Map<string, number>();
+      try {
+        const client = (adapter as any).client;
+        if (client) {
+          const { data: bva } = await client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'exploitation');
+          for (const r of (bva || [])) budgetByClass.set(String(r.account_code).slice(0, 2), (budgetByClass.get(String(r.account_code).slice(0, 2)) || 0) + (Number(r.budget) || 0));
+        }
+      } catch { /* vue absente */ }
+      const hasBudget = budgetByClass.size > 0;
       const rows = classes.map(cls => {
         const isCharge = cls.startsWith('6');
         let current = 0;
@@ -726,22 +736,25 @@ export async function fetchTableData(
             }
           }
         }
+        const budget = budgetByClass.get(cls) || 0;
         return {
           classe: cls,
           label: getClassLabel(cls),
-          current,
           type: isCharge ? 'Charge' : 'Produit',
+          budget,
+          current,
+          ecart: current - budget,
         };
-      }).filter(r => r.current !== 0);
-      return {
-        columns: [
-          { key: 'classe', label: 'Classe', align: 'left' },
-          { key: 'label', label: 'Libellé', align: 'left' },
-          { key: 'type', label: 'Type', align: 'center' },
-          { key: 'current', label: 'Montant', align: 'right', format: 'currency' },
-        ],
-        rows,
-      };
+      }).filter(r => r.current !== 0 || r.budget !== 0);
+      const columns: TableResult['columns'] = [
+        { key: 'classe', label: 'Classe', align: 'left' },
+        { key: 'label', label: 'Libellé', align: 'left' },
+        { key: 'type', label: 'Type', align: 'center' },
+      ];
+      if (hasBudget) columns.push({ key: 'budget', label: 'Budget', align: 'right', format: 'currency' });
+      columns.push({ key: 'current', label: 'Réalisé', align: 'right', format: 'currency' });
+      if (hasBudget) columns.push({ key: 'ecart', label: 'Écart', align: 'right', format: 'currency' });
+      return { columns, rows };
     }
 
     case 'financial.bilan_actif': {
@@ -1625,6 +1638,75 @@ export async function fetchTableData(
           { key: 'type', label: 'Type', align: 'center' },
           { key: 'quantite', label: 'Quantité', align: 'right', format: 'number' },
           { key: 'valeur', label: 'Valeur (CUMP)', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'budget.capex': {
+      // CAPEX : budget vs réalisé (classe 2) depuis les vues live
+      const client = (adapter as any).client;
+      if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module Budget indisponible.' }] };
+      const annee = String(new Date(period.endDate).getFullYear());
+      const [{ data: inv }, { data: bva }] = await Promise.all([
+        client.from('v_actual_investment').select('account_code,account_name,montant_realise').eq('annee', annee),
+        client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'investissement'),
+      ]);
+      const map = new Map<string, { code: string; label: string; realise: number; budget: number }>();
+      for (const r of (inv || [])) { const c = String(r.account_code); if (!map.has(c)) map.set(c, { code: c, label: r.account_name || c, realise: 0, budget: 0 }); map.get(c)!.realise += Number(r.montant_realise) || 0; }
+      for (const r of (bva || [])) { const c = String(r.account_code); if (!map.has(c)) map.set(c, { code: c, label: c, realise: 0, budget: 0 }); map.get(c)!.budget += Number(r.budget) || 0; }
+      const rows = Array.from(map.values()).map(m => ({ compte: m.code, label: m.label, budget: m.budget, realise: m.realise, reste: Math.max(0, m.budget - m.realise) })).sort((a, b) => b.realise - a.realise);
+      return {
+        columns: [
+          { key: 'compte', label: 'Compte', align: 'left' },
+          { key: 'label', label: 'Désignation', align: 'left' },
+          { key: 'budget', label: 'Budgété', align: 'right', format: 'currency' },
+          { key: 'realise', label: 'Réalisé', align: 'right', format: 'currency' },
+          { key: 'reste', label: 'Reste à engager', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'analytics.by_section': {
+      const client = (adapter as any).client;
+      if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module Analytique indisponible.' }] };
+      const annee = String(new Date(period.endDate).getFullYear());
+      const { data } = await client.from('v_actual_by_section').select('*').eq('annee', annee);
+      const map = new Map<string, { code: string; produits: number; charges: number }>();
+      for (const r of (data || [])) { const c = String(r.section_code); if (!map.has(c)) map.set(c, { code: c, produits: 0, charges: 0 }); const m = map.get(c)!; const v = Number(r.montant) || 0; if (r.classe === '7') m.produits += v; else if (r.classe === '6') m.charges += v; }
+      const rows = Array.from(map.values()).map(m => ({ section: m.code, produits: m.produits, charges: m.charges, resultat: m.produits - m.charges })).sort((a, b) => b.resultat - a.resultat);
+      return {
+        columns: [
+          { key: 'section', label: 'Section', align: 'left' },
+          { key: 'produits', label: 'Produits', align: 'right', format: 'currency' },
+          { key: 'charges', label: 'Charges', align: 'right', format: 'currency' },
+          { key: 'resultat', label: 'Résultat', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'treasury.plan_lft': {
+      const client = (adapter as any).client;
+      if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module LFT indisponible.' }] };
+      // Flux manuels + budget : agrégés par mois (les postes ouverts dépendent des échéances)
+      const { data: flows } = await client.from('treasury_flows').select('sens,date_prevue,montant').order('date_prevue');
+      const byMonth = new Map<string, { enc: number; dec: number }>();
+      for (const f of (flows || [])) {
+        const ym = String(f.date_prevue).slice(0, 7);
+        if (!byMonth.has(ym)) byMonth.set(ym, { enc: 0, dec: 0 });
+        const b = byMonth.get(ym)!;
+        if (f.sens === 'encaissement') b.enc += Number(f.montant) || 0; else b.dec += Number(f.montant) || 0;
+      }
+      const rows = Array.from(byMonth.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([ym, b]) => ({ mois: ym, encaissements: b.enc, decaissements: b.dec, fluxNet: b.enc - b.dec }));
+      if (rows.length === 0) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Aucun flux de trésorerie planifié.' }] };
+      return {
+        columns: [
+          { key: 'mois', label: 'Mois', align: 'left' },
+          { key: 'encaissements', label: 'Encaissements', align: 'right', format: 'currency' },
+          { key: 'decaissements', label: 'Décaissements', align: 'right', format: 'currency' },
+          { key: 'fluxNet', label: 'Flux net', align: 'right', format: 'currency' },
         ],
         rows,
       };

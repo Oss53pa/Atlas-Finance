@@ -291,6 +291,133 @@ export async function setVersionActive(adapter: DataAdapter, versionId: string, 
   if (error) throw new Error(error.message);
 }
 
+// ── Saisie manuelle (édition ligne à ligne) ─────────────────────────────────
+
+export interface BudgetLineEdit {
+  id: string;
+  budget_type: 'exploitation' | 'investissement';
+  account_code: string;
+  section_id: string | null;
+  periods: Record<number, number>; // 1..12
+}
+
+/** Crée une version active pour l'exercice si aucune n'existe ; renvoie son id. */
+export async function ensureActiveVersion(adapter: DataAdapter, fiscalYearId: string, libelle: string): Promise<string> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = (adapter as any).tenantId as string;
+  const { data: existing } = await client
+    .from('budget_versions').select('id').eq('fiscal_year_id', fiscalYearId).eq('is_active', true).limit(1);
+  if (existing?.[0]) return existing[0].id;
+  const { data, error } = await client
+    .from('budget_versions')
+    .insert({ tenant_id: tenantId, fiscal_year_id: fiscalYearId, libelle, type: 'initial', statut: 'brouillon', is_active: true })
+    .select('id').single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
+
+/** Lignes d'une version avec leur phasage mensuel. */
+export async function getBudgetLinesWithPeriods(adapter: DataAdapter, versionId: string): Promise<BudgetLineEdit[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data: lines } = await client
+    .from('budget_lines').select('id,budget_type,account_code,section_id').eq('version_id', versionId);
+  const ids = (lines ?? []).map((l: any) => l.id);
+  const periodsByLine = new Map<string, Record<number, number>>();
+  if (ids.length) {
+    const { data: periods } = await client
+      .from('budget_line_periods').select('budget_line_id,period,montant_prevu').in('budget_line_id', ids);
+    for (const p of (periods ?? [])) {
+      if (!periodsByLine.has(p.budget_line_id)) periodsByLine.set(p.budget_line_id, {});
+      periodsByLine.get(p.budget_line_id)![Number(p.period)] = Number(p.montant_prevu) || 0;
+    }
+  }
+  return (lines ?? []).map((l: any) => ({
+    id: l.id, budget_type: l.budget_type, account_code: l.account_code, section_id: l.section_id,
+    periods: periodsByLine.get(l.id) || {},
+  }));
+}
+
+/** Crée/MAJ une ligne + son phasage. Renvoie l'id de la ligne. */
+export async function saveBudgetLine(
+  adapter: DataAdapter,
+  versionId: string,
+  line: { id?: string; budget_type: 'exploitation' | 'investissement'; account_code: string; section_id: string | null; periods: Record<number, number> },
+): Promise<string> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = (adapter as any).tenantId as string;
+  let lineId = line.id;
+  if (lineId) {
+    const { error } = await client.from('budget_lines').update({ budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id })
+      .eq('id', lineId);
+    if (error) throw new Error(error.message);
+  } else {
+    const { data, error } = await client.from('budget_lines')
+      .upsert({ tenant_id: tenantId, version_id: versionId, budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id },
+        { onConflict: 'version_id,budget_type,account_code,section_id' })
+      .select('id').single();
+    if (error) throw new Error(error.message);
+    lineId = data.id;
+  }
+  const periodRecords: any[] = [];
+  for (let p = 1; p <= 12; p++) periodRecords.push({ tenant_id: tenantId, budget_line_id: lineId, period: p, montant_prevu: Math.round((line.periods[p] || 0) * 100) / 100 });
+  const { error: perErr } = await client.from('budget_line_periods').upsert(periodRecords, { onConflict: 'budget_line_id,period' });
+  if (perErr) throw new Error(perErr.message);
+  return lineId!;
+}
+
+export async function deleteBudgetLine(adapter: DataAdapter, lineId: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('budget_lines').delete().eq('id', lineId);
+  if (error) throw new Error(error.message);
+}
+
+// ── Atterrissage (LFT budgétaire) ────────────────────────────────────────────
+
+export interface AtterrissageRow {
+  account_code: string;
+  classe: string;
+  realiseYTD: number;     // réalisé des mois écoulés
+  budgetReste: number;    // budget des mois à venir
+  atterrissage: number;   // = réalisé YTD + budget reste
+  budgetTotal: number;
+}
+
+/**
+ * Atterrissage = réalisé cumulé (mois <= moisCourant) + budget des mois restants.
+ * moisCourant 1..12 (déduit de nowIso côté appelant).
+ */
+export async function getAtterrissage(adapter: DataAdapter, annee: string, moisCourant: number): Promise<{ rows: AtterrissageRow[]; resultatAtterrissage: number; resultatBudget: number }> {
+  const [exploitation, bva] = await Promise.all([
+    getActualExploitation(adapter, annee),
+    getBudgetVsActual(adapter),
+  ]);
+  const exp = bva.filter(b => b.budget_type === 'exploitation' && b.annee === annee);
+  const map = new Map<string, AtterrissageRow>();
+  // réalisé YTD par compte
+  for (const r of exploitation) {
+    if (r.period > moisCourant) continue;
+    if (!map.has(r.account_code)) map.set(r.account_code, { account_code: r.account_code, classe: r.classe, realiseYTD: 0, budgetReste: 0, atterrissage: 0, budgetTotal: 0 });
+    map.get(r.account_code)!.realiseYTD += r.montant_realise;
+  }
+  // budget reste (mois > courant) + budget total par compte
+  for (const b of exp) {
+    if (!map.has(b.account_code)) map.set(b.account_code, { account_code: b.account_code, classe: b.account_code[0], realiseYTD: 0, budgetReste: 0, atterrissage: 0, budgetTotal: 0 });
+    const row = map.get(b.account_code)!;
+    row.budgetTotal += b.budget;
+    if (b.period > moisCourant) row.budgetReste += b.budget;
+  }
+  const rows = Array.from(map.values()).map(r => ({ ...r, atterrissage: r.realiseYTD + r.budgetReste }))
+    .sort((a, b) => Math.abs(b.atterrissage) - Math.abs(a.atterrissage));
+  const sign = (c: string) => (c === '7' ? 1 : -1);
+  const resultatAtterrissage = rows.reduce((s, r) => s + sign(r.classe) * r.atterrissage, 0);
+  const resultatBudget = rows.reduce((s, r) => s + sign(r.classe) * r.budgetTotal, 0);
+  return { rows, resultatAtterrissage, resultatBudget };
+}
+
 // ── Import de budget ─────────────────────────────────────────────────────────
 
 export interface BudgetImportLine {
