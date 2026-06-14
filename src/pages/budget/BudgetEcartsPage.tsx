@@ -9,7 +9,8 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
-import { ArrowLeft, TrendingUp, AlertTriangle, Bot } from 'lucide-react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
+import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -20,6 +21,9 @@ const BudgetEcartsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [prophet, setProphet] = useState<string | null>(null);
   const [prophetLoading, setProphetLoading] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
 
   useEffect(() => {
     let cancelled = false;
@@ -119,7 +123,22 @@ const BudgetEcartsPage: React.FC = () => {
             <Bot className="w-4 h-4" /> {prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
           </button>
         )}
+        <PageHeaderActions
+          onToggleFilters={() => setFiltersOpen(o => !o)}
+          filtersOpen={filtersOpen}
+          activeFilters={q ? 1 : 0}
+          printTitle="Analyse des Écarts budgétaires"
+        />
       </div>
+
+      {filtersOpen && (
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-4 print-hide">
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Filtrer par nature (ex. 60, 70…)" className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
+          </div>
+        </div>
+      )}
 
       {/* Alertes de dépassement */}
       {alertes.length > 0 && (
@@ -149,7 +168,7 @@ const BudgetEcartsPage: React.FC = () => {
         <h2 className="font-semibold text-[var(--color-primary)] mb-4">Du budget au réalisé</h2>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm"><span className="text-gray-600">Budget total</span><span className="font-semibold">{formatCurrency(totals.budget)}</span></div>
-          {parNature.filter(n => n.ecart !== 0).slice(0, 10).map(n => (
+          {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q)).slice(0, 10).map(n => (
             <div key={n.code} className="flex items-center gap-3">
               <span className="text-xs font-mono text-gray-500 w-8">{n.code}</span>
               <div className="flex-1 h-5 bg-gray-100 rounded relative overflow-hidden">
@@ -185,7 +204,7 @@ const BudgetEcartsPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {heatmap.grid.map(g => (
+            {heatmap.grid.filter(g => !q || g.code.toLowerCase().includes(q)).map(g => (
               <tr key={g.code}>
                 <td className="px-2 py-1 font-mono text-gray-600 sticky left-0 bg-white">{g.code}</td>
                 {g.cells.map((v, i) => (

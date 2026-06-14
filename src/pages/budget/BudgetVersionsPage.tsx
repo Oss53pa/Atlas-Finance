@@ -13,6 +13,7 @@ import {
   type BudgetVersionFull, type BudgetLineEdit,
 } from '../../features/budget/services/budgetService';
 import { formatCurrency } from '../../utils/formatters';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { ArrowLeft, Lock, CheckCircle, Star, RefreshCw, GitBranch, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
 
 const STATUT_BADGE: Record<string, string> = {
@@ -32,6 +33,9 @@ const BudgetVersionsPage: React.FC = () => {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [lines, setLines] = useState<Record<string, BudgetLineEdit[]>>({});
   const [linesLoading, setLinesLoading] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [statutFilter, setStatutFilter] = useState<'all' | 'brouillon' | 'valide' | 'verrouille'>('all');
+  const visibleVersions = versions.filter(v => statutFilter === 'all' || v.statut === statutFilter);
 
   const toggleDetail = async (versionId: string) => {
     if (expanded === versionId) { setExpanded(null); return; }
@@ -71,7 +75,24 @@ const BudgetVersionsPage: React.FC = () => {
           <p className="text-sm text-[var(--color-text-tertiary)]">Brouillon → validation (DG) → verrouillage</p>
         </div>
         <button onClick={load} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200" title="Rafraîchir"><RefreshCw className="w-4 h-4" /></button>
+        <PageHeaderActions
+          onToggleFilters={() => setFiltersOpen(o => !o)}
+          filtersOpen={filtersOpen}
+          activeFilters={statutFilter !== 'all' ? 1 : 0}
+          printTitle="Versions budgétaires"
+        />
       </div>
+
+      {filtersOpen && (
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-3 print-hide">
+          <span className="text-sm text-gray-600">Statut :</span>
+          {(['all', 'brouillon', 'valide', 'verrouille'] as const).map(st => (
+            <button key={st} onClick={() => setStatutFilter(st)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${statutFilter === st ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] text-gray-600 hover:bg-gray-50'}`}>
+              {st === 'all' ? 'Tous' : st === 'brouillon' ? 'Brouillon' : st === 'valide' ? 'Validé' : 'Verrouillé'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {!canValidate && (
         <div className="bg-amber-50 text-amber-800 rounded-lg px-4 py-2 text-xs">
@@ -94,7 +115,8 @@ const BudgetVersionsPage: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {loading && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Chargement…</td></tr>}
             {!loading && versions.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune version. Importez un budget pour en créer une.</td></tr>}
-            {versions.map(v => (
+            {!loading && versions.length > 0 && visibleVersions.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune version pour ce statut.</td></tr>}
+            {visibleVersions.map(v => (
               <React.Fragment key={v.id}>
               <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleDetail(v.id)}>
                 <td className="px-4 py-2.5 font-medium text-gray-800">

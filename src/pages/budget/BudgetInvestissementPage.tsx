@@ -13,8 +13,9 @@ import {
   dotationAnnuelle, type InvestmentSummary, type CapexRequest,
 } from '../../features/budget/services/budgetService';
 import CapexRequestModal from './CapexRequestModal';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useToast } from '../../hooks/useToast';
-import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil } from 'lucide-react';
+import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil, Search } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 const CAR_BADGE: Record<string, string> = {
@@ -38,6 +39,8 @@ const BudgetInvestissementPage: React.FC = () => {
   const [requests, setRequests] = useState<CapexRequest[]>([]);
   const [showCar, setShowCar] = useState(false);
   const [editingCar, setEditingCar] = useState<CapexRequest | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -76,6 +79,10 @@ const BudgetInvestissementPage: React.FC = () => {
   if (error) return <div className="p-8"><div className="bg-[var(--color-error-light,#FEECEC)] text-[var(--color-error)] rounded-lg p-4 text-sm">{error}</div></div>;
 
   const s = sum!;
+  const q = query.trim().toLowerCase();
+  const matches = (code?: string, label?: string) => !q || (code || '').toLowerCase().includes(q) || (label || '').toLowerCase().includes(q);
+  const filteredRequests = requests.filter(r => matches(r.account_code, r.libelle));
+  const filteredParCompte = s.parCompte.filter(c => matches(c.account_code, c.label));
   const resteTotal = Math.max(0, s.totalBudget - s.totalRealise);
   const taux = s.totalBudget !== 0 ? Math.round((s.totalRealise / s.totalBudget) * 100) : null;
 
@@ -89,7 +96,23 @@ const BudgetInvestissementPage: React.FC = () => {
           <p className="text-sm text-[var(--color-text-tertiary)]">Immobilisations classe 2 · Exercice {annee}</p>
         </div>
         <button onClick={() => setShowCar(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-2"><Plus className="w-4 h-4" />Nouvelle demande CAPEX</button>
+        <PageHeaderActions
+          onToggleFilters={() => setFiltersOpen(o => !o)}
+          filtersOpen={filtersOpen}
+          activeFilters={query.trim() ? 1 : 0}
+          printTitle={`Investissement (CAPEX) ${annee}`}
+        />
       </div>
+
+      {filtersOpen && (
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-4 print-hide">
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un compte / projet…" className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
+          </div>
+          <span className="text-xs text-gray-400">Filtre les onglets « Demandes » et « Détail par compte ».</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard title="CAPEX réalisé" value={formatCurrency(s.totalRealise)} icon={TrendingUp} color="primary" valueFontSize="1.125rem" />
@@ -136,8 +159,8 @@ const BudgetInvestissementPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {requests.length === 0 && <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">Aucune demande. Cliquez « Nouvelle demande CAPEX ».</td></tr>}
-                {requests.map(r => (
+                {filteredRequests.length === 0 && <tr><td colSpan={8} className="px-4 py-10 text-center text-gray-400">{requests.length === 0 ? 'Aucune demande. Cliquez « Nouvelle demande CAPEX ».' : 'Aucune demande ne correspond au filtre.'}</td></tr>}
+                {filteredRequests.map(r => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-gray-800">{r.libelle}</td>
                     <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{r.account_code}</span></td>
@@ -197,8 +220,8 @@ const BudgetInvestissementPage: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {s.parCompte.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune immobilisation.</td></tr>}
-            {s.parCompte.map(c => (
+            {filteredParCompte.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{s.parCompte.length === 0 ? 'Aucune immobilisation.' : 'Aucun compte ne correspond au filtre.'}</td></tr>}
+            {filteredParCompte.map(c => (
               <tr key={c.account_code} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/accounting/general-ledger?compte=${c.account_code}`)}>
                 <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{c.account_code}</span> <span className="text-gray-800">{c.label}</span></td>
                 <td className="px-4 py-2.5 text-right text-gray-400">{c.existant ? formatCurrency(c.existant) : '—'}</td>

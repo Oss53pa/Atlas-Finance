@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import { useData } from '../../contexts/DataContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
   LineChart, Calculator, Percent, ArrowUpRight, ArrowDownRight,
   Calendar, Filter, Download, FileText, AlertTriangle, CheckCircle,
-  Info, Clock, CreditCard, Wallet, PiggyBank, Landmark
+  Info, Clock, CreditCard, Wallet, PiggyBank, Landmark, ChevronRight, ChevronDown
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -40,7 +42,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('ytd');
   const [comparisonMode, setComparisonMode] = useState('previous');
   const [tab, setTab] = useState<'synthese' | 'analyses'>('synthese');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { adapter } = useData();
+  const navigate = useNavigate();
+  const toggleRow = (key: string) => setExpanded(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
 
   // Financial Metrics from DataContext
   const [allEntries, setAllEntries] = useState<{ date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[]>([]);
@@ -201,10 +207,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
     };
   }, [liveFinancials]);
 
-  // P&L computed from live data
+  // P&L computed from live data — chaque ligne porte sa ventilation par sous-classe
+  // (2 chiffres) pour le drill-down « détail des comptes ».
   const plData = [
-    { category: 'Produits (classe 7)', actual: liveFinancials.revenue, budget: 0, previous: 0 },
-    { category: 'Charges (classe 6)', actual: -liveFinancials.expenses, budget: 0, previous: 0 },
+    { key: 'prod', category: 'Produits (classe 7)', actual: liveFinancials.revenue, budget: 0, previous: 0, byClass: liveFinancials.revenueByClass, sign: 1 },
+    { key: 'charges', category: 'Charges (classe 6)', actual: -liveFinancials.expenses, budget: 0, previous: 0, byClass: liveFinancials.expenseByClass, sign: -1 },
   ];
 
   // Cash Flow from live treasury
@@ -322,32 +329,44 @@ const FinancialAnalysisDashboard: React.FC = () => {
               Performance financière détaillée et analyse des écarts
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
-            >
-              <option value="mtd">Ce mois</option>
-              <option value="qtd">Ce trimestre</option>
-              <option value="ytd">Cette année</option>
-              <option value="custom">Personnalisé</option>
-            </select>
-            <select
-              value={comparisonMode}
-              onChange={(e) => setComparisonMode(e.target.value)}
-              className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
-            >
-              <option value="previous">vs Période précédente</option>
-              <option value="budget">vs Budget</option>
-              <option value="both">Les deux</option>
-            </select>
-            <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Export
-            </button>
-          </div>
+          <PageHeaderActions
+            onToggleFilters={() => setFiltersOpen(o => !o)}
+            filtersOpen={filtersOpen}
+            activeFilters={(selectedPeriod !== 'ytd' ? 1 : 0) + (comparisonMode !== 'previous' ? 1 : 0)}
+            printTitle="Analyse Financière Approfondie"
+          />
         </div>
+
+        {/* Panneau de filtres (replié par défaut, ouvert par l'entonnoir) */}
+        {filtersOpen && (
+          <div className="mb-4 p-4 bg-[var(--color-card-bg)] rounded-lg border border-[var(--color-border)] flex flex-wrap items-end gap-4 print-hide">
+            <div>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">Période</label>
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
+              >
+                <option value="mtd">Ce mois</option>
+                <option value="qtd">Ce trimestre</option>
+                <option value="ytd">Cette année</option>
+                <option value="custom">Personnalisé</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">Comparaison</label>
+              <select
+                value={comparisonMode}
+                onChange={(e) => setComparisonMode(e.target.value)}
+                className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
+              >
+                <option value="previous">vs Période précédente</option>
+                <option value="budget">vs Budget</option>
+                <option value="both">Les deux</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Key Financial Indicators */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
@@ -461,14 +480,25 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {plData.map((item, index) => {
+                {plData.map((item) => {
                   const budgetVariance = item.actual - item.budget;
                   const previousVariance = ((item.actual - item.previous) / Math.abs(item.previous)) * 100;
-                  
+                  const isOpen = expanded.has(item.key);
+                  const labels = item.key === 'prod' ? revAccountLabels : expAccountLabels;
+                  const subRows = Object.entries(item.byClass)
+                    .filter(([, v]) => Math.abs(v as number) > 0)
+                    .sort((a, b) => (b[1] as number) - (a[1] as number));
+
                   return (
-                    <tr key={index} className="border-b border-[var(--color-border)] hover:bg-[var(--color-background)]">
+                    <React.Fragment key={item.key}>
+                    <tr className="border-b border-[var(--color-border)] hover:bg-[var(--color-background)] cursor-pointer" onClick={() => toggleRow(item.key)}>
                       <td className="py-3 px-4 font-medium text-[var(--color-text-primary)]">
-                        {item.category}
+                        <span className="inline-flex items-center gap-1.5">
+                          {subRows.length > 0
+                            ? (isOpen ? <ChevronDown className="w-4 h-4 text-[var(--color-text-tertiary)]" /> : <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />)
+                            : <span className="w-4" />}
+                          {item.category}
+                        </span>
                       </td>
                       <td className="py-3 px-4 text-right font-medium text-[var(--color-text-primary)]">
                         {formatCurrency(item.actual)}
@@ -477,7 +507,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                         {formatCurrency(item.budget)}
                       </td>
                       <td className={`py-3 px-4 text-right font-medium ${
-                        item.actual > 0 
+                        item.actual > 0
                           ? budgetVariance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                           : budgetVariance <= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
                       }`}>
@@ -490,6 +520,23 @@ const FinancialAnalysisDashboard: React.FC = () => {
                         {previousVariance > 0 ? '+' : ''}{previousVariance.toFixed(1)}%
                       </td>
                     </tr>
+                    {isOpen && subRows.map(([cls, v]) => (
+                      <tr key={item.key + cls} className="border-b border-[var(--color-border)] bg-[var(--color-background)]/40 hover:bg-[var(--color-background)] cursor-pointer text-sm"
+                          onClick={() => navigate(`/accounting/general-ledger?compte=${cls}`)}
+                          title={`Voir le grand livre du compte ${cls}`}>
+                        <td className="py-2 px-4 pl-12 text-[var(--color-text-secondary)]">
+                          <span className="font-mono text-[var(--color-text-tertiary)] mr-2">{cls}</span>{labels[cls] || `Classe ${cls}`}
+                        </td>
+                        <td className="py-2 px-4 text-right text-[var(--color-text-primary)]">{formatCurrency(item.sign * (v as number))}</td>
+                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
+                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
+                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
+                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">
+                          {item.actual !== 0 ? `${((item.sign * (v as number) / item.actual) * 100).toFixed(1)}%` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                    </React.Fragment>
                   );
                 })}
                 <tr className="font-bold">

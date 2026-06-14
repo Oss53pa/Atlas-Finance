@@ -14,7 +14,8 @@ import {
   type Axe, type SectionPerformance,
 } from '../../features/budget/services/analyticsService';
 import { KPICard } from '../../components/ui/DesignSystem';
-import { PieChart, Plus, Save, Layers, Target, Split, TrendingUp, TrendingDown, Percent } from 'lucide-react';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
+import { PieChart, Plus, Save, Layers, Target, Split, TrendingUp, TrendingDown, Percent, Search } from 'lucide-react';
 
 const AnalyticsSectionsPage: React.FC = () => {
   const { adapter } = useData();
@@ -30,6 +31,10 @@ const AnalyticsSectionsPage: React.FC = () => {
   const [vent, setVent] = useState({ sectionId: '', accountPrefix: '', journal: '', tiersCode: '' });
   const [ventCoverage, setVentCoverage] = useState(0);
   const [ventBusy, setVentBusy] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const q = query.trim().toLowerCase();
+  const filteredPerf = perf.filter(s => !q || s.code.toLowerCase().includes(q) || (s.libelle || '').toLowerCase().includes(q));
 
   const load = async () => {
     setLoading(true);
@@ -90,11 +95,27 @@ const AnalyticsSectionsPage: React.FC = () => {
     <div className="p-6 bg-[var(--color-border)] min-h-full space-y-6">
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center"><PieChart className="w-5 h-5 text-[var(--color-primary)]" /></div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Comptabilité Analytique</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Axes & sections · performance par section · Exercice {annee}</p>
         </div>
+        <PageHeaderActions
+          onToggleFilters={() => setFiltersOpen(o => !o)}
+          filtersOpen={filtersOpen}
+          activeFilters={q ? 1 : 0}
+          printTitle="Comptabilité Analytique — Performance par section"
+        />
       </div>
+
+      {filtersOpen && (
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-4 print-hide">
+          <div className="relative">
+            <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher une section…" className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
+          </div>
+          <span className="text-xs text-gray-400">Filtre le tableau « Performance par section ».</span>
+        </div>
+      )}
 
       {/* Onglets : Axes & Sections (gestion) / Performance */}
       <div className="flex gap-1 bg-white rounded-xl p-1 border border-[var(--color-border)] shadow-sm w-fit">
@@ -204,7 +225,8 @@ const AnalyticsSectionsPage: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {loading && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Chargement…</td></tr>}
             {!loading && perf.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune section. Créez-en une ci-dessus.</td></tr>}
-            {perf.map(s => (
+            {!loading && perf.length > 0 && filteredPerf.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">Aucune section ne correspond au filtre.</td></tr>}
+            {filteredPerf.map(s => (
               <tr key={s.id} className="hover:bg-gray-50">
                 <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{s.code}</span> <span className="text-gray-800">{s.libelle}</span></td>
                 <td className="px-4 py-2.5 text-right text-green-700">{formatCurrency(s.produits)}</td>

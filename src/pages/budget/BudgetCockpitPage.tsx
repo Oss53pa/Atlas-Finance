@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import BudgetImportModal from './BudgetImportModal';
 import BudgetSaisieModal from './BudgetSaisieModal';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -35,6 +36,8 @@ const BudgetCockpitPage: React.FC = () => {
   const [showImport, setShowImport] = useState(false);
   const [showSaisie, setShowSaisie] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [ecartsScope, setEcartsScope] = useState<'all' | '6' | '7'>('all');
 
   useEffect(() => {
     let cancelled = false;
@@ -68,9 +71,10 @@ const BudgetCockpitPage: React.FC = () => {
     if (!summary) return [];
     return summary.parNature
       .filter(n => n.budget !== 0)
+      .filter(n => ecartsScope === 'all' || n.classe === ecartsScope)
       .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))
       .slice(0, 8);
-  }, [summary]);
+  }, [summary, ecartsScope]);
 
   const resultatChart = useMemo(() => {
     if (!summary) return [];
@@ -116,8 +120,23 @@ const BudgetCockpitPage: React.FC = () => {
           <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />Importer</button>
           <button onClick={() => navigate('/budget/versions')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><GitBranch className="w-4 h-4" />Versions</button>
           <button onClick={() => navigate('/budget/exploitation')} className="px-3 py-2 text-sm font-medium bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 flex items-center gap-2">Budget vs Réalisé →</button>
+          <PageHeaderActions
+            onToggleFilters={() => setFiltersOpen(o => !o)}
+            filtersOpen={filtersOpen}
+            activeFilters={ecartsScope !== 'all' ? 1 : 0}
+            printTitle={`Cockpit Budgétaire ${annee}`}
+          />
         </div>
       </div>
+
+      {filtersOpen && (
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-3 print-hide">
+          <span className="text-sm text-gray-600">Top écarts :</span>
+          {([['all', 'Tous'], ['6', 'Charges (6)'], ['7', 'Produits (7)']] as const).map(([k, lbl]) => (
+            <button key={k} onClick={() => setEcartsScope(k)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${ecartsScope === k ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] text-gray-600 hover:bg-gray-50'}`}>{lbl}</button>
+          ))}
+        </div>
+      )}
 
       {/* KPIs réalisé */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
