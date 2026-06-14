@@ -279,7 +279,39 @@ const AtlasFnAHome: React.FC = () => {
   const homeMaxW = '100%';
 
   return (
-    <div className="page-shell">
+    <div
+      className="page-shell"
+      style={{
+        /* ═══ TEST thème SOMBRE CONTRASTÉ — couleurs Atlas (pétrole #235A6E + ambre #E89A2E).
+           Surcharge des tokens sur la racine : tous les enfants (var(--color-*)) basculent.
+           Réversible : supprimer ce bloc style pour revenir au thème crème. ═══ */
+        ['--color-background' as string]: '#0B1F26',
+        ['--color-surface' as string]: 'rgba(255,255,255,0.05)',
+        ['--color-surface-hover' as string]: 'rgba(255,255,255,0.09)',
+        ['--color-surface-elevated' as string]: 'rgba(255,255,255,0.07)',
+        ['--color-text-primary' as string]: '#F2F6F5',
+        ['--color-text-secondary' as string]: 'rgba(238,244,243,0.74)',
+        ['--color-text-tertiary' as string]: 'rgba(238,244,243,0.55)',
+        ['--color-text-quaternary' as string]: 'rgba(238,244,243,0.42)',
+        ['--color-text-inverse' as string]: '#06141A',
+        ['--color-border' as string]: 'rgba(255,255,255,0.12)',
+        ['--color-border-light' as string]: 'rgba(255,255,255,0.07)',
+        ['--color-hairline' as string]: 'rgba(255,255,255,0.08)',
+        ['--color-hairline-strong' as string]: 'rgba(255,255,255,0.14)',
+        ['--color-primary' as string]: '#2E86A3',
+        ['--color-primary-hover' as string]: '#3A9AB9',
+        ['--color-accent' as string]: '#3A9AB9',
+        ['--color-accent-hover' as string]: '#49B0D0',
+        ['--shadow-sm' as string]: '0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.40)',
+        ['--shadow-md' as string]: '0 2px 6px rgba(0,0,0,.40), 0 14px 34px rgba(0,0,0,.50)',
+        ['--shadow-obsidian' as string]: '0 12px 34px rgba(0,0,0,.55)',
+        background:
+          'radial-gradient(900px 420px at 12% -8%, rgba(46,134,163,0.22), transparent 60%),' +
+          'radial-gradient(760px 420px at 100% 0%, rgba(232,154,46,0.10), transparent 55%),' +
+          'linear-gradient(180deg, #0B1F26 0%, #081820 55%, #06141A 100%)',
+        minHeight: '100vh',
+      } as React.CSSProperties}
+    >
       {/* ═════════════════ TOP BAR — context + actions ═════════════════ */}
       <header
         className="glass-bar anim-fade"
