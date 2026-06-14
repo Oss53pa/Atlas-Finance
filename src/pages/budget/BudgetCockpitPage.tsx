@@ -15,7 +15,7 @@ import {
   type ExploitationSummary, type TreasuryActualRow, type BudgetVersion,
 } from '../../features/budget/services/budgetService';
 import {
-  TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, Gauge, Upload,
+  TrendingUp, TrendingDown, Wallet, Target, PiggyBank, AlertTriangle, Gauge, Upload, GitBranch,
 } from 'lucide-react';
 import BudgetImportModal from './BudgetImportModal';
 import BudgetSaisieModal from './BudgetSaisieModal';
@@ -98,16 +98,24 @@ const BudgetCockpitPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-[var(--color-border)] min-h-full space-y-6">
-      {/* En-tête */}
-      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
+      {/* En-tête + actions (en haut) */}
+      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3 flex-wrap">
         <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center">
           <Gauge className="w-5 h-5 text-[var(--color-primary)]" />
         </div>
-        <div>
+        <div className="flex-1 min-w-[200px]">
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Cockpit Budgétaire</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">
-            Exercice {annee} · {version ? `version « ${version.libelle} » (${version.statut})` : 'aucun budget actif — réalisé seul'}
+            Exercice {annee} · {version
+              ? <>version « {version.libelle} » <span className="inline-block px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600 align-middle">{version.statut}</span></>
+              : 'aucun budget actif — réalisé seul'}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowSaisie(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Target className="w-4 h-4" />Saisir</button>
+          <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />Importer</button>
+          <button onClick={() => navigate('/budget/versions')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><GitBranch className="w-4 h-4" />Versions</button>
+          <button onClick={() => navigate('/budget/exploitation')} className="px-3 py-2 text-sm font-medium bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 flex items-center gap-2">Budget vs Réalisé →</button>
         </div>
       </div>
 
@@ -203,26 +211,6 @@ const BudgetCockpitPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => navigate('/budget/exploitation')}
-          className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90"
-        >
-          Détail Budget vs Réalisé (exploitation) →
-        </button>
-        <button
-          onClick={() => setShowSaisie(true)}
-          className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
-        >
-          <Target className="w-4 h-4" /> Saisir le budget
-        </button>
-        <button
-          onClick={() => setShowImport(true)}
-          className="px-4 py-2 border border-[var(--color-border)] bg-white rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
-        >
-          <Upload className="w-4 h-4" /> Importer un budget
-        </button>
-      </div>
 
       <BudgetImportModal open={showImport} onClose={() => setShowImport(false)} onImported={() => setRefreshKey(k => k + 1)} />
       <BudgetSaisieModal open={showSaisie} onClose={() => setShowSaisie(false)} onSaved={() => setRefreshKey(k => k + 1)} />

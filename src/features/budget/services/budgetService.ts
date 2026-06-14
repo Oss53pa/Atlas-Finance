@@ -224,21 +224,22 @@ export interface InvestmentSummary {
 export async function getInvestmentSummary(adapter: DataAdapter, annee: string): Promise<InvestmentSummary> {
   const client = getClient(adapter);
   if (!client) return { totalRealise: 0, totalBudget: 0, parCompte: [], mensuel: [] };
-  const [{ data: actual }, bva] = await Promise.all([
+  // Budget CAPEX = demandes CAR validées/engagées (approuvé, fonds disponibles, clos).
+  const [{ data: actual }, { data: cars }] = await Promise.all([
     client.from('v_actual_investment').select('*').eq('annee', annee),
-    getBudgetVsActual(adapter),
+    client.from('capex_requests').select('account_code,montant,statut').in('statut', ['approuve', 'fonds_disponibles', 'clos']),
   ]);
   const rows = (actual ?? []).map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
-  const invBudget = bva.filter(b => b.budget_type === 'investissement' && b.annee === annee);
 
   const map = new Map<string, { account_code: string; label: string; realise: number; budget: number }>();
   for (const r of rows) {
     if (!map.has(r.account_code)) map.set(r.account_code, { account_code: r.account_code, label: r.account_name, realise: 0, budget: 0 });
     map.get(r.account_code)!.realise += r.montant_realise;
   }
-  for (const b of invBudget) {
-    if (!map.has(b.account_code)) map.set(b.account_code, { account_code: b.account_code, label: b.account_code, realise: 0, budget: 0 });
-    map.get(b.account_code)!.budget += b.budget;
+  for (const c of (cars ?? [])) {
+    const code = String(c.account_code);
+    if (!map.has(code)) map.set(code, { account_code: code, label: code, realise: 0, budget: 0 });
+    map.get(code)!.budget += Number(c.montant) || 0;
   }
   const parCompte = Array.from(map.values())
     .map(c => ({ ...c, ecart: c.realise - c.budget, resteAEngager: Math.max(0, c.budget - c.realise) }))
@@ -252,6 +253,96 @@ export async function getInvestmentSummary(adapter: DataAdapter, annee: string):
     totalBudget: parCompte.reduce((s, c) => s + c.budget, 0),
     parCompte, mensuel,
   };
+}
+
+// ── Capital Appropriation Request (CAR) — demandes CAPEX ─────────────────────
+
+export type CapexStatut = 'demande' | 'approuve' | 'fonds_disponibles' | 'clos' | 'rejete';
+
+export interface CapexRequest {
+  id: string;
+  libelle: string;
+  account_code: string;
+  section_id: string | null;
+  montant: number;
+  date_prevue: string | null;
+  duree_amortissement: number;
+  methode: 'lineaire' | 'degressif';
+  valeur_residuelle: number;
+  justification: string | null;
+  statut: CapexStatut;
+  montant_utilise: number;
+  created_at?: string;
+}
+
+export async function listCapexRequests(adapter: DataAdapter): Promise<CapexRequest[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client
+    .from('capex_requests')
+    .select('id,libelle,account_code,section_id,montant,date_prevue,duree_amortissement,methode,valeur_residuelle,justification,statut,montant_utilise,created_at')
+    .order('created_at', { ascending: false });
+  return (data ?? []).map((r: any) => ({
+    ...r,
+    montant: Number(r.montant) || 0,
+    duree_amortissement: Number(r.duree_amortissement) || 0,
+    valeur_residuelle: Number(r.valeur_residuelle) || 0,
+    montant_utilise: Number(r.montant_utilise) || 0,
+  }));
+}
+
+export async function createCapexRequest(
+  adapter: DataAdapter,
+  req: { fiscalYearId?: string | null; libelle: string; account_code: string; section_id?: string | null; montant: number; date_prevue?: string | null; duree_amortissement: number; methode: 'lineaire' | 'degressif'; valeur_residuelle?: number; justification?: string | null },
+): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = (adapter as any).tenantId as string;
+  const { error } = await client.from('capex_requests').insert({
+    tenant_id: tenantId,
+    fiscal_year_id: req.fiscalYearId || null,
+    libelle: req.libelle.trim(),
+    account_code: req.account_code.trim(),
+    section_id: req.section_id || null,
+    montant: req.montant,
+    date_prevue: req.date_prevue || null,
+    duree_amortissement: req.duree_amortissement,
+    methode: req.methode,
+    valeur_residuelle: req.valeur_residuelle ?? 0,
+    justification: req.justification || null,
+    statut: 'demande',
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function setCapexStatut(adapter: DataAdapter, id: string, statut: CapexStatut): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const patch: any = { statut };
+  if (statut === 'fonds_disponibles') patch.fonds_dispo_at = new Date().toISOString();
+  const { error } = await client.from('capex_requests').update(patch).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Enregistre une utilisation (décaissement) des fonds appropriés. */
+export async function setCapexUtilise(adapter: DataAdapter, id: string, montantUtilise: number): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('capex_requests').update({ montant_utilise: montantUtilise }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCapexRequest(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('capex_requests').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Dotation annuelle d'amortissement = (montant − valeur résiduelle) / durée. */
+export function dotationAnnuelle(req: { montant: number; valeur_residuelle: number; duree_amortissement: number }): number {
+  if (!req.duree_amortissement) return 0;
+  return Math.round(((req.montant - req.valeur_residuelle) / req.duree_amortissement) * 100) / 100;
 }
 
 // ── Gestion des versions (validation DG → verrouillage) ──────────────────────
@@ -470,6 +561,25 @@ export function inferBudgetType(accountCode: string): 'exploitation' | 'investis
  * mode 'replace' : vide les lignes existantes de la version avant insertion
  * (ré-import idempotent). Écrit en réel (tables budget_*, RLS par société).
  */
+/** Crée une nouvelle version budgétaire. setActive = en faire la version de référence. */
+export async function createBudgetVersion(
+  adapter: DataAdapter,
+  params: { fiscalYearId: string; libelle: string; type?: 'initial' | 'revise' | 'atterrissage'; setActive?: boolean },
+): Promise<string> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = (adapter as any).tenantId as string;
+  if (params.setActive) {
+    await client.from('budget_versions').update({ is_active: false }).eq('fiscal_year_id', params.fiscalYearId);
+  }
+  const { data, error } = await client
+    .from('budget_versions')
+    .insert({ tenant_id: tenantId, fiscal_year_id: params.fiscalYearId, libelle: params.libelle.trim(), type: params.type || 'initial', statut: 'brouillon', is_active: !!params.setActive })
+    .select('id').single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
+
 export async function importBudget(
   adapter: DataAdapter,
   params: {
@@ -477,6 +587,8 @@ export async function importBudget(
     versionLibelle: string;
     lines: BudgetImportLine[];
     replace: boolean;
+    /** Version cible explicite (versioning). Sinon : version active, sinon création. */
+    versionId?: string;
   },
 ): Promise<{ versionId: string; linesCreated: number; periodsCreated: number }> {
   const client = getClient(adapter);
@@ -484,27 +596,35 @@ export async function importBudget(
   const tenantId = (adapter as any).tenantId as string;
   if (!tenantId) throw new Error('Société non résolue.');
 
-  // 1) Version active pour l'exercice, sinon création.
+  // 1) Version cible : explicite, sinon active, sinon création.
   let versionId: string;
-  const { data: existing } = await client
-    .from('budget_versions')
-    .select('id,statut')
-    .eq('fiscal_year_id', params.fiscalYearId)
-    .eq('is_active', true)
-    .limit(1);
-  if (existing?.[0]) {
-    if (existing[0].statut === 'verrouille') throw new Error('La version active est verrouillée : import impossible.');
-    versionId = existing[0].id;
-    if (params.replace) {
-      await client.from('budget_lines').delete().eq('version_id', versionId);
-    }
+  if (params.versionId) {
+    const { data: v } = await client.from('budget_versions').select('id,statut').eq('id', params.versionId).single();
+    if (!v) throw new Error('Version cible introuvable.');
+    if (v.statut === 'verrouille') throw new Error('Version verrouillée : import impossible.');
+    versionId = v.id;
+    if (params.replace) await client.from('budget_lines').delete().eq('version_id', versionId);
   } else {
-    const { data: created, error } = await client
+    const { data: existing } = await client
       .from('budget_versions')
-      .insert({ tenant_id: tenantId, fiscal_year_id: params.fiscalYearId, libelle: params.versionLibelle, type: 'initial', statut: 'brouillon', is_active: true })
-      .select('id').single();
-    if (error) throw new Error(error.message);
-    versionId = created.id;
+      .select('id,statut')
+      .eq('fiscal_year_id', params.fiscalYearId)
+      .eq('is_active', true)
+      .limit(1);
+    if (existing?.[0]) {
+      if (existing[0].statut === 'verrouille') throw new Error('La version active est verrouillée : import impossible.');
+      versionId = existing[0].id;
+      if (params.replace) {
+        await client.from('budget_lines').delete().eq('version_id', versionId);
+      }
+    } else {
+      const { data: created, error } = await client
+        .from('budget_versions')
+        .insert({ tenant_id: tenantId, fiscal_year_id: params.fiscalYearId, libelle: params.versionLibelle, type: 'initial', statut: 'brouillon', is_active: true })
+        .select('id').single();
+      if (error) throw new Error(error.message);
+      versionId = created.id;
+    }
   }
 
   // 2) Résoudre les sections par code (optionnel ; table vide aujourd'hui → null).

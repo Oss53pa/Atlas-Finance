@@ -39,6 +39,7 @@ ChartJS.register(
 const FinancialAnalysisDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('ytd');
   const [comparisonMode, setComparisonMode] = useState('previous');
+  const [tab, setTab] = useState<'synthese' | 'analyses'>('synthese');
   const { adapter } = useData();
 
   // Financial Metrics from DataContext
@@ -418,6 +419,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Onglets : Synthèse (Compte de Résultat) / Analyses & graphiques */}
+      <div className="flex gap-1 bg-[var(--color-card-bg)] rounded-lg p-1 border border-[var(--color-border)] w-fit mb-6">
+        {([['synthese', 'Compte de Résultat'], ['analyses', 'Analyses & graphiques']] as const).map(([k, lbl]) => (
+          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium rounded-md ${tab === k ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}>{lbl}</button>
+        ))}
+      </div>
+
+      {tab === 'synthese' && (<>
       {/* P&L Analysis */}
       <div className="bg-[var(--color-card-bg)] rounded-lg border border-[var(--color-border)] mb-6">
         <div className="p-6 border-b border-[var(--color-border)]">
@@ -509,6 +518,9 @@ const FinancialAnalysisDashboard: React.FC = () => {
         </div>
       </div>
 
+      </>)}
+
+      {tab === 'analyses' && (<>
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Monthly Trend */}
@@ -696,6 +708,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+      </>)}
     </div>
   );
 };

@@ -74,7 +74,7 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
 
   const saveAll = async () => {
     const dirty = rows.filter(r => r._dirty && r.account_code.trim());
-    if (dirty.length === 0) { toast('Rien à enregistrer'); return; }
+    if (dirty.length === 0) { toast.info('Rien à enregistrer'); return; }
     setSaving(true);
     try {
       for (const row of dirty) {

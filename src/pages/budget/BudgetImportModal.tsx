@@ -3,16 +3,17 @@
  * Lancé depuis le Cockpit. Modèle téléchargeable + upload + aperçu + écriture
  * réelle (budgetService.importBudget). Idempotent (option « Remplacer »).
  */
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import {
-  getActiveFiscalYear, inferBudgetType, importBudget, type BudgetImportLine,
+  getActiveFiscalYear, inferBudgetType, importBudget, listBudgetVersions, createBudgetVersion,
+  type BudgetImportLine, type BudgetVersionFull,
 } from '../../features/budget/services/budgetService';
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch } from 'lucide-react';
 
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
@@ -34,8 +35,18 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
   const [replace, setReplace] = useState(true);
   const [importing, setImporting] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
+  // Versioning : cible = '' (version active), un id existant, ou 'new'
+  const [versions, setVersions] = useState<BudgetVersionFull[]>([]);
+  const [target, setTarget] = useState<string>('');
+  const [newLabel, setNewLabel] = useState('');
+  const [newType, setNewType] = useState<'initial' | 'revise' | 'atterrissage'>('revise');
 
-  const reset = () => { setRows([]); setFileName(''); setWarnings([]); };
+  useEffect(() => {
+    if (!open) return;
+    listBudgetVersions(adapter).then(setVersions).catch(() => setVersions([]));
+  }, [open, adapter]);
+
+  const reset = () => { setRows([]); setFileName(''); setWarnings([]); setTarget(''); setNewLabel(''); };
 
   const downloadTemplate = () => {
     const header = ['Compte', 'Libellé', 'Type (exploitation/investissement)', 'Section (optionnel)', ...MONTHS];
@@ -94,12 +105,25 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
 
   const handleImport = async () => {
     if (rows.length === 0) { toast.error('Aucune ligne à importer'); return; }
+    if (target === 'new' && !newLabel.trim()) { toast.error('Libellé de la nouvelle version requis'); return; }
     setImporting(true);
     try {
       const fy = await getActiveFiscalYear(adapter);
       if (!fy) throw new Error('Aucun exercice fiscal trouvé.');
-      if (!window.confirm(`Importer ${rows.length} ligne(s) dans l'exercice ${fy.code} ?\n${replace ? '⚠️ Mode REMPLACER : les lignes existantes de la version active seront supprimées.' : 'Mode AJOUT (fusion).'}`)) { setImporting(false); return; }
-      const res = await importBudget(adapter, { fiscalYearId: fy.id, versionLibelle: `Budget ${fy.code}`, lines: rows, replace });
+      // Résolution de la version cible (versioning)
+      let versionId: string | undefined;
+      let cibleLabel: string;
+      if (target === 'new') {
+        versionId = await createBudgetVersion(adapter, { fiscalYearId: fy.id, libelle: newLabel.trim(), type: newType, setActive: true });
+        cibleLabel = `nouvelle version « ${newLabel.trim()} »`;
+      } else if (target) {
+        versionId = target;
+        cibleLabel = `version « ${versions.find(v => v.id === target)?.libelle || target} »`;
+      } else {
+        cibleLabel = 'version active';
+      }
+      if (!window.confirm(`Importer ${rows.length} ligne(s) dans la ${cibleLabel} (exercice ${fy.code}) ?\n${replace ? '⚠️ Mode REMPLACER : les lignes existantes de cette version seront supprimées.' : 'Mode AJOUT (fusion).'}`)) { setImporting(false); return; }
+      const res = await importBudget(adapter, { fiscalYearId: fy.id, versionLibelle: `Budget ${fy.code}`, lines: rows, replace, versionId });
       toast.success(`Budget importé : ${res.linesCreated} ligne(s), ${res.periodsCreated} période(s).`);
       reset(); onImported?.(); onClose();
     } catch (e: any) { toast.error('Import échoué : ' + (e?.message || 'erreur')); }
@@ -121,6 +145,29 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
             <button onClick={downloadTemplate} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"><Download className="w-4 h-4" />Modèle</button>
             <button onClick={() => { reset(); onClose(); }} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
           </div>
+        </div>
+
+        {/* Versioning : version cible de l'import */}
+        <div className="mb-4 bg-gray-50 rounded-lg p-3">
+          <label className="text-xs font-medium text-gray-600 flex items-center gap-1 mb-1.5"><GitBranch className="w-3.5 h-3.5" />Version budgétaire cible</label>
+          <select value={target} onChange={e => setTarget(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+            <option value="">Version active {versions.find(v => v.is_active) ? `(« ${versions.find(v => v.is_active)!.libelle} »)` : '(créée si absente)'}</option>
+            {versions.filter(v => !v.is_active && v.statut !== 'verrouille').map(v => (
+              <option key={v.id} value={v.id}>{v.libelle} — {v.type} ({v.statut})</option>
+            ))}
+            <option value="new">➕ Nouvelle version…</option>
+          </select>
+          {target === 'new' && (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Libellé (ex. Budget révisé S2)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+              <select value={newType} onChange={e => setNewType(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                <option value="initial">Initial</option>
+                <option value="revise">Révisé</option>
+                <option value="atterrissage">Atterrissage</option>
+              </select>
+            </div>
+          )}
+          <p className="text-[10px] text-gray-400 mt-1.5">L'import est versionné : choisissez la version active, une version existante, ou créez-en une nouvelle (devient active).</p>
         </div>
 
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />

@@ -103,7 +103,7 @@ const AnalyticsSectionsPage: React.FC = () => {
         ))}
       </div>
 
-      {anaTab === 'gestion' && (
+      {anaTab === 'gestion' && (<>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Axes */}
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
@@ -173,7 +173,7 @@ const AnalyticsSectionsPage: React.FC = () => {
         </button>
         <p className="text-[11px] text-gray-400 mt-2">Attribue 100% des lignes correspondantes à la section (remplace les ventilations existantes de ces lignes). Combinable : compte + journal et/ou tiers.</p>
       </div>
-      )}
+      </>)}
 
       {anaTab === 'performance' && (<>
       {/* Bandeau KPI — vue d'ensemble par axes & centres (sections) */}
