@@ -10,9 +10,10 @@ import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import {
   listAxes, createAxe, createSection, updateSection, getSectionPerformance,
+  applyVentilationRule, getVentilationCoverage,
   type Axe, type SectionPerformance,
 } from '../../features/budget/services/analyticsService';
-import { PieChart, Plus, Save, Layers, Target } from 'lucide-react';
+import { PieChart, Plus, Save, Layers, Target, Split } from 'lucide-react';
 
 const AnalyticsSectionsPage: React.FC = () => {
   const { adapter } = useData();
@@ -24,13 +25,16 @@ const AnalyticsSectionsPage: React.FC = () => {
   const [newAxe, setNewAxe] = useState({ code: '', libelle: '' });
   const [newSection, setNewSection] = useState({ code: '', libelle: '', axe_id: '', budget_annuel: '' });
   const [editBudget, setEditBudget] = useState<Record<string, string>>({});
+  const [vent, setVent] = useState({ sectionId: '', accountPrefix: '', journal: '', tiersCode: '' });
+  const [ventCoverage, setVentCoverage] = useState(0);
+  const [ventBusy, setVentBusy] = useState(false);
 
   const load = async () => {
     setLoading(true);
     try {
       const a = annee || await getDefaultAnnee(adapter);
-      const [ax, p] = await Promise.all([listAxes(adapter), getSectionPerformance(adapter, a)]);
-      setAnnee(a); setAxes(ax); setPerf(p);
+      const [ax, p, cov] = await Promise.all([listAxes(adapter), getSectionPerformance(adapter, a), getVentilationCoverage(adapter)]);
+      setAnnee(a); setAxes(ax); setPerf(p); setVentCoverage(cov.ventilated);
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
   };
@@ -52,6 +56,22 @@ const AnalyticsSectionsPage: React.FC = () => {
       toast.success('Section créée'); load();
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
+  const applyVent = async () => {
+    if (!vent.sectionId || !vent.accountPrefix) { toast.error('Section et préfixe de compte requis'); return; }
+    const sec = perf.find(s => s.id === vent.sectionId);
+    if (!window.confirm(`Ventiler toutes les écritures de compte « ${vent.accountPrefix}… »${vent.journal ? ` (journal ${vent.journal})` : ''}${vent.tiersCode ? ` (tiers ${vent.tiersCode})` : ''} vers la section « ${sec?.code} » ?`)) return;
+    setVentBusy(true);
+    try {
+      const res = await applyVentilationRule(adapter, {
+        accountPrefix: vent.accountPrefix, journal: vent.journal || null, tiersCode: vent.tiersCode || null, sectionId: vent.sectionId,
+      });
+      toast.success(`${res.matched} ligne(s) ventilée(s) vers la section.`);
+      setVent({ sectionId: '', accountPrefix: '', journal: '', tiersCode: '' });
+      load();
+    } catch (e: any) { toast.error(e?.message || 'Erreur de ventilation'); }
+    finally { setVentBusy(false); }
+  };
+
   const saveBudget = async (id: string) => {
     const v = parseFloat(editBudget[id]); if (isNaN(v)) return;
     try { await updateSection(adapter, id, { budget_annuel: v }); toast.success('Budget mis à jour'); setEditBudget(p => { const n = { ...p }; delete n[id]; return n; }); load(); }
@@ -103,6 +123,39 @@ const AnalyticsSectionsPage: React.FC = () => {
           <button onClick={addSection} className="mt-3 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center gap-1"><Plus className="w-4 h-4" />Créer la section</button>
           <p className="text-[11px] text-gray-400 mt-2">Le réalisé est attribué via le code analytique des écritures (= code section).</p>
         </div>
+      </div>
+
+      {/* Ventilation par règle */}
+      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2"><Split className="w-4 h-4" />Ventilation par règle</h2>
+          <span className="text-xs text-gray-400">{ventCoverage} ligne(s) ventilée(s)</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
+          <div className="md:col-span-2">
+            <label className="text-[11px] text-gray-500 block mb-1">Section cible *</label>
+            <select value={vent.sectionId} onChange={e => setVent(v => ({ ...v, sectionId: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+              <option value="">— Section —</option>
+              {perf.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[11px] text-gray-500 block mb-1">Préfixe compte *</label>
+            <input value={vent.accountPrefix} onChange={e => setVent(v => ({ ...v, accountPrefix: e.target.value }))} placeholder="ex. 601" className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label className="text-[11px] text-gray-500 block mb-1">Journal (opt.)</label>
+            <input value={vent.journal} onChange={e => setVent(v => ({ ...v, journal: e.target.value.toUpperCase() }))} placeholder="ex. AC" className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+          </div>
+          <div>
+            <label className="text-[11px] text-gray-500 block mb-1">Code tiers (opt.)</label>
+            <input value={vent.tiersCode} onChange={e => setVent(v => ({ ...v, tiersCode: e.target.value }))} placeholder="ex. C001" className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+          </div>
+        </div>
+        <button onClick={applyVent} disabled={ventBusy} className="mt-3 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
+          <Split className="w-4 h-4" /> {ventBusy ? 'Ventilation…' : 'Appliquer la règle'}
+        </button>
+        <p className="text-[11px] text-gray-400 mt-2">Attribue 100% des lignes correspondantes à la section (remplace les ventilations existantes de ces lignes). Combinable : compte + journal et/ou tiers.</p>
       </div>
 
       {/* Performance par section */}

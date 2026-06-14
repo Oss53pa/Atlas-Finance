@@ -1364,6 +1364,40 @@ export async function fetchTableData(
 
     case 'budget.vs_actual':
     case 'budget.ecarts_significatifs': {
+      // Priorité : vue live v_budget_vs_actual (module Budget V3). Repli sur le
+      // calcul GL ci-dessous si la vue est absente ou vide.
+      try {
+        const client = (adapter as any).client;
+        if (client) {
+          const { data: bva } = await client.from('v_budget_vs_actual').select('*');
+          if (Array.isArray(bva) && bva.length > 0) {
+            const byNat = new Map<string, { code: string; budget: number; realise: number }>();
+            for (const r of bva) {
+              const code = String(r.account_code || '').slice(0, 2);
+              if (!byNat.has(code)) byNat.set(code, { code, budget: 0, realise: 0 });
+              const n = byNat.get(code)!;
+              n.budget += Number(r.budget) || 0;
+              n.realise += Number(r.realise) || 0;
+            }
+            let rows = Array.from(byNat.values()).map(n => ({
+              poste: `${n.code} — ${getClassLabel(n.code)}`,
+              budget: n.budget, reel: n.realise, ecart: n.realise - n.budget,
+              ecartPct: n.budget ? Math.round(((n.realise - n.budget) / Math.abs(n.budget)) * 100) : 0,
+            })).sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart));
+            if (source === 'budget.ecarts_significatifs') rows = rows.filter(r => Math.abs(r.ecartPct) > 10);
+            return {
+              columns: [
+                { key: 'poste', label: 'Poste', align: 'left' },
+                { key: 'budget', label: 'Budget', align: 'right', format: 'currency' },
+                { key: 'reel', label: 'Réel', align: 'right', format: 'currency' },
+                { key: 'ecart', label: 'Écart', align: 'right', format: 'currency' },
+                { key: 'ecartPct', label: 'Écart %', align: 'right', format: 'number' },
+              ],
+              rows,
+            };
+          }
+        }
+      } catch { /* vue absente → repli GL ci-dessous */ }
       const budgetLines = await loadAux('budgetLines');
       const months = getMonthsInPeriod(period);
       // Réel par classe 6 (charges) sur la période

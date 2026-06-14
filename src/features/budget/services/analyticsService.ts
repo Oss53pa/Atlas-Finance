@@ -83,6 +83,74 @@ export async function updateSection(adapter: DataAdapter, id: string, patch: Par
   if (error) throw new Error(error.message);
 }
 
+// ── Ventilation (attribution de sections aux écritures) ──────────────────────
+
+export interface VentilationRule {
+  accountPrefix: string;   // ex. '6' ou '601' ou '601100'
+  journal?: string | null; // ex. 'AC' (optionnel)
+  tiersCode?: string | null; // code tiers (optionnel)
+  sectionId: string;
+}
+
+const chunk = <T,>(arr: T[], n: number): T[][] => {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
+};
+
+/**
+ * Applique une règle de ventilation : toutes les lignes correspondant au
+ * préfixe de compte (+ journal/tiers optionnels) sont attribuées à 100% à la
+ * section. Idempotent : remplace les ventilations existantes de ces lignes.
+ */
+export async function applyVentilationRule(adapter: DataAdapter, rule: VentilationRule): Promise<{ matched: number }> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const tenantId = tenantOf(adapter);
+
+  let q = client
+    .from('journal_lines')
+    .select('id,debit,credit,account_code,third_party_code, journal_entries!inner(journal,status)')
+    .like('account_code', `${rule.accountPrefix.trim()}%`)
+    .in('journal_entries.status', ['validated', 'posted']);
+  if (rule.journal) q = q.eq('journal_entries.journal', rule.journal);
+  if (rule.tiersCode) q = q.eq('third_party_code', rule.tiersCode);
+
+  const { data: lines, error } = await q;
+  if (error) throw new Error(error.message);
+  const rows = (lines ?? []) as any[];
+  if (rows.length === 0) return { matched: 0 };
+
+  const lineIds = rows.map(l => l.id);
+  // Idempotence : supprimer les ventilations existantes de ces lignes
+  for (const c of chunk(lineIds, 200)) {
+    await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
+  }
+  // Insérer les nouvelles ventilations (100% sur la section)
+  const ventRows = rows.map(l => ({
+    tenant_id: tenantId,
+    ligne_ecriture_id: l.id,
+    section_id: rule.sectionId,
+    pourcentage: 100,
+    montant: Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100) / 100,
+  }));
+  for (const c of chunk(ventRows, 500)) {
+    const { error: insErr } = await client.from('ventilations_analytiques').insert(c);
+    if (insErr) throw new Error(insErr.message);
+  }
+  return { matched: rows.length };
+}
+
+/** Couverture de ventilation : nb de lignes ventilées sur le total (classes 6/7/2). */
+export async function getVentilationCoverage(adapter: DataAdapter): Promise<{ ventilated: number }> {
+  const client = getClient(adapter);
+  if (!client) return { ventilated: 0 };
+  const { count } = await client
+    .from('ventilations_analytiques')
+    .select('id', { count: 'exact', head: true });
+  return { ventilated: count ?? 0 };
+}
+
 /** Performance par section : réalisé (vue) + budget annuel (table). */
 export async function getSectionPerformance(adapter: DataAdapter, annee: string): Promise<SectionPerformance[]> {
   const client = getClient(adapter);
