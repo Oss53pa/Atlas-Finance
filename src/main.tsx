@@ -4,6 +4,11 @@ import { BrowserRouter } from 'react-router-dom'
 import { Toaster as SonnerToaster } from 'sonner'
 import { HelmetProvider } from 'react-helmet-async'
 import * as Sentry from '@sentry/react'
+import { initAtlasErrorMonitor } from './lib/atlasErrorMonitor'
+
+// Remontée vers la console Atlas Studio (Error Monitor + Bug-Triage ASVC),
+// en plus de Sentry. Silencieux, clé anon Atlas publique.
+initAtlasErrorMonitor('atlas-compta')
 
 // ── Sentry Error Monitoring ──────────────────────────────────
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
