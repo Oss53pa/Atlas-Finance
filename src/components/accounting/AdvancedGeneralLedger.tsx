@@ -36,6 +36,8 @@ interface LedgerEntry {
   centreCout?: string;
   tiers?: string;
   referenceExterne?: string;
+  journal?: string;
+  contrepartie?: string;
 }
 
 interface AccountData {
@@ -146,6 +148,21 @@ const AdvancedGeneralLedger: React.FC = () => {
           acc.totalCredit = money(acc.totalCredit).add(money(line.credit)).toNumber();
           acc.nombreEcritures++;
           acc.soldeFermeture = money(acc.soldeOuverture).add(money(acc.totalDebit)).subtract(money(acc.totalCredit)).toNumber();
+
+          // Contrepartie : compte de l'autre ligne (écriture à 2 lignes) ou ligne
+          // de sens opposé au plus gros montant (écriture multi-lignes, suffixe …).
+          const others = (entry.lines || []).filter((l) => l !== line);
+          let contrepartie = '';
+          if (others.length === 1) {
+            contrepartie = others[0].accountCode;
+          } else if (others.length > 1) {
+            const opp = others.filter((o) => (Number(line.debit) > 0 ? Number(o.credit) > 0 : Number(o.debit) > 0));
+            const pool = opp.length ? opp : others;
+            const pick = pool.reduce((b, o) =>
+              (Math.max(Number(o.debit) || 0, Number(o.credit) || 0) > Math.max(Number(b.debit) || 0, Number(b.credit) || 0) ? o : b), pool[0]);
+            contrepartie = pick ? `${pick.accountCode}…` : '';
+          }
+
           acc.entries.push({
             id: `${entry.id}-${line.id}`,
             date: entry.date,
@@ -156,6 +173,8 @@ const AdvancedGeneralLedger: React.FC = () => {
             solde: acc.soldeFermeture,
             centreCout: line.analyticalCode,
             tiers: line.thirdPartyName,
+            journal: (entry as any).journal || '',
+            contrepartie,
           });
           accountMap.set(line.accountCode, acc);
         }
@@ -196,10 +215,42 @@ const AdvancedGeneralLedger: React.FC = () => {
   // Données évolution — vide sans données
   const evolutionData = useMemo(() => {
     if (!accountsData.length) return [];
-    return [{
-      periode: `${dateRange.start} - ${dateRange.end}`,
-      actif: 0, passif: 0, produits: 0, charges: 0
-    }];
+    // 6 derniers mois se terminant au mois de dateRange.end.
+    const end = new Date(dateRange.end);
+    const months: { key: string; label: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(end.getFullYear(), end.getMonth() - i, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+        label: d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }),
+      });
+    }
+    const isActif = (c: string) => c >= '2' && c <= '5';   // immos, stocks, tiers, trésorerie
+    const isPassif = (c: string) => c === '1';             // ressources durables
+    // Mouvement net par mois (actif = débit−crédit ; passif = crédit−débit).
+    const movByMonth: Record<string, { actif: number; passif: number }> = {};
+    for (const acc of accountsData) {
+      const c = String(acc.compte).charAt(0);
+      if (!isActif(c) && !isPassif(c)) continue;
+      for (const e of acc.entries) {
+        const m = String(e.date).slice(0, 7);
+        if (!movByMonth[m]) movByMonth[m] = { actif: 0, passif: 0 };
+        const net = (Number(e.debit) || 0) - (Number(e.credit) || 0);
+        if (isActif(c)) movByMonth[m].actif += net;
+        else movByMonth[m].passif += -net;
+      }
+    }
+    // Cumul : on additionne d'abord tout ce qui précède le 1er mois affiché (ouverture).
+    let cumA = 0, cumP = 0;
+    const firstKey = months[0].key;
+    for (const [m, v] of Object.entries(movByMonth)) {
+      if (m < firstKey) { cumA += v.actif; cumP += v.passif; }
+    }
+    return months.map((mo) => {
+      const v = movByMonth[mo.key] || { actif: 0, passif: 0 };
+      cumA += v.actif; cumP += v.passif;
+      return { periode: mo.label, actif: cumA, passif: cumP, produits: 0, charges: 0 };
+    });
   }, [accountsData, dateRange]);
 
   // Calculs des indicateurs
@@ -1260,7 +1311,12 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Top Comptes Actifs</h3>
-                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
+                <button
+                  onClick={() => { setSelectedAccount(''); setActiveView('accounts'); }}
+                  className="p-2 text-gray-700 hover:text-[var(--color-primary)]"
+                  aria-label="Voir les comptes détaillés"
+                  title="Voir les comptes détaillés"
+                >
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -1269,7 +1325,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                   .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
                   .slice(0, 5)
                   .map((account, index) => (
-                    <div key={account.compte} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={account.compte}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => { setSelectedAccount(account.compte); setActiveView('accounts'); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedAccount(account.compte); setActiveView('accounts'); } }}
+                      title={`Voir le détail du compte ${account.compte}`}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-[var(--color-primary)]/5 hover:ring-1 hover:ring-[var(--color-primary)]/30 transition-all"
+                    >
                       <div className="flex items-center space-x-3">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
                           index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-500' : 'bg-gray-300'
@@ -1644,8 +1708,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                         date: e.date,
                         piece: e.piece,
                         libelle: e.libelle,
-                        journal: '',
-                        contrepartie: '',
+                        journal: e.journal || '',
+                        contrepartie: e.contrepartie || '',
                         lettrage: '',
                         debit: e.debit,
                         credit: e.credit,
