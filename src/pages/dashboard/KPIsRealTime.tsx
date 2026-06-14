@@ -309,7 +309,10 @@ const KPIsRealTime: React.FC = () => {
           );
         }
 
-        if (activityType === 'negoce') {
+        // Négoce : afficher UNIQUEMENT s'il existe une vraie activité marchandises
+        // (achats 601 / ventes 701). Évite les KPI « Achats Marchandises » à 0 pour
+        // les activités services/immobilier (où activityType vaut 'negoce' par défaut).
+        if (achatsMarchandises > 0 || venteMarchandises > 0) {
           computedKPIs.push(
             {
               id: 'achats-marchandises',
@@ -344,7 +347,9 @@ const KPIsRealTime: React.FC = () => {
           );
         }
 
-        if (activityType === 'services') {
+        // Services : affiché si l'activité est déclarée « services » OU dès qu'il
+        // existe un CA de prestations réel (706).
+        if (activityType === 'services' || caPrestations > 0) {
           computedKPIs.push(
             {
               id: 'ca-prestations',

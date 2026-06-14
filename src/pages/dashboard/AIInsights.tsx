@@ -565,9 +565,16 @@ const AIInsights: React.FC = () => {
         ))}
       </div>
 
-      {/* Forecast Chart */}
+      {/* Forecast Chart — affiché seulement si l'historique mensuel est suffisant
+          (≥ 2 mois réels). Sinon courbe vide → on montre un état honnête. */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Prévisions avec Intervalles de Confiance</h2>
+        {forecastData.filter((d) => d && d.actual != null).length < 2 ? (
+          <div className="py-12 text-center text-sm text-gray-500">
+            Historique mensuel insuffisant pour tracer une courbe de prévision
+            (au moins 2 mois d'écritures requis).
+          </div>
+        ) : (
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={forecastData}>
             <defs>
@@ -587,6 +594,7 @@ const AIInsights: React.FC = () => {
             <Line type="monotone" dataKey="predicted" stroke="#235A6E" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
           </AreaChart>
         </ResponsiveContainer>
+        )}
       </div>
     </div>
   );

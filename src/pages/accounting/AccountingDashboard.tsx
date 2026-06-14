@@ -39,6 +39,8 @@ const AccountingDashboard: React.FC = () => {
   const { adapter } = useData();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
+  // Affichage de la Balance SYSCOHADA : liste / grille / kanban.
+  const [balanceView, setBalanceView] = useState<'liste' | 'grille' | 'kanban'>('liste');
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -313,80 +315,94 @@ const AccountingDashboard: React.FC = () => {
     </UnifiedCard>
   );
 
-  const renderBalanceTab = () => (
-    <UnifiedCard variant="elevated" size="lg">
-      <div className="flex items-center space-x-3 mb-8">
-        <div className="p-3 bg-white/90">
-          <BarChart3 className="h-6 w-6 text-white" />
+  const renderBalanceTab = () => {
+    const items = [
+      { label: 'ACTIF (Classes 2-5)', value: stats.totalActif, desc: 'Immobilisations, Stocks, Créances, Trésorerie' },
+      { label: 'PASSIF (Classes 1, 4)', value: stats.totalPassif, desc: 'Capitaux propres, Provisions, Dettes' },
+      { label: 'CHARGES (Classe 6)', value: stats.totalCharges, desc: 'Achats, Services, Personnel, Finances' },
+      { label: 'PRODUITS (Classe 7)', value: stats.totalProduits, desc: 'Ventes, Production, Produits accessoires' },
+    ];
+    const resultat = stats.totalProduits - stats.totalCharges;
+    const showResultat = stats.totalProduits > 0 || stats.totalCharges > 0;
+    const resultatPositif = stats.totalProduits >= stats.totalCharges;
+
+    const Card = ({ item }: { item: typeof items[number] }) => (
+      <div className="p-6 rounded-2xl border bg-neutral-50/80 border-neutral-200/60 h-full">
+        <div className="flex justify-between items-center mb-2">
+          <span className="font-semibold text-neutral-900">{item.label}</span>
+          {balanceView !== 'kanban' && <span className="font-bold text-xl text-neutral-900">{fmt(item.value)}</span>}
         </div>
-        <div>
-          <h2 className="text-lg font-bold text-neutral-900">
-            Balance SYSCOHADA
-          </h2>
-          <p className="text-neutral-600">Classes 1-7 détaillées</p>
+        {balanceView === 'kanban' && <div className="font-bold text-xl text-neutral-900 mb-2">{fmt(item.value)}</div>}
+        <p className="text-sm text-neutral-600">{item.desc}</p>
+      </div>
+    );
+
+    const ResultatCard = () => (
+      <div className={`p-6 rounded-2xl border h-full ${resultatPositif ? 'bg-green-50/80 border-green-200/60' : 'bg-red-50/80 border-red-200/60'}`}>
+        <div className="flex justify-between items-center">
+          <span className="font-semibold text-neutral-900">RÉSULTAT NET</span>
+          <span className={`font-bold text-xl ${resultatPositif ? 'text-green-700' : 'text-red-700'}`}>{fmt(resultat)}</span>
         </div>
       </div>
-      <div className="space-y-4">
-        {[
-          { label: 'ACTIF (Classes 2-5)', value: stats.totalActif, desc: 'Immobilisations, Stocks, Créances, Trésorerie' },
-          { label: 'PASSIF (Classes 1, 4)', value: stats.totalPassif, desc: 'Capitaux propres, Provisions, Dettes' },
-          { label: 'CHARGES (Classe 6)', value: stats.totalCharges, desc: 'Achats, Services, Personnel, Finances' },
-          { label: 'PRODUITS (Classe 7)', value: stats.totalProduits, desc: 'Ventes, Production, Produits accessoires' }
-        ].map((item, index) => (
-          <motion.div
-            key={item.label}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="p-6 rounded-2xl border bg-neutral-50/80 border-neutral-200/60"
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="font-semibold text-neutral-900">{item.label}</span>
-              <span className="font-bold text-xl text-neutral-900">
-                {fmt(item.value)}
-              </span>
-            </div>
-            <p className="text-sm text-neutral-600">{item.desc}</p>
-          </motion.div>
-        ))}
+    );
 
-        {stats.totalProduits > 0 || stats.totalCharges > 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className={`p-6 rounded-2xl border ${
-              stats.totalProduits >= stats.totalCharges
-                ? 'bg-green-50/80 border-green-200/60'
-                : 'bg-red-50/80 border-red-200/60'
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <span className="font-semibold text-neutral-900">RÉSULTAT NET</span>
-              <span className={`font-bold text-xl ${
-                stats.totalProduits >= stats.totalCharges ? 'text-green-700' : 'text-red-700'
-              }`}>
-                {fmt(stats.totalProduits - stats.totalCharges)}
-              </span>
+    return (
+      <UnifiedCard variant="elevated" size="lg">
+        <div className="flex items-center justify-between gap-3 mb-8 flex-wrap">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-white/90">
+              <BarChart3 className="h-6 w-6 text-white" />
             </div>
-          </motion.div>
-        ) : null}
+            <div>
+              <h2 className="text-lg font-bold text-neutral-900">Balance SYSCOHADA</h2>
+              <p className="text-neutral-600">Classes 1-7 détaillées</p>
+            </div>
+          </div>
+          {/* Bascule d'affichage : Liste / Grille / Kanban */}
+          <div className="flex items-center gap-1 bg-neutral-100 rounded-lg p-1">
+            {([['liste', 'Liste'], ['grille', 'Grille'], ['kanban', 'Kanban']] as const).map(([k, lbl]) => (
+              <button
+                key={k}
+                onClick={() => setBalanceView(k)}
+                className={`px-3 py-1.5 text-sm rounded-md transition-all ${balanceView === k ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium' : 'text-neutral-600 hover:bg-white/60'}`}
+              >
+                {lbl}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="pt-4"
-        >
+        {balanceView === 'liste' && (
+          <div className="space-y-4">
+            {items.map((item) => <Card key={item.label} item={item} />)}
+            {showResultat && <ResultatCard />}
+          </div>
+        )}
+
+        {balanceView === 'grille' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {items.map((item) => <Card key={item.label} item={item} />)}
+            {showResultat && <div className="sm:col-span-2"><ResultatCard /></div>}
+          </div>
+        )}
+
+        {balanceView === 'kanban' && (
+          <div className="grid grid-flow-col auto-cols-[minmax(210px,1fr)] gap-4 overflow-x-auto pb-2">
+            {items.map((item) => <Card key={item.label} item={item} />)}
+            {showResultat && <ResultatCard />}
+          </div>
+        )}
+
+        <div className="pt-4">
           <Link to="/accounting/balance">
             <ElegantButton variant="outline" className="w-full">
               Balance SYSCOHADA Complète
             </ElegantButton>
           </Link>
-        </motion.div>
-      </div>
-    </UnifiedCard>
-  );
+        </div>
+      </UnifiedCard>
+    );
+  };
 
   const renderActionsTab = () => (
     <UnifiedCard variant="elevated" size="lg">
