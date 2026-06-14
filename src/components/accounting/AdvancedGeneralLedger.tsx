@@ -201,6 +201,79 @@ const AdvancedGeneralLedger: React.FC = () => {
     queryFn: () => adapter.getAll<DBAccount>('accounts'),
   });
 
+  // Métriques RÉELLES (heuristiques, sans IA) pour les vues Analyse / Collaboration :
+  //  - anomalies : lignes dont le montant dépasse nettement (≥5×) la moyenne du compte ;
+  //  - conformité : % d'écritures équilibrées (Σ débit = Σ crédit) ;
+  //  - patterns : nombre de libellés récurrents (≥3 occurrences) ;
+  //  - workflow : répartition réelle des écritures par statut / exercice.
+  const { data: aiMetrics } = useQuery({
+    queryKey: ['gl-ai-metrics', dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const inRange = all.filter((e) => e.date >= dateRange.start && e.date <= dateRange.end);
+
+      // Conformité = écritures équilibrées.
+      let balanced = 0;
+      for (const e of inRange) {
+        const d = (e.lines || []).reduce((s, l) => s + (Number(l.debit) || 0), 0);
+        const c = (e.lines || []).reduce((s, l) => s + (Number(l.credit) || 0), 0);
+        if (Math.abs(d - c) < 1) balanced++;
+      }
+      const conformite = inRange.length ? (balanced / inRange.length) * 100 : 100;
+
+      // Moyenne des montants par compte (pour la détection d'anomalies).
+      const sums: Record<string, { tot: number; n: number }> = {};
+      for (const e of inRange) for (const l of (e.lines || [])) {
+        const code = String(l.accountCode || ''); if (!code) continue;
+        const amt = Math.max(Number(l.debit) || 0, Number(l.credit) || 0);
+        sums[code] = sums[code] || { tot: 0, n: 0 };
+        sums[code].tot += amt; sums[code].n++;
+      }
+      const anomalies: { compte: string; libelle: string; montant: number; factor: number; date: string }[] = [];
+      for (const e of inRange) for (const l of (e.lines || [])) {
+        const code = String(l.accountCode || ''); const s = sums[code];
+        if (!s || s.n < 5) continue;
+        const mean = s.tot / s.n;
+        const amt = Math.max(Number(l.debit) || 0, Number(l.credit) || 0);
+        if (mean > 0 && amt > mean * 5 && amt > 100000) {
+          anomalies.push({ compte: code, libelle: l.label || e.label || '', montant: amt, factor: amt / mean, date: e.date });
+        }
+      }
+      anomalies.sort((a, b) => b.factor - a.factor);
+
+      // Patterns = libellés récurrents.
+      const libCount: Record<string, number> = {};
+      for (const e of inRange) for (const l of (e.lines || [])) {
+        const k = (l.label || e.label || '').trim().toLowerCase();
+        if (k) libCount[k] = (libCount[k] || 0) + 1;
+      }
+      const patterns = Object.values(libCount).filter((n) => n >= 3).length;
+
+      // Workflow réel par statut / exercice.
+      const norm = (s?: string) => String(s || 'validated').toLowerCase();
+      const aReviser = all.filter((e) => norm(e.status) === 'draft').length;
+      const enCours = all.filter((e) => ['pending', 'review', 'en_cours'].includes(norm(e.status))).length;
+      const valide = inRange.filter((e) => norm(e.status) === 'validated').length;
+      const archive = all.filter((e) => e.date < dateRange.start).length;
+      const sample = (pred: (e: DBJournalEntry) => boolean) => all.filter(pred).slice(0, 2)
+        .map((e) => `${(e.lines?.[0]?.accountCode) || ''} - ${e.label || ''}`.trim());
+
+      return {
+        totalEntries: inRange.length,
+        balanced,
+        unbalanced: inRange.length - balanced,
+        conformite,
+        anomalies: anomalies.slice(0, 12),
+        patterns,
+        workflow: {
+          aReviser, enCours, valide, archive,
+          aReviserSample: sample((e) => norm(e.status) === 'draft'),
+          valideSample: sample((e) => norm(e.status) === 'validated' && e.date >= dateRange.start),
+        },
+      };
+    },
+  });
+
   // Stats réelles du tableau de bord (remplacent les anciennes valeurs en dur).
   const dashboardStats = useMemo(() => {
     const activeCodes = new Set(accountsData.map(a => a.compte));
@@ -2331,7 +2404,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               </h3>
               <div className="flex items-center space-x-2">
                 <span className="px-3 py-1 bg-primary-200 text-primary-800 text-sm rounded-full font-medium">
-                  Modèles actifs: 5
+                  Analyse heuristique
                 </span>
                 <button
                   onClick={() => setShowAISettingsModal(true)}
@@ -2349,9 +2422,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-primary-900">Détection Anomalies</h4>
                   <AlertTriangle className="h-5 w-5 text-orange-500" />
                 </div>
-                <div className="text-lg font-bold text-primary-900">3</div>
-                <div className="text-xs text-primary-600">sur 1,247 écritures</div>
-                <div className="mt-2 text-xs text-orange-600">2 nécessitent attention</div>
+                <div className="text-lg font-bold text-primary-900">{aiMetrics?.anomalies.length ?? 0}</div>
+                <div className="text-xs text-primary-600">sur {(aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR')} écritures</div>
+                <div className="mt-2 text-xs text-orange-600">montants inhabituels (≥5× la moyenne du compte)</div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
@@ -2359,9 +2432,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-primary-900">Patterns Identifiés</h4>
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 </div>
-                <div className="text-lg font-bold text-primary-900">127</div>
-                <div className="text-xs text-primary-600">motifs récurrents</div>
-                <div className="mt-2 text-xs text-green-600">+15% vs mois dernier</div>
+                <div className="text-lg font-bold text-primary-900">{aiMetrics?.patterns ?? 0}</div>
+                <div className="text-xs text-primary-600">libellés récurrents (≥3 occurrences)</div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
@@ -2369,19 +2441,21 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <h4 className="text-sm font-medium text-primary-900">Score Conformité</h4>
                   <Award className="h-5 w-5 text-green-500" />
                 </div>
-                <div className="text-lg font-bold text-primary-900">98.7%</div>
-                <div className="text-xs text-primary-600">SYSCOHADA</div>
-                <div className="mt-2 text-xs text-green-600">Excellent niveau</div>
+                <div className="text-lg font-bold text-primary-900">{(aiMetrics?.conformite ?? 100).toFixed(1)}%</div>
+                <div className="text-xs text-primary-600">écritures équilibrées</div>
+                <div className={`mt-2 text-xs ${(aiMetrics?.conformite ?? 100) >= 99 ? 'text-green-600' : 'text-orange-600'}`}>
+                  {(aiMetrics?.conformite ?? 100) >= 99 ? 'Excellent niveau' : `${aiMetrics?.unbalanced ?? 0} à corriger`}
+                </div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-primary-900">Prédictions</h4>
+                  <h4 className="text-sm font-medium text-primary-900">Écritures à équilibrer</h4>
                   <Target className="h-5 w-5 text-blue-500" />
                 </div>
-                <div className="text-lg font-bold text-primary-900">92%</div>
-                <div className="text-xs text-primary-600">précision modèle</div>
-                <div className="mt-2 text-xs text-blue-600">5 alertes préventives</div>
+                <div className="text-lg font-bold text-primary-900">{aiMetrics?.unbalanced ?? 0}</div>
+                <div className="text-xs text-primary-600">débit ≠ crédit</div>
+                <div className="mt-2 text-xs text-blue-600">{(aiMetrics?.unbalanced ?? 0) === 0 ? 'Toutes équilibrées' : 'À vérifier'}</div>
               </div>
             </div>
           </div>
@@ -2395,66 +2469,52 @@ const AdvancedGeneralLedger: React.FC = () => {
               </h4>
 
               <div className="space-y-4">
-                <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium text-orange-900">Montant Inhabituel</span>
-                        <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">CRITIQUE</span>
-                      </div>
-                      <div className="text-sm text-orange-800">
-                        Compte 607000 - Achat 750,000 XOF (3x supérieur à la moyenne)
-                      </div>
-                      <div className="text-xs text-orange-600 mt-1">
-                        Confiance: 87% • Détecté il y a 5 min
+                {(!aiMetrics || aiMetrics.anomalies.length === 0) ? (
+                  <div className="border border-green-200 rounded-lg p-4 bg-green-50 text-sm text-green-800">
+                    Aucun montant inhabituel détecté (seuil : montant ≥ 5× la moyenne du compte).
+                  </div>
+                ) : (
+                  aiMetrics.anomalies.slice(0, 5).map((a, i) => (
+                    <div key={i} className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-sm font-medium text-orange-900">Montant inhabituel</span>
+                            <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
+                              {a.factor >= 10 ? 'CRITIQUE' : 'ATTENTION'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-orange-800">
+                            Compte {a.compte} — {fmt(a.montant)} ({a.factor.toFixed(1)}× la moyenne du compte)
+                          </div>
+                          <div className="text-xs text-orange-600 mt-1">
+                            {a.libelle ? `${a.libelle} • ` : ''}{new Date(a.date).toLocaleDateString('fr-FR')}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setSelectedAccount(a.compte); setActiveView('accounts'); }}
+                          className="text-orange-600 hover:text-orange-800"
+                          title="Voir le compte"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                    <button
-                      onClick={() => {}}
-                      className="text-orange-600 hover:text-orange-800"
-                      title="Voir détails"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium text-yellow-900">Pattern Temporel</span>
-                        <span className="px-2 py-1 bg-yellow-200 text-yellow-800 text-xs rounded-full">ATTENTION</span>
-                      </div>
-                      <div className="text-sm text-yellow-800">
-                        Concentration d'écritures vendredi après-midi
-                      </div>
-                      <div className="text-xs text-yellow-600 mt-1">
-                        Confiance: 76% • Tendance identifiée
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {}}
-                      className="text-yellow-600 hover:text-yellow-800"
-                      title="Voir détails"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                  ))
+                )}
 
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium text-green-900">Validation Automatique</span>
-                        <span className="px-2 py-1 bg-green-200 text-green-800 text-xs rounded-full">VALIDÉ</span>
+                        <span className="text-sm font-medium text-green-900">Conformité (équilibre)</span>
+                        <span className="px-2 py-1 bg-green-200 text-green-800 text-xs rounded-full">RÉEL</span>
                       </div>
                       <div className="text-sm text-green-800">
-                        98.5% des écritures conformes SYSCOHADA
+                        {(aiMetrics?.conformite ?? 100).toFixed(1)}% des écritures équilibrées ({(aiMetrics?.balanced ?? 0).toLocaleString('fr-FR')}/{(aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR')})
                       </div>
                       <div className="text-xs text-green-600 mt-1">
-                        Contrôles automatiques réussis
+                        {aiMetrics?.unbalanced ?? 0} écriture(s) à corriger
                       </div>
                     </div>
                     <CheckCircle className="h-5 w-5 text-green-500" />
@@ -2463,50 +2523,54 @@ const AdvancedGeneralLedger: React.FC = () => {
               </div>
             </div>
 
-            {/* Insights prédictifs */}
+            {/* Synthèse réelle (remplace les ex-« insights prédictifs » inventés) */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Sparkles className="w-5 h-5 mr-2 text-primary-500" />
-                Insights Prédictifs
+                Synthèse comptable (réel)
               </h4>
 
               <div className="space-y-4">
                 <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                   <div className="flex items-center space-x-2 mb-2">
                     <TrendingUp className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-900">Tendance Trésorerie</span>
+                    <span className="text-sm font-medium text-blue-900">Compte le plus actif</span>
                   </div>
                   <div className="text-sm text-blue-800">
-                    Prévision: +12% flux entrants prochaines 30 jours
+                    {dashboardStats.topMouvements[0]
+                      ? `${dashboardStats.topMouvements[0].compte} — ${dashboardStats.topMouvements[0].libelle}`
+                      : '—'}
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
-                    Basé sur analyse 6 mois de données
+                    {dashboardStats.topMouvements[0]
+                      ? `${dashboardStats.topMouvements[0].nombreEcritures.toLocaleString('fr-FR')} écritures`
+                      : ''}
                   </div>
                 </div>
 
                 <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
                   <div className="flex items-center space-x-2 mb-2">
-                    <Brain className="w-4 h-4 text-primary-600" />
-                    <span className="text-sm font-medium text-primary-900">Optimisation Suggérée</span>
+                    <BarChart3 className="w-4 h-4 text-primary-600" />
+                    <span className="text-sm font-medium text-primary-900">Mouvements de la période</span>
                   </div>
                   <div className="text-sm text-primary-800">
-                    Automatiser catégorisation comptes 60X (94% précision)
+                    Débit {fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))} · Crédit {fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}
                   </div>
                   <div className="text-xs text-primary-600 mt-1">
-                    Gain temps estimé: 2h30/semaine
+                    {indicators.totalEcritures.toLocaleString('fr-FR')} écritures sur la période
                   </div>
                 </div>
 
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <div className="flex items-center space-x-2 mb-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-900">Qualité Données</span>
+                    <span className="text-sm font-medium text-green-900">Qualité des données</span>
                   </div>
                   <div className="text-sm text-green-800">
-                    Cohérence inter-comptes: 99.2% • Aucun doublon détecté
+                    {(aiMetrics?.conformite ?? 100).toFixed(1)}% d'écritures équilibrées
                   </div>
                   <div className="text-xs text-green-600 mt-1">
-                    Dernière vérification: maintenant
+                    {dashboardStats.sansMouvement.toLocaleString('fr-FR')} compte(s) du plan sans mouvement
                   </div>
                 </div>
               </div>
@@ -2522,7 +2586,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h5 className="font-medium text-gray-900 mb-3">Évolution vs Prédictions IA</h5>
+                <h5 className="font-medium text-gray-900 mb-3">Évolution des soldes (Actif / Passif)</h5>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={evolutionData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -2532,50 +2596,33 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <Legend />
                     <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={3} name="Actif (Réel)" />
                     <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={3} name="Passif (Réel)" />
-                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={1} strokeDasharray="5 5" name="Prédiction IA" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               <div>
-                <h5 className="font-medium text-gray-900 mb-3">Benchmarking Sectoriel</h5>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <span className="text-sm text-gray-700">Rotation stocks</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 h-2 bg-gray-200 rounded-full">
-                        <div className="w-12 h-2 bg-green-500 rounded-full"></div>
-                      </div>
-                      <span className="text-sm font-medium text-green-600">75%</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <span className="text-sm text-gray-700">Délais paiement</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 h-2 bg-gray-200 rounded-full">
-                        <div className="w-10 h-2 bg-yellow-500 rounded-full"></div>
-                      </div>
-                      <span className="text-sm font-medium text-yellow-600">62%</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
-                    <span className="text-sm text-gray-700">Liquidité générale</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-16 h-2 bg-gray-200 rounded-full">
-                        <div className="w-14 h-2 bg-green-500 rounded-full"></div>
-                      </div>
-                      <span className="text-sm font-medium text-green-600">89%</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 p-3 bg-primary-50 rounded border border-primary-200">
-                    <div className="text-xs text-primary-600 mb-1">Recommandation IA</div>
-                    <div className="text-sm text-primary-900">
-                      Optimiser délais fournisseurs pour améliorer score de 62% à 78%
-                    </div>
-                  </div>
+                <h5 className="font-medium text-gray-900 mb-3">Comptes les plus actifs</h5>
+                <div className="space-y-3">
+                  {[...accountsData]
+                    .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
+                    .slice(0, 6)
+                    .map((a) => {
+                      const max = accountsData.reduce((m, x) => Math.max(m, x.nombreEcritures), 1);
+                      return (
+                        <div key={a.compte} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                          <span className="text-sm text-gray-700">
+                            <span className="font-mono">{a.compte}</span>{' '}
+                            <span className="text-gray-500">{a.libelle.substring(0, 22)}</span>
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-24 h-2 bg-gray-200 rounded-full">
+                              <div className="h-2 bg-[var(--color-primary)] rounded-full" style={{ width: `${Math.round((a.nombreEcritures / max) * 100)}%` }}></div>
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">{a.nombreEcritures}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             </div>
@@ -2670,14 +2717,17 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <div className="grid grid-cols-4 gap-4">
               {[
-                { status: "À réviser", count: 7, color: "bg-yellow-100 text-yellow-800", entries: ["607000 - Montant élevé", "401200 - Nouveau tiers"] },
-                { status: "En cours", count: 3, color: "bg-blue-100 text-blue-800", entries: ["512000 - Virement validé", "701000 - Vente confirmée"] },
-                { status: "Validé", count: 89, color: "bg-green-100 text-green-800", entries: ["Écritures mensuelles", "Rapprochements OK"] },
-                { status: "Archivé", count: 1205, color: "bg-gray-100 text-gray-800", entries: ["Exercices précédents", "Données historiques"] }
+                { status: "À réviser", count: aiMetrics?.workflow.aReviser ?? 0, color: "bg-yellow-100 text-yellow-800", entries: aiMetrics?.workflow.aReviserSample ?? [], hint: "brouillons" },
+                { status: "En cours", count: aiMetrics?.workflow.enCours ?? 0, color: "bg-blue-100 text-blue-800", entries: [] as string[], hint: "en validation" },
+                { status: "Validé", count: aiMetrics?.workflow.valide ?? 0, color: "bg-green-100 text-green-800", entries: aiMetrics?.workflow.valideSample ?? [], hint: "période en cours" },
+                { status: "Archivé", count: aiMetrics?.workflow.archive ?? 0, color: "bg-gray-100 text-gray-800", entries: [] as string[], hint: "exercices antérieurs" }
               ].map((column, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h5 className="font-medium text-gray-900">{column.status}</h5>
+                    <div>
+                      <h5 className="font-medium text-gray-900">{column.status}</h5>
+                      <span className="text-[10px] text-gray-500">{column.hint}</span>
+                    </div>
                     <span className={`px-2 py-1 text-xs rounded-full ${column.color}`}>
                       {column.count}
                     </span>
