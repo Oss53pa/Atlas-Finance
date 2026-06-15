@@ -1,8 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
+import {
+  listSessions, createSession, getCounts, upsertCount, resolveDiscrepancy,
+  type InventorySessionRow, type InventoryCountRow,
+} from '../../services/immobilisations/inventoryService';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -153,6 +157,11 @@ const InventairePhysiquePage: React.FC = () => {
 
   // Load assets via DataContext adapter
   const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
+  // Sessions & comptages réels (persistés)
+  const [realSessions, setRealSessions] = useState<InventorySessionRow[]>([]);
+  const [counts, setCounts] = useState<InventoryCountRow[]>([]);
+  const [sessionForm, setSessionForm] = useState({ nom: '', debut: '', fin: '', desc: '' });
+  const [editForm, setEditForm] = useState({ etat: '', localisation: '', statut: '', notes: '' });
 
   useEffect(() => {
     const load = async () => {
@@ -161,6 +170,24 @@ const InventairePhysiquePage: React.FC = () => {
     };
     load();
   }, [adapter]);
+
+  const reloadInventory = useCallback(async () => {
+    try {
+      const sess = await listSessions(adapter);
+      setRealSessions(sess);
+      const sid = sess[0]?.id;
+      setCounts(sid ? await getCounts(adapter, sid) : []);
+    } catch { setRealSessions([]); setCounts([]); }
+  }, [adapter]);
+  useEffect(() => { reloadInventory(); }, [reloadInventory]);
+
+  const activeRealSessionId = realSessions[0]?.id || null;
+  // Comptages réels indexés par actif (overlay sur les items dérivés).
+  const countByAsset = useMemo(() => {
+    const m = new Map<string, InventoryCountRow>();
+    for (const c of counts) if (c.asset_id) m.set(c.asset_id, c);
+    return m;
+  }, [counts]);
 
   // Map DBAsset to InventoryItem interface
   const allInventoryItems: InventoryItem[] = useMemo(() => {
@@ -187,7 +214,7 @@ const InventairePhysiquePage: React.FC = () => {
       if (a.status === 'disposed' || a.status === 'scrapped') statutComptage = 'ecart';
       else if (depRatio > 0.9) statutComptage = 'ecart';
 
-      return {
+      const base = {
         id: a.id,
         numero_inventaire: a.code,
         nom: a.name,
@@ -202,8 +229,21 @@ const InventairePhysiquePage: React.FC = () => {
         etat_physique: etatPhysique,
         code_barre: a.code
       };
+      // Overlay du comptage réel persisté (s'il existe pour la session active).
+      const c = countByAsset.get(a.id);
+      if (c) {
+        return {
+          ...base,
+          statut_comptage: (c.statut_comptage as InventoryItem['statut_comptage']) || base.statut_comptage,
+          localisation_reelle: c.localisation_reelle ?? base.localisation_reelle,
+          compteur: c.compteur ?? base.compteur,
+          etat_physique: (c.etat_physique as InventoryItem['etat_physique']) || base.etat_physique,
+          date_comptage: c.date_comptage ?? base.date_comptage,
+        };
+      }
+      return base;
     });
-  }, [dbAssets]);
+  }, [dbAssets, countByAsset]);
 
   // Build sessions from asset data
   const sessions: InventorySession[] = useMemo(() => {
@@ -383,7 +423,57 @@ const InventairePhysiquePage: React.FC = () => {
 
   const handleEditItem = (item: InventoryItem) => {
     setSelectedItem(item);
+    setEditForm({
+      etat: item.etat_physique || 'bon',
+      localisation: item.localisation_reelle || '',
+      statut: item.statut_comptage || 'compte',
+      notes: '',
+    });
     setShowEditItemModal(true);
+  };
+
+  // Crée une session d'inventaire persistée (par défaut si nécessaire).
+  const ensureSessionId = async (): Promise<string> => {
+    if (activeRealSessionId) return activeRealSessionId;
+    const id = await createSession(adapter, { nom: `Inventaire ${new Date().getFullYear()}` });
+    await reloadInventory();
+    return id;
+  };
+
+  const handleCreateSession = async () => {
+    if (!sessionForm.nom.trim()) { toast.error('Nom de session requis'); return; }
+    try {
+      await createSession(adapter, { nom: sessionForm.nom, date_debut: sessionForm.debut || null, date_fin_prevue: sessionForm.fin || null, perimetre: sessionForm.desc || null });
+      toast.success("Session d'inventaire créée");
+      setShowNewSessionModal(false);
+      setSessionForm({ nom: '', debut: '', fin: '', desc: '' });
+      await reloadInventory();
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  const handleSaveItemCount = async () => {
+    if (!selectedItem) return;
+    try {
+      const sid = await ensureSessionId();
+      await upsertCount(adapter, sid, selectedItem.id, {
+        statut_comptage: editForm.statut === 'non_compte' ? 'a_compter' : editForm.statut,
+        localisation_reelle: editForm.localisation || null,
+        etat_physique: editForm.etat || null,
+        notes: editForm.notes || null,
+      });
+      toast.success('Comptage enregistré');
+      setShowEditItemModal(false);
+      await reloadInventory();
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+
+  const handleResolveDiscrepancy = async (item: InventoryItem) => {
+    try {
+      const sid = await ensureSessionId();
+      await resolveDiscrepancy(adapter, sid, item.id, { resolution_statut: 'resolu', action_corrective: 'Écart traité' });
+      toast.success('Écart résolu');
+      await reloadInventory();
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
   const handleQrCode = (item: InventoryItem) => {
@@ -998,7 +1088,7 @@ const InventairePhysiquePage: React.FC = () => {
                             Détails
                           </Button>
                           {discrepancy.statut_resolution !== 'resolu' && (
-                            <Button size="sm" className="bg-[var(--color-text-tertiary)] hover:bg-[var(--color-text-secondary)]">
+                            <Button size="sm" className="bg-[var(--color-text-tertiary)] hover:bg-[var(--color-text-secondary)]" onClick={() => item && handleResolveDiscrepancy(item)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Résoudre
                             </Button>
@@ -1308,7 +1398,7 @@ const InventairePhysiquePage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="session-name">Nom de la session</Label>
-                <Input id="session-name" placeholder="Ex: Inventaire Q1 2024" />
+                <Input id="session-name" placeholder="Ex: Inventaire Q1 2024" value={sessionForm.nom} onChange={e => setSessionForm(s => ({ ...s, nom: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="session-type">Type d'inventaire</Label>
@@ -1328,11 +1418,11 @@ const InventairePhysiquePage: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="start-date">Date de début</Label>
-                <Input id="start-date" type="date" />
+                <Input id="start-date" type="date" value={sessionForm.debut} onChange={e => setSessionForm(s => ({ ...s, debut: e.target.value }))} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="end-date">Date de fin prévue</Label>
-                <Input id="end-date" type="date" />
+                <Input id="end-date" type="date" value={sessionForm.fin} onChange={e => setSessionForm(s => ({ ...s, fin: e.target.value }))} />
               </div>
             </div>
             <div className="space-y-2">
@@ -1355,6 +1445,8 @@ const InventairePhysiquePage: React.FC = () => {
                 id="description"
                 placeholder="Objectifs et particularités de cette session..."
                 rows={3}
+                value={sessionForm.desc}
+                onChange={e => setSessionForm(s => ({ ...s, desc: e.target.value }))}
               />
             </div>
           </div>
@@ -1364,10 +1456,7 @@ const InventairePhysiquePage: React.FC = () => {
             </Button>
             <Button
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
-              onClick={() => {
-                toast.success('Session d\'inventaire créée avec succès');
-                setShowNewSessionModal(false);
-              }}
+              onClick={handleCreateSession}
             >
               Créer la session
             </Button>
@@ -1501,7 +1590,7 @@ const InventairePhysiquePage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="edit-etat">État physique</Label>
-                  <Select defaultValue={selectedItem.etat_physique}>
+                  <Select value={editForm.etat} onValueChange={v => setEditForm(s => ({ ...s, etat: v }))}>
                     <SelectTrigger id="edit-etat">
                       <SelectValue />
                     </SelectTrigger>
@@ -1510,7 +1599,7 @@ const InventairePhysiquePage: React.FC = () => {
                       <SelectItem value="bon">Bon</SelectItem>
                       <SelectItem value="moyen">Moyen</SelectItem>
                       <SelectItem value="mauvais">Mauvais</SelectItem>
-                      <SelectItem value="hs">Hors service</SelectItem>
+                      <SelectItem value="hors_service">Hors service</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1518,14 +1607,15 @@ const InventairePhysiquePage: React.FC = () => {
                   <Label htmlFor="edit-localisation">Localisation</Label>
                   <Input
                     id="edit-localisation"
-                    defaultValue={selectedItem.localisation}
+                    value={editForm.localisation}
+                    onChange={e => setEditForm(s => ({ ...s, localisation: e.target.value }))}
                     placeholder="Ex: Bureau 201, Étage 2"
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-statut">Statut de comptage</Label>
-                <Select defaultValue={selectedItem.statut_comptage}>
+                <Select value={editForm.statut} onValueChange={v => setEditForm(s => ({ ...s, statut: v }))}>
                   <SelectTrigger id="edit-statut">
                     <SelectValue />
                   </SelectTrigger>
@@ -1542,6 +1632,8 @@ const InventairePhysiquePage: React.FC = () => {
                   id="edit-notes"
                   placeholder="Ajoutez vos observations..."
                   rows={3}
+                  value={editForm.notes}
+                  onChange={e => setEditForm(s => ({ ...s, notes: e.target.value }))}
                 />
               </div>
             </div>
@@ -1552,10 +1644,7 @@ const InventairePhysiquePage: React.FC = () => {
             </Button>
             <Button
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
-              onClick={() => {
-                toast.success('Immobilisation modifiée avec succès');
-                setShowEditItemModal(false);
-              }}
+              onClick={handleSaveItemCount}
             >
               Enregistrer les modifications
             </Button>
