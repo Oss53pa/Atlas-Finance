@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
+import { createDisposal, listDisposals, type DisposalInput } from '../../services/immobilisations/disposalService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion } from 'framer-motion';
 import {
@@ -115,21 +116,49 @@ const AssetsDisposals: React.FC = () => {
   const [dbDisposedAssets, setDbDisposedAssets] = useState<DBAsset[]>([]);
   // Actifs encore en service — alimentent le sélecteur du formulaire de cession.
   const [activeAssets, setActiveAssets] = useState<DBAsset[]>([]);
+  // Enregistrements de sortie réels (prix, plus/moins-value, écriture liée).
+  const [disposalRecords, setDisposalRecords] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    assetId: '', disposalType: '', disposalDate: '', disposalValue: '', method: '', reason: '', buyer: '', location: '', notes: '',
+  });
 
-  useEffect(() => {
-    const load = async () => {
-      const allAssets = await adapter.getAll('assets') as DBAsset[];
-      setDbDisposedAssets(allAssets.filter(a => a.status === 'disposed' || a.status === 'scrapped'));
-      setActiveAssets(allAssets.filter(a => a.status !== 'disposed' && a.status !== 'scrapped'));
-    };
-    load();
+  const reload = useCallback(async () => {
+    const allAssets = await adapter.getAll('assets') as DBAsset[];
+    setDbDisposedAssets(allAssets.filter(a => a.status === 'disposed' || a.status === 'scrapped'));
+    setActiveAssets(allAssets.filter(a => a.status !== 'disposed' && a.status !== 'scrapped'));
+    try { setDisposalRecords(await listDisposals(adapter)); } catch { setDisposalRecords([]); }
   }, [adapter]);
+  useEffect(() => { reload(); }, [reload]);
 
-  // Map Dexie assets to AssetDisposal shape
+  const handleCreateDisposal = async () => {
+    if (!createForm.assetId || !createForm.disposalType || !createForm.disposalDate) {
+      toast.error('Actif, type et date de sortie requis'); return;
+    }
+    setSaving(true);
+    try {
+      const input: DisposalInput = {
+        assetId: createForm.assetId, disposalType: createForm.disposalType, disposalDate: createForm.disposalDate,
+        disposalValue: parseFloat(createForm.disposalValue) || 0, method: createForm.method || null,
+        reason: createForm.reason || null, buyer: createForm.buyer || null, location: createForm.location || null, notes: createForm.notes || null,
+      };
+      const { gainLoss } = await createDisposal(adapter, input);
+      toast.success(`Sortie enregistrée · ${gainLoss >= 0 ? 'plus-value' : 'moins-value'} ${formatCurrency(Math.abs(gainLoss))} · écriture de cession générée`);
+      setDisposalModal({ isOpen: false, mode: 'view' });
+      setCreateForm({ assetId: '', disposalType: '', disposalDate: '', disposalValue: '', method: '', reason: '', buyer: '', location: '', notes: '' });
+      await reload();
+    } catch (e: any) { toast.error('Échec : ' + (e?.message || 'erreur')); }
+    finally { setSaving(false); }
+  };
+
+  // Map Dexie assets to AssetDisposal shape, enrichi des enregistrements réels.
   const disposals: AssetDisposal[] = useMemo(() => {
+    const recByAsset = new Map<string, any>();
+    for (const r of disposalRecords) if (r.asset_id) recByAsset.set(r.asset_id, r);
     return dbDisposedAssets.map((asset: DBAsset) => {
-      // Valeur comptable nette = VNC réelle (residualValue) issue de la table assets.
-      const bookValue = asset.residualValue;
+      const rec = recByAsset.get(asset.id);
+      // VNC : enregistrement réel si présent, sinon residualValue de la table.
+      const bookValue = rec ? Number(rec.book_value) || 0 : asset.residualValue;
 
       return {
         id: asset.id,
@@ -137,28 +166,27 @@ const AssetsDisposals: React.FC = () => {
         assetName: asset.name,
         assetTag: asset.code,
         category: asset.category,
-        disposalType: asset.status === 'disposed' ? 'sale' as const : 'scrap' as const,
+        disposalType: (rec?.disposal_type as AssetDisposal['disposalType']) || (asset.status === 'disposed' ? 'sale' as const : 'scrap' as const),
         status: 'completed' as const,
-        reason: asset.status === 'disposed' ? 'Cession' : 'Mise au rebut',
-        initiatedDate: asset.acquisitionDate,
-        plannedDate: asset.acquisitionDate,
-        completedDate: asset.acquisitionDate,
-        originalCost: asset.acquisitionValue,
+        reason: rec?.reason ?? (asset.status === 'disposed' ? 'Cession' : 'Mise au rebut'),
+        initiatedDate: rec?.disposal_date ?? asset.acquisitionDate,
+        plannedDate: rec?.disposal_date ?? asset.acquisitionDate,
+        completedDate: rec?.disposal_date ?? asset.acquisitionDate,
+        originalCost: rec ? Number(rec.original_cost) || asset.acquisitionValue : asset.acquisitionValue,
         bookValue,
-        // Pas de prix de cession stocké dans assets → non dérivable, on n'invente pas.
-        disposalValue: null,
-        gainLoss: null,
-        method: asset.status === 'disposed' ? 'Vente' : 'Mise au rebut',
-        location: '',
+        // Prix de cession et plus/moins-value : depuis l'enregistrement réel.
+        disposalValue: rec ? Number(rec.disposal_value) || 0 : null,
+        gainLoss: rec ? Number(rec.gain_loss) || 0 : null,
+        method: rec?.method ?? (asset.status === 'disposed' ? 'Vente' : 'Mise au rebut'),
+        location: rec?.location ?? '',
         initiatedBy: '',
         responsiblePerson: '',
         documentation: [],
-        // Pas de donnée de conformité environnementale dans l'import.
         environmentalCompliance: null,
-        notes: `Méthode amortissement: ${asset.depreciationMethod}`
+        notes: rec?.notes ?? `Méthode amortissement: ${asset.depreciationMethod}`
       };
     });
-  }, [dbDisposedAssets]);
+  }, [dbDisposedAssets, disposalRecords]);
 
   // Approvals derived from disposals (none pending for completed disposals)
   const approvals: DisposalApproval[] = [];
@@ -1124,7 +1152,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Sélectionner l'actif *
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
+                          <select value={createForm.assetId} onChange={e => setCreateForm(s => ({ ...s, assetId: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
                             <option value="">-- Choisir un actif --</option>
                             {activeAssets.length === 0 && (
                               <option value="" disabled>Aucun actif en service</option>
@@ -1144,7 +1172,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Type de sortie *
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
+                          <select value={createForm.disposalType} onChange={e => setCreateForm(s => ({ ...s, disposalType: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
                             <option value="">-- Sélectionner le type --</option>
                             <option value="sale">Vente</option>
                             <option value="donation">Don</option>
@@ -1161,6 +1189,8 @@ const AssetsDisposals: React.FC = () => {
                           </label>
                           <input
                             type="date"
+                            value={createForm.disposalDate}
+                            onChange={e => setCreateForm(s => ({ ...s, disposalDate: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1172,6 +1202,8 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="number"
                             placeholder="0"
+                            value={createForm.disposalValue}
+                            onChange={e => setCreateForm(s => ({ ...s, disposalValue: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1180,7 +1212,7 @@ const AssetsDisposals: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-900 mb-2">
                             Méthode de cession
                           </label>
-                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
+                          <select value={createForm.method} onChange={e => setCreateForm(s => ({ ...s, method: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
                             <option value="">-- Sélectionner --</option>
                             <option value="public_auction">Vente aux enchères publiques</option>
                             <option value="direct_sale">Vente directe</option>
@@ -1199,6 +1231,8 @@ const AssetsDisposals: React.FC = () => {
                           <textarea
                             placeholder="Décrire la raison..."
                             rows={3}
+                            value={createForm.reason}
+                            onChange={e => setCreateForm(s => ({ ...s, reason: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1210,6 +1244,8 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Nom de l'acheteur ou bénéficiaire"
+                            value={createForm.buyer}
+                            onChange={e => setCreateForm(s => ({ ...s, buyer: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1232,6 +1268,8 @@ const AssetsDisposals: React.FC = () => {
                           <input
                             type="text"
                             placeholder="Lieu de récupération"
+                            value={createForm.location}
+                            onChange={e => setCreateForm(s => ({ ...s, location: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1300,16 +1338,17 @@ const AssetsDisposals: React.FC = () => {
                       variant="primary"
                       onClick={() => {
                         if (disposalModal.mode === 'create') {
-                          toast.success('Sortie d\'actif créée avec succès');
+                          handleCreateDisposal();
                         } else if (disposalModal.mode === 'approve') {
                           toast.success('Sortie approuvée avec succès');
+                          setDisposalModal({ isOpen: false, mode: 'view' });
                         } else {
                           toast.success('Modifications sauvegardées');
+                          setDisposalModal({ isOpen: false, mode: 'view' });
                         }
-                        setDisposalModal({ isOpen: false, mode: 'view' });
                       }}
                     >
-                      {disposalModal.mode === 'create' ? 'Créer' :
+                      {disposalModal.mode === 'create' ? (saving ? 'Enregistrement…' : 'Créer') :
                        disposalModal.mode === 'approve' ? 'Approuver' : 'Sauvegarder'}
                     </ElegantButton>
                   )}
