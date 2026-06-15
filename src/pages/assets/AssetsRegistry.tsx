@@ -4,7 +4,7 @@ import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
 import AssetForm from '../../components/assets/AssetForm';
@@ -163,6 +163,8 @@ const AssetsRegistry: React.FC = () => {
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [assetToEdit, setAssetToEdit] = useState<Asset | null>(null);
+  const [rawAsset, setRawAsset] = useState<any>(null); // actif brut (toutes colonnes) pour préremplir le formulaire
+  const queryClient = useQueryClient();
   const [activeFormTab, setActiveFormTab] = useState('general');
   const [activeGeneralTab, setActiveGeneralTab] = useState('basic');
   const [activeImmobilisationTab, setActiveImmobilisationTab] = useState('overview');
@@ -507,8 +509,10 @@ const AssetsRegistry: React.FC = () => {
     // TODO: Implémenter l'export
   };
 
-  const handleEditAssetModal = (asset: Asset) => {
+  const handleEditAssetModal = async (asset: Asset) => {
     setAssetToEdit(asset);
+    // Charge l'actif BRUT (toutes les colonnes, y.c. champs étendus) pour préremplir.
+    try { setRawAsset(await adapter.getById<any>('assets', asset.id)); } catch { setRawAsset(null); }
     setNewAssetForm(prev => ({
       ...prev,
       asset_number: asset.asset_number,
@@ -555,40 +559,56 @@ const AssetsRegistry: React.FC = () => {
     setShowAssetModal(true);
   };
 
-  const handleSaveAsset = () => {
-    if (assetToEdit) {
-      // Mode édition
-      const updatedAssets = assets.map(asset =>
-        asset.id === assetToEdit.id
-          ? {
-              ...asset,
-              ...newAssetForm,
-              current_value: newAssetForm.acquisition_value * 0.8,
-              net_value: newAssetForm.acquisition_value * 0.8,
-              cumulated_depreciation: newAssetForm.acquisition_value * 0.2,
-              depreciation_rate: 20,
-              status: asset.status
-            }
-          : asset
-      );
-      // Note: In a real app, you'd update the state properly
-      setShowAssetModal(false);
-      setAssetToEdit(null);
-    } else {
-      // Mode création
-      const newAsset: Asset = {
-        id: (assets.length + 1).toString(),
-        ...newAssetForm,
-        current_value: newAssetForm.acquisition_value * 0.8,
-        net_value: newAssetForm.acquisition_value * 0.8,
-        cumulated_depreciation: newAssetForm.acquisition_value * 0.2,
-        depreciation_rate: 20,
-        status: 'en_service' as const,
-        last_inventory: new Date().toISOString().split('T')[0]
-      };
-      // Note: In a real app, you'd update the state properly
-      setShowAssetModal(false);
-    }
+  // Persistance réelle de l'actif (création + édition) via l'adaptateur. Reçoit
+  // le formData (snake_case) de AssetForm. Mappe vers les colonnes public.assets.
+  const handleSaveAsset = async (formData: Record<string, string>) => {
+    const num = (v?: string) => { const n = parseFloat(v ?? ''); return isNaN(n) ? null : n; };
+    const txt = (v?: string) => { const s = (v ?? '').trim(); return s === '' ? null : s; };
+    const status = txt(formData.status) === 'en_service' ? 'active' : (txt(formData.status) ?? 'active');
+    const payload: Record<string, any> = {
+      code: txt(formData.asset_number), name: txt(formData.description), category: txt(formData.category),
+      sub_category: txt(formData.sub_category), account_code: txt(formData.account_code),
+      depreciation_account_code: txt(formData.depreciation_account), depreciation_method: txt(formData.depreciation_method),
+      useful_life_years: num(formData.useful_life_years), acquisition_value: num(formData.acquisition_cost),
+      residual_value: num(formData.residual_value) ?? 0, cumul_depreciation: num(formData.cumulative_depreciation) ?? 0,
+      acquisition_date: txt(formData.acquisition_date), status,
+      // Identification / matériel
+      manufacturer: txt(formData.manufacturer), model: txt(formData.model), serial_number: txt(formData.serial_number),
+      barcode: txt(formData.barcode), material_data: txt(formData.material_data), additional_identifier: txt(formData.additional_identifier),
+      weight: txt(formData.weight), dimensions: txt(formData.dimensions), color: txt(formData.color), material_type: txt(formData.material_type),
+      location: txt(formData.location), responsible_person: txt(formData.responsible_person), notes: txt(formData.notes),
+      // Garantie
+      warranty_period: num(formData.warranty_period), warranty_unit: txt(formData.warranty_unit), warranty_terms: txt(formData.warranty_terms),
+      warranty_start: txt(formData.warranty_start), warranty_end: txt(formData.warranty_end), warranty_provider: txt(formData.warranty_provider), warranty_phone: txt(formData.warranty_phone),
+      // Assurance
+      insurance_provider: txt(formData.insurance_provider), insurance_policy_number: txt(formData.insurance_policy_number),
+      insurance_coverage_amount: num(formData.insurance_coverage_amount), insurance_premium: num(formData.insurance_premium),
+      insurance_expiration: txt(formData.insurance_expiration), policy_type: txt(formData.policy_type),
+      // Emplacement
+      building_name: txt(formData.building_name), floor: txt(formData.floor), room: txt(formData.room), department: txt(formData.department),
+      gps_latitude: txt(formData.gps_latitude), gps_longitude: txt(formData.gps_longitude), location_address: txt(formData.location_address),
+      // Acquisition (détail)
+      acquisition_type: txt(formData.acquisition_type), supplier: txt(formData.supplier), invoice_number: txt(formData.invoice_number),
+      invoice_date: txt(formData.invoice_date), purchase_order: txt(formData.purchase_order), delivery_date: txt(formData.delivery_date),
+      commissioning_date: txt(formData.commissioning_date), date_mise_en_service: txt(formData.date_mise_en_service),
+      acquisition_currency: txt(formData.acquisition_currency), transport_cost: num(formData.transport_cost),
+      installation_cost: num(formData.installation_cost), other_costs: num(formData.other_costs),
+      // Immobilisation (détail)
+      dotation_account: txt(formData.dotation_account), depreciation_rate: num(formData.depreciation_rate),
+      depreciation_start_date: txt(formData.depreciation_start_date), revaluation_date: txt(formData.revaluation_date),
+      revaluation_amount: num(formData.revaluation_amount), impairment_amount: num(formData.impairment_amount), fiscal_regime: txt(formData.fiscal_regime),
+    };
+    try {
+      if (assetToEdit) {
+        await adapter.update('assets', assetToEdit.id, payload);
+        toast.success('Actif mis à jour');
+      } else {
+        await adapter.create('assets', { ...payload, tenant_id: (adapter as any).tenantId });
+        toast.success('Actif créé');
+      }
+      await queryClient.invalidateQueries({ queryKey: ['assets-registry'] });
+      setShowAssetModal(false); setAssetToEdit(null); setRawAsset(null);
+    } catch (e: any) { toast.error('Échec de l’enregistrement : ' + (e?.message || 'erreur')); }
   };
 
   // Calculer les catégories par CLASSE SYSCOHADA (le champ `category` vaut une
@@ -1915,27 +1935,52 @@ const AssetsRegistry: React.FC = () => {
           // (snake_case) — l'objet brut ne matchait AUCUN champ → formulaire vide alors
           // que les données existent (date/valeur d'acquisition, durée, amortissements…).
           initialData={assetToEdit ? (() => {
-            const a: any = assetToEdit;
-            const brut = Number(a.acquisitionValue ?? a.acquisition_value ?? 0);
-            const cumul = Number(a.cumulDepreciation ?? a.cumul_depreciation ?? 0);
-            const duree = a.usefulLifeYears ?? a.usefulLife ?? a.useful_life_years ?? '';
+            const a: any = rawAsset || {};
+            const brut = Number(a.acquisition_value ?? 0);
+            const cumul = Number(a.cumul_depreciation ?? 0);
+            const vnc = Math.max(0, brut - cumul);
+            const s = (v: any) => (v === null || v === undefined ? '' : String(v));
+            // Préremplissage depuis l'actif BRUT (toutes colonnes). Les champs
+            // étendus (assurance/garantie/matériel/emplacement) sont vides tant
+            // qu'ils n'ont pas été saisis — désormais persistants.
             return {
-              description: String(a.name ?? a.designation ?? ''),
-              asset_number: String(a.code ?? ''),
-              category: String(a.category ?? ''),
-              asset_class: String(a.accountCode ?? '').substring(0, 2),
-              acquisition_cost: String(brut || ''),
-              current_value: String(Math.max(0, brut - cumul) || ''),
-              residual_value: String(a.residualValue ?? a.residual_value ?? 0),
-              acquisition_date: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
-              date_mise_en_service: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
-              commissioning_date: String(a.acquisitionDate ?? a.acquisition_date ?? ''),
-              account_code: String(a.accountCode ?? ''),
-              depreciation_account: String(a.depreciationAccountCode ?? a.depreciation_account_code ?? ''),
-              depreciation_method: String(a.depreciationMethod ?? a.depreciation_method ?? 'lineaire'),
-              useful_life_years: String(duree || ''),
-              cumulative_depreciation: String(cumul || 0),
-              status: a.status === 'active' ? 'en_service' : String(a.status ?? 'en_service'),
+              description: s(a.name), asset_number: s(a.code), category: s(a.category), sub_category: s(a.sub_category),
+              asset_class: s(a.account_code).substring(0, 2),
+              acquisition_cost: s(brut || ''), current_value: s(vnc || ''),
+              residual_value: s(a.residual_value ?? 0),
+              acquisition_date: s(a.acquisition_date),
+              date_mise_en_service: s(a.date_mise_en_service ?? a.acquisition_date),
+              commissioning_date: s(a.commissioning_date ?? a.acquisition_date),
+              account_code: s(a.account_code), depreciation_account: s(a.depreciation_account_code),
+              depreciation_method: s(a.depreciation_method ?? 'lineaire'),
+              useful_life_years: s(a.useful_life_years || ''),
+              cumulative_depreciation: s(cumul || 0), net_book_value: s(vnc || 0),
+              status: a.status === 'active' ? 'en_service' : s(a.status ?? 'en_service'),
+              // Identification / matériel
+              manufacturer: s(a.manufacturer), model: s(a.model), serial_number: s(a.serial_number), barcode: s(a.barcode),
+              material_data: s(a.material_data), additional_identifier: s(a.additional_identifier), weight: s(a.weight),
+              dimensions: s(a.dimensions), color: s(a.color), material_type: s(a.material_type),
+              location: s(a.location), responsible_person: s(a.responsible_person), notes: s(a.notes),
+              // Garantie
+              warranty_period: s(a.warranty_period), warranty_unit: s(a.warranty_unit || 'months'), warranty_terms: s(a.warranty_terms),
+              warranty_start: s(a.warranty_start), warranty_end: s(a.warranty_end), warranty_provider: s(a.warranty_provider), warranty_phone: s(a.warranty_phone),
+              // Assurance
+              insurance_provider: s(a.insurance_provider), insurance_policy_number: s(a.insurance_policy_number),
+              insurance_coverage_amount: s(a.insurance_coverage_amount ?? ''), insurance_premium: s(a.insurance_premium ?? ''),
+              insurance_expiration: s(a.insurance_expiration), policy_type: s(a.policy_type),
+              // Emplacement
+              building_name: s(a.building_name), floor: s(a.floor), room: s(a.room), department: s(a.department),
+              gps_latitude: s(a.gps_latitude), gps_longitude: s(a.gps_longitude), location_address: s(a.location_address),
+              // Acquisition (détail)
+              acquisition_type: s(a.acquisition_type || 'achat'), supplier: s(a.supplier), invoice_number: s(a.invoice_number),
+              invoice_date: s(a.invoice_date), purchase_order: s(a.purchase_order), delivery_date: s(a.delivery_date),
+              acquisition_currency: s(a.acquisition_currency || 'XAF'), transport_cost: s(a.transport_cost ?? ''),
+              installation_cost: s(a.installation_cost ?? ''), other_costs: s(a.other_costs ?? ''),
+              // Immobilisation (détail)
+              dotation_account: s(a.dotation_account), depreciation_rate: s(a.depreciation_rate ?? ''),
+              depreciation_start_date: s(a.depreciation_start_date), revaluation_date: s(a.revaluation_date),
+              revaluation_amount: s(a.revaluation_amount ?? ''), impairment_amount: s(a.impairment_amount ?? ''),
+              fiscal_regime: s(a.fiscal_regime || 'normal'),
             } as Record<string, string>;
           })() : undefined}
         />
