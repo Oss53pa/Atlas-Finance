@@ -151,13 +151,17 @@ export async function getVentilationCoverage(adapter: DataAdapter): Promise<{ ve
   return { ventilated: count ?? 0 };
 }
 
-/** Performance par section : réalisé (vue) + budget annuel (table). */
+/** Performance par section : réalisé (vue) + budget annuel (table).
+ * Inclut la répartition SECONDAIRE : les coûts des sections auxiliaires sont
+ * déversés sur les principales (charges en coût complet). */
 export async function getSectionPerformance(adapter: DataAdapter, annee: string): Promise<SectionPerformance[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const [sections, { data: actual }] = await Promise.all([
+  const exercice = parseInt(annee, 10);
+  const [sections, { data: actual }, { data: transfers }] = await Promise.all([
     listSections(adapter),
     client.from('v_actual_by_section').select('*').eq('annee', annee),
+    client.from('fna_secondary_transfer').select('from_section_id,to_section_id,montant').eq('exercice', exercice),
   ]);
   const byCode = new Map<string, { produits: number; charges: number }>();
   for (const r of (actual ?? [])) {
@@ -167,9 +171,17 @@ export async function getSectionPerformance(adapter: DataAdapter, annee: string)
     const m = Number(r.montant) || 0;
     if (r.classe === '7') agg.produits += m; else if (r.classe === '6') agg.charges += m;
   }
+  // Delta de charges par section (id) issu du secondaire : −sur l'auxiliaire, +sur la principale.
+  const deltaById = new Map<string, number>();
+  for (const t of (transfers ?? [])) {
+    const m = Number(t.montant) || 0;
+    deltaById.set(t.from_section_id, (deltaById.get(t.from_section_id) || 0) - m);
+    deltaById.set(t.to_section_id, (deltaById.get(t.to_section_id) || 0) + m);
+  }
   return sections.map(s => {
     const a = byCode.get(s.code) || { produits: 0, charges: 0 };
-    const resultat = a.produits - a.charges;
-    return { ...s, produits: a.produits, charges: a.charges, resultat, ecartBudget: resultat - s.budget_annuel };
+    const charges = a.charges + (deltaById.get(s.id) || 0); // coût complet après secondaire
+    const resultat = a.produits - charges;
+    return { ...s, produits: a.produits, charges, resultat, ecartBudget: resultat - s.budget_annuel };
   });
 }

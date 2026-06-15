@@ -81,6 +81,12 @@ export interface AllocationRun {
   executed_at: string;
 }
 
+export interface SecondaryTransfer {
+  from_section_id: string;
+  to_section_id: string;
+  montant: number;
+}
+
 export interface RunReport {
   couverture_pct: number;
   montant_gl: number;
@@ -89,6 +95,8 @@ export interface RunReport {
   reconcilie: boolean;
   classes: ReconciliationClasse[];
   topNonFleches: Array<{ account_code: string; account_name: string; montant: number }>;
+  secondaryTransfers: SecondaryTransfer[];
+  secondaryTotal: number;
 }
 
 const chunk = <T,>(arr: T[], n: number): T[][] => {
@@ -268,10 +276,11 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
   }
 
-  // Charge les valeurs des clés utilisées par les règles PRIMAIRE.
+  // Charge les valeurs des clés utilisées par les règles PRIMAIRE et SECONDAIRE.
   const primaireRules = rules.filter(r => r.actif && r.type === 'PRIMAIRE' && r.key_id);
+  const secondaireRules = rules.filter(r => r.actif && r.type === 'SECONDAIRE' && r.key_id && r.source_section_id);
   const keyWeightsMap = new Map<string, KeyValue[]>();
-  for (const kid of new Set(primaireRules.map(r => r.key_id!))) {
+  for (const kid of new Set([...primaireRules, ...secondaireRules].map(r => r.key_id!))) {
     keyWeightsMap.set(kid, (await listKeyValues(adapter, kid)).filter(w => w.valeur > 0));
   }
 
@@ -306,6 +315,33 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
 
   for (const c of chunk(ventRows, 500)) {
     const { error } = await client.from('ventilations_analytiques').insert(c);
+    if (error) throw new Error(error.message);
+  }
+
+  // Stage 3 — SECONDAIRE (méthode step-down) : déverse le pool de coûts de chaque
+  // section auxiliaire sur les principales par clé. Transferts section→section de
+  // somme nulle (l'invariant per-ligne reste intact). Cascade dans l'ordre des règles.
+  const poolBySection = new Map<string, number>();
+  for (const v of ventRows) poolBySection.set(v.section_id, (poolBySection.get(v.section_id) || 0) + v.montant);
+  const transferRows: any[] = [];
+  for (const r of secondaireRules) {
+    const pool = poolBySection.get(r.source_section_id!) || 0;
+    if (pool <= 0) continue;
+    const weights = (keyWeightsMap.get(r.key_id!) || []).filter(w => w.section_id !== r.source_section_id && w.valeur > 0);
+    if (weights.length === 0) continue;
+    const parts = largestRemainderAllocate(pool, weights.map(w => w.valeur));
+    weights.forEach((w, i) => {
+      if (parts[i] === 0) return;
+      transferRows.push({ tenant_id: tenantId, exercice, from_section_id: r.source_section_id, to_section_id: w.section_id, montant: parts[i] });
+      poolBySection.set(w.section_id, (poolBySection.get(w.section_id) || 0) + parts[i]);
+    });
+    poolBySection.set(r.source_section_id!, 0); // auxiliaire vidée
+  }
+  // Idempotence : remplace les transferts de l'exercice (RLS limite au tenant).
+  await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
+  for (const c of chunk(transferRows, 500)) {
+    if (!c.length) continue;
+    const { error } = await client.from('fna_secondary_transfer').insert(c);
     if (error) throw new Error(error.message);
   }
 
@@ -361,6 +397,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   });
 
   const topNonFleches = Array.from(nonFleches.values()).sort((a, b) => b.montant - a.montant).slice(0, 12);
+  const secondaryTransfers: SecondaryTransfer[] = transferRows.map(t => ({ from_section_id: t.from_section_id, to_section_id: t.to_section_id, montant: t.montant }));
   return {
     couverture_pct: couverture,
     montant_gl: totGlCents / 100,
@@ -369,7 +406,17 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     reconcilie,
     classes,
     topNonFleches,
+    secondaryTransfers,
+    secondaryTotal: secondaryTransfers.reduce((s, t) => s + t.montant, 0),
   };
+}
+
+/** Transferts secondaires courants (auxiliaire → principale) pour un exercice. */
+export async function getSecondaryTransfers(adapter: DataAdapter, exercice: number): Promise<SecondaryTransfer[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_secondary_transfer').select('from_section_id,to_section_id,montant').eq('exercice', exercice);
+  return (data ?? []).map((t: any) => ({ from_section_id: t.from_section_id, to_section_id: t.to_section_id, montant: Number(t.montant) || 0 }));
 }
 
 /** Réconciliation courante (sans relancer) depuis la vue live. */
