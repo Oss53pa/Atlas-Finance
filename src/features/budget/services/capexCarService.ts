@@ -155,3 +155,139 @@ export async function savePir(adapter: DataAdapter, requestId: string, pir: { co
     : await client.from('fna_capex_pir').insert(row);
   if (error) throw new Error(error.message);
 }
+
+// ── CAR (objet distinct) — appropriation de fonds POST-validation/budget ──────
+export type CarStatut = 'emise' | 'approuvee' | 'decaissee' | 'cloturee';
+
+export interface Car {
+  id: string;
+  request_id: string;
+  reference: string | null;
+  montant_approprie: number;
+  date_appropriation: string | null;
+  justification: string | null;
+  statut: CarStatut;
+  created_at: string;
+}
+
+export async function listCars(adapter: DataAdapter, requestId: string): Promise<Car[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_car').select('*').eq('request_id', requestId).order('created_at');
+  return (data ?? []).map((c: any) => ({ ...c, montant_approprie: Number(c.montant_approprie) || 0 })) as Car[];
+}
+
+/** Toutes les CAR du tenant (registre), avec le libellé du business case. */
+export async function listAllCars(adapter: DataAdapter): Promise<Array<Car & { business_case?: string }>> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_car').select('*, capex_requests(libelle)').order('created_at', { ascending: false });
+  return (data ?? []).map((c: any) => ({ ...c, montant_approprie: Number(c.montant_approprie) || 0, business_case: c.capex_requests?.libelle }));
+}
+
+export async function appropriatedTotal(adapter: DataAdapter, requestId: string): Promise<number> {
+  const cars = await listCars(adapter, requestId);
+  return cars.reduce((s, c) => s + c.montant_approprie, 0);
+}
+
+export async function createCar(adapter: DataAdapter, car: {
+  requestId: string; reference?: string | null; montant_approprie: number;
+  date_appropriation?: string | null; justification?: string | null; createdBy?: string | null;
+}): Promise<string> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { data, error } = await client.from('fna_car').insert({
+    tenant_id: tenantOf(adapter),
+    request_id: car.requestId,
+    reference: car.reference || null,
+    montant_approprie: Math.round(car.montant_approprie),
+    date_appropriation: car.date_appropriation || null,
+    justification: car.justification || null,
+    statut: 'emise',
+    created_by: car.createdBy || null,
+  }).select('id').single();
+  if (error) throw new Error(error.message);
+  return data?.id as string;
+}
+
+export async function setCarStatut(adapter: DataAdapter, id: string, statut: CarStatut): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_car').update({ statut }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteCar(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_car').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+// ── Notes & attachements (bucket privé « documents ») ────────────────────────
+export interface CapexNote {
+  id: string;
+  request_id: string;
+  type: 'note' | 'attachment';
+  contenu: string | null;
+  file_name: string | null;
+  file_path: string | null;
+  created_at: string;
+}
+
+export async function listNotes(adapter: DataAdapter, requestId: string): Promise<CapexNote[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('fna_capex_note').select('*').eq('request_id', requestId).order('created_at', { ascending: false });
+  return (data ?? []) as CapexNote[];
+}
+
+export async function addNote(adapter: DataAdapter, requestId: string, contenu: string, createdBy?: string | null): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_capex_note').insert({
+    tenant_id: tenantOf(adapter), request_id: requestId, type: 'note', contenu, created_by: createdBy || null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Upload d'une pièce jointe dans le bucket privé `documents`, puis enregistrement.
+ * Le chemin DOIT être `{organization_id}/{user_id}/…` pour satisfaire la RLS
+ * storage (insert/select sur folder[1]=org, delete sur folder[2]=uid).
+ */
+export async function addAttachment(adapter: DataAdapter, requestId: string, file: File, userId?: string | null): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  if (!userId) throw new Error('Session requise pour joindre un fichier.');
+  // organization_id du profil (≠ societe) — exigé par la RLS du bucket documents.
+  const { data: prof, error: profErr } = await client.from('profiles').select('organization_id').eq('id', userId).single();
+  if (profErr || !prof?.organization_id) throw new Error('Organisation introuvable pour l’upload.');
+  const orgId = String(prof.organization_id);
+  const safeName = file.name.replace(/[^\w.\-]/g, '_');
+  const path = `${orgId}/${userId}/capex/${requestId}/${Date.now()}_${safeName}`;
+  const { error: upErr } = await client.storage.from('documents').upload(path, file, { upsert: false });
+  if (upErr) throw new Error(upErr.message);
+  const { error } = await client.from('fna_capex_note').insert({
+    tenant_id: tenantOf(adapter), request_id: requestId, type: 'attachment', file_name: file.name, file_path: path, created_by: userId,
+  });
+  if (error) throw new Error(error.message);
+}
+
+/** URL signée temporaire pour télécharger une pièce jointe. */
+export async function getAttachmentUrl(adapter: DataAdapter, filePath: string): Promise<string | null> {
+  const client = getClient(adapter);
+  if (!client) return null;
+  const { data } = await client.storage.from('documents').createSignedUrl(filePath, 3600);
+  return data?.signedUrl || null;
+}
+
+export async function deleteNote(adapter: DataAdapter, note: CapexNote): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  if (note.type === 'attachment' && note.file_path) {
+    await client.storage.from('documents').remove([note.file_path]).catch(() => {});
+  }
+  const { error } = await client.from('fna_capex_note').delete().eq('id', note.id);
+  if (error) throw new Error(error.message);
+}

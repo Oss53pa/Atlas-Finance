@@ -16,10 +16,14 @@ import {
   getActiveFiscalYear, createCapexRequest, updateCapexRequest, saveCapexEvaluation, dotationAnnuelle,
   type CapexRequest,
 } from '../../features/budget/services/budgetService';
-import { listApprovalMatrix, ensureDefaultMatrix, requiredApprover, type ApprovalBracket } from '../../features/budget/services/capexCarService';
+import {
+  listApprovalMatrix, ensureDefaultMatrix, requiredApprover, type ApprovalBracket,
+  listNotes, addNote, addAttachment, getAttachmentUrl, deleteNote, type CapexNote,
+} from '../../features/budget/services/capexCarService';
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
 import { computeCapexMetrics } from '../../utils/capexMetrics';
-import { Package, X, CheckCircle, Eye, Pencil, Calculator, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { Package, X, CheckCircle, Eye, Pencil, Calculator, ShieldCheck, Paperclip, StickyNote, Download, Trash2, Upload } from 'lucide-react';
 
 interface AccountLite { code: string; name: string }
 interface Props { open: boolean; onClose: () => void; onCreated?: () => void; editing?: CapexRequest | null }
@@ -45,13 +49,43 @@ const EMPTY = {
 const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing }) => {
   const { adapter } = useData();
   const { toast } = useToast();
-  const [tab, setTab] = useState<'demande' | 'eval'>('demande');
+  const { user } = useAuth();
+  const [tab, setTab] = useState<'demande' | 'eval' | 'notes'>('demande');
   const [accounts, setAccounts] = useState<AccountLite[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [matrix, setMatrix] = useState<ApprovalBracket[]>([]);
   const [saving, setSaving] = useState(false);
   const [test, setTest] = useState<Record<string, boolean>>({});
   const [f, setF] = useState({ ...EMPTY });
+  const [notes, setNotes] = useState<CapexNote[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const loadNotes = async () => {
+    if (!editing) { setNotes([]); return; }
+    try { setNotes(await listNotes(adapter, editing.id)); } catch { /* ignore */ }
+  };
+  const submitNote = async () => {
+    if (!editing || !newNote.trim()) return;
+    try { await addNote(adapter, editing.id, newNote.trim(), user?.id || null); setNewNote(''); loadNotes(); }
+    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editing) return;
+    setUploading(true);
+    try { await addAttachment(adapter, editing.id, file, user?.id || null); toast.success('Pièce jointe ajoutée'); loadNotes(); }
+    catch (err: any) { toast.error(err?.message || 'Échec de l’upload'); }
+    finally { setUploading(false); e.target.value = ''; }
+  };
+  const openAttachment = async (n: CapexNote) => {
+    if (!n.file_path) return;
+    const url = await getAttachmentUrl(adapter, n.file_path);
+    if (url) window.open(url, '_blank', 'noopener'); else toast.error('Lien indisponible');
+  };
+  const removeNote = async (n: CapexNote) => {
+    try { await deleteNote(adapter, n); loadNotes(); } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+  };
 
   const readOnly = !!editing && (editing.statut === 'fonds_disponibles' || editing.statut === 'clos');
   const isEdit = !!editing;
@@ -71,7 +105,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
         flowsText: Array.isArray(editing.cashflows) ? editing.cashflows.join(', ') : '',
       });
       setTest(editing.test_capitalisation || {});
-    } else { reset(); }
+      loadNotes();
+    } else { reset(); setNotes([]); }
     (async () => {
       try {
         const [accs, secs, mtx] = await Promise.all([adapter.getAll<any>('accounts'), listSections(adapter), ensureDefaultMatrix(adapter).catch(() => listApprovalMatrix(adapter))]);
@@ -137,8 +172,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
               {readOnly ? <Eye className="w-5 h-5 text-[var(--color-primary)]" /> : isEdit ? <Pencil className="w-5 h-5 text-[var(--color-primary)]" /> : <Package className="w-5 h-5 text-[var(--color-primary)]" />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">{readOnly ? 'CAR (consultation)' : isEdit ? 'Modifier la CAR' : "Demande d'investissement (CAR)"}</h3>
-              <p className="text-xs text-gray-500">Capital Appropriation Request — stage-gate, évaluation financière, IAS 16</p>
+              <h3 className="text-base font-bold text-gray-900">{readOnly ? 'Business Case (consultation)' : isEdit ? 'Modifier le Business Case' : "Business Case d'investissement"}</h3>
+              <p className="text-xs text-gray-500">Demande motivée → validation → budget CAPEX → CAR. Évaluation financière, IAS 16.</p>
             </div>
           </div>
           <button onClick={close} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
@@ -148,7 +183,7 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
 
         {/* Onglets */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-4">
-          {([['demande', 'Demande'], ['eval', 'Évaluation financière']] as const).map(([k, lbl]) => (
+          {([['demande', 'Demande'], ['eval', 'Évaluation financière'], ['notes', 'Notes & Attachements']] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setTab(k)} className={`px-4 py-1.5 text-sm font-medium rounded-md ${tab === k ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500'}`}>{lbl}</button>
           ))}
         </div>
@@ -214,6 +249,45 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
             <ShieldCheck className="w-4 h-4 text-[var(--color-primary)]" />
             <span className="text-gray-700">Approbation requise : <span className="font-semibold text-[var(--color-primary)]">{approver ? `${approver.role_requis} (niveau ${approver.niveau})` : '—'}</span>{approver && <span className="text-xs text-gray-400 ml-1">pour {formatCurrency(parseFloat(f.montant) || 0)}</span>}</span>
           </div>
+        </>)}
+
+        {tab === 'notes' && (<>
+          {!editing ? (
+            <div className="bg-amber-50 text-amber-800 rounded-lg px-3 py-3 text-sm">Enregistrez d’abord le business case (onglet « Demande ») pour y joindre des notes et des pièces.</div>
+          ) : (<>
+            {/* Ajout note + pièce jointe */}
+            {!readOnly && (
+              <div className="flex flex-col gap-2 mb-3">
+                <div className="flex gap-2">
+                  <input value={newNote} onChange={e => setNewNote(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submitNote(); }} placeholder="Ajouter une note…" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+                  <button onClick={submitNote} disabled={!newNote.trim()} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-1"><StickyNote className="w-4 h-4" />Note</button>
+                  <label className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-50 flex items-center gap-1">
+                    <Upload className="w-4 h-4" />{uploading ? 'Envoi…' : 'Pièce jointe'}
+                    <input type="file" className="hidden" onChange={onPickFile} disabled={uploading} />
+                  </label>
+                </div>
+                <p className="text-[11px] text-gray-400">Les pièces sont stockées dans le coffre privé « documents » (accès restreint au tenant).</p>
+              </div>
+            )}
+            {/* Liste */}
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {notes.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">Aucune note ni pièce jointe.</div>}
+              {notes.map(n => (
+                <div key={n.id} className="flex items-start justify-between bg-gray-50 rounded-lg px-3 py-2">
+                  <div className="flex items-start gap-2 min-w-0">
+                    {n.type === 'attachment' ? <Paperclip className="w-4 h-4 text-[var(--color-primary)] mt-0.5 shrink-0" /> : <StickyNote className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />}
+                    <div className="min-w-0">
+                      {n.type === 'attachment'
+                        ? <button onClick={() => openAttachment(n)} className="text-sm text-[var(--color-primary)] hover:underline truncate flex items-center gap-1">{n.file_name}<Download className="w-3 h-3" /></button>
+                        : <div className="text-sm text-gray-800 whitespace-pre-wrap break-words">{n.contenu}</div>}
+                      <div className="text-[10px] text-gray-400">{new Date(n.created_at).toLocaleString('fr-FR')}</div>
+                    </div>
+                  </div>
+                  {!readOnly && <button onClick={() => removeNote(n)} className="text-gray-300 hover:text-red-500 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>}
+                </div>
+              ))}
+            </div>
+          </>)}
         </>)}
 
         <div className="flex justify-end gap-2 mt-5">
