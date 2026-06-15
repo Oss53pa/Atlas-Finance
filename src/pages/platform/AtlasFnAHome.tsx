@@ -279,43 +279,52 @@ const AtlasFnAHome: React.FC = () => {
   const homeMaxW = '100%';
 
   return (
-    <div
-      className="page-shell"
-      style={{
-        /* ═══ TEST thème SOMBRE CONTRASTÉ — couleurs Atlas (pétrole #235A6E + ambre #E89A2E).
-           Surcharge des tokens sur la racine : tous les enfants (var(--color-*)) basculent.
-           Réversible : supprimer ce bloc style pour revenir au thème crème. ═══ */
-        ['--color-background' as string]: '#0B1F26',
-        ['--color-surface' as string]: 'rgba(255,255,255,0.05)',
-        ['--color-surface-hover' as string]: 'rgba(255,255,255,0.09)',
-        ['--color-surface-elevated' as string]: 'rgba(255,255,255,0.07)',
-        ['--color-text-primary' as string]: '#F2F6F5',
-        ['--color-text-secondary' as string]: 'rgba(238,244,243,0.74)',
-        ['--color-text-tertiary' as string]: 'rgba(238,244,243,0.55)',
-        ['--color-text-quaternary' as string]: 'rgba(238,244,243,0.42)',
-        ['--color-text-inverse' as string]: '#06141A',
-        ['--color-border' as string]: 'rgba(255,255,255,0.12)',
-        ['--color-border-light' as string]: 'rgba(255,255,255,0.07)',
-        ['--color-hairline' as string]: 'rgba(255,255,255,0.08)',
-        ['--color-hairline-strong' as string]: 'rgba(255,255,255,0.14)',
-        ['--color-primary' as string]: '#2E86A3',
-        ['--color-primary-hover' as string]: '#3A9AB9',
-        ['--color-accent' as string]: '#3A9AB9',
-        ['--color-accent-hover' as string]: '#49B0D0',
-        ['--shadow-sm' as string]: '0 1px 2px rgba(0,0,0,.35), 0 6px 16px rgba(0,0,0,.40)',
-        ['--shadow-md' as string]: '0 2px 6px rgba(0,0,0,.40), 0 14px 34px rgba(0,0,0,.50)',
-        ['--shadow-obsidian' as string]: '0 12px 34px rgba(0,0,0,.55)',
-        background:
-          'radial-gradient(900px 420px at 12% -8%, rgba(46,134,163,0.22), transparent 60%),' +
-          'radial-gradient(760px 420px at 100% 0%, rgba(232,154,46,0.10), transparent 55%),' +
-          'linear-gradient(180deg, #0B1F26 0%, #081820 55%, #06141A 100%)',
-        minHeight: '100vh',
-      } as React.CSSProperties}
-    >
+    <div className="page-shell">
+      {/* ═══ BANDE D'EN-TÊTE sombre contrastée — couleurs Atlas (pétrole + ambre).
+           Limitée à l'entête (top bar + hero) : le reste de la page reste crème. ═══ */}
+      <div
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          ['--color-text-primary' as string]: '#F4F8F7',
+          ['--color-text-secondary' as string]: 'rgba(238,244,243,0.78)',
+          ['--color-text-tertiary' as string]: 'rgba(238,244,243,0.58)',
+          ['--color-text-quaternary' as string]: 'rgba(238,244,243,0.45)',
+          ['--color-surface' as string]: 'rgba(255,255,255,0.06)',
+          ['--color-surface-hover' as string]: 'rgba(255,255,255,0.12)',
+          ['--color-border' as string]: 'rgba(255,255,255,0.16)',
+          ['--color-primary' as string]: '#E89A2E',
+          ['--color-primary-hover' as string]: '#F2A93B',
+          ['--color-accent' as string]: '#E89A2E',
+          ['--color-text-inverse' as string]: '#06141A',
+          ['--shadow-obsidian' as string]: '0 10px 30px rgba(0,0,0,.45)',
+          background:
+            'radial-gradient(820px 360px at 6% -25%, rgba(46,134,163,0.32), transparent 60%),' +
+            'linear-gradient(180deg, #0C2530 0%, #0A1E27 100%)',
+        } as React.CSSProperties}
+      >
+        {/* Décor : vague de points (fintech) en haut-droite */}
+        <svg aria-hidden viewBox="0 0 600 320" preserveAspectRatio="xMaxYMin slice" style={{ position: 'absolute', top: 0, right: 0, width: '48%', height: '100%', opacity: 0.55, pointerEvents: 'none' }}>
+          <defs>
+            <radialGradient id="afDotFade" cx="82%" cy="18%" r="78%">
+              <stop offset="0%" stopColor="#E89A2E" stopOpacity="0.95" />
+              <stop offset="50%" stopColor="#3A9AB9" stopOpacity="0.55" />
+              <stop offset="100%" stopColor="#3A9AB9" stopOpacity="0" />
+            </radialGradient>
+            <pattern id="afDots" width="15" height="15" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1.5" fill="url(#afDotFade)" />
+            </pattern>
+            <clipPath id="afWave">
+              <path d="M600,0 L600,320 C480,318 470,170 350,128 C250,93 175,42 120,0 Z" />
+            </clipPath>
+          </defs>
+          <rect x="0" y="0" width="600" height="320" fill="url(#afDots)" clipPath="url(#afWave)" />
+        </svg>
+
       {/* ═════════════════ TOP BAR — context + actions ═════════════════ */}
       <header
         className="glass-bar anim-fade"
-        style={{ position: 'sticky', top: 0, zIndex: 30, padding: '0.875rem 0' }}
+        style={{ position: 'relative', zIndex: 2, padding: '0.875rem 0', background: 'transparent', borderBottom: '1px solid rgba(255,255,255,0.08)' }}
       >
         <div
           className="flex items-center justify-between gap-6 flex-wrap"
@@ -409,20 +418,23 @@ const AtlasFnAHome: React.FC = () => {
         </div>
       </header>
 
-      <main
+      {/* Contenu de l'entête (largeur centrée) — DANS la bande sombre */}
+      <div
         style={{
+          position: 'relative',
+          zIndex: 2,
           width: '100%',
           maxWidth: homeMaxW,
           marginLeft: 'auto',
           marginRight: 'auto',
           paddingLeft: homePagePx,
           paddingRight: homePagePx,
-          paddingTop: '2rem',
-          paddingBottom: '3rem',
+          paddingTop: '1.5rem',
+          paddingBottom: '2.75rem',
         }}
       >
         {/* ═════════════════ HERO WORDMARK (centered) ═════════════════ */}
-        <section className="text-center anim-rise" style={{ marginBottom: 'var(--section-gap-lg)' }}>
+        <section className="text-center anim-rise" style={{ marginBottom: 0 }}>
           <div className="eyebrow-gold flex items-center justify-center gap-2 mb-5">
             <span className="gold-dot" style={{ width: 5, height: 5 }} />
             <span>BIENVENUE · {period.toUpperCase()}</span>
@@ -470,7 +482,21 @@ const AtlasFnAHome: React.FC = () => {
             Pilotage intégral de votre <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>comptabilité</strong> — du plan comptable aux <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>états financiers</strong>, en conformité <strong style={{ color: 'var(--color-text-primary)', fontWeight: 600 }}>OHADA · SYSCOHADA</strong>. Données 100 % en temps réel.
           </p>
         </section>
+        </div>{/* fin contenu entête */}
+      </div>{/* fin bande d'en-tête sombre */}
 
+      <main
+        style={{
+          width: '100%',
+          maxWidth: homeMaxW,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          paddingLeft: homePagePx,
+          paddingRight: homePagePx,
+          paddingTop: '2rem',
+          paddingBottom: '3rem',
+        }}
+      >
         {/* ═════════════════ KPI STRIP (4 cards with sparklines) ═════════════════ */}
         <section
           className="grid gap-4 stagger-children"
