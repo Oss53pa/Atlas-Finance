@@ -73,6 +73,15 @@ const AssetsCategories: React.FC = () => {
     adapter.getAll('assets').then((assets: any[]) => setDbAssets(assets || [])).catch(() => setDbAssets([]));
   }, [adapter]);
 
+  // Charge les réglages de catégories persistés (table settings).
+  useEffect(() => {
+    const client = (adapter as any)?.client;
+    if (!client) return;
+    client.from('settings').select('value').eq('key', 'asset_categories_settings').maybeSingle()
+      .then(({ data }: any) => { if (data?.value) { try { setSettingsForm(prev => ({ ...prev, ...JSON.parse(data.value) })); } catch { /* ignore */ } } })
+      .catch(() => {});
+  }, [adapter]);
+
   // Build categories dynamically from real assets
   const categories: Category[] = useMemo(() => {
     return SYSCOHADA_CATEGORIES.map((catDef, idx) => {
@@ -176,9 +185,20 @@ const AssetsCategories: React.FC = () => {
     ? ratedAssets.reduce((s, a) => s + 100 / (a.usefulLifeYears || a.usefulLife), 0) / ratedAssets.length
     : null;
 
-  const handleSaveSettings = () => {
-    toast.success('Paramètres des catégories sauvegardés');
-    setShowSettingsModal(false);
+  const handleSaveSettings = async () => {
+    const client = (adapter as any)?.client;
+    if (!client) { toast.error('Indisponible hors-ligne.'); return; }
+    try {
+      const tenantId = (adapter as any).tenantId;
+      const row = { key: 'asset_categories_settings', tenant_id: tenantId, value: JSON.stringify(settingsForm), updated_at: new Date().toISOString() };
+      const { data: existing } = await client.from('settings').select('key').eq('key', 'asset_categories_settings').maybeSingle();
+      const { error } = existing
+        ? await client.from('settings').update(row).eq('key', 'asset_categories_settings')
+        : await client.from('settings').insert(row);
+      if (error) throw new Error(error.message);
+      toast.success('Paramètres des catégories sauvegardés');
+      setShowSettingsModal(false);
+    } catch (e: any) { toast.error('Échec : ' + (e?.message || 'erreur')); }
   };
 
   return (
