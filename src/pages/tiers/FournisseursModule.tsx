@@ -1998,6 +1998,15 @@ const FournisseursModule: React.FC = () => {
                         </tr>
                       ))}
                     </tbody>
+                    {(fournisseurLinesMap[viewingFournisseur.id] || []).length > 0 && (
+                      <tfoot className="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-gray-900">
+                        <tr>
+                          <td className="px-3 py-2" colSpan={3}>Total ({(fournisseurLinesMap[viewingFournisseur.id] || []).length})</td>
+                          <td className="px-3 py-2 text-right text-red-700 whitespace-nowrap">{formatCurrency((fournisseurLinesMap[viewingFournisseur.id] || []).reduce((s, l) => s + (l.debit || 0), 0))}</td>
+                          <td className="px-3 py-2 text-right text-green-700 whitespace-nowrap">{formatCurrency((fournisseurLinesMap[viewingFournisseur.id] || []).reduce((s, l) => s + (l.credit || 0), 0))}</td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
