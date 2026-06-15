@@ -1,7 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
+import {
+  listMaintenance, createMaintenance, updateMaintenance, deleteMaintenance,
+  type MaintenanceRow,
+} from '../../services/immobilisations/maintenanceService';
 import { motion } from 'framer-motion';
 import {
   Wrench,
@@ -98,6 +103,7 @@ interface MaintenanceModal {
 
 const AssetsMaintenance: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -128,14 +134,40 @@ const AssetsMaintenance: React.FC = () => {
 
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  // NOTE: il n'existe AUCUNE table de maintenance dans la base (pas de
-  // maintenance_records / maintenance_schedule, et l'import ne fournit pas
-  // de plan de maintenance). On n'invente PAS d'interventions à partir des
-  // immobilisations (coût = valeur × 2 %, dates et durées fictives) : ces
-  // chiffres seraient faux. Le module reste donc en état vide honnête tant
-  // qu'aucune donnée de maintenance n'est saisie.
-  const maintenanceRecords: MaintenanceRecord[] = useMemo(() => [], []);
+  // Interventions de maintenance chargées depuis fna_asset_maintenance (réel).
+  const [maintenanceRecords, setMaintenanceRecords] = useState<MaintenanceRecord[]>([]);
 
+  const loadMaintenance = useCallback(async () => {
+    try {
+      const rows = await listMaintenance(adapter);
+      setMaintenanceRecords(rows.map((r: MaintenanceRow): MaintenanceRecord => ({
+        id: r.id,
+        assetId: r.asset_id || '',
+        assetName: r.asset_name || '',
+        assetTag: r.asset_tag || '',
+        category: r.category || '',
+        maintenanceType: (r.maintenance_type as MaintenanceRecord['maintenanceType']) || 'preventive',
+        status: (r.status as MaintenanceRecord['status']) || 'scheduled',
+        priority: (r.priority as MaintenanceRecord['priority']) || 'medium',
+        scheduledDate: r.scheduled_date || '',
+        completedDate: r.completed_date || undefined,
+        estimatedDuration: Number(r.estimated_duration) || 0,
+        actualDuration: r.actual_duration != null ? Number(r.actual_duration) : undefined,
+        cost: Number(r.cost) || 0,
+        estimatedCost: Number(r.estimated_cost) || 0,
+        assignedTo: r.assigned_to || undefined,
+        technician: r.technician || undefined,
+        supplier: r.supplier || undefined,
+        description: r.description || '',
+        workPerformed: r.work_performed || undefined,
+        location: r.location || '',
+        notes: r.notes || undefined,
+      } as MaintenanceRecord)));
+    } catch { setMaintenanceRecords([]); }
+  }, [adapter]);
+  useEffect(() => { loadMaintenance(); }, [loadMaintenance]);
+
+  // Planning = interventions planifiées à venir (dérivé des enregistrements).
   const maintenanceSchedule: MaintenanceSchedule[] = useMemo(() => [], []);
 
   // Filter maintenance records
@@ -346,19 +378,43 @@ const AssetsMaintenance: React.FC = () => {
       return;
     }
 
+    const payload = {
+      asset_id: formData.assetId || null,
+      asset_name: formData.assetName || null,
+      asset_tag: formData.assetTag || null,
+      category: formData.category || null,
+      maintenance_type: formData.maintenanceType,
+      priority: formData.priority,
+      scheduled_date: formData.scheduledDate || null,
+      estimated_duration: parseFloat(formData.estimatedDuration) || null,
+      estimated_cost: parseFloat(formData.estimatedCost) || 0,
+      assigned_to: formData.assignedTo || null,
+      technician: formData.technician || null,
+      supplier: formData.supplier || null,
+      description: formData.description || null,
+      location: formData.location || null,
+      notes: formData.notes || null,
+    };
     try {
-      if (maintenanceModal.mode === 'create') {
-        // Create new maintenance record
-        toast.success('Maintenance créée avec succès!');
-      } else if (maintenanceModal.mode === 'edit') {
-        // Update existing maintenance record
-        toast.success('Maintenance mise à jour avec succès!');
+      if (maintenanceModal.mode === 'edit' && maintenanceModal.record) {
+        await updateMaintenance(adapter, maintenanceModal.record.id, payload);
+        toast.success('Maintenance mise à jour');
+      } else {
+        await createMaintenance(adapter, { ...payload, status: 'scheduled' });
+        toast.success('Maintenance créée');
       }
       setMaintenanceModal({ isOpen: false, mode: 'view' });
       resetForm();
-    } catch (error) {
-      toast.error('Erreur lors de l\'enregistrement');
+      await loadMaintenance();
+    } catch (error: any) {
+      toast.error('Erreur lors de l\'enregistrement : ' + (error?.message || ''));
     }
+  };
+
+  const handleDeleteMaintenance = async (record: MaintenanceRecord) => {
+    if (!window.confirm('Supprimer cette intervention ?')) return;
+    try { await deleteMaintenance(adapter, record.id); toast.success('Supprimée'); await loadMaintenance(); }
+    catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
   const statusChartData = [
@@ -659,6 +715,13 @@ const AssetsMaintenance: React.FC = () => {
                                 className="p-2 text-neutral-400 hover:text-green-600 transition-colors"
                               >
                                 <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMaintenance(record)}
+                                className="p-2 text-neutral-400 hover:text-red-600 transition-colors"
+                                title="Supprimer"
+                              >
+                                <XCircle className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
