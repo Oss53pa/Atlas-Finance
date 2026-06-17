@@ -30,6 +30,7 @@ export interface LettrageConfig {
   parTiers: boolean;
   tolerance: number;       // FCFA
   periodeMax: number;      // jours
+  accounts?: string[];     // préfixes de comptes à traiter (défaut : 40x fournisseurs / 41x clients)
 }
 
 export interface LettrageMatch {
@@ -100,12 +101,13 @@ async function getNextLettrageCode(adapter: DataAdapter): Promise<string> {
 // FLATTEN ENTRIES → LINES
 // ============================================================================
 
-function flattenEntries(entries: DBJournalEntry[]): FlatLine[] {
+function flattenEntries(entries: DBJournalEntry[], accounts?: string[]): FlatLine[] {
+  const prefixes = accounts && accounts.length ? accounts : ['40', '41'];
   const lines: FlatLine[] = [];
   for (const entry of entries) {
     for (const line of entry.lines) {
-      // Only lettrage-eligible accounts (classes 40, 41)
-      if (!line.accountCode.startsWith('40') && !line.accountCode.startsWith('41')) continue;
+      // Only lettrage-eligible accounts (par défaut classes 40/41, sinon préfixes choisis)
+      if (!prefixes.some(p => line.accountCode.startsWith(p))) continue;
       if (line.lettrageCode) continue; // Already lettered
 
       lines.push({
@@ -226,7 +228,7 @@ export async function autoLettrage(
   const cfg = { ...DEFAULT_CONFIG, ...config };
   const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
   const entries = allEntries.filter(e => e.status !== 'draft');
-  const allLines = flattenEntries(entries);
+  const allLines = flattenEntries(entries, cfg.accounts);
 
   // Group by account code
   const byAccount = new Map<string, FlatLine[]>();

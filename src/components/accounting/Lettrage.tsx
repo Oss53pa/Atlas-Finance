@@ -5,6 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
+import type { LettrageResult } from '../../services/lettrageService';
 import toast from 'react-hot-toast';
 import { formatCurrency } from '@/utils/formatters';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
@@ -94,6 +95,10 @@ const Lettrage: React.FC = () => {
     tolerance: 0.01,
     periodeMax: 90
   });
+  const [autoAccounts, setAutoAccounts] = useState<string[]>(['411', '401']);
+  const [autoPartiel, setAutoPartiel] = useState(false);
+  const [autoRunning, setAutoRunning] = useState(false);
+  const [autoPreview, setAutoPreview] = useState<LettrageResult | null>(null);
   const [lettrageHistory, setLettrageHistory] = useState<LettrageHistory[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [stats, setStats] = useState<LettrageStats>({
@@ -362,15 +367,36 @@ const Lettrage: React.FC = () => {
     refetchEntries();
   }, [queryClient, refetchEntries]);
 
+  const buildAutoConfig = useCallback(() => ({
+    parMontant: autoLettrageConfig.parMontant,
+    parReference: autoLettrageConfig.parReference,
+    parDate: autoLettrageConfig.parDate,
+    parTiers: autoLettrageConfig.parTiers,
+    tolerance: autoPartiel ? Math.max(autoLettrageConfig.tolerance, 0.01) : autoLettrageConfig.tolerance,
+    periodeMax: autoLettrageConfig.periodeMax,
+    accounts: autoAccounts.length ? autoAccounts : undefined,
+  }), [autoLettrageConfig, autoAccounts, autoPartiel]);
+
+  const previewAutoLettrage = useCallback(async () => {
+    if (autoRunning) return;
+    setAutoRunning(true);
+    try {
+      const result = await autoLettrage(adapter, buildAutoConfig());
+      setAutoPreview(result);
+      toast(`Apercu : ${result.matches.length} rapprochement(s) possible(s)`, { icon: '🔍' });
+    } catch (e: any) {
+      toast.error(e?.message || 'Erreur lors de l’apercu');
+    } finally {
+      setAutoRunning(false);
+    }
+  }, [adapter, buildAutoConfig, autoRunning]);
+
   const runAutoLettrage = useCallback(async () => {
-    const result = await autoLettrage(adapter, {
-      parMontant: autoLettrageConfig.parMontant,
-      parReference: autoLettrageConfig.parReference,
-      parDate: autoLettrageConfig.parDate,
-      parTiers: autoLettrageConfig.parTiers,
-      tolerance: autoLettrageConfig.tolerance,
-      periodeMax: autoLettrageConfig.periodeMax,
-    });
+    if (autoRunning) return;
+    setAutoRunning(true);
+    try {
+    const result = await autoLettrage(adapter, buildAutoConfig());
+    setAutoPreview(result);
 
     if (result.matches.length === 0) {
       toast('Aucun rapprochement trouvé', { icon: '\u2139\uFE0F' });
@@ -378,10 +404,15 @@ const Lettrage: React.FC = () => {
     }
 
     const applied = await applyLettrage(adapter, result.matches);
-    toast.success(`Lettrage automatique : ${result.matches.length} rapprochements (${result.totalMatched} lignes)`);
+    toast.success(`Lettrage automatique : ${result.matches.length} rapprochement(s) appliqué(s) (${applied} ligne(s) lettrée(s))`);
     queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
     refetchEntries();
-  }, [autoLettrageConfig, queryClient, refetchEntries]);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erreur lors du lettrage automatique');
+    } finally {
+      setAutoRunning(false);
+    }
+  }, [adapter, buildAutoConfig, queryClient, refetchEntries, autoRunning]);
 
   const canLettrage = useMemo(() => {
     if (selectedEntries.size < 2) return { valid: false, reason: 'Sélectionnez au moins 2 écritures' };
@@ -718,19 +749,27 @@ const Lettrage: React.FC = () => {
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
+                    <input type="checkbox" checked={autoLettrageConfig.parMontant}
+                      onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parMontant: e.target.checked })}
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par montant exact</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" defaultChecked className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
+                    <input type="checkbox" checked={autoLettrageConfig.parReference}
+                      onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parReference: e.target.checked })}
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par numéro de pièce</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
+                    <input type="checkbox" checked={autoLettrageConfig.parTiers}
+                      onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parTiers: e.target.checked })}
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Par référence client/fournisseur</span>
                   </label>
                   <label className="flex items-center">
-                    <input type="checkbox" className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
+                    <input type="checkbox" checked={autoPartiel}
+                      onChange={(e) => setAutoPartiel(e.target.checked)}
+                      className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
                     <span className="text-sm">Lettrage partiel autorisé</span>
                   </label>
                 </div>
@@ -760,9 +799,14 @@ const Lettrage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Comptes à traiter
                 </label>
-                <select multiple className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm h-32">
-                  <option value="411" selected>411 - Clients</option>
-                  <option value="401" selected>401 - Fournisseurs</option>
+                <select
+                  multiple
+                  value={autoAccounts}
+                  onChange={(e) => setAutoAccounts(Array.from(e.target.selectedOptions, o => o.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm h-32"
+                >
+                  <option value="411">411 - Clients</option>
+                  <option value="401">401 - Fournisseurs</option>
                   <option value="42">42 - Personnel</option>
                   <option value="44">44 - État et collectivités</option>
                   <option value="46">46 - Débiteurs et créditeurs divers</option>
@@ -770,11 +814,19 @@ const Lettrage: React.FC = () => {
               </div>
 
               <div className="pt-4 flex space-x-3">
-                <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
-                  <RefreshCw className="w-4 h-4 mr-2 inline" />
-                  Lancer le lettrage automatique
+                <button
+                  onClick={runAutoLettrage}
+                  disabled={autoRunning || autoAccounts.length === 0}
+                  className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 inline ${autoRunning ? 'animate-spin' : ''}`} />
+                  {autoRunning ? 'Lettrage en cours…' : 'Lancer le lettrage automatique'}
                 </button>
-                <button className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button
+                  onClick={previewAutoLettrage}
+                  disabled={autoRunning || autoAccounts.length === 0}
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Eye className="w-4 h-4 mr-2 inline" />
                   Aperçu
                 </button>
@@ -784,23 +836,30 @@ const Lettrage: React.FC = () => {
 
           {/* Résultats du lettrage automatique */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Résultats de la simulation</h3>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <p className="text-sm text-blue-900">
-                    Simulation du lettrage automatique sur les comptes sélectionnés
-                  </p>
-                  <ul className="mt-2 space-y-1 text-sm text-blue-800">
-                    <li>• 12 écritures peuvent être lettrées automatiquement</li>
-                    <li>• 3 rapprochements par montant exact</li>
-                    <li>• 2 rapprochements par numéro de pièce</li>
-                    <li>• 4 écritures restent non lettrées</li>
-                  </ul>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Résultats du rapprochement</h3>
+            {!autoPreview ? (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
+                Cliquez sur « Aperçu » pour simuler, ou « Lancer le lettrage automatique » pour appliquer.
+              </div>
+            ) : (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-blue-900">
+                      Rapprochement sur les comptes : {autoAccounts.join(', ') || '—'}
+                    </p>
+                    <ul className="mt-2 space-y-1 text-sm text-blue-800">
+                      <li>• {autoPreview.matches.length} rapprochement(s) proposé(s)</li>
+                      <li>• {autoPreview.matches.filter(m => m.method === 'exact').length} par montant exact</li>
+                      <li>• {autoPreview.matches.filter(m => m.method === 'reference').length} par numéro de pièce</li>
+                      <li>• {autoPreview.matches.filter(m => m.method === 'somme').length} par sommes de montants</li>
+                      <li>• {autoPreview.totalMatched} ligne(s) lettrable(s) · {autoPreview.totalUnmatched} restante(s)</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

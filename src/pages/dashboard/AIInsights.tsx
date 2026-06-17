@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import {
   Brain, TrendingUp, TrendingDown, Target, Zap, LineChart,
@@ -58,6 +59,7 @@ const DEFAULT_SCORING_BENCHMARKS = {
 
 const AIInsights: React.FC = () => {
   const { adapter } = useData();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('predictions');
   const [selectedModel, setSelectedModel] = useState('revenue_forecast');
   const [timeHorizon, setTimeHorizon] = useState('3months');
@@ -466,7 +468,7 @@ const AIInsights: React.FC = () => {
   const renderPredictionsTab = () => (
     <div className="space-y-6">
       {/* AI Performance Overview */}
-      <div className="bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-text-secondary)] rounded-lg p-6">
+      <div className="bg-gradient-to-r from-[#235A6E] to-[#4E7E8D] rounded-lg p-6">
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8 text-white" />
           <div>
@@ -674,7 +676,29 @@ const AIInsights: React.FC = () => {
               en sensibilité « confidentiel » (providers sans rétention uniquement).
             </p>
             {proph3tError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{proph3tError}</div>
+              /provider|configur|GROQ|BYOK|non op/i.test(proph3tError) ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900 space-y-2">
+                  <p className="font-medium flex items-center gap-2">
+                    <Info className="w-4 h-4 flex-shrink-0" /> Core <span className="atlas-brand">Proph3t</span> (Atlas Studio) non opérationnel
+                  </p>
+                  <p>Aucun moteur LLM n'est branché côté core. Pour activer l'analyse stratégique :</p>
+                  <ul className="list-disc ml-5 space-y-1">
+                    <li><b>BYOK</b> — ajoutez votre clé API (Anthropic Claude ou Google Gemini) dans les paramètres Proph3t.</li>
+                    <li><b>Groq central</b> — l'admin définit le secret <code className="px-1 bg-amber-100 rounded">GROQ_API_KEY</code> dans les <b>Edge Functions secrets</b> Supabase du core, puis déploie la fonction <code className="px-1 bg-amber-100 rounded">proph3t-ask</code>.</li>
+                  </ul>
+                  <button
+                    onClick={() => navigate('/settings/ia')}
+                    className="mt-1 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-xs font-medium hover:opacity-90"
+                  >
+                    Configurer Proph3t
+                  </button>
+                  <p className="text-xs text-amber-700 pt-1">
+                    Le moteur d'analyse local (prévisions, anomalies, insights) reste pleinement fonctionnel sans clé.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{proph3tError}</div>
+              )
             )}
             {proph3tAnswer && (
               <div className="p-4 bg-[var(--color-primary)]/5 rounded-lg text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
