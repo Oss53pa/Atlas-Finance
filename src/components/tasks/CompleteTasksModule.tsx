@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import {
   Plus,
   CheckCircle2,
@@ -69,6 +70,7 @@ interface Task {
   status: 'todo' | 'in-progress' | 'review' | 'done' | 'cancelled' | 'blocked';
   priority: 'low' | 'medium' | 'high' | 'urgent';
   assignee?: string;
+  assignees?: string[];
   assigneeTeam?: string;
   dueDate?: Date;
   startDate?: Date;
@@ -219,10 +221,11 @@ const CompleteTaskCard: React.FC<{
                 {new Date(task.dueDate).toLocaleDateString()}
               </div>
             )}
-            {task.assignee && (
+            {(task.assignees?.length || task.assignee) && (
               <div className="flex items-center gap-1 text-xs text-gray-700">
                 <User className="w-3 h-3" />
-                {task.assignee}
+                {(task.assignees?.length ? task.assignees : [task.assignee!]).slice(0, 2).join(', ')}
+                {(task.assignees?.length || 0) > 2 ? ` +${task.assignees!.length - 2}` : ''}
               </div>
             )}
             {task.estimatedHours && (
@@ -378,7 +381,7 @@ const ListView = ({ filteredTasks, getStatusColor, getPriorityIcon }: ListViewPr
               </div>
             </td>
             <td className="px-4 py-3 text-sm">
-              {task.assignee || '-'}
+              {task.assignees?.length ? task.assignees.join(', ') : (task.assignee || '-')}
             </td>
             <td className="px-4 py-3 text-sm">
               {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '-'}
@@ -434,8 +437,24 @@ const CompleteTasksModule: React.FC = () => {
     status: 'todo',
     tags: [],
     subTasks: [],
-    checklist: []
+    checklist: [],
+    assignees: []
   });
+
+  // Membres assignables : source réelle = liste des utilisateurs (Sécurité > Utilisateurs)
+  const { adapter } = useData();
+  const [teamMembers, setTeamMembers] = useState<Array<{ id?: string; name: string; email?: string; role?: string }>>([]);
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await adapter.getById<{ value: string }>('settings', 'users_list');
+        const list = s?.value ? JSON.parse(s.value) : [];
+        setTeamMembers(Array.isArray(list) ? list.filter((u: any) => u && u.name) : []);
+      } catch {
+        setTeamMembers([]);
+      }
+    })();
+  }, [adapter]);
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -472,7 +491,8 @@ const CompleteTasksModule: React.FC = () => {
         return task.title.toLowerCase().includes(searchLower) ||
                task.description?.toLowerCase().includes(searchLower) ||
                task.tags?.some(tag => tag.toLowerCase().includes(searchLower)) ||
-               task.assignee?.toLowerCase().includes(searchLower);
+               task.assignee?.toLowerCase().includes(searchLower) ||
+               task.assignees?.some(a => a.toLowerCase().includes(searchLower));
       }
       return true;
     });
@@ -491,7 +511,7 @@ const CompleteTasksModule: React.FC = () => {
           key = task.priority;
           break;
         case 'assignee':
-          key = task.assignee || 'Non assigné';
+          key = (task.assignees && task.assignees[0]) || task.assignee || 'Non assigné';
           break;
         case 'project':
           key = task.project || 'Sans projet';
@@ -548,6 +568,8 @@ const CompleteTasksModule: React.FC = () => {
       dueDate: newTask.dueDate,
       createdAt: new Date(),
       tags: newTask.tags || [],
+      assignees: newTask.assignees || [],
+      assignee: (newTask.assignees && newTask.assignees[0]) || undefined,
       subTasks: newTask.subTasks || [],
       checklist: newTask.checklist || [],
       progress: 0
@@ -561,7 +583,8 @@ const CompleteTasksModule: React.FC = () => {
       status: 'todo',
       tags: [],
       subTasks: [],
-      checklist: []
+      checklist: [],
+      assignees: []
     });
     setShowNewTask(false);
   };
@@ -957,6 +980,50 @@ const CompleteTasksModule: React.FC = () => {
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assigné(s) à <span className="text-gray-400 font-normal">(une ou plusieurs personnes)</span>
+                </label>
+                {teamMembers.length === 0 ? (
+                  <p className="text-xs text-gray-500">
+                    Aucun membre disponible — ajoutez des utilisateurs dans Sécurité &gt; Utilisateurs.
+                  </p>
+                ) : (
+                  <div className="border rounded-lg max-h-36 overflow-y-auto divide-y">
+                    {teamMembers.map(m => {
+                      const selected = (newTask.assignees || []).includes(m.name);
+                      return (
+                        <label key={m.id || m.name} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-sm">
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={(e) => setNewTask(prev => {
+                              const cur = prev.assignees || [];
+                              return {
+                                ...prev,
+                                assignees: e.target.checked ? [...cur, m.name] : cur.filter(n => n !== m.name),
+                              };
+                            })}
+                            className="rounded border-gray-300 text-[var(--color-primary)]"
+                          />
+                          <span className="font-medium text-gray-800">{m.name}</span>
+                          {m.role && <span className="text-xs text-gray-400">· {m.role}</span>}
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                {(newTask.assignees || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {(newTask.assignees || []).map(n => (
+                      <span key={n} className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full text-xs">
+                        <User className="w-3 h-3" />{n}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -970,7 +1037,8 @@ const CompleteTasksModule: React.FC = () => {
                     status: 'todo',
                     tags: [],
                     subTasks: [],
-                    checklist: []
+                    checklist: [],
+                    assignees: []
                   });
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
