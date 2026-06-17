@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   X, Camera, Info, Package, Shield, FileText, MapPin,
   DollarSign, Building2,
@@ -64,6 +64,29 @@ const fmt = (n: number) => formatCurrency(n);
 
 const fmtDec = (n: number) => formatCurrency(n);
 
+// Valeurs par défaut du formulaire (extraites pour réhydratation propre à l'ouverture)
+const DEFAULT_FORM_DATA: FormData = {
+  description: '', asset_number: '', status: 'en_service', category: '', sub_category: '',
+  asset_class: '', acquisition_cost: '', current_value: '', residual_value: '0', location: '',
+  serial_number: '', manufacturer: '', model: '', barcode: '', responsible_person: '',
+  date_mise_en_service: '', notes: '',
+  material_data: '', additional_identifier: '', shipping_type: '', batch_numbers: '', managed_by: '',
+  disposal_method: '', weight: '', dimensions: '', color: '', material_type: '',
+  warranty_period: '', warranty_unit: 'months', warranty_terms: '', warranty_start: '', warranty_end: '',
+  warranty_provider: '', warranty_phone: '',
+  insurance_provider: '', insurance_policy_number: '', insurance_coverage_amount: '', insurance_premium: '',
+  insurance_expiration: '', policy_type: '',
+  building_name: '', floor: '', room: '', department: '', zoning: '', unit: '', gps_latitude: '',
+  gps_longitude: '', location_address: '',
+  acquisition_date: '', acquisition_type: 'achat', supplier: '', invoice_number: '', invoice_date: '',
+  purchase_order: '', delivery_date: '', commissioning_date: '', acquisition_currency: 'XAF',
+  transport_cost: '', installation_cost: '', other_costs: '', total_acquisition_cost: '',
+  account_code: '', depreciation_account: '', dotation_account: '', depreciation_method: 'lineaire',
+  useful_life_years: '', useful_life_months: '', depreciation_rate: '', depreciation_start_date: '',
+  cumulative_depreciation: '0', net_book_value: '0', revaluation_date: '', revaluation_amount: '0',
+  impairment_amount: '0', fiscal_regime: 'normal',
+};
+
 // ────────────────────────────────────────────────────
 // Component
 // ────────────────────────────────────────────────────
@@ -77,99 +100,21 @@ const AssetForm: React.FC<AssetFormProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [activeGeneralTab, setActiveGeneralTab] = useState('basic');
-  const [formData, setFormData] = useState<FormData>({
-    // Basic Info
-    description: '',
-    asset_number: '',
-    status: 'en_service',
-    category: '',
-    sub_category: '',
-    asset_class: '',
-    acquisition_cost: '',
-    current_value: '',
-    residual_value: '0',
-    location: '',
-    serial_number: '',
-    manufacturer: '',
-    model: '',
-    barcode: '',
-    responsible_person: '',
-    date_mise_en_service: '',
-    notes: '',
+  const [formData, setFormData] = useState<FormData>(() => ({ ...DEFAULT_FORM_DATA, ...initialData }));
 
-    // Material Data
-    material_data: '',
-    additional_identifier: '',
-    shipping_type: '',
-    batch_numbers: '',
-    managed_by: '',
-    disposal_method: '',
-    weight: '',
-    dimensions: '',
-    color: '',
-    material_type: '',
-
-    // Warranty
-    warranty_period: '',
-    warranty_unit: 'months',
-    warranty_terms: '',
-    warranty_start: '',
-    warranty_end: '',
-    warranty_provider: '',
-    warranty_phone: '',
-
-    // Insurance
-    insurance_provider: '',
-    insurance_policy_number: '',
-    insurance_coverage_amount: '',
-    insurance_premium: '',
-    insurance_expiration: '',
-    policy_type: '',
-
-    // Location
-    building_name: '',
-    floor: '',
-    room: '',
-    department: '',
-    zoning: '',
-    unit: '',
-    gps_latitude: '',
-    gps_longitude: '',
-    location_address: '',
-
-    // Acquisition
-    acquisition_date: '',
-    acquisition_type: 'achat',
-    supplier: '',
-    invoice_number: '',
-    invoice_date: '',
-    purchase_order: '',
-    delivery_date: '',
-    commissioning_date: '',
-    acquisition_currency: 'XAF',
-    transport_cost: '',
-    installation_cost: '',
-    other_costs: '',
-    total_acquisition_cost: '',
-
-    // Immobilisation (Depreciation)
-    account_code: '',
-    depreciation_account: '',
-    dotation_account: '',
-    depreciation_method: 'lineaire',
-    useful_life_years: '',
-    useful_life_months: '',
-    depreciation_rate: '',
-    depreciation_start_date: '',
-    cumulative_depreciation: '0',
-    net_book_value: '0',
-    revaluation_date: '',
-    revaluation_amount: '0',
-    impairment_amount: '0',
-    fiscal_regime: 'normal',
-
-    ...initialData
-  });
+  // Réhydratation à l'ouverture : useState n'initialise qu'UNE fois et le composant
+  // reste monté (`if (!isOpen) return null` ne réinitialise pas les hooks). Sans cela,
+  // éditer un actif affichait des champs vides (comptes, méthode, durée, amortissements…)
+  // alors qu'initialData est correctement fourni — données chargées en async après le
+  // 1er montant. On resynchronise donc dès que la modale s'ouvre ou que l'actif change.
+  const lastHydratedKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isOpen) { lastHydratedKey.current = null; return; }
+    const key = JSON.stringify(initialData ?? {});
+    if (lastHydratedKey.current === key) return; // déjà hydraté pour cet actif → préserve les saisies
+    lastHydratedKey.current = key;
+    setFormData({ ...DEFAULT_FORM_DATA, ...initialData } as FormData);
+  }, [isOpen, initialData]);
 
   // ── Derived calculations ──────────────────────────
 

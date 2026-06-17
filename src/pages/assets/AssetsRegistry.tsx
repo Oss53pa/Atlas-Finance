@@ -568,7 +568,10 @@ const AssetsRegistry: React.FC = () => {
     const payload: Record<string, any> = {
       code: txt(formData.asset_number), name: txt(formData.description), category: txt(formData.category),
       sub_category: txt(formData.sub_category), account_code: txt(formData.account_code),
-      depreciation_account_code: txt(formData.depreciation_account), depreciation_method: txt(formData.depreciation_method),
+      depreciation_account_code: txt(formData.depreciation_account),
+      // Le formulaire utilise 'lineaire'/'degressif'/'non_amortissable' ; la table assets
+      // contraint depreciation_method IN ('linear','declining') → traduire avant persistance.
+      depreciation_method: formData.depreciation_method === 'degressif' ? 'declining' : 'linear',
       useful_life_years: num(formData.useful_life_years), acquisition_value: num(formData.acquisition_cost),
       residual_value: num(formData.residual_value) ?? 0, cumul_depreciation: num(formData.cumulative_depreciation) ?? 0,
       acquisition_date: txt(formData.acquisition_date), status,
@@ -1952,7 +1955,9 @@ const AssetsRegistry: React.FC = () => {
               date_mise_en_service: s(a.date_mise_en_service ?? a.acquisition_date),
               commissioning_date: s(a.commissioning_date ?? a.acquisition_date),
               account_code: s(a.account_code), depreciation_account: s(a.depreciation_account_code),
-              depreciation_method: s(a.depreciation_method ?? 'lineaire'),
+              depreciation_method: a.depreciation_method === 'linear' ? 'lineaire'
+                : a.depreciation_method === 'declining' ? 'degressif'
+                : s(a.depreciation_method || 'lineaire'),
               useful_life_years: s(a.useful_life_years || ''),
               cumulative_depreciation: s(cumul || 0), net_book_value: s(vnc || 0),
               status: a.status === 'active' ? 'en_service' : s(a.status ?? 'en_service'),
