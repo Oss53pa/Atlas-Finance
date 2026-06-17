@@ -106,6 +106,7 @@ const FournisseursModule: React.FC = () => {
   const [compareMode, setCompareMode] = useState(false);
   const [showNewFournisseurModal, setShowNewFournisseurModal] = useState(false);
   const [editingFournisseur, setEditingFournisseur] = useState<Fournisseur | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null); // édition via l'assistant 4 étapes
   // Fiche fournisseur en consultation (bouton œil) + écritures par fournisseur.
   const [viewingFournisseur, setViewingFournisseur] = useState<Fournisseur | null>(null);
   const [fournisseurLinesMap, setFournisseurLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
@@ -316,20 +317,45 @@ const FournisseursModule: React.FC = () => {
   };
 
   const handleEditFournisseur = (fournisseur: Fournisseur) => {
-    setEditingFournisseur(fournisseur);
-    setEditForm({
-      raisonSociale: fournisseur.raisonSociale,
-      nif: '',
-      telephone: fournisseur.telephoneComptable,
-      email: fournisseur.emailComptable,
-      adresse: '',
-      typeFournisseur: 'local',
-      compteComptable: '401',
-      categorie: fournisseur.categorie,
-      statut: fournisseur.statut,
-      delaiPaiement: fournisseur.delaiPaiement,
-      modeReglement: fournisseur.modeReglement,
+    const f: any = fournisseur;
+    // Ouvre l'assistant complet (4 étapes) pré-rempli, au lieu du mini-formulaire.
+    setNewFournisseur({
+      code: f.code || '',
+      raisonSociale: f.raisonSociale || '',
+      nomCommercial: f.nomCommercial || '',
+      categorie: f.categorie || 'RECURRENT',
+      typeDépense: f.typeDépense || 'FRAIS_GENERAUX',
+      pays: f.pays || 'Cameroun',
+      secteurActivite: f.secteurActivite || '',
+      rccm: f.rccm || '',
+      niu: f.niu || '',
+      adresse: f.adresse || '',
+      codePostal: f.codePostal || '',
+      ville: f.ville || '',
+      region: f.region || '',
+      contactPrincipal: f.contactPrincipal || '',
+      fonction: '',
+      email: f.emailComptable || f.email || '',
+      telephone: f.telephoneComptable || f.telephone || '',
+      telephoneSecondaire: '',
+      compteComptable: f.compteComptable || '401',
+      compteAuxiliaire: f.compteAuxiliaire || f.code || '',
+      codeCommercial: '',
+      typeFournisseur: f.typeFournisseur || 'local',
+      journalAchats: f.journalAchats || 'AC',
+      delaiPaiement: f.delaiPaiement ?? 30,
+      limiteCredit: f.limiteCredit ?? 0,
+      modeReglement: f.modeReglement || 'VIREMENT',
+      devise: f.devise || 'XAF',
+      escompte: f.escompte ?? 0,
+      tauxTVA: f.tauxTVA ?? 19.25,
+      banque: f.banque || '',
+      iban: f.iban || '',
+      swift: f.swift || '',
     });
+    setEditingId(fournisseur.id);
+    setFormStep(1);
+    setShowNewFournisseurModal(true);
   };
 
   const handleSaveEdit = async () => {
@@ -1546,10 +1572,10 @@ const FournisseursModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">Nouveau Fournisseur</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? 'Modifier le fournisseur' : 'Nouveau Fournisseur'}</h3>
                   <p className="text-sm text-[var(--color-text-secondary)]">Étape {formStep} sur 4</p>
                 </div>
-                <button onClick={() => { setShowNewFournisseurModal(false); setFormStep(1); }} className="p-2 hover:bg-gray-100 rounded-full">
+                <button onClick={() => { setShowNewFournisseurModal(false); setFormStep(1); setEditingId(null); }} className="p-2 hover:bg-gray-100 rounded-full">
                   <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
                 </button>
               </div>
@@ -1910,7 +1936,7 @@ const FournisseursModule: React.FC = () => {
 
             <div className="p-6 border-t border-[var(--color-border)] flex justify-between">
               <button type="button"
-                onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowNewFournisseurModal(false), setFormStep(1))}
+                onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowNewFournisseurModal(false), setFormStep(1), setEditingId(null))}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50">
                 {formStep > 1 ? 'Précédent' : 'Annuler'}
               </button>
@@ -1923,13 +1949,19 @@ const FournisseursModule: React.FC = () => {
                     onClick={async () => {
                       if (!newFournisseur.code || !newFournisseur.raisonSociale) return;
                       try {
-                        await adapter.create('thirdParties', {
-                          code: newFournisseur.code, name: newFournisseur.raisonSociale, type: 'supplier',
+                        const fpayload = {
+                          code: newFournisseur.code, name: newFournisseur.raisonSociale,
                           email: newFournisseur.email, phone: newFournisseur.telephone,
                           address: `${newFournisseur.adresse}, ${newFournisseur.ville}, ${newFournisseur.pays}`,
                           taxId: newFournisseur.niu,
-                        });
-                        setShowNewFournisseurModal(false); setFormStep(1);
+                          conditionsPaiement: { delaiJours: newFournisseur.delaiPaiement, modePaiement: newFournisseur.modeReglement.toLowerCase() },
+                        };
+                        if (editingId) {
+                          await adapter.update('thirdParties', editingId, fpayload);
+                        } else {
+                          await adapter.create('thirdParties', { ...fpayload, type: 'supplier' });
+                        }
+                        setShowNewFournisseurModal(false); setFormStep(1); setEditingId(null);
                         const tp = await adapter.getAll<any>('thirdParties');
                         const suppliers = tp.filter((t: any) => t.type === 'supplier' || t.type === 'both' || /^40/.test(t.code || ''));
                         setFournisseurs(suppliers.map((s: any) => ({
@@ -1943,7 +1975,7 @@ const FournisseursModule: React.FC = () => {
  } catch (err) { /* ignored */ }
                     }}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
-                    Créer le fournisseur
+                    {editingId ? 'Enregistrer les modifications' : 'Créer le fournisseur'}
                   </button>
                 )}
               </div>
@@ -2012,7 +2044,7 @@ const FournisseursModule: React.FC = () => {
               </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
-              <button onClick={() => { const f = viewingFournisseur; setViewingFournisseur(null); setEditingFournisseur(f); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
+              <button onClick={() => { const f = viewingFournisseur; setViewingFournisseur(null); if (f) handleEditFournisseur(f); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
               <button onClick={() => setViewingFournisseur(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
             </div>
           </div>

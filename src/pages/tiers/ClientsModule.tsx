@@ -185,6 +185,7 @@ const ClientsModule: React.FC = () => {
   });
   const [compareMode, setCompareMode] = useState<boolean>(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null); // édition via l'assistant 4 étapes
   // Agrégats RÉELS des comptes clients (41x) — le détail par client n'est pas
   // attribuable (la migration a consolidé sur un compte collectif, sans code
   // tiers), mais le total des créances et le CA restent calculables.
@@ -479,6 +480,7 @@ const ClientsModule: React.FC = () => {
   const handleCloseNewClientModal = () => {
     setShowNewClientModal(false);
     setFormStep(1);
+    setEditingId(null);
     setNewClient({
       code: '',
       raisonSociale: '',
@@ -518,27 +520,35 @@ const ClientsModule: React.FC = () => {
 
   const handleSaveNewClient = async () => {
     try {
-      const id = crypto.randomUUID();
-      await adapter.create('thirdParties', {
-        id,
+      const common = {
         code: newClient.code,
         name: newClient.raisonSociale,
-        type: 'customer',
-        accountCode: `${newClient.compteComptable}${newClient.code || id.slice(0, 6).toUpperCase()}`,
         taxId: newClient.niu,
         rccm: newClient.rccm,
         email: newClient.email,
         phone: newClient.telephone,
         address: newClient.adresse,
-        isActive: true,
         conditionsPaiement: {
           delaiJours: newClient.delaiPaiement,
           modePaiement: newClient.modeReglement.toLowerCase(),
           escompte: newClient.escompte,
         },
         regimeFiscal: newClient.regimeTVA === 'REEL_NORMAL' ? 'RNI' : 'RSI',
-        createdAt: new Date().toISOString(),
-      });
+      };
+      if (editingId) {
+        await adapter.update('thirdParties', editingId, common);
+        toast.success('Client mis à jour');
+      } else {
+        const id = crypto.randomUUID();
+        await adapter.create('thirdParties', {
+          id,
+          type: 'customer',
+          accountCode: `${newClient.compteComptable}${newClient.code || id.slice(0, 6).toUpperCase()}`,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          ...common,
+        });
+      }
       // Reload
       const [allThirdParties, allEntries] = await Promise.all([
         adapter.getAll('thirdParties'),
@@ -592,7 +602,46 @@ const ClientsModule: React.FC = () => {
 
   const handleEditClient = (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
-    if (client) setEditingClient(client);
+    if (!client) return;
+    // Ouvre l'assistant complet (4 étapes) pré-rempli, au lieu du mini-formulaire.
+    setNewClient({
+      code: client.code || '',
+      raisonSociale: client.raisonSociale || '',
+      nomCommercial: client.nomCommercial || '',
+      categorie: client.categorie || 'PME',
+      secteurActivite: client.secteurActivite || '',
+      rccm: client.rccm || '',
+      niu: client.niu || '',
+      regimeTVA: client.regimeTVA || 'REEL_NORMAL',
+      adresse: client.adresse || '',
+      codePostal: client.codePostal || '',
+      ville: client.ville || '',
+      region: client.region || '',
+      pays: client.pays || 'Cameroun',
+      contactPrincipal: client.contactPrincipal || '',
+      fonction: '',
+      email: client.email || '',
+      telephone: client.telephone || '',
+      telephoneSecondaire: '',
+      fax: '',
+      compteComptable: client.compteComptable || '411',
+      compteAuxiliaire: client.compteAuxiliaire || client.code || '',
+      codeCommercial: '',
+      journalVentes: client.journalVentes || 'VE',
+      delaiPaiement: client.delaiPaiement ?? 30,
+      limiteCredit: client.limiteCredit ?? 0,
+      modeReglement: client.modeReglement || 'VIREMENT',
+      devise: client.devise || 'XAF',
+      remise: client.remise ?? 0,
+      escompte: client.escompte ?? 0,
+      tauxTVA: client.tauxTVA ?? 19.25,
+      banque: client.banque || '',
+      iban: client.iban || '',
+      swift: client.swift || '',
+    });
+    setEditingId(clientId);
+    setFormStep(1);
+    setShowNewClientModal(true);
   };
 
   const handleDeleteClient = async (clientId: string) => {
@@ -1762,7 +1811,7 @@ const ClientsModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">Nouveau Client</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? 'Modifier le client' : 'Nouveau Client'}</h3>
                   <p className="text-sm text-[var(--color-text-secondary)]">Étape {formStep} sur 4</p>
                 </div>
                 <button type="button" onClick={handleCloseNewClientModal} className="p-2 hover:bg-gray-100 rounded-full">
@@ -2276,7 +2325,7 @@ const ClientsModule: React.FC = () => {
                     onClick={handleSaveNewClient}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
                   >
-                    Créer le client
+                    {editingId ? 'Enregistrer les modifications' : 'Créer le client'}
                   </button>
                 )}
               </div>
@@ -2346,7 +2395,7 @@ const ClientsModule: React.FC = () => {
               </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
-              <button onClick={() => { const c = viewingClient; setViewingClient(null); setEditingClient(c); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
+              <button onClick={() => { const c = viewingClient; setViewingClient(null); if (c) handleEditClient(c.id); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
               <button onClick={() => setViewingClient(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
             </div>
           </div>
