@@ -154,44 +154,80 @@ const BilanSYSCOHADAPage: React.FC = () => {
     return t;
   };
 
-  // Bilan data — computed from entries (N-1 from AN/RAN journal opening entries)
-  const bilanData = useMemo(() => ({
-    actif: [
-      { code: '20', libelle: 'Charges immobilisées', exerciceN: Math.max(0, net(['20'])), exerciceN1: Math.max(0, netN1(['20'])) },
-      { code: '21', libelle: 'Immobilisations incorporelles', exerciceN: Math.max(0, net(['21'])), exerciceN1: Math.max(0, netN1(['21'])) },
-      { code: '22', libelle: 'Terrains', exerciceN: Math.max(0, net(['22'])), exerciceN1: Math.max(0, netN1(['22'])) },
-      { code: '23', libelle: 'Bâtiments, installations et agencements', exerciceN: Math.max(0, net(['23'])), exerciceN1: Math.max(0, netN1(['23'])) },
-      // '24' couvre déjà 245/246/247 → une seule ligne (évite le double comptage)
-      { code: '24', libelle: 'Matériel, mobilier et transport', exerciceN: Math.max(0, net(['24'])), exerciceN1: Math.max(0, netN1(['24'])) },
-      { code: '25', libelle: 'Avances et acomptes sur immobilisations', exerciceN: Math.max(0, net(['25'])), exerciceN1: Math.max(0, netN1(['25'])) },
-      { code: '26/27', libelle: 'Immobilisations financières', exerciceN: Math.max(0, net(['26', '27'])), exerciceN1: Math.max(0, netN1(['26', '27'])) },
-      // Amortissements et dépréciations (classes 28/29) déduits → actif immobilisé NET (VNC)
-      { code: '28/29', libelle: 'Amortissements et dépréciations (à déduire)', exerciceN: -Math.max(0, creditNet(['28', '29'])), exerciceN1: -Math.max(0, creditNetN1(['28', '29'])) },
-      { code: '31', libelle: 'Stocks de marchandises', exerciceN: Math.max(0, net(['31'])), exerciceN1: Math.max(0, netN1(['31'])) },
-      { code: '32', libelle: 'Stocks de matières premières', exerciceN: Math.max(0, net(['32'])), exerciceN1: Math.max(0, netN1(['32'])) },
-      { code: '41', libelle: 'Clients et comptes rattachés', exerciceN: Math.max(0, net(['41'])), exerciceN1: Math.max(0, netN1(['41'])) },
-      { code: '46', libelle: 'Débiteurs divers', exerciceN: Math.max(0, net(['46'])), exerciceN1: Math.max(0, netN1(['46'])) },
-      { code: '50', libelle: 'Valeurs mobilières de placement', exerciceN: Math.max(0, net(['50'])), exerciceN1: Math.max(0, netN1(['50'])) },
-      { code: '52', libelle: 'Banques', exerciceN: Math.max(0, net(['52'])), exerciceN1: Math.max(0, netN1(['52'])) },
-      // Bug fix: code 53 = Caisses uses prefix '53', not '57' (virements de fonds)
-      { code: '53', libelle: 'Caisses', exerciceN: Math.max(0, net(['53'])), exerciceN1: Math.max(0, netN1(['53'])) },
-    ],
-    passif: [
-      { code: '10', libelle: 'Capital social', exerciceN: creditNet(['10']), exerciceN1: creditNetN1(['10']) },
-      { code: '11', libelle: 'Réserves', exerciceN: creditNet(['11']), exerciceN1: creditNetN1(['11']) },
-      { code: '12', libelle: 'Report à nouveau', exerciceN: creditNet(['12']), exerciceN1: creditNetN1(['12']) },
-      // Résultat NET d'impôt (− cl.89) : sans cette déduction le passif est
-      // surévalué de net('89') et le bilan ne s'équilibre pas (la dette d'IMF
-      // est portée en 44). Cohérent avec le SIG « Résultat net » ci-dessous.
-      { code: '13', libelle: 'Résultat de l\'exercice', exerciceN: creditNet(['7']) - net(['6']) - net(['89']), exerciceN1: creditNetN1(['13']) },
-      { code: '16', libelle: 'Emprunts et dettes financières', exerciceN: creditNet(['16']), exerciceN1: creditNetN1(['16']) },
-      { code: '40', libelle: 'Fournisseurs et comptes rattachés', exerciceN: creditNet(['40']), exerciceN1: creditNetN1(['40']) },
-      { code: '42', libelle: 'Personnel', exerciceN: creditNet(['42']), exerciceN1: creditNetN1(['42']) },
-      { code: '43', libelle: 'Organismes sociaux', exerciceN: creditNet(['43']), exerciceN1: creditNetN1(['43']) },
-      { code: '44', libelle: 'État et collectivités', exerciceN: creditNet(['44']), exerciceN1: creditNetN1(['44']) },
-      { code: '47', libelle: 'Créditeurs divers', exerciceN: creditNet(['47']), exerciceN1: creditNetN1(['47']) },
-    ],
-  }), [rawEntries]);
+  // Bilan data — placement de CHAQUE compte de bilan (classes 1-5) selon le
+  // SIGNE de son solde : solde débiteur → actif, créditeur → passif ; les
+  // comptes de contrepartie d'actif (28/29/39/49/59 : amort./dépréciations)
+  // viennent en déduction de l'actif. Le résultat net (7−6−89) va au passif.
+  // Conséquence : Actif = Passif à l'exact (Σ des soldes des classes 1-5 =
+  // résultat net). L'ancienne version bornait chaque poste à Math.max(0,…) et
+  // omettait des comptes (46 créditeur de 8,36 Md, 47/48/49/17/19/55/57) → le
+  // passif était sous-évalué et le bilan ne s'équilibrait pas.
+  const BILAN_LABELS: Record<string, string> = {
+    '10': 'Capital social', '11': 'Réserves', '12': 'Report à nouveau', '13': "Résultat de l'exercice",
+    '14': "Subventions d'investissement", '15': 'Provisions réglementées', '16': 'Emprunts et dettes financières',
+    '17': 'Dettes de crédit-bail', '18': 'Dettes liées aux participations', '19': 'Provisions pour risques et charges',
+    '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
+    '23': 'Bâtiments, installations et agencements', '24': 'Matériel, mobilier et transport',
+    '25': 'Avances et acomptes sur immobilisations', '26': 'Titres de participation', '27': 'Autres immobilisations financières',
+    '28': 'Amortissements', '29': 'Dépréciations des immobilisations',
+    '31': 'Stocks de marchandises', '32': 'Stocks de matières premières', '33': 'Autres approvisionnements',
+    '34': 'Produits et travaux en cours', '35': 'Produits finis', '36': 'Stocks en cours', '37': 'Stocks (autres)',
+    '38': 'Stocks en transit', '39': 'Dépréciations des stocks',
+    '40': 'Fournisseurs et comptes rattachés', '41': 'Clients et comptes rattachés', '42': 'Personnel',
+    '43': 'Organismes sociaux', '44': 'État et collectivités', '45': 'Organismes internationaux',
+    '46': 'Débiteurs et créditeurs divers', '47': 'Comptes transitoires ou d\'attente', '48': 'Créances et dettes HAO',
+    '49': 'Dépréciations des comptes de tiers',
+    '50': 'Titres de placement', '51': 'Valeurs à encaisser', '52': 'Banques', '53': 'Établissements financiers',
+    '54': 'Instruments de trésorerie', '55': 'Caisse (régies)', '56': 'Crédits de trésorerie', '57': 'Caisse',
+    '58': 'Régies d\'avances et virements internes', '59': 'Dépréciations de trésorerie',
+  };
+  const CONTRA_ACTIF = new Set(['28', '29', '39', '49', '59']);
+  // Comptes de nature fixe (présentation SYSCOHADA) ; le reste (tiers 40-48,
+  // trésorerie 50-58) est placé selon le signe du solde. Quel que soit le côté,
+  // chaque compte contribue identiquement à (Actif − Passif) → l'équilibre tient.
+  const ALWAYS_PASSIF = new Set(['10', '11', '12', '13', '14', '15', '16', '17', '18', '19']);
+  const ALWAYS_ACTIF = new Set(['20', '21', '22', '23', '24', '25', '26', '27', '31', '32', '33', '34', '35', '36', '37', '38']);
+
+  const bilanData = useMemo(() => {
+    const nEntries = filterByPeriode(rawEntries).filter((e: any) => e.status !== 'draft');
+    const n1Entries = rawEntries.filter((e: any) => e.journal === 'AN' || e.journal === 'RAN');
+    const aggByClass2 = (entries: any[]) => {
+      const m = new Map<string, number>();
+      for (const e of entries) for (const l of (e.lines || [])) {
+        const code = String(l.accountCode || '');
+        if (!['1', '2', '3', '4', '5'].includes(code[0])) continue;
+        const c2 = code.substring(0, 2);
+        m.set(c2, (m.get(c2) || 0) + (Number(l.debit) || 0) - (Number(l.credit) || 0));
+      }
+      return m;
+    };
+    const mN = aggByClass2(nEntries);
+    const mN1 = aggByClass2(n1Entries);
+    const codes = Array.from(new Set([...mN.keys(), ...mN1.keys()])).sort();
+
+    const actif: Array<{ code: string; libelle: string; exerciceN: number; exerciceN1: number }> = [];
+    const passif: typeof actif = [];
+    for (const c2 of codes) {
+      const vN = mN.get(c2) || 0;
+      const vN1 = mN1.get(c2) || 0;
+      const libelle = BILAN_LABELS[c2] || `Classe ${c2}`;
+      if (CONTRA_ACTIF.has(c2)) {
+        // Contrepartie d'actif (solde créditeur) → en déduction de l'actif.
+        actif.push({ code: c2, libelle: `${libelle} (à déduire)`, exerciceN: vN, exerciceN1: vN1 });
+        continue;
+      }
+      if (ALWAYS_PASSIF.has(c2)) { passif.push({ code: c2, libelle, exerciceN: -vN, exerciceN1: -vN1 }); continue; }
+      if (ALWAYS_ACTIF.has(c2)) { actif.push({ code: c2, libelle, exerciceN: vN, exerciceN1: vN1 }); continue; }
+      // Tiers (40-48) & trésorerie (50-58) : placés selon le signe du solde.
+      const ref = vN !== 0 ? vN : vN1;
+      if (ref === 0) continue;
+      if (ref > 0) actif.push({ code: c2, libelle, exerciceN: vN, exerciceN1: vN1 });
+      else passif.push({ code: c2, libelle, exerciceN: -vN, exerciceN1: -vN1 });
+    }
+    // Résultat NET d'impôt (− cl.89) au passif (capitaux propres).
+    passif.push({ code: '13', libelle: "Résultat net de l'exercice", exerciceN: creditNet(['7']) - net(['6']) - net(['89']), exerciceN1: creditNetN1(['13']) });
+    return { actif, passif };
+  }, [rawEntries]);
 
   // Compte de Résultat — N-1 not available from AN entries (income stmt doesn't carry forward)
   // We show 0 with a clear label; a full N-1 would require a prior-year dataset
@@ -346,7 +382,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
         categorie: 'Ratios de Structure',
         ratios: [
           { nom: 'Ratio d\'autonomie financière', calcul: 'Capitaux propres / Total passif', valeur: safe(cp, totalActif), norme: '> 0.5', status: safe(cp, totalActif) > 0.5 ? 'bon' : 'moyen' },
-          { nom: 'Ratio de financement des immobilisations', calcul: 'Capitaux permanents / Immobilisations', valeur: safe(cp + emprunts, bilanData.actif.slice(0, 7).reduce((s, r) => s + r.exerciceN, 0) || 1), norme: '> 1', status: 'moyen' },
+          { nom: 'Ratio de financement des immobilisations', calcul: 'Capitaux permanents / Immobilisations', valeur: safe(cp + emprunts, bilanData.actif.filter(r => r.code < '30').reduce((s, r) => s + r.exerciceN, 0) || 1), norme: '> 1', status: 'moyen' },
           { nom: 'Ratio d\'endettement', calcul: 'Dettes / Capitaux propres', valeur: safe(emprunts, cp), norme: '< 1', status: safe(emprunts, cp) < 1 ? 'bon' : 'moyen' },
         ],
       },
@@ -546,10 +582,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AD</td>
                           <td className="p-2 font-bold">ACTIF IMMOBILISE</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(0, 7).reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(0, 7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code < '30').reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code < '30').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
-                        {bilanData.actif.slice(0, 7).map((item, index) => (
+                        {bilanData.actif.filter(r => r.code < '30').map((item, index) => (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
@@ -584,10 +620,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AE</td>
                           <td className="p-2 font-bold">ACTIF CIRCULANT</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(7).reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.slice(7).reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code >= '30').reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code >= '30').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
-                        {bilanData.actif.slice(7).map((item, index) => (
+                        {bilanData.actif.filter(r => r.code >= '30').map((item, index) => (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
@@ -647,10 +683,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">CP</td>
                           <td className="p-2 font-bold">CAPITAUX PROPRES</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(0, 4).reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(0, 4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code < '20').reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code < '20').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
-                        {bilanData.passif.slice(0, 4).map((item, index) => (
+                        {bilanData.passif.filter(r => r.code < '20').map((item, index) => (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">
@@ -685,10 +721,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">DT</td>
                           <td className="p-2 font-bold">DETTES</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(4).reduce((s, i) => s + i.exerciceN, 0))}</td>
-                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.slice(4).reduce((s, i) => s + i.exerciceN1, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code >= '20').reduce((s, i) => s + i.exerciceN, 0))}</td>
+                          <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code >= '20').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
-                        {bilanData.passif.slice(4).map((item, index) => (
+                        {bilanData.passif.filter(r => r.code >= '20').map((item, index) => (
                           <tr key={index} className="border-b border-[var(--color-border)] hover:bg-gray-50">
                             <td className="p-2 text-[#404040]">
                               <div className="flex items-center space-x-2">

@@ -97,6 +97,77 @@ async function getNextLettrageCode(adapter: DataAdapter): Promise<string> {
   return `A${Date.now().toString(36).slice(-2).toUpperCase()}`;
 }
 
+/**
+ * Générateur de codes séquentiels sans re-lecture (évite les collisions quand on
+ * pose plusieurs lettrages d'affilée — l'écriture directe ne rafraîchit pas le
+ * cache de l'adaptateur).
+ */
+async function makeCodeGenerator(adapter: DataAdapter): Promise<() => string> {
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  const existing = new Set<string>();
+  for (const e of entries) for (const l of (e.lines || [])) if (l.lettrageCode) existing.add(l.lettrageCode);
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let i = 0;
+  return () => {
+    for (; i < 676; i++) {
+      const code = letters[Math.floor(i / 26)] + letters[i % 26];
+      if (!existing.has(code)) { existing.add(code); i++; return code; }
+    }
+    const fb = `A${existing.size.toString(36).toUpperCase()}`;
+    existing.add(fb);
+    return fb;
+  };
+}
+
+/**
+ * Persiste le code de lettrage sur les lignes.
+ *
+ * ⚠️ En mode SaaS, `journal_lines` est une table SÉPARÉE de `journal_entries`
+ * (cette dernière n'a PAS de colonne `lines`). L'ancienne persistance faisait
+ * `adapter.update('journalEntries', {lines})` → écrivait dans une colonne
+ * inexistante → AUCUN lettrage n'était enregistré (0 ligne lettrée en base).
+ * On écrit donc directement dans `journal_lines`. En mode Dexie (lignes
+ * imbriquées), on repasse par la mise à jour de l'entrée.
+ */
+async function persistLettrageCode(
+  adapter: DataAdapter,
+  lines: Array<{ entryId: string; lineId: string }>,
+  code: string | null,
+): Promise<number> {
+  const client = (adapter as any).client;
+  const isSaas = adapter.getMode?.() === 'saas' && client;
+  if (isSaas) {
+    const ids = lines.map(l => l.lineId).filter(Boolean);
+    let applied = 0;
+    for (let i = 0; i < ids.length; i += 100) {
+      const chunk = ids.slice(i, i + 100);
+      let q = client.from('journal_lines').update({ lettrage_code: code }).in('id', chunk);
+      if (code !== null) q = q.is('lettrage_code', null); // ne pas écraser un lettrage existant
+      const { error } = await q;
+      if (error) throw new Error(error.message);
+      applied += chunk.length;
+    }
+    return applied;
+  }
+  // Dexie / offline : lignes imbriquées dans l'entrée.
+  const byEntry = new Map<string, Set<string>>();
+  for (const l of lines) {
+    if (!byEntry.has(l.entryId)) byEntry.set(l.entryId, new Set());
+    byEntry.get(l.entryId)!.add(l.lineId);
+  }
+  let applied = 0;
+  for (const [entryId, lineIds] of byEntry) {
+    const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
+    if (!entry) continue;
+    let modified = false;
+    for (const line of entry.lines) {
+      if (lineIds.has(line.id)) { line.lettrageCode = code ?? undefined; modified = true; }
+    }
+    if (modified) { await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() }); applied++; }
+  }
+  return applied;
+}
+
 // ============================================================================
 // FLATTEN ENTRIES → LINES
 // ============================================================================
@@ -321,41 +392,16 @@ export async function autoLettrage(
  * Writes lettrageCode on each matched line.
  */
 export async function applyLettrage(adapter: DataAdapter, matches: LettrageMatch[]): Promise<number> {
+  const nextCode = await makeCodeGenerator(adapter);
   let applied = 0;
 
   for (const match of matches) {
-    const code = await getNextLettrageCode(adapter);
-    const allLineIds = new Set([
-      ...match.debitEntries.map(e => e.lineId),
-      ...match.creditEntries.map(e => e.lineId),
-    ]);
-
-    const entryIds = new Set([
-      ...match.debitEntries.map(e => e.entryId),
-      ...match.creditEntries.map(e => e.entryId),
-    ]);
-
-    for (const entryId of entryIds) {
-      const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
-      if (!entry) continue;
-
-      let modified = false;
-      for (const line of entry.lines) {
-        if (allLineIds.has(line.id) && !line.lettrageCode) {
-          line.lettrageCode = code;
-          modified = true;
-        }
-      }
-
-      if (modified) {
-        // TODO AF-021: Recalculate SHA-256 hash after modifying lines.
-        // Hash is chained (depends on previousHash), so recomputing here
-        // would require rebuilding the entire chain from this entry onward.
-        // See src/utils/integrity.ts — hashEntry(entry, previousHash).
-        await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
-        applied++;
-      }
-    }
+    const code = nextCode();
+    const lines = [
+      ...match.debitEntries.map(e => ({ entryId: e.entryId, lineId: e.lineId })),
+      ...match.creditEntries.map(e => ({ entryId: e.entryId, lineId: e.lineId })),
+    ];
+    applied += await persistLettrageCode(adapter, lines, code);
 
     await logAudit(
       'LETTRAGE_AUTO',
@@ -396,29 +442,8 @@ export async function applyManualLettrage(
 
   const code = await getNextLettrageCode(adapter);
 
-  const byEntry = new Map<string, string[]>();
-  for (const s of selections) {
-    const list = byEntry.get(s.entryId) || [];
-    list.push(s.lineId);
-    byEntry.set(s.entryId, list);
-  }
-
-  for (const [entryId, lineIds] of byEntry) {
-    const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
-    if (!entry) continue;
-
-    const lineIdSet = new Set(lineIds);
-    for (const line of entry.lines) {
-      if (lineIdSet.has(line.id)) {
-        line.lettrageCode = code;
-      }
-    }
-    // TODO AF-021: Recalculate SHA-256 hash after modifying lines.
-    // Hash is chained (depends on previousHash), so recomputing here
-    // would require rebuilding the entire chain from this entry onward.
-    // See src/utils/integrity.ts — hashEntry(entry, previousHash).
-    await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
-  }
+  // Écrit directement dans journal_lines (SaaS) ou l'entrée (Dexie).
+  await persistLettrageCode(adapter, selections.map(s => ({ entryId: s.entryId, lineId: s.lineId })), code);
 
   await logAudit(
     'LETTRAGE_MANUAL',
@@ -434,20 +459,21 @@ export async function applyManualLettrage(
  * Remove lettrage code from all lines with a given code.
  */
 export async function delettrage(adapter: DataAdapter, code: string): Promise<number> {
-  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  const client = (adapter as any).client;
   let count = 0;
-
-  for (const entry of entries) {
-    let modified = false;
-    for (const line of entry.lines) {
-      if (line.lettrageCode === code) {
-        line.lettrageCode = undefined;
-        modified = true;
-        count++;
+  if (adapter.getMode?.() === 'saas' && client) {
+    // Écrit directement dans journal_lines (table séparée).
+    const { data, error } = await client.from('journal_lines').update({ lettrage_code: null }).eq('lettrage_code', code).select('id');
+    if (error) throw new Error(error.message);
+    count = (data ?? []).length;
+  } else {
+    const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+    for (const entry of entries) {
+      let modified = false;
+      for (const line of entry.lines) {
+        if (line.lettrageCode === code) { line.lettrageCode = undefined; modified = true; count++; }
       }
-    }
-    if (modified) {
-      await adapter.update('journalEntries', entry.id, { lines: entry.lines, updatedAt: new Date().toISOString() });
+      if (modified) await adapter.update('journalEntries', entry.id, { lines: entry.lines, updatedAt: new Date().toISOString() });
     }
   }
 
