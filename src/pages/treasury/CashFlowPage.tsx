@@ -93,27 +93,33 @@ const CashFlowPage: React.FC = () => {
   const cashFlowData = useMemo(() => {
     let totalEntrees = 0;
     let totalSorties = 0;
+    let soldeOuverture = 0; // À Nouveau (ouverture), séparé des flux de période
     for (const entry of cfEntries) {
       if (!entry.lines) continue;
+      if ((entry as any).status === 'draft') continue; // brouillons exclus
+      const isAN = ['AN', 'RAN'].includes(String((entry as any).journal || '').toUpperCase());
       for (const line of entry.lines) {
         const code = String(line.accountCode || '');
-        if (code.startsWith('5')) {
-          totalEntrees += (line.debit || 0);
-          totalSorties += (line.credit || 0);
-        }
+        // Trésorerie = classe 5 HORS 58 (virements internes) et 59 (dépréciations).
+        if (!code.startsWith('5') || code.startsWith('58') || code.startsWith('59')) continue;
+        const d = line.debit || 0, c = line.credit || 0;
+        if (isAN) { soldeOuverture += d - c; }
+        else { totalEntrees += d; totalSorties += c; }
       }
     }
     const fluxNet = totalEntrees - totalSorties;
+    const soldeFinal = soldeOuverture + fluxNet;
     return {
-      solde_initial: 0,
+      solde_initial: soldeOuverture,
       total_entrees: totalEntrees,
       total_sorties: totalSorties,
       flux_net: fluxNet,
-      solde_final: fluxNet,
+      solde_final: soldeFinal,
       trend: (fluxNet > 0 ? 'up' : fluxNet < 0 ? 'down' : 'stable') as 'up' | 'down' | 'stable',
       evolution_percentage: 0,
       rotation_moyenne: 0,
-      jours_couverture: totalSorties > 0 ? Math.round((fluxNet / (totalSorties / 30))) : 0,
+      // Jours de couverture = trésorerie disponible / décaissements moyens journaliers.
+      jours_couverture: totalSorties > 0 ? Math.round(soldeFinal / (totalSorties / 30)) : 0,
       periods: undefined as any[] | undefined,
       categories: undefined as { entrees?: any[]; sorties?: any[] } | undefined,
       accounts: undefined as any[] | undefined,
