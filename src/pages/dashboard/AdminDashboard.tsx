@@ -36,6 +36,7 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [liveMetrics, setLiveMetrics] = useState<{ entries: number; accounts: number; thirdParties: number; assets: number } | null>(null);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [liveAuditLogs, setLiveAuditLogs] = useState<Array<{ time: string; event: string; user: string; ip: string; type: string }>>([]);
 
   // Load real data from IndexedDB on mount
@@ -101,18 +102,19 @@ const AdminDashboard: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } catch (err) { /* silent */
-      // Fallback
+      setLastBackup(new Date().toLocaleString('fr-FR'));
+      toast.success('Sauvegarde téléchargée');
+    } catch (err) {
+      console.error('[AdminDashboard] Erreur sauvegarde:', err);
+      toast.error('Erreur lors de la sauvegarde');
     }
     setIsBackingUp(false);
   };
 
   const handleCreateUser = () => {
-    if (!newUser.name || !newUser.email || !newUser.password) {
-      toast('Veuillez remplir tous les champs obligatoires');
-      return;
-    }
-    toast.success(`Utilisateur ${newUser.name} créé avec succès !`);
+    // Pas de faux "créé avec succès" : la vraie création (invitation email + rôle + RLS)
+    // se fait dans Espace Admin › Utilisateurs. On redirige plutôt que de simuler.
+    toast.info('La création d\'utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
     setShowNewUserModal(false);
     setNewUser({ name: '', email: '', role: 'Comptable', password: '' });
   };
@@ -133,7 +135,9 @@ const AdminDashboard: React.FC = () => {
   };
 
   const confirmDeleteUser = () => {
-    toast.success(`Utilisateur ${selectedUser?.name} supprimé avec succès !`);
+    // Pas de faux "supprimé avec succès" : la suppression réelle (avec RLS) est dans
+    // Espace Admin › Utilisateurs & Droits.
+    toast.info('La suppression d\'utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
     setShowDeleteUserModal(false);
     setSelectedUser(null);
   };
@@ -273,41 +277,22 @@ const AdminDashboard: React.FC = () => {
               })}
             </div>
 
-            {/* Monitoring en temps réel */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Performance Serveur</h2>
-                <div className="space-y-4">
-                  {[
-                    { label: 'CPU', value: '0%', color: 'green' },
-                    { label: 'RAM', value: '0%', color: 'green' },
-                    { label: 'Disque', value: '0%', color: 'green' },
-                    { label: 'Réseau', value: '0%', color: 'green' },
-                  ].map((item, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-[var(--color-text-primary)]">{item.label}</span>
-                        <span className="font-medium">{item.value}</span>
-                      </div>
-                      <div className="w-full bg-[var(--color-border)] rounded-full h-2">
-                        <div 
-                          className={`bg-${item.color}-500 h-2 rounded-full transition-all duration-300`}
-                          style={{ width: item.value }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Activité Réseau</h2>
-                <div className="h-48 bg-gradient-to-br from-blue-50 to-primary-100 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <Activity className="w-12 h-12 text-[var(--color-primary)] mx-auto mb-2" />
-                    <p className="text-[var(--color-text-primary)] text-sm">Graphique réseau temps réel</p>
+            {/* Volumétrie réelle de la base (un client web ne peut pas mesurer le CPU/RAM
+                du serveur — on affiche des métriques réelles et utiles à la place). */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Volumétrie de la base</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Écritures', value: liveMetrics?.entries },
+                  { label: 'Comptes', value: liveMetrics?.accounts },
+                  { label: 'Tiers', value: liveMetrics?.thirdParties },
+                  { label: 'Immobilisations', value: liveMetrics?.assets },
+                ].map((item) => (
+                  <div key={item.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] text-center">
+                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value != null ? item.value : '…'}</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{item.label}</p>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </>
@@ -440,26 +425,11 @@ const AdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Paramètres de Sécurité</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Authentification 2FA</span>
-                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
-                      <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Sessions automatiques</span>
-                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
-                      <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Logs détaillés</span>
-                    <div className="w-12 h-6 bg-[var(--color-success)] rounded-full p-1">
-                      <div className="w-4 h-4 bg-white rounded-full ml-6 transition-all"></div>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  La configuration de la sécurité (2FA, politique de mot de passe, restriction IP, journaux)
+                  se gère dans <strong>Espace Admin › Sécurité &amp; Rôles</strong>, où les réglages sont
+                  appliqués côté serveur.
+                </p>
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
@@ -467,11 +437,11 @@ const AdminDashboard: React.FC = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-primary)]">Dernière sauvegarde</span>
-                    <span className="text-sm text-[var(--color-success)]">Il y a 2h</span>
+                    <span className="text-sm text-[var(--color-success)]">{lastBackup || 'Aucune (cette session)'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-primary)]">Fréquence</span>
-                    <span className="text-sm text-[var(--color-text-primary)]">Toutes les 4h</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">Manuelle</span>
                   </div>
                   <button
                     onClick={handleBackup}

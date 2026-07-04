@@ -61,8 +61,9 @@ const AlertsSystem: React.FC = () => {
         const generatedAlerts: Alert[] = [];
         let alertId = 0;
 
-        // Check for unbalanced entries
+        // Check for unbalanced entries (parmi les écritures comptabilisées, pas les brouillons)
         for (const entry of entries) {
+          if (entry.status === 'draft') continue;
           if (entry.lines && Array.isArray(entry.lines)) {
             const totalDebit = entry.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
             const totalCredit = entry.lines.reduce((s: number, l: any) => s + (l.credit || 0), 0);
@@ -113,7 +114,7 @@ const AlertsSystem: React.FC = () => {
         let overdueTotal = 0;
         let overdueCount = 0;
         for (const entry of entries) {
-          if (entry.status === 'posted' && entry.lines) {
+          if ((entry.status === 'validated' || entry.status === 'posted') && entry.lines) {
             for (const line of entry.lines) {
               if (line.accountCode?.startsWith('41') && line.debit > 0) {
                 const entryDate = new Date(entry.date);
@@ -147,9 +148,10 @@ const AlertsSystem: React.FC = () => {
         // Check treasury level (class 5)
         let treasuryBalance = 0;
         for (const entry of entries) {
-          if (entry.status === 'posted' && entry.lines) {
+          if ((entry.status === 'validated' || entry.status === 'posted') && entry.lines) {
             for (const line of entry.lines) {
-              if (line.accountCode?.startsWith('5')) {
+              // Classe 5 hors 58 (virements internes en transit)
+              if (line.accountCode?.startsWith('5') && !line.accountCode?.startsWith('58')) {
                 treasuryBalance += (line.debit || 0) - (line.credit || 0);
               }
             }
