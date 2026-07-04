@@ -222,6 +222,14 @@ const AdminSecurity: React.FC<Props> = ({ subTab, setSubTab }) => {
         })}
       </div>
 
+      {subTab <= 2 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+          ⚠️ Ces réglages sont <strong>enregistrés</strong> mais pas encore appliqués côté serveur
+          (politique de mot de passe, 2FA obligatoire, restriction par IP nécessitent une edge function
+          d'authentification). Ne considérez pas l'accès comme restreint tant que la règle serveur n'est pas déployée.
+        </div>
+      )}
+
       {/* Politique mots de passe */}
       {subTab === 0 && (
         <div className="bg-white rounded-lg border p-6 space-y-5 max-w-2xl">

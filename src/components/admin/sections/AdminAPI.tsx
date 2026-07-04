@@ -156,6 +156,11 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
             <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-800">Les cles API donnent un acces direct a vos donnees comptables. Ne les partagez jamais et revoquezles immediatement en cas de compromission.</p>
           </div>
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+            ℹ️ Cette liste est une <strong>référence de configuration</strong>. Les vraies clés API sont émises et hachées
+            côté serveur (edge function) et affichées une seule fois à la création ; aucune clé secrète n'est stockée
+            en clair depuis cet écran.
+          </div>
           <div className="flex justify-end">
             <button onClick={() => setShowKeyModal(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
               <Plus className="w-4 h-4" /> Generer une cle
@@ -435,15 +440,17 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 <Activity className="w-4 h-4" /> Tester la connexion
               </button>
               <button onClick={async () => {
-                setBankConnected(true);
                 try {
-                  await saveSetting('admin_bank_integration', { connected: true, name: bankName, protocol: bankProtocol, frequency: bankFrequency });
-                  toast.success('Integration bancaire enregistree');
+                  // La configuration est enregistrée mais la connexion réelle (handshake EBICS/SWIFT/API)
+                  // n'est établie que par le connecteur backend. On ne marque donc PAS "Connecté" ici,
+                  // et on ne persiste JAMAIS le mot de passe/certificat en clair dans settings.
+                  await saveSetting('admin_bank_integration', { configured: true, name: bankName, protocol: bankProtocol, frequency: bankFrequency });
+                  toast.success('Configuration bancaire enregistrée (connexion établie par le connecteur backend)');
                 } catch (error) {
                   toast.error('Erreur lors de la sauvegarde');
                 }
               }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                <Settings className="w-4 h-4" /> Enregistrer
+                <Settings className="w-4 h-4" /> Enregistrer la configuration
               </button>
             </div>
           </div>
@@ -502,15 +509,15 @@ const AdminAPI: React.FC<Props> = ({ subTab, setSubTab }) => {
                 <Activity className="w-4 h-4" /> Tester
               </button>
               <button onClick={async () => {
-                setPayrollConnected(true);
                 try {
-                  await saveSetting('admin_payroll_integration', { connected: true, software: payrollSoftware, journal: payrollJournal, compte: payrollCompte });
-                  toast.success('Integration paie enregistree');
+                  // Idem intégration bancaire : configuration enregistrée, mais pas de faux "Connecté".
+                  await saveSetting('admin_payroll_integration', { configured: true, software: payrollSoftware, journal: payrollJournal, compte: payrollCompte });
+                  toast.success('Configuration paie enregistrée (connexion établie par le connecteur backend)');
                 } catch (error) {
                   toast.error('Erreur lors de la sauvegarde');
                 }
               }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                <Settings className="w-4 h-4" /> Enregistrer
+                <Settings className="w-4 h-4" /> Enregistrer la configuration
               </button>
             </div>
           </div>

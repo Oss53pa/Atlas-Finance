@@ -10,7 +10,7 @@ import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
-import { supabase } from '../../lib/supabase';
+import SecurityActions from '../../components/security/SecurityActions';
 import { toast } from 'sonner';
 import {
   Calculator, FileText, BookOpen, BarChart3, Users, Banknote, PieChart, TrendingUp,
@@ -181,52 +181,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
           <p><span className="text-xs text-gray-500">Email:</span> {userData.email}</p>
           <p className="mt-2"><span className="text-xs text-gray-500">Tel:</span> {userData.phone}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 border">
-          <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Securite</h4>
-          <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-primary)] mb-2">Changer mot de passe</button>
-          {/* W5: log + toast sur erreur 2FA */}
-          <button onClick={async () => {
-            try {
-              const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } });
-              if (error) throw error;
-              toast.success('2FA mis à jour');
-            } catch (err) {
-              console.error('[ComptableWorkspace] Erreur toggle 2FA:', err);
-              toast.error('Erreur mise à jour 2FA');
-            }
-          }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-primary)] flex justify-between">
-            <span>2FA</span>
-            <span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span>
-          </button>
-        </div>
+        <SecurityActions email={userData.email} accentVar="var(--color-primary)" />
       </div>
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
-            <h3 className="font-bold text-lg">Changer le mot de passe</h3>
-            <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
-              {/* W6: log + toast sur erreur changement de mot de passe */}
-              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => {
-                setPasswordSaving(true);
-                try {
-                  const { error } = await supabase.auth.updateUser({ password: newPassword });
-                  if (error) throw error;
-                  toast.success('Mot de passe mis à jour');
-                  setShowPasswordModal(false);
-                  setNewPassword('');
-                } catch (err) {
-                  console.error('[ComptableWorkspace] Erreur changement de mot de passe:', err);
-                  toast.error('Erreur changement de mot de passe');
-                } finally {
-                  setPasswordSaving(false);
-                }
-              }} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 
