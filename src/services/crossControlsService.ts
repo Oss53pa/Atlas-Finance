@@ -308,20 +308,31 @@ async function control11_SequentialNumbering(
     journalGroups.get(journal)!.push(entryData.entryNumber);
   }
 
-  // Check for gaps within each journal
+  let doublons = 0;
+  // Détecte les DOUBLONS et les TROUS (ruptures de séquence), avec un tri NUMÉRIQUE
+  // (l'ancien numbers.sort() lexicographique classait "10" avant "9" → faux).
   for (const [, numbers] of journalGroups.entries()) {
-    numbers.sort();
-    // Simple check: no duplicate numbers
     const uniqueSet = new Set(numbers);
-    if (uniqueSet.size !== numbers.length) gaps++;
+    if (uniqueSet.size !== numbers.length) doublons++;
+    // Extraire la partie numérique de chaque n° de pièce (ex. "AC-000042" → 42).
+    const nums = numbers
+      .map(n => { const m = String(n).match(/(\d+)\s*$/); return m ? parseInt(m[1], 10) : NaN; })
+      .filter(n => Number.isFinite(n))
+      .sort((a, b) => a - b);
+    for (let i = 1; i < nums.length; i++) {
+      if (nums[i] - nums[i - 1] > 1) gaps += (nums[i] - nums[i - 1] - 1);
+    }
   }
 
+  const anomalies = gaps + doublons;
   return {
     id: 'P11',
     name: 'Numérotation séquentielle sans rupture',
     description: 'Les pièces comptables doivent être numérotées séquentiellement par journal',
-    status: gaps === 0 ? 'OK' : 'ECART',
-    details: gaps > 0 ? `${gaps} ruptures détectées` : 'Numérotation continue',
+    status: anomalies === 0 ? 'OK' : 'ECART',
+    details: anomalies > 0
+      ? `${doublons} doublon(s), ${gaps} n° manquant(s) détecté(s)`
+      : 'Numérotation continue',
   };
 }
 
@@ -528,19 +539,44 @@ async function control19_HashChainIntegrity(
  */
 async function control20_BalanceSheetEquilibrium(
   adapter: DataAdapter,
-  dateRange: { start: string; end: string }
+  _dateRange: { start: string; end: string }
 ): Promise<ControlResult> {
-  const actif = await sumAccountBalance(adapter, ['1', '2', '3', '4', '5'], dateRange, 'debit');
-  const passif = await sumAccountBalance(adapter, ['1', '2', '3', '4', '5'], dateRange, 'credit');
-  const ecart = actif.minus(passif).abs();
+  // Équilibre RÉEL du bilan : chaque compte cl.1-5 placé par SIGNE de son solde
+  // (par compte, pas par classe → pas de compensation), et le résultat net (cl.7−6−89)
+  // figure au passif (capitaux propres). Donc Actif = Passif + Résultat net.
+  // L'ancienne version comparait Σdébit(1-5) vs Σcrédit(1-5) → l'écart valait le
+  // résultat net → « ECART » systématique pour une entreprise bénéficiaire.
+  const entries = await adapter.getJournalEntries();
+  const byAccount = new Map<string, Decimal>();
+  let net6 = new Decimal(0), credit7 = new Decimal(0), net89 = new Decimal(0);
+  for (const e of entries as any[]) {
+    if (e.status === 'draft') continue;
+    for (const l of (e.lines || [])) {
+      const code = String(l.accountCode || '');
+      const c = code.charAt(0);
+      const d = new Decimal(l.debit || 0);
+      const cr = new Decimal(l.credit || 0);
+      if (c >= '1' && c <= '5') byAccount.set(code, (byAccount.get(code) || new Decimal(0)).plus(d).minus(cr));
+      if (code.startsWith('6')) net6 = net6.plus(d).minus(cr);
+      if (code.startsWith('7')) credit7 = credit7.plus(cr).minus(d);
+      if (code.startsWith('89')) net89 = net89.plus(d).minus(cr);
+    }
+  }
+  let actif = new Decimal(0), passif = new Decimal(0);
+  for (const v of byAccount.values()) {
+    if (v.gt(0)) actif = actif.plus(v); else passif = passif.plus(v.abs());
+  }
+  const resultatNet = credit7.minus(net6).minus(net89);
+  const passifTotal = passif.plus(resultatNet);
+  const ecart = actif.minus(passifTotal).abs();
 
   return {
     id: 'P20',
     name: 'Bilan actif = Bilan passif',
-    description: 'Le total de l\'actif doit être égal au total du passif',
+    description: 'Le total de l\'actif doit être égal au passif + résultat net',
     status: ecart.lte(1) ? 'OK' : 'ECART',
     expectedValue: actif,
-    actualValue: passif,
+    actualValue: passifTotal,
     ecart,
   };
 }
