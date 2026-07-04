@@ -538,6 +538,35 @@ const JournalsPage: React.FC = () => {
 
     setIsSaving(true);
     try {
+      // Persister RÉELLEMENT les lignes éditées (avant : seuls les totaux étaient
+      // sauvegardés → les modifications de comptes/montants par ligne étaient perdues).
+      const parseAmt = (v: any) => parseFloat(String(v ?? '0').replace(/\s/g, '').replace('-', '') || '0') || 0;
+      const newLines = selectedEntryLines.map((l: any) => ({
+        id: l.id || crypto.randomUUID(),
+        accountCode: l.compte || l.accountCode || '',
+        accountName: l.libelle || l.accountName || '',
+        label: l.libelle || l.label || '',
+        debit: parseAmt(l.debit),
+        credit: parseAmt(l.credit),
+      }));
+
+      const client = (adapter as any).client;
+      if (client) {
+        // SaaS : réécrire journal_lines (table séparée). Le trigger d'équilibre est
+        // DEFERRABLE (contrôle au commit) et 0 ligne = 0=0 → le DELETE puis INSERT est sûr.
+        const tenantId = (adapter as any).tenantId;
+        await client.from('journal_lines').delete().eq('entry_id', entryId).eq('tenant_id', tenantId);
+        const { error: insErr } = await client.from('journal_lines').insert(newLines.map((l: any) => ({
+          id: l.id, entry_id: entryId, tenant_id: tenantId,
+          account_code: l.accountCode, account_name: l.accountName, label: l.label,
+          debit: l.debit, credit: l.credit,
+        })));
+        if (insErr) throw new Error(insErr.message);
+      } else {
+        // Local (Dexie) : lignes embarquées sur l'entête.
+        await adapter.update<any>('journalEntries', entryId, { lines: newLines });
+      }
+
       // Mettre à jour les totaux de l'entrée principale
       await adapter.update<any>('journalEntries', entryId, {
         totalDebit,
@@ -545,6 +574,7 @@ const JournalsPage: React.FC = () => {
         totalCredit,
         total_credit: totalCredit,
       });
+      (adapter as any).invalidateCache?.();
 
       // Recharger les données pour refléter les modifications
       await reloadData();
