@@ -258,6 +258,7 @@ const FundCallsPage: React.FC = () => {
         ((entry.lines as any[]) || [])
           .filter((line: any) => line.accountCode?.startsWith('401') || line.accountCode?.startsWith('404'))
           .filter((line: any) => line.credit > 0)
+          .filter((line: any) => !line.lettrageCode) // facture LETTRÉE = payée → exclue
           .forEach((line: any) => {
             supplierLines.push({
               id: line.id,
@@ -288,6 +289,45 @@ const FundCallsPage: React.FC = () => {
     [provisionalExpenses, payables],
   );
 
+  // Agrégation PAR FOURNISSEUR : une entrée par tiers, total dû, et TOUTES ses
+  // factures dépliables. (Avant : liste plate d'une facture par ligne.)
+  interface SupplierGroup {
+    key: string; vendor: string; account: string; total: number;
+    maxAging: number; priority: PayableItem['priority']; invoices: PayableItem[];
+  }
+  const payablesBySupplier: SupplierGroup[] = useMemo(() => {
+    const map = new Map<string, SupplierGroup>();
+    for (const it of combinedPayables) {
+      const key = it.vendorCode || it.vendor;
+      if (!map.has(key)) {
+        map.set(key, { key, vendor: it.vendor, account: it.account, total: 0, maxAging: 0, priority: 'LOW', invoices: [] });
+      }
+      const g = map.get(key)!;
+      g.invoices.push(it);
+      g.total += it.outstanding;
+      g.maxAging = Math.max(g.maxAging, it.arrearsAging || 0);
+      if (it.priority === 'CRITICAL' || (it.priority === 'HIGH' && g.priority !== 'CRITICAL')) g.priority = it.priority;
+    }
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [combinedPayables]);
+
+  const [expandedSupplier, setExpandedSupplier] = useState<string | null>(null);
+
+  // Sélectionne/désélectionne TOUTES les factures d'un fournisseur.
+  const handleSupplierSelect = (group: SupplierGroup) => {
+    const allSelected = group.invoices.every(inv => selectedItems.has(inv.id));
+    const newSelected = new Set(selectedItems);
+    if (allSelected) {
+      group.invoices.forEach(inv => newSelected.delete(inv.id));
+      setProposedPayments(prev => prev.filter(p => !group.invoices.some(inv => inv.id === p.id)));
+    } else {
+      const toAdd: PayableItem[] = [];
+      group.invoices.forEach(inv => { if (!newSelected.has(inv.id)) { newSelected.add(inv.id); toAdd.push(inv); } });
+      setProposedPayments(prev => [...prev, ...toAdd]);
+    }
+    setSelectedItems(newSelected);
+  };
+
   // Load fund calls from Dexie settings
   const fundCalls: FundCall[] = useMemo(() => {
     if (!fundCallsSetting) return [];
@@ -317,7 +357,7 @@ const FundCallsPage: React.FC = () => {
       setProposedPayments(prev => prev.filter(p => p.id !== itemId));
     } else {
       newSelected.add(itemId);
-      const item = (payables || []).find(p => p.id === itemId);
+      const item = combinedPayables.find(p => p.id === itemId);
       if (item) {
         setProposedPayments(prev => [...prev, item]);
       }
@@ -553,38 +593,45 @@ const FundCallsPage: React.FC = () => {
                 <span>Tout sélectionner</span>
               </div>
 
-              {(payables || []).length === 0 ? (
+              {payablesBySupplier.length === 0 ? (
                 <div className="p-6 text-center text-sm text-gray-500">Aucune dette comptabilisée.</div>
-              ) : (payables || []).map((item) => {
-                const expanded = expandedPayable === item.id;
+              ) : payablesBySupplier.map((group) => {
+                const open = expandedSupplier === group.key;
+                const allSel = group.invoices.every(inv => selectedItems.has(inv.id));
                 return (
-                  <div key={item.id} className={`px-3 py-2 border-b border-[var(--color-border)] ${
-                    item.priority === 'CRITICAL' ? 'bg-red-50/60' : item.arrearsAging > 30 ? 'bg-yellow-50/60' : ''
+                  <div key={group.key} className={`border-b border-[var(--color-border)] ${
+                    group.priority === 'CRITICAL' ? 'bg-red-50/40' : group.maxAging > 30 ? 'bg-yellow-50/40' : ''
                   }`}>
-                    <div className="flex items-center gap-2">
-                      <Checkbox checked={selectedItems.has(item.id)} onChange={() => handleItemSelect(item.id)} />
-                      <button type="button" onClick={() => setExpandedPayable(expanded ? null : item.id)} className="flex-1 min-w-0 flex items-center gap-2 text-left">
-                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+                    {/* Ligne FOURNISSEUR (total + nb factures) */}
+                    <div className="px-3 py-2 flex items-center gap-2">
+                      <Checkbox checked={allSel} onChange={() => handleSupplierSelect(group)} />
+                      <button type="button" onClick={() => setExpandedSupplier(open ? null : group.key)} className="flex-1 min-w-0 flex items-center gap-2 text-left">
+                        <ChevronRight className={`h-3.5 w-3.5 text-gray-400 shrink-0 transition-transform ${open ? 'rotate-90' : ''}`} />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">{item.vendor}</div>
-                          <div className="text-xs text-gray-500 truncate">{item.description}</div>
+                          <div className="text-sm font-medium truncate">{group.vendor}</div>
+                          <div className="text-xs text-gray-500">
+                            {group.invoices.length} facture{group.invoices.length > 1 ? 's' : ''}{group.maxAging > 0 ? ` · retard max +${group.maxAging}j` : ''}
+                          </div>
                         </div>
-                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
-                        <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${item.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(item.outstanding)}</span>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{group.account}</span>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(group.total)}</span>
                       </button>
                     </div>
-                    {expanded && (
-                      <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1 text-xs bg-gray-50 rounded p-2">
-                        <Detail label="Date document" value={item.documentDate.toLocaleDateString('fr-FR')} />
-                        <Detail label="N° document" value={item.documentNumber || '—'} mono />
-                        <Detail label="Référence" value={item.reference || '—'} mono />
-                        <Detail label="Compte" value={item.account} mono />
-                        <Detail label="Description" value={item.description} span />
-                        <Detail label="Montant dû" value={formatCurrency(item.dueAmount)} mono />
-                        <Detail label="Balance" value={formatCurrency(item.outstanding)} mono />
-                        <Detail label="Retard (jours)" value={item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0'} />
-                        <div className="flex items-center gap-1"><span className="text-gray-500">Priorité :</span> {getPriorityBadge(item.priority)}</div>
-                        <div><Badge variant="outline">{item.invoiceType}</Badge></div>
+                    {/* Toutes les FACTURES du fournisseur (dépliées) */}
+                    {open && (
+                      <div className="pl-7 pr-3 pb-2 space-y-1">
+                        {group.invoices.map(inv => (
+                          <div key={inv.id} className={`flex items-center gap-2 text-xs rounded px-2 py-1.5 ${inv.provisional ? 'bg-amber-50/70' : 'bg-gray-50'}`}>
+                            <Checkbox checked={selectedItems.has(inv.id)} onChange={() => handleItemSelect(inv.id)} />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-mono text-gray-700 truncate">{inv.documentNumber || inv.reference || '—'}</div>
+                              <div className="text-gray-500 truncate">{inv.description}</div>
+                            </div>
+                            <div className="text-gray-500 whitespace-nowrap">{inv.documentDate.toLocaleDateString('fr-FR')}</div>
+                            {inv.arrearsAging > 0 && <span className="text-red-600 whitespace-nowrap" title="Retard">+{inv.arrearsAging}j</span>}
+                            <span className={`font-mono font-semibold whitespace-nowrap ${inv.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(inv.outstanding)}</span>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
