@@ -907,7 +907,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           >
                             {formatCurrency(item.valeur)}
                           </div>
-                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage}%</div>
+                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage.toFixed(2)}%</div>
                         </div>
                       </div>
                     ))}
@@ -941,7 +941,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           >
                             {formatCurrency(item.valeur)}
                           </div>
-                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage}%</div>
+                          <div className="text-sm text-[var(--color-text-tertiary)]">{item.pourcentage.toFixed(2)}%</div>
                         </div>
                       </div>
                     ))}
