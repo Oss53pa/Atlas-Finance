@@ -101,7 +101,7 @@ const ManagerWorkspace: React.FC = () => {
       setStatsLoading(true);
       try {
         const entries = await adapter.getAll<any>('journalEntries');
-        let ca = 0, charges = 0, treasury = 0;
+        let ca = 0, charges = 0, impots = 0, treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
           if (entry.status === 'draft') continue;
@@ -109,17 +109,33 @@ const ManagerWorkspace: React.FC = () => {
             // Classement SYSCOHADA direct sur le code de compte de la ligne (accountCode)
             const accNum = String(line.accountCode || '');
             if (!accNum) continue;
-            if (accNum.startsWith('7')) ca += (line.credit || 0);
-            if (accNum.startsWith('6')) charges += (line.debit || 0);
-            if (accNum.startsWith('5')) treasury += (line.debit || 0) - (line.credit || 0);
+            const debit = line.debit || 0;
+            const credit = line.credit || 0;
+            // Produits (cl.7) = solde créditeur NET : déduire les débits (annulations/avoirs)
+            if (accNum.startsWith('7')) ca += credit - debit;
+            // Charges (cl.6) = solde débiteur NET : déduire les crédits (avoirs/RRR obtenus)
+            else if (accNum.startsWith('6')) charges += debit - credit;
+            // Impôt sur le résultat (cl.89 : IMF/IS) — requis pour obtenir le résultat NET
+            else if (accNum.startsWith('89')) impots += debit - credit;
+            // Trésorerie = comptes de disponibilités classe 5, HORS 58 (virements internes en transit)
+            if (accNum.startsWith('5') && !accNum.startsWith('58')) treasury += debit - credit;
           }
         }
-        const marge = ca > 0 ? ((ca - charges) / ca) * 100 : 0;
+        // Marge nette = résultat net / CA ; résultat net = produits − charges − impôt (cl.89)
+        const resultatNet = ca - charges - impots;
+        const marge = ca > 0 ? (resultatNet / ca) * 100 : 0;
         setMgrStats({ ca, charges, marge, treasury });
-        const companies = await adapter.getAll<any>('companies');
-        if (companies.length > 0) {
-          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
-        }
+        // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
+        try {
+          const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+          const legal = legalRow?.value ? JSON.parse(legalRow.value) : null;
+          if (legal?.telephone) {
+            setCompanyPhone(legal.telephone);
+          } else {
+            const companies = await adapter.getAll<any>('companies');
+            if (companies.length > 0) setCompanyPhone(companies[0].telephone || companies[0].phone || '');
+          }
+        } catch { /* téléphone optionnel */ }
       } catch (err) {
         console.error('[ManagerWorkspace] Erreur chargement stats:', err);
         toast.error('Impossible de charger les statistiques du workspace');
@@ -137,8 +153,8 @@ const ManagerWorkspace: React.FC = () => {
       try {
         const keys = ['Email', 'Push', 'Rapports hebdo'] as const;
         const loaded: Record<string, boolean> = { Email: true, Push: true, 'Rapports hebdo': true };
+        const rows = await adapter.getAll<any>('settings' as any);
         for (const key of keys) {
-          const rows = await adapter.getAll<any>('settings' as any);
           const row = rows.find((r: any) => r.key === `notif_manager_${key}`);
           if (row) loaded[key] = row.value === 'true';
         }

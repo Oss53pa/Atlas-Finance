@@ -110,17 +110,27 @@ const ComptableWorkspaceFinal: React.FC = () => {
         let treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
+          if (entry.status === 'draft') continue; // trésorerie = mouvements validés uniquement (aligné sur positionService)
           for (const line of entry.lines) {
-            if (String(line.accountCode || '').startsWith('5')) {
+            const accNum = String(line.accountCode || '');
+            // Disponibilités classe 5, HORS 58 (virements internes en transit)
+            if (accNum.startsWith('5') && !accNum.startsWith('58')) {
               treasury += (line.debit || 0) - (line.credit || 0);
             }
           }
         }
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
-        const companies = await adapter.getAll<any>('companies');
-        if (companies.length > 0) {
-          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
-        }
+        // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
+        try {
+          const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+          const legal = legalRow?.value ? JSON.parse(legalRow.value) : null;
+          if (legal?.telephone) {
+            setCompanyPhone(legal.telephone);
+          } else {
+            const companies = await adapter.getAll<any>('companies');
+            if (companies.length > 0) setCompanyPhone(companies[0].telephone || companies[0].phone || '');
+          }
+        } catch { /* téléphone optionnel */ }
       } catch (err) {
         console.error('[ComptableWorkspace] Erreur chargement stats:', err);
         toast.error('Impossible de charger les statistiques du workspace');
@@ -138,8 +148,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
       try {
         const keys = ['Email', 'Push', 'Alertes'] as const;
         const loaded: Record<string, boolean> = { Email: true, Push: true, Alertes: true };
+        const rows = await adapter.getAll<any>('settings' as any);
         for (const key of keys) {
-          const rows = await adapter.getAll<any>('settings' as any);
           const row = rows.find((r: any) => r.key === `notif_comptable_${key}`);
           if (row) loaded[key] = row.value === 'true';
         }

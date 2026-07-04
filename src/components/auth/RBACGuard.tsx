@@ -128,16 +128,19 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
     return <Navigate to="/login" replace />;
   }
 
-  // Check role (skip in demo / dev mode / when auth still hydrating)
-  if (!isDemoMode && !isDevMode && allowedRoles && allowedRoles.length > 0 && user) {
+  // Check role. SECURITE : le contrôle de rôle est appliqué MÊME en dev — seul le
+  // mode démo explicite (opt-in via sessionStorage, borné à import.meta.env.DEV) le
+  // court-circuite. Auparavant `!isDevMode` ouvrait toutes les vues gardées (admin
+  // inclus) en dev/preview à n'importe quel rôle. La barrière réelle reste la RLS.
+  if (!isDemoMode && allowedRoles && allowedRoles.length > 0 && user) {
     if (!hasRole(user.role, allowedRoles)) {
       if (fallback) return <>{fallback}</>;
       return <Navigate to={redirectTo} replace />;
     }
   }
 
-  // Check permissions (skip in demo / dev mode)
-  if (!isDemoMode && !isDevMode && requiredPermissions && requiredPermissions.length > 0 && user) {
+  // Check permissions (court-circuité uniquement par le mode démo opt-in)
+  if (!isDemoMode && requiredPermissions && requiredPermissions.length > 0 && user) {
     const userPerms = user?.permissions ?? [];
     if (!hasPermissions(userPerms, requiredPermissions)) {
       if (fallback) return <>{fallback}</>;

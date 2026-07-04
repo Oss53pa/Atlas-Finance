@@ -318,11 +318,25 @@ const AdminAuditTrail: React.FC<Props> = ({ subTab, setSubTab }) => {
           </div>
           <button onClick={() => {
   try {
-    const logs = allLogs || [];
-    const header = 'Date,Utilisateur,Evenement,Details\n';
-    const rows = (logs as any[]).map(l =>
-      [l.date||l.timestamp||'',l.utilisateur||l.userId||'',l.evenement||l.action||'','"'+(l.details||'').replace(/"/g,'').substring(0,100)+'"'].join(',')
-    ).join('\n');
+    // Champs réels des logs : timestamp / userId / action / entityType / entityId / details.
+    // Filtrage sur la période d'export saisie ; details sérialisé (souvent un objet).
+    const logs = (allLogs || []).filter((l: any) => {
+      if (exportPeriodFrom && (l.timestamp || '') < exportPeriodFrom) return false;
+      if (exportPeriodTo && (l.timestamp || '') > exportPeriodTo + 'T23:59:59') return false;
+      return true;
+    });
+    const header = 'Date,Utilisateur,Action,Type,Entite,Details\n';
+    const rows = (logs as any[]).map(l => {
+      const details = typeof l.details === 'string' ? l.details : JSON.stringify(l.details || {});
+      return [
+        l.timestamp || '',
+        l.userId || '',
+        actionLabels[l.action] || l.action || '',
+        l.entityType || '',
+        l.entityId || '',
+        '"' + details.replace(/"/g, "'").substring(0, 300) + '"',
+      ].join(',');
+    }).join('\n');
     const blob = new Blob(['﻿'+header+rows],{type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href=url; a.download='piste-audit.csv'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);

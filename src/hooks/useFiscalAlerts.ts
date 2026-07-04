@@ -73,7 +73,10 @@ export function useFiscalAlerts(year?: number) {
       for (const decl of declarations) {
         const reg = registries.find(r => r.id === decl.taxRegistryId || r.taxCode === decl.taxCode);
         const deadline = decl.declarationDeadline || decl.periodEnd || '';
-        const daysUntil = Math.ceil((new Date(deadline).getTime() - todayMs) / 86400000);
+        // Sans date d'échéance exploitable : ignorer (évite daysUntil=NaN et un faux "en retard")
+        const deadlineMs = new Date(deadline).getTime();
+        if (!deadline || !Number.isFinite(deadlineMs)) continue;
+        const daysUntil = Math.ceil((deadlineMs - todayMs) / 86400000);
 
         let status: FiscalAlert['status'];
         switch (decl.status) {
