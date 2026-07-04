@@ -162,6 +162,22 @@ function normalizeAsset(r: any): any {
   }
 }
 
+// Normaliseur GÉNÉRIQUE : ajoute pour chaque clé snake_case son alias camelCase
+// (non destructif — les clés d'origine sont conservées). Évite les champs
+// `undefined` côté composants qui lisent en camelCase des tables sans
+// normaliseur dédié (budget_lines, tax_declarations, recovery_cases…).
+function normalizeGeneric(r: any): any {
+  if (!r || typeof r !== 'object') return r
+  const out: any = { ...r }
+  for (const k of Object.keys(r)) {
+    if (k.includes('_')) {
+      const camel = k.replace(/_([a-z0-9])/g, (_m, c) => c.toUpperCase())
+      if (!(camel in out)) out[camel] = r[k]
+    }
+  }
+  return out
+}
+
 const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   journal_entries: normalizeJournalEntry,
   journal_lines:   normalizeJournalLine,
@@ -170,6 +186,13 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   accounts:        normalizeAccount,
   third_parties:   normalizeThirdParty,
   assets:          normalizeAsset,
+  // Tables sans normaliseur dédié → alias camelCase génériques.
+  budget_lines:      normalizeGeneric,
+  tax_declarations:  normalizeGeneric,
+  recovery_cases:    normalizeGeneric,
+  audit_logs:        normalizeGeneric,
+  inventory_items:   normalizeGeneric,
+  exchange_rates:    normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {

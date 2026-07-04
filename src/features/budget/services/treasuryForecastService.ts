@@ -35,29 +35,43 @@ function tenantOf(adapter: DataAdapter): string { return (adapter as any).tenant
 
 const MOIS_COURTS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
+// Lecture paginée (PostgREST tronque à 1000) avec tri déterministe.
+async function fetchAllLines(build: () => any): Promise<any[]> {
+  const all: any[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().order('id', { ascending: true }).range(from, from + PAGE - 1);
+    if (error) break;
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return all;
+}
+
 /** Solde de trésorerie actuel = Σ (débit − crédit) sur les comptes classe 5. */
 export async function getCurrentCash(adapter: DataAdapter): Promise<number> {
   const client = getClient(adapter);
   if (!client) return 0;
-  const { data } = await client
+  const data = await fetchAllLines(() => client
     .from('journal_lines')
-    .select('debit,credit,account_code')
-    .like('account_code', '5%');
-  return (data ?? []).reduce((s: number, l: any) => s + (Number(l.debit) || 0) - (Number(l.credit) || 0), 0);
+    .select('id,debit,credit,account_code')
+    .like('account_code', '5%'));
+  return data.reduce((s: number, l: any) => s + (Number(l.debit) || 0) - (Number(l.credit) || 0), 0);
 }
 
 /** Postes ouverts datés → flux prévisionnels (clients 41 = encaissement, fournisseurs 40 = décaissement). */
 export async function getOpenItemFlows(adapter: DataAdapter): Promise<ForecastFlow[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data } = await client
+  const data = await fetchAllLines(() => client
     .from('journal_lines')
-    .select('debit,credit,account_code,third_party_name,date_echeance')
+    .select('id,debit,credit,account_code,third_party_name,date_echeance')
     .is('lettrage_code', null)
     .not('date_echeance', 'is', null)
-    .or('account_code.like.40%,account_code.like.41%');
+    .or('account_code.like.40%,account_code.like.41%'));
   const flows: ForecastFlow[] = [];
-  for (const l of (data ?? [])) {
+  for (const l of data) {
     const code = String(l.account_code || '');
     const isClient = code.startsWith('41');
     const solde = isClient ? (Number(l.debit) || 0) - (Number(l.credit) || 0)

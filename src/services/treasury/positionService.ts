@@ -24,8 +24,10 @@ export async function getSoldesBancaires(adapter: DataAdapter): Promise<BankPosi
   for (const entry of entries as { status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[]) {
     if (entry.status !== 'validated' && entry.status !== 'posted') continue;
     for (const line of entry.lines) {
-      // Comptes de trésorerie SYSCOHADA : 52x (banques), 53x (caisse), 54x (régies)
-      if (!line.accountCode.startsWith('52') && !line.accountCode.startsWith('53') && !line.accountCode.startsWith('54')) continue;
+      // Trésorerie SYSCOHADA = TOUTE la classe 5 (52 banques, 53 établ. financiers,
+      // 54 instruments, 55/57 caisse, 58 virements/régies). L'ancien filtre 52/53/54
+      // OMETTAIT la caisse (55/57) et divergeait de la position affichée à l'écran.
+      if (!line.accountCode.startsWith('5')) continue;
       const current = soldes.get(line.accountCode) || 0;
       soldes.set(line.accountCode, current + line.debit - line.credit);
     }
