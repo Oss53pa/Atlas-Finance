@@ -37,6 +37,18 @@ export function npv(rate: number, investment: number, flows: number[]): number {
 
 /** TRI par bissection sur [-0.9, 10]. null si pas de changement de signe exploitable. */
 export function irr(investment: number, flows: number[]): number | null {
+  // Flux non conventionnels (plusieurs inversions de signe) → TRI multiple/ambigu :
+  // la bissection renverrait une racine arbitraire. On refuse (null) hors du cas
+  // conventionnel (un seul changement de signe : −investissement puis flux nets).
+  const seq = [-Math.abs(investment), ...flows];
+  let signChanges = 0;
+  let prev = 0;
+  for (const v of seq) {
+    const s = Math.sign(v);
+    if (s !== 0) { if (prev !== 0 && s !== prev) signChanges++; prev = s; }
+  }
+  if (signChanges !== 1) return null;
+
   const f = (r: number) => npv(r, investment, flows);
   let lo = -0.9, hi = 10;
   let flo = f(lo), fhi = f(hi);
