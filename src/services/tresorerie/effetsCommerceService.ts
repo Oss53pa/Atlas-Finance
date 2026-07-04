@@ -127,7 +127,7 @@ export function creerEffet(params: {
   return {
     id: crypto.randomUUID(),
     type: params.type,
-    numero: `EFF-${dateStr}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+    numero: `EFF-${dateStr}-${crypto.randomUUID().replace(/-/g, '').substring(0, 6).toUpperCase()}`,
     montant: money(params.montant).round(2).toNumber(),
     dateCreation: now.split('T')[0],
     dateEcheance: params.dateEcheance,
@@ -252,13 +252,14 @@ export async function transitionEffet(
 
   const lines = buildTransitionLines(effet, newStatut, fraisEscompte);
   if (lines.length === 0) {
-    // Transition without accounting impact
+    // Transition without accounting impact — PERSISTÉE (sinon le statut revient au reload).
     effet.statut = newStatut;
     effet.historique.push({
       date: new Date().toISOString(),
       action: `Transition vers ${newStatut}`,
       statut: newStatut,
     });
+    await adapter.update('effetsCommerce', effet.id, effet as any);
     return { success: true, effet };
   }
 
@@ -273,7 +274,9 @@ export async function transitionEffet(
     date,
     reference: `EFFET-${effet.numero}`,
     label: `Effet ${effet.type} - ${newStatut} - ${effet.numero}`,
-    status: 'draft',
+    // Comptabilisée (validated) comme les autres écritures de trésorerie (chèques, caisse,
+    // emprunts) — un 'draft' serait exclu du solde banque et des états.
+    status: 'validated',
     lines,
     createdAt: now,
     createdBy: 'system',
@@ -290,6 +293,8 @@ export async function transitionEffet(
     montant: effet.montant,
     details: `Ecriture ${entryNumber}`,
   });
+  // Persister l'effet (statut + écriture liée + historique) — sinon perdu au reload.
+  await adapter.update('effetsCommerce', effet.id, effet as any);
 
   await logAudit('EFFET_TRANSITION', 'effet_commerce', effet.id, JSON.stringify({
     numero: effet.numero,
