@@ -13,7 +13,7 @@ export interface ControlResult {
   id: string;
   name: string;
   description: string;
-  status: 'OK' | 'ECART' | 'ERROR';
+  status: 'OK' | 'ECART' | 'ERROR' | 'INFO';
   expectedValue?: Decimal;
   actualValue?: Decimal;
   ecart?: Decimal;
@@ -93,7 +93,7 @@ async function control02_SupplierBalance(
     id: 'P02',
     name: 'Solde fournisseurs balance = bilan',
     description: 'Vérification du solde fournisseurs',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: balanceFournisseurs.abs(),
     details: `Fournisseurs (401): ${balanceFournisseurs}`,
   };
@@ -113,7 +113,7 @@ async function control03_BankBalance(
     id: 'P03',
     name: 'Solde banques + caisse = trésorerie bilan',
     description: 'Cohérence trésorerie entre balance et bilan',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: soldeBanques.plus(soldeCaisse),
     details: `Banques: ${soldeBanques}, Caisse: ${soldeCaisse}`,
   };
@@ -164,7 +164,7 @@ async function control05_DepreciationConsistency(
     id: 'P05',
     name: 'Dotations amortissements = compte 681',
     description: 'Dotations du fichier immobilisations = dotations comptabilisées',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: dotation681,
     details: `Dotations (681): ${dotation681}`,
   };
@@ -183,7 +183,7 @@ async function control06_PayrollCharges(
     id: 'P06',
     name: 'Charges de personnel = comptes 64x',
     description: 'Cohérence entre la masse salariale comptabilisée et le CR',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: charges66,
     details: `Charges personnel (64x): ${charges66}`,
   };
@@ -415,7 +415,7 @@ async function control14_PrudencePrinciple(
     id: 'P14',
     name: 'Principe de prudence - Écarts de conversion',
     description: 'Les gains latents (477) ne doivent pas générer de produit',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: ecartConversionPassif,
     details: `Écarts de conversion passif (477): ${ecartConversionPassif}`,
   };
@@ -435,7 +435,7 @@ async function control15_CNPSReconciliation(
     id: 'P15',
     name: 'Comptes CNPS cohérents avec la paie',
     description: 'Soldes CNPS salariale et patronale doivent correspondre aux bulletins',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: cnpsSalariale.plus(cnpsPatronale),
     details: `CNPS salariale: ${cnpsSalariale}, patronale: ${cnpsPatronale}`,
   };
@@ -475,7 +475,7 @@ async function control17_TVADeclaredVsComputed(
     id: 'P17',
     name: 'TVA due = TVA collectée - TVA déductible',
     description: 'Cohérence du calcul de la TVA',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: tvaDue,
     details: `Collectée: ${tvaCollectee}, Déductible: ${tvaDeductible}, Due: ${tvaDue}`,
   };
@@ -495,7 +495,7 @@ async function control18_StockVariation(
     id: 'P18',
     name: 'Cohérence variation de stocks',
     description: 'La variation de stock comptabilisée doit correspondre à la variation physique',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: stockFinal,
     details: `Stock final: ${stockFinal}, Variation comptabilisée: ${variationComptabilisee}`,
   };
@@ -514,10 +514,12 @@ async function control19_HashChainIntegrity(
 
   let broken = 0;
   let prevHash = '';
+  let withHash = 0;
 
   for (const entry of entries) {
     const entryData = entry as { hash?: string; previousHash?: string };
     if (entryData.hash && entryData.previousHash !== undefined) {
+      withHash++;
       if (prevHash && entryData.previousHash !== prevHash) {
         broken++;
       }
@@ -525,12 +527,24 @@ async function control19_HashChainIntegrity(
     }
   }
 
+  // Faux négatif évité : si AUCUNE écriture n'a de hash, la chaîne n'existe pas — ce
+  // n'est pas « intacte ». On le signale (INFO) au lieu de renvoyer un « OK » trompeur.
+  if (entries.length > 0 && withHash === 0) {
+    return {
+      id: 'P19',
+      name: 'Intégrité chaîne de hachage SHA-256',
+      description: 'La chaîne de hachage des écritures validées ne doit pas être rompue',
+      status: 'INFO',
+      details: `Chaîne d'intégrité absente (${entries.length} écritures sans hash)`,
+    };
+  }
+
   return {
     id: 'P19',
     name: 'Intégrité chaîne de hachage SHA-256',
     description: 'La chaîne de hachage des écritures validées ne doit pas être rompue',
     status: broken === 0 ? 'OK' : 'ECART',
-    details: broken > 0 ? `${broken} rupture(s) dans la chaîne` : 'Chaîne intacte',
+    details: broken > 0 ? `${broken} rupture(s) dans la chaîne` : `Chaîne intacte (${withHash} écritures)`,
   };
 }
 
@@ -621,6 +635,9 @@ export async function runAllCrossControls(
   const totalOk = controls.filter(c => c.status === 'OK').length;
   const totalEcart = controls.filter(c => c.status === 'ECART').length;
   const totalError = controls.filter(c => c.status === 'ERROR').length;
+  // Score calculé UNIQUEMENT sur les contrôles réellement ÉVALUÉS (hors INFO), pour ne
+  // pas le gonfler avec des contrôles informatifs qui ne comparent rien.
+  const evalues = controls.filter(c => c.status !== 'INFO').length;
 
   return {
     date: new Date().toISOString(),
@@ -630,6 +647,6 @@ export async function runAllCrossControls(
     totalOk,
     totalEcart,
     totalError,
-    score: Math.round((totalOk / controls.length) * 100),
+    score: evalues > 0 ? Math.round((totalOk / evalues) * 100) : 100,
   };
 }

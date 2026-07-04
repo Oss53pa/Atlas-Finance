@@ -24,7 +24,9 @@ describe('crossControlsService', () => {
     );
 
     expect(report.controls.length).toBe(20);
-    expect(report.totalOk + report.totalEcart + report.totalError).toBe(20);
+    // Certains contrôles sont informatifs (INFO) : la somme OK+ECART+ERROR+INFO = 20.
+    const totalInfo = report.controls.filter(c => c.status === 'INFO').length;
+    expect(report.totalOk + report.totalEcart + report.totalError + totalInfo).toBe(20);
     expect(report.score).toBeGreaterThanOrEqual(0);
     expect(report.score).toBeLessThanOrEqual(100);
   });
@@ -80,7 +82,9 @@ describe('crossControlsService', () => {
       { code: '2025', start: '2025-01-01', end: '2025-12-31' }
     );
 
-    const expectedScore = Math.round((report.totalOk / 20) * 100);
+    // Score = OK / contrôles ÉVALUÉS (hors INFO informatifs).
+    const evalues = report.controls.filter(c => c.status !== 'INFO').length;
+    const expectedScore = evalues > 0 ? Math.round((report.totalOk / evalues) * 100) : 100;
     expect(report.score).toBe(expectedScore);
   });
 });
