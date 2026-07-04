@@ -110,9 +110,10 @@ const commonKPIs: Record<string, ActivityKPI> = {
   resultatNet: {
     id: 'resultat_net',
     label: 'Résultat Net',
-    description: 'Produits - Charges (classe 7 - classe 6)',
+    description: 'Produits − Charges − Impôt (classe 7 − classe 6 − classe 89)',
     icon: TrendingUp,
-    accountPrefixes: { credit: ['7'], debit: ['6'] },
+    // Impôt sur le résultat (cl.89) déduit → résultat NET (pas avant impôt).
+    accountPrefixes: { credit: ['7'], debit: ['6', '89'] },
     calcType: 'difference',
     format: 'currency',
     colorCondition: 'higher-is-better',

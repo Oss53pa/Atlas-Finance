@@ -44,7 +44,7 @@ function computeKPI(
   if (kpi.calcType === 'sum') {
     let total = 0;
     for (const e of entries) {
-      for (const l of e.lines) {
+      for (const l of (e.lines || [])) {
         if (kpi.accountPrefixes.debit && matchesAnyPrefix(l.accountCode, kpi.accountPrefixes.debit)) {
           total += l.debit - l.credit;
         }
@@ -60,7 +60,7 @@ function computeKPI(
     let credits = 0;
     let debits = 0;
     for (const e of entries) {
-      for (const l of e.lines) {
+      for (const l of (e.lines || [])) {
         if (kpi.accountPrefixes.credit && matchesAnyPrefix(l.accountCode, kpi.accountPrefixes.credit)) {
           credits += l.credit - l.debit;
         }
@@ -77,7 +77,7 @@ function computeKPI(
     let numerator = 0;
     let denominator = 0;
     for (const e of entries) {
-      for (const l of e.lines) {
+      for (const l of (e.lines || [])) {
         // Numerator
         if (matchesAnyPrefix(l.accountCode, cfg.numeratorPrefixes)) {
           numerator += cfg.numeratorSide === 'credit'
@@ -108,7 +108,8 @@ export function useActivityKPIs(): UseActivityKPIsResult {
 
   useEffect(() => {
     adapter.getAll('journalEntries').then((data: any[]) => {
-      setEntries(data);
+      // Brouillons exclus (cohérence avec tous les autres écrans / états financiers).
+      setEntries((data || []).filter((e: any) => e.status !== 'draft'));
       setLoading(false);
     });
   }, [adapter]);
@@ -159,7 +160,7 @@ export function useActivityKPIs(): UseActivityKPIsResult {
 
     for (const e of entries) {
       const m = new Date(e.date).getMonth();
-      for (const l of e.lines) {
+      for (const l of (e.lines || [])) {
         if (matchesAnyPrefix(l.accountCode, revenuePrefixes)) {
           months[m].revenue += l.credit - l.debit;
         }
