@@ -128,22 +128,41 @@ const AdvancedGeneralLedger: React.FC = () => {
   const { data: rawAccountsData = [] } = useQuery<AccountData[]>({
     queryKey: ['advanced-general-ledger', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const entries = allEntries.filter(e => e.status !== 'draft'); // brouillons exclus
       const accounts = await adapter.getAll<DBAccount>('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
       const pieceNumbers = buildPieceNumbers(entries as any);
 
+      const isAN = (e: any) => {
+        const j = String(e?.journal || '').toUpperCase();
+        return j === 'AN' || j === 'RAN';
+      };
+
+      // Solde d'OUVERTURE par compte = Σ(débit−crédit) des écritures À Nouveau (pas un
+      // mouvement de période). Le solde progressif du grand livre démarre de là.
+      const opening = new Map<string, number>();
+      for (const entry of entries) {
+        if (!isAN(entry)) continue;
+        for (const line of (entry.lines || [])) {
+          const cur = opening.get(line.accountCode) || 0;
+          opening.set(line.accountCode, money(cur).add(money(line.debit)).subtract(money(line.credit)).toNumber());
+        }
+      }
+
       const accountMap = new Map<string, AccountData>();
       for (const entry of entries) {
+        if (isAN(entry)) continue; // À Nouveau = ouverture, exclu des mouvements de période
         if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
-        for (const line of entry.lines) {
+        for (const line of (entry.lines || [])) {
+          const ouverture = opening.get(line.accountCode) || 0;
           const acc = accountMap.get(line.accountCode) || {
             compte: line.accountCode,
             libelle: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
-            soldeOuverture: 0,
+            soldeOuverture: ouverture,
             totalDebit: 0,
             totalCredit: 0,
-            soldeFermeture: 0,
+            soldeFermeture: ouverture,
             nombreEcritures: 0,
             entries: [],
           };

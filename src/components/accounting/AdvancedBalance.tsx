@@ -101,14 +101,33 @@ const AdvancedBalance: React.FC = () => {
   const { data: balanceData = [] } = useQuery<BalanceData[]>({
     queryKey: ['advanced-balance', dateRange.start, dateRange.end],
     queryFn: async () => {
-      const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const entries = allEntries.filter(e => e.status !== 'draft'); // brouillons exclus
       const accounts = await adapter.getAll<DBAccount>('accounts');
       const accountNames = new Map(accounts.map(a => [a.code, a.name]));
 
+      const isAN = (e: any) => {
+        const j = String(e?.journal || '').toUpperCase();
+        return j === 'AN' || j === 'RAN';
+      };
+
+      // Bloc À NOUVEAU (ouverture) par compte, séparé des mouvements de période.
+      const opening = new Map<string, { debit: number; credit: number }>();
+      for (const entry of entries) {
+        if (!isAN(entry)) continue;
+        for (const line of (entry.lines || [])) {
+          const o = opening.get(line.accountCode) || { debit: 0, credit: 0 };
+          o.debit = money(o.debit).add(money(line.debit)).toNumber();
+          o.credit = money(o.credit).add(money(line.credit)).toNumber();
+          opening.set(line.accountCode, o);
+        }
+      }
+
       const movements = new Map<string, { debit: number; credit: number; name: string; centreCout?: string }>();
       for (const entry of entries) {
+        if (isAN(entry)) continue; // À Nouveau exclu des mouvements
         if (entry.date < dateRange.start || entry.date > dateRange.end) continue;
-        for (const line of entry.lines) {
+        for (const line of (entry.lines || [])) {
           const existing = movements.get(line.accountCode) || {
             debit: 0, credit: 0,
             name: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
@@ -120,23 +139,31 @@ const AdvancedBalance: React.FC = () => {
         }
       }
 
+      // Ventilation SYSCOHADA (alignée sur useBalanceData) : classe 4 par sous-classe.
       const getType = (code: string): BalanceData['type'] => {
         const c = code.charAt(0);
         if (c === '6' || c === '8') return 'charges';
         if (c === '7') return 'produits';
         if (c === '2' || c === '3' || c === '5') return 'actif';
         if (c === '1') return 'passif';
-        if (code.startsWith('40')) return 'passif';
+        if (c === '4') {
+          // 41/45/46/47 = créances (actif) ; 40/42/43/44/48/49 = dettes (passif)
+          return (code.startsWith('41') || code.startsWith('45') || code.startsWith('46') || code.startsWith('47')) ? 'actif' : 'passif';
+        }
         return 'actif';
       };
 
-      return Array.from(movements.entries()).map(([code, mov]): BalanceData => {
-        const solde = money(mov.debit).subtract(money(mov.credit)).toNumber();
+      const allCodes = new Set<string>([...movements.keys(), ...opening.keys()]);
+      return Array.from(allCodes).map((code): BalanceData => {
+        const mov = movements.get(code) || { debit: 0, credit: 0, name: accountNames.get(code) || code, centreCout: undefined };
+        const opn = opening.get(code) || { debit: 0, credit: 0 };
+        const soldeOuv = money(opn.debit).subtract(money(opn.credit)).toNumber();
+        const solde = money(soldeOuv).add(money(mov.debit)).subtract(money(mov.credit)).toNumber();
         return {
           compte: code,
           libelle: mov.name,
-          debitPrecedent: 0,
-          creditPrecedent: 0,
+          debitPrecedent: opn.debit,
+          creditPrecedent: opn.credit,
           debitMouvement: mov.debit,
           creditMouvement: mov.credit,
           debitSolde: solde > 0 ? solde : 0,
@@ -162,8 +189,11 @@ const AdvancedBalance: React.FC = () => {
 
   // Calculs des indicateurs
   const indicators = useMemo(() => {
-    const totalDebit = balanceData.reduce((sum, item) => money(sum).add(money(item.debitSolde)).toNumber(), 0);
-    const totalCredit = balanceData.reduce((sum, item) => money(sum).add(money(item.creditSolde)).toNumber(), 0);
+    // Contrôle d'équilibre = Σ débits mouvements vs Σ crédits mouvements (doivent être
+    // égaux, ex. 33,18 Md). L'égalité des SOLDES débiteurs/créditeurs n'a aucune raison
+    // d'être vraie (elle relève de Actif=Passif+Résultat, pas du contrôle de balance).
+    const totalDebit = balanceData.reduce((sum, item) => money(sum).add(money(item.debitMouvement)).toNumber(), 0);
+    const totalCredit = balanceData.reduce((sum, item) => money(sum).add(money(item.creditMouvement)).toNumber(), 0);
     const equilibre = money(totalDebit).subtract(money(totalCredit)).abs().toNumber();
     const tauxEquilibre = totalCredit > 0 ? money(totalCredit).subtract(money(equilibre)).divide(totalCredit).multiply(100).toNumber() : 0;
 

@@ -305,18 +305,24 @@ export async function autoLettrage(
   const entries = allEntries.filter(e => e.status !== 'draft');
   const allLines = flattenEntries(entries, cfg.accounts);
 
-  // Group by account code
+  // Group by account code — ET par tiers si parTiers, pour NE JAMAIS lettrer des lignes
+  // de tiers différents sur un compte collectif (401/411). Sinon un débit du fournisseur A
+  // pouvait être lettré avec un crédit du fournisseur B dès que les montants coïncidaient.
   const byAccount = new Map<string, FlatLine[]>();
   for (const line of allLines) {
-    const list = byAccount.get(line.accountCode) || [];
+    const key = cfg.parTiers && line.thirdPartyCode
+      ? `${line.accountCode}::${line.thirdPartyCode}`
+      : line.accountCode;
+    const list = byAccount.get(key) || [];
     list.push(line);
-    byAccount.set(line.accountCode, list);
+    byAccount.set(key, list);
   }
 
   const matches: LettrageMatch[] = [];
   let codeCounter = 0;
 
-  for (const [compte, lines] of byAccount) {
+  for (const [, lines] of byAccount) {
+    const compte = lines[0]?.accountCode ?? '';
     const debits = lines.filter(l => l.debit > 0);
     const credits = lines.filter(l => l.credit > 0);
 
