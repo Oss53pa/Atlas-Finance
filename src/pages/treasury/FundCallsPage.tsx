@@ -3,6 +3,7 @@
  * Interface complète avec workflow de validation selon cahier des charges
  */
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { formatCurrency } from '../../utils/formatters';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -358,6 +359,29 @@ const FundCallsPage: React.FC = () => {
   const selectedAmount = useMemo(() => {
     return proposedPayments.reduce((sum, item) => sum + item.outstanding, 0);
   }, [proposedPayments]);
+
+  // Persiste l'appel de fonds dans settings.fund_calls (brouillon ou soumis).
+  const persistFundCall = async (statut: 'brouillon' | 'soumis') => {
+    if (proposedPayments.length === 0) { toast.error('Aucun paiement sélectionné pour l’appel de fonds.'); return; }
+    try {
+      const raw: any = (fundCallsSetting as any)?.value ?? fundCallsSetting;
+      const existing: any[] = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw || '[]') : []);
+      const call = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString().split('T')[0],
+        statut,
+        montant: selectedAmount,
+        nbItems: proposedPayments.length,
+        items: proposedPayments.map(p => ({ id: p.id, beneficiaire: p.vendor, code: p.vendorCode, montant: p.outstanding, type: p.invoiceType })),
+      };
+      const next = [call, ...existing];
+      const value = JSON.stringify(next);
+      if (fundCallsSetting) await adapter.update('settings', 'fund_calls', { value });
+      else await adapter.create('settings', { key: 'fund_calls', value } as any);
+      setFundCallsSetting({ key: 'fund_calls', value });
+      toast.success(statut === 'brouillon' ? 'Appel de fonds enregistré (brouillon)' : `Appel de fonds soumis · ${formatCurrency(selectedAmount)}`);
+    } catch (e: any) { toast.error(e?.message || 'Échec de l’enregistrement'); }
+  };
 
 
   const getPriorityBadge = (priority: string) => {
@@ -881,11 +905,11 @@ const FundCallsPage: React.FC = () => {
 
             <div className="mt-6 pt-6 border-t">
               <div className="flex justify-between">
-                <Button variant="outline">
+                <Button variant="outline" onClick={() => persistFundCall('brouillon')}>
                   <Edit3 className="h-4 w-4 mr-2" />
                   Enregistrer Brouillon
                 </Button>
-                <Button>
+                <Button onClick={() => persistFundCall('soumis')} disabled={proposedPayments.length === 0}>
                   <Send className="h-4 w-4 mr-2" />
                   Soumettre Appel de Fonds
                 </Button>

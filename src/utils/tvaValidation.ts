@@ -111,7 +111,7 @@ export class TVAValidator {
         } else if (ecart > 0.005) {
           result.warnings.push(
             `Arrondi TVA sur compte ${ligne.compte}: ` +
-            `Écart de ${ecart.toFixed(3)}`
+            `Écart de ${ecart.toFixed(2)}`
           );
         }
       }

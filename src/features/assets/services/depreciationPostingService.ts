@@ -95,7 +95,7 @@ export async function postDepreciations(adapter: DataAdapter, depreciations: Dep
       date: dep.date,
       reference: `AMORT-${dep.assetId.slice(0, 8)}`,
       label: `Dotation amortissement — ${dep.assetName}`,
-      status: 'draft',
+      status: 'validated',
       lines: [
         {
           id: crypto.randomUUID(),
@@ -346,7 +346,7 @@ export async function disposeAsset(
     date: input.disposalDate,
     reference: `Cession ${asset.code}`,
     label: `Cession immobilisation — ${asset.name}`,
-    status: 'draft',
+    status: 'validated',
     nature: 'normal',
     lines,
     totalDebit,

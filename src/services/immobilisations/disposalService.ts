@@ -90,7 +90,7 @@ export async function createDisposal(adapter: DataAdapter, input: DisposalInput,
     date: input.disposalDate,
     reference: `CESSION-${input.assetId}`,
     label: `Cession ${input.disposalType} - ${nom}`,
-    status: 'draft',
+    status: 'validated', // écriture de cession effective (visible au bilan/états)
     lines,
     createdAt: now,
     createdBy: createdBy || 'system',

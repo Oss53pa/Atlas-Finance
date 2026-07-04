@@ -1077,7 +1077,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td className="p-4 font-medium text-[var(--color-primary)]">{ratio.nom}</td>
                             <td className="p-4 text-[var(--color-text-tertiary)] text-sm">{ratio.calcul}</td>
                             <td className="p-4 text-right font-mono text-[var(--color-primary)]">
-                              {ratio.valeur < 1 ? ratio.valeur.toFixed(3) : ratio.valeur.toFixed(2)}
+                              {ratio.valeur.toFixed(2)}
                             </td>
                             <td className="p-4 text-center text-[var(--color-text-tertiary)]">{ratio.norme}</td>
                             <td className="p-4 text-center">

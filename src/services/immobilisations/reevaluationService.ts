@@ -200,7 +200,7 @@ export async function executerReevaluation(
     date: request.dateReevaluation,
     reference: `REEVAL-${request.assetId}`,
     label: `Reevaluation ${request.typeReevaluation} - ${impact.assetName}`,
-    status: 'draft',
+    status: 'validated',
     lines,
     createdAt: now,
     createdBy: 'system',
