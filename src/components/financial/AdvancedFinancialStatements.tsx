@@ -1074,8 +1074,9 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         const augCap = creditN('10'); const emp = creditN('16'); const rembE = net('16') > 0 ? net('16') : 0; const div = net('465');
         const fFinanc = money(augCap).add(money(emp)).subtract(money(rembE)).subtract(money(div)).toNumber();
         const varTreso = money(fExploit).add(money(fInvest)).add(money(fFinanc)).toNumber();
-        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5')) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); } return t; })();
-        const tresoClo = net('5');
+        // Trésorerie = classe 5 HORS 59 (dépréciations des titres de placement, créditrices).
+        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5') && !l.accountCode.startsWith('59')) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); } return t; })();
+        const tresoClo = money(net('5')).subtract(money(net('59'))).toNumber();
 
         // Méthode directe
         let dEC = 0, dDF = 0, dDP = 0, dDI = 0, dAE = 0, dAD = 0, dDA = 0, dDAF = 0, dECe = 0, dECa = 0, dEE = 0, dDRE = 0, dDD = 0;
