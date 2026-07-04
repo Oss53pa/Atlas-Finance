@@ -7478,8 +7478,10 @@ Service Contentieux
     }> = {};
 
     for (const entry of allJournalEntries) {
+      if (entry.status === 'draft') continue;
       for (const line of entry.lines) {
         if (!isRecouvrementAccount(line.accountCode)) continue;
+        if (line.lettrageCode) continue; // créance lettrée = soldée → hors recouvrement
         const code = line.thirdPartyCode || line.accountCode;
         if (!byClient[code]) {
           byClient[code] = { totalDebit: 0, totalCredit: 0, lines: [] };

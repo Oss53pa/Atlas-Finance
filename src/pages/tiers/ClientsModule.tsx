@@ -287,7 +287,9 @@ const ClientsModule: React.FC = () => {
             if (entry.status === 'draft') return;
             (entry.lines || []).forEach((line: any) => {
               if (line.thirdPartyCode === tp.code || (tp.accountCode && line.accountCode === tp.accountCode)) {
-                relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0, date: entry.date });
+                // Encours & balance âgée : on IGNORE les lignes lettrées (soldées).
+                // L'historique (detailLines) conserve tout.
+                if (!line.lettrageCode) relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0, date: entry.date });
                 detailLines.push({
                   date: entry.date,
                   piece: pieceNumberOf(entry, pieceNumbers),
