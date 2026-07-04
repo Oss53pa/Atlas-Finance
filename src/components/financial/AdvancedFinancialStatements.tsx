@@ -217,15 +217,17 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       produits: {
         chiffreAffaires: money(creditNet('70')).add(money(creditNet('71'))).add(money(creditNet('72'))).toNumber(),
         productionStockee: creditNet('73'),
-        autresProduits: money(creditNet('74')).add(money(creditNet('75'))).add(money(creditNet('78'))).toNumber(),
+        autresProduits: money(creditNet('74')).add(money(creditNet('75'))).add(money(creditNet('78'))).add(money(creditNet('79'))).toNumber(),
         produitsFinanciers: money(creditNet('76')).add(money(creditNet('77'))).toNumber(),
         produitsExceptionnels: money(creditNet('84')).add(money(creditNet('86'))).add(money(creditNet('88'))).toNumber(),
       },
       charges: {
         achatsConsommes: money(net('60')).add(money(net('61'))).toNumber(),
-        servicesExterieurs: money(net('62')).add(money(net('63'))).toNumber(),
+        // 65 (autres charges) rattaché ici pour que Σ charges couvre TOUTE la classe 6
+        // → Total Produits − Total Charges = résultat net (65 et 69 étaient oubliés).
+        servicesExterieurs: money(net('62')).add(money(net('63'))).add(money(net('65'))).toNumber(),
         personnel: money(net('64')).add(money(net('66'))).toNumber(),
-        amortissements: net('68'),
+        amortissements: money(net('68')).add(money(net('69'))).toNumber(),
         chargesFinancieres: net('67'),
         chargesExceptionnelles: money(net('83')).add(money(net('85'))).add(money(net('87'))).toNumber(),
         impotsSocietes: net('89'),
