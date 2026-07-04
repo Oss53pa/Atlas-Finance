@@ -586,7 +586,9 @@ const JournalsPage: React.FC = () => {
       // 5. Il sera affiché juste à côté de l'écriture d'origine (trié par n° pièce)
 
       await reverseEntryMutation.mutateAsync({
-        id: entry.mvt,
+        // reverseEntry fait getById('journalEntries', id) → il faut l'ID UUID réel,
+        // pas le n° de pièce/entryNumber (entry.mvt) qui ne matche jamais `.eq('id',…)`.
+        id: entry.id ?? entry.mvt,
         date: todayDate,
         pieceNumber: entry.piece // Conserver le même numéro de pièce
       });

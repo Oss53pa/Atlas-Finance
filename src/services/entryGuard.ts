@@ -104,6 +104,13 @@ export async function safeAddEntry(
     hash: '', // placeholder — overwritten below
   } as DBJournalEntry;
 
+  // Garantir un id d'entête et un id par ligne (les lignes vivent dans la table
+  // SÉPARÉE journal_lines ; chaque ligne doit avoir son propre id).
+  finalEntry.id = finalEntry.id ?? crypto.randomUUID();
+  if (Array.isArray(finalEntry.lines)) {
+    finalEntry.lines = finalEntry.lines.map((l: any) => ({ ...l, id: l.id ?? crypto.randomUUID() }));
+  }
+
   // 4. Hash with chain — sort cached entries by date for chain ordering
   const sortedEntries = [...allEntries].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
   const lastEntry = sortedEntries.length > 0 ? sortedEntries[sortedEntries.length - 1] : undefined;
@@ -111,9 +118,13 @@ export async function safeAddEntry(
   finalEntry.previousHash = previousHash;
   finalEntry.hash = await hashEntry(finalEntry, previousHash);
 
-  // 5. Persist
-  await adapter.create('journalEntries', finalEntry);
-  return finalEntry.id;
+  // 5. Persist — via saveJournalEntry qui écrit l'entête ET les lignes dans la table
+  // SÉPARÉE journal_lines (RPC atomique + trigger d'équilibre en SaaS). L'ancien
+  // adapter.create embarquait `lines` dans journal_entries (colonne inexistante) →
+  // l'insert échouait / l'écriture était perdue en production SaaS.
+  const saved = await adapter.saveJournalEntry(finalEntry as any);
+  (adapter as any).invalidateCache?.();
+  return (saved as any)?.id ?? finalEntry.id;
 }
 
 /**

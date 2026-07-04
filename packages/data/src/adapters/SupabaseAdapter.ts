@@ -341,7 +341,18 @@ export class SupabaseAdapter implements DataAdapter {
     // lisaient des champs undefined (ex. asset.acquisitionValue) → calculs faussés
     // (la mise à jour d'amortissement écrasait le cumul à 0).
     const normalizer = TABLE_NORMALIZERS[pg]
-    return (normalizer ? normalizer(data) : data) as T | null
+    const normalized: any = normalizer ? normalizer(data) : data
+    // Injection des lignes pour journal_entries — comme getAll/getPage. Sans ça, les
+    // consommateurs de getById (validation, contrepassation) lisaient lines=undefined en
+    // SaaS → « min 2 lignes » échouait et reverseEntry plantait sur original.lines.map.
+    if (pg === 'journal_entries' && normalized) {
+      try {
+        const { data: linesData } = await this.client
+          .from('journal_lines').select('*').eq('entry_id', id).eq('tenant_id', this.tenantId)
+        normalized.lines = (linesData || []).map((l: any) => normalizeJournalLine(l))
+      } catch { normalized.lines = normalized.lines ?? [] }
+    }
+    return normalized as T | null
   }
 
   // Pagination par tranches pour contourner le plafond `max-rows` de PostgREST

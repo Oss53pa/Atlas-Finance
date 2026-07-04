@@ -526,7 +526,9 @@ export class DexieAdapter implements DataAdapter {
     // ── Period lock check: reject writes to closed fiscal periods ──
     await this.assertPeriodOpen(entry.date)
 
-    const id = crypto.randomUUID()
+    // Respecter l'id fourni par l'appelant (ex. safeAddEntry qui contrôle l'id + le hash
+    // de chaînage), sinon en générer un. Aligne le comportement sur create().
+    const id = (entry as any).id ?? crypto.randomUUID()
     const record: JournalEntry = {
       ...entry,
       id,
