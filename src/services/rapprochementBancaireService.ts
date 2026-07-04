@@ -143,9 +143,13 @@ interface ComptaLine {
 function getComptaLines(entries: DBJournalEntry[], comptesPrefixes: string[]): ComptaLine[] {
   const lines: ComptaLine[] = [];
   for (const entry of entries) {
+    // Le rapprochement ne porte que sur la compta COMPTABILISÉE (jamais les brouillons)
+    // et sur des lignes NON déjà lettrées (sinon on repropose du déjà-rapproché).
+    if ((entry as any).status === 'draft') continue;
     for (const line of entry.lines) {
       const isBank = comptesPrefixes.some(p => line.accountCode.startsWith(p));
       if (!isBank) continue;
+      if ((line as any).lettrageCode) continue;
 
       // En comptabilité : débit 512 = entrée en banque, crédit 512 = sortie
       // Sur le relevé : crédit = entrée, débit = sortie
