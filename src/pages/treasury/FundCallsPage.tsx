@@ -175,6 +175,16 @@ const FundCallsPage: React.FC = () => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const emptyForm = { vendor: '', description: '', amount: '', invoiceType: 'ACHAT' as PayableItem['invoiceType'], dueDate: '', priority: 'MEDIUM' as PayableItem['priority'], chargeAccount: '' };
   const [expenseForm, setExpenseForm] = useState(emptyForm);
+  // Fournisseurs existants (tiers) pour l'autocomplétion du champ bénéficiaire.
+  const [supplierNames, setSupplierNames] = useState<string[]>([]);
+  useEffect(() => {
+    adapter.getAll<any>('thirdParties').then((tps) => {
+      setSupplierNames((tps || [])
+        .filter((tp: any) => ['supplier', 'both', 'fournisseur'].includes(String(tp.type || '').toLowerCase()) || String(tp.code || tp.accountCode || '').startsWith('401'))
+        .map((tp: any) => String(tp.name || tp.raison_sociale || tp.nom || ''))
+        .filter(Boolean));
+    }).catch(() => setSupplierNames([]));
+  }, [adapter]);
 
   const addProvisionalExpense = () => {
     const amount = parseFloat(String(expenseForm.amount).replace(/\s/g, '').replace(',', '.')) || 0;
@@ -1049,9 +1059,14 @@ const FundCallsPage: React.FC = () => {
           <div className="space-y-3.5 py-2">
             <div>
               <Label htmlFor="exp-vendor">Bénéficiaire / Fournisseur *</Label>
-              <Input id="exp-vendor" className="w-full" value={expenseForm.vendor}
+              <Input id="exp-vendor" className="w-full" value={expenseForm.vendor} list="fund-suppliers"
                 onChange={(e) => setExpenseForm(f => ({ ...f, vendor: e.target.value }))}
-                placeholder="Ex. ENTREPRISE BTP SARL" />
+                placeholder="Choisir un fournisseur existant ou saisir un nom…" />
+              <datalist id="fund-suppliers">
+                {Array.from(new Set([...supplierNames, ...payablesBySupplier.map(g => g.vendor)]))
+                  .filter(Boolean).sort().map((name) => <option key={name} value={name} />)}
+              </datalist>
+              <p className="text-[11px] text-gray-400 mt-1">Sélectionnez un fournisseur existant dans la liste, ou tapez un nouveau nom.</p>
             </div>
             <div>
               <Label htmlFor="exp-desc">Description</Label>
