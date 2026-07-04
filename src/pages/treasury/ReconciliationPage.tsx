@@ -150,6 +150,19 @@ const ReconciliationPage: React.FC = () => {
   };
   const [setupInfo, setSetupInfo] = useState<BankStatementSetupInfo>(emptySetup);
 
+  // Comptes de trésorerie (plan comptable, classes 52/53/57) : code + NOM DE LA
+  // BANQUE (ex. 521100 — BRIDGE BANQUE GROUPE). La valeur sélectionnée est le
+  // CODE (et non un uuid), sinon le rapprochement ne matche aucune écriture.
+  const [treasuryAccounts, setTreasuryAccounts] = useState<{ code: string; name: string }[]>([]);
+  useEffect(() => {
+    adapter.getAll<any>('accounts').then((accs) => {
+      setTreasuryAccounts((accs || [])
+        .map((a: any) => ({ code: String(a.code || a.accountCode || ''), name: String(a.name || a.libelle || '') }))
+        .filter((a: any) => /^(52|53|57)\d/.test(a.code)) // sous-comptes, pas les totaux 2 chiffres
+        .sort((a: any, b: any) => a.code.localeCompare(b.code)));
+    }).catch(() => setTreasuryAccounts([]));
+  }, [adapter]);
+
   const refreshStatements = useCallback(async () => {
     try {
       setStatements(await getBankStatements(adapter));
@@ -860,15 +873,11 @@ const ReconciliationPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tous les comptes</SelectItem>
-                {bankAccounts?.results?.map((account) => {
-                  const code = (account as any).account_number || (account as any).numero_compte || account.id;
-                  const nom = (account as any).label || (account as any).bank?.name || (account as any).libelle_compte || '';
-                  return (
-                    <SelectItem key={account.id} value={account.id}>
-                      {nom ? `${code} — ${nom}` : code}
-                    </SelectItem>
-                  );
-                })}
+                {treasuryAccounts.map((account) => (
+                  <SelectItem key={account.code} value={account.code}>
+                    {account.name ? `${account.code} — ${account.name}` : account.code}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 

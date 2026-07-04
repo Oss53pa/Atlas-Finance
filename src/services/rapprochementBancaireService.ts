@@ -81,7 +81,9 @@ export interface EtatRapprochement {
 }
 
 const DEFAULT_CONFIG: RapprochementConfig = {
-  comptesBancaires: ['512'],
+  // SYSCOHADA : 52 = banques (521x), 53 = établ. financiers, 57 = caisse.
+  // (L'ancien '512' ne matchait AUCUN compte réel — ex. 521100 → côté comptable vide.)
+  comptesBancaires: ['52', '53', '57'],
   toleranceJours: 3,
   toleranceMontant: 0,
   matchParReference: true,
