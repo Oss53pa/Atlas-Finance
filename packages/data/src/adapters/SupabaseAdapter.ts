@@ -139,12 +139,16 @@ function normalizeAccount(r: any): any {
 }
 
 function normalizeThirdParty(r: any): any {
-  return {
+  // On termine par normalizeGeneric pour aliaser TOUTES les colonnes snake_case restantes
+  // (tax_id→taxId, regime_fiscal→regimeFiscal, conditions_paiement→conditionsPaiement,
+  // third_party_code, credit_limit…). Sans ça, un normaliseur DÉDIÉ court-circuite le
+  // générique et laisse ces champs métier `undefined` côté composants.
+  return normalizeGeneric({
     ...r,
     raisonSociale: r.raisonSociale || r.name || '',
     isActive:      r.is_active     ?? r.isActive ?? true,
     accountCode:   r.account_code  || r.accountCode || '',
-  }
+  })
 }
 
 function normalizeAsset(r: any): any {
