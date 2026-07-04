@@ -197,6 +197,7 @@ const FournisseursModule: React.FC = () => {
           allEntries.forEach((entry: any) => {
             if (entry.status === 'draft') return;
             (entry.lines || []).forEach((line: any) => {
+              if (line.lettrageCode) return; // lignes lettrées (dettes soldées) exclues de l'encours/âge
               if (line.thirdPartyCode === tp.code || (tp.accountCode && line.accountCode === tp.accountCode)) {
                 relatedLines.push({ debit: line.debit || 0, credit: line.credit || 0 });
                 detailLines.push({

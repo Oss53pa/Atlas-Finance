@@ -71,10 +71,12 @@ const ThirdPartyDashboard: React.FC = () => {
 
     for (const entry of journalEntries) {
       if (!entry.lines) continue;
+      if (entry.status === 'draft') continue; // brouillons exclus
       const entryDate = new Date(entry.date);
       const month = entryDate.getMonth();
       for (const line of entry.lines) {
-        if (line.accountCode?.startsWith('41')) {
+        // Créances clients = 411 (pas toute la classe 41), hors lignes lettrées.
+        if (line.accountCode?.startsWith('411') && !line.lettrageCode) {
           totalReceivables += (line.debit || 0) - (line.credit || 0);
         }
         if (line.accountCode?.startsWith('7')) {

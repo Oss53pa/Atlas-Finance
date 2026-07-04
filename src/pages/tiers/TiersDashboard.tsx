@@ -73,7 +73,9 @@ const TiersDashboard: React.FC = () => {
       lines: Array<{ accountCode: string; debit: number; credit: number; lettrageCode?: string }>;
     }[];
 
-    const postedEntries = entries.filter(e => e.status === 'posted');
+    // Les écritures comptabilisées sont 'validated' (ou 'posted') — surtout PAS filtrer
+    // sur 'posted' seul (le tenant n'a que des 'validated' → tout tombait à 0).
+    const postedEntries = entries.filter(e => e.status !== 'draft');
 
     let ca = 0, encours = 0, impayes = 0;
     let caCurrentMonth = 0, caPrevMonth = 0;
