@@ -404,7 +404,9 @@ export async function posterProvisions(
     date: now.split('T')[0],
     reference: `PROV-CREANCES-${datePart}`,
     label: `Dotation provision créances douteuses (${provisions.length} clients)`,
-    status: 'draft',
+    // Comptabilisée (validated) — cohérent avec la reprise (posterRepriseProvision) et
+    // pour que la dotation impacte réellement la balance/le résultat (draft = exclue).
+    status: 'validated',
     lines,
     createdAt: now,
     createdBy: 'system',
