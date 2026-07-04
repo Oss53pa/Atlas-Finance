@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { validerEcriture } from '../../services/entryWorkflow';
 import {
   FileText, Plus, BarChart3, CheckCircle, Clock, ArrowLeft, Home,
@@ -432,6 +433,7 @@ const EntriesPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <PageHeaderActions printTitle="Écritures Comptables" />
             <div className="flex items-center space-x-2 bg-[var(--color-warning-light)] text-[var(--color-warning)] px-3 py-1 rounded-full text-sm">
               <Clock className="w-4 h-4" />
               <span>{draftCount} en attente</span>

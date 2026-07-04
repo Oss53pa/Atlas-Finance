@@ -1200,12 +1200,13 @@ const PlanSYSCOHADAPage: React.FC = () => {
             renderExpandedRow={(compte: Compte) => {
               if (!compte.sousComptes) return null;
               return (
-                <div className="pl-12 py-2 bg-[var(--color-surface)]">
+                <div className="ml-8 pl-3 border-l-2 border-[var(--color-primary)]/25 bg-[var(--color-surface)]/60 py-1">
                   {compte.sousComptes.map((sousCompte) => (
-                    <div key={sousCompte.code} className="flex items-center justify-between py-1 px-4 hover:bg-[var(--color-surface-hover)]">
+                    <div key={sousCompte.code} className="flex items-center justify-between py-1 pl-4 pr-4 hover:bg-[var(--color-surface-hover)] rounded">
                       <div className="flex items-center gap-4">
-                        <span className="font-mono text-sm text-[var(--color-text-secondary)]">
-                          {sousCompte.code}
+                        {/* Décalage supplémentaire selon la profondeur du code (3/5/6 chiffres) */}
+                        <span className="font-mono text-sm text-[var(--color-text-secondary)]" style={{ paddingLeft: `${Math.max(0, String(sousCompte.code).length - 3) * 12}px` }}>
+                          <span className="text-[var(--color-text-tertiary)] mr-1">└</span>{sousCompte.code}
                         </span>
                         <span className="text-sm text-[var(--color-text-secondary)]">
                           {sousCompte.libelle}

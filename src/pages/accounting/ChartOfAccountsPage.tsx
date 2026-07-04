@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { motion } from 'framer-motion';
 import { 
   Book,
@@ -231,7 +232,8 @@ const ChartOfAccountsPage: React.FC = () => {
           subtitle="Plan comptable harmonisé à 9 positions selon l'Acte Uniforme OHADA 2017"
           icon={Book}
           action={
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              <PageHeaderActions printTitle="Plan Comptable SYSCOHADA" />
               <ElegantButton variant="outline" icon={Upload} onClick={() => setShowImportModal(true)}>
                 Importer Plan
               </ElegantButton>

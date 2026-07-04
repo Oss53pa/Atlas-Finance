@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useLanguage } from '../../contexts/LanguageContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, TrendingUp, BarChart3, Download, ArrowLeft,
@@ -515,6 +516,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <PageHeaderActions printTitle="États Financiers SYSCOHADA" />
             <select
               value={periode}
               onChange={(e) => setPeriode(e.target.value)}

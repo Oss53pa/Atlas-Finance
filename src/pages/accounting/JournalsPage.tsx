@@ -7,6 +7,7 @@ import {
   RotateCcw, X, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import { buildPieceNumbers } from '../../utils/pieceNumber';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import JournalDashboard from '../../components/accounting/JournalDashboard';
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import FilterSidebar, { type ComptaFilters, DEFAULT_COMPTA_FILTERS, loadPersistedFilters } from '../../components/accounting/FilterSidebar';
@@ -623,6 +624,7 @@ const JournalsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <PageHeaderActions printTitle="Journaux Comptables" />
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"

@@ -2,6 +2,7 @@ import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '../../contexts/LanguageContext';
+import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useNavigate } from 'react-router-dom';
 import {
   Building2, TrendingUp, BarChart3, Download, ArrowLeft,
@@ -364,6 +365,7 @@ const CompteResultatPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <PageHeaderActions printTitle="États Financiers Mensuels SYSCOHADA" />
             <div className="text-sm text-[var(--color-text-tertiary)]">
               Exercice {fiscalYear} • Données mensualisées
             </div>
