@@ -56,8 +56,11 @@ export async function createDisposal(adapter: DataAdapter, input: DisposalInput,
   if (!asset) throw new Error('Actif introuvable.');
 
   const brut = Number(asset.acquisitionValue ?? asset.acquisition_value ?? 0);
-  const cumul = Number(asset.cumulDepreciation ?? asset.cumul_depreciation ?? 0);
-  const vnc = Math.max(0, brut - cumul);
+  const cumulBrut = Number(asset.cumulDepreciation ?? asset.cumul_depreciation ?? 0);
+  // L'amortissement repris ne peut EXCÉDER le brut (sinon Dr 28 > Cr 2x →
+  // écriture déséquilibrée en cas de sur-amortissement). amort + vnc = brut.
+  const cumul = Math.min(Math.max(0, cumulBrut), brut);
+  const vnc = brut - cumul;
   const prix = Number(input.disposalValue) || 0;
   const gainLoss = prix - vnc;
 

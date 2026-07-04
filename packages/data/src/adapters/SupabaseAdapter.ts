@@ -371,14 +371,18 @@ export class SupabaseAdapter implements DataAdapter {
         let q = this.isRootTable(pg)
           ? this.client.from(pg).select('*').eq('id', this.tenantId)
           : this.client.from(pg).select('*').eq('tenant_id', this.tenantId)
+        // Les colonnes Postgres sont snake_case ; les appelants passent souvent des
+        // clés camelCase (sessionId, fiscalYear…). Sans conversion, `.eq('sessionId',…)`
+        // vise une colonne inexistante → erreur PostgREST → getAll renvoie [] en silence.
+        const snakeKey = (k: string) => k.replace(/([A-Z])/g, '_$1').toLowerCase()
         if (filters?.where) {
-          for (const [k, v] of Object.entries(filters.where)) q = q.eq(k, v)
+          for (const [k, v] of Object.entries(filters.where)) q = q.eq(snakeKey(k), v)
         }
         if (filters?.startsWith) {
-          q = q.like(filters.startsWith.field, `${filters.startsWith.prefix}%`)
+          q = q.like(snakeKey(filters.startsWith.field), `${filters.startsWith.prefix}%`)
         }
         if (filters?.orderBy) {
-          q = q.order(filters.orderBy.field, { ascending: filters.orderBy.direction === 'asc' })
+          q = q.order(snakeKey(filters.orderBy.field), { ascending: filters.orderBy.direction === 'asc' })
         }
         return q
       }

@@ -482,6 +482,9 @@ export async function getAgedReceivables(
   for (const entry of valid) {
     for (const line of entry.lines || []) {
       if (!line.accountCode || !line.accountCode.startsWith('411')) continue;
+      // Ligne LETTRÉE = créance soldée / règlement imputé → exclue de la balance
+      // âgée (sinon la créance reste affichée comme due après lettrage).
+      if (line.lettrageCode) continue;
       const key = line.thirdPartyCode || line.accountCode;
       const name = line.thirdPartyName || line.accountName || key;
       const c = clients.get(key) || { name, debits: [], credits: 0 };

@@ -229,6 +229,7 @@ async function loadGlLines(client: any, exercice: number): Promise<any[]> {
       .gte('journal_entries.date', start)
       .lte('journal_entries.date', end)
       .or('account_code.like.2*,account_code.like.6*,account_code.like.7*')
+      .order('id', { ascending: true }) // tri déterministe : pagination fiable (sinon lignes dupliquées/omises)
       .range(from, from + PAGE - 1);
     if (error) throw new Error(error.message);
     const rows = data ?? [];
@@ -376,8 +377,13 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   })).sort((a, b) => a.classe.localeCompare(b.classe));
 
   const couverture = totGlCents > 0 ? +((totVentCents / totGlCents) * 100).toFixed(1) : 0;
-  // Invariant : pour le direct 100 %, la part ventilée est exacte (aucune perte).
-  const reconcilie = totVentCents <= totGlCents; // jamais de sur-ventilation
+  // Réconciliation RÉELLE : la somme des montants ventilés (ce qui est écrit en
+  // base) doit égaler EXACTEMENT la somme des soldes GL des lignes assignées
+  // (aucune fuite d'allocation). Le plus fort reste garantit l'égalité par ligne
+  // → diff attendue = 0 ; sinon le run est marqué 'failed'.
+  const sumVentMontant = ventRows.reduce((s, v) => s + (Number(v.montant) || 0), 0);
+  const sumAssignedGl = lines.filter(l => assigned.has(l.id)).reduce((s, l) => s + lineFcfa(l), 0);
+  const reconcilie = sumVentMontant === sumAssignedGl;
   const hash = auditHash([exercice, totGlCents, totVentCents, ventRows.length, rules.filter(r => r.actif).length].join('|'));
 
   const detail = { classes };
