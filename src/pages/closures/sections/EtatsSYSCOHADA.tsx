@@ -276,8 +276,11 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   // Bilan Passif
   const capital = getSoldeCrediteur(['10']);
-  const reserves = getSoldeCrediteur(['11', '12', '13']);
-  const capitauxPropres = capital + reserves + Math.max(0, realResultat);
+  // Réserves : 11 & 12 UNIQUEMENT — le compte 13 (résultat de l'exercice) est
+  // porté séparément par `realResultat`, sinon le résultat est compté DEUX FOIS.
+  const reserves = getSoldeCrediteur(['11', '12']);
+  // Pas de Math.max(0) : une perte doit réduire les capitaux propres.
+  const capitauxPropres = capital + reserves + realResultat;
   const subventions = getSoldeCrediteur(['14']);
   const provisions = getSoldeCrediteur(['15', '19']);
   const dettesFinancieres = getSoldeCrediteur(['16', '17']);

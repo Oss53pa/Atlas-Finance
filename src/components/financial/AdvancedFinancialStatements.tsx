@@ -162,6 +162,14 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       return money(debit).subtract(money(credit)).toNumber();
     };
     const creditNet = (prefix: string | string[]) => -net(prefix);
+    // Côté débiteur / créditeur d'une classe (empêche le DOUBLE COMPTAGE des
+    // tiers : une même classe 4 ne doit apparaître QUE d'un côté du bilan selon
+    // le signe de son solde, jamais en actif ET en passif).
+    const debiteur = (p: string | string[]) => Math.max(0, net(p));
+    const crediteur = (p: string | string[]) => Math.max(0, creditNet(p));
+    // Résultat NET d'impôt (−cl.89) calculé AVANT le bilan pour l'y injecter au
+    // passif (sinon `creditNet('13')` ≠ résultat net → Actif ≠ Passif).
+    const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).subtract(money(net('89'))).toNumber();
 
     const bilan: BilanData = {
       actifImmobilise: {
@@ -172,21 +180,21 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       },
       actifCirculant: {
         stocks: net('3'),
-        creancesClients: net('41'),
-        autresCreances: money(net('42')).add(money(net('43'))).add(money(net('44'))).add(money(net('45'))).add(money(net('46'))).add(money(net('47'))).toNumber(),
-        disponibilites: net('5'),
+        creancesClients: debiteur('41'),
+        autresCreances: money(debiteur('42')).add(money(debiteur('43'))).add(money(debiteur('44'))).add(money(debiteur('45'))).add(money(debiteur('46'))).add(money(debiteur('47'))).toNumber(),
+        disponibilites: debiteur('5'),
       },
       capitauxPropres: {
         capitalSocial: money(creditNet('101')).add(money(creditNet('102'))).add(money(creditNet('103'))).add(money(creditNet('104'))).toNumber(),
         reserves: creditNet('11'),
         reportANouveau: creditNet('12'),
-        resultatExercice: creditNet('13'),
+        resultatExercice: resultatNetReal,
       },
       dettes: {
         dettesFinancieres: money(creditNet('16')).add(money(creditNet('17'))).toNumber(),
-        dettesFournisseurs: creditNet('40'),
-        dettesExploitation: money(creditNet('42')).add(money(creditNet('43'))).add(money(creditNet('44'))).toNumber(),
-        autresDettes: money(creditNet('45')).add(money(creditNet('46'))).add(money(creditNet('47'))).add(money(creditNet('48'))).toNumber(),
+        dettesFournisseurs: crediteur('40'),
+        dettesExploitation: money(crediteur('42')).add(money(crediteur('43'))).add(money(crediteur('44'))).toNumber(),
+        autresDettes: money(crediteur('45')).add(money(crediteur('46'))).add(money(crediteur('47'))).add(money(crediteur('48'))).toNumber(),
       },
     };
 
@@ -209,13 +217,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       },
     };
 
-    // Résultat NET CANONIQUE = produits (cl.7) − charges (cl.6) − impôts (cl.89 : IS/IMF).
-    // Les regroupements par préfixe ci-dessus oubliaient 65 et 69 (→ +12,3M d'écart vs la
-    // Balance/Bilan). On calcule sur les classes entières + déduction de l'impôt 89 pour
-    // garantir la COHÉRENCE avec le Bilan (résultat net d'impôt = condition d'équilibre
-    // Actif = Passif, la dette d'IMF étant portée en classe 44).
-    const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).subtract(money(net('89'))).toNumber();
-
+    // resultatNetReal (= cl.7 − cl.6 − cl.89) est calculé plus haut et injecté au
+    // passif du bilan (resultatExercice) pour garantir Actif = Passif.
     return { bilanData: bilan, compteResultatData: cr, resultatNetReal };
   }, [entries]);
 

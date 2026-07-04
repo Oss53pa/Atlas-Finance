@@ -63,8 +63,9 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
       const activeFY = fys.find((fy: any) => fy.isActive) || fys[0];
       setFiscalYear(activeFY || null);
 
-      // Load entries — filter by FY period if available, otherwise use all
-      const allEntries = await adapter.getAll<any>('journalEntries');
+      // Load entries — exclut les BROUILLONS (jamais dans les états) puis filtre
+      // par période de l'exercice si disponible.
+      const allEntries = (await adapter.getAll<any>('journalEntries')).filter((e: any) => e.status !== 'draft');
       const entries = activeFY?.startDate && activeFY?.endDate
         ? allEntries.filter((e: any) => e.date >= activeFY.startDate && e.date <= activeFY.endDate)
         : allEntries;
@@ -134,16 +135,18 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
     return total.toNumber();
   }, [balances]);
 
-  // Compute summaries
-  // Actif: classes 2,3,4(débiteur),5 = debit balances
-  const totalActif = getSoldeDebiteur(['2', '3', '4', '5']);
-  // Passif: class 1 + class 4(créditeur) + résultat
+  // Compute summaries — placement par SIGNE garantissant Actif = Passif.
+  // Actif = solde NET des immos/stocks/tréso (classes 2,3,5 → contrepartie
+  // 28/29 déduite car en négatif) + comptes débiteurs des classes 1 & 4.
+  const totalActif = money(getSolde(['2', '3', '5'])).add(getSoldeDebiteur(['1', '4'])).toNumber();
+  // Passif = comptes créditeurs classes 1 & 4 + résultat net.
   const passiCapitaux = getSoldeCrediteur(['1']);
   const passiDettes = getSoldeCrediteur(['4']);
-  // Résultat: produits (cl.7 credit) - charges (cl.6 debit)
+  // Résultat NET d'impôt : produits (cl.7) − charges (cl.6) − IMF/IS (cl.89).
+  // Sans −89 le passif est surévalué de 5 M (la dette d'IMF est en cl.44) → déséquilibre.
   const produits = getSoldeCrediteur(['7']);
   const charges = getSoldeDebiteur(['6']);
-  const resultatNet = money(produits).subtract(money(charges)).toNumber();
+  const resultatNet = money(produits).subtract(money(charges)).subtract(money(getSolde(['89']))).toNumber();
   const totalPassif = money(passiCapitaux).add(passiDettes).add(resultatNet).toNumber();
   const isBalanced = Math.abs(totalActif - totalPassif) < 1000;
 
