@@ -407,26 +407,32 @@ export async function appliquerRapprochement(
 ): Promise<number> {
   let applied = 0;
   const code = `RAP-${new Date().toISOString().slice(0, 10)}`;
+  const client = (adapter as any).client;
+  const isSaas = adapter.getMode?.() === 'saas' && client;
 
-  for (const match of matches) {
-    const lineIdSet = new Set(match.lineIds);
-    const entryIdSet = new Set(match.entryIds);
-
-    for (const entryId of entryIdSet) {
-      const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
-      if (!entry) continue;
-
-      let modified = false;
-      for (const line of entry.lines) {
-        if (lineIdSet.has(line.id)) {
-          line.lettrageCode = line.lettrageCode || code;
-          modified = true;
+  if (isSaas) {
+    // journal_lines = table SÉPARÉE : écriture DIRECTE du code de rapprochement
+    // (l'ancien adapter.update('journalEntries',{lines}) visait une colonne
+    // inexistante → le rapprochement « ne prenait pas »). Puis invalidation cache.
+    const allLineIds = matches.flatMap(m => m.lineIds).filter(Boolean);
+    for (let i = 0; i < allLineIds.length; i += 100) {
+      const chunk = allLineIds.slice(i, i + 100);
+      const { error } = await client.from('journal_lines').update({ lettrage_code: code }).in('id', chunk).is('lettrage_code', null);
+      if (error) throw new Error(error.message);
+      applied += chunk.length;
+    }
+    (adapter as any).invalidateCache?.();
+  } else {
+    for (const match of matches) {
+      const lineIdSet = new Set(match.lineIds);
+      for (const entryId of new Set(match.entryIds)) {
+        const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
+        if (!entry) continue;
+        let modified = false;
+        for (const line of entry.lines) {
+          if (lineIdSet.has(line.id) && !line.lettrageCode) { line.lettrageCode = code; modified = true; }
         }
-      }
-
-      if (modified) {
-        await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() });
-        applied++;
+        if (modified) { await adapter.update('journalEntries', entryId, { lines: entry.lines, updatedAt: new Date().toISOString() }); applied++; }
       }
     }
   }

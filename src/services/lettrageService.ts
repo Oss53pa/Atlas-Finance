@@ -147,6 +147,10 @@ async function persistLettrageCode(
       if (error) throw new Error(error.message);
       applied += chunk.length;
     }
+    // Écriture DIRECTE dans journal_lines → invalide le cache de l'adaptateur
+    // (sinon getAll('journalEntries') resservirait les lignes sans lettrage :
+    //  ex. rapprochement bancaire qui « ne prend pas »).
+    (adapter as any).invalidateCache?.();
     return applied;
   }
   // Dexie / offline : lignes imbriquées dans l'entrée.
@@ -466,6 +470,7 @@ export async function delettrage(adapter: DataAdapter, code: string): Promise<nu
     const { data, error } = await client.from('journal_lines').update({ lettrage_code: null }).eq('lettrage_code', code).select('id');
     if (error) throw new Error(error.message);
     count = (data ?? []).length;
+    (adapter as any).invalidateCache?.(); // écriture directe → rafraîchir le cache
   } else {
     const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
     for (const entry of entries) {
