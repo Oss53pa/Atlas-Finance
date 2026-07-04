@@ -1,13 +1,15 @@
 import { formatCurrency } from '@/utils/formatters';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
-// Module non alimenté par l'import : il n'existe AUCUNE table d'ordres de paiement
-// dans les données. Le statut/méthode/circuit de validation d'un paiement ne sont pas
-// dérivables du grand livre — la page reste donc en état vide honnête (pas de chiffre inventé).
 import { toast } from 'react-hot-toast';
+import {
+  listPaymentOrders, createPaymentOrder, setPaymentStatus, executePaymentOrder, deletePaymentOrder,
+  type PaymentOrder,
+} from '../../services/treasury/paymentOrderService';
 import {
   CreditCard,
   Send,
@@ -38,6 +40,7 @@ interface Payment {
 
 const GestionPaiementsPage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [selectedMethod, setSelectedMethod] = useState<string>('all');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -61,13 +64,27 @@ const GestionPaiementsPage: React.FC = () => {
     description: ''
   });
 
-  // Aucune source d'ordres de paiement dans les données importées : pas de table
-  // d'ordres de paiement, et le statut / la méthode / le circuit de validation ne sont
-  // pas dérivables du grand livre. On affiche donc une liste vide honnête plutôt que
-  // des chiffres fabriqués (anciens stubs `{ forecasts: [] }` + faux mapping supprimés).
-  const payments: Payment[] = [];
-  // Pas de KPI inventé : tous les indicateurs affichent "—" tant que le module
-  // n'est pas alimenté (état vide honnête, voir l'affichage ci-dessous).
+  // Ordres de paiement RÉELS (table fna_payment_order).
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const loadPayments = useCallback(async () => {
+    try {
+      const rows = await listPaymentOrders(adapter);
+      setPayments(rows.map((r: PaymentOrder): Payment => ({
+        id: r.id,
+        type: 'outgoing',
+        method: r.method,
+        amount: r.amount,
+        currency: r.currency,
+        beneficiary: r.beneficiary || '',
+        reference: r.reference || '',
+        scheduledDate: r.scheduled_date ? new Date(r.scheduled_date) : new Date(),
+        status: r.status === 'pending' ? 'pending' : r.status,
+        validationLevel: (r.status === 'validated' || r.status === 'executed') ? 1 : 0,
+        maxValidationLevel: 1,
+      })));
+    } catch { setPayments([]); }
+  }, [adapter]);
+  useEffect(() => { loadPayments(); }, [loadPayments]);
 
   const getMethodIcon = (method: string) => {
     switch (method) {
@@ -111,11 +128,21 @@ const GestionPaiementsPage: React.FC = () => {
     }
   };
 
-  // Handler functions
-  // Le module n'est relié à aucune table d'ordres de paiement : l'enregistrement
-  // n'écrit nulle part. On le signale honnêtement au lieu d'afficher un faux succès.
-  const handleCreatePayment = () => {
-    toast.error("Module non connecté : aucun ordre de paiement n'est enregistré (en attente de la couche de persistance).");
+  // Handlers — persistance réelle (fna_payment_order).
+  const handleCreatePayment = async () => {
+    const amount = parseFloat(newPayment.amount) || 0;
+    if (!newPayment.beneficiary.trim() || amount <= 0) { toast.error('Bénéficiaire et montant requis'); return; }
+    try {
+      await createPaymentOrder(adapter, {
+        reference: newPayment.reference || null, beneficiary: newPayment.beneficiary,
+        method: newPayment.method, amount, currency: newPayment.currency,
+        scheduled_date: newPayment.scheduledDate || null, description: newPayment.description || null,
+      });
+      toast.success('Ordre de paiement créé');
+      setShowNewPaymentModal(false);
+      setNewPayment({ type: 'outgoing', method: 'sepa', amount: '', currency: 'XOF', beneficiary: '', reference: '', scheduledDate: new Date().toISOString().split('T')[0], description: '' });
+      await loadPayments();
+    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
   const handleValidatePayment = (payment: Payment) => {
@@ -123,10 +150,24 @@ const GestionPaiementsPage: React.FC = () => {
     setShowValidateModal(true);
   };
 
-  const confirmValidation = () => {
-    toast.error('Module non connecté : la validation des paiements n\'est pas encore persistée.');
-    setShowValidateModal(false);
-    setSelectedPayment(null);
+  const confirmValidation = async () => {
+    if (!selectedPayment) return;
+    try { await setPaymentStatus(adapter, selectedPayment.id, 'validated'); toast.success('Paiement validé'); await loadPayments(); }
+    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    setShowValidateModal(false); setSelectedPayment(null);
+  };
+
+  // Exécution = décaissement réel → poste l'écriture de règlement (Dr 401 / Cr banque).
+  const handleExecutePayment = async (payment: Payment) => {
+    if (!window.confirm(`Exécuter le paiement de ${formatCurrency(payment.amount)} à ${payment.beneficiary} ? (écriture de règlement générée)`)) return;
+    try { await executePaymentOrder(adapter, payment.id); toast.success('Paiement exécuté · écriture de règlement générée'); await loadPayments(); }
+    catch (e: any) { toast.error(e?.message || 'Échec de l’exécution'); }
+  };
+
+  const handleDeletePayment = async (payment: Payment) => {
+    if (!window.confirm('Supprimer cet ordre de paiement ?')) return;
+    try { await deletePaymentOrder(adapter, payment.id); toast.success('Supprimé'); await loadPayments(); }
+    catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
 
   const handleRetryPayment = (payment: Payment) => {
@@ -134,10 +175,11 @@ const GestionPaiementsPage: React.FC = () => {
     setShowRetryModal(true);
   };
 
-  const confirmRetry = () => {
-    toast.error('Module non connecté : la relance des paiements n\'est pas encore persistée.');
-    setShowRetryModal(false);
-    setSelectedPayment(null);
+  const confirmRetry = async () => {
+    if (!selectedPayment) { setShowRetryModal(false); return; }
+    try { await executePaymentOrder(adapter, selectedPayment.id); toast.success('Paiement relancé et exécuté'); await loadPayments(); }
+    catch (e: any) { toast.error(e?.message || 'Échec de la relance'); }
+    setShowRetryModal(false); setSelectedPayment(null);
   };
 
   const handleViewPaymentDetail = (payment: Payment) => {
@@ -414,12 +456,28 @@ const GestionPaiementsPage: React.FC = () => {
                           Valider
                         </button>
                       )}
+                      {payment.status === 'validated' && (
+                        <button
+                          onClick={() => handleExecutePayment(payment)}
+                          className="px-3 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Exécuter
+                        </button>
+                      )}
                       {payment.status === 'failed' && (
                         <button
                           onClick={() => handleRetryPayment(payment)}
                           className="px-3 py-1 bg-orange-600 text-white text-xs rounded-lg hover:bg-orange-700 transition-colors"
                         >
                           Relancer
+                        </button>
+                      )}
+                      {(payment.status === 'draft' || payment.status === 'pending') && (
+                        <button
+                          onClick={() => handleDeletePayment(payment)}
+                          className="px-3 py-1 border border-red-300 text-red-600 text-xs rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          Suppr.
                         </button>
                       )}
                     </div>
