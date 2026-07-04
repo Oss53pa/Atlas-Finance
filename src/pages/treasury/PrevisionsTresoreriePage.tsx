@@ -85,6 +85,11 @@ const PrevisionsTresoreriePage: React.FC = () => {
   // Onglet « Transactions futures » : banque sélectionnée (pilote selectedAccounts).
   // 'all' par défaut → cartes Cash remplies d'emblée.
   const [futureBank, setFutureBank] = useState<string>('all');
+  // Onglet Transactions futures : filtre + tri du tableau.
+  const [futureFiltersOpen, setFutureFiltersOpen] = useState(false);
+  const [futureSearch, setFutureSearch] = useState('');
+  const [futureSens, setFutureSens] = useState<'all' | 'IN' | 'OUT'>('all');
+  const [futureSort, setFutureSort] = useState<{ key: string; dir: 'asc' | 'desc' }>({ key: 'transDate', dir: 'desc' });
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
   const [editingPlan, setEditingPlan] = useState<TreasuryPlan | null>(null);
   const [detailPlan, setDetailPlan] = useState<TreasuryPlan | null>(null);
@@ -303,6 +308,29 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
   const getTotalAmount = () => allTreasuryAccounts.reduce((s, a) => s + a.amount, 0);
   const getFilteredTransactionsTotal = () => getFilteredTransactions().reduce((s, t) => s + t.amount, 0);
+
+  // Recherche + sens + tri appliqués à la vue du tableau (dates fr jj/mm/aaaa).
+  const parseFrDate = (s: string): number => {
+    const [d, m, y] = String(s || '').split('/');
+    return y ? new Date(+y, (+m || 1) - 1, +d || 1).getTime() : 0;
+  };
+  const toggleFutureSort = (key: string) =>
+    setFutureSort(prev => prev.key === key ? { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' });
+  const displayedFutureTx = useMemo(() => {
+    let list = getFilteredTransactions();
+    const q = futureSearch.trim().toLowerCase();
+    if (q) list = list.filter(t => [t.glDescription, t.glAccount, t.numFacture, t.numPiece, t.codeJournal]
+      .some(v => String(v || '').toLowerCase().includes(q)));
+    if (futureSens !== 'all') list = list.filter(t => t.cashTransaction === futureSens);
+    const dir = futureSort.dir === 'asc' ? 1 : -1;
+    const key = futureSort.key;
+    return [...list].sort((a: any, b: any) => {
+      if (key === 'amount') return (a.amount - b.amount) * dir;
+      if (key === 'transDate' || key === 'docDate' || key === 'collectionDate') return (parseFrDate(a[key]) - parseFrDate(b[key])) * dir;
+      return String(a[key] || '').localeCompare(String(b[key] || '')) * dir;
+    });
+  }, [futureTransactions, selectedAccounts, allTreasuryAccounts, futureSearch, futureSens, futureSort]);
+  const displayedFutureTotal = useMemo(() => displayedFutureTx.reduce((s, t) => s + t.amount, 0), [displayedFutureTx]);
 
   const totalIncoming = useMemo(
     () => getFilteredTransactions().filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0),
@@ -703,38 +731,73 @@ const PrevisionsTresoreriePage: React.FC = () => {
           </div>
 
           {/* Table des transactions futures — pleine largeur, colonnes compactes, scroll horizontal. */}
-          <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-3 border-b border-gray-200">
+          <div className="bg-white border border-gray-200 rounded-lg" data-print-root>
+            <div className="p-3 border-b border-gray-200 flex items-center justify-between gap-3">
               <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Future transaction</h3>
+              <PageHeaderActions
+                onToggleFilters={() => setFutureFiltersOpen(o => !o)}
+                filtersOpen={futureFiltersOpen}
+                activeFilters={(futureSearch.trim() ? 1 : 0) + (futureSens !== 'all' ? 1 : 0)}
+                printTitle="Transactions futures"
+              />
             </div>
+            {futureFiltersOpen && (
+              <div className="p-3 border-b border-gray-200 flex flex-wrap items-center gap-3 bg-gray-50/60 print-hide">
+                <input
+                  value={futureSearch}
+                  onChange={e => setFutureSearch(e.target.value)}
+                  placeholder="Rechercher (description, compte, n° pièce…)"
+                  className="flex-1 min-w-[240px] border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
+                />
+                <select value={futureSens} onChange={e => setFutureSens(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                  <option value="all">Tous les sens</option>
+                  <option value="IN">Encaissements (IN)</option>
+                  <option value="OUT">Décaissements (OUT)</option>
+                </select>
+                <select value={`${futureSort.key}:${futureSort.dir}`} onChange={e => { const [key, dir] = e.target.value.split(':'); setFutureSort({ key, dir: dir as 'asc' | 'desc' }); }} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                  <option value="transDate:desc">Date ↓</option>
+                  <option value="transDate:asc">Date ↑</option>
+                  <option value="amount:desc">Montant ↓</option>
+                  <option value="amount:asc">Montant ↑</option>
+                  <option value="glAccount:asc">Compte A→Z</option>
+                </select>
+                {(futureSearch || futureSens !== 'all') && (
+                  <button onClick={() => { setFutureSearch(''); setFutureSens('all'); }} className="text-xs text-[var(--color-primary)] hover:underline">Réinitialiser</button>
+                )}
+              </div>
+            )}
             <div style={{ maxHeight: '60vh' }} className="overflow-auto">
               <table className="w-full min-w-[1080px] text-sm">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Journal</th>
+                    {(() => { const caret = (k: string) => futureSort.key === k ? (futureSort.dir === 'asc' ? ' ▲' : ' ▼') : ''; const thCls = 'px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer select-none hover:text-[var(--color-primary)]'; return (<>
+                    <th className={thCls} onClick={() => toggleFutureSort('codeJournal')}>Journal{caret('codeJournal')}</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N°facture</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° pièce</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date doc.</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date trans.</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Compte</th>
+                    <th className={thCls} onClick={() => toggleFutureSort('transDate')}>Date trans.{caret('transDate')}</th>
+                    <th className={thCls} onClick={() => toggleFutureSort('glAccount')}>Compte{caret('glAccount')}</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                    <th className="px-2 py-2 text-center text-xs font-medium text-gray-700 uppercase">Sens</th>
-                    <th className="px-2 py-2 text-right text-xs font-medium text-gray-700 uppercase">Montant</th>
+                    <th className={thCls + ' text-center'} onClick={() => toggleFutureSort('cashTransaction')}>Sens{caret('cashTransaction')}</th>
+                    <th className={thCls + ' text-right'} onClick={() => toggleFutureSort('amount')}>Montant{caret('amount')}</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Encaiss.</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Comptable</th>
+                    </>); })()}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {getFilteredTransactions().length === 0 ? (
+                  {displayedFutureTx.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="px-3 py-8 text-center text-gray-500">
                         {selectedAccounts.length === 0
                           ? 'Choisissez une banque ci-dessus pour voir les transactions futures.'
+                          : (futureSearch || futureSens !== 'all')
+                          ? 'Aucune transaction ne correspond au filtre.'
                           : 'Aucune transaction future pour cette banque.'}
                       </td>
                     </tr>
                   ) : (
-                    getFilteredTransactions().map((transaction, index) => (
+                    displayedFutureTx.map((transaction, index) => (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-2 py-1.5 font-medium">{transaction.codeJournal}</td>
                         <td className="px-2 py-1.5 text-xs">{transaction.numFacture}</td>
@@ -761,9 +824,9 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     ))
                   )}
                   <tr className="bg-gray-50 border-t-2 border-gray-300">
-                    <td colSpan={8} className="px-2 py-2 font-bold text-[var(--color-text-primary)]">Solde :</td>
+                    <td colSpan={8} className="px-2 py-2 font-bold text-[var(--color-text-primary)]">Solde (vue filtrée) :</td>
                     <td className="px-2 py-2 text-right font-bold text-[var(--color-text-primary)] whitespace-nowrap">
-                      {formatCurrency(getFilteredTransactionsTotal())}
+                      {formatCurrency(displayedFutureTotal)}
                     </td>
                     <td colSpan={2}></td>
                   </tr>
