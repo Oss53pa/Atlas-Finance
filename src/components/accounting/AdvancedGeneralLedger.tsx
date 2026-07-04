@@ -1864,15 +1864,14 @@ const AdvancedGeneralLedger: React.FC = () => {
 
                   switch (ledgerType) {
                     case 'account':
-                      // Grand Livre par compte - Afficher un seul compte avec tous les détails
-                      return [baseData[0]]; // Seulement le client A SARL
+                      // Grand Livre par compte — le compte réellement sélectionné (plus de
+                      // baseData[0] "Client A SARL" en dur). À défaut de sélection : tout.
+                      return selectedAccount ? baseData.filter(c => c.code === selectedAccount) : baseData;
 
                     case 'journal':
-                      // Grand Livre par journal - Regrouper par journal
-                      return baseData.map(compte => ({
-                        ...compte,
-                        mouvements: compte.mouvements.filter(m => m.journal === 'VTE' || m.journal === 'BQ1')
-                      })).filter(compte => compte.mouvements.length > 0);
+                      // Grand Livre par journal — tous les mouvements (l'ancien filtre sur les
+                      // codes 'VTE'/'BQ1' en dur ne correspondait à aucun journal réel du tenant).
+                      return baseData;
 
                     case 'auxiliary':
                       // Grand Livre auxiliaire - Seulement les comptes de tiers
