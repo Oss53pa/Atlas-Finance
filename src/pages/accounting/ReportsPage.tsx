@@ -90,8 +90,8 @@ const ReportsPage: React.FC = () => {
                 <p className="text-[var(--color-text-tertiary)]">
                   État des charges et produits de l'exercice
                 </p>
-                <button className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
-                  Générer le compte de résultat
+                <button onClick={() => navigate('/accounting/income-statement')} className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
+                  Ouvrir le compte de résultat
                 </button>
               </div>
             </div>
@@ -108,8 +108,8 @@ const ReportsPage: React.FC = () => {
                 <p className="text-[var(--color-text-tertiary)]">
                   Situation patrimoniale de l'entreprise
                 </p>
-                <button className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
-                  Générer le bilan
+                <button onClick={() => navigate('/accounting/balance-sheet')} className="mt-4 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
+                  Ouvrir le bilan
                 </button>
               </div>
             </div>
