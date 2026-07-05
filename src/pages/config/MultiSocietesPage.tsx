@@ -191,24 +191,55 @@ const MultiSocietesPage: React.FC = () => {
     return countries[countryCode] || countryCode;
   };
 
-  const handleCreateCompany = () => {
-    toast.success('Nouvelle société en cours de création...');
+  // Persistance réelle de la liste des sociétés dans settings.companies_list.
+  const saveCompanies = async (list: Company[]) => {
+    const payload = { key: 'companies_list', value: JSON.stringify(list), updatedAt: new Date().toISOString() };
+    if (companiesSetting) await adapter.update('settings', 'companies_list', payload);
+    else await adapter.create('settings', payload);
+    setCompaniesSetting({ ...(companiesSetting || {}), key: 'companies_list', value: payload.value });
   };
 
-  const handleEditCompany = (companyId: string) => {
-    toast(`Édition de la société ${companyId}`);
+  const handleCreateCompany = async () => {
+    const name = window.prompt('Nom de la nouvelle société :')?.trim();
+    if (!name) return;
+    const now = new Date().toISOString();
+    const company: Company = {
+      id: crypto.randomUUID(), code: name.slice(0, 4).toUpperCase(), name,
+      legal_form: 'SARL', rccm: '', nif: '', address: '', city: '', country: 'CI',
+      phone: '', email: '', currency: 'XOF', fiscal_year_start: '01-01',
+      status: 'active', is_parent: false, created_date: now, last_activity: now,
+      users_count: 0, transactions_count: 0, consolidation_level: 0,
+    };
+    await saveCompanies([...companies, company]);
+    toast.success('Société créée');
   };
 
-  const handleDeleteCompany = (companyId: string) => {
-    toast.error(`Suppression de la société ${companyId}`);
+  const handleEditCompany = async (companyId: string) => {
+    const c = companies.find(x => x.id === companyId);
+    if (!c) return;
+    const name = window.prompt('Nom de la société :', c.name)?.trim();
+    if (!name) return;
+    await saveCompanies(companies.map(x => x.id === companyId ? { ...x, name, last_activity: new Date().toISOString() } : x));
+    toast.success('Société mise à jour');
   };
 
-  const handleSwitchCompany = (companyId: string) => {
-    toast.success(`Basculement vers la société ${companyId}`);
+  const handleDeleteCompany = async (companyId: string) => {
+    const c = companies.find(x => x.id === companyId);
+    if (c?.is_parent) { toast.error('La société mère ne peut pas être supprimée.'); return; }
+    if (!window.confirm(`Supprimer la société « ${c?.name} » ?`)) return;
+    await saveCompanies(companies.filter(x => x.id !== companyId));
+    toast.success('Société supprimée');
+  };
+
+  const handleSwitchCompany = async (companyId: string) => {
+    // La société active = statut 'active' unique (les autres passent en 'inactive').
+    await saveCompanies(companies.map(x => ({ ...x, status: (x.id === companyId ? 'active' : (x.status === 'suspended' ? 'suspended' : 'inactive')) as Company['status'] })));
+    const c = companies.find(x => x.id === companyId);
+    toast.success(`Société active : ${c?.name || companyId}`);
   };
 
   const handleConsolidation = () => {
-    toast.success('Lancement de la consolidation...');
+    toast('La consolidation multi-entités se pilote depuis Reporting → IFRS (périmètre de consolidation).', { icon: 'ℹ️' });
   };
 
   const activeCompanies = companies.filter(c => c.status === 'active').length;
