@@ -116,7 +116,7 @@ const TreasuryPositions: React.FC = () => {
   }[]>([]);
   const [posTab, setPosTab] = useState<'positions' | 'cockpit' | 'comptes' | 'flux'>('cockpit');
   // Multi-affichage de l'onglet « Positions par compte » : cartes ou tableau.
-  const [posDisplay, setPosDisplay] = useState<'cards' | 'table'>('cards');
+  const [posDisplay, setPosDisplay] = useState<'cards' | 'table' | 'kanban'>('cards');
   // Flux EN CIRCULATION (lignes de trésorerie non lettrées, hors À-Nouveau) — réel.
   const [glFloat, setGlFloat] = useState<{ id: string; code: string; accountName: string; libelle: string; date: string; montant: number; sens: 'emis' | 'recu' }[]>([]);
   // Lignes de prévision (module Prévisions de trésorerie) pour l'atterrissage.
@@ -460,7 +460,7 @@ const TreasuryPositions: React.FC = () => {
 
               {/* Multi-affichage : Cartes / Tableau */}
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-                {([['cards', 'Cartes'], ['table', 'Tableau']] as const).map(([k, lbl]) => (
+                {([['cards', 'Cartes'], ['table', 'Tableau'], ['kanban', 'Kanban']] as const).map(([k, lbl]) => (
                   <button
                     key={k}
                     onClick={() => setPosDisplay(k)}
@@ -540,6 +540,62 @@ const TreasuryPositions: React.FC = () => {
                 </div>
               </UnifiedCard>
               )}
+
+              {/* Vue KANBAN : comptes de trésorerie regroupés par état de rapprochement */}
+              {posDisplay === 'kanban' && (() => {
+                const cat = { a_rapprocher: [] as typeof glPosition, en_cours: [] as typeof glPosition, rapproche: [] as typeof glPosition, alerte: [] as typeof glPosition };
+                for (const p of glPosition) {
+                  const theorique = p.solde - p.emis + p.recus;
+                  const floating = p.emis > 0 || p.recus > 0;
+                  if (p.solde < 0 || theorique < 0) cat.alerte.push(p);       // solde/théorique négatif
+                  else if (!floating) cat.rapproche.push(p);                   // rien en circulation
+                  else if (p.rappro > 0) cat.en_cours.push(p);                 // partiellement rapproché
+                  else cat.a_rapprocher.push(p);                               // flottant, non entamé
+                }
+                const cols = [
+                  { key: 'a_rapprocher', title: 'À rapprocher', items: cat.a_rapprocher, color: '#E89A2E', bg: 'rgba(232,154,46,0.08)' },
+                  { key: 'en_cours', title: 'En cours', items: cat.en_cours, color: '#4E7E8D', bg: 'rgba(78,126,141,0.08)' },
+                  { key: 'rapproche', title: 'Rapproché', items: cat.rapproche, color: '#1D9E75', bg: 'rgba(29,158,117,0.08)' },
+                  { key: 'alerte', title: 'Alerte de solde', items: cat.alerte, color: '#E24B4A', bg: 'rgba(226,75,74,0.08)' },
+                ];
+                return (
+                  <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
+                    {cols.map(col => (
+                      <div key={col.key} className="rounded-xl border p-3" style={{ borderColor: 'var(--color-border)', background: col.bg }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-semibold" style={{ color: col.color }}>{col.title}</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full text-white" style={{ background: col.color }}>{col.items.length}</span>
+                        </div>
+                        <div className="space-y-2">
+                          {col.items.length === 0 ? (
+                            <p className="text-xs text-[var(--color-text-tertiary)] text-center py-3">—</p>
+                          ) : col.items.map(p => {
+                            const th = p.solde - p.emis + p.recus;
+                            return (
+                              <div key={p.code} className="bg-white rounded-lg border p-2.5" style={{ borderColor: 'var(--color-border)' }}>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm font-medium text-[var(--color-text-primary)] truncate">{p.name}</span>
+                                  <span className="text-[10px] font-mono text-[var(--color-text-secondary)] ml-1">{p.code}</span>
+                                </div>
+                                <div className="flex items-center justify-between mt-1 text-xs">
+                                  <span className="text-[var(--color-text-secondary)]">Solde réel</span>
+                                  <span className={`font-mono font-semibold ${p.solde < 0 ? 'text-red-600' : 'text-[var(--color-text-primary)]'}`}>{formatCurrency(p.solde)}</span>
+                                </div>
+                                {(p.emis > 0 || p.recus > 0) && (
+                                  <div className="flex items-center justify-between mt-0.5 text-[11px]">
+                                    <span className="text-[var(--color-text-tertiary)]">Solde théorique</span>
+                                    <span className="font-mono" style={{ color: '#E89A2E' }}>{formatCurrency(th)}</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           );
         })()}
