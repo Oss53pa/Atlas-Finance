@@ -553,7 +553,7 @@ const Lettrage: React.FC = () => {
 
       {/* Mode Lettrage Manuel */}
       {viewMode === 'manual' && (
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Barre de recherche et filtres */}
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex items-center flex-wrap gap-4">
@@ -738,7 +738,7 @@ const Lettrage: React.FC = () => {
 
       {/* Mode Lettrage Automatique */}
       {viewMode === 'automatic' && (
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Lettrage Automatique</h3>
 
@@ -866,11 +866,11 @@ const Lettrage: React.FC = () => {
 
       {/* Mode Analyse */}
       {viewMode === 'analysis' && (
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Statistiques par compte */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Analyse par compte</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Analyse par tiers</h3>
               <div className="space-y-3">
                 {groupedEntries.map((group) => {
                   const lettrees = group.entries.filter((e: LettrageEntry) => e.lettrage).length;
@@ -878,14 +878,14 @@ const Lettrage: React.FC = () => {
                   const percentage = total > 0 ? (lettrees / total) * 100 : 0;
 
                   return (
-                    <div key={group.compte} className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm text-gray-700">
-                            <span className="font-mono">{group.compte}</span>
-                            {group.compteLib && <span className="ml-2 text-gray-500">{group.compteLib}</span>}
+                    <div key={group.key} className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1 gap-2">
+                          <span className="text-sm text-gray-700 truncate">
+                            <span className="font-medium">{group.tiers}</span>
+                            <span className="ml-2 font-mono text-xs text-gray-400">{group.compte}</span>
                           </span>
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-600 whitespace-nowrap">
                             {lettrees}/{total} ({Math.round(percentage)}%)
                           </span>
                         </div>
@@ -940,7 +940,7 @@ const Lettrage: React.FC = () => {
                 <AlertTriangle className="w-6 h-6 text-yellow-600 mb-2" />
                 <p className="text-sm font-medium text-gray-900">Écritures anciennes</p>
                 <p className="text-xs text-gray-600 mt-1">
-                  4 écritures de plus de 60 jours nécessitent une attention particulière
+                  {lettrageEntries.filter(e => !e.lettrage && (Date.now() - new Date(e.date).getTime()) / 86400000 > 60).length} écriture(s) de plus de 60 jours nécessitent une attention particulière
                 </p>
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -952,9 +952,14 @@ const Lettrage: React.FC = () => {
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <CheckCircle className="w-6 h-6 text-green-600 mb-2" />
-                <p className="text-sm font-medium text-gray-900">Bon taux de lettrage</p>
+                <p className="text-sm font-medium text-gray-900">Taux de lettrage</p>
                 <p className="text-xs text-gray-600 mt-1">
-                  Le taux de lettrage global de 75% est satisfaisant
+                  {(() => {
+                    const tot = lettrageEntries.length;
+                    const let_ = lettrageEntries.filter(e => e.lettrage).length;
+                    const taux = tot > 0 ? Math.round((let_ / tot) * 100) : 0;
+                    return `Taux de lettrage global : ${taux}% (${let_}/${tot} écritures rapprochées)`;
+                  })()}
                 </p>
               </div>
             </div>
@@ -964,7 +969,7 @@ const Lettrage: React.FC = () => {
 
       {/* Vue Historique */}
       {viewMode === 'history' && (
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Historique des opérations de lettrage</h3>
@@ -1117,7 +1122,7 @@ const Lettrage: React.FC = () => {
 
       {/* Vue Configuration */}
       {viewMode === 'config' && (
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Configuration du lettrage automatique */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
