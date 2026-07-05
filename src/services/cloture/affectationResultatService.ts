@@ -189,6 +189,13 @@ export async function genererEcrituresAffectation(adapter: DataAdapter, config: 
     return { success: false, error: errors.join(' | ') };
   }
 
+  // Idempotence : refuser une 2e affectation pour le même exercice (garde par
+  // référence, indépendante de la date, contrairement au seul n° de pièce).
+  const existingEntries = await adapter.getAll<any>('journalEntries');
+  if (existingEntries.some(e => e.reference === `AFFECTATION-${exerciceId}` && e.status !== 'draft')) {
+    return { success: false, error: `Le résultat de l'exercice ${exerciceId} est déjà affecté.` };
+  }
+
   const isBenefice = resultatNet > 0;
   const now = new Date().toISOString();
   const dateAffectation = now.split('T')[0];
@@ -280,7 +287,10 @@ export async function genererEcrituresAffectation(adapter: DataAdapter, config: 
     date: dateAffectation,
     reference: `AFFECTATION-${exerciceId}`,
     label: `Affectation du resultat exercice ${exerciceId}`,
-    status: 'draft',
+    // 'validated' : sinon l'affectation reste un brouillon sans effet sur les
+    // soldes (dotation réserve légale/report à nouveau jamais matérialisée),
+    // alors que l'UI annonce « Affectation enregistrée ».
+    status: 'validated',
     lines,
     createdAt: now,
     createdBy: 'system',

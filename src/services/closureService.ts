@@ -100,7 +100,9 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
   // Count entries to lock
   const entriesToLock = entries.filter(e => e.status === 'draft' || e.status === 'posted').length;
 
-  // Compute result: classe 7 (produits) - classe 6 (charges)
+  // Résultat NET : classes 7 (produits) + 8 créditeurs (produits HAO) − 6 (charges)
+  // − 8 débiteurs (charges HAO + IS 89). La classe 89 est REQUISE pour la cohérence
+  // avec les états financiers et l'équilibre Actif=Passif.
   let totalProduits = 0;
   let totalCharges = 0;
 
@@ -111,6 +113,10 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
         totalProduits = money(totalProduits).add(money(line.credit)).subtract(money(line.debit)).toNumber();
       } else if (cls === '6') {
         totalCharges = money(totalCharges).add(money(line.debit)).subtract(money(line.credit)).toNumber();
+      } else if (cls === '8') {
+        const cd = money(line.credit).subtract(money(line.debit)).toNumber();
+        if (cd >= 0) totalProduits = money(totalProduits).add(money(cd)).toNumber();
+        else totalCharges = money(totalCharges).add(money(-cd)).toNumber();
       }
     }
   }
@@ -416,7 +422,9 @@ export async function generateResultatEntry(
   for (const entry of entries) {
     for (const line of entry.lines) {
       const cls = line.accountCode.charAt(0);
-      if (cls !== '6' && cls !== '7') continue;
+      // Classes 6/7 ET 8 (HAO + IS 89) : le résultat NET requiert la classe 89,
+      // sinon le compte 131/139 = résultat AVANT impôt et diverge des états.
+      if (cls !== '6' && cls !== '7' && cls !== '8') continue;
 
       const existing = balances.get(line.accountCode) ?? { accountName: line.accountName, solde: 0 };
       existing.solde = money(existing.solde).add(money(line.debit)).subtract(money(line.credit)).toNumber();
@@ -429,62 +437,33 @@ export async function generateResultatEntry(
   let totalResultatDebits = 0;
   let totalResultatCredits = 0;
 
+  // Routage par SIGNE du solde (robuste pour 6/7/8) : solde débiteur = charge
+  // (6x, charges HAO 81/83/85/87, IS 89) → créditer ; solde créditeur = produit
+  // (7x, produits HAO 82/84/86/88) → débiter.
   for (const [accountCode, { accountName, solde }] of balances) {
     if (Math.abs(solde) < 0.01) continue; // Skip zero balances
 
-    const cls = accountCode.charAt(0);
-
-    if (cls === '7') {
-      // Produits have a natural credit balance (solde < 0 means credit excess)
-      // To zero: debit the account by credit balance amount
-      const creditBalance = money(0).subtract(money(solde)).toNumber(); // positive if credit > debit
-      if (creditBalance > 0) {
-        lines.push({
-          id: crypto.randomUUID(),
-          accountCode,
-          accountName,
-          label: `Solde du compte ${accountCode} — détermination du résultat`,
-          debit: creditBalance,
-          credit: 0,
-        });
-        totalResultatDebits = money(totalResultatDebits).add(money(creditBalance)).toNumber();
-      } else if (creditBalance < 0) {
-        // Unusual: class 7 with debit balance — credit to zero
-        lines.push({
-          id: crypto.randomUUID(),
-          accountCode,
-          accountName,
-          label: `Solde du compte ${accountCode} — détermination du résultat`,
-          debit: 0,
-          credit: Math.abs(creditBalance),
-        });
-        totalResultatCredits = money(totalResultatCredits).add(money(Math.abs(creditBalance))).toNumber();
-      }
-    } else if (cls === '6') {
-      // Charges have a natural debit balance (solde > 0 means debit excess)
-      // To zero: credit the account by debit balance amount
-      if (solde > 0) {
-        lines.push({
-          id: crypto.randomUUID(),
-          accountCode,
-          accountName,
-          label: `Solde du compte ${accountCode} — détermination du résultat`,
-          debit: 0,
-          credit: solde,
-        });
-        totalResultatCredits = money(totalResultatCredits).add(money(solde)).toNumber();
-      } else if (solde < 0) {
-        // Unusual: class 6 with credit balance — debit to zero
-        lines.push({
-          id: crypto.randomUUID(),
-          accountCode,
-          accountName,
-          label: `Solde du compte ${accountCode} — détermination du résultat`,
-          debit: Math.abs(solde),
-          credit: 0,
-        });
-        totalResultatDebits = money(totalResultatDebits).add(money(Math.abs(solde))).toNumber();
-      }
+    if (solde > 0.01) {
+      lines.push({
+        id: crypto.randomUUID(),
+        accountCode,
+        accountName,
+        label: `Solde du compte ${accountCode} — détermination du résultat`,
+        debit: 0,
+        credit: solde,
+      });
+      totalResultatCredits = money(totalResultatCredits).add(money(solde)).toNumber();
+    } else {
+      const creditBalance = Math.abs(solde);
+      lines.push({
+        id: crypto.randomUUID(),
+        accountCode,
+        accountName,
+        label: `Solde du compte ${accountCode} — détermination du résultat`,
+        debit: creditBalance,
+        credit: 0,
+      });
+      totalResultatDebits = money(totalResultatDebits).add(money(creditBalance)).toNumber();
     }
   }
 

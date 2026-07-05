@@ -563,7 +563,10 @@ class ClosuresService {
     for (const entry of periodEntries) {
       for (const line of entry.lines) {
         const cls = String(line.accountCode).charAt(0);
-        if (cls !== '6' && cls !== '7') continue;
+        // Classes 6 (charges), 7 (produits) ET 8 (HAO + IS 89) : le résultat NET
+        // exige la classe 89 (IS/IMF), sinon le 1300 = résultat AVANT impôt et
+        // diverge des états financiers (67,3M vs 62,3M).
+        if (cls !== '6' && cls !== '7' && cls !== '8') continue;
 
         const existing = balances.get(line.accountCode) ?? {
           accountName: line.accountName ?? line.accountCode,
@@ -582,62 +585,33 @@ class ClosuresService {
     let totalProduits = 0; // somme des crédits nets des comptes 7x (débit naturel inversé)
     let totalCharges = 0;  // somme des débits nets des comptes 6x
 
+    // Routage par SIGNE du solde (robuste pour 6/7/8) : un solde débiteur =
+    // charge (6x, charges HAO 81/83/85/87, IS 89) → créditer ; un solde
+    // créditeur = produit (7x, produits HAO 82/84/86/88) → débiter.
     for (const [accountCode, { accountName, solde }] of balances) {
       if (Math.abs(solde) < 0.01) continue; // Solde nul → rien à solder
 
-      const cls = accountCode.charAt(0);
-
-      if (cls === '7') {
-        // Compte 7x — solde créditeur naturel (solde < 0 signifie crédit > débit)
-        const soldeCrediteur = money(0).subtract(money(solde)).toNumber();
-        if (soldeCrediteur > 0.01) {
-          // Débit du compte 7x pour le ramener à zéro
-          gestionLines.push({
-            id: crypto.randomUUID(),
-            accountCode,
-            accountName,
-            label: `Soldage compte produits ${accountCode} — clôture ${fiscalYear.code}`,
-            debit: soldeCrediteur,
-            credit: 0,
-          });
-          totalProduits = money(totalProduits).add(money(soldeCrediteur)).toNumber();
-        } else if (soldeCrediteur < -0.01) {
-          // Inhabituel : compte 7x à solde débiteur — créditer pour solder
-          gestionLines.push({
-            id: crypto.randomUUID(),
-            accountCode,
-            accountName,
-            label: `Soldage compte produits ${accountCode} — clôture ${fiscalYear.code}`,
-            debit: 0,
-            credit: Math.abs(soldeCrediteur),
-          });
-          totalCharges = money(totalCharges).add(money(Math.abs(soldeCrediteur))).toNumber();
-        }
-      } else if (cls === '6') {
-        // Compte 6x — solde débiteur naturel (solde > 0 signifie débit > crédit)
-        if (solde > 0.01) {
-          // Crédit du compte 6x pour le ramener à zéro
-          gestionLines.push({
-            id: crypto.randomUUID(),
-            accountCode,
-            accountName,
-            label: `Soldage compte charges ${accountCode} — clôture ${fiscalYear.code}`,
-            debit: 0,
-            credit: solde,
-          });
-          totalCharges = money(totalCharges).add(money(solde)).toNumber();
-        } else if (solde < -0.01) {
-          // Inhabituel : compte 6x à solde créditeur — débiter pour solder
-          gestionLines.push({
-            id: crypto.randomUUID(),
-            accountCode,
-            accountName,
-            label: `Soldage compte charges ${accountCode} — clôture ${fiscalYear.code}`,
-            debit: Math.abs(solde),
-            credit: 0,
-          });
-          totalProduits = money(totalProduits).add(money(Math.abs(solde))).toNumber();
-        }
+      if (solde > 0.01) {
+        gestionLines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Soldage ${accountCode} — clôture ${fiscalYear.code}`,
+          debit: 0,
+          credit: solde,
+        });
+        totalCharges = money(totalCharges).add(money(solde)).toNumber();
+      } else {
+        const soldeCrediteur = Math.abs(solde);
+        gestionLines.push({
+          id: crypto.randomUUID(),
+          accountCode,
+          accountName,
+          label: `Soldage ${accountCode} — clôture ${fiscalYear.code}`,
+          debit: soldeCrediteur,
+          credit: 0,
+        });
+        totalProduits = money(totalProduits).add(money(soldeCrediteur)).toNumber();
       }
     }
 

@@ -56,21 +56,20 @@ async function computeNetResult(adapter: DataAdapter, fiscalYearId: string): Pro
     (e) => e.status !== 'draft' && e.date >= fiscalYear.startDate && e.date <= fiscalYear.endDate
   );
 
-  let totalClass7Credit = money(0);
-  let totalClass6Debit = money(0);
-
+  // Résultat NET = Σ(crédit − débit) sur les classes 6, 7 ET 8 (produits 7 +
+  // produits HAO − charges 6 − charges HAO − IS 89). Inclure la classe 89 est
+  // REQUIS (résultat net 62 349 583 vs 67 349 583 avant impôt).
+  let net = money(0);
   for (const entry of entries) {
     for (const line of entry.lines) {
-      const classCode = line.accountCode.charAt(0);
-      if (classCode === '7') {
-        totalClass7Credit = totalClass7Credit.add(money(line.credit)).subtract(money(line.debit));
-      } else if (classCode === '6') {
-        totalClass6Debit = totalClass6Debit.add(money(line.debit)).subtract(money(line.credit));
+      const cls = line.accountCode.charAt(0);
+      if (cls === '6' || cls === '7' || cls === '8') {
+        net = net.add(money(line.credit)).subtract(money(line.debit));
       }
     }
   }
 
-  return totalClass7Credit.subtract(totalClass6Debit).round(2).toNumber();
+  return net.round(2).toNumber();
 }
 
 /**
