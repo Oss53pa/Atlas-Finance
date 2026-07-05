@@ -175,6 +175,27 @@ const AdvancedBalance: React.FC = () => {
     },
   });
 
+  // Comptes non lettrés (calcul RÉEL, fini les valeurs codées en dur 3/2/3.2M).
+  const { data: nonLettre = { clients: 0, fournisseurs: 0, total: 0 } } = useQuery({
+    queryKey: ['balance-non-lettre'],
+    queryFn: async () => {
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      const clientsAcc = new Set<string>(), fournAcc = new Set<string>();
+      let total = 0;
+      for (const e of all.filter(x => x.status !== 'draft')) {
+        for (const l of (e.lines || [])) {
+          const code = l.accountCode || '';
+          if ((l as any).lettrageCode) continue;
+          const montant = Math.abs((l.debit || 0) - (l.credit || 0));
+          if (montant < 0.5) continue;
+          if (code.startsWith('41')) { clientsAcc.add(code); total += montant; }
+          else if (code.startsWith('40')) { fournAcc.add(code); total += montant; }
+        }
+      }
+      return { clients: clientsAcc.size, fournisseurs: fournAcc.size, total };
+    },
+  });
+
   // Graphique évolution — calculé depuis les données
   const chartData: ChartData[] = useMemo(() => {
     if (!balanceData.length) return [];
@@ -749,17 +770,17 @@ const AdvancedBalance: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Clients (411xxx)</span>
-                  <span className="text-sm font-medium text-orange-600">3 comptes</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Clients (41xxx)</span>
+                  <span className="text-sm font-medium text-orange-600">{nonLettre.clients} compte(s)</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Fournisseurs (401xxx)</span>
-                  <span className="text-sm font-medium text-orange-600">2 comptes</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">Fournisseurs (40xxx)</span>
+                  <span className="text-sm font-medium text-orange-600">{nonLettre.fournisseurs} compte(s)</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium text-[var(--color-primary)]">Total non lettré</span>
-                    <span className="text-sm font-bold text-orange-600">3.2M XAF</span>
+                    <span className="text-sm font-bold text-orange-600">{formatCurrency(nonLettre.total)}</span>
                   </div>
                 </div>
               </div>
