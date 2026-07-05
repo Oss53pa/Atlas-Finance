@@ -566,7 +566,16 @@ export async function canClose(adapter: DataAdapter, exerciceId: string): Promis
     reasons.push('Aucune écriture dans l\'exercice');
   }
 
-  const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1);
+  // Bloquant : toute écriture en brouillon doit être validée ou supprimée avant
+  // clôture (intangibilité — on ne clôture pas sur des écritures non validées).
+  const drafts = entries.filter(e => e.status === 'draft');
+  if (drafts.length > 0) {
+    reasons.push(`${drafts.length} écriture(s) en brouillon à valider avant clôture`);
+  }
+
+  // Équilibre débit/crédit sur les écritures effectives (validées/comptabilisées).
+  const posted = entries.filter(e => e.status === 'validated' || e.status === 'posted');
+  const unbalanced = posted.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1);
   if (unbalanced.length > 0) {
     reasons.push(`${unbalanced.length} écriture(s) déséquilibrée(s)`);
   }
