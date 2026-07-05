@@ -152,7 +152,7 @@ export async function forecastCashFlow(
   const loansBalance = await adapter.getAccountBalance(['16']);
   const totalLoanRepayments = Math.max(0, -loansBalance.solde); // Credit solde
 
-  // Current cash: Class 5 (Comptes de tresorerie)
+  // Current cash: Class 5 (comptes de trésorerie) — cohérent avec positionService.
   const cashBalance = await adapter.getAccountBalance(['5']);
   const startingCash = cashBalance.solde; // Can be negative (overdraft)
 
@@ -163,10 +163,11 @@ export async function forecastCashFlow(
   // Payables distributed evenly
   const payablesPerMonth = distributeEvenly(totalPayables, horizon);
 
-  // Loan repayments distributed evenly (simplified — real schedules would be better)
-  const monthlyLoanRepayment = horizon <= 12
-    ? distributeEvenly(totalLoanRepayments / 5, horizon) // Assume ~5yr amortization
-    : distributeEvenly(totalLoanRepayments / 5, horizon);
+  // Remboursement d'emprunt étalé sur l'horizon (approximation : amortissement ~5 ans →
+  // on ne projette que la quote-part de l'horizon). L'ancien ternaire avait 2 branches
+  // identiques (code mort). Idéalement, brancher sur le vrai échéancier (loanScheduleService).
+  const loanRepaymentOverHorizon = totalLoanRepayments * (horizon / 60);
+  const monthlyLoanRepayment = distributeEvenly(loanRepaymentOverHorizon, horizon);
 
   // ── Build scenarios ──
   function buildScenario(params: { label: 'optimistic' | 'central' | 'pessimistic'; collectionRate: number; paymentFactor: number }): CashFlowScenario {
