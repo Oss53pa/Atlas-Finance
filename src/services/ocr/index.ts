@@ -6,4 +6,4 @@ export {
   deleteScannedDocument,
 } from './scannedDocumentService';
 export { extractInvoice, testOCRProvider, fileToBase64 } from './extractInvoice';
-export { createEntryFromInvoice } from './createEntryFromInvoice';
+export { createEntryFromInvoice, detectInvoiceDirection, type CompanyIdentity } from './createEntryFromInvoice';

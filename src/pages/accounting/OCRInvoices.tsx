@@ -12,11 +12,13 @@ import {
   saveScannedDocument,
   extractInvoice,
   createEntryFromInvoice,
+  detectInvoiceDirection,
   fileToBase64,
   isOCRConfigured,
   type OCRConfig,
   type ScannedInvoice,
   type ExtractedData,
+  type CompanyIdentity,
 } from '../../services/ocr';
 import {
   ScanLine, Upload, FileText, Check, X, AlertTriangle,
@@ -48,6 +50,10 @@ const OCRInvoices: React.FC = () => {
   const [ocrConfig, setOcrConfig] = useState<OCRConfig | null>(null);
   // Ref pour éviter les closures périmées dans les handlers drag-drop (useCallback []).
   const ocrConfigRef = useRef<OCRConfig | null>(null);
+  // Identité de la société (settings.admin_company_legal) — sert à détecter le
+  // sens achat/vente d'une facture (émetteur = nous → vente).
+  const [company, setCompany] = useState<CompanyIdentity | null>(null);
+  const companyRef = useRef<CompanyIdentity | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState<ScannedInvoice | null>(null);
@@ -95,6 +101,19 @@ const OCRInvoices: React.FC = () => {
         const docs = await listScannedDocuments(adapter);
         if (!cancelled) setScannedInvoices(docs);
       } catch { /* table vide ou indisponible */ }
+      // Identité société (source canonique) pour l'auto-détection achat/vente.
+      try {
+        const legal = await adapter.getById<{ value?: string } & Record<string, unknown>>('settings', 'admin_company_legal');
+        if (!cancelled && legal) {
+          const v: any = legal.value ? JSON.parse(legal.value) : legal;
+          const ident: CompanyIdentity = {
+            name: v?.legalName || v?.name || v?.raisonSociale || v?.companyName || '',
+            taxId: v?.taxId || v?.nif || v?.ifu || v?.rccm || v?.numeroContribuable || '',
+          };
+          companyRef.current = ident;
+          setCompany(ident);
+        }
+      } catch { /* identité indisponible → achat par défaut */ }
     })();
     return () => { cancelled = true; };
   }, [adapter]);
@@ -204,10 +223,16 @@ const OCRInvoices: React.FC = () => {
         auditLog: [{ action: result.success ? 'extracted' : 'extraction_failed', user: userName, timestamp: new Date(), details: result.error }],
       };
 
-      // Validation automatique si activée et confiance suffisante.
+      // Sens achat/vente auto-détecté (corrigeable dans l'écran de revue).
+      if (result.success && result.data) {
+        doc.extractedData.direction = detectInvoiceDirection(doc.extractedData, companyRef.current);
+      }
+
+      // Validation automatique si activée et confiance suffisante : crée l'écriture
+      // en BROUILLON (à valider dans le journal).
       if (result.success && cfg!.autoValidate && result.confidence >= cfg!.confidenceThreshold) {
         try {
-          const entryId = await createEntryFromInvoice(adapter, doc.extractedData, cfg!, { createdBy: `ocr:${user?.id || ''}` });
+          const entryId = await createEntryFromInvoice(adapter, doc.extractedData, cfg!, { createdBy: `ocr:${user?.id || ''}`, company: companyRef.current });
           doc.status = 'validated';
           doc.validatedBy = `${userName} (auto)`;
           doc.validatedAt = new Date();
@@ -219,7 +244,8 @@ const OCRInvoices: React.FC = () => {
       await saveScannedDocument(adapter, doc).catch(() => {});
 
       if (result.success) {
-        toast.success(`Facture extraite — confiance ${result.confidence}%${doc.status === 'validated' ? ' (validée & comptabilisée)' : ''}`);
+        const jrn = doc.extractedData.direction === 'sale' ? 'VE' : 'AC';
+        toast.success(`Facture extraite — confiance ${result.confidence}%${doc.status === 'validated' ? ` (brouillon ${jrn} à valider)` : ''}`);
       } else {
         toast.error(`Extraction échouée : ${result.error}`);
       }
@@ -228,13 +254,25 @@ const OCRInvoices: React.FC = () => {
     }
   };
 
+  // Bascule manuelle achat/vente d'un document en cours de revue (corrige
+  // l'auto-détection) — met à jour l'écran ET la persistance.
+  const setInvoiceDirection = (invoice: ScannedInvoice, direction: 'purchase' | 'sale') => {
+    const updated: ScannedInvoice = {
+      ...invoice,
+      extractedData: { ...invoice.extractedData, direction },
+    };
+    setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
+    if (selectedInvoice?.id === invoice.id) setSelectedInvoice(updated);
+    saveScannedDocument(adapter, updated).catch(() => {});
+  };
+
   const validateInvoice = async (invoice: ScannedInvoice) => {
     const cfg = ocrConfig;
     if (!cfg) { toast.error('Configuration OCR introuvable'); return; }
     let entryId = invoice.accountingEntryId;
     try {
       if (!entryId) {
-        entryId = await createEntryFromInvoice(adapter, invoice.extractedData, cfg, { createdBy: `ocr:${user?.id || ''}` });
+        entryId = await createEntryFromInvoice(adapter, invoice.extractedData, cfg, { createdBy: `ocr:${user?.id || ''}`, company: companyRef.current });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Comptabilisation échouée');
@@ -249,7 +287,8 @@ const OCRInvoices: React.FC = () => {
     };
     setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
     await saveScannedDocument(adapter, updated).catch(() => {});
-    toast.success('Facture validée et comptabilisée');
+    const jrn = invoice.extractedData.direction === 'sale' ? 'VE' : 'AC';
+    toast.success(`Écriture créée en brouillon (journal ${jrn}) — à valider dans le journal`);
   };
 
   const rejectInvoice = async (invoice: ScannedInvoice, reason: string) => {
@@ -689,6 +728,27 @@ const OCRInvoices: React.FC = () => {
                           </span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Sens comptable : Achat (AC) / Vente (VE) — auto-détecté, corrigeable */}
+                    <div className="px-4 py-2 border-b border-[var(--color-border)] flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">Sens</span>
+                      {invoice.status === 'review' ? (
+                        <div className="inline-flex rounded-lg border border-[var(--color-border)] overflow-hidden text-xs">
+                          <button
+                            onClick={() => setInvoiceDirection(invoice, 'purchase')}
+                            className={`px-2.5 py-1 transition-colors ${(invoice.extractedData.direction ?? 'purchase') === 'purchase' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}
+                          >Achat · AC</button>
+                          <button
+                            onClick={() => setInvoiceDirection(invoice, 'sale')}
+                            className={`px-2.5 py-1 transition-colors ${invoice.extractedData.direction === 'sale' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}
+                          >Vente · VE</button>
+                        </div>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-primary-light)] text-[var(--color-primary)]">
+                          {invoice.extractedData.direction === 'sale' ? 'Vente · VE' : 'Achat · AC'}
+                        </span>
+                      )}
                     </div>
 
                     {/* Invoice Amount */}

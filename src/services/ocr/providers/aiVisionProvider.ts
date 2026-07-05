@@ -31,12 +31,15 @@ function buildPrompt(config: OCRConfig): { system: string; user: string } {
   const langLabel = config.language === 'en' ? 'English' : 'français';
   const system =
     `Tu es un moteur d'extraction de factures comptables (zone OHADA/SYSCOHADA). ` +
-    `Tu reçois l'image ou le PDF d'une facture fournisseur et tu renvoies UNIQUEMENT ` +
-    `un objet JSON valide, sans texte ni explication autour. Les montants sont des ` +
-    `nombres (pas de symbole de devise, point décimal). Les dates au format AAAA-MM-JJ. ` +
-    `Si un champ est absent, mets une chaîne vide ou 0. Réponds dans la langue : ${langLabel}.`;
+    `Tu reçois l'image ou le PDF d'une facture (d'achat OU de vente) et tu renvoies ` +
+    `UNIQUEMENT un objet JSON valide, sans texte ni explication autour. Les montants ` +
+    `sont des nombres (pas de symbole de devise, point décimal). Les dates au format ` +
+    `AAAA-MM-JJ. Si un champ est absent, mets une chaîne vide ou 0. ` +
+    `Réponds dans la langue : ${langLabel}.`;
   const user =
-    `Extrais les données de cette facture et renvoie ce JSON exact :\n` +
+    `Extrais les données de cette facture et renvoie ce JSON exact.\n` +
+    `IMPORTANT : "supplier" = ÉMETTEUR/vendeur de la facture (celui qui facture), ` +
+    `"customer" = DESTINATAIRE/acheteur (celui qui reçoit la facture). Renseigne les DEUX parties.\n` +
     `{\n` +
     `  "documentType": "invoice|credit_note|receipt|purchase_order",\n` +
     `  "documentNumber": "",\n` +
@@ -46,6 +49,9 @@ function buildPrompt(config: OCRConfig): { system: string; user: string } {
     `  "supplierAddress": "",\n` +
     `  "supplierTaxId": "",\n` +
     `  "supplierCountry": "",\n` +
+    `  "customerName": "",\n` +
+    `  "customerAddress": "",\n` +
+    `  "customerTaxId": "",\n` +
     `  "currency": "${config.defaultCurrency}",\n` +
     `  "subtotal": 0,\n` +
     `  "taxAmount": 0,\n` +

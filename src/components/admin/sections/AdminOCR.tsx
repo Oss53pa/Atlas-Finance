@@ -237,8 +237,10 @@ const AdminOCR: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border space-y-4">
         <h4 className="font-semibold">Comptabilisation (SYSCOHADA)</h4>
         <p className="text-xs text-gray-500">
-          Comptes utilisés lors de « Valider et Comptabiliser » une facture d'achat.
+          Comptes utilisés lors de « Valider et Comptabiliser » une facture. Le sens
+          achat/vente est auto-détecté (émetteur = société → vente), corrigeable à la revue.
         </p>
+        <div className="text-xs font-semibold text-gray-600">Facture d'ACHAT (journal AC)</div>
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Journal d'achat</label>
@@ -255,6 +257,25 @@ const AdminOCR: React.FC = () => {
           <div>
             <label className={labelCls}>Compte fournisseur</label>
             <input className={inputCls} value={config.defaultSupplierAccount} onChange={(e) => set('defaultSupplierAccount', e.target.value)} placeholder="401" />
+          </div>
+        </div>
+        <div className="text-xs font-semibold text-gray-600 pt-2">Facture de VENTE (journal VE)</div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Journal de vente</label>
+            <input className={inputCls} value={config.defaultSalesJournal} onChange={(e) => set('defaultSalesJournal', e.target.value)} placeholder="VE" />
+          </div>
+          <div>
+            <label className={labelCls}>Compte de produit</label>
+            <input className={inputCls} value={config.defaultRevenueAccount} onChange={(e) => set('defaultRevenueAccount', e.target.value)} placeholder="701" />
+          </div>
+          <div>
+            <label className={labelCls}>Compte TVA collectée</label>
+            <input className={inputCls} value={config.defaultVatCollectedAccount} onChange={(e) => set('defaultVatCollectedAccount', e.target.value)} placeholder="443" />
+          </div>
+          <div>
+            <label className={labelCls}>Compte client</label>
+            <input className={inputCls} value={config.defaultCustomerAccount} onChange={(e) => set('defaultCustomerAccount', e.target.value)} placeholder="411" />
           </div>
         </div>
       </div>

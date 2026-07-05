@@ -1,13 +1,24 @@
 /**
  * Comptabilisation d'une facture OCR → écriture comptable SYSCOHADA.
  *
- * Facture d'achat (journal AC) :
+ * Facture d'ACHAT (journal AC) — document reçu d'un fournisseur :
  *   DÉBIT  6xx  charge (HT)
  *   DÉBIT  4452 TVA récupérable
  *   CRÉDIT 401  fournisseur (TTC)
  *
- * On force subtotal = total - tva pour garantir D = C (le DexieAdapter rejette
- * toute écriture déséquilibrée). Modèle calqué sur treasuryPostingService.
+ * Facture de VENTE (journal VE) — document émis vers un client :
+ *   DÉBIT  411  client (TTC)
+ *   CRÉDIT 70x  produit (HT)
+ *   CRÉDIT 443  TVA collectée
+ *
+ * Le sens (achat/vente) vient de `data.direction` (choisi/corrigé dans l'UI) ou,
+ * à défaut, de `detectInvoiceDirection` (comparaison de l'émetteur à l'identité
+ * de la société). Un avoir (credit_note) inverse les sens.
+ *
+ * On force HT = TTC - TVA pour garantir D = C (le DexieAdapter rejette toute
+ * écriture déséquilibrée). L'écriture est créée en BROUILLON (`draft`) : elle
+ * arrive « à valider » dans le journal concerné et n'impacte la balance
+ * qu'après validation par un comptable.
  */
 import type { DataAdapter } from '@atlas/data';
 import { logAudit } from '../../lib/db';
@@ -15,11 +26,54 @@ import type { DBJournalEntry, DBJournalLine } from '../../lib/db';
 import { hashEntry } from '../../utils/integrity';
 import type { ExtractedData, OCRConfig } from './types';
 
+/** Identité de la société (source canonique settings.admin_company_legal). */
+export interface CompanyIdentity {
+  name?: string;
+  taxId?: string;
+}
+
+/** Normalisation robuste pour comparer des noms (casse/accents/ponctuation). */
+const norm = (s: string | undefined | null): string =>
+  (s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+
+const digits = (s: string | undefined | null): string => (s || '').replace(/\D/g, '');
+
+/**
+ * Détermine le sens comptable d'une facture par comparaison de l'ÉMETTEUR
+ * (supplier*) à l'identité de la société :
+ *  - émetteur = nous  → facture émise → VENTE
+ *  - sinon            → facture reçue → ACHAT
+ * Sans identité société connue, on retombe sur ACHAT (comportement historique).
+ */
+export function detectInvoiceDirection(
+  data: ExtractedData,
+  company?: CompanyIdentity | null,
+): 'purchase' | 'sale' {
+  if (!company || (!company.name && !company.taxId)) return 'purchase';
+  const cName = norm(company.name);
+  const cTax = digits(company.taxId);
+
+  const issuerName = norm(data.supplierName);
+  const issuerTax = digits(data.supplierTaxId);
+
+  // Correspondance forte par NIF/IFU, sinon par nom (inclusion tolérante).
+  const taxMatch = !!cTax && cTax.length >= 4 && issuerTax === cTax;
+  const nameMatch =
+    !!cName && cName.length >= 4 && !!issuerName &&
+    (issuerName.includes(cName) || cName.includes(issuerName));
+
+  return taxMatch || nameMatch ? 'sale' : 'purchase';
+}
+
 export async function createEntryFromInvoice(
   adapter: DataAdapter,
   data: ExtractedData,
   config: OCRConfig,
-  opts?: { createdBy?: string },
+  opts?: { createdBy?: string; company?: CompanyIdentity | null },
 ): Promise<string> {
   const ttc = data.totalAmount > 0 ? data.totalAmount : data.subtotal + data.taxAmount;
   const tva = Math.min(Math.max(data.taxAmount, 0), ttc);
@@ -29,61 +83,101 @@ export async function createEntryFromInvoice(
     throw new Error('Montant total introuvable ou nul : impossible de comptabiliser cette facture.');
   }
 
+  const direction = data.direction || detectInvoiceDirection(data, opts?.company);
+  const isSale = direction === 'sale';
   const isCreditNote = data.documentType === 'credit_note';
 
-  // Numéro d'écriture séquentiel sur le journal configuré.
+  const journal = isSale ? config.defaultSalesJournal : config.defaultJournal;
+
+  // Numéro d'écriture séquentiel (préfixé par le journal choisi).
   const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries', {
     orderBy: { field: 'entryNumber', direction: 'asc' },
   });
   const last = allEntries.length > 0 ? allEntries[allEntries.length - 1] : undefined;
   const nextNum = last ? parseInt(last.entryNumber.replace(/\D/g, '') || '0', 10) + 1 : 1;
-  const entryNumber = `${config.defaultJournal}-${String(nextNum).padStart(6, '0')}`;
+  const entryNumber = `${journal}-${String(nextNum).padStart(6, '0')}`;
 
   const now = new Date().toISOString();
   const date = data.documentDate || now.slice(0, 10);
-  const label = `Facture ${data.documentNumber || ''} — ${data.supplierName || 'Fournisseur'}`.trim();
+  const thirdParty = isSale
+    ? (data.customerName || data.supplierName || 'Client')
+    : (data.supplierName || 'Fournisseur');
+  const label = `${isSale ? 'Facture vente' : 'Facture'} ${data.documentNumber || ''} — ${thirdParty}`.trim();
 
-  // Pour un avoir, on inverse le sens (charge au crédit, fournisseur au débit).
   const lines: DBJournalLine[] = [];
-  lines.push({
-    id: crypto.randomUUID(),
-    accountCode: config.defaultExpenseAccount,
-    accountName: 'Achats',
-    label,
-    debit: isCreditNote ? 0 : ht,
-    credit: isCreditNote ? ht : 0,
-  });
-  if (tva > 0) {
+
+  if (isSale) {
+    // VENTE : D 411 client (TTC) / C 70x produit (HT) / C 443 TVA collectée.
+    // Avoir → sens inversé.
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: config.defaultVatAccount,
-      accountName: 'TVA récupérable',
+      accountCode: config.defaultCustomerAccount,
+      accountName: thirdParty,
+      thirdPartyName: thirdParty,
       label,
-      debit: isCreditNote ? 0 : tva,
-      credit: isCreditNote ? tva : 0,
+      debit: isCreditNote ? 0 : ttc,
+      credit: isCreditNote ? ttc : 0,
+    });
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: config.defaultRevenueAccount,
+      accountName: 'Ventes',
+      label,
+      debit: isCreditNote ? ht : 0,
+      credit: isCreditNote ? 0 : ht,
+    });
+    if (tva > 0) {
+      lines.push({
+        id: crypto.randomUUID(),
+        accountCode: config.defaultVatCollectedAccount,
+        accountName: 'TVA collectée',
+        label,
+        debit: isCreditNote ? tva : 0,
+        credit: isCreditNote ? 0 : tva,
+      });
+    }
+  } else {
+    // ACHAT : D 6xx charge (HT) / D 4452 TVA récupérable / C 401 fournisseur (TTC).
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: config.defaultExpenseAccount,
+      accountName: 'Achats',
+      label,
+      debit: isCreditNote ? 0 : ht,
+      credit: isCreditNote ? ht : 0,
+    });
+    if (tva > 0) {
+      lines.push({
+        id: crypto.randomUUID(),
+        accountCode: config.defaultVatAccount,
+        accountName: 'TVA récupérable',
+        label,
+        debit: isCreditNote ? 0 : tva,
+        credit: isCreditNote ? tva : 0,
+      });
+    }
+    lines.push({
+      id: crypto.randomUUID(),
+      accountCode: config.defaultSupplierAccount,
+      accountName: thirdParty,
+      thirdPartyName: thirdParty,
+      label,
+      debit: isCreditNote ? ttc : 0,
+      credit: isCreditNote ? 0 : ttc,
     });
   }
-  lines.push({
-    id: crypto.randomUUID(),
-    accountCode: config.defaultSupplierAccount,
-    accountName: data.supplierName || 'Fournisseur',
-    thirdPartyName: data.supplierName || undefined,
-    label,
-    debit: isCreditNote ? ttc : 0,
-    credit: isCreditNote ? 0 : ttc,
-  });
 
   const entry: DBJournalEntry = {
     id: crypto.randomUUID(),
     entryNumber,
-    journal: config.defaultJournal,
+    journal,
     date,
     reference: data.documentNumber || '',
     label,
-    // Écriture équilibrée (D=C forcé) issue d'une facture auto-validée : postée
-    // comptabilisée (validated) pour apparaître dans balance/états, en cohérence avec
-    // l'UI OCR (« validée & comptabilisée »). Un brouillon en serait exclu.
-    status: 'validated',
+    // Écriture équilibrée (D=C forcé) proposée par l'OCR : créée en BROUILLON,
+    // « à valider » par un comptable dans le journal (n'impacte la balance
+    // qu'après validation).
+    status: 'draft',
     lines,
     totalDebit: ttc,
     totalCredit: ttc,
@@ -107,7 +201,7 @@ export async function createEntryFromInvoice(
     'OCR_INVOICE_POSTING',
     'journalEntry',
     entry.id,
-    `Facture OCR comptabilisée: ${label} — ${ttc} ${data.currency}`,
+    `Facture OCR → brouillon ${journal} (${isSale ? 'vente' : 'achat'}): ${label} — ${ttc} ${data.currency}`,
   );
 
   return entry.id;

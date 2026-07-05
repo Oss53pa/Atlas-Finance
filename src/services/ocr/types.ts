@@ -23,6 +23,13 @@ export interface InvoiceItem {
 export interface ExtractedData {
   // Document
   documentType: 'invoice' | 'credit_note' | 'receipt' | 'purchase_order';
+  /**
+   * Sens comptable du document : 'purchase' = facture reçue d'un fournisseur
+   * (journal AC), 'sale' = facture émise vers un client (journal VE). Déterminé
+   * par comparaison des parties à l'identité de la société (auto-détection UI),
+   * avec correction manuelle possible. Absent = achat par défaut (rétrocompat).
+   */
+  direction?: 'purchase' | 'sale';
   documentNumber: string;
   documentDate: string;
   dueDate: string;
@@ -139,11 +146,17 @@ export interface OCRConfig {
   duplicateCheck: boolean;
   enhanceImage: boolean;
 
-  // --- Comptabilisation (SYSCOHADA) ---
+  // --- Comptabilisation ACHAT (SYSCOHADA, journal AC) ---
   defaultJournal: string;
   defaultExpenseAccount: string;
   defaultVatAccount: string;
   defaultSupplierAccount: string;
+
+  // --- Comptabilisation VENTE (SYSCOHADA, journal VE) ---
+  defaultSalesJournal: string;
+  defaultRevenueAccount: string;      // produit (70x)
+  defaultVatCollectedAccount: string; // TVA collectée (443)
+  defaultCustomerAccount: string;     // client (411)
 }
 
 export const DEFAULT_OCR_CONFIG: OCRConfig = {
@@ -166,6 +179,10 @@ export const DEFAULT_OCR_CONFIG: OCRConfig = {
   defaultExpenseAccount: '601',
   defaultVatAccount: '4452',
   defaultSupplierAccount: '401',
+  defaultSalesJournal: 'VE',
+  defaultRevenueAccount: '701',
+  defaultVatCollectedAccount: '443',
+  defaultCustomerAccount: '411',
 };
 
 export interface ExtractionResult {
