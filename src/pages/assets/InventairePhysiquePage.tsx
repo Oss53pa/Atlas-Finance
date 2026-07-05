@@ -7,6 +7,7 @@ import {
   listSessions, createSession, getCounts, upsertCount, resolveDiscrepancy,
   type InventorySessionRow, type InventoryCountRow,
 } from '../../services/immobilisations/inventoryService';
+import { createDisposal } from '../../services/immobilisations/disposalService';
 import { motion } from 'framer-motion';
 import {
   Package,
@@ -195,12 +196,11 @@ const InventairePhysiquePage: React.FC = () => {
       const now = new Date();
       const acqDate = new Date(a.acquisitionDate);
       const ageYears = (now.getTime() - acqDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-      const depreciableBase = a.acquisitionValue - a.residualValue;
-      const annualDepreciation = a.usefulLifeYears > 0 ? depreciableBase / a.usefulLifeYears : 0;
-      const totalDepreciation = Math.min(annualDepreciation * ageYears, depreciableBase);
-      const vnc = Math.max(a.acquisitionValue - totalDepreciation, a.residualValue);
+      // VNC = valeur brute − amortissements cumulés RÉELS (pas un recalcul par l'âge).
+      const cumul = Number((a as any).cumulDepreciation) || 0;
+      const vnc = Math.max(0, a.acquisitionValue - cumul);
 
-      // Determine physical state based on depreciation ratio
+      // État physique : estimation indicative depuis le ratio d'amortissement.
       const depRatio = a.usefulLifeYears > 0 ? ageYears / a.usefulLifeYears : 0;
       let etatPhysique: InventoryItem['etat_physique'] = 'bon';
       if (depRatio < 0.2) etatPhysique = 'excellent';
@@ -209,10 +209,10 @@ const InventairePhysiquePage: React.FC = () => {
       else if (depRatio < 1.0) etatPhysique = 'mauvais';
       else etatPhysique = 'hors_service';
 
-      // Default counting status: active items marked as counted
-      let statutComptage: InventoryItem['statut_comptage'] = 'compte';
-      if (a.status === 'disposed' || a.status === 'scrapped') statutComptage = 'ecart';
-      else if (depRatio > 0.9) statutComptage = 'ecart';
+      // Statut par défaut : NON COMPTÉ. Seul un comptage réel persisté (overlay
+      // ci-dessous) fait passer l'item en 'compte'/'ecart'. On ne fabrique JAMAIS
+      // un écart depuis le ratio d'amortissement (un bien amorti est présent).
+      const statutComptage: InventoryItem['statut_comptage'] = 'non_compte';
 
       const base = {
         id: a.id,
@@ -220,10 +220,10 @@ const InventairePhysiquePage: React.FC = () => {
         nom: a.name,
         categorie: a.category,
         localisation_theorique: a.category,
-        localisation_reelle: a.status === 'active' ? a.category : undefined,
+        localisation_reelle: undefined,
         responsable: a.category,
         statut_comptage: statutComptage,
-        date_comptage: a.status === 'active' ? new Date().toISOString() : undefined,
+        date_comptage: undefined,
         compteur: '',
         valeur_nette_comptable: vnc,
         etat_physique: etatPhysique,
@@ -402,13 +402,9 @@ const InventairePhysiquePage: React.FC = () => {
   };
 
   const handleStartScanning = () => {
-    setIsScanning(true);
-    toast.success('Scanner activé - Scannez les codes-barres');
-    // Simulate scanning
-    setTimeout(() => {
-      setIsScanning(false);
-      toast.success('Article scanné et comptabilisé!');
-    }, 3000);
+    // Pas de simulation de comptage : le comptage se fait via la fiche d'item
+    // (saisie réelle persistée). Un vrai scan code-barres nécessite un lecteur.
+    toast('Scan code-barres : sélectionnez un article et saisissez son comptage via « Compter ».', { icon: 'ℹ️' });
   };
 
   // Handlers pour les boutons d'action
@@ -456,7 +452,7 @@ const InventairePhysiquePage: React.FC = () => {
     try {
       const sid = await ensureSessionId();
       await upsertCount(adapter, sid, selectedItem.id, {
-        statut_comptage: editForm.statut === 'non_compte' ? 'a_compter' : editForm.statut,
+        statut_comptage: editForm.statut, // valeurs UI valides (non_compte/en_cours/compte/ecart/valide)
         localisation_reelle: editForm.localisation || null,
         etat_physique: editForm.etat || null,
         notes: editForm.notes || null,
@@ -470,8 +466,26 @@ const InventairePhysiquePage: React.FC = () => {
   const handleResolveDiscrepancy = async (item: InventoryItem) => {
     try {
       const sid = await ensureSessionId();
-      await resolveDiscrepancy(adapter, sid, item.id, { resolution_statut: 'resolu', action_corrective: 'Écart traité' });
-      toast.success('Écart résolu');
+      // Un bien constaté MANQUANT doit être SORTI du bilan (mise au rebut) : sans
+      // écriture de sortie, le registre et la comptabilité divergent de la réalité.
+      const manquant = window.confirm(
+        `Le bien « ${item.nom} » est-il MANQUANT (à sortir du bilan) ?\n\n` +
+        `OK = sortie comptable (mise au rebut SYSCOHADA).\nAnnuler = simple correction d'écart (emplacement/état).`
+      );
+      if (manquant) {
+        await createDisposal(adapter, {
+          assetId: item.id,
+          disposalType: 'scrap',
+          disposalDate: new Date().toISOString().split('T')[0],
+          disposalValue: 0,
+          reason: "Bien manquant constaté à l'inventaire physique",
+        });
+      }
+      await resolveDiscrepancy(adapter, sid, item.id, {
+        resolution_statut: 'resolu',
+        action_corrective: manquant ? 'Bien manquant — sortie comptable (mise au rebut) postée' : "Écart corrigé (emplacement/état)",
+      });
+      toast.success(manquant ? 'Bien manquant sorti — écriture de mise au rebut postée' : 'Écart résolu');
       await reloadInventory();
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
