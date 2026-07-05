@@ -53,6 +53,17 @@ import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { toast } from 'react-hot-toast';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { safeAddEntry } from '../../services/entryGuard';
+import { AssetClassificationService } from '../../data/assetClassification';
+
+/**
+ * Résout les comptes SYSCOHADA (immo + amortissement) et la durée d'utilité à
+ * partir de la catégorie choisie. Garantit un compte VALIDE (jamais vide, sinon
+ * la classe de bilan et l'écriture d'amortissement/cession seraient fausses).
+ */
+function resolveAssetAccounts(categorie: string): { accountCode: string; depreciationAccountCode: string; usefulLife?: number } {
+  return AssetClassificationService.resolveAccounts(categorie);
+}
 
 interface AssetsFilters {
   search: string;
@@ -127,28 +138,73 @@ const FixedAssetsPage: React.FC = () => {
   // Create immobilisation mutation — uses adapter directly (Bug #6 fix)
   const createMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
-      // Normalize: form sends montant_acquisition, map to valeur_acquisition for DB
+      const code = String(data.code || '').trim();
+      const montant = (data.montant_acquisition as number) || (data.valeur_acquisition as number) || 0;
+      const dateAcq = String(data.date_acquisition || '');
+      // Validation : unicité du code + valeurs cohérentes.
+      const existing = await adapter.getAll<any>('assets');
+      if (existing.some(a => String(a.code || '').trim().toLowerCase() === code.toLowerCase())) {
+        throw new Error(`Le code immobilisation « ${code} » existe déjà.`);
+      }
+      if (montant <= 0) throw new Error("La valeur d'acquisition doit être positive.");
+      if (dateAcq && new Date(dateAcq).getTime() > Date.now()) throw new Error("La date d'acquisition ne peut pas être future.");
+
+      // Comptes SYSCOHADA dérivés de la catégorie (jamais vides).
+      const cat = String(data.categorie || '').trim();
+      const { accountCode, depreciationAccountCode } = resolveAssetAccounts(cat);
+      const isTerrain = accountCode.startsWith('22');
+      const assetId = crypto.randomUUID();
       const dbData = {
-        id: crypto.randomUUID(),
-        code: data.code,
+        id: assetId,
+        code,
         name: data.designation,
-        category: data.categorie || 'AUTRE',
-        acquisitionDate: data.date_acquisition,
-        acquisitionValue: (data.montant_acquisition as number) || (data.valeur_acquisition as number) || 0,
+        category: cat || 'AUTRE',
+        acquisitionDate: dateAcq,
+        acquisitionValue: montant,
         residualValue: 0,
+        // La table contraint depreciation_method IN ('linear','declining').
+        // Un terrain (durée 0) n'est pas amorti : le moteur ne génère aucune
+        // dotation quand usefulLifeYears = 0.
         depreciationMethod: data.methode_amortissement === 'degressive' ? 'declining' : 'linear',
-        usefulLifeYears: (data.duree_amortissement as number) || 5,
-        accountCode: '',
-        depreciationAccountCode: '',
+        usefulLifeYears: isTerrain ? 0 : ((data.duree_amortissement as number) || 5),
+        accountCode,
+        depreciationAccountCode,
         status: 'active',
         location: data.localisation,
         cumulDepreciation: 0,
       };
-      return adapter.create('assets', dbData);
+      await adapter.create('assets', dbData);
+
+      // Écriture d'ACQUISITION SYSCOHADA : Dr 2x immobilisation / Cr 481
+      // (fournisseurs d'investissements). Sans elle, le registre et le bilan
+      // divergent (l'immo n'existe qu'au registre, pas en comptabilité).
+      try {
+        await safeAddEntry(adapter, {
+          id: crypto.randomUUID(),
+          entryNumber: `IMMO-${code}`,
+          journal: 'OD',
+          date: dateAcq || new Date().toISOString().split('T')[0],
+          reference: `IMMO-ACQ-${assetId}`,
+          label: `Acquisition immobilisation — ${String(data.designation || code)}`,
+          status: 'validated',
+          lines: [
+            { id: crypto.randomUUID(), accountCode, accountName: String(data.designation || 'Immobilisation'), label: `Acquisition ${code}`, debit: montant, credit: 0 },
+            { id: crypto.randomUUID(), accountCode: '481', accountName: "Fournisseurs d'investissements", label: `Dette acquisition ${code}`, debit: 0, credit: montant },
+          ],
+          createdAt: new Date().toISOString(),
+          createdBy: 'system',
+        } as any, { skipSyncValidation: true });
+      } catch (e) {
+        // L'immo est créée ; on remonte l'échec d'écriture sans bloquer la fiche.
+        console.error('Écriture d\'acquisition non postée', e);
+        throw new Error("Immobilisation créée mais l'écriture d'acquisition a échoué : " + ((e as Error).message || ''));
+      }
+      return dbData;
     },
     onSuccess: () => {
-      toast.success('Immobilisation créée avec succès');
+      toast.success('Immobilisation créée (fiche + écriture d\'acquisition)');
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
+      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
       setShowCreateModal(false);
       resetForm();
     },
@@ -160,16 +216,25 @@ const FixedAssetsPage: React.FC = () => {
   // Update immobilisation mutation — Bug #1 fix
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Record<string, unknown> }) => {
-      const updates = {
+      const current = await adapter.getById<any>('assets', id);
+      const cat = String(data.categorie || 'AUTRE');
+      // Backfill / recalcul des comptes si absents ou si la catégorie a changé.
+      const needAccounts = !current?.accountCode || String(current.category || '') !== cat;
+      const resolved = needAccounts ? resolveAssetAccounts(cat) : null;
+      const updates: Record<string, unknown> = {
         code: data.code,
         name: data.designation,
-        category: data.categorie || 'AUTRE',
+        category: cat,
         acquisitionDate: data.date_acquisition,
         acquisitionValue: (data.montant_acquisition as number) || (data.valeur_acquisition as number) || 0,
         depreciationMethod: data.methode_amortissement === 'degressive' ? 'declining' : 'linear',
         usefulLifeYears: (data.duree_amortissement as number) || 5,
         location: data.localisation,
       };
+      if (resolved) {
+        updates.accountCode = resolved.accountCode;
+        updates.depreciationAccountCode = resolved.depreciationAccountCode;
+      }
       return adapter.update('assets', id, updates);
     },
     onSuccess: () => {
@@ -245,15 +310,40 @@ const FixedAssetsPage: React.FC = () => {
   const { data: categories } = useQuery({
     queryKey: ['asset-categories', 'list'],
     queryFn: async () => {
+      // Référentiel SYSCOHADA (comptes garantis) + catégories déjà présentes.
+      const catalog = AssetClassificationService.getAllClassifications().map(c => ({
+        id: c.categoryCode, code: c.categoryCode, nom: c.assetCategory,
+      }));
       const all = await adapter.getAll('assets') as Array<Record<string, unknown>>;
-      const cats = [...new Set(all.map(a => a.category as string).filter(Boolean))];
-      return cats.map((c, i) => ({ id: String(i), code: c, nom: c }));
+      const known = new Set(catalog.map(c => c.code));
+      const extra = [...new Set(all.map(a => a.category as string).filter(Boolean))]
+        .filter(c => !known.has(c))
+        .map((c) => ({ id: c, code: c, nom: c }));
+      return [...catalog, ...extra];
     },
   });
 
   // Delete asset mutation — Bug #6 fix
   const deleteAssetMutation = useMutation({
-    mutationFn: (assetId: string) => adapter.delete('assets', assetId),
+    mutationFn: async (assetId: string) => {
+      // Blocage : un bien amorti, sorti ou mouvementé ne se supprime pas (piste
+      // d'audit). Il doit être CÉDÉ (écriture de sortie), pas effacé.
+      const asset = await adapter.getById<any>('assets', assetId);
+      if (!asset) throw new Error('Immobilisation introuvable.');
+      if ((Number(asset.cumulDepreciation) || 0) > 0) {
+        throw new Error('Suppression interdite : ce bien est amorti. Utilisez une cession/sortie.');
+      }
+      if (asset.status && asset.status !== 'active') {
+        throw new Error('Suppression interdite : ce bien est déjà sorti/inactif.');
+      }
+      // Refus si des écritures comptables référencent l'actif.
+      const entries = await adapter.getAll<any>('journalEntries');
+      const referenced = entries.some(e => String(e.reference || '').includes(assetId));
+      if (referenced) {
+        throw new Error('Suppression interdite : des écritures comptables sont liées à ce bien.');
+      }
+      return adapter.delete('assets', assetId);
+    },
     onSuccess: () => {
       toast.success('Actif supprimé avec succès');
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });

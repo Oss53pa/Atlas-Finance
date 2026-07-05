@@ -71,6 +71,17 @@ import { assetsService } from '../../services/assets.service';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { Money } from '@/utils/money';
+import { safeAddEntry } from '../../services/entryGuard';
+import { AssetClassificationService } from '../../data/assetClassification';
+
+/** Traduit le statut du formulaire vers l'enum contraint de la table assets. */
+function mapAssetStatus(formStatus?: string | null): 'active' | 'disposed' | 'scrapped' {
+  switch (String(formStatus || '').trim()) {
+    case 'cede': case 'cédé': case 'disposed': return 'disposed';
+    case 'reforme': case 'réformé': case 'rebut': case 'hors_service': case 'scrapped': return 'scrapped';
+    default: return 'active'; // en_service, maintenance, en_attente… restent au bilan
+  }
+}
 
 interface Asset {
   id: string;
@@ -496,10 +507,22 @@ const AssetsRegistry: React.FC = () => {
     handleEditAssetModal(duplicatedAsset);
   };
 
-  const handleDelete = (asset: Asset) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'actif ${asset.asset_number}?`)) {
-      // TODO: Implémenter la suppression
+  const handleDelete = async (asset: Asset) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'actif ${asset.asset_number}?`)) return;
+    try {
+      const raw = await adapter.getById<any>('assets', asset.id);
+      if (!raw) throw new Error('Immobilisation introuvable.');
+      if ((Number(raw.cumulDepreciation) || 0) > 0) throw new Error('Bien amorti : utilisez une cession/sortie, pas la suppression.');
+      if (raw.status && raw.status !== 'active') throw new Error('Bien déjà sorti/inactif.');
+      const entries = await adapter.getAll<any>('journalEntries');
+      if (entries.some(e => String(e.reference || '').includes(asset.id))) {
+        throw new Error('Des écritures comptables sont liées à ce bien.');
+      }
+      await adapter.delete('assets', asset.id);
       toast.success(`Actif ${asset.asset_number} supprimé`);
+      await queryClient.invalidateQueries({ queryKey: ['assets-registry'] });
+    } catch (e: any) {
+      toast.error('Suppression impossible : ' + (e?.message || 'erreur'));
     }
   };
 
@@ -564,11 +587,16 @@ const AssetsRegistry: React.FC = () => {
   const handleSaveAsset = async (formData: Record<string, string>) => {
     const num = (v?: string) => { const n = parseFloat(v ?? ''); return isNaN(n) ? null : n; };
     const txt = (v?: string) => { const s = (v ?? '').trim(); return s === '' ? null : s; };
-    const status = txt(formData.status) === 'en_service' ? 'active' : (txt(formData.status) ?? 'active');
+    const status = mapAssetStatus(formData.status);
+    // Comptes : ceux du formulaire (auto-remplis depuis la catégorie), sinon
+    // dérivés du référentiel — jamais vides (sinon classe de bilan fausse).
+    const resolved = AssetClassificationService.resolveAccounts(txt(formData.category) || txt(formData.asset_category) || '');
+    const accountCode = txt(formData.account_code) || resolved.accountCode;
+    const depAccountCode = txt(formData.depreciation_account) || resolved.depreciationAccountCode;
     const payload: Record<string, any> = {
       code: txt(formData.asset_number), name: txt(formData.description), category: txt(formData.category),
-      sub_category: txt(formData.sub_category), account_code: txt(formData.account_code),
-      depreciation_account_code: txt(formData.depreciation_account),
+      sub_category: txt(formData.sub_category), account_code: accountCode,
+      depreciation_account_code: depAccountCode,
       // Le formulaire utilise 'lineaire'/'degressif'/'non_amortissable' ; la table assets
       // contraint depreciation_method IN ('linear','declining') → traduire avant persistance.
       depreciation_method: formData.depreciation_method === 'degressif' ? 'declining' : 'linear',
@@ -606,10 +634,37 @@ const AssetsRegistry: React.FC = () => {
         await adapter.update('assets', assetToEdit.id, payload);
         toast.success('Actif mis à jour');
       } else {
-        await adapter.create('assets', { ...payload, tenant_id: (adapter as any).tenantId });
-        toast.success('Actif créé');
+        // Unicité du code.
+        const code = String(payload.code || '').trim();
+        const existing = await adapter.getAll<any>('assets');
+        if (code && existing.some(a => String(a.code || '').trim().toLowerCase() === code.toLowerCase())) {
+          throw new Error(`Le code immobilisation « ${code} » existe déjà.`);
+        }
+        const assetId = crypto.randomUUID();
+        await adapter.create('assets', { id: assetId, ...payload });
+        // Écriture d'ACQUISITION SYSCOHADA : Dr 2x / Cr 481 (fournisseurs d'inv.).
+        const montant = Number(payload.acquisition_value) || 0;
+        if (montant > 0 && accountCode) {
+          await safeAddEntry(adapter, {
+            id: crypto.randomUUID(),
+            entryNumber: `IMMO-${code}`,
+            journal: 'OD',
+            date: String(payload.acquisition_date || new Date().toISOString().split('T')[0]),
+            reference: `IMMO-ACQ-${assetId}`,
+            label: `Acquisition immobilisation — ${String(payload.name || code)}`,
+            status: 'validated',
+            lines: [
+              { id: crypto.randomUUID(), accountCode, accountName: String(payload.name || 'Immobilisation'), label: `Acquisition ${code}`, debit: montant, credit: 0 },
+              { id: crypto.randomUUID(), accountCode: '481', accountName: "Fournisseurs d'investissements", label: `Dette acquisition ${code}`, debit: 0, credit: montant },
+            ],
+            createdAt: new Date().toISOString(),
+            createdBy: 'system',
+          } as any, { skipSyncValidation: true });
+        }
+        toast.success('Actif créé (fiche + écriture d\'acquisition)');
       }
       await queryClient.invalidateQueries({ queryKey: ['assets-registry'] });
+      await queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
       setShowAssetModal(false); setAssetToEdit(null); setRawAsset(null);
     } catch (e: any) { toast.error('Échec de l’enregistrement : ' + (e?.message || 'erreur')); }
   };

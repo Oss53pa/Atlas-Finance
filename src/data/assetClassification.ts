@@ -264,4 +264,17 @@ export class AssetClassificationService {
   static getAssetClasses(): string[] {
     return [...new Set(assetClassificationTable.map(item => item.assetClass))];
   }
+
+  /**
+   * Résout des comptes SYSCOHADA VALIDES (immo + amortissement) et la durée
+   * d'utilité à partir d'une catégorie (code du référentiel ou libellé libre).
+   * Garantit un compte non vide — défaut « Autres immo. corporelles » 218/2818.
+   */
+  static resolveAccounts(categorieOrCode: string): { accountCode: string; depreciationAccountCode: string; usefulLife: number } {
+    const code = String(categorieOrCode || '').trim();
+    let cls = this.getClassificationByCode(code);
+    if (!cls && code) cls = this.searchClassifications(code)[0];
+    if (cls) return { accountCode: cls.syscohadaAccount, depreciationAccountCode: cls.depreciationAccount, usefulLife: cls.defaultUsefulLife };
+    return { accountCode: '218', depreciationAccountCode: '2818', usefulLife: 5 };
+  }
 }
