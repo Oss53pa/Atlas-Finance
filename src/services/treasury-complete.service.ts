@@ -128,16 +128,23 @@ class BankAccountsService {
     }
   }
 
-  async create(data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
-    return await insertRecord<BankAccount>('treasury_bank_accounts', data as Record<string, unknown>);
+  // Les comptes bancaires sont dérivés du plan comptable (comptes 521xxx). La table
+  // `treasury_bank_accounts` n'existe pas → create/update/delete échouaient (PostgREST) ou
+  // n'auraient eu aucun effet (la liste est dérivée du GL). On lève un message explicite
+  // au lieu d'un échec cryptique : la gestion se fait dans le Plan comptable.
+  private static readonly NOT_EDITABLE =
+    'Les comptes bancaires sont gérés dans le Plan comptable (comptes 521xxx), pas ici.';
+
+  async create(_data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
+    throw new Error(BankAccountsService.NOT_EDITABLE);
   }
 
-  async update(id: string, data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
-    return await updateRecord<BankAccount>('treasury_bank_accounts', id, data as Record<string, unknown>);
+  async update(_id: string, _data: Partial<Omit<BankAccount, 'id'>>): Promise<BankAccount> {
+    throw new Error(BankAccountsService.NOT_EDITABLE);
   }
 
-  async delete(id: string): Promise<void> {
-    await deleteRecord('treasury_bank_accounts', id);
+  async delete(_id: string): Promise<void> {
+    throw new Error(BankAccountsService.NOT_EDITABLE);
   }
 }
 

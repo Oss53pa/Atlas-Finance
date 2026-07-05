@@ -27,6 +27,36 @@ const BankMovementsPage: React.FC = () => {
     []
   );
 
+  // Mouvements RÉELS : lignes de trésorerie (classe 5 hors 58/59) des écritures validées.
+  const { data: bankMovements = [] } = useAdapterQuery(
+    async () => {
+      const entries = await adapter.getAll<any>('journalEntries');
+      const rows: { doc: string; collDate: string; payDate: string; ref: string; account: string; description: string; debit: string; credit: string; rawDate: string }[] = [];
+      for (const e of entries) {
+        if (e.status === 'draft') continue;
+        for (const l of (e.lines || [])) {
+          const code = String(l.accountCode || '');
+          if (!code.startsWith('5') || code.startsWith('58') || code.startsWith('59')) continue;
+          if (selectedAccount !== 'all' && code !== selectedAccount) continue;
+          rows.push({
+            doc: e.entryNumber || String(e.id || '').slice(0, 8),
+            collDate: e.date || '',
+            payDate: e.date || '',
+            ref: e.reference || '',
+            account: code,
+            description: l.label || e.label || '',
+            debit: (l.debit || 0) > 0 ? formatCurrency(l.debit) : '',
+            credit: (l.credit || 0) > 0 ? formatCurrency(l.credit) : '',
+            rawDate: e.date || '',
+          });
+        }
+      }
+      return rows.sort((a, b) => String(b.rawDate).localeCompare(String(a.rawDate))).slice(0, 200);
+    },
+    [adapter, selectedAccount],
+    []
+  );
+
   const totalBalance = bankPositions.reduce((sum, p) => sum + p.soldeComptable, 0);
   const treasuryAccounts = [
     { id: 'all', name: '[Tous les comptes de trésorerie]', balance: totalBalance },
@@ -189,9 +219,11 @@ const BankMovementsPage: React.FC = () => {
                   <div style={{maxHeight: '400px', overflowY: 'auto', overflowX: 'auto'}}>
                     <table className="w-full">
                       <tbody className="divide-y divide-[var(--color-border)]">
-                          {/* TODO: Load from real journal entries via adapter */}
-                          {([] as { doc: string; collDate: string; payDate: string; ref: string; account: string; description: string; debit: string; credit: string }[]).map((transaction, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
+                          {bankMovements.length === 0 && (
+                            <tr><td colSpan={8} className="px-3 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun mouvement de trésorerie</td></tr>
+                          )}
+                          {bankMovements.map((transaction, index) => (
+                            <tr key={`${transaction.doc}-${transaction.account}-${index}`} className="hover:bg-gray-50">
                               <td className="px-3 py-3 text-sm font-mono font-medium">{transaction.doc}</td>
                               <td className="px-3 py-3 text-sm">{transaction.collDate}</td>
                               <td className="px-3 py-3 text-sm">{transaction.payDate}</td>
