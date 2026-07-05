@@ -1343,10 +1343,13 @@ const AssetsDisposals: React.FC = () => {
                         if (disposalModal.mode === 'create') {
                           handleCreateDisposal();
                         } else if (disposalModal.mode === 'approve') {
-                          toast.success('Sortie approuvée avec succès');
+                          // Une cession créée est déjà comptabilisée (écriture validée) :
+                          // pas de faux « approuvé ».
+                          toast('Cette cession est déjà comptabilisée et définitive (écriture validée).', { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         } else {
-                          toast.success('Modifications sauvegardées');
+                          // Une écriture de cession ne se modifie pas : contrepasser puis ressaisir.
+                          toast('Une cession comptabilisée ne se modifie pas : contrepassez puis ressaisissez si nécessaire.', { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         }
                       }}
