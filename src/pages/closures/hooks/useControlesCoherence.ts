@@ -44,8 +44,11 @@ export interface ControleResult {
 /** Monthly control IDs (9/17) */
 export const MONTHLY_CONTROL_IDS = ['C1', 'C2', 'C3', 'C5', 'C6', 'C8', 'C10', 'C11', 'C13'];
 
-/** Annual blocking control IDs (7/17) */
-export const ANNUAL_BLOCKING_IDS = ['C1', 'C2', 'C3', 'C4', 'C14', 'C15', 'C16'];
+/** Annual blocking control IDs — uniquement les contrôles réellement gatés.
+ *  C15 (TVA) et C16 (régularisations) sont INFORMATIFS (pas de test dur) →
+ *  retirés du blocage : un contrôle « bloquant » toujours conforme ne protège
+ *  rien et donnerait une fausse assurance. */
+export const ANNUAL_BLOCKING_IDS = ['C1', 'C2', 'C3', 'C4', 'C14'];
 
 // ============================================================================
 // CONTROL RUNNERS
@@ -123,11 +126,17 @@ export function useControlesCoherence(controlIds?: string[]) {
 
       // 2. Load all entries for this FY
       const allEntries = await adapter.getAll<any>('journalEntries');
-      const entries = allEntries.filter((e: any) =>
+      const periodEntries = allEntries.filter((e: any) =>
         e.date >= activeFY.startDate && e.date <= activeFY.endDate
       );
+      // Les contrôles de VALEUR (balance, résultat, bilan, TVA…) ne portent que
+      // sur les écritures validées/comptabilisées — sinon les brouillons
+      // (souvent incomplets/déséquilibrés) faussent tous les chiffres. Les
+      // brouillons sont traités séparément par le seul contrôle C8.
+      const entries = periodEntries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
+      const draftEntries = periodEntries.filter((e: any) => e.status === 'draft');
 
-      // 3. Flatten all lines
+      // 3. Flatten all lines (validées uniquement)
       const allLines: (DBJournalLine & { entryDate: string; entryId: string; entryStatus: string })[] = [];
       for (const e of entries) {
         for (const l of e.lines) {
@@ -253,12 +262,13 @@ export function useControlesCoherence(controlIds?: string[]) {
           for (const l of amortLines) {
             totalAmortCompta = totalAmortCompta.add(l.credit).subtract(money(l.debit));
           }
-          // Theoretical amortissement from assets
+          // Réconciliation CUMUL vs CUMUL : le solde des 28x (GL) doit égaler la
+          // somme des amortissements cumulés du registre. (L'ancienne version
+          // comparait un cumul pluriannuel à UNE dotation annuelle → toujours en
+          // écart sur un parc amorti depuis des années.)
           let theoreticalAmort = money(0);
           for (const asset of activeAssets) {
-            const annualAmort = money(asset.acquisitionValue - asset.residualValue)
-              .divide(asset.usefulLifeYears);
-            theoreticalAmort = theoreticalAmort.add(annualAmort);
+            theoreticalAmort = theoreticalAmort.add(money(Number(asset.cumulDepreciation) || 0));
           }
           const comptaVal = totalAmortCompta.toNumber();
           const theoVal = theoreticalAmort.toNumber();
@@ -357,7 +367,7 @@ export function useControlesCoherence(controlIds?: string[]) {
         'Détection des écritures encore en brouillon',
         'balance', 'elevee',
         () => {
-          const drafts = entries.filter(e => e.status === 'draft');
+          const drafts = draftEntries;
           return {
             statut: drafts.length === 0 ? 'conforme' : 'attention',
             valeurAttendue: 0,
@@ -491,27 +501,28 @@ export function useControlesCoherence(controlIds?: string[]) {
         'Vérification Actif = Passif sur les comptes de bilan',
         'conformite_syscohada', 'critique',
         () => {
+          // Agréger par COMPTE (un compte se solde globalement) puis placer
+          // chaque compte cl.1-5 par SIGNE de son solde (règle bilan projet :
+          // jamais par ligne isolée, qui gonfle actif ET passif).
+          const soldesC14 = new Map<string, number>();
+          for (const l of allLines) {
+            soldesC14.set(l.accountCode, (soldesC14.get(l.accountCode) || 0) + (l.debit || 0) - (l.credit || 0));
+          }
           let actif = money(0);
           let passif = money(0);
-          for (const l of allLines) {
-            const cls = l.accountCode.charAt(0);
-            if (['2', '3', '4', '5'].includes(cls)) {
-              // Compute per normal balance
-              const net = money(l.debit).subtract(money(l.credit));
-              if (net.isPositive()) actif = actif.add(net);
-              else passif = passif.add(net.abs());
-            } else if (cls === '1') {
-              const net = money(l.credit).subtract(money(l.debit));
-              passif = passif.add(net);
+          let resultat = money(0); // résultat = Σ(crédit − débit) sur 6/7/8 (incl. IS 89)
+          for (const [code, solde] of soldesC14) {
+            const cls = code.charAt(0);
+            if (['1', '2', '3', '4', '5'].includes(cls)) {
+              if (solde >= 0) actif = actif.add(money(solde));
+              else passif = passif.add(money(-solde));
+            } else if (['6', '7', '8'].includes(cls)) {
+              resultat = resultat.subtract(money(solde));
             }
           }
-          // Must also account for result (classe 6+7 → passif)
-          let resultat = money(0);
-          for (const l of allLines) {
-            const cls = l.accountCode.charAt(0);
-            if (cls === '7') resultat = resultat.add(l.credit).subtract(money(l.debit));
-            else if (cls === '6') resultat = resultat.subtract(money(l.debit)).add(l.credit);
-          }
+          // Résultat ajouté au passif. Avant clôture : porté par 6/7/8 (131=0) ;
+          // après clôture : porté par 131 (classe 1, déjà comptée) et 6/7/8=0 →
+          // pas de double comptage dans les deux cas.
           passif = passif.add(resultat);
 
           const actifVal = actif.toNumber();
@@ -636,11 +647,17 @@ export function useControlesCoherence(controlIds?: string[]) {
     executeControles();
   }, [executeControles]);
 
+  // Blocage RÉEL : un contrôle marqué `blocking` en échec (non conforme)
+  // interdit la clôture. Le flag `blocking` n'était jusqu'ici jamais exploité.
+  const blockingFailures = controles.filter(c => c.blocking && c.statut === 'non_conforme');
+
   return {
     controles,
     loading,
     error,
     lastRun,
     refresh: executeControles,
+    blockingFailures,
+    canClose: blockingFailures.length === 0,
   };
 }

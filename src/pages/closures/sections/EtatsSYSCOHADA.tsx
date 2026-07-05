@@ -311,7 +311,6 @@ const EtatsSYSCOHADA: React.FC = () => {
   const productionVendue = getSoldeCrediteur(['71']);
   const autresAchats = getSoldeDebiteur(['61', '62']);
   const transports = getSoldeDebiteur(['63']);
-  const servicesExt = getSoldeDebiteur(['63', '64']);
   const impotsTaxes = getSoldeDebiteur(['64']);
   const autresCharges = getSoldeDebiteur(['65']);
   const VA = margeCommerciale + productionVendue - autresAchats - transports - impotsTaxes - autresCharges;
