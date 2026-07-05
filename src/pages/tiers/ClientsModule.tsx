@@ -167,6 +167,7 @@ const ClientsModule: React.FC = () => {
   // États
   const [isLoading, setIsLoading] = useState(true);
   const [clients, setClients] = useState<Client[]>([]);
+  const [agingDetail, setAgingDetail] = useState<BalanceAgeeItem | null>(null);
   const [activeTab, setActiveTab] = useState<string>('liste');
   const [analyticsSubTab, setAnalyticsSubTab] = useState<string>('kpis');
   const [balanceAgeeSubTab, setBalanceAgeeSubTab] = useState<'repartition' | 'detail' | 'risques'>('repartition');
@@ -194,6 +195,38 @@ const ClientsModule: React.FC = () => {
   // Fiche client en consultation (bouton œil) + écritures par client.
   const [viewingClient, setViewingClient] = useState<Client | null>(null);
   const [clientLinesMap, setClientLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
+
+  // Relance client (ouvre le client mail avec un modèle pré-rempli).
+  const sendRelance = (item: BalanceAgeeItem) => {
+    const subject = `Relance — solde client ${item.clientNom} (${item.clientCode})`;
+    const body = `Bonjour,\n\nSauf erreur de notre part, votre compte présente un solde échu de ${formatCurrency(item.totalCreances)} `
+      + `(dont ${formatCurrency(item.echu61_90 + item.echuPlus90)} à plus de 60 jours).\n\n`
+      + `Nous vous remercions de bien vouloir procéder au règlement dans les meilleurs délais.\n\nCordialement.`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  // Export CSV de la balance âgée d'un client (UTF-8 BOM pour Excel).
+  const exportAgingCsv = (item: BalanceAgeeItem) => {
+    const rows: (string | number)[][] = [
+      ['Balance âgée — client', item.clientCode, item.clientNom],
+      [],
+      ['Tranche', 'Montant (FCFA)'],
+      ['Non échu', item.nonEchu],
+      ['0-30 jours', item.echu0_30],
+      ['31-60 jours', item.echu31_60],
+      ['61-90 jours', item.echu61_90],
+      ['+90 jours', item.echuPlus90],
+      ['Total créances', item.totalCreances],
+      ['Provision', item.provision],
+    ];
+    const csv = '﻿' + rows.map(r => r.map(v => {
+      const s = String(v ?? ''); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }).join(';')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = `balance-agee-${item.clientCode}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // État formulaire nouveau client
   const [newClient, setNewClient] = useState<NewClientForm>({
@@ -1221,29 +1254,19 @@ const ClientsModule: React.FC = () => {
                     <div className="relative">
                       <ResponsiveContainer width="100%" height={320}>
                         <RechartsPieChart>
-                          <defs>
-                            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-                              <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
-                            </filter>
-                          </defs>
                           <Pie
                             data={balanceAgeeChartData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={70}
-                            outerRadius={120}
-                            paddingAngle={3}
+                            innerRadius={72}
+                            outerRadius={118}
+                            paddingAngle={1}
                             dataKey="value"
-                            cornerRadius={6}
-                            stroke="none"
-                            filter="url(#shadow)"
+                            stroke="#fff"
+                            strokeWidth={2}
                           >
                             {balanceAgeeChartData.map((entry, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={entry.color}
-                                style={{ filter: 'brightness(1.05)' }}
-                              />
+                              <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
                           <Tooltip
@@ -1257,11 +1280,11 @@ const ClientsModule: React.FC = () => {
                           />
                         </RechartsPieChart>
                       </ResponsiveContainer>
-                      {/* Centre du Donut avec Total */}
+                      {/* Centre du Donut avec Total (cercle net, sans ombre qui bave) */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
+                        <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center border border-[var(--color-border)] px-3">
                           <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Total</p>
-                          <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
+                          <p className="text-base font-bold text-[var(--color-primary)] leading-tight">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
                           <p className="text-xs text-[var(--color-text-secondary)]">{balanceAgeeData.length} clients</p>
                         </div>
                       </div>
@@ -1322,11 +1345,11 @@ const ClientsModule: React.FC = () => {
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">Évolution par Client</h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
+                  <ResponsiveContainer width="100%" height={320}>
+                    <BarChart data={balanceAgeeData.slice(0, 8).map(d => ({ ...d, label: `${d.clientCode} · ${(d.clientNom || '').slice(0, 22)}` }))} layout="vertical" margin={{ left: 12 }}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis type="number" tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                      <YAxis type="category" dataKey="clientCode" width={80} />
+                      <YAxis type="category" dataKey="label" width={200} tick={{ fontSize: 11 }} interval={0} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
                       <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name="Non Échu" />
@@ -1395,7 +1418,11 @@ const ClientsModule: React.FC = () => {
                             <td className="p-3">
                               <div className="flex items-center space-x-2">
                                 <p className="font-medium text-[var(--color-primary)]">{item.clientNom}</p>
-                                {hasRisk && <AlertTriangle className="w-4 h-4 text-red-500" />}
+                                {hasRisk && (
+                                  <span title={`Créances en retard : ${formatCurrency(item.echu61_90 + item.echuPlus90)} à plus de 60 jours`} className="cursor-help">
+                                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="p-3 text-right font-bold">{formatCurrency(item.totalCreances)}</td>
@@ -1407,13 +1434,13 @@ const ClientsModule: React.FC = () => {
                             <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button type="button" className="p-1 text-gray-500 hover:text-[var(--color-primary)]" title="Voir détail">
+                                <button type="button" onClick={() => setAgingDetail(item)} className="p-1 text-gray-500 hover:text-[var(--color-primary)]" title="Voir détail">
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title="Envoyer relance">
+                                <button type="button" onClick={() => sendRelance(item)} className="p-1 text-gray-500 hover:text-blue-600" title="Envoyer relance">
                                   <Mail className="w-4 h-4" />
                                 </button>
-                                <button type="button" className="p-1 text-gray-500 hover:text-orange-600" title="Imprimer">
+                                <button type="button" onClick={() => exportAgingCsv(item)} className="p-1 text-gray-500 hover:text-orange-600" title="Exporter (CSV)">
                                   <Printer className="w-4 h-4" />
                                 </button>
                               </div>
@@ -2574,6 +2601,47 @@ const ClientsModule: React.FC = () => {
           setShowPeriodModal(false);
         }}
       />
+
+      {/* Modale détail balance âgée d'un client */}
+      {agingDetail && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setAgingDetail(null)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{agingDetail.clientNom}</h3>
+                <p className="text-xs text-[var(--color-text-secondary)] font-mono">{agingDetail.clientCode}</p>
+              </div>
+              <button onClick={() => setAgingDetail(null)} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-5 space-y-2">
+              {[
+                { label: 'Non échu', value: agingDetail.nonEchu, cls: 'text-green-600' },
+                { label: '0-30 jours', value: agingDetail.echu0_30, cls: 'text-yellow-600' },
+                { label: '31-60 jours', value: agingDetail.echu31_60, cls: 'text-orange-600' },
+                { label: '61-90 jours', value: agingDetail.echu61_90, cls: 'text-red-600' },
+                { label: '+90 jours', value: agingDetail.echuPlus90, cls: 'text-red-800' },
+              ].map(r => (
+                <div key={r.label} className="flex items-center justify-between py-1.5 border-b border-gray-100">
+                  <span className="text-sm text-gray-600">{r.label}</span>
+                  <span className={`text-sm font-mono font-medium ${r.cls}`}>{formatCurrency(r.value)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-sm font-semibold">Total créances</span>
+                <span className="text-base font-mono font-bold text-[var(--color-primary)]">{formatCurrency(agingDetail.totalCreances)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Provision</span>
+                <span className="text-sm font-mono">{formatCurrency(agingDetail.provision)}</span>
+              </div>
+            </div>
+            <div className="p-4 border-t flex justify-end gap-2">
+              <button onClick={() => sendRelance(agingDetail)} className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 flex items-center gap-1"><Mail className="w-4 h-4" /> Relancer</button>
+              <button onClick={() => exportAgingCsv(agingDetail)} className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg flex items-center gap-1"><Printer className="w-4 h-4" /> Exporter</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
