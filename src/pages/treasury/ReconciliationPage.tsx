@@ -16,6 +16,7 @@ import type {
   BankTransaction,
   EtatRapprochement,
 } from '../../services/rapprochementBancaireService';
+import { extractBankStatement, getOCRConfig } from '../../services/ocr';
 import {
   GitCompare,
   Plus,
@@ -29,6 +30,7 @@ import {
   AlertCircle,
   CheckCircle,
   Upload,
+  ScanLine,
   ArrowUpRight,
   ArrowDownLeft,
   RefreshCw,
@@ -97,6 +99,7 @@ const ReconciliationPage: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ocrFileInputRef = useRef<HTMLInputElement>(null);
   const [rapprochementResult, setRapprochementResult] = useState<RapprochementResult | null>(null);
   const [etatRapprochement, setEtatRapprochement] = useState<EtatRapprochement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -294,16 +297,10 @@ const ReconciliationPage: React.FC = () => {
   const bankItems = filteredItems.filter(i => i.type_ecart !== 'absent_banque');
   const comptaItems = filteredItems.filter(i => i.type_ecart !== 'absent_comptable');
 
-  // CSV Import handler
-  const handleImportCSV = useCallback(async (csvContent: string) => {
-    const transactions = parseBankStatementCSV(csvContent);
-    if (transactions.length === 0) {
-      toast.error('Aucune transaction trouvée dans le fichier CSV');
-      return;
-    }
+  // Cœur commun (CSV ou OCR) : lance le rapprochement + persiste le relevé.
+  // NE crée AUCUNE écriture — les lignes pointent des écritures classe 5 existantes.
+  const runReconciliation = useCallback(async (transactions: BankTransaction[]) => {
     setBankTransactions(transactions);
-    toast.success(`${transactions.length} transactions bancaires importées`);
-    // Auto-run rapprochement
     setIsLoading(true);
     try {
       const result = await rapprochementAutomatique(adapter, transactions);
@@ -340,6 +337,17 @@ const ReconciliationPage: React.FC = () => {
     }
   }, [adapter, filters.compte, setupInfo, refreshStatements]);
 
+  // Import CSV : parse → rapprochement.
+  const handleImportCSV = useCallback(async (csvContent: string) => {
+    const transactions = parseBankStatementCSV(csvContent);
+    if (transactions.length === 0) {
+      toast.error('Aucune transaction trouvée dans le fichier CSV');
+      return;
+    }
+    toast.success(`${transactions.length} transactions bancaires importées`);
+    await runReconciliation(transactions);
+  }, [runReconciliation]);
+
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -353,6 +361,37 @@ const ReconciliationPage: React.FC = () => {
     // Reset file input so the same file can be re-imported
     e.target.value = '';
   }, [handleImportCSV]);
+
+  // Import par SCAN/OCR (image ou PDF) : extraction des lignes → rapprochement.
+  // Aucune écriture créée : les lignes alimentent le pointage comme le CSV.
+  const handleFileUploadOCR = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setSetupInfo(prev => ({ ...prev, fileName: file.name }));
+    setIsLoading(true);
+    try {
+      const cfg = await getOCRConfig(adapter);
+      const ext = await extractBankStatement(file, cfg);
+      if (!ext.success || ext.lines.length === 0) {
+        toast.error(ext.error || 'Aucune ligne d\'opération détectée sur le relevé.');
+        return;
+      }
+      const transactions: BankTransaction[] = ext.lines.map((l, i) => ({
+        id: `BK-${(i + 1).toString().padStart(4, '0')}`,
+        date: l.date,
+        label: l.label,
+        reference: l.reference,
+        amount: (l.credit || 0) - (l.debit || 0), // + = entrée, − = sortie
+      }));
+      toast.success(`${transactions.length} lignes extraites du relevé (OCR)`);
+      await runReconciliation(transactions);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Extraction OCR du relevé échouée');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adapter, runReconciliation]);
 
   const handleFilterChange = (key: keyof ReconciliationFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -745,6 +784,13 @@ const ReconciliationPage: React.FC = () => {
               type="file"
               accept=".csv"
               onChange={handleFileUpload}
+              className="hidden"
+            />
+            <input
+              ref={ocrFileInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={handleFileUploadOCR}
               className="hidden"
             />
           </div>
@@ -1592,11 +1638,15 @@ const ReconciliationPage: React.FC = () => {
                 <p className="text-xs text-gray-500">Fichier sélectionné : {setupInfo.fileName}</p>
               )}
             </div>
-            <div className="flex justify-end gap-3 px-6 py-4 border-t">
+            <div className="flex flex-wrap justify-end gap-3 px-6 py-4 border-t">
               <Button variant="outline" onClick={() => setShowImportSetup(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => ocrFileInputRef.current?.click()} disabled={isLoading || !setupInfo.accountCode}>
+                <ScanLine className="mr-2 h-4 w-4" />
+                {isLoading ? 'Lecture…' : 'Scanner (OCR image/PDF)'}
+              </Button>
               <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading || !setupInfo.accountCode}>
                 <Upload className="mr-2 h-4 w-4" />
-                {isLoading ? 'Import en cours…' : 'Choisir le fichier CSV et importer'}
+                {isLoading ? 'Import en cours…' : 'Fichier CSV'}
               </Button>
             </div>
           </div>
