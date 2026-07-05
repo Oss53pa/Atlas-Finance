@@ -103,7 +103,7 @@ const PermissionsPage: React.FC = () => {
               <span className="text-sm">Admin</span>
             </button>
             
-            <button className="px-4 py-2 bg-[#C0322B] text-white rounded-lg hover:bg-[#C0322B] transition-colors flex items-center space-x-2">
+            <button onClick={() => navigate('/security/roles')} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg hover:bg-[#C0322B] transition-colors flex items-center space-x-2">
               <Plus className="w-4 h-4" />
               <span className="text-sm">Nouveau rôle</span>
             </button>
@@ -229,10 +229,10 @@ const PermissionsPage: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <button className="flex-1 px-3 py-2 border rounded-lg text-xs hover:bg-gray-50" style={{borderColor: role.color, color: role.color}}>
+                      <button onClick={() => navigate('/security/roles')} className="flex-1 px-3 py-2 border rounded-lg text-xs hover:bg-gray-50" style={{borderColor: role.color, color: role.color}}>
                         Modifier
                       </button>
-                      <button className="flex-1 px-3 py-2 text-white rounded-lg text-xs hover:bg-opacity-90" style={{backgroundColor: role.color}}>
+                      <button onClick={() => navigate('/security/roles')} className="flex-1 px-3 py-2 text-white rounded-lg text-xs hover:bg-opacity-90" style={{backgroundColor: role.color}}>
                         Gérer
                       </button>
                     </div>
