@@ -412,7 +412,7 @@ class ClosuresService {
       ],
       createdAt: new Date().toISOString(),
       createdBy: 'system',
-    }, { skipSyncValidation: true });
+    }, { skipSyncValidation: true, allowClosedPeriod: true });
 
     await logAudit(
       'CLOSURE_ENTRY_CREATE',
@@ -691,7 +691,7 @@ class ClosuresService {
     };
     if (tenantId) baseEntry.tenant_id = tenantId;
 
-    const entryGestionId = await safeAddEntry(adapter, baseEntry, { skipSyncValidation: true });
+    const entryGestionId = await safeAddEntry(adapter, baseEntry, { skipSyncValidation: true, allowClosedPeriod: true });
 
     // 7. Écriture 2 — Reclassement 1300 → 131 (bénéfice) ou 1300 → 139 (perte)
     const extourneLines: DBJournalLine[] = [];
@@ -755,7 +755,7 @@ class ClosuresService {
     };
     if (tenantId) extourneBase.tenant_id = tenantId;
 
-    const entryResultatId = await safeAddEntry(adapter, extourneBase, { skipSyncValidation: true });
+    const entryResultatId = await safeAddEntry(adapter, extourneBase, { skipSyncValidation: true, allowClosedPeriod: true });
 
     // 8. Audit
     await logAudit(

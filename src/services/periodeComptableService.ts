@@ -111,6 +111,23 @@ export async function reopenPeriode(
 }
 
 /**
+ * Normalise un statut de période (français OU anglais) vers la forme canonique.
+ * La table `fiscalPeriods` porte historiquement DEUX vocabulaires :
+ *  - anglais  : open | closed | locked (periodeComptableService)
+ *  - français : ouverte | en_cloture | cloturee | rouverte (useFiscalPeriods/db.ts)
+ * Sans cette normalisation, une période verrouillée en `cloturee` n'était jamais
+ * reconnue comme `closed` par le validateur → verrou COSMÉTIQUE (saisie possible
+ * en période close). On mappe donc tout vers open/closed/locked.
+ */
+export function canonicalPeriodStatus(raw: unknown): 'open' | 'closed' | 'locked' {
+  const s = String(raw ?? '').toLowerCase();
+  if (s === 'closed' || s === 'cloturee' || s === 'clôturée' || s === 'archivee' || s === 'archivée') return 'closed';
+  if (s === 'locked' || s === 'verrouillee' || s === 'verrouillée') return 'locked';
+  // ouverte, rouverte, en_cloture, open, undefined → saisie autorisée
+  return 'open';
+}
+
+/**
  * Get the period status for a given date.
  */
 export async function getPeriodeStatus(
@@ -123,7 +140,7 @@ export async function getPeriodeStatus(
   );
 
   if (!matching) return 'no_period';
-  return matching.status as 'open' | 'closed' | 'locked';
+  return canonicalPeriodStatus(matching.status);
 }
 
 /**

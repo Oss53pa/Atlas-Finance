@@ -145,7 +145,7 @@ export async function genererExtournes(adapter: DataAdapter, request: ExtourneRe
   }
 
   // Persist via entryGuard (handles totalDebit/totalCredit + hash)
-  await safeBulkAddEntries(adapter, ecrituresExtourne, { skipSyncValidation: true });
+  await safeBulkAddEntries(adapter, ecrituresExtourne, { skipSyncValidation: true, allowClosedPeriod: true });
 
   // Mark originals as reversed
   for (const { entry: original } of regularisations) {

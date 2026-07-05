@@ -187,7 +187,7 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
     lines,
     createdAt: new Date().toISOString(),
     createdBy: 'system',
-  }, { skipSyncValidation: true });
+  }, { skipSyncValidation: true, allowClosedPeriod: true });
 
   await logAudit(
     'CARRY_FORWARD',

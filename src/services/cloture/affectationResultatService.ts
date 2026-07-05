@@ -284,7 +284,7 @@ export async function genererEcrituresAffectation(adapter: DataAdapter, config: 
     lines,
     createdAt: now,
     createdBy: 'system',
-  }, { skipSyncValidation: true });
+  }, { skipSyncValidation: true, allowClosedPeriod: true });
   await logAudit('AFFECTATION_RESULTAT', 'journal_entry', entryId, JSON.stringify({
     resultatNet,
     ventilation,

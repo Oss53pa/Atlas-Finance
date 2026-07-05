@@ -530,7 +530,7 @@ export async function generateResultatEntry(
     lines,
     createdAt: new Date().toISOString(),
     createdBy: initiateur,
-  });
+  }, { allowClosedPeriod: true });
 
   return {
     entryId,

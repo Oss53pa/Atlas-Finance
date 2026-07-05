@@ -342,7 +342,7 @@ export async function posterAffectation(
     lines,
     createdAt: now,
     createdBy: 'system',
-  }, { skipSyncValidation: true });
+  }, { skipSyncValidation: true, allowClosedPeriod: true });
 
   // 4. Audit log
   await logAudit('AFFECTATION_RESULTAT', 'journal_entry', entryId, JSON.stringify({

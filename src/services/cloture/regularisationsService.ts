@@ -256,7 +256,7 @@ export async function genererEcrituresRegularisation(
   }
 
   // Save all entries via entryGuard (handles totalDebit/totalCredit + hash)
-  await safeBulkAddEntries(adapter, ecritures, { skipSyncValidation: true });
+  await safeBulkAddEntries(adapter, ecritures, { skipSyncValidation: true, allowClosedPeriod: true });
 
   // Audit
   await logAudit('REGULARISATION', 'fiscal_year', config.exerciceId, JSON.stringify({

@@ -9,10 +9,11 @@
  */
 
 import type { DataAdapter } from '@atlas/data';
-import type { DBJournalEntry } from '../lib/db';
+import type { DBJournalEntry, DBFiscalYear } from '../lib/db';
 import { money, Money } from '../utils/money';
 import { validateJournalEntrySync, type ValidationResult } from '../validators/journalEntryValidator';
 import { hashEntry } from '../utils/integrity';
+import { getPeriodeStatus } from './periodeComptableService';
 
 export class EntryGuardError extends Error {
   constructor(public errors: string[]) {
@@ -38,9 +39,25 @@ export async function safeAddEntry(
     hash?: string;
     updatedAt?: string;
   },
-  options: { skipSyncValidation?: boolean } = {},
+  options: { skipSyncValidation?: boolean; allowClosedPeriod?: boolean } = {},
 ): Promise<string> {
   const lines = entry.lines ?? [];
+
+  // --- Verrou de clôture (intangibilité SYSCOHADA Art. 19) ---
+  // Appliqué à TOUTES les écritures (imports, trésorerie, immo, saisie…), et
+  // non plus au seul modal manuel. Les écritures SYSTÈME de clôture (résultat,
+  // affectation, à-nouveaux, extourne) passent explicitement allowClosedPeriod.
+  if (!options.allowClosedPeriod && entry.date) {
+    const fiscalYears = await adapter.getAll<DBFiscalYear>('fiscalYears');
+    const fy = fiscalYears.find(f => entry.date >= f.startDate && entry.date <= f.endDate);
+    if (fy?.isClosed) {
+      throw new EntryGuardError([`Exercice clôturé « ${fy.name} » (${fy.startDate} → ${fy.endDate}) — écriture impossible au ${entry.date}.`]);
+    }
+    const periodStatus = await getPeriodeStatus(adapter, entry.date);
+    if (periodStatus === 'closed' || periodStatus === 'locked') {
+      throw new EntryGuardError([`Période du ${entry.date} clôturée/verrouillée — écriture impossible.`]);
+    }
+  }
 
   // Load all entries once — reused for duplicate check, cash check, and hash chain
   const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
@@ -140,7 +157,7 @@ export async function safeBulkAddEntries(
       updatedAt?: string;
     }
   >,
-  options: { skipSyncValidation?: boolean } = {},
+  options: { skipSyncValidation?: boolean; allowClosedPeriod?: boolean } = {},
 ): Promise<string[]> {
   const ids: string[] = [];
   // Sequential to maintain hash chain ordering
