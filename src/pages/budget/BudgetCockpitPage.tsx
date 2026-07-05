@@ -220,7 +220,8 @@ const BudgetCockpitPage: React.FC = () => {
               {topEcarts.map(n => (
                 <div key={n.code} className="flex items-center justify-between text-sm border-b border-[var(--color-border)] pb-2 last:border-0">
                   <span className="text-[var(--color-text-secondary)]"><span className="font-mono">{n.code}</span> · {n.label}</span>
-                  <span className={`font-semibold ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {/* Favorable/défavorable selon la nature : charge (cl.6) sur-réalisée = rouge. */}
+                  <span className={`font-semibold ${(n.classe === '6' ? n.ecart <= 0 : n.ecart >= 0) ? 'text-green-600' : 'text-red-600'}`}>
                     {n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}
                   </span>
                 </div>
