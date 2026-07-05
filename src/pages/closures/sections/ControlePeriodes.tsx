@@ -15,6 +15,7 @@ import { Progress } from '../../../components/ui/Progress';
 import { useData } from '../../../contexts/DataContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { canClose } from '../../../services/closureService';
+import toast from 'react-hot-toast';
 
 interface PeriodeComptable {
   id: string;
@@ -62,6 +63,28 @@ const ControlePeriodes: React.FC = () => {
   const [fiscalYears, setFiscalYears] = useState<DBFiscalYear[]>([]);
 
   const dateActuelle = new Date();
+
+  // Clôture : exécute le VRAI pré-contrôle (canClose) et oriente vers le module
+  // de clôture définitive. On NE flippe PAS isClosed ici : la clôture doit passer
+  // par l'orchestrateur (détermination du résultat → affectation → à-nouveaux),
+  // sinon l'exercice serait « clos » sans ces écritures.
+  const handleCloturer = async () => {
+    const fy = fiscalYears.find(f => (f.code || f.name) === selectedPeriode);
+    if (!fy) { toast.error('Exercice introuvable.'); return; }
+    if (fy.isClosed) { toast('Cet exercice est déjà clôturé.', { icon: 'ℹ️' }); setShowClotureModal(false); setShowForceClotureModal(false); return; }
+    try {
+      const check = await canClose(adapter, fy.id);
+      if (!check.canClose) {
+        toast.error('Clôture impossible : ' + check.reasons.join(' ; '));
+        return;
+      }
+      toast('Contrôles OK. Lancez la clôture définitive depuis « Clôtures périodiques » (séquence résultat → affectation → à-nouveaux).', { icon: '✅', duration: 6000 });
+      setShowClotureModal(false);
+      setShowForceClotureModal(false);
+    } catch (e: any) {
+      toast.error(e?.message || 'Erreur de vérification.');
+    }
+  };
 
   // Load fiscal years from adapter
   useEffect(() => {
@@ -761,7 +784,7 @@ const ControlePeriodes: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] rounded-lg transition-colors flex items-center gap-2">
+              <button onClick={handleCloturer} className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] rounded-lg transition-colors flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 Clôturer la période
               </button>
@@ -899,7 +922,7 @@ const ControlePeriodes: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
+              <button onClick={handleCloturer} className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
                 Forcer la clôture
               </button>

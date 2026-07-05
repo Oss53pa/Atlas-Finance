@@ -1893,12 +1893,15 @@ const RevisionsModule: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  toast.success('Révision créée avec succès');
+                  // Honnêteté : pas de faux « créée avec succès » sans persistance.
+                  // La revue de comptes (lead schedules, findings) se pilote depuis
+                  // le service de révision sur la balance réelle.
+                  toast('Revue de comptes : les feuilles maîtresses et anomalies sont générées automatiquement depuis la balance réelle (analyse ci-dessus). La saisie manuelle de fiche de révision n\'est pas persistée dans cette vue.', { icon: 'ℹ️', duration: 6000 });
                   setShowCreateModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Créer la révision
+                Fermer
               </button>
             </div>
           </div>

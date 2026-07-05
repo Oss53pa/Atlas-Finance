@@ -200,21 +200,16 @@ const RapprochementBancaire: React.FC = () => {
     toast.success(`Affichage des détails: ${operation.libelle}`);
   };
 
-  const handleValidateSuggestion = (operation: RapprochementItem) => {
-    toast.success(`Suggestion validée: ${operation.libelle}`);
-  };
+  // Honnêteté : cette vue est un APERÇU du rapprochement (comparaison comptable
+  // vs relevé). La validation/liaison/IA nécessitent l'import d'un relevé bancaire
+  // et un moteur de matching persisté, non encore câblés → pas de faux « validé ».
+  const notImplemented = () =>
+    toast('Rapprochement bancaire : import de relevé + matching persisté à venir. Cette vue est un aperçu (aucune écriture modifiée).', { icon: 'ℹ️', duration: 5000 });
 
-  const handleRejectSuggestion = (operation: RapprochementItem) => {
-    toast.error(`Suggestion rejetée: ${operation.libelle}`);
-  };
-
-  const handleLinkOperation = (operation: RapprochementItem) => {
-    toast.success(`Lier l'opération: ${operation.reference}`);
-  };
-
-  const handleRapprochementIA = () => {
-    toast.success('Rapprochement IA lancé - Analyse en cours...');
-  };
+  const handleValidateSuggestion = (_operation: RapprochementItem) => notImplemented();
+  const handleRejectSuggestion = (_operation: RapprochementItem) => notImplemented();
+  const handleLinkOperation = (_operation: RapprochementItem) => notImplemented();
+  const handleRapprochementIA = () => notImplemented();
 
   const handleRefresh = () => {
     toast.success('Données actualisées');
