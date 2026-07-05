@@ -7565,6 +7565,7 @@ Service Contentieux
         label: string;
         thirdPartyName: string;
         thirdPartyCode: string;
+        journal: string;
       }>;
     }> = {};
 
@@ -7588,6 +7589,7 @@ Service Contentieux
           label: line.label || entry.label,
           thirdPartyName: line.thirdPartyName || '',
           thirdPartyCode: code,
+          journal: String(entry.journal || ''),
         });
       }
     }
@@ -7602,26 +7604,42 @@ Service Contentieux
         const tp = customerThirdParties.find(t => t.code === code);
         const clientName = tp?.name || data.lines[0]?.thirdPartyName || code;
 
-        // Build invoice-like factures from debit lines
-        const factures = data.lines
-          .filter(l => l.debit > 0)
-          .map((l, fIdx) => {
-            const entryDate = new Date(l.date);
-            const echeance = new Date(entryDate);
-            echeance.setDate(echeance.getDate() + 30);
-            const joursRetard = Math.floor((today.getTime() - echeance.getTime()) / (1000 * 60 * 60 * 24));
-            return {
-              factureId: `${l.entryId}-${fIdx}`,
-              numero: l.reference,
-              date: l.date,
-              dateEcheance: echeance.toISOString().slice(0, 10),
-              montantOriginal: l.debit,
-              montantRestant: l.debit, // simplified: full amount outstanding
-              joursRetard,
-              libelle: l.label,   // description réelle de la facture
-              credit: l.credit,   // règlement éventuel imputé
-            };
+        // Build invoice-like factures.
+        // ⚠️ Les à-nouveaux (RAN) décomposent le solde d'ouverture en lignes
+        // DÉBIT + CRÉDIT brutes (historique reporté). Les exploser en « factures »
+        // gonflerait l'encours (débits bruts) et le CA. On les COLLAPSE en UN
+        // seul « solde reporté » NET, et on ne garde comme vraies factures que
+        // les lignes débit HORS à-nouveau (dates réelles).
+        const isAN = (j: string) => j === 'AN' || j === 'RAN';
+        const anLines = data.lines.filter(l => isAN(l.journal));
+        const anNet = anLines.reduce((s, l) => s + l.debit - l.credit, 0);
+        const mkRetard = (dateStr: string) => {
+          const ech = new Date(dateStr); ech.setDate(ech.getDate() + 30);
+          return Math.floor((today.getTime() - ech.getTime()) / (1000 * 60 * 60 * 24));
+        };
+        const mkEcheance = (dateStr: string) => {
+          const ech = new Date(dateStr); ech.setDate(ech.getDate() + 30);
+          return ech.toISOString().slice(0, 10);
+        };
+        const factures: Array<{
+          factureId: string; numero: string; date: string; dateEcheance: string;
+          montantOriginal: number; montantRestant: number; joursRetard: number; libelle: string; credit: number;
+        }> = [];
+        if (anNet > 0.005) {
+          const anDate = anLines[0]?.date || `${today.getFullYear()}-01-01`;
+          factures.push({
+            factureId: `${code}-AN`, numero: 'Report à nouveau', date: anDate,
+            dateEcheance: mkEcheance(anDate), montantOriginal: anNet, montantRestant: anNet,
+            joursRetard: mkRetard(anDate), libelle: 'Solde reporté (à-nouveau)', credit: 0,
           });
+        }
+        data.lines.filter(l => !isAN(l.journal) && l.debit > 0).forEach((l, fIdx) => {
+          factures.push({
+            factureId: `${l.entryId}-${fIdx}`, numero: l.reference, date: l.date,
+            dateEcheance: mkEcheance(l.date), montantOriginal: l.debit, montantRestant: l.debit,
+            joursRetard: mkRetard(l.date), libelle: l.label, credit: l.credit,
+          });
+        });
 
         const maxRetard = Math.max(0, ...factures.map(f => f.joursRetard));
         // DSO moyen RÉEL = moyenne des jours de retard des factures (pas le max).
@@ -7750,6 +7768,9 @@ Service Contentieux
     if (code) {
       for (const entry of allJournalEntries) {
         if (entry.status === 'draft') continue;
+        // Exclure les à-nouveaux : le solde d'ouverture reporté n'est PAS du
+        // chiffre d'affaires de l'exercice (sinon CA gonflé du report).
+        if (entry.journal === 'AN' || entry.journal === 'RAN') continue;
         const y = new Date(entry.date).getFullYear();
         for (const line of entry.lines) {
           if (!isRecouvrementAccount(line.accountCode)) continue;
