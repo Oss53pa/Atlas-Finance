@@ -26,6 +26,7 @@ const ManagerDashboard: React.FC = () => {
 
   // KPIs dérivés de la SOURCE UNIQUE (glHelpers via computeDashboardMetrics).
   const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0 });
+  const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
 
   const handleExport = () => {
     const rows = [
@@ -59,6 +60,18 @@ const ManagerDashboard: React.FC = () => {
       const m = computeDashboardMetrics(entries, range);
       const pendingCount = entries.filter((e: any) => e.status === 'draft').length;
       setLiveKpiData({ revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount });
+      // Top clients RÉELS = montants facturés (débit des comptes 411) agrégés par tiers.
+      const byClient = new Map<string, number>();
+      for (const e of entries) {
+        if (e.status === 'draft') continue;
+        for (const l of (e.lines || [])) {
+          if (l.accountCode?.startsWith('411')) {
+            const name = l.thirdPartyName || l.accountName || l.accountCode;
+            byClient.set(name, (byClient.get(name) || 0) + (l.debit || 0));
+          }
+        }
+      }
+      setTopClients([...byClient.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, amount]) => ({ name, amount })));
     };
     load();
   }, [adapter, timeRange, reloadKey]);
@@ -259,10 +272,7 @@ const ManagerDashboard: React.FC = () => {
             </div>
             <div className="p-6">
               <div className="space-y-4">
-                {(() => {
-                  // Compute top clients from third parties (empty if no data)
-                  const topClients: Array<{ name: string; amount: string }> = [];
-                  return topClients.length === 0 ? (
+                {topClients.length === 0 ? (
                     <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">Aucune donnée client disponible</p>
                   ) : topClients.map((client, index) => (
                     <div key={index} className="flex items-center justify-between p-3 hover:bg-[var(--color-background-secondary)] rounded-lg">
@@ -272,15 +282,14 @@ const ManagerDashboard: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-medium text-[var(--color-text-primary)] text-sm">{client.name}</p>
-                          <p className="text-[var(--color-text-secondary)] text-xs">CA annuel</p>
+                          <p className="text-[var(--color-text-secondary)] text-xs">Montant facturé (411)</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-[var(--color-text-primary)]">{client.amount}</p>
+                        <p className="font-semibold text-[var(--color-text-primary)]">{client.amount.toLocaleString('fr-FR')} FCFA</p>
                       </div>
                     </div>
-                  ));
-                })()}
+                  ))}
               </div>
             </div>
           </div>
