@@ -652,7 +652,9 @@ const AdminDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  toast.success(`Utilisateur ${selectedUser.name} modifié avec succès !`);
+                  // Pas de faux "modifié avec succès" : l'édition réelle (persistée) se fait dans
+                  // Espace Admin › Utilisateurs & Droits. On redirige plutôt que de simuler.
+                  toast.info('L\'édition des utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
                   setShowEditUserModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-darker)]"

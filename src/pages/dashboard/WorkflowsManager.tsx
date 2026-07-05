@@ -142,6 +142,9 @@ const WorkflowsManager: React.FC = () => {
         const amountOf = (e: any) => e.totalDebit || (e.lines || []).reduce((s: number, l: any) => s + (l.debit || 0), 0);
         const draftAmounts = draftEntries.map(amountOf);
         const avgDraft = draftAmounts.length ? draftAmounts.reduce((a: number, b: number) => a + b, 0) / draftAmounts.length : 0;
+        // Escalades persistées (localStorage) : réappliquées à la reconstruction des demandes.
+        let escalatedSet = new Set<string>();
+        try { escalatedSet = new Set(JSON.parse(localStorage.getItem('atlas_wf_escalated') || '[]')); } catch { /* ignore */ }
         const builtApprovals: ApprovalRequest[] = draftEntries.slice(0, 10).map((entry: any) => {
           const amount = amountOf(entry);
           return {
@@ -153,7 +156,7 @@ const WorkflowsManager: React.FC = () => {
             requester: entry.createdBy || 'Système',
             amount,
             priority: (avgDraft > 0 && amount >= avgDraft * 1.5 ? 'high' : 'medium') as ApprovalRequest['priority'],
-            status: 'pending' as ApprovalRequest['status'],
+            status: (escalatedSet.has(entry.id) ? 'escalated' : 'pending') as ApprovalRequest['status'],
             createdAt: new Date(entry.createdAt || Date.now()),
             dueDate: new Date(Date.now() + 86400000 * 7),
           };
@@ -240,7 +243,14 @@ const WorkflowsManager: React.FC = () => {
   };
 
   const handleEscalate = (approvalId: string) => {
+    const entryId = approvalId.replace(/^apr-/, '');
+    try {
+      const set = new Set<string>(JSON.parse(localStorage.getItem('atlas_wf_escalated') || '[]'));
+      set.add(entryId);
+      localStorage.setItem('atlas_wf_escalated', JSON.stringify([...set]));
+    } catch { /* ignore */ }
     setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'escalated' as const } : a));
+    toast.success('Demande escaladée au niveau supérieur');
   };
 
   const filteredWorkflows = workflows.filter(wf => {
