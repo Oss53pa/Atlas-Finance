@@ -136,18 +136,24 @@ export function useEtatsFinanciers(): EtatsFinanciersData {
   }, [balances]);
 
   // Compute summaries — placement par SIGNE garantissant Actif = Passif.
-  // Actif = solde NET des immos/stocks/tréso (classes 2,3,5 → contrepartie
-  // 28/29 déduite car en négatif) + comptes débiteurs des classes 1 & 4.
-  const totalActif = money(getSolde(['2', '3', '5'])).add(getSoldeDebiteur(['1', '4'])).toNumber();
-  // Passif = comptes créditeurs classes 1 & 4 + résultat net.
+  // Actif = solde NET des immos/stocks (classes 2,3 → contrepartie 28/29 déduite)
+  // + trésorerie DÉBITRICE (classe 5) + comptes débiteurs des classes 1 & 4.
+  // La trésorerie CRÉDITRICE (découvert, classe 5) va au passif (pas en moins-actif).
+  const totalActif = money(getSolde(['2', '3']))
+    .add(getSoldeDebiteur(['5']))
+    .add(getSoldeDebiteur(['1', '4']))
+    .toNumber();
+  // Passif = comptes créditeurs classes 1 & 4 + découverts (5 créditeur) + résultat net.
   const passiCapitaux = getSoldeCrediteur(['1']);
   const passiDettes = getSoldeCrediteur(['4']);
-  // Résultat NET d'impôt : produits (cl.7) − charges (cl.6) − IMF/IS (cl.89).
-  // Sans −89 le passif est surévalué de 5 M (la dette d'IMF est en cl.44) → déséquilibre.
+  const passiDecouverts = getSoldeCrediteur(['5']);
+  // Résultat NET : produits (cl.7) + produits HAO − charges (cl.6) − charges HAO
+  // − IMF/IS (cl.89), soit produits7 − charges6 − net(classe 8). Inclure toute la
+  // classe 8 (pas seulement 89) aligne le résultat sur la clôture et les états.
   const produits = getSoldeCrediteur(['7']);
   const charges = getSoldeDebiteur(['6']);
-  const resultatNet = money(produits).subtract(money(charges)).subtract(money(getSolde(['89']))).toNumber();
-  const totalPassif = money(passiCapitaux).add(passiDettes).add(resultatNet).toNumber();
+  const resultatNet = money(produits).subtract(money(charges)).subtract(money(getSolde(['8']))).toNumber();
+  const totalPassif = money(passiCapitaux).add(passiDettes).add(passiDecouverts).add(resultatNet).toNumber();
   const isBalanced = Math.abs(totalActif - totalPassif) < 1000;
 
   return {

@@ -249,7 +249,9 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   // Bilan Actif — computed from real account balances
   const immoIncorp = getSoldeDebiteur(['20', '21']);
-  const immoCorp = getSoldeDebiteur(['22', '23', '24']);
+  // 25 = avances/immobilisations en cours → corporelles (PAS financières),
+  // cohérent avec le Bilan canonique (financialStatementsService).
+  const immoCorp = getSoldeDebiteur(['22', '23', '24', '25']);
   const immoFin = getSoldeDebiteur(['26', '27']);
   const amortImmo = Math.abs(getSolde(['28']));
   const totalImmo = immoIncorp + immoCorp + immoFin - amortImmo;
