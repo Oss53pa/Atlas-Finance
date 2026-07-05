@@ -148,7 +148,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
   });
 
   // Compute bilan & compte de résultat from real entries
-  const { bilanData, compteResultatData, resultatNetReal } = useMemo(() => {
+  const { bilanData, compteResultatData, resultatNetReal, details } = useMemo(() => {
     const net = (prefix: string | string[]) => {
       const prefixes = Array.isArray(prefix) ? prefix : [prefix];
       let debit = 0, credit = 0;
@@ -234,10 +234,61 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       },
     };
 
+    // Détail (drill-down) des seaux « Autres » : ventilation par sous-classe SYSCOHADA,
+    // calculée avec les MÊMES helpers que les totaux (donc Σ détail = total affiché).
+    const line = (prefix: string, label: string, fn: (p: string) => number) => ({ prefix, label, amount: fn(prefix) });
+    const details = {
+      autresCreances: [
+        line('42', 'Personnel (42)', debiteur), line('43', 'Organismes sociaux (43)', debiteur),
+        line('44', 'État (44)', debiteur), line('45', 'Organismes internationaux / groupe (45)', debiteur),
+        line('46', 'Associés & débiteurs divers (46)', debiteur), line('47', 'Comptes transitoires (47)', debiteur),
+      ].filter(d => Math.abs(d.amount) > 0.5),
+      autresDettes: [
+        line('45', 'Organismes internationaux / groupe (45)', crediteur), line('46', 'Associés & créditeurs divers (46)', crediteur),
+        line('47', 'Comptes transitoires (47)', crediteur), line('48', 'Créances/dettes HAO (48)', crediteur),
+      ].filter(d => Math.abs(d.amount) > 0.5),
+      autresProduits: [
+        line('74', 'Subventions d\'exploitation (74)', creditNet), line('75', 'Autres produits (75)', creditNet),
+        line('78', 'Transferts de charges (78)', creditNet), line('79', 'Reprises de provisions (79)', creditNet),
+      ].filter(d => Math.abs(d.amount) > 0.5),
+      produitsExceptionnels: [
+        line('84', 'Produits HAO (84)', creditNet), line('86', 'Reprises HAO (86)', creditNet), line('88', 'Subventions d\'équilibre (88)', creditNet),
+      ].filter(d => Math.abs(d.amount) > 0.5),
+      chargesExceptionnelles: [
+        line('83', 'Charges HAO (83)', net), line('85', 'Dotations HAO (85)', net), line('87', 'Participations (87)', net),
+      ].filter(d => Math.abs(d.amount) > 0.5),
+    };
+
     // resultatNetReal (= cl.7 − cl.6 − cl.89) est calculé plus haut et injecté au
     // passif du bilan (resultatExercice) pour garantir Actif = Passif.
-    return { bilanData: bilan, compteResultatData: cr, resultatNetReal };
+    return { bilanData: bilan, compteResultatData: cr, resultatNetReal, details };
   }, [entries]);
+
+  // Lignes « Autres » dépliées (drill-down bilan/CR).
+  const [expandedDetail, setExpandedDetail] = React.useState<Set<string>>(new Set());
+  const toggleDetail = (key: string) => setExpandedDetail(prev => {
+    const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n;
+  });
+  const renderAutresRow = (key: string, label: string, total: number, rows: { prefix: string; label: string; amount: number }[]) => (
+    <>
+      <div className="flex justify-between cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => toggleDetail(key)} title="Voir le détail">
+        <span className="text-sm text-gray-600">{expandedDetail.has(key) ? '▾' : '▸'} {label}</span>
+        <span className="text-sm font-mono font-medium">{fmt(total)}</span>
+      </div>
+      {expandedDetail.has(key) && (
+        <div className="ml-4 border-l-2 border-gray-100 pl-3 space-y-0.5">
+          {rows.length === 0 ? (
+            <div className="text-xs text-gray-400 py-0.5">Aucun compte mouvementé.</div>
+          ) : rows.map(r => (
+            <div key={r.prefix} className="flex justify-between text-xs">
+              <span className="text-gray-500">{r.label}</span>
+              <span className="font-mono text-gray-500">{fmt(r.amount)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
 
   // Calculs des SIG
   const sigData: SIGData = useMemo(() => {
@@ -779,12 +830,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                         {fmt(bilanData.actifCirculant.creancesClients)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Autres créances</span>
-                      <span className="text-sm font-mono font-medium">
-                        {fmt(bilanData.actifCirculant.autresCreances)}
-                      </span>
-                    </div>
+                    {renderAutresRow('autresCreances', 'Autres créances', bilanData.actifCirculant.autresCreances, details.autresCreances)}
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Disponibilités</span>
                       <span className="text-sm font-mono font-medium">
@@ -880,12 +926,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                         {fmt(bilanData.dettes.dettesExploitation)}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Autres dettes</span>
-                      <span className="text-sm font-mono font-medium">
-                        {fmt(bilanData.dettes.autresDettes)}
-                      </span>
-                    </div>
+                    {renderAutresRow('autresDettes', 'Autres dettes', bilanData.dettes.autresDettes, details.autresDettes)}
                     <div className="flex justify-between font-semibold border-t pt-2">
                       <span className="text-sm">Total Dettes</span>
                       <span className="text-sm font-mono">
@@ -937,24 +978,14 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       {fmt(compteResultatData.produits.productionStockee)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Autres produits</span>
-                    <span className="text-sm font-mono font-medium">
-                      {fmt(compteResultatData.produits.autresProduits)}
-                    </span>
-                  </div>
+                  {renderAutresRow('autresProduits', 'Autres produits', compteResultatData.produits.autresProduits, details.autresProduits)}
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Produits financiers</span>
                     <span className="text-sm font-mono font-medium">
                       {fmt(compteResultatData.produits.produitsFinanciers)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Produits exceptionnels</span>
-                    <span className="text-sm font-mono font-medium">
-                      {fmt(compteResultatData.produits.produitsExceptionnels)}
-                    </span>
-                  </div>
+                  {renderAutresRow('produitsExceptionnels', 'Produits exceptionnels', compteResultatData.produits.produitsExceptionnels, details.produitsExceptionnels)}
                 </div>
                 
                 <div className="bg-green-50 p-3 rounded border-t-2 border-green-200">
@@ -1006,12 +1037,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                       {fmt(compteResultatData.charges.chargesFinancieres)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Charges exceptionnelles</span>
-                    <span className="text-sm font-mono font-medium">
-                      {fmt(compteResultatData.charges.chargesExceptionnelles)}
-                    </span>
-                  </div>
+                  {renderAutresRow('chargesExceptionnelles', 'Charges exceptionnelles', compteResultatData.charges.chargesExceptionnelles, details.chargesExceptionnelles)}
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Impôts sur les sociétés</span>
                     <span className="text-sm font-mono font-medium">
