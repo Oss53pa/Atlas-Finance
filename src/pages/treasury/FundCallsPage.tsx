@@ -410,6 +410,40 @@ const FundCallsPage: React.FC = () => {
     return proposedPayments.reduce((sum, item) => sum + item.outstanding, 0);
   }, [proposedPayments]);
 
+  // Exécution d'un appel de fonds : COMPTABILISE le décaissement (D 401 fournisseur /
+  // C 521 banque) pour les postes RÉELS (les dépenses prévisionnelles ne sont pas
+  // comptabilisées), puis marque l'appel PAYÉ + EXECUTION. Fini le cycle sans écriture GL.
+  const handleExecuteFundCall = async (call: FundCall) => {
+    const reals = call.items.filter(it => !it.provisional && String(it.account || '').startsWith('40'));
+    if (reals.length === 0) { toast.error('Aucun poste réel à décaisser (les dépenses prévisionnelles ne sont pas comptabilisées).'); return; }
+    const bank = call.bankAccount || '521100';
+    const total = reals.reduce((s, it) => s + (it.outstanding || 0), 0);
+    try {
+      const { safeAddEntry } = await import('../../services/entryGuard');
+      await safeAddEntry(adapter, {
+        id: crypto.randomUUID(),
+        entryNumber: `AF-EXEC-${call.reference}`,
+        journal: 'BQ',
+        date: new Date().toISOString().slice(0, 10),
+        reference: call.reference,
+        label: `Exécution appel de fonds ${call.reference}`,
+        status: 'validated',
+        lines: [
+          ...reals.map(it => ({ id: crypto.randomUUID(), accountCode: String(it.account), accountName: 'Fournisseur', label: `Règlement ${(it as any).reference || ''}`.trim(), debit: it.outstanding || 0, credit: 0 })),
+          { id: crypto.randomUUID(), accountCode: bank, accountName: 'Banque', label: `Décaissement AF ${call.reference}`, debit: 0, credit: total },
+        ],
+      } as any);
+      const raw: any = (fundCallsSetting as any)?.value ?? fundCallsSetting;
+      const arr: any[] = typeof raw === 'string' ? JSON.parse(raw || '[]') : (Array.isArray(raw) ? raw : []);
+      const next = arr.map(c => c.id === call.id ? { ...c, status: 'PAYE', workflowStep: 'EXECUTION', paymentDate: new Date().toISOString(), bankAccount: bank } : c);
+      const value = JSON.stringify(next);
+      await adapter.update('settings', 'fund_calls', { value });
+      setFundCallsSetting({ key: 'fund_calls', value });
+      (adapter as any).invalidateCache?.();
+      toast.success(`Décaissement de ${formatCurrency(total)} comptabilisé (D 401 / C ${bank})`);
+    } catch (e: any) { toast.error(e?.message || 'Échec de l’exécution'); }
+  };
+
   // Persiste l'appel de fonds dans settings.fund_calls (brouillon ou soumis).
   const persistFundCall = async (statut: 'brouillon' | 'soumis') => {
     if (proposedPayments.length === 0) { toast.error('Aucun paiement sélectionné pour l’appel de fonds.'); return; }
@@ -806,10 +840,23 @@ const FundCallsPage: React.FC = () => {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm">
+                    {fundCall.status !== 'PAYE' && fundCall.status !== 'REJETE' && (
+                      <Button variant="ghost" size="sm" title="Exécuter le paiement (comptabiliser le décaissement)" onClick={() => handleExecuteFundCall(fundCall)}>
+                        <Send className="h-4 w-4 text-blue-600" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" title="Voir le détail"
+                      onClick={() => toast(`${fundCall.reference} — ${fundCall.items.length} poste(s) · ${formatCurrency(fundCall.totalAmount)} · ${fundCall.workflowStep.replace('_', ' ')}`, { duration: 6000 })}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" title="Exporter (CSV)"
+                      onClick={() => {
+                        const rows = [['Reference', fundCall.reference], ['Total', String(fundCall.totalAmount)], ['Statut', fundCall.status], [], ['Compte', 'Libelle', 'Montant'],
+                          ...fundCall.items.map(it => [String(it.account || ''), String((it as any).supplier || (it as any).reference || ''), String(it.outstanding || 0)])];
+                        const csv = '﻿' + rows.map(r => r.join(';')).join('\r\n');
+                        const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+                        const a = document.createElement('a'); a.href = url; a.download = `appel-fonds-${fundCall.reference}.csv`; a.click(); URL.revokeObjectURL(url);
+                      }}>
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
