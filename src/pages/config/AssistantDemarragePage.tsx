@@ -44,6 +44,7 @@ import {
   SelectValue
 } from '../../components/ui';
 import { toast } from 'react-hot-toast';
+import { useData } from '../../contexts/DataContext';
 
 interface SetupStep {
   id: string;
@@ -74,6 +75,7 @@ interface CompanyInfo {
 
 const AssistantDemarragePage: React.FC = () => {
   const { t } = useLanguage();
+  const { adapter } = useData();
   const [currentStep, setCurrentStep] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [setupProgress, setSetupProgress] = useState(0);
@@ -194,9 +196,35 @@ const AssistantDemarragePage: React.FC = () => {
 
   const handleFinish = async () => {
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsProcessing(false);
-    toast.success('Configuration terminée avec succès!');
+    try {
+      // Persiste RÉELLEMENT l'entreprise dans la source canonique settings.admin_company_legal
+      // (au lieu d'un setTimeout + toast qui n'enregistrait rien).
+      const value = {
+        raisonSociale: companyInfo.name,
+        legalName: companyInfo.name,
+        formeJuridique: companyInfo.legal_form,
+        rccm: companyInfo.rccm,
+        nif: companyInfo.nif,
+        adresse: companyInfo.address,
+        ville: companyInfo.city,
+        pays: companyInfo.country,
+        telephone: companyInfo.phone,
+        email: companyInfo.email,
+        secteurActivite: companyInfo.activity_sector,
+        capital: companyInfo.capital,
+        devise: companyInfo.currency,
+        debutExercice: companyInfo.fiscal_year_start,
+      };
+      const payload = { key: 'admin_company_legal', value: JSON.stringify(value), updatedAt: new Date().toISOString() };
+      const existing = await adapter.getById('settings', 'admin_company_legal').catch(() => null);
+      if (existing) await adapter.update('settings', 'admin_company_legal', payload);
+      else await adapter.create('settings', payload);
+      toast.success('Entreprise enregistrée. Configuration terminée !');
+    } catch {
+      toast.error("Échec de l'enregistrement de l'entreprise");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleCompanyInfoChange = (field: keyof CompanyInfo, value: string) => {
@@ -912,9 +940,9 @@ const AssistantDemarragePage: React.FC = () => {
               </div>
               <div className="p-6 bg-white border rounded-lg">
                 <FileText className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Plan comptable installé</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">Plan comptable</h3>
                 <p className="text-sm text-gray-600">
-                  Plan SYSCOHADA activé avec 847 comptes disponibles
+                  Plan comptable SYSCOHADA disponible dans Configuration → Plan comptable
                 </p>
               </div>
               <div className="p-6 bg-white border rounded-lg">
