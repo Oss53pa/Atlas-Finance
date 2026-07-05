@@ -44,8 +44,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '../../components/ui';
-import { analyticsService as _analyticsService, createCentreSchema } from '../../services/modules/analytics.service';
-const analyticsService = _analyticsService as unknown as Record<string, (...args: any[]) => any>;
+import { createCentreSchema } from '../../services/modules/analytics.service';
+import { useData } from '../../contexts/DataContext';
+import { createSection, updateSection, listAxes, getSectionPerformance } from '../../features/budget/services/analyticsService';
 import { z } from 'zod';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -86,13 +87,19 @@ const CostCentersPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
+  const { adapter } = useData();
+  const annee = String(new Date().getFullYear());
 
-  // Create centre mutation
+  // Create centre mutation — via la VRAIE table sections_analytiques (l'ancien
+  // analyticsService REST /api/v1/... n'existe pas → création perdue en silence).
   const createMutation = useMutation({
-    mutationFn: analyticsService.createCentre,
+    mutationFn: (data: any) => createSection(adapter, {
+      axe_id: data.axe_id || null, code: data.code, libelle: data.libelle,
+      responsable: data.responsable || undefined, budget_annuel: Number(data.budget_annuel) || 0,
+    }),
     onSuccess: () => {
       toast.success('Centre de coût créé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['centres-analytiques'] });
+      queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
       setShowCreateModal(false);
       resetForm();
     },
@@ -101,34 +108,59 @@ const CostCentersPage: React.FC = () => {
     },
   });
 
-  // Fetch cost centers
+  // Fetch cost centers = sections réelles + performance, mappées à la forme attendue.
   const { data: centersData, isLoading } = useQuery({
-    queryKey: ['cost-centers', 'list', page, filters],
-    queryFn: () => analyticsService.getCostCenters({ 
-      page, 
-      search: filters.search,
-      axe: filters.axe,
-      type: filters.type,
-      statut: filters.statut,
-      responsable: filters.responsable
-    }),
+    queryKey: ['cost-centers', 'list', page, filters, annee],
+    queryFn: async () => {
+      const [perf, axesList] = await Promise.all([getSectionPerformance(adapter, annee), listAxes(adapter)]);
+      const axeById = new Map(axesList.map(a => [a.id, a]));
+      let results = perf.map((s: any) => {
+        const ax = s.axe_id ? axeById.get(s.axe_id) : null;
+        return {
+          id: s.id, code: s.code, libelle: s.libelle, nom: s.libelle,
+          nom_axe: ax?.libelle || '—', code_axe: ax?.code || '',
+          responsable: s.responsable, budget: s.budget_annuel, realise: s.charges,
+          ecart: s.ecartBudget, actif: s.actif,
+        };
+      });
+      // Filtres appliqués côté client
+      const q = (filters.search || '').toLowerCase();
+      if (q) results = results.filter(r => r.code.toLowerCase().includes(q) || (r.libelle || '').toLowerCase().includes(q));
+      if (filters.axe) results = results.filter(r => r.code_axe === filters.axe);
+      if (filters.responsable) results = results.filter(r => (r.responsable || '').toLowerCase().includes(filters.responsable.toLowerCase()));
+      if (filters.statut) results = results.filter(r => (filters.statut === 'actif') === !!r.actif);
+      const total_budget = results.reduce((a, r) => a + (r.budget || 0), 0);
+      const total_actual_costs = results.reduce((a, r) => a + (r.realise || 0), 0);
+      const total_variance = total_budget - total_actual_costs;
+      return {
+        results,
+        count: results.length,
+        active_count: results.filter(r => r.actif).length,
+        total_costs: total_actual_costs,
+        total_budget,
+        total_actual_costs,
+        total_variance,
+        realization_rate: total_budget > 0 ? (total_actual_costs / total_budget) * 100 : 0,
+        average_performance: 0,
+      };
+    },
   });
 
   // Fetch analytical axes for selection
   const { data: axes } = useQuery({
     queryKey: ['analytical-axes', 'list'],
-    queryFn: () => analyticsService.getAnalyticalAxes({ page: 1, limit: 100 }),
+    queryFn: async () => ({ results: await listAxes(adapter) }),
   });
 
-  // Delete cost center mutation
+  // Delete = désactivation (soft delete) : on ne supprime pas un centre mouvementé.
   const deleteCenterMutation = useMutation({
-    mutationFn: analyticsService.deleteCostCenter,
+    mutationFn: (id: string) => updateSection(adapter, id, { actif: false }),
     onSuccess: () => {
-      toast.success('Centre supprimé avec succès');
+      toast.success('Centre désactivé');
       queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
     },
     onError: () => {
-      toast.error('Erreur lors de la suppression');
+      toast.error('Erreur lors de la désactivation');
     }
   });
 
