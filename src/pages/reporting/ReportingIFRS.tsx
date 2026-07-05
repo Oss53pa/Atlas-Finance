@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import { FeatureGate, UpgradeBanner, useFeatureAccess } from '../../components/gating';
@@ -93,6 +94,7 @@ const ReportingIFRS: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -679,7 +681,7 @@ const ReportingIFRS: React.FC = () => {
                 <h3 className="text-lg font-semibold text-neutral-800">
                   Périmètre de Consolidation
                 </h3>
-                <ElegantButton variant="primary" icon={Plus}>
+                <ElegantButton variant="primary" icon={Plus} onClick={() => navigate('/config/multi-societes')}>
                   Ajouter Entité
                 </ElegantButton>
               </div>
@@ -868,8 +870,8 @@ const ReportingIFRS: React.FC = () => {
                     {reportModal.mode === 'view' ? 'Fermer' : 'Annuler'}
                   </ElegantButton>
                   {reportModal.mode !== 'view' && (
-                    <ElegantButton variant="primary">
-                      {reportModal.mode === 'create' ? 'Créer Rapport' : 'Sauvegarder'}
+                    <ElegantButton variant="primary" onClick={() => navigate('/reporting/builder')}>
+                      Ouvrir le générateur de rapports
                     </ElegantButton>
                   )}
                 </div>
