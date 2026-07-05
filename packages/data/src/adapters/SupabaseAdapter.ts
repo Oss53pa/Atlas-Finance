@@ -55,6 +55,12 @@ const TABLE_MAP: Record<TableName, string> = {
   bankStatements: 'bank_statements',
   bankStatementLines: 'bank_statement_lines',
   reports: 'reports',
+  // Espace collaboratif
+  collabChannels: 'collab_channels',
+  collabMessages: 'collab_messages',
+  collabTasks: 'collab_tasks',
+  collabTaskComments: 'collab_task_comments',
+  collabPresence: 'collab_presence',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -220,6 +226,12 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   // service de révision lisait tous ses champs undefined en SaaS.
   off_balance_commitments: normalizeGeneric,
   revision_items:          normalizeGeneric,
+  // Espace collaboratif
+  collab_channels:      normalizeGeneric,
+  collab_messages:      normalizeGeneric,
+  collab_tasks:         normalizeGeneric,
+  collab_task_comments: normalizeGeneric,
+  collab_presence:      normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {

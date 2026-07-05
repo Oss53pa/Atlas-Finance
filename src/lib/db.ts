@@ -600,6 +600,80 @@ export interface DBReport {
 }
 
 // ============================================================================
+// ESPACE COLLABORATIF
+// ============================================================================
+
+export interface DBCollabChannel {
+  id: string;
+  tenantId: string;
+  name: string;
+  description?: string;
+  type: 'channel' | 'dm';
+  isPrivate?: boolean;
+  members?: string[];        // userIds (pour dm/privé)
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  archived?: boolean;
+}
+
+export interface DBCollabMessage {
+  id: string;
+  channelId: string;
+  tenantId: string;
+  authorId: string;
+  authorName?: string;
+  body: string;
+  mentions?: string[];        // userIds mentionnés
+  parentId?: string;          // réponse dans un fil
+  reactions?: Record<string, string[]>; // emoji -> userIds
+  attachments?: { name: string; url?: string; size?: number }[];
+  editedAt?: string;
+  deletedAt?: string;
+  createdAt: string;
+}
+
+export interface DBCollabTask {
+  id: string;
+  tenantId: string;
+  title: string;
+  description?: string;
+  status: 'todo' | 'in_progress' | 'review' | 'done';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assigneeId?: string;
+  assigneeName?: string;
+  dueDate?: string;
+  tags?: string[];
+  watchers?: string[];
+  linkedType?: string;        // ex: 'journalEntry' | 'closure' | 'recovery'
+  linkedId?: string;
+  order?: number;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
+export interface DBCollabTaskComment {
+  id: string;
+  taskId: string;
+  tenantId: string;
+  authorId: string;
+  authorName?: string;
+  body: string;
+  mentions?: string[];
+  createdAt: string;
+}
+
+export interface DBCollabPresence {
+  id: string;                 // = userId
+  tenantId: string;
+  userName?: string;
+  status: 'online' | 'away' | 'offline';
+  lastSeenAt: string;
+}
+
+// ============================================================================
 // DATABASE
 // ============================================================================
 
@@ -641,6 +715,12 @@ class AtlasFnADB extends Dexie {
   bankStatements!: Table<DBBankStatement, string>;
   bankStatementLines!: Table<DBBankStatementLine, string>;
   reports!: Table<DBReport, string>;
+  // Espace collaboratif (discussions, tâches, présence)
+  collabChannels!: Table<DBCollabChannel, string>;
+  collabMessages!: Table<DBCollabMessage, string>;
+  collabTasks!: Table<DBCollabTask, string>;
+  collabTaskComments!: Table<DBCollabTaskComment, string>;
+  collabPresence!: Table<DBCollabPresence, string>;
   constructor() {
     super('AtlasFnADB');
     this.version(1).stores({
@@ -828,6 +908,14 @@ class AtlasFnADB extends Dexie {
       bankStatementLines: 'id, statementId, date, reconciled, [statementId+date]',
       // Journal des rapports (remplace l'ancien accès distant à une table inexistante)
       reports: 'id, companyId, status, type, createdAt',
+    });
+    // v11 — Espace collaboratif (discussions, tâches, présence)
+    this.version(11).stores({
+      collabChannels: 'id, tenantId, type, updatedAt',
+      collabMessages: 'id, channelId, tenantId, createdAt, parentId, [channelId+createdAt]',
+      collabTasks: 'id, tenantId, status, assigneeId, updatedAt',
+      collabTaskComments: 'id, taskId, tenantId, createdAt',
+      collabPresence: 'id, tenantId, lastSeenAt',
     });
   }
 }

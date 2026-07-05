@@ -212,6 +212,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       label: 'États & Reporting',
       icon: <FileBarChart className="w-5 h-5" />,
       ariaLabel: 'Accéder aux états et rapports'
+    },
+    {
+      id: 'collaboration',
+      label: 'Espace Collaboratif',
+      icon: <MessageSquare className="w-5 h-5" />,
+      ariaLabel: "Discussions, tâches et activité de l'équipe"
     }
     // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
     // societes) → `tenant.plan` est toujours undefined → tout le monde retombait
@@ -303,6 +309,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
       { id: 'report-builder', label: 'Report Builder', path: '/reporting/builder', icon: <Palette className="w-4 h-4" /> }
     ],
+    collaboration: [
+      { id: 'collab-space', label: 'Espace Collaboratif', path: '/collaboration', icon: <MessageSquare className="w-4 h-4" /> },
+    ],
   }), [t, user?.role]);
 
   useEffect(() => {
@@ -332,6 +341,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'reports': 'reporting',
         'financial-statements': 'reporting',
         'closures': 'closures',
+        'collaboration': 'collaboration',
         'inventory': 'assets',
         'taxation': 'reporting'
       };

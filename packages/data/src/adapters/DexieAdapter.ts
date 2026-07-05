@@ -51,6 +51,16 @@ class AtlasFnADexie extends Dexie {
   purchaseOrders!: Table<any, string>
   goodsReceipts!: Table<any, string>
   offBalanceCommitments!: Table<any, string>
+  // Relevés bancaires + rapports (étaient dans src/lib/db v10 mais pas ici → resync)
+  bankStatements!: Table<any, string>
+  bankStatementLines!: Table<any, string>
+  reports!: Table<any, string>
+  // Espace collaboratif
+  collabChannels!: Table<any, string>
+  collabMessages!: Table<any, string>
+  collabTasks!: Table<any, string>
+  collabTaskComments!: Table<any, string>
+  collabPresence!: Table<any, string>
 
   constructor(dbName: string = 'AtlasFnADB') {
     super(dbName)
@@ -231,6 +241,20 @@ class AtlasFnADexie extends Dexie {
       purchaseOrders: 'id, companyId, supplierId, orderNumber, status, [companyId+status]',
       goodsReceipts: 'id, companyId, purchaseOrderId, receiptNumber',
       offBalanceCommitments: 'id, companyId, type, status, [companyId+status]',
+    })
+    // v10 — resync avec src/lib/db.ts (relevés bancaires + rapports)
+    this.version(10).stores({
+      bankStatements: 'id, companyId, accountCode, periodStart, periodEnd, importedAt, [accountCode+periodStart]',
+      bankStatementLines: 'id, statementId, date, reconciled, [statementId+date]',
+      reports: 'id, companyId, status, type, createdAt',
+    })
+    // v11 — Espace collaboratif (discussions, tâches, présence)
+    this.version(11).stores({
+      collabChannels: 'id, tenantId, type, updatedAt',
+      collabMessages: 'id, channelId, tenantId, createdAt, parentId, [channelId+createdAt]',
+      collabTasks: 'id, tenantId, status, assigneeId, updatedAt',
+      collabTaskComments: 'id, taskId, tenantId, createdAt',
+      collabPresence: 'id, tenantId, lastSeenAt',
     })
   }
 }

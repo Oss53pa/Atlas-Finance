@@ -63,6 +63,12 @@ export type TableName =
   | 'bankStatements'
   | 'bankStatementLines'
   | 'reports'
+  // Espace collaboratif (discussions, tâches, présence)
+  | 'collabChannels'
+  | 'collabMessages'
+  | 'collabTasks'
+  | 'collabTaskComments'
+  | 'collabPresence'
 
 export interface QueryFilters {
   where?: Record<string, any>

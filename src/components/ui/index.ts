@@ -61,3 +61,4 @@ export {
 } from './Dialog';
 export { Separator } from './Separator';
 export { ToggleLeft } from './ToggleLeft';
+export { Avatar } from './Avatar';

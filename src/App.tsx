@@ -92,6 +92,8 @@ const ManagerWorkspace = lazyRetry(() => import('./pages/workspace/ManagerWorksp
 const AdminWorkspace = lazyRetry(() => import('./pages/workspace/AdminWorkspace'));
 const WorkspaceDashboard = lazyRetry(() => import('./pages/workspace/WorkspaceDashboard'));
 
+// Espace collaboratif
+const CollaborationWorkspace = lazyRetry(() => import('./pages/collaboration/CollaborationWorkspace'));
 // Dashboards
 const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/PremiumOverview'));
 const ExecutiveDashboardLegacy = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
@@ -499,6 +501,11 @@ function App() {
                           <Route path="/closures/audit-trail" element={work(<PisteAuditModule />)} />
                           <Route path="/closures/off-balance" element={work(<OffBalanceCommitmentsPage />)} />
                           <Route path="/closures/ecarts-conversion" element={work(<EcartsConversionPage />)} />
+                        </Route>
+
+                        {/* Espace collaboratif */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Espace collaboratif" /></RBACGuard>}>
+                          <Route path="/collaboration" element={<CollaborationWorkspace />} />
                         </Route>
 
                         {/* Etats financiers */}
