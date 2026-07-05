@@ -49,13 +49,27 @@ export async function listAxes(adapter: DataAdapter): Promise<Axe[]> {
   return (data ?? []) as Axe[];
 }
 
-export async function createAxe(adapter: DataAdapter, axe: { code: string; libelle: string; type_axe?: string; obligatoire?: boolean }): Promise<void> {
+export async function createAxe(adapter: DataAdapter, axe: { code: string; libelle: string; type_axe?: string; obligatoire?: boolean; actif?: boolean }): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const { error } = await client.from('axes_analytiques').insert({
     tenant_id: tenantOf(adapter), code: axe.code.trim(), libelle: axe.libelle.trim(),
-    type_axe: axe.type_axe || null, obligatoire: axe.obligatoire ?? false, actif: true,
+    type_axe: axe.type_axe || null, obligatoire: axe.obligatoire ?? false, actif: axe.actif ?? true,
   });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateAxe(adapter: DataAdapter, id: string, patch: Partial<Pick<Axe, 'libelle' | 'type_axe' | 'obligatoire' | 'actif'>>): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('axes_analytiques').update(patch).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteAxe(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('axes_analytiques').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
 

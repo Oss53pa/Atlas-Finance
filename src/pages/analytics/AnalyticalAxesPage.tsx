@@ -43,6 +43,7 @@ import {
   SelectValue
 } from '../../components/ui';
 import { createAxeSchema } from '../../services/modules/analytics.service';
+import { listAxes, createAxe, updateAxe, deleteAxe, type Axe } from '../../features/budget/services/analyticsService';
 import { z } from 'zod';
 import { formatDate } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
@@ -100,34 +101,31 @@ const AnalyticalAxesPage: React.FC = () => {
 
   const { adapter } = useData();
 
-  // Load analytical axes from settings
-  const [axesSetting, setAxesSetting] = useState<any>(undefined);
+  // Axes analytiques = table canonique `axes_analytiques` (vue par le moteur de ventilation),
+  // et NON un blob `settings` parallèle qui rendait les axes invisibles à la ventilation.
+  const [allAxes, setAllAxes] = useState<AxeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const setting = await adapter.getById('settings', 'analytical_axes');
-        setAxesSetting(setting);
-      } catch (err) {
-        console.error('[AnalyticalAxesPage] Erreur chargement axes analytiques:', err);
-        toast.error('Impossible de charger les axes analytiques.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, [adapter]);
+  const mapAxe = (a: Axe): AxeData => ({
+    id: a.id, code: a.code, libelle: a.libelle,
+    type: a.type_axe || 'centre_cout',
+    niveau: 1, description: '', nb_centres: 0, nb_ventilations: 0, montant_total: 0,
+    statut: a.actif ? 'actif' : 'inactif', responsable: '', email_responsable: '',
+  });
 
-  const allAxes: AxeData[] = useMemo(() => {
-    if (!axesSetting) return [];
+  const loadAxes = async () => {
     try {
-      return JSON.parse(axesSetting.value) as AxeData[];
+      const rows = await listAxes(adapter);
+      setAllAxes(rows.map(mapAxe));
     } catch (err) {
-      console.error('[AnalyticalAxesPage] JSON invalide dans analytical_axes:', err);
-      return [];
+      console.error('[AnalyticalAxesPage] Erreur chargement axes analytiques:', err);
+      toast.error('Impossible de charger les axes analytiques.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [axesSetting]);
+  };
+
+  useEffect(() => { loadAxes(); }, [adapter]);
 
   // Compute filtered & paginated axesData from Dexie
   const axesData = useMemo(() => {
@@ -166,58 +164,36 @@ const AnalyticalAxesPage: React.FC = () => {
     };
   }, [allAxes, filters, page]);
 
-  // Create axe mutation - saves to settings
+  // Create/update axe → table canonique axes_analytiques (create si nouveau, update si édition).
   const createMutation = useMutation({
     mutationFn: async (data: AxeData) => {
-      const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
-      let axes: AxeData[] = [];
-      if (current) {
-        try { axes = JSON.parse(current.value); } catch { axes = []; }
-      }
-      const newAxe = { ...data, id: crypto.randomUUID(), nb_centres: 0, nb_ventilations: 0, montant_total: 0 };
-      axes.push(newAxe);
-      const payload = { key: 'analytical_axes', value: JSON.stringify(axes), updatedAt: new Date().toISOString() };
-      if (current) {
-        await adapter.update('settings', 'analytical_axes', payload);
+      const payload = {
+        code: data.code, libelle: data.libelle,
+        type_axe: data.type, actif: data.statut === 'actif',
+      };
+      if (selectedAxe?.id) {
+        await updateAxe(adapter, selectedAxe.id, { libelle: payload.libelle, type_axe: payload.type_axe, actif: payload.actif });
       } else {
-        await adapter.create('settings', payload);
+        await createAxe(adapter, payload);
       }
-      return newAxe;
     },
     onSuccess: async () => {
-      toast.success('Axe analytique cree avec succes');
+      toast.success(selectedAxe ? 'Axe analytique mis à jour' : 'Axe analytique créé avec succès');
       setShowCreateModal(false);
+      setSelectedAxe(null);
       resetForm();
-      // Reload settings
-      const setting = await adapter.getById('settings', 'analytical_axes');
-      setAxesSetting(setting);
+      await loadAxes();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la creation');
+      toast.error(error.message || 'Erreur lors de l\'enregistrement');
     },
   });
 
-  // Delete axe mutation - removes from settings
   const deleteAxeMutation = useMutation({
-    mutationFn: async (axeId: string) => {
-      const current = await adapter.getById<{ value: string }>('settings', 'analytical_axes');
-      let axes: AxeData[] = [];
-      if (current) {
-        try { axes = JSON.parse(current.value); } catch { axes = []; }
-      }
-      const updated = axes.filter((a: AxeData) => a.id !== axeId);
-      const payload = { key: 'analytical_axes', value: JSON.stringify(updated), updatedAt: new Date().toISOString() };
-      if (current) {
-        await adapter.update('settings', 'analytical_axes', payload);
-      } else {
-        await adapter.create('settings', payload);
-      }
-    },
+    mutationFn: async (axeId: string) => { await deleteAxe(adapter, axeId); },
     onSuccess: async () => {
-      toast.success('Axe supprime avec succes');
-      // Reload settings
-      const setting = await adapter.getById('settings', 'analytical_axes');
-      setAxesSetting(setting);
+      toast.success('Axe supprimé avec succès');
+      await loadAxes();
     },
     onError: () => {
       toast.error('Erreur lors de la suppression');
