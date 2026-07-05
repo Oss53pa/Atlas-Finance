@@ -31,8 +31,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 5,
     defaultDepreciationRate: 20,
     examples: ["ERP", "CRM", "Système de paie", "Applications mobiles", "Gestion stocks"],
-    syscohadaAccount: "2135",
-    depreciationAccount: "2812"
+    syscohadaAccount: "213",
+    depreciationAccount: "2813"
   },
   {
     assetClass: "21-Immobilisations incorporelles",
@@ -58,7 +58,7 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultDepreciationRate: 20,
     examples: ["Développement applications", "Conception systèmes", "R&D"],
     syscohadaAccount: "211",
-    depreciationAccount: "281"
+    depreciationAccount: "2811"
   },
   {
     assetClass: "22-Terrains",
@@ -70,7 +70,7 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 0,
     defaultDepreciationRate: 0,
     examples: ["Terrain bâti", "Fondations", "Aménagements terrain"],
-    syscohadaAccount: "221",
+    syscohadaAccount: "223",
     depreciationAccount: ""
   },
   {
@@ -96,8 +96,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 50,
     defaultDepreciationRate: 2,
     examples: ["Bâtiment principal", "Charpente", "Toiture", "Facades", "Parking"],
-    syscohadaAccount: "223",
-    depreciationAccount: "2823"
+    syscohadaAccount: "231",
+    depreciationAccount: "2831"
   },
   {
     assetClass: "23-Bâtiments, installations techniques et agencements",
@@ -109,8 +109,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 15,
     defaultDepreciationRate: 6.67,
     examples: ["CVC", "Réseaux électriques", "Sécurité", "Plomberie", "Voirie"],
-    syscohadaAccount: "231",
-    depreciationAccount: "282"
+    syscohadaAccount: "234",
+    depreciationAccount: "2834"
   },
   {
     assetClass: "23-Bâtiments, installations techniques et agencements",
@@ -122,8 +122,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 15,
     defaultDepreciationRate: 6.67,
     examples: ["Revêtements", "Cloisons", "Menuiserie", "Ascenseurs", "Escalators"],
-    syscohadaAccount: "231",
-    depreciationAccount: "282"
+    syscohadaAccount: "235",
+    depreciationAccount: "2835"
   },
   {
     assetClass: "23-Bâtiments, installations techniques et agencements",
@@ -135,8 +135,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 15,
     defaultDepreciationRate: 6.67,
     examples: ["Sécurité incendie", "Détection intrusion", "Éclairage sécurité", "Sprinklers"],
-    syscohadaAccount: "231",
-    depreciationAccount: "282"
+    syscohadaAccount: "234",
+    depreciationAccount: "2834"
   },
   {
     assetClass: "24 - Matériel, mobilier",
@@ -148,8 +148,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 8,
     defaultDepreciationRate: 12.5,
     examples: ["Matériel cuisine", "Caisses", "Matériel informatique", "Jeux", "VR"],
-    syscohadaAccount: "2183",
-    depreciationAccount: "28183"
+    syscohadaAccount: "241",
+    depreciationAccount: "2841"
   },
   {
     assetClass: "24 - Matériel, mobilier",
@@ -161,8 +161,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 8,
     defaultDepreciationRate: 12.5,
     examples: ["Véhicules nettoyage", "Véhicules sécurité", "Camionnettes", "Chariots élévateurs"],
-    syscohadaAccount: "2182",
-    depreciationAccount: "28182"
+    syscohadaAccount: "245",
+    depreciationAccount: "2845"
   },
   {
     assetClass: "24 - Matériel, mobilier",
@@ -174,8 +174,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 10,
     defaultDepreciationRate: 10,
     examples: ["Mobilier", "Présentoirs", "Comptoirs", "Bornes", "Réfrigérateurs"],
-    syscohadaAccount: "2154",
-    depreciationAccount: "28154"
+    syscohadaAccount: "2444",
+    depreciationAccount: "2844"
   },
   {
     assetClass: "24 - Matériel, mobilier",
@@ -187,8 +187,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 15,
     defaultDepreciationRate: 6.67,
     examples: ["Chariots élévateurs", "Transpalettes", "Convoyeurs"],
-    syscohadaAccount: "2184",
-    depreciationAccount: "28184"
+    syscohadaAccount: "2411",
+    depreciationAccount: "2841"
   },
   {
     assetClass: "24 - Matériel, mobilier",
@@ -200,8 +200,8 @@ export const assetClassificationTable: AssetClassification[] = [
     defaultUsefulLife: 8,
     defaultDepreciationRate: 12.5,
     examples: ["Panneaux", "Enseignes", "Écrans", "Décoration", "Signalétique"],
-    syscohadaAccount: "2184",
-    depreciationAccount: "28184"
+    syscohadaAccount: "2444",
+    depreciationAccount: "2844"
   }
 ];
 

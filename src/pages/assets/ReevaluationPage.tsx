@@ -24,7 +24,7 @@ const ReevaluationPage: React.FC = () => {
     const load = async () => {
       try {
         const all = await adapter.getAll('assets') as Record<string, unknown>[];
-        setAssets(all.filter(a => !a.isComponent && !a.dateSortie));
+        setAssets(all.filter(a => !a.isComponent && (a.status ?? 'active') === 'active'));
       } catch (err) { /* silent */ setAssets([]); }
     };
     load();
@@ -88,7 +88,7 @@ const ReevaluationPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[var(--color-primary)]">Réévaluation des Immobilisations</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">Conforme SYSCOHADA révisé — Écart au compte 105</p>
+              <p className="text-sm text-[var(--color-text-tertiary)]">Conforme SYSCOHADA révisé — Écart au compte 106</p>
             </div>
             <PageHeaderActions className="ml-auto" />
           </div>
@@ -157,7 +157,7 @@ const ReevaluationPage: React.FC = () => {
                 <thead><tr className="bg-gray-50"><th className="p-3 text-left">Compte</th><th className="p-3 text-left">Libellé</th><th className="p-3 text-right">Débit</th><th className="p-3 text-right">Crédit</th></tr></thead>
                 <tbody>
                   <tr className="border-t"><td className="p-3 font-mono">{selectedAsset?.compteImmobilisation || '2xxx'}</td><td className="p-3">Augmentation valeur brute</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecartReevaluation || 0)}</td><td className="p-3 text-right">—</td></tr>
-                  <tr className="border-t"><td className="p-3 font-mono">105x</td><td className="p-3">Écart de réévaluation</td><td className="p-3 text-right">—</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecartReevaluation || 0)}</td></tr>
+                  <tr className="border-t"><td className="p-3 font-mono">106x</td><td className="p-3">Écart de réévaluation</td><td className="p-3 text-right">—</td><td className="p-3 text-right font-medium">{formatCurrency(preview.ecartReevaluation || 0)}</td></tr>
                 </tbody>
               </table>
             </div>

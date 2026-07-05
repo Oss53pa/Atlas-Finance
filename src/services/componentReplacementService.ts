@@ -61,12 +61,14 @@ export async function replaceComponent(
     },
   ];
 
-  // If VNC > 0, record as charge
+  // Si VNC > 0, la valeur résiduelle du composant retiré part en charge HAO
+  // (812 « Valeurs comptables des cessions d'immobilisations »), et JAMAIS en
+  // 681 (dotation aux amortissements), qui gonflerait à tort les dotations.
   if (vnc.gt(0)) {
     exitLines.push({
       id: crypto.randomUUID(),
-      accountCode: '681',
-      accountName: 'Valeur nette comptable sortie composant',
+      accountCode: '812',
+      accountName: "Valeurs comptables des cessions d'immobilisations",
       label: `VNC sortie composant: ${oldAsset.name}`,
       debit: vnc.toNumber(),
       credit: 0,

@@ -157,8 +157,11 @@ const AssetsDisposals: React.FC = () => {
     for (const r of disposalRecords) if (r.asset_id) recByAsset.set(r.asset_id, r);
     return dbDisposedAssets.map((asset: DBAsset) => {
       const rec = recByAsset.get(asset.id);
-      // VNC : enregistrement réel si présent, sinon residualValue de la table.
-      const bookValue = rec ? Number(rec.book_value) || 0 : asset.residualValue;
+      // VNC = valeur brute − amortissements cumulés (JAMAIS residualValue, qui
+      // est la valeur de récupération prévisionnelle, pas la valeur nette).
+      const bookValue = rec
+        ? Number(rec.book_value) || 0
+        : Math.max(0, (Number(asset.acquisitionValue) || 0) - (Number(asset.cumulDepreciation) || 0));
 
       return {
         id: asset.id,
