@@ -822,10 +822,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <MessageSquare className="h-4 w-4" />
                   </button>
 
-                  <button
-                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Exporter les résultats"
-                  >
+                  {/* ExportMenu rend son propre <button> → ne pas l'imbriquer dans un
+                      <button> (validateDOMNesting). Un <span> porteur du title suffit. */}
+                  <span title="Exporter les résultats" className="inline-flex">
                     <ExportMenu
                       data={accountsData as unknown as Record<string, unknown>[]}
                       filename="compte-detail"
@@ -837,7 +836,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       buttonText=""
                       buttonVariant="ghost"
                     />
-                  </button>
+                  </span>
 
                   <button
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

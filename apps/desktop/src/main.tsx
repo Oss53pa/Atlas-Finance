@@ -12,7 +12,7 @@ import App from '../../../src/App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
-    <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+    <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <App />
       <Toaster position="top-right" />
     </BrowserRouter>

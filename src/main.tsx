@@ -60,37 +60,7 @@ import './index.css'
 //   → si focus parti sur un élément NON-input différent : action utilisateur
 //     intentionnelle (clic bouton, Tab) → ne rien faire
 //
-// MutationObserver DEV : logge chaque ajout/suppression d'input pour confirmer
-// que le problème est bien un re-montage et identifier le composant responsable.
 (function installFocusGuardV2(): void {
-
-  // ── MutationObserver (DEV uniquement) ──────────────────────────────────────
-  if (import.meta.env.DEV) {
-    const obs = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        const check = (nodes: NodeList, action: string) => {
-          nodes.forEach((n) => {
-            if (n.nodeType !== 1) return;
-            const el = n as Element;
-            const inputs: Element[] = ['INPUT','TEXTAREA','SELECT'].includes(el.tagName)
-              ? [el]
-              : Array.from(el.querySelectorAll('input,textarea,select'));
-            inputs.forEach((inp) => {
-              const i = inp as HTMLInputElement;
-              if (!i.name && !i.id && !i.placeholder) return; // skip anonymous
-              console.warn(
-                `[MutObs] INPUT ${action}: <${i.tagName}> name="${i.name}" ` +
-                `id="${i.id}" placeholder="${i.placeholder?.slice(0,25)}"`,
-              );
-            });
-          });
-        };
-        check(m.removedNodes, 'REMOVED');
-        check(m.addedNodes,   'ADDED');
-      }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-  }
 
   // ── Focus restoration ──────────────────────────────────────────────────────
   // On ne s'active PAS sur Tab (navigation intentionnelle)
@@ -202,7 +172,7 @@ const hideLoader = () => {
 // Rendu de l'application - les CSS sont DÉJÀ chargés de manière synchrone
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <HelmetProvider>
-    <BrowserRouter future={{ v7_relativeSplatPath: true }}>
+    <BrowserRouter future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
       <App />
       {/* Sonner Toaster — utilisé partout */}
       <SonnerToaster position="top-right" richColors closeButton />
