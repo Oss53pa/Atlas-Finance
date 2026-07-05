@@ -11,9 +11,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { money } from '../../utils/money';
-import { logAudit } from '../../lib/db';
 import type { DBJournalLine } from '../../lib/db';
-import { safeAddEntry } from '../entryGuard';
 
 // ============================================================================
 // INTERFACES
@@ -218,138 +216,8 @@ export async function simulerAffectation(
 // ============================================================================
 // POSTING
 // ============================================================================
-
-/**
- * Post the result allocation as a validated journal entry.
- *
- * Runs simulation first; throws if not valid (ecart > 1).
- * Creates an OD journal entry debiting the result account and crediting
- * reserves, dividends, and/or carry-forward accounts.
- */
-export async function posterAffectation(
-  adapter: DataAdapter,
-  fiscalYearId: string,
-  affectation: AffectationResultat
-): Promise<void> {
-  // 1. Run simulation to validate
-  const simulation = await simulerAffectation(adapter, fiscalYearId, affectation);
-
-  if (!simulation.isValid || Math.abs(simulation.ecart) > 1) {
-    throw new Error(
-      `Affectation invalide (ecart: ${simulation.ecart}). ` +
-      `Warnings: ${simulation.warnings.join(' | ')}`
-    );
-  }
-
-  const { montantResultat } = affectation;
-  const isBenefice = montantResultat >= 0;
-  const now = new Date().toISOString();
-  const dateAffectation = now.split('T')[0];
-
-  // 2. Build journal lines
-  const lines: DBJournalLine[] = [];
-
-  // Debit: result account (131 for profit, 139 for loss)
-  lines.push({
-    id: crypto.randomUUID(),
-    accountCode: isBenefice ? '131' : '139',
-    accountName: isBenefice ? 'Resultat net - Benefice' : 'Resultat net - Perte',
-    label: "Affectation du resultat de l'exercice",
-    debit: Math.abs(montantResultat),
-    credit: 0,
-  });
-
-  // Credits: allocations
-  if (affectation.reserveLegale > 0) {
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '111',
-      accountName: 'Reserve legale',
-      label: 'Dotation reserve legale',
-      debit: 0,
-      credit: affectation.reserveLegale,
-    });
-  }
-
-  if (affectation.reserveStatutaire > 0) {
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '112',
-      accountName: 'Reserves statutaires',
-      label: 'Dotation reserves statutaires',
-      debit: 0,
-      credit: affectation.reserveStatutaire,
-    });
-  }
-
-  if (affectation.reserveFacultative > 0) {
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '118',
-      accountName: 'Reserves facultatives',
-      label: 'Dotation reserves facultatives',
-      debit: 0,
-      credit: affectation.reserveFacultative,
-    });
-  }
-
-  if (affectation.reportANouveau > 0) {
-    // F-03 : SYSCOHADA — 121 Report à nouveau créditeur (120 = compte de regroupement, non mouvementé)
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '121',
-      accountName: 'Report a nouveau crediteur',
-      label: 'Report a nouveau',
-      debit: 0,
-      credit: affectation.reportANouveau,
-    });
-  } else if (affectation.reportANouveau < 0) {
-    // Debit carry-forward for loss (account 129)
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '129',
-      accountName: 'Report a nouveau debiteur',
-      label: 'Report a nouveau debiteur',
-      debit: Math.abs(affectation.reportANouveau),
-      credit: 0,
-    });
-  }
-
-  if (affectation.dividendes > 0) {
-    lines.push({
-      id: crypto.randomUUID(),
-      accountCode: '465',
-      accountName: 'Dividendes a payer',
-      label: 'Dividendes distribues',
-      debit: 0,
-      credit: affectation.dividendes,
-    });
-  }
-
-  // 3. Create journal entry
-  const entryNumber = `AFF-${dateAffectation.replace(/-/g, '')}-001`;
-  const entryId = crypto.randomUUID();
-
-  await safeAddEntry(adapter, {
-    id: entryId,
-    entryNumber,
-    journal: 'OD',
-    date: dateAffectation,
-    reference: `AFFECTATION-${fiscalYearId}`,
-    label: `Affectation du resultat exercice ${fiscalYearId}`,
-    status: 'validated',
-    lines,
-    createdAt: now,
-    createdBy: 'system',
-  }, { skipSyncValidation: true, allowClosedPeriod: true });
-
-  // 4. Audit log
-  await logAudit('AFFECTATION_RESULTAT', 'journal_entry', entryId, JSON.stringify({
-    fiscalYearId,
-    affectation,
-    simulation: {
-      ecart: simulation.ecart,
-      warnings: simulation.warnings,
-    },
-  }));
-}
+// NOTE : posterAffectation a été RETIRÉ (code mort, jamais appelé) pour
+// supprimer la divergence avec le service réellement branché à l'UI :
+// affectationResultatService.genererEcrituresAffectation (validated, idempotent,
+// réserve légale minimale imposée). simulerAffectation reste la source de
+// simulation/contrôle OHADA (utilisée par les tests et l'aide à la décision).

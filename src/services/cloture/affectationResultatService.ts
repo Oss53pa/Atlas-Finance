@@ -155,7 +155,11 @@ export function proposerAffectation(
 /**
  * Validate the user's allocation sums up to the result.
  */
-export function validerVentilation(resultatNet: number, ventilation: AffectationVentilation): string[] {
+export function validerVentilation(
+  resultatNet: number,
+  ventilation: AffectationVentilation,
+  context?: { capitalSocial: number; reserveLegaleActuelle: number },
+): string[] {
   const errors: string[] = [];
   const total = money(ventilation.reserveLegale)
     .add(money(ventilation.reservesStatutaires))
@@ -174,6 +178,20 @@ export function validerVentilation(resultatNet: number, ventilation: Affectation
   if (ventilation.reservesStatutaires < 0) errors.push('Les reserves statutaires ne peuvent pas etre negatives.');
   if (ventilation.reservesFacultatives < 0) errors.push('Les reserves facultatives ne peuvent pas etre negatives.');
 
+  // OHADA AUSCGIE art. 546 : la dotation à la réserve légale (10 % du bénéfice,
+  // plafond 20 % du capital) est OBLIGATOIRE et PRIORITAIRE sur toute autre
+  // affectation. Bloquant (plus un simple avertissement) quand le contexte
+  // capital/réserve est fourni.
+  if (context && resultatNet > 0) {
+    const requise = calculerDotationReserveLegale(resultatNet, context.capitalSocial, context.reserveLegaleActuelle);
+    if (money(ventilation.reserveLegale).lessThan(money(requise).subtract(money(0.01)))) {
+      errors.push(
+        `Réserve légale insuffisante : dotation minimale obligatoire ${money(requise).toString()} ` +
+        `(10 % du bénéfice, plafond 20 % du capital) — prioritaire sur les réserves/dividendes/report.`
+      );
+    }
+  }
+
   return errors;
 }
 
@@ -183,8 +201,11 @@ export function validerVentilation(resultatNet: number, ventilation: Affectation
 export async function genererEcrituresAffectation(adapter: DataAdapter, config: AffectationConfig): Promise<AffectationResult> {
   const { resultatNet, ventilation, exerciceId } = config;
 
-  // Validate
-  const errors = validerVentilation(resultatNet, ventilation);
+  // Validate (avec contexte capital/réserve → réserve légale minimale imposée)
+  const errors = validerVentilation(resultatNet, ventilation, {
+    capitalSocial: config.capitalSocial,
+    reserveLegaleActuelle: config.reserveLegaleActuelle,
+  });
   if (errors.length > 0) {
     return { success: false, error: errors.join(' | ') };
   }

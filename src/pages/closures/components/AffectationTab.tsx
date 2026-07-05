@@ -118,7 +118,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
   };
 
   const handleValidate = () => {
-    const errors = validerVentilation(resultatNet, ventilation);
+    const errors = validerVentilation(resultatNet, ventilation, { capitalSocial, reserveLegaleActuelle });
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -161,7 +161,6 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
         closingExerciceId: exerciceId,
         openingExerciceId,
         openingDate: openingFY.startDate,
-        includeResultat: !affectationDone,
       });
 
       if (result.success) {
