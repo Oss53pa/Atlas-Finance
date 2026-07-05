@@ -248,14 +248,9 @@ const AssetsCategories: React.FC = () => {
             <Settings className="w-4 h-4 mr-1" />
             Paramètres
           </ModernButton>
-          <ModernButton
-            variant="primary"
-            size="sm"
-            onClick={() => toast.success('Créer une nouvelle catégorie')}
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Nouvelle catégorie
-          </ModernButton>
+          {/* Pas de « Nouvelle catégorie » : les catégories d'immobilisations sont normatives
+              SYSCOHADA (classes 20-24), dérivées du plan comptable — pas des entités libres.
+              (Un faux toast de création a été retiré ici.) */}
         </div>
       </div>
 

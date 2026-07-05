@@ -53,12 +53,26 @@ const AlertsSystem: React.FC = () => {
 
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
 
+  // Statuts d'alerte persistés (reconnu/résolu/ignoré) par id STABLE, dans localStorage :
+  // les alertes sont recalculées depuis le GL à chaque montage, donc sans persistance
+  // l'action de traitement était perdue au rechargement.
+  const ALERT_STATUS_KEY = 'atlas_alert_status';
+  const readAlertStatus = (): Record<string, Alert['status']> => {
+    try { return JSON.parse(localStorage.getItem(ALERT_STATUS_KEY) || '{}'); } catch { return {}; }
+  };
+  const persistAlertStatus = (id: string, status: Alert['status']) => {
+    const map = readAlertStatus();
+    map[id] = status;
+    localStorage.setItem(ALERT_STATUS_KEY, JSON.stringify(map));
+  };
+
   // Load real alerts from journal data anomalies
   useEffect(() => {
     const loadAlerts = async () => {
       try {
         const entries = await adapter.getAll<any>('journalEntries');
         const generatedAlerts: Alert[] = [];
+        const statusMap = readAlertStatus();
         let alertId = 0;
 
         // Check for unbalanced entries (parmi les écritures comptabilisées, pas les brouillons)
@@ -70,14 +84,14 @@ const AlertsSystem: React.FC = () => {
             if (Math.abs(totalDebit - totalCredit) > 0.01) {
               alertId++;
               generatedAlerts.push({
-                id: String(alertId),
+                id: `unbalanced-${entry.id}`,
                 type: 'critical',
                 category: 'finance',
                 title: 'Écriture déséquilibrée',
                 message: `L'écriture ${entry.entryNumber || entry.id} a un écart de ${formatCurrency(Math.abs(totalDebit - totalCredit))}`,
                 timestamp: new Date(entry.createdAt || Date.now()),
                 priority: 'high',
-                status: 'new',
+                status: statusMap[`unbalanced-${entry.id}`] || 'new',
                 source: 'Contrôle écritures',
                 impact: 'Incohérence comptable',
                 suggestedAction: 'Corriger l\'écriture pour équilibrer débit et crédit',
@@ -93,14 +107,14 @@ const AlertsSystem: React.FC = () => {
         if (draftEntries.length > 0) {
           alertId++;
           generatedAlerts.push({
-            id: String(alertId),
+            id: 'drafts',
             type: 'warning',
             category: 'operations',
             title: 'Écritures en brouillon',
             message: `${draftEntries.length} écriture(s) en attente de validation`,
             timestamp: new Date(),
             priority: 'medium',
-            status: 'new',
+            status: statusMap['drafts'] || 'new',
             source: 'Journal comptable',
             impact: 'Écritures non validées',
             suggestedAction: 'Valider ou supprimer les écritures en brouillon',
@@ -129,14 +143,14 @@ const AlertsSystem: React.FC = () => {
         if (overdueCount > 0) {
           alertId++;
           generatedAlerts.push({
-            id: String(alertId),
+            id: 'overdue-receivables',
             type: 'warning',
             category: 'clients',
             title: 'Créances vieillissantes',
             message: `${overdueCount} ligne(s) client dépassent 60 jours pour un total de ${formatCurrency(overdueTotal)}`,
             timestamp: new Date(),
             priority: 'medium',
-            status: 'new',
+            status: statusMap['overdue-receivables'] || 'new',
             source: 'Analyse créances',
             impact: 'Risque de créances irrécouvrables',
             suggestedAction: 'Relancer les clients concernés',
@@ -160,14 +174,14 @@ const AlertsSystem: React.FC = () => {
         if (treasuryBalance < 0) {
           alertId++;
           generatedAlerts.push({
-            id: String(alertId),
+            id: 'treasury-negative',
             type: 'critical',
             category: 'finance',
             title: 'Trésorerie négative',
             message: `Le solde de trésorerie est négatif: ${formatCurrency(treasuryBalance)}`,
             timestamp: new Date(),
             priority: 'high',
-            status: 'new',
+            status: statusMap['treasury-negative'] || 'new',
             source: 'Trésorerie',
             impact: 'Risque de rupture de paiement',
             suggestedAction: 'Accélérer le recouvrement ou négocier un découvert',
@@ -240,18 +254,21 @@ const AlertsSystem: React.FC = () => {
   });
 
   const handleAcknowledge = (alertId: string) => {
+    persistAlertStatus(alertId, 'acknowledged');
     setAlerts(prev => prev.map(alert =>
       alert.id === alertId ? { ...alert, status: 'acknowledged' } : alert
     ));
   };
 
   const handleResolve = (alertId: string) => {
+    persistAlertStatus(alertId, 'resolved');
     setAlerts(prev => prev.map(alert =>
       alert.id === alertId ? { ...alert, status: 'resolved', resolveTime: new Date() } : alert
     ));
   };
 
   const handleIgnore = (alertId: string) => {
+    persistAlertStatus(alertId, 'ignored');
     setAlerts(prev => prev.map(alert =>
       alert.id === alertId ? { ...alert, status: 'ignored' } : alert
     ));
