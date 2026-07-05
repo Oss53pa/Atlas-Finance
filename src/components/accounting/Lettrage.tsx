@@ -1199,7 +1199,15 @@ const Lettrage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => {}}
+                  onClick={async () => {
+                    try {
+                      const payload = { key: 'lettrage_config', value: JSON.stringify(autoLettrageConfig), updatedAt: new Date().toISOString() };
+                      const cur = await (adapter as any).getById('settings', 'lettrage_config').catch(() => null);
+                      if (cur) await adapter.update('settings' as any, 'lettrage_config', payload as any);
+                      else await adapter.create('settings' as any, payload as any);
+                      toast.success('Configuration de lettrage enregistrée');
+                    } catch { toast.error('Échec de l\'enregistrement'); }
+                  }}
                   className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Save className="w-4 h-4 mr-2 inline" />

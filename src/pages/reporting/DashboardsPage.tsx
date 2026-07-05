@@ -975,9 +975,12 @@ const DashboardsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 p-6 border-t">
-              <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { setShowEditModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.save')}</button>
+            <div className="flex items-center justify-between gap-3 p-6 border-t">
+              <span className="text-xs text-[var(--color-text-secondary)]">Aperçu — les tableaux de bord sont générés automatiquement ; l'édition n'est pas persistée.</span>
+              <div className="flex space-x-3">
+                <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
+                <button onClick={() => { setShowEditModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.save')}</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1035,9 +1038,12 @@ const DashboardsPage: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="flex justify-end space-x-3 p-6 border-t">
-              <button onClick={() => setShowShareModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">Partager</button>
+            <div className="flex items-center justify-between gap-3 p-6 border-t">
+              <span className="text-xs text-[var(--color-text-secondary)]">Le partage de tableaux de bord n'est pas encore disponible.</span>
+              <div className="flex space-x-3">
+                <button onClick={() => setShowShareModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
+                <button onClick={() => { setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">Partager</button>
+              </div>
             </div>
           </div>
         </div>

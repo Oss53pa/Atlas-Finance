@@ -134,22 +134,30 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
   };
 
-  // ── LOCAL : sauvegarde Dexie ────────────────────────────────────────────
-  const handleLocalBackup = () => {
+  // ── LOCAL : sauvegarde Dexie (export RÉEL, fini la fausse barre de progression) ──
+  const handleLocalBackup = async () => {
     setBackupProgress(0);
-    const iv = setInterval(() => {
-      setBackupProgress(prev => {
-        if (prev !== null && prev >= 100) {
-          clearInterval(iv);
-          const e = { date: new Date().toLocaleString('fr-FR'), type: 'Manuel', size: '—', status: 'Succes' };
-          addToHistory(e);
-          toast.success('Sauvegarde terminée');
-          setTimeout(() => setBackupProgress(null), 1500);
-          return 100;
-        }
-        return (prev ?? 0) + 20;
-      });
-    }, 400);
+    setBackupLabel('Lecture des données…');
+    const backup: Record<string, any> = {
+      _meta: { date: new Date().toISOString(), version: '2.0', mode: 'local' },
+    };
+    for (let i = 0; i < SAAS_TABLES.length; i++) {
+      const table = SAAS_TABLES[i];
+      setBackupLabel(`Export ${table} (${i + 1}/${SAAS_TABLES.length})…`);
+      try { backup[table] = await adapter.getAll<any>(table); }
+      catch { backup[table] = []; }
+      setBackupProgress(Math.round(((i + 1) / SAAS_TABLES.length) * 90));
+    }
+    setBackupLabel('Génération du fichier…');
+    const content = JSON.stringify(backup, null, 2);
+    const sizeMb = (content.length / 1024 / 1024).toFixed(2);
+    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    downloadBlob(content, `atlas-backup-local-${dateStr}.json`);
+    setBackupProgress(100);
+    setBackupLabel('Sauvegarde terminée');
+    toast.success(`Sauvegarde exportée — ${sizeMb} Mo`);
+    await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Manuel', size: sizeMb + ' Mo', status: 'Succes' });
+    setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
   };
 
   // ── SAAS : restauration depuis fichier JSON ─────────────────────────────

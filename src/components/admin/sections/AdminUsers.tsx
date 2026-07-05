@@ -556,7 +556,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       {subTab === 3 && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => toast.success('Toutes les sessions ont ete deconnectees')} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm flex items-center space-x-2">
+            <button onClick={() => toast('La révocation des sessions se fait côté fournisseur d\'authentification (Supabase) — non disponible depuis le client.', { icon: 'ℹ️' })} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm flex items-center space-x-2">
               <LogOut className="w-4 h-4" /><span>Deconnecter toutes les sessions</span>
             </button>
           </div>

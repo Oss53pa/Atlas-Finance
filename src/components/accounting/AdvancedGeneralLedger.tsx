@@ -3491,10 +3491,22 @@ const AdvancedGeneralLedger: React.FC = () => {
                 Annuler
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
+                  const text = annotation.trim();
+                  const entryId = (selectedEntry as any)?.id;
+                  if (!text || !entryId) { setShowAnnotationModal(false); return; }
+                  try {
+                    // Persiste l'annotation dans settings.gl_annotations (map entryId -> [annotations]).
+                    const cur = await (adapter as any).getById('settings', 'gl_annotations').catch(() => null);
+                    const map = cur?.value ? JSON.parse(cur.value) : {};
+                    map[entryId] = [...(map[entryId] || []), { text, at: new Date().toISOString() }];
+                    const payload = { key: 'gl_annotations', value: JSON.stringify(map), updatedAt: new Date().toISOString() };
+                    if (cur) await adapter.update('settings' as any, 'gl_annotations', payload as any);
+                    else await adapter.create('settings' as any, payload as any);
+                    toast.success('Annotation enregistrée');
+                  } catch { toast.error('Échec de l\'enregistrement de l\'annotation'); }
                   setShowAnnotationModal(false);
                   setAnnotation('');
-                  toast.success('Annotation ajoutée avec succès!');
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
