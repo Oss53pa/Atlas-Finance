@@ -80,19 +80,22 @@ function assetToImmobilisation(asset: DBAsset): Immobilisation {
 /**
  * Calculate cumulated depreciation for an asset from existing journal entries.
  */
-async function getCumulatedDepreciation(adapter: DataAdapter, assetId: string): Promise<number> {
+async function getCumulatedDepreciation(adapter: DataAdapter, assetKey: string): Promise<number> {
   const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: 'OD' } });
-  const entries = allEntries.filter(e => e.reference?.startsWith(`AMORT-`) && e.label.includes(assetId));
+  // La référence des dotations contient la clé de l'actif (AMORT-{periode}-{clé}).
+  // On filtre par RÉFÉRENCE (le libellé contient le nom, pas la clé).
+  const entries = allEntries.filter(e => e.reference?.startsWith('AMORT-') && e.reference?.includes(assetKey));
 
   let total = 0;
   for (const entry of entries) {
     for (const line of entry.lines) {
+      // Net des 28x : dotations (crédit) − contrepassations/reprises (débit).
       if (line.accountCode.startsWith('28')) {
-        total += line.credit;
+        total += (line.credit || 0) - (line.debit || 0);
       }
     }
   }
-  return total;
+  return Math.max(0, total);
 }
 
 /**
@@ -131,14 +134,17 @@ export async function posterAmortissements(
   let entryIndex = 1;
 
   for (const asset of assets) {
-    // Skip if already posted for this period
-    if (await hasDepreciationEntry(adapter, asset.code, periode)) {
+    // Skip if already posted for this period (idempotence, par id d'actif)
+    if (await hasDepreciationEntry(adapter, asset.id, periode)) {
       continue;
     }
 
-    // Convert to Immobilisation with real cumulated depreciation
+    // Cumul réel = champ stocké sur la fiche (source unique, tenue à jour par
+    // le module Amortissements et la cession). getCumulatedDepreciation reste
+    // disponible en secours (reconstruction depuis les écritures AMORT-*).
     const immo = assetToImmobilisation(asset);
-    immo.amortissementsCumules = await getCumulatedDepreciation(adapter, asset.id);
+    immo.amortissementsCumules = Number((asset as any).cumulDepreciation)
+      || await getCumulatedDepreciation(adapter, asset.id);
 
     // Check if asset should still be depreciated
     if (!DepreciationService.doitEtreAmorti(immo, periode)) {
@@ -181,13 +187,18 @@ export async function posterAmortissements(
       entryNumber: generateEntryNumber('AMORT', ecriture.date, entryIndex++),
       journal: 'OD',
       date: ecriture.date,
-      reference: `AMORT-${periode}-${asset.code}`,
+      reference: `AMORT-${periode}-${asset.id}`,
       label: ecriture.libelle,
-      status: 'draft',
+      status: 'validated', // dotation effective (visible bilan/compte de résultat)
       lines,
       createdAt: now,
       createdBy: 'system',
     }, { skipSyncValidation: true });
+
+    // Synchronise le cumul stocké sur la fiche (source unique registre ↔ compta).
+    await adapter.update('assets', asset.id, {
+      cumulDepreciation: (Number((asset as any).cumulDepreciation) || 0) + ecriture.montant,
+    });
 
     await logAudit(
       'DEPRECIATION_POSTING',
