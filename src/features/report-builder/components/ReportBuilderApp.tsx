@@ -19,7 +19,9 @@ import type { ReportBlock } from '../types';
 import { catalogItems } from '../data/catalogItems';
 import { getMasterTemplateBlocks } from '../data/masterTemplates';
 import type { MasterTemplateId } from '../data/masterTemplates';
+import { loadReport } from '../services/reportPersistenceService';
 import { useData } from '../../../contexts/DataContext';
+import { toast } from 'react-hot-toast';
 import TopBar from './TopBar';
 import Canvas from './Canvas';
 import StatusBar from './StatusBar';
@@ -35,16 +37,27 @@ const ReportBuilderApp: React.FC = () => {
   const [companyName, setCompanyName] = useState('');
   const { adapter } = useData();
 
-  // Load real company name from adapter (used in cover blocks of templates)
+  // Nom entreprise = source canonique settings.admin_company_legal (et non companies/societes
+  // qui peuvent diverger). Repli sur companies si le réglage est absent.
   useEffect(() => {
-    adapter.getAll<any>('companies').then(cos => {
-      if (cos.length > 0) setCompanyName(cos[0].name || cos[0].raisonSociale || '');
-    }).catch(() => {});
+    (async () => {
+      try {
+        const settings = await adapter.getAll<any>('settings');
+        const legal = settings?.find((s: any) => (s.key || s.name) === 'admin_company_legal');
+        const legalName = legal?.value?.raisonSociale || legal?.value?.name || legal?.value?.legalName;
+        if (legalName) { setCompanyName(String(legalName)); return; }
+      } catch { /* repli */ }
+      try {
+        const cos = await adapter.getAll<any>('companies');
+        if (cos.length > 0) setCompanyName(cos[0].name || cos[0].raisonSociale || '');
+      } catch { /* ignore */ }
+    })();
   }, [adapter]);
 
   const {
     document: doc,
     createDocument,
+    setDocument,
     addBlock,
     moveBlock,
     selectedPageIndex,
@@ -95,6 +108,18 @@ const ReportBuilderApp: React.FC = () => {
 
     setActiveTab('builder');
   }, [createDocument, companyName]);
+
+  // Ouvrir un rapport EXISTANT : recharge son contenu réel (pages/blocs/thème/période)
+  // depuis la table `reports`, au lieu de repartir d'un document vierge.
+  const handleOpenReport = useCallback(async (reportId: string) => {
+    const loaded = await loadReport(adapter, reportId);
+    if (!loaded) {
+      toast.error('Rapport introuvable ou illisible');
+      return;
+    }
+    setDocument(loaded);
+    setActiveTab('builder');
+  }, [adapter, setDocument]);
 
   // Keyboard shortcuts (only in builder mode)
   useEffect(() => {
@@ -197,6 +222,7 @@ const ReportBuilderApp: React.FC = () => {
         <div className="flex-1 overflow-auto bg-neutral-50">
           <ReportJournalPage
             onOpenBuilder={(title) => handleOpenInBuilder(title)}
+            onOpenReport={handleOpenReport}
             onGoToTemplates={() => setActiveTab('templates')}
           />
         </div>

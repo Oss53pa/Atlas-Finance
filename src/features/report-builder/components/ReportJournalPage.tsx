@@ -3,7 +3,7 @@
  * Report Journal Page — Page indépendante listant tous les rapports
  * Avec filtres, statuts, actions, et bouton "Nouveau Rapport" vers le Builder
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus, Search, FileText, Clock, CheckCircle, AlertCircle,
   Archive, Eye, Copy, Trash2, Download, MoreHorizontal,
@@ -11,6 +11,9 @@ import {
   ArrowUpDown, LayoutGrid, List,
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
+import { toast } from 'react-hot-toast';
+import { listReports, deleteReport, duplicateReport, loadReport } from '../services/reportPersistenceService';
+import { exportToPDF } from '../services/pdfExportService';
 
 // ============================================================================
 // Types
@@ -77,7 +80,13 @@ const KPICards: React.FC<{ reports: ReportEntry[] }> = ({ reports }) => {
 // Report Row
 // ============================================================================
 
-const ReportRow: React.FC<{ report: ReportEntry; onOpen: () => void }> = ({ report, onOpen }) => {
+const ReportRow: React.FC<{
+  report: ReportEntry;
+  onOpen: () => void;
+  onDuplicate: () => void;
+  onExport: () => void;
+  onDelete: () => void;
+}> = ({ report, onOpen, onDuplicate, onExport, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
   const status = statusConfig[report.status];
   const updatedDate = new Date(report.updatedAt);
@@ -135,17 +144,17 @@ const ReportRow: React.FC<{ report: ReportEntry; onOpen: () => void }> = ({ repo
             <>
               <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
               <div className="absolute right-0 top-8 z-20 bg-white border border-neutral-200 rounded-xl shadow-lg py-1 w-44">
-                <button onClick={onOpen} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
+                <button onClick={() => { setShowMenu(false); onOpen(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
                   <Eye className="w-3.5 h-3.5" /> Ouvrir dans le Builder
                 </button>
-                <button className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
+                <button onClick={() => { setShowMenu(false); onDuplicate(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
                   <Copy className="w-3.5 h-3.5" /> Dupliquer
                 </button>
-                <button className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
+                <button onClick={() => { setShowMenu(false); onExport(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-neutral-700 hover:bg-neutral-50">
                   <Download className="w-3.5 h-3.5" /> Exporter PDF
                 </button>
                 <hr className="my-1 border-neutral-100" />
-                <button className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-600 hover:bg-red-50">
+                <button onClick={() => { setShowMenu(false); onDelete(); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-600 hover:bg-red-50">
                   <Trash2 className="w-3.5 h-3.5" /> Supprimer
                 </button>
               </div>
@@ -163,10 +172,11 @@ const ReportRow: React.FC<{ report: ReportEntry; onOpen: () => void }> = ({ repo
 
 interface JournalPageProps {
   onOpenBuilder?: (title?: string) => void;
+  onOpenReport?: (id: string) => void;
   onGoToTemplates?: () => void;
 }
 
-const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTemplates }) => {
+const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onOpenReport, onGoToTemplates }) => {
   const { adapter } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -174,48 +184,26 @@ const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTe
   const [reports, setReports] = useState<ReportEntry[]>([]);
   const [showNewDialog, setShowNewDialog] = useState(false);
 
-  // Load reports from DataAdapter on mount
-  useEffect(() => {
+  // Charge les rapports via le service (table `reports` puis repli localStorage).
+  const loadReports = useCallback(async () => {
     if (!adapter) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (adapter as any).getAll('reports')
-      .then((data: any[]) => {
-        const entries: ReportEntry[] = (data || []).map((r: any) => ({
-          id: r.id || crypto.randomUUID(),
-          title: r.title || r.name || 'Sans titre',
-          status: r.status || 'draft',
-          period: r.period_label || r.period?.label || '',
-          createdBy: r.created_by || 'Utilisateur',
-          createdAt: r.created_at || r.createdAt || new Date().toISOString(),
-          updatedAt: r.updated_at || r.updatedAt || new Date().toISOString(),
-          version: r.version || 1,
-          pageCount: r.page_count || r.pages?.length || 0,
-          template: r.template_name || r.template,
-        }));
-        setReports(entries);
-      })
-      .catch(() => {
-        // Table 'reports' may not exist yet — fall back to localStorage
-        try {
-          const saved = JSON.parse(localStorage.getItem('atlas_reports') || '[]');
-          const entries: ReportEntry[] = saved.map((r: any) => ({
-            id: r.id,
-            title: r.title || 'Sans titre',
-            status: r.status || 'draft',
-            period: r.period_label || '',
-            createdBy: r.created_by || 'Utilisateur',
-            createdAt: r.created_at || new Date().toISOString(),
-            updatedAt: r.updated_at || new Date().toISOString(),
-            version: r.version || 1,
-            pageCount: r.page_count || 0,
-            template: r.template_name,
-          }));
-          setReports(entries);
-        } catch (err) { /* silent */
-          setReports([]);
-        }
-      });
+    const data = await listReports(adapter);
+    const entries: ReportEntry[] = (data || []).map((r: any) => ({
+      id: r.id || crypto.randomUUID(),
+      title: r.title || r.name || 'Sans titre',
+      status: r.status || 'draft',
+      period: r.period_label || r.period?.label || '',
+      createdBy: r.created_by || 'Utilisateur',
+      createdAt: r.created_at || r.createdAt || new Date().toISOString(),
+      updatedAt: r.updated_at || r.updatedAt || new Date().toISOString(),
+      version: r.version || 1,
+      pageCount: r.page_count || r.pages?.length || 0,
+      template: r.template_name || r.template,
+    }));
+    setReports(entries);
   }, [adapter]);
+
+  useEffect(() => { loadReports(); }, [loadReports]);
 
   const filtered = reports.filter(r => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
@@ -226,9 +214,35 @@ const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTe
     return true;
   });
 
-  // Ouvrir un rapport existant → switch vers Builder
-  const handleOpen = (_report: ReportEntry) => {
-    onOpenBuilder?.(_report.title);
+  // Ouvrir un rapport existant → recharge son contenu réel dans le Builder.
+  const handleOpen = (report: ReportEntry) => {
+    if (onOpenReport) onOpenReport(report.id);
+    else onOpenBuilder?.(report.title);
+  };
+
+  const handleDuplicate = async (report: ReportEntry) => {
+    const copy = await duplicateReport(adapter, report.id);
+    if (copy) { toast.success('Rapport dupliqué'); loadReports(); }
+    else toast.error('Duplication impossible');
+  };
+
+  const handleExport = async (report: ReportEntry) => {
+    const doc = await loadReport(adapter, report.id);
+    if (!doc) { toast.error('Rapport introuvable'); return; }
+    // L'export lit le DOM du canvas : n'est possible que sur un rapport ouvert.
+    if (onOpenReport) {
+      onOpenReport(report.id);
+      toast('Ouvrez l\'aperçu puis « Exporter » pour générer le PDF.', { icon: 'ℹ️' });
+      return;
+    }
+    exportToPDF(doc).catch(() => toast.error('Export impossible'));
+  };
+
+  const handleDelete = async (report: ReportEntry) => {
+    if (!window.confirm(`Supprimer le rapport « ${report.title} » ?`)) return;
+    await deleteReport(adapter, report.id);
+    toast.success('Rapport supprimé');
+    loadReports();
   };
 
   // Nouveau rapport vierge → crée brouillon + ouvre dans Builder
@@ -369,7 +383,14 @@ const ReportJournalPage: React.FC<JournalPageProps> = ({ onOpenBuilder, onGoToTe
       {viewMode === 'list' ? (
         <div className="space-y-2">
           {filtered.map(report => (
-            <ReportRow key={report.id} report={report} onOpen={() => handleOpen(report)} />
+            <ReportRow
+              key={report.id}
+              report={report}
+              onOpen={() => handleOpen(report)}
+              onDuplicate={() => handleDuplicate(report)}
+              onExport={() => handleExport(report)}
+              onDelete={() => handleDelete(report)}
+            />
           ))}
         </div>
       ) : (

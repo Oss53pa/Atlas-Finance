@@ -272,6 +272,9 @@ export const useReportBuilderStore = create<ReportBuilderState>()(
           Object.assign(block.style, style);
           state.document.updatedAt = now();
         });
+        // Comme les autres mutations : capturer un snapshot pour que les changements de
+        // style soient annulables (sinon un undo ultérieur écrase le style sans point de retour).
+        get()._pushHistory();
       },
 
       deleteBlock: (blockId) => {

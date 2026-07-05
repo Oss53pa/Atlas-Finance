@@ -11,6 +11,10 @@ import {
   ChevronDown, FileText,
 } from 'lucide-react';
 import { useReportBuilderStore } from '../store/useReportBuilderStore';
+import { saveReport } from '../services/reportPersistenceService';
+import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 import type { ReportStatus, ValidationEvent } from '../types';
 
 // ---- Status flow ----
@@ -45,8 +49,11 @@ interface Props {
 
 const ValidationPanel: React.FC<Props> = ({ isOpen, onClose }) => {
   const { document: doc } = useReportBuilderStore();
+  const { adapter } = useData();
+  const { user } = useAuth();
   const [comment, setComment] = useState('');
-  const [history, setHistory] = useState<ValidationEvent[]>(doc?.validationCircuit?.history || []);
+  // Source de vérité = l'historique du document (persisté), pas un état volatil.
+  const history: ValidationEvent[] = doc?.validationCircuit?.history || [];
 
   if (!isOpen || !doc) return null;
 
@@ -54,48 +61,47 @@ const ValidationPanel: React.FC<Props> = ({ isOpen, onClose }) => {
   const next = nextAction[doc.status];
   const currentIdx = statusFlow.indexOf(doc.status);
 
+  // Applique une transition : maj statut + événement d'historique (acteur réel) dans le
+  // document du store, puis PERSISTE via l'adapter (au lieu d'un état local perdu au refresh).
+  const applyTransition = async (
+    newStatus: ReportStatus,
+    action: ValidationEvent['action'],
+    level: number,
+    defaultComment?: string,
+  ) => {
+    const event: ValidationEvent = {
+      id: crypto.randomUUID(),
+      level,
+      action,
+      actor: { id: user?.id || 'unknown', name: user?.name || user?.email || 'Utilisateur' },
+      comment: comment || defaultComment,
+      timestamp: new Date().toISOString(),
+    };
+    useReportBuilderStore.setState((state) => {
+      if (!state.document) return;
+      state.document.status = newStatus;
+      state.document.updatedAt = new Date().toISOString();
+      if (!state.document.validationCircuit) {
+        state.document.validationCircuit = { levels: [], currentLevel: level, history: [] };
+      }
+      state.document.validationCircuit.currentLevel = level;
+      state.document.validationCircuit.history = [...(state.document.validationCircuit.history || []), event];
+    });
+    setComment('');
+    const fresh = useReportBuilderStore.getState().document;
+    if (fresh && adapter) {
+      try { await saveReport(adapter, fresh); }
+      catch { toast.error("Échec de l'enregistrement du workflow"); }
+    }
+  };
+
   const handleAdvance = () => {
     if (!next) return;
-    const store = useReportBuilderStore.getState();
-    // Update status
-    if (store.document) {
-      store.updateBlock; // Trigger through store
-      // For now, directly mutate via set
-      useReportBuilderStore.setState((state) => {
-        if (state.document) {
-          state.document.status = next.nextStatus;
-          state.document.updatedAt = new Date().toISOString();
-        }
-      });
-    }
-    // Add to history
-    setHistory(prev => [...prev, {
-      id: crypto.randomUUID(),
-      level: currentIdx + 1,
-      action: 'approve',
-      actor: { id: 'dev', name: 'Dev Admin' },
-      comment: comment || undefined,
-      timestamp: new Date().toISOString(),
-    }]);
-    setComment('');
+    applyTransition(next.nextStatus, 'approve', currentIdx + 1);
   };
 
   const handleReject = () => {
-    useReportBuilderStore.setState((state) => {
-      if (state.document) {
-        state.document.status = 'draft';
-        state.document.updatedAt = new Date().toISOString();
-      }
-    });
-    setHistory(prev => [...prev, {
-      id: crypto.randomUUID(),
-      level: currentIdx,
-      action: 'reject',
-      actor: { id: 'dev', name: 'Dev Admin' },
-      comment: comment || 'Retourné en brouillon',
-      timestamp: new Date().toISOString(),
-    }]);
-    setComment('');
+    applyTransition('draft', 'reject', currentIdx, 'Retourné en brouillon');
   };
 
   return (
