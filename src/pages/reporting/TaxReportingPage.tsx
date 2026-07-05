@@ -839,6 +839,13 @@ interface TaxReport {
   lastGenerated: string;
 }
 
+// Détail d'une nature de taxe (drill-down) : soit une ventilation par compte du Grand Livre,
+// soit une estimation (base × taux) pour les natures calculées (IRPP/IS).
+interface NatureDetailLine { code: string; name: string; montant: number; groupe?: string }
+type NatureDetail =
+  | { kind: 'accounts'; lines: NatureDetailLine[]; total: number }
+  | { kind: 'estimate'; baseLabel: string; base: number; taux: number; montant: number };
+
 // Helper: compute period bounds from a selectedPeriod value
 function getPeriodBounds(selectedPeriod: string): { start: string; end: string } {
   const now = new Date();
@@ -892,6 +899,7 @@ const TaxReportingPage: React.FC = () => {
   const [showGenerateReportModal, setShowGenerateReportModal] = useState(false);
   const [showReportPreviewModal, setShowReportPreviewModal] = useState(false);
   const [selectedDeclaration, setSelectedDeclaration] = useState<TaxDeclaration | null>(null);
+  const [detailKey, setDetailKey] = useState<string | null>(null);
   const [selectedReport, setSelectedReport] = useState<TaxReport | null>(null);
   const [isAutoCalculating, setIsAutoCalculating] = useState(false);
 
@@ -991,6 +999,49 @@ const TaxReportingPage: React.FC = () => {
       produits: Math.round(produits),
       variation: { tva: 0, irpp: 0, is: 0, global: 0 }
     };
+  }, [allEntries]);
+
+  // ─── Détail par nature (drill-down) : ventilation par compte du Grand Livre ─
+  // Rend transparent le montant de CHAQUE nature (surtout « Autres impôts » — le plus
+  // gros et le plus opaque). Une seule passe sur le GL, agrégée par compte.
+  const natureDetails = useMemo(() => {
+    const acc = new Map<string, { name: string; debit: number; credit: number }>();
+    const bump = (code: string, name: string, debit: number, credit: number) => {
+      const e = acc.get(code) || { name: name || code, debit: 0, credit: 0 };
+      e.debit += debit; e.credit += credit; if (name) e.name = name; acc.set(code, e);
+    };
+    let masseSalariale = 0, produits = 0, charges = 0;
+    for (const e of allEntries.filter(en => (en as { status?: string }).status !== 'draft')) {
+      for (const l of e.lines || []) {
+        const code = l.accountCode || '';
+        const name = (l as { accountName?: string }).accountName || '';
+        const d = l.debit || 0, c = l.credit || 0;
+        if (code.startsWith('443') || code.startsWith('445') || /^43/.test(code) || (/^44/.test(code) && !/^44[235]/.test(code))) bump(code, name, d, c);
+        if (code.startsWith('661')) masseSalariale += d - c;
+        if (code.startsWith('7')) produits += c - d;
+        if (code.startsWith('6')) charges += d - c;
+      }
+    }
+    const linesFor = (pred: (code: string) => boolean, sign: 'credit' | 'debit', groupe?: string): NatureDetailLine[] =>
+      [...acc.entries()].filter(([code]) => pred(code))
+        .map(([code, v]) => ({ code, name: v.name, groupe, montant: sign === 'credit' ? v.credit - v.debit : v.debit - v.credit }))
+        .filter(x => Math.abs(x.montant) > 0.5)
+        .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant));
+
+    const collectee = linesFor(c => c.startsWith('443'), 'credit', 'TVA collectée (443)');
+    const deductible = linesFor(c => c.startsWith('445'), 'debit', 'TVA déductible (445)').map(l => ({ ...l, montant: -l.montant }));
+    const cnps = linesFor(c => /^43/.test(c), 'credit');
+    const autres = linesFor(c => /^44/.test(c) && !/^44[235]/.test(c), 'credit');
+    const resAvantImpot = produits - charges;
+
+    const details: Record<string, NatureDetail> = {
+      TVA: { kind: 'accounts', lines: [...collectee, ...deductible], total: collectee.reduce((s, l) => s + l.montant, 0) + deductible.reduce((s, l) => s + l.montant, 0) },
+      CNPS: { kind: 'accounts', lines: cnps, total: cnps.reduce((s, l) => s + l.montant, 0) },
+      AUTRES: { kind: 'accounts', lines: autres, total: autres.reduce((s, l) => s + l.montant, 0) },
+      IRPP: { kind: 'estimate', baseLabel: 'Masse salariale imposable (compte 661)', base: Math.round(masseSalariale), taux: 0.15, montant: Math.round(masseSalariale * 0.15) },
+      IS: { kind: 'estimate', baseLabel: 'Résultat avant impôt (produits cl.7 − charges cl.6)', base: Math.round(resAvantImpot), taux: 0.25, montant: Math.round(Math.max(0, resAvantImpot) * 0.25) },
+    };
+    return details;
   }, [allEntries]);
 
   // ─── KPI values: prefer detection engine, fallback to manual ───────────────
@@ -1130,9 +1181,16 @@ const TaxReportingPage: React.FC = () => {
   const taxesParNature = useMemo(() => {
     const now = new Date();
     const moisLabel = now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
-    const ech = (m: number, d: number) => `${now.getFullYear()}-${String(now.getMonth() + m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    // Date arithmétique (gère le passage d'année, contrairement à getMonth()+m brut).
+    const ech = (m: number, d: number) => {
+      const dt = new Date(now.getFullYear(), now.getMonth() + m, d);
+      return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    };
     const dbDeclaredTypes = new Set(
       declarations.filter(d => d.statut === 'en_cours' || d.statut === 'payee').map(d => d.type.toUpperCase()),
+    );
+    const dbPaidTypes = new Set(
+      declarations.filter(d => d.statut === 'payee').map(d => d.type.toUpperCase()),
     );
 
     // 1. Registre fiscal configuré → toutes les taxes détectées (couverture complète).
@@ -1161,7 +1219,9 @@ const TaxReportingPage: React.FC = () => {
     return items.map(t => {
       const mark = declMarks[t.key];
       const declared = !!mark || dbDeclaredTypes.has(t.key) || dbDeclaredTypes.has(t.label.toUpperCase());
-      return { ...t, declared, declaredAt: mark?.declaredAt || null };
+      const paid = dbPaidTypes.has(t.key) || dbPaidTypes.has(t.label.toUpperCase());
+      // Réversible tant que non payée (on peut annuler une déclaration, pas un paiement).
+      return { ...t, declared, declaredAt: mark?.declaredAt || null, canRevert: declared && !paid };
     });
   }, [taxStats, declMarks, declarations, hasRegistry, triggeredTaxes]);
 
@@ -1173,22 +1233,55 @@ const TaxReportingPage: React.FC = () => {
     const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n;
   });
 
+  // « Déclarer la sélection » crée une VRAIE déclaration dans taxDeclarations (visible dans
+  // le tableau du bas, et la nature bascule à droite via dbDeclaredTypes) — au lieu d'un
+  // simple drapeau dans settings déconnecté du reste. Idempotent : pas de doublon type+période.
   const declarerSelection = async () => {
     if (selectedTaxKeys.size === 0) { toast.error('Sélectionnez au moins une taxe à déclarer'); return; }
-    const next = { ...declMarks };
-    const at = new Date().toISOString();
-    for (const t of aDeclarer) {
-      if (selectedTaxKeys.has(t.key)) next[t.key] = { declaredAt: at, periode: t.periode };
+    const nowIso = new Date().toISOString();
+    const fy = new Date(periodBounds.start).getFullYear();
+    let created = 0, skipped = 0;
+    try {
+      for (const t of aDeclarer) {
+        if (!selectedTaxKeys.has(t.key)) continue;
+        const exists = dbTaxDeclarations.some(d =>
+          String(d.taxCode || '').toUpperCase() === t.key &&
+          (d.periodLabel || '') === t.periode && d.status !== 'draft');
+        if (exists) { skipped++; continue; }
+        await adapter.create('taxDeclarations', {
+          taxRegistryId: '', taxCode: t.key, periodStart: periodBounds.start, periodEnd: periodBounds.end,
+          periodLabel: t.periode, fiscalYear: fy,
+          base: t.montant, grossTax: t.montant, deductible: 0, netTax: t.montant,
+          alreadyPaid: 0, balanceDue: t.montant, credit: 0,
+          status: 'declared', declarationDeadline: t.echeance || undefined,
+          createdAt: nowIso, updatedAt: nowIso,
+        });
+        created++;
+      }
+      setSelectedTaxKeys(new Set());
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+      toast.success(created > 0
+        ? `${created} déclaration(s) créée(s)${skipped ? ` · ${skipped} déjà existante(s)` : ''}`
+        : 'Ces taxes sont déjà déclarées');
+    } catch {
+      toast.error('Erreur lors de la création de la déclaration');
     }
-    await saveDeclMarks(next);
-    setSelectedTaxKeys(new Set());
-    toast.success('Taxe(s) marquée(s) comme déclarée(s)');
   };
 
+  // Annuler = supprimer la/les déclaration(s) DB « declared » de ce type (pas les payées)
+  // + purger toute ancienne marque settings. La nature revient dans « à déclarer ».
   const annulerDeclaration = async (key: string) => {
-    const next = { ...declMarks }; delete next[key];
-    await saveDeclMarks(next);
-    toast.success('Déclaration annulée');
+    try {
+      const toRevert = dbTaxDeclarations.filter(d =>
+        String(d.taxCode || '').toUpperCase() === key &&
+        (d.status === 'declared' || d.status === 'validated'));
+      for (const d of toRevert) await adapter.delete('taxDeclarations', d.id);
+      if (declMarks[key]) { const next = { ...declMarks }; delete next[key]; await saveDeclMarks(next); }
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+      toast.success('Déclaration annulée');
+    } catch {
+      toast.error("Erreur lors de l'annulation");
+    }
   };
 
   // ─── Alert bar data: overdue + due soon taxes ──────────────────────────────
@@ -1936,6 +2029,12 @@ const TaxReportingPage: React.FC = () => {
                           <div className="text-xs text-gray-500">{t.periode} · échéance {t.echeance}</div>
                         </div>
                         <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
+                        {natureDetails[t.key] && (
+                          <button type="button" title="Voir le détail" className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDetailKey(t.key); }}>
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        )}
                       </label>
                     ))}
                   </div>
@@ -1962,7 +2061,7 @@ const TaxReportingPage: React.FC = () => {
                     <CardTitle className="text-base">Déjà déclarées</CardTitle>
                     <span className="text-sm font-semibold text-green-700">{formatCurrency(dejaDeclarees.reduce((s, t) => s + t.montant, 0))}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Marquées comme déclarées</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Déclaration créée dans le registre</p>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-[var(--color-border)]">
@@ -1976,8 +2075,14 @@ const TaxReportingPage: React.FC = () => {
                           <div className="text-xs text-gray-500">{t.periode}{t.declaredAt ? ` · déclarée le ${new Date(t.declaredAt).toLocaleDateString('fr-FR')}` : ''}</div>
                         </div>
                         <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
-                        {t.declaredAt && (
-                          <button type="button" onClick={() => annulerDeclaration(t.key)} title="Annuler la déclaration" className="p-1 text-gray-400 hover:text-red-600 text-sm">✕</button>
+                        {natureDetails[t.key] && (
+                          <button type="button" title="Voir le détail" className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
+                            onClick={() => setDetailKey(t.key)}>
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        )}
+                        {t.canRevert && (
+                          <button type="button" onClick={() => annulerDeclaration(t.key)} title="Annuler la déclaration" className="p-1 text-gray-400 hover:text-red-600 text-sm shrink-0"><X className="h-4 w-4" /></button>
                         )}
                       </div>
                     ))}
@@ -2548,6 +2653,74 @@ const TaxReportingPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Détail d'une nature de taxe (drill-down) */}
+      {detailKey && natureDetails[detailKey] && (() => {
+        const detail = natureDetails[detailKey];
+        const label = taxesParNature.find(t => t.key === detailKey)?.label || detailKey;
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDetailKey(null)}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
+                <div>
+                  <h3 className="text-lg font-semibold">Détail — {label}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">Composition du montant à déclarer</p>
+                </div>
+                <button onClick={() => setDetailKey(null)} className="text-gray-500 hover:text-gray-700"><X className="h-5 w-5" /></button>
+              </div>
+              <div className="p-6">
+                {detail.kind === 'estimate' ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-gray-600">{detail.baseLabel}</span>
+                      <span className="text-sm font-mono font-semibold">{formatCurrency(detail.base)}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b">
+                      <span className="text-sm text-gray-600">Taux appliqué</span>
+                      <span className="text-sm font-mono font-semibold">{(detail.taux * 100).toFixed(0)} %</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm font-semibold">Montant estimé</span>
+                      <span className="text-base font-mono font-bold text-[var(--color-primary)]">{formatCurrency(detail.montant)}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 pt-2">Estimation indicative (barème simplifié). Le montant définitif dépend du barème progressif / des réintégrations fiscales.</p>
+                  </div>
+                ) : detail.lines.length === 0 ? (
+                  <div className="text-center py-8 text-sm text-gray-500">Aucun compte mouvementé pour cette nature sur la période.</div>
+                ) : (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-xs text-gray-500">
+                        <th className="py-2">Compte</th>
+                        <th className="py-2">Libellé</th>
+                        <th className="py-2 text-right">Montant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detail.lines.map((l, i) => (
+                        <tr key={`${l.code}-${i}`} className="border-b last:border-0">
+                          <td className="py-2 font-mono text-xs">{l.code}</td>
+                          <td className="py-2">
+                            {l.name}
+                            {l.groupe && <span className="ml-2 text-[10px] text-gray-400">· {l.groupe}</span>}
+                          </td>
+                          <td className={`py-2 text-right font-mono ${l.montant < 0 ? 'text-red-600' : ''}`}>{formatCurrency(l.montant)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 font-semibold">
+                        <td className="py-2" colSpan={2}>Total</td>
+                        <td className="py-2 text-right font-mono">{formatCurrency(detail.total)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal Aperçu Rapport */}
       {showReportPreviewModal && selectedReport && (
