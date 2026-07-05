@@ -943,7 +943,7 @@ const TaxReportingPage: React.FC = () => {
   // ─── Manual fallback taxStats (used when no registry) ──────────────────────
 
   const taxStats = useMemo(() => {
-    let tvaCollectee = 0, tvaDeductible = 0, chargesPersonnel = 0, resultatNet = 0;
+    let tvaCollectee = 0, tvaDeductible = 0, masseSalariale = 0, resultatAvantImpot = 0, produits = 0;
     // Soldes créditeurs (montant DÛ) d'autres natures fiscales/sociales :
     let socialAPayer = 0;        // classe 43 — CNPS / organismes sociaux
     let autresImpots = 0;        // 44x hors TVA (443/445) et IS (442) — patente, retenues, autres
@@ -957,9 +957,11 @@ const TaxReportingPage: React.FC = () => {
         if (code.startsWith('4451') || code.startsWith('4452') || code.startsWith('4453') || code.startsWith('4454') || code.startsWith('4455') || code.startsWith('4456')) {
           tvaDeductible += l.debit - l.credit;
         }
-        if (code.startsWith('66')) chargesPersonnel += l.debit - l.credit;
-        if (code.startsWith('7')) resultatNet += l.credit - l.debit;
-        if (code.startsWith('6')) resultatNet -= l.debit - l.credit;
+        // Masse salariale imposable = rémunérations directes (661), base de l'IRPP/ITS
+        // (et non l'ensemble de la classe 66 qui inclut charges sociales patronales, etc.).
+        if (code.startsWith('661')) masseSalariale += l.debit - l.credit;
+        if (code.startsWith('7')) { produits += l.credit - l.debit; resultatAvantImpot += l.credit - l.debit; }
+        if (code.startsWith('6')) resultatAvantImpot -= l.debit - l.credit;
         // CNPS / organismes sociaux (classe 43) — solde créditeur = à payer.
         if (/^43/.test(code)) socialAPayer += l.credit - l.debit;
         // Autres impôts & taxes État : classe 44 SAUF 442 (IS), 443/445 (TVA).
@@ -967,8 +969,10 @@ const TaxReportingPage: React.FC = () => {
       }
     }
     const tvaAPayer = Math.max(0, tvaCollectee - tvaDeductible);
-    const irppEstime = Math.round(chargesPersonnel * 0.15);
-    const isEstime = Math.round(Math.max(0, resultatNet) * 0.25);
+    // Estimations (fallback sans registre fiscal) : barème simplifié à afficher comme repère,
+    // pas comme montant fiscal définitif (le moteur de détection fait le calcul réel).
+    const irppEstime = Math.round(masseSalariale * 0.15);
+    const isEstime = Math.round(Math.max(0, resultatAvantImpot) * 0.25);
     const totalTaxes = tvaAPayer + irppEstime + isEstime;
     const creditTVA = Math.max(0, Math.round(tvaDeductible - tvaCollectee));
     const economiesFiscales = Math.round(tvaDeductible);
@@ -983,7 +987,8 @@ const TaxReportingPage: React.FC = () => {
       totalTaxes,
       creditTVA,
       economiesFiscales,
-      resultatNet: Math.round(resultatNet),
+      resultatAvantImpot: Math.round(resultatAvantImpot),
+      produits: Math.round(produits),
       variation: { tva: 0, irpp: 0, is: 0, global: 0 }
     };
   }, [allEntries]);
@@ -1093,15 +1098,21 @@ const TaxReportingPage: React.FC = () => {
     // 3. Auto-generated from taxStats if nothing found
     if (result.length === 0 && (taxStats.tvaAPayer > 0 || taxStats.irpp > 0 || taxStats.is > 0)) {
       const now = new Date();
+      // Échéance = jour `day` de `monthsAhead` mois plus tard (Date gère le passage d'année,
+      // contrairement à getMonth()+2 qui produisait « 13 »/« 14 » en fin d'année).
+      const echeance = (monthsAhead: number, day: number) => {
+        const d = new Date(now.getFullYear(), now.getMonth() + monthsAhead, day);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      };
       if (taxStats.tvaAPayer > 0) result.push({
         id: 'auto-tva', type: 'TVA', periode: now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' }),
         montant: taxStats.tvaAPayer, statut: 'planifiee',
-        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-15`, datePaiement: null
+        dateEcheance: echeance(1, 15), datePaiement: null
       });
       if (taxStats.irpp > 0) result.push({
         id: 'auto-irpp', type: 'IRPP', periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`,
         montant: taxStats.irpp, statut: 'planifiee',
-        dateEcheance: `${now.getFullYear()}-${String(now.getMonth() + 2).padStart(2, '0')}-20`, datePaiement: null
+        dateEcheance: echeance(1, 20), datePaiement: null
       });
       if (taxStats.is > 0) result.push({
         id: 'auto-is', type: 'IS', periode: `${now.getFullYear()}`,
@@ -1239,13 +1250,43 @@ const TaxReportingPage: React.FC = () => {
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
+  // Téléchargement CSV réel (UTF-8 BOM pour Excel).
+  const downloadCsv = (filename: string, rows: (string | number)[][]) => {
+    const esc = (v: string | number) => {
+      const s = String(v ?? '');
+      return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const csv = '﻿' + rows.map(r => r.map(esc).join(';')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = window.document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleImport = () => {
     setShowImportModal(true);
   };
 
   const handleExport = () => {
-    toast.success('Export en cours de téléchargement...');
-    setTimeout(() => toast.success('Export terminé avec succès'), 1500);
+    const rows: (string | number)[][] = [
+      ['Synthèse fiscale', periodBounds.start, periodBounds.end],
+      [],
+      ['Poste', 'Montant (FCFA)'],
+      ['TVA collectée', taxStats.tvaCollectee],
+      ['TVA déductible', taxStats.tvaDeductible],
+      ['TVA nette à payer', taxStats.tvaAPayer],
+      ['Crédit de TVA', taxStats.creditTVA],
+      ['IRPP/ITS (estimé)', taxStats.irpp],
+      ['IS (estimé)', taxStats.is],
+      ['CNPS / social à payer', taxStats.cnps],
+      ['Autres impôts & taxes', taxStats.autresImpots],
+      ['Total charges fiscales', taxStats.totalTaxes],
+    ];
+    downloadCsv(`synthese-fiscale-${periodBounds.start}_${periodBounds.end}.csv`, rows);
+    toast.success('Export CSV généré');
   };
 
   const handleNewDeclaration = () => {
@@ -1263,7 +1304,15 @@ const TaxReportingPage: React.FC = () => {
   };
 
   const handleDownloadDeclaration = (declaration: TaxDeclaration) => {
-    toast.success(`Téléchargement de la déclaration ${declaration.type} - ${declaration.periode}`);
+    downloadCsv(`declaration-${declaration.type}-${declaration.periode}.csv`.replace(/\s+/g, '_'), [
+      ['Déclaration fiscale'],
+      ['Type', declaration.type],
+      ['Période', declaration.periode],
+      ['Montant', declaration.montant ?? 0],
+      ['Statut', declaration.statut ?? ''],
+      ['Échéance', declaration.dateEcheance ?? ''],
+    ]);
+    toast.success('Déclaration exportée (CSV)');
   };
 
   const handleGenerateReport = () => {
@@ -1276,7 +1325,14 @@ const TaxReportingPage: React.FC = () => {
   };
 
   const handleDownloadReport = (report: TaxReport) => {
-    toast.success(`Téléchargement du rapport "${report.name}"`);
+    downloadCsv(`${report.name}.csv`.replace(/\s+/g, '_'), [
+      ['Rapport fiscal'],
+      ['Nom', report.name],
+      ['Type', report.type],
+      ['Format', report.format],
+      ['Généré le', report.lastGenerated],
+    ]);
+    toast.success('Rapport exporté (CSV)');
   };
 
   const handleSubmitDeclaration = async () => {
@@ -1315,8 +1371,30 @@ const TaxReportingPage: React.FC = () => {
     }
   };
 
-  const handleConfirmPayment = () => {
-    toast.success(`Paiement de ${formatCurrency(selectedDeclaration?.montant || 0)} enregistré`);
+  const handleConfirmPayment = async () => {
+    const d = selectedDeclaration;
+    if (!d) { setShowPaymentModal(false); return; }
+    try {
+      const now = new Date().toISOString();
+      if (d.id && !d.id.startsWith('auto-')) {
+        // Déclaration persistée en base → on la marque payée.
+        await adapter.update('taxDeclarations', d.id, { status: 'paid', paidAt: now, updatedAt: now });
+      } else {
+        // Déclaration auto-générée (non persistée) → on crée un enregistrement PAYÉ réel
+        // (au lieu d'un simple toast sans effet).
+        const montant = Number(d.montant) || 0;
+        await adapter.create('taxDeclarations', {
+          taxRegistryId: '', taxCode: d.type, periodStart: periodBounds.start, periodEnd: periodBounds.end,
+          periodLabel: d.periode, fiscalYear: new Date(periodBounds.start).getFullYear(),
+          base: montant, grossTax: montant, deductible: 0, netTax: montant, alreadyPaid: montant,
+          balanceDue: 0, credit: 0, status: 'paid', paidAt: now, createdAt: now, updatedAt: now,
+        });
+      }
+      toast.success(`Paiement de ${formatCurrency(d.montant || 0)} enregistré`);
+      queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
+    } catch {
+      toast.error('Erreur lors de l\'enregistrement du paiement');
+    }
     setShowPaymentModal(false);
     setSelectedDeclaration(null);
   };
@@ -2084,9 +2162,11 @@ const TaxReportingPage: React.FC = () => {
                       <span className="text-sm text-var(--color-text-secondary)">Charge fiscale moyenne</span>
                       <span className="font-semibold">
                         {(() => {
+                          // Dénominateur = produits (chiffre d'affaires, classe 7) : base économique
+                          // stable pour un taux de charge fiscale (au lieu de résultat+taxes).
                           const rev = hasRegistry && triggeredTaxes.length > 0
-                            ? (triggeredTaxes.find(r => r.tax.taxCode === 'IS')?.amounts?.detail?.produits as number || taxStats.resultatNet + kpiValues.total)
-                            : (taxStats.resultatNet + taxStats.totalTaxes);
+                            ? (triggeredTaxes.find(r => r.tax.taxCode === 'IS')?.amounts?.detail?.produits as number || taxStats.produits)
+                            : taxStats.produits;
                           const taxes = kpiValues.total;
                           return rev > 0 ? (taxes / rev * 100).toFixed(1) : '0.0';
                         })()}%
@@ -2102,7 +2182,7 @@ const TaxReportingPage: React.FC = () => {
                             const net = isResult?.amounts?.net;
                             if (base && base > 0 && net != null) return (net / base * 100).toFixed(1);
                           }
-                          return taxStats.resultatNet > 0 ? (taxStats.is / taxStats.resultatNet * 100).toFixed(1) : '0.0';
+                          return taxStats.resultatAvantImpot > 0 ? (taxStats.is / taxStats.resultatAvantImpot * 100).toFixed(1) : '0.0';
                         })()}%
                       </span>
                     </div>
@@ -2458,11 +2538,9 @@ const TaxReportingPage: React.FC = () => {
             <div className="p-6 border-t flex justify-end space-x-3">
               <Button variant="outline" onClick={() => setShowGenerateReportModal(false)}>Annuler</Button>
               <Button onClick={() => {
-                toast.success('Rapport en cours de génération...');
-                setTimeout(() => {
-                  toast.success('Rapport généré avec succès');
-                  setShowGenerateReportModal(false);
-                }, 2000);
+                // Génère un vrai fichier (synthèse fiscale CSV) au lieu d'un setTimeout factice.
+                handleExport();
+                setShowGenerateReportModal(false);
               }}>
                 Générer
               </Button>
