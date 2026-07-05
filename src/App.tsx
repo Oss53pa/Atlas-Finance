@@ -483,6 +483,10 @@ function App() {
                           <Route path="/budgeting" element={<BudgetingDashboard />} />
                           <Route path="/budgeting/list" element={work(<BudgetsPage />)} />
                           <Route path="/budgeting/control" element={work(<BudgetControlPage />)} />
+                          {/* BudgetDetailPage lit ses params via useSearchParams (?compte=…),
+                              pas via :id — la route query-based doit exister sinon le drill-down
+                              depuis BudgetRecapPage (/budgeting/detail?compte=…) ne matche pas. */}
+                          <Route path="/budgeting/detail" element={work(<BudgetDetailPage />)} />
                           <Route path="/budgeting/detail/:id" element={work(<BudgetDetailPage />)} />
                         </Route>
 
