@@ -42,13 +42,25 @@ const ContactsModule: React.FC = () => {
   const { adapter } = useData();
   const [thirdParties, setThirdParties] = useState<any[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const tps = await adapter.getAll('thirdParties');
-      setThirdParties(tps as Record<string, unknown>[]);
-    };
-    load();
+  const reloadTps = React.useCallback(async () => {
+    const tps = await adapter.getAll('thirdParties');
+    setThirdParties(tps as Record<string, unknown>[]);
   }, [adapter]);
+  useEffect(() => { reloadTps(); }, [reloadTps]);
+
+  // Création RÉELLE (les contacts sont dérivés des tiers → on crée un tiers persistant).
+  const handleCreateContact = async () => {
+    const nom = window.prompt('Nom du tiers / contact :')?.trim();
+    if (!nom) return;
+    try {
+      await adapter.create('thirdParties', {
+        name: nom, code: nom.slice(0, 6).toUpperCase().replace(/\s/g, ''),
+        type: 'customer', accountCode: '411000', balance: 0,
+      } as any);
+      await reloadTps();
+      setShowContactModal(false);
+    } catch { /* best-effort */ }
+  };
 
   // Map third parties to contact format
   const mockContacts: (Contact & { tiers: string })[] = thirdParties.map((tp) => ({
@@ -1269,7 +1281,7 @@ const ContactsModule: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
+              <button onClick={handleCreateContact} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
                 <UserCheck className="w-4 h-4" />
                 Créer le contact
               </button>

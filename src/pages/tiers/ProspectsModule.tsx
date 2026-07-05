@@ -102,13 +102,25 @@ const ProspectsModule: React.FC = () => {
   // Data from DataContext — filter for prospects (customers with zero balance or all customers)
   const [thirdParties, setThirdParties] = useState<any[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const tps = await adapter.getAll('thirdParties');
-      setThirdParties(tps as Record<string, unknown>[]);
-    };
-    load();
+  const reloadTps = React.useCallback(async () => {
+    const tps = await adapter.getAll('thirdParties');
+    setThirdParties(tps as Record<string, unknown>[]);
   }, [adapter]);
+  useEffect(() => { reloadTps(); }, [reloadTps]);
+
+  // Création RÉELLE d'un prospect = tiers client (thirdParties), au lieu d'un bouton mort.
+  const handleCreateProspect = async () => {
+    const nom = window.prompt('Nom du prospect :')?.trim();
+    if (!nom) return;
+    try {
+      await adapter.create('thirdParties', {
+        name: nom, code: nom.slice(0, 6).toUpperCase().replace(/\s/g, ''),
+        type: 'customer', accountCode: '411000', balance: 0,
+      } as any);
+      await reloadTps();
+      setShowProspectModal(false);
+    } catch { /* création best-effort */ }
+  };
 
   // Map third parties to prospect format — treat customers with zero balance as prospects
   const mockProspects: Prospect[] = thirdParties
@@ -854,7 +866,7 @@ const ProspectsModule: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
+              <button onClick={handleCreateProspect} className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
                 Créer le prospect
               </button>
