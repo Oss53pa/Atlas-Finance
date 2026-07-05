@@ -56,6 +56,8 @@ const RolesPage: React.FC = () => {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const emptyForm = { name: '', code: '', description: '', category: 'operational' as Role['category'] };
+  const [roleForm, setRoleForm] = useState(emptyForm);
 
   const queryClient = useQueryClient();
   const { adapter } = useData();
@@ -80,6 +82,15 @@ const RolesPage: React.FC = () => {
 
   const allRoles: Role[] = rolesSetting ? JSON.parse(rolesSetting.value) : [];
 
+  // Persistance réelle des rôles dans settings.roles_config (fini les faux setTimeout).
+  const saveRoles = async (list: Role[]) => {
+    const payload = { key: 'roles_config', value: JSON.stringify(list), updatedAt: new Date().toISOString() };
+    if (rolesSetting) await adapter.update('settings', 'roles_config', payload);
+    else await adapter.create('settings', payload);
+    setRolesSetting({ ...(rolesSetting || {}), key: 'roles_config', value: payload.value });
+  };
+  const nowIso = () => new Date().toISOString();
+
   // Filter roles based on search/filter criteria
   const roles = useMemo(() => {
     return allRoles.filter(role =>
@@ -96,23 +107,47 @@ const RolesPage: React.FC = () => {
 
   const duplicateRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const src = allRoles.find(r => r.id === roleId);
+      if (!src) return roleId;
+      const copy: Role = {
+        ...src, id: crypto.randomUUID(), name: `${src.name} (copie)`, code: `${src.code}_COPIE`,
+        isSystemRole: false, usersCount: 0, createdAt: nowIso(), lastModified: nowIso(),
+      };
+      await saveRoles([...allRoles, copy]);
       return roleId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-    }
+    onSuccess: () => { toast.success('Rôle dupliqué'); }
   });
 
   const deleteRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await saveRoles(allRoles.filter(r => r.id !== roleId));
       return roleId;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['roles'] });
-    }
+    onSuccess: () => { toast.success('Rôle supprimé'); }
   });
+
+  // Créer / éditer un rôle (persisté).
+  const handleCreateRole = async () => {
+    if (!roleForm.name.trim() || !roleForm.code.trim()) { toast.error('Nom et code obligatoires'); return; }
+    const role: Role = {
+      id: crypto.randomUUID(), name: roleForm.name.trim(), code: roleForm.code.trim().toUpperCase(),
+      description: roleForm.description.trim(), permissions: [], usersCount: 0, isSystemRole: false,
+      createdAt: nowIso(), lastModified: nowIso(), createdBy: 'Utilisateur', category: roleForm.category,
+    };
+    await saveRoles([...allRoles, role]);
+    toast.success('Rôle créé');
+    setShowCreateModal(false); setRoleForm(emptyForm);
+  };
+  const handleSaveEditedRole = async () => {
+    if (!selectedRole) return;
+    if (!roleForm.name.trim() || !roleForm.code.trim()) { toast.error('Nom et code obligatoires'); return; }
+    await saveRoles(allRoles.map(r => r.id === selectedRole.id
+      ? { ...r, name: roleForm.name.trim(), code: roleForm.code.trim().toUpperCase(), description: roleForm.description.trim(), category: roleForm.category, lastModified: nowIso() }
+      : r));
+    toast.success('Rôle mis à jour');
+    setShowEditModal(false); setSelectedRole(null); setRoleForm(emptyForm);
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -205,7 +240,7 @@ const RolesPage: React.FC = () => {
             activeFilters={[searchTerm !== '', selectedCategory !== 'all'].filter(Boolean).length}
           />
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => { setRoleForm(emptyForm); setShowCreateModal(true); }}
             className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
@@ -452,6 +487,7 @@ const RolesPage: React.FC = () => {
                   <button
                     onClick={() => {
                       setSelectedRole(role);
+                      setRoleForm({ name: role.name, code: role.code, description: role.description, category: role.category });
                       setShowEditModal(true);
                     }}
                     className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
@@ -506,6 +542,8 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    value={roleForm.name}
+                    onChange={(e) => setRoleForm(f => ({ ...f, name: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Directeur Financier"
                   />
@@ -517,6 +555,8 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    value={roleForm.code}
+                    onChange={(e) => setRoleForm(f => ({ ...f, code: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="DIR_FIN"
                   />
@@ -529,6 +569,8 @@ const RolesPage: React.FC = () => {
                 </label>
                 <textarea
                   rows={3}
+                  value={roleForm.description}
+                  onChange={(e) => setRoleForm(f => ({ ...f, description: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   placeholder="Description détaillée du rôle et de ses responsabilités..."
                 />
@@ -538,7 +580,10 @@ const RolesPage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Catégorie <span className="text-red-500">*</span>
                 </label>
-                <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                <select
+                  value={roleForm.category}
+                  onChange={(e) => setRoleForm(f => ({ ...f, category: e.target.value as Role['category'] }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                   <option value="operational">Opérationnel</option>
                   <option value="management">Management</option>
                   <option value="admin">Administration</option>
@@ -657,7 +702,7 @@ const RolesPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
+              <button onClick={handleCreateRole} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Créer le rôle
               </button>
             </div>
@@ -787,6 +832,7 @@ const RolesPage: React.FC = () => {
                 {!selectedRole.isSystemRole && (
                   <button
                     onClick={() => {
+                      if (selectedRole) setRoleForm({ name: selectedRole.name, code: selectedRole.code, description: selectedRole.description, category: selectedRole.category });
                       setShowViewModal(false);
                       setShowEditModal(true);
                     }}
@@ -835,7 +881,8 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedRole.name}
+                    value={roleForm.name}
+                    onChange={(e) => setRoleForm(f => ({ ...f, name: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={selectedRole.isSystemRole}
                   />
@@ -847,7 +894,8 @@ const RolesPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedRole.code}
+                    value={roleForm.code}
+                    onChange={(e) => setRoleForm(f => ({ ...f, code: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     disabled={selectedRole.isSystemRole}
                   />
@@ -860,7 +908,8 @@ const RolesPage: React.FC = () => {
                 </label>
                 <textarea
                   rows={3}
-                  defaultValue={selectedRole.description}
+                  value={roleForm.description}
+                  onChange={(e) => setRoleForm(f => ({ ...f, description: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -870,7 +919,8 @@ const RolesPage: React.FC = () => {
                   Catégorie <span className="text-red-500">*</span>
                 </label>
                 <select
-                  defaultValue={selectedRole.category}
+                  value={roleForm.category}
+                  onChange={(e) => setRoleForm(f => ({ ...f, category: e.target.value as Role['category'] }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   disabled={selectedRole.isSystemRole}
                 >
@@ -962,7 +1012,7 @@ const RolesPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
+              <button onClick={handleSaveEditedRole} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Enregistrer
               </button>
             </div>
