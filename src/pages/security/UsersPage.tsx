@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -60,6 +61,8 @@ const UsersPage: React.FC = () => {
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
+  const emptyUserForm = { firstName: '', lastName: '', email: '', phone: '', role: '', department: 'Finance', status: 'active' as User['status'], position: '', isEmailVerified: false, is2FAEnabled: false };
+  const [userForm, setUserForm] = useState(emptyUserForm);
 
   const queryClient = useQueryClient();
   const { adapter } = useData();
@@ -147,6 +150,28 @@ const UsersPage: React.FC = () => {
       reload();
     }
   });
+
+  const reloadUsers = async () => { const us = await adapter.getById('settings', 'users_list'); setUsersSetting(us); };
+  // Ouvre l'édition avec le formulaire pré-rempli.
+  const openEditUser = (u: User) => {
+    setSelectedUser(u);
+    setUserForm({
+      firstName: u.firstName, lastName: u.lastName, email: u.email, phone: u.phone || '',
+      role: u.role, department: u.department, status: u.status, position: u.position || '',
+      isEmailVerified: !!u.isEmailVerified, is2FAEnabled: !!u.is2FAEnabled,
+    });
+    setShowEditModal(true);
+  };
+  // Enregistre l'édition (persistée).
+  const handleSaveUser = async () => {
+    if (!selectedUser) return;
+    if (!userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.email.trim()) { toast.error('Prénom, nom et email obligatoires'); return; }
+    const updated = allUsers.map(u => u.id === selectedUser.id ? { ...u, ...userForm, lastModified: new Date().toISOString() } : u);
+    await saveUsersList(updated);
+    await reloadUsers();
+    toast.success('Utilisateur mis à jour');
+    setShowEditModal(false); setSelectedUser(null);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -537,10 +562,7 @@ const UsersPage: React.FC = () => {
                         </button>
 
                         <button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowEditModal(true);
-                          }}
+                          onClick={() => openEditUser(user)}
                           className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
                           title={t('common.edit')}
                         >
@@ -980,7 +1002,7 @@ const UsersPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowViewModal(false);
-                    setShowEditModal(true);
+                    if (selectedUser) openEditUser(selectedUser);
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors flex items-center space-x-2"
                 >
@@ -1026,7 +1048,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedUser.firstName}
+                    value={userForm.firstName} onChange={(e) => setUserForm(f => ({ ...f, firstName: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -1037,7 +1059,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
-                    defaultValue={selectedUser.lastName}
+                    value={userForm.lastName} onChange={(e) => setUserForm(f => ({ ...f, lastName: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -1050,7 +1072,7 @@ const UsersPage: React.FC = () => {
                   </label>
                   <input
                     type="email"
-                    defaultValue={selectedUser.email}
+                    value={userForm.email} onChange={(e) => setUserForm(f => ({ ...f, email: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -1059,7 +1081,7 @@ const UsersPage: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
                   <input
                     type="tel"
-                    defaultValue={selectedUser.phone}
+                    value={userForm.phone} onChange={(e) => setUserForm(f => ({ ...f, phone: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
                 </div>
@@ -1071,7 +1093,7 @@ const UsersPage: React.FC = () => {
                     Rôle <span className="text-red-500">*</span>
                   </label>
                   <select
-                    defaultValue={selectedUser.role}
+                    value={userForm.role} onChange={(e) => setUserForm(f => ({ ...f, role: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     {roles.map((role) => (
@@ -1085,7 +1107,7 @@ const UsersPage: React.FC = () => {
                     Département <span className="text-red-500">*</span>
                   </label>
                   <select
-                    defaultValue={selectedUser.department}
+                    value={userForm.department} onChange={(e) => setUserForm(f => ({ ...f, department: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="Finance">Finance</option>
@@ -1100,7 +1122,7 @@ const UsersPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
                   <select
-                    defaultValue={selectedUser.status}
+                    value={userForm.status} onChange={(e) => setUserForm(f => ({ ...f, status: e.target.value as User['status'] }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
                     <option value="active">Actif</option>
@@ -1117,7 +1139,7 @@ const UsersPage: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  defaultValue={selectedUser.position}
+                  value={userForm.position} onChange={(e) => setUserForm(f => ({ ...f, position: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
@@ -1126,7 +1148,8 @@ const UsersPage: React.FC = () => {
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    defaultChecked={selectedUser.isEmailVerified}
+                    checked={userForm.isEmailVerified}
+                    onChange={(e) => setUserForm(f => ({ ...f, isEmailVerified: e.target.checked }))}
                     className="rounded text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Email vérifié</span>
@@ -1135,7 +1158,8 @@ const UsersPage: React.FC = () => {
                 <label className="flex items-center">
                   <input
                     type="checkbox"
-                    defaultChecked={selectedUser.is2FAEnabled}
+                    checked={userForm.is2FAEnabled}
+                    onChange={(e) => setUserForm(f => ({ ...f, is2FAEnabled: e.target.checked }))}
                     className="rounded text-primary-600 focus:ring-primary-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">Authentification à deux facteurs (2FA)</span>
@@ -1162,7 +1186,7 @@ const UsersPage: React.FC = () => {
               >
                 Annuler
               </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
+              <button onClick={handleSaveUser} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
                 Enregistrer
               </button>
             </div>
