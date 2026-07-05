@@ -121,9 +121,16 @@ const ReportsANouveauModule: React.FC = () => {
   const lancerReportANouveau = useCallback(async () => {
     if (!selectedExercice) return;
     const currentFY = fiscalYears.find(fy => fy.id === selectedExercice);
-    const nextFY = fiscalYears.find(fy => currentFY && fy.startDate > currentFY.endDate);
+    // Exercice suivant = successeur CHRONOLOGIQUE immédiat (tri, pas le premier trouvé).
+    const nextFY = fiscalYears
+      .filter(fy => currentFY && fy.startDate > currentFY.endDate)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
     if (!currentFY || !nextFY) {
       toast.error('Exercice source ou cible introuvable');
+      return;
+    }
+    // Régénération = contrepassation de l'existant puis recréation (intangibilité).
+    if (alreadyExists && !window.confirm("Un à-nouveau existe déjà pour l'exercice cible.\nLe régénérer va CONTREPASSER l'existant puis recréer. Continuer ?")) {
       return;
     }
 
@@ -133,11 +140,12 @@ const ReportsANouveauModule: React.FC = () => {
         closingExerciceId: currentFY.id,
         openingExerciceId: nextFY.id,
         openingDate: nextFY.startDate,
-      });
+        force: alreadyExists,
+      } as any);
       if (result.success) {
         toast.success(`Report à nouveau généré: ${result.lineCount} comptes, Débit=${formatCurrency(result.totalDebit)}, Crédit=${formatCurrency(result.totalCredit)}`);
         setAlreadyExists(true);
-        // Refresh data
+        // Rafraîchit sur l'exercice cible (là où l'à-nouveau a été écrit).
         const lines = await calculerSoldesCloture(adapter, selectedExercice);
         setCarryForwardLines(lines);
       } else {
@@ -148,7 +156,7 @@ const ReportsANouveauModule: React.FC = () => {
     } finally {
       setGenerating(false);
     }
-  }, [selectedExercice, fiscalYears]);
+  }, [selectedExercice, fiscalYears, adapter, alreadyExists]);
 
   const validerReport = useCallback(async () => {
     toast.success('Validation enregistrée');

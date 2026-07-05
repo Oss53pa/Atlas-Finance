@@ -244,7 +244,9 @@ export async function genererEcrituresRegularisation(
       date: dateRegularisation,
       reference: `REGUL-${regul.type}-${regul.id}`,
       label: `Regularisation ${regul.type} - ${regul.libelle}`,
-      status: 'draft' as const,
+      // 'validated' : la régularisation DOIT affecter l'exercice N (rattachement)
+      // et être trouvable par l'extourne (qui ne cherche que validated/posted).
+      status: 'validated' as const,
       lines,
       createdAt: now,
       createdBy: 'system',

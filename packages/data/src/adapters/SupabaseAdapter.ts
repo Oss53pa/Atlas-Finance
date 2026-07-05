@@ -70,6 +70,13 @@ function normalizeJournalEntry(r: any): any {
     createdAt:    r.created_at    || r.createdAt,
     createdBy:    r.created_by    || r.createdBy,
     updatedAt:    r.updated_at    || r.updatedAt,
+    // Statut d'extourne : sans ces alias, `e.reversed` restait undefined en SaaS
+    // → le filtre `!e.reversed` de l'extourne était toujours vrai → DOUBLE
+    // extourne à chaque relance. Idem lien de contrepassation (reversalOf).
+    reversed:     r.reversed ?? false,
+    reversedBy:   r.reversed_by   || r.reversedBy   || undefined,
+    reversedAt:   r.reversed_at   || r.reversedAt   || undefined,
+    reversalOf:   r.reversal_of   || r.reversalOf   || undefined,
     lines:        Array.isArray(r.lines) ? r.lines : [],  // injecté séparément
   }
 }

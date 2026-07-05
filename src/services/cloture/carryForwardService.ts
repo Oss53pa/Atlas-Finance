@@ -153,6 +153,17 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
   if (!openingFY) errors.push(`Exercice d'ouverture ${config.openingExerciceId} introuvable`);
   if (errors.length > 0) return { success: false, lineCount: 0, totalDebit: 0, totalCredit: 0, errors };
 
+  // Idempotence : refuser un 2e à-nouveau pour le même exercice d'ouverture
+  // (sinon double comptage massif). En régénération (force), on CONTREPASSE
+  // d'abord l'existant (intangibilité) avant de recréer.
+  const alreadyExists = await hasCarryForward(adapter, config.openingExerciceId);
+  if (alreadyExists) {
+    if (!(config as any).force) {
+      return { success: false, lineCount: 0, totalDebit: 0, totalCredit: 0, errors: ["À-nouveau déjà généré pour cet exercice. Utilisez la régénération (contrepassation puis recréation)."] };
+    }
+    await supprimerCarryForward(adapter, config.openingExerciceId);
+  }
+
   // Compute balances
   const preview = await previewCarryForward(adapter, config);
 
@@ -175,10 +186,14 @@ export async function executerCarryForward(adapter: DataAdapter, config: CarryFo
     credit: l.soldeCrediteur,
   }));
 
+  // Numéro de pièce séquentiel (évite la collision `-001` en régénération).
+  const allANForSeq = await adapter.getAll<DBJournalEntry>('journalEntries', { where: { journal: 'AN' } });
+  const seq = allANForSeq.filter((e: any) => openingFY && e.date >= openingFY.startDate && e.date <= openingFY.endDate).length + 1;
+
   const entryId = crypto.randomUUID();
   await safeAddEntry(adapter, {
     id: entryId,
-    entryNumber: `AN-${config.openingDate.replace(/-/g, '').substring(0, 8)}-001`,
+    entryNumber: `AN-${config.openingDate.replace(/-/g, '').substring(0, 8)}-${String(seq).padStart(3, '0')}`,
     journal: 'AN',
     date: config.openingDate,
     reference: 'A-NOUVEAU',
