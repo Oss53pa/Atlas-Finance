@@ -36,6 +36,10 @@ export async function replaceComponent(
   // Get old component
   const oldAsset = await adapter.getById<DBAsset>('assets', oldComponentId);
   if (!oldAsset) throw new Error(`Composant ${oldComponentId} introuvable`);
+  // Idempotence : un composant déjà sorti ne peut être remplacé une 2e fois.
+  if (oldAsset.status && oldAsset.status !== 'active') {
+    throw new Error(`Composant ${oldAsset.name} déjà sorti — remplacement impossible.`);
+  }
 
   const acquisitionValue = new Decimal(oldAsset.acquisitionValue);
   const cumulAmort = new Decimal(oldAsset.cumulDepreciation || 0);

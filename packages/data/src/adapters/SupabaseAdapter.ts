@@ -152,18 +152,29 @@ function normalizeThirdParty(r: any): any {
 }
 
 function normalizeAsset(r: any): any {
-  return {
+  const cumul = Number(r.cumul_depreciation ?? r.cumulDepreciation ?? 0)
+  const acquisition = Number(r.acquisition_value ?? r.acquisitionValue ?? 0)
+  // On termine par normalizeGeneric pour aliaser TOUTES les colonnes étendues
+  // snake_case restantes (manufacturer, serial_number, warranty_*, insurance_*,
+  // building_name, revaluation_amount, impairment_amount…) en camelCase. Sans
+  // ça, un normaliseur DÉDIÉ court-circuite le générique et laisse ces champs
+  // métier `undefined` côté composants.
+  return normalizeGeneric({
     ...r,
     accountCode:        r.account_code        || r.accountCode || '',
-    acquisitionValue:   Number(r.acquisition_value  ?? r.acquisitionValue ?? 0),
+    acquisitionValue:   acquisition,
     residualValue:      Number(r.residual_value     ?? r.residualValue ?? 0),
     acquisitionDate:    r.acquisition_date    || r.acquisitionDate || '',
     usefulLife:         Number(r.useful_life_years  ?? r.usefulLife ?? r.usefulLifeYears ?? 0),
     usefulLifeYears:    Number(r.useful_life_years  ?? r.usefulLifeYears ?? 0),
-    cumulDepreciation:  Number(r.cumul_depreciation ?? r.cumulDepreciation ?? 0),
+    cumulDepreciation:  cumul,
+    // Alias métier fréquents pour la VNC/amortissement (lus par certains écrans).
+    accumulatedDepreciation: cumul,
+    amortissementsCumules:   cumul,
+    netBookValue:            acquisition - cumul,
     depreciationMethod: r.depreciation_method || r.depreciationMethod || 'linear',
     depreciationAccountCode: r.depreciation_account_code || r.depreciationAccountCode || '',
-  }
+  })
 }
 
 // Normaliseur GÉNÉRIQUE : ajoute pour chaque clé snake_case son alias camelCase
