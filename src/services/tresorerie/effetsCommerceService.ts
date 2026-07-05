@@ -259,7 +259,7 @@ export async function transitionEffet(
       action: `Transition vers ${newStatut}`,
       statut: newStatut,
     });
-    await adapter.update('effetsCommerce', effet.id, effet as any);
+    await (adapter as any).update('effetsCommerce', effet.id, effet);
     return { success: true, effet };
   }
 
@@ -294,7 +294,7 @@ export async function transitionEffet(
     details: `Ecriture ${entryNumber}`,
   });
   // Persister l'effet (statut + écriture liée + historique) — sinon perdu au reload.
-  await adapter.update('effetsCommerce', effet.id, effet as any);
+  await (adapter as any).update('effetsCommerce', effet.id, effet);
 
   await logAudit('EFFET_TRANSITION', 'effet_commerce', effet.id, JSON.stringify({
     numero: effet.numero,
