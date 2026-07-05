@@ -7711,6 +7711,42 @@ Service Contentieux
   }, [selectedDossierDetail, mockCreances]);
   const detailFactures = detailCreance?.factures ?? [];
 
+  // CA réel du client par exercice (5 ans) = total facturé (débit des lignes 411x
+  // du tiers) par année, + croissance YoY. Alimente le tableau « Analyse de la
+  // croissance du CA sur 5 ans » (auparavant en dur à « - »).
+  const detailCAHistory = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years = [0, 1, 2, 3, 4].map(i => currentYear - i);
+    const code = detailCreance?.clientCode;
+    const byYear: Record<number, number> = {};
+    if (code) {
+      for (const entry of allJournalEntries) {
+        if (entry.status === 'draft') continue;
+        const y = new Date(entry.date).getFullYear();
+        for (const line of entry.lines) {
+          if (!isRecouvrementAccount(line.accountCode)) continue;
+          const lineCode = line.thirdPartyCode || line.accountCode;
+          if (lineCode !== code) continue;
+          byYear[y] = (byYear[y] || 0) + (line.debit || 0);
+        }
+      }
+    }
+    return years.map(y => {
+      const montant = byYear[y] || 0;
+      const prev = byYear[y - 1] || 0;
+      const pct = prev > 0 ? Math.round(((montant - prev) / prev) * 100) : null;
+      return { annee: y, montant, pct };
+    });
+  }, [detailCreance, allJournalEntries]);
+
+  // Distribution d'ancienneté des créances du dossier → graphique DSO (bar chart).
+  const detailAgingChart = useMemo(() => ([
+    { tranche: '0-30', nb: detailFactures.filter(f => f.joursRetard <= 30).length },
+    { tranche: '31-60', nb: detailFactures.filter(f => f.joursRetard > 30 && f.joursRetard <= 60).length },
+    { tranche: '61-90', nb: detailFactures.filter(f => f.joursRetard > 60 && f.joursRetard <= 90).length },
+    { tranche: '90+', nb: detailFactures.filter(f => f.joursRetard > 90).length },
+  ]), [detailFactures]);
+
   const tabs = [
     { id: 'creances', label: 'Créances', icon: DollarSign },
     { id: 'dossiers', label: 'Dossiers en Recouvrement', icon: FileText },
@@ -10547,11 +10583,20 @@ Service Contentieux
                         </div>
                       </div>
 
-                      <div className="mt-6 h-32 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-gray-700">{selectedDossierDetail.dsoMoyen}</div>
-                          <div className="text-sm text-gray-700">Jours (DSO moyen)</div>
-                        </div>
+                      {/* Graphique DSO : distribution des créances par tranche d'ancienneté */}
+                      <div className="mt-6 h-40">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={detailAgingChart} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="tranche" fontSize={11} />
+                            <YAxis allowDecimals={false} fontSize={11} />
+                            <Tooltip formatter={(v: any) => [`${v} facture(s)`, 'Nombre']} />
+                            <Bar radius={[6, 6, 0, 0]} dataKey="nb" fill="#235A6E" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="text-center text-sm text-gray-700 mt-1">
+                        <span className="font-bold text-gray-900">{selectedDossierDetail.dsoMoyen}</span> jours (DSO moyen)
                       </div>
                     </div>
 
@@ -10569,31 +10614,15 @@ Service Contentieux
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-200">
-                            <tr>
-                              <td className="py-2 text-sm text-gray-900">2024</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm text-gray-900">2023</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm text-gray-900">2022</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm text-gray-900">2021</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                            </tr>
-                            <tr>
-                              <td className="py-2 text-sm text-gray-900">2020</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                              <td className="py-2 text-sm text-gray-900">-</td>
-                            </tr>
+                            {detailCAHistory.map((row) => (
+                              <tr key={row.annee}>
+                                <td className="py-2 text-sm text-gray-900">{row.annee}</td>
+                                <td className="py-2 text-sm text-gray-900">{row.montant > 0 ? formatCurrency(row.montant) : '—'}</td>
+                                <td className={`py-2 text-sm font-medium ${row.pct == null ? 'text-gray-400' : row.pct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {row.pct == null ? '—' : `${row.pct > 0 ? '+' : ''}${row.pct} %`}
+                                </td>
+                              </tr>
+                            ))}
                           </tbody>
                         </table>
                       </div>
