@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { DBJournalEntry, DBAccount } from '../../lib/db';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -58,6 +59,16 @@ const AdvancedGeneralLedger: React.FC = () => {
   // États principaux
   const [activeView, setActiveView] = useState<'dashboard' | 'accounts' | 'analysis' | 'intelligent' | 'collaboration' | 'general-ledger' | 'movements'>('intelligent');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
+  // Drill-down entrant : /accounting/general-ledger?compte=521100 (trésorerie, budget…)
+  // ouvre directement le détail du compte au lieu de la vue par défaut.
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const compte = searchParams.get('compte');
+    if (compte) {
+      setSelectedAccount(compte);
+      setActiveView('accounts');
+    }
+  }, [searchParams]);
   const [selectedClasse, setSelectedClasse] = useState<string>('all');
   // Affichage du solde dans le Grand Livre : 'progressif' (solde cumulé ligne à ligne)
   // ou 'dc' (colonnes Solde Débiteur / Solde Créditeur).

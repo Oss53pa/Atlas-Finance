@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -31,7 +32,8 @@ import {
   ShieldCheck,
   PiggyBank,
   ArrowRightLeft,
-  Layers
+  Layers,
+  ExternalLink
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
@@ -90,6 +92,9 @@ const PosLigne: React.FC<{ label: string; value: number; color?: string; bold?: 
 const TreasuryPositions: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const navigate = useNavigate();
+  // Drill-down vers le détail des écritures d'un compte de trésorerie (Grand Livre).
+  const openAccountLedger = (code: string) => navigate(`/accounting/general-ledger?compte=${encodeURIComponent(code)}`);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCurrency, setFilterCurrency] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -481,10 +486,18 @@ const TreasuryPositions: React.FC = () => {
                     return (
                       <div key={p.code} className="bg-white rounded-xl border p-4" style={{ borderColor: tension ? 'rgba(226,75,74,0.4)' : 'var(--color-border)' }}>
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => openAccountLedger(p.code)}
+                            className="flex items-center gap-2 text-left group"
+                            title={`Voir les écritures du compte ${p.code}`}
+                          >
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--color-surface-hover)', color: PETROL }}><Building2 className="h-4 w-4" /></div>
-                            <div><div className="text-sm font-medium text-[var(--color-text-primary)]">{p.name}</div><div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div></div>
-                          </div>
+                            <div>
+                              <div className="text-sm font-medium text-[var(--color-text-primary)] group-hover:underline decoration-dotted flex items-center gap-1">{p.name}<ExternalLink className="h-3 w-3 text-[var(--color-text-tertiary)]" /></div>
+                              <div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div>
+                            </div>
+                          </button>
                           {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>négatif</span>}
                         </div>
                         <PosLigne label="Solde réel" value={p.solde} />
@@ -517,7 +530,18 @@ const TreasuryPositions: React.FC = () => {
                         <tr><td colSpan={5} className="py-6 text-center text-[var(--color-text-tertiary)]">Aucun compte de trésorerie mouvementé.</td></tr>
                       ) : glPosition.map(p => (
                         <tr key={p.code} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]">
-                          <td className="py-2 px-3"><span className="font-mono text-xs text-[var(--color-primary)] mr-2">{p.code}</span>{p.name}</td>
+                          <td className="py-2 px-3">
+                            <button
+                              type="button"
+                              onClick={() => openAccountLedger(p.code)}
+                              className="inline-flex items-center gap-1.5 text-left hover:underline decoration-dotted"
+                              title={`Voir les écritures du compte ${p.code}`}
+                            >
+                              <span className="font-mono text-xs text-[var(--color-primary)]">{p.code}</span>
+                              <span>{p.name}</span>
+                              <ExternalLink className="h-3 w-3 text-[var(--color-text-tertiary)]" />
+                            </button>
+                          </td>
                           <td className="py-2 px-3 text-right font-mono font-semibold">{formatCurrency(p.solde)}</td>
                           <td className="py-2 px-3 text-right font-mono text-green-600">{p.recus > 0 ? formatCurrency(p.recus) : '—'}</td>
                           <td className="py-2 px-3 text-right font-mono text-red-600">{p.emis > 0 ? formatCurrency(p.emis) : '—'}</td>

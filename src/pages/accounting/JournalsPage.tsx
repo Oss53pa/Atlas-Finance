@@ -61,7 +61,12 @@ const JournalsPage: React.FC = () => {
   const [entryReadOnly, setEntryReadOnly] = useState(false);
   // Barre latérale de filtres de la vue journal — GREFFÉE à droite du tableau d'origine
   // (le tableau et ses colonnes restent inchangés ; seules les données sont filtrées).
-  const [jvFilters, setJvFilters] = useState<ComptaFilters>(() => loadPersistedFilters('journal-view', DEFAULT_COMPTA_FILTERS));
+  const [jvFilters, setJvFilters] = useState<ComptaFilters>(() => {
+    const p = loadPersistedFilters('journal-view', DEFAULT_COMPTA_FILTERS);
+    const y = new Date().getFullYear();
+    // Période par défaut = exercice courant (l'ancienne barre de dates inline a été retirée).
+    return { ...p, dateFrom: p.dateFrom || `${y}-01-01`, dateTo: p.dateTo || `${y}-12-31` };
+  });
   const jvNorm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const jvMatch = (e: EcritureJournal): boolean => {
     const iso = e.date ? e.date.split('/').reverse().join('-') : '';
@@ -101,13 +106,9 @@ const JournalsPage: React.FC = () => {
   const [newSubJournal, setNewSubJournal] = useState({ parentCode: '', code: '', libelle: '' });
   const [isCreatingSubJournal, setIsCreatingSubJournal] = useState(false);
 
-  // Filtres de date — année courante par défaut (contrôlés)
-  const currentYear = new Date().getFullYear();
-  const [dateFrom, setDateFrom] = useState(`${currentYear}-01-01`);
-  const [dateTo, setDateTo] = useState(`${currentYear}-12-31`);
-  // Valeurs appliquées (séparées pour que le filtre n'agisse qu'au clic "Filtrer")
-  const [appliedDateFrom, setAppliedDateFrom] = useState(`${currentYear}-01-01`);
-  const [appliedDateTo, setAppliedDateTo] = useState(`${currentYear}-12-31`);
+  // Le filtrage (période, journal, compte, tiers, sens, lettrage, statut) se fait
+  // désormais UNIQUEMENT via la FilterSidebar à droite (jvFilters). L'ancienne barre
+  // de filtres inline (Du/au/Journal/Filtrer) faisait doublon → retirée.
 
   // Rechargement — mémoïsé avec useCallback pour éviter les re-exécutions inutiles de l'useEffect
   const reloadData = useCallback(async () => {
@@ -380,14 +381,8 @@ const JournalsPage: React.FC = () => {
       ? dbEntries
       : dbEntries.filter((e: any) => String(e.journal || '').toUpperCase().trim() === journalCode);
 
-    // Appliquer le filtre de date (valeurs appliquées)
-    if (appliedDateFrom) {
-      filtered = filtered.filter((e: any) => (e.date || '') >= appliedDateFrom);
-    }
-    if (appliedDateTo) {
-      filtered = filtered.filter((e: any) => (e.date || '') <= appliedDateTo);
-    }
-
+    // NB : le filtrage par date/journal/compte/… est appliqué en aval par jvMatch
+    // (barre latérale) sur les lignes aplaties → pas de double filtrage ici.
     const result: EcritureJournal[] = [];
     for (const entry of filtered) {
       if (!entry.lines || entry.lines.length === 0) continue;
@@ -412,23 +407,29 @@ const JournalsPage: React.FC = () => {
     return result;
   };
 
-  // Totaux dynamiques pour le journal sélectionné
+  // Source UNIQUE de la vue journal : lignes du journal sélectionné APRÈS filtres de
+  // la barre latérale (jvMatch). Table, totaux et récapitulatif en découlent tous.
+  const journalViewRows = useMemo(
+    () => getEcrituresJournal(selectedJournal?.code || 'TOUS').filter(jvMatch),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [dbEntries, selectedJournal, jvFilters, pieceNumbers]
+  );
+
+  // Totaux dynamiques (reflètent les filtres actifs, y c. le compte)
   const selectedJournalTotals = useMemo(() => {
-    const ecritures = getEcrituresJournal(selectedJournal?.code || 'TOUS');
     let totalDebit = 0;
     let totalCredit = 0;
-    for (const e of ecritures) {
+    for (const e of journalViewRows) {
       totalDebit += parseFloat(e.debit?.replace(/\s/g, '').replace(',', '.') || '0');
       totalCredit += parseFloat(e.credit?.replace(/\s/g, '').replace(',', '.') || '0');
     }
     return { totalDebit, totalCredit, balanced: Math.abs(totalDebit - totalCredit) < 0.01 };
-  }, [dbEntries, selectedJournal]);
+  }, [journalViewRows]);
 
-  // Récapitulatif par compte — calculé dynamiquement
+  // Récapitulatif par compte — sur les lignes filtrées
   const recapParCompte = useMemo(() => {
-    const ecritures = getEcrituresJournal(selectedJournal?.code || 'TOUS');
     const compteMap: Record<string, { libelle: string; debit: number; credit: number }> = {};
-    for (const e of ecritures) {
+    for (const e of journalViewRows) {
       if (!e.compte) continue;
       if (!compteMap[e.compte]) {
         compteMap[e.compte] = { libelle: e.compteLib || '', debit: 0, credit: 0 };
@@ -450,9 +451,6 @@ const JournalsPage: React.FC = () => {
         };
       });
   }, [dbEntries, selectedJournal]);
-
-  // Filtre journal dans la vue journal-view (contrôlé)
-  const [journalViewFilter, setJournalViewFilter] = useState('');
 
   // Centres analytiques — chargés depuis l'adapter (table 'costCenters' ou 'analytique')
   const [costCenters, setCostCenters] = useState<Array<{ code: string; libelle: string }>>([]);
@@ -1101,52 +1099,8 @@ const JournalsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Ligne 2: Filtres + Totaux */}
-                  <div className="flex items-center justify-between px-3 pb-2 border-t border-[var(--color-border)] pt-2">
-                    {/* Filtres à gauche */}
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">Du</label>
-                        <input
-                          type="date"
-                          value={dateFrom}
-                          onChange={e => setDateFrom(e.target.value)}
-                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">au</label>
-                        <input
-                          type="date"
-                          value={dateTo}
-                          onChange={e => setDateTo(e.target.value)}
-                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <label className="text-sm font-medium text-[var(--color-text-secondary)]">{t('accounting.journal')}</label>
-                        <select
-                          value={journalViewFilter}
-                          onChange={e => setJournalViewFilter(e.target.value)}
-                          className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                        >
-                          <option value="">&lt;tout&gt;</option>
-                          {journaux.map(j => (
-                            <option key={j.code} value={j.code}>{j.code}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setAppliedDateFrom(dateFrom);
-                          setAppliedDateTo(dateTo);
-                        }}
-                        className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] transition-colors font-medium"
-                      >
-                        Filtrer
-                      </button>
-                    </div>
-
+                  {/* Ligne 2: Totaux (le filtrage se fait via la barre latérale à droite) */}
+                  <div className="flex items-center justify-end px-3 pb-2 border-t border-[var(--color-border)] pt-2">
                     {/* Totaux à droite */}
                     <div className="flex items-center space-x-6">
                       <div className="flex items-center space-x-2 bg-[var(--color-error-light)] px-3 py-2 rounded-lg">
@@ -1209,10 +1163,7 @@ const JournalsPage: React.FC = () => {
                   {/* Table des écritures avec DataTable */}
                   <DataTable
                     columns={ecrituresColumns as unknown as import('../../components/ui/DataTable').Column<Record<string, unknown>>[]}
-                    data={(journalViewFilter
-                      ? getEcrituresJournal(journalViewFilter)
-                      : getEcrituresJournal(selectedJournal?.code || 'TOUS')
-                    ).filter(jvMatch) as unknown as Record<string, unknown>[]}
+                    data={journalViewRows as unknown as Record<string, unknown>[]}
                     pageSize={15}
                     searchable={true}
                     exportable={true}
