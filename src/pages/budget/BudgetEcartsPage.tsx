@@ -24,6 +24,14 @@ const BudgetEcartsPage: React.FC = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleExpand = (code: string) => setExpanded(prev => {
+    const n = new Set(prev); n.has(code) ? n.delete(code) : n.add(code); return n;
+  });
+  // Comptes composant l'écart d'une nature (2 chiffres) — drill-down du waterfall.
+  const detailForNature = (code: string) =>
+    rows.filter(r => r.account_code.slice(0, 2) === code)
+      .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart));
 
   useEffect(() => {
     let cancelled = false;
@@ -169,18 +177,31 @@ const BudgetEcartsPage: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm"><span className="text-gray-600">Budget total</span><span className="font-semibold">{formatCurrency(totals.budget)}</span></div>
           {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q)).slice(0, 10).map(n => (
-            <div key={n.code} className="flex items-center gap-3">
-              <span className="text-xs font-mono text-gray-500 w-8">{n.code}</span>
-              <div className="flex-1 h-5 bg-gray-100 rounded relative overflow-hidden">
-                <div className="absolute top-0 bottom-0" style={{
-                  left: n.ecart >= 0 ? '50%' : undefined, right: n.ecart < 0 ? '50%' : undefined,
-                  width: `${Math.min(50, (Math.abs(n.ecart) / (totals.budget || 1)) * 100 * 3)}%`,
-                  background: n.ecart >= 0 ? 'rgba(21,128,61,.6)' : 'rgba(192,50,43,.6)',
-                }} />
-                <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300" />
+            <React.Fragment key={n.code}>
+              <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => toggleExpand(n.code)} title="Voir le détail par compte">
+                <span className="text-xs font-mono text-gray-500 w-8">{expanded.has(n.code) ? '▾' : '▸'} {n.code}</span>
+                <div className="flex-1 h-5 bg-gray-100 rounded relative overflow-hidden">
+                  <div className="absolute top-0 bottom-0" style={{
+                    left: n.ecart >= 0 ? '50%' : undefined, right: n.ecart < 0 ? '50%' : undefined,
+                    width: `${Math.min(50, (Math.abs(n.ecart) / (totals.budget || 1)) * 100 * 3)}%`,
+                    background: n.ecart >= 0 ? 'rgba(21,128,61,.6)' : 'rgba(192,50,43,.6)',
+                  }} />
+                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300" />
+                </div>
+                <span className={`text-xs font-medium w-28 text-right ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</span>
               </div>
-              <span className={`text-xs font-medium w-28 text-right ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</span>
-            </div>
+              {expanded.has(n.code) && (
+                <div className="ml-8 mb-1 border-l-2 border-gray-100 pl-3">
+                  {detailForNature(n.code).map(d => (
+                    <div key={d.account_code} className="flex items-center justify-between text-[11px] py-0.5">
+                      <span className="font-mono text-gray-500">{d.account_code}</span>
+                      <span className="text-gray-400">B {formatCurrency(d.budget)} · R {formatCurrency(d.realise)}</span>
+                      <span className={`font-medium w-24 text-right ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </React.Fragment>
           ))}
           <div className="flex items-center justify-between text-sm border-t border-[var(--color-border)] pt-2 mt-2">
             <span className="text-gray-700 font-semibold">Réalisé total</span>
