@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import {
@@ -92,6 +92,7 @@ interface ReportModal {
 const ReportingSyscohada: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -137,8 +138,8 @@ const ReportingSyscohada: React.FC = () => {
     ];
     const result: SyscohadaReport[] = [];
     for (const fy of fiscalYears) {
-      const fyStatus = (fy as unknown as Record<string, string>).status || 'active';
-      const status: SyscohadaReport['status'] = fyStatus === 'closed' ? 'approved' : 'draft';
+      // Le modèle d'exercice expose `isClosed` (booléen), pas un champ `status` string.
+      const status: SyscohadaReport['status'] = fy.isClosed ? 'approved' : 'draft';
       for (const t of types) {
         result.push({
           id: `${fy.id}-${t.type}`,
@@ -209,16 +210,20 @@ const ReportingSyscohada: React.FC = () => {
       { code: 'GN', name: 'Guinée', currency: 'GNF', deadline: '30 avril', reqs: ['DGI'] },
     ];
 
-    return countries.map(c => ({
-      code: c.code,
-      name: c.name,
-      currency: c.currency,
-      filingDeadline: c.deadline,
-      localRequirements: c.reqs,
-      status: 'active' as const,
-      revenue: c.code === defaultCountry ? totalCA : 0,
-      entities: entitiesByCountry[c.code] || 0,
-    }));
+    // On n'affiche QUE les pays où une entité est réellement enregistrée (pas les 17 pays
+    // OHADA en dur, dont 16 seraient à zéro et donneraient une fausse couverture multi-pays).
+    return countries
+      .map(c => ({
+        code: c.code,
+        name: c.name,
+        currency: c.currency,
+        filingDeadline: c.deadline,
+        localRequirements: c.reqs,
+        status: 'active' as const,
+        revenue: c.code === defaultCountry ? totalCA : 0,
+        entities: entitiesByCountry[c.code] || 0,
+      }))
+      .filter(c => c.entities > 0);
   }, [companies, totalCA]);
 
   // Filter reports based on search and filters
@@ -329,11 +334,15 @@ const ReportingSyscohada: React.FC = () => {
           icon={Globe}
           action={
             <div className="flex gap-3">
-              <ElegantButton variant="outline" icon={RefreshCw}>
+              <ElegantButton
+                variant="outline"
+                icon={RefreshCw}
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['syscohada-fiscal-years'] });
+                  queryClient.invalidateQueries({ queryKey: ['syscohada-journal-entries'] });
+                }}
+              >
                 Actualiser
-              </ElegantButton>
-              <ElegantButton variant="outline" icon={Download}>
-                Package OHADA
               </ElegantButton>
               <ElegantButton
                 variant="primary"
@@ -360,8 +369,8 @@ const ReportingSyscohada: React.FC = () => {
 
           <KPICard
             title="Conformité OHADA"
-            value={formatPercentage(aggregatedData.complianceRate)}
-            subtitle={`${SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length}/${SYSCOHADA_STANDARDS.length} articles`}
+            value={formatPercentage(aggregatedData.complianceRate * 100)}
+            subtitle={`${SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length}/${SYSCOHADA_STANDARDS.length} articles (indicatif)`}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -566,11 +575,9 @@ const ReportingSyscohada: React.FC = () => {
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
                                 className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
+                                aria-label="Consulter"
                               >
                                 <Eye className="h-4 w-4" />
-                              </button>
-                              <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Télécharger">
-                                <Download className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
@@ -607,6 +614,14 @@ const ReportingSyscohada: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">
                 Conformité aux Articles SYSCOHADA
               </h3>
+
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Référentiel indicatif : articles du SYSCOHADA révisé applicables. Les statuts de conformité
+                  sont fournis à titre de repère et ne constituent pas une évaluation auditée.
+                </span>
+              </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -761,7 +776,7 @@ const ReportingSyscohada: React.FC = () => {
                           <div className="flex justify-between">
                             <span className="text-sm text-neutral-500">Échéance:</span>
                             <span className="font-medium text-neutral-700">
-                              {formatDate(country.filingDeadline)}
+                              {country.filingDeadline}
                             </span>
                           </div>
                         </div>

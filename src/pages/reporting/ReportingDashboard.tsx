@@ -63,30 +63,21 @@ const ReportingDashboard: React.FC = () => {
   const [selectedView, setSelectedView] = useState<'overview' | 'reports' | 'dashboards'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
 
-  // Load fiscal years from adapter — filtered by selectedPeriod where applicable
+  // Load fiscal years from adapter.
+  // NB : on NE filtre PAS par fenêtre calendaire glissante (7/30/90 j depuis aujourd'hui) :
+  // les données comptables sont datées dans leurs exercices (souvent antérieurs), un cutoff
+  // « N derniers jours » les masquerait entièrement (KPI à 0, rapports jamais générés).
   const { data: fiscalYears = [], isLoading: fyLoading, isError: fyError } = useQuery({
-    queryKey: ['dashboard-fiscal-years', selectedPeriod],
-    queryFn: async () => {
-      const all = await adapter.getAll<any>('fiscalYears');
-      if (selectedPeriod === 'all') return all;
-      const now = new Date();
-      const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
-      const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
-      return (all as Array<any>).filter(fy =>
-        (fy.endDate ?? fy.startDate ?? '') >= cutoff
-      );
-    },
+    queryKey: ['dashboard-fiscal-years'],
+    queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
-  // Load journal entries filtered by selectedPeriod
+  // Load journal entries (hors brouillons) — sans troncature calendaire glissante.
   const { data: journalEntries = [], isLoading: jeLoading, isError: jeError } = useQuery({
-    queryKey: ['dashboard-journal-entries', selectedPeriod],
+    queryKey: ['dashboard-journal-entries'],
     queryFn: async () => {
       const all = await adapter.getAll<any>('journalEntries');
-      const now = new Date();
-      const cutoffDays = selectedPeriod === '7d' ? 7 : selectedPeriod === '30d' ? 30 : 90;
-      const cutoff = new Date(now.getTime() - cutoffDays * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
-      return (all as Array<any>).filter(e => (e.date ?? '') >= cutoff);
+      return (all as Array<any>).filter(e => e.status !== 'draft');
     },
   });
 

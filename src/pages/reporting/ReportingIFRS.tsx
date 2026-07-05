@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
 import { motion } from 'framer-motion';
 import { FeatureGate, UpgradeBanner, useFeatureAccess } from '../../components/gating';
@@ -92,6 +92,7 @@ interface ReportModal {
 const ReportingIFRS: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -152,22 +153,23 @@ const ReportingIFRS: React.FC = () => {
   const totalRevenue = useMemo(() => {
     let revenue = 0;
     for (const e of journalEntries) {
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('7')) {
-          revenue += l.credit - l.debit;
+      for (const l of (e.lines || [])) {
+        if (l.accountCode?.startsWith('7')) {
+          revenue += (l.credit || 0) - (l.debit || 0);
         }
       }
     }
     return revenue;
   }, [journalEntries]);
 
-  // Compute total assets from class 2 entries
+  // Compute total assets = soldes débiteurs des classes 2 à 5 (actif immobilisé + circulant + trésorerie)
   const totalAssets = useMemo(() => {
     let assets = 0;
     for (const e of journalEntries) {
-      for (const l of e.lines) {
-        if (l.accountCode.startsWith('2')) {
-          assets += l.debit - l.credit;
+      for (const l of (e.lines || [])) {
+        const code = l.accountCode || '';
+        if (code.startsWith('2') || code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+          assets += (l.debit || 0) - (l.credit || 0);
         }
       }
     }
@@ -292,11 +294,15 @@ const ReportingIFRS: React.FC = () => {
           icon={FileText}
           action={
             <div className="flex gap-3">
-              <ElegantButton variant="outline" icon={RefreshCw}>
+              <ElegantButton
+                variant="outline"
+                icon={RefreshCw}
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['ifrs-fiscal-years'] });
+                  queryClient.invalidateQueries({ queryKey: ['ifrs-journal-entries'] });
+                }}
+              >
                 Actualiser
-              </ElegantButton>
-              <ElegantButton variant="outline" icon={Download}>
-                Package Complet
               </ElegantButton>
               <ElegantButton
                 variant="primary"
@@ -323,8 +329,8 @@ const ReportingIFRS: React.FC = () => {
 
           <KPICard
             title="Conformité Normes"
-            value={formatPercentage(aggregatedData.complianceRate)}
-            subtitle={`${IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length}/${IFRS_STANDARDS.length} normes`}
+            value={formatPercentage(aggregatedData.complianceRate * 100)}
+            subtitle={`${IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length}/${IFRS_STANDARDS.length} normes (indicatif)`}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -548,11 +554,9 @@ const ReportingIFRS: React.FC = () => {
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
                                 className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
+                                aria-label="Consulter"
                               >
                                 <Eye className="h-4 w-4" />
-                              </button>
-                              <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Télécharger">
-                                <Download className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
@@ -589,6 +593,14 @@ const ReportingIFRS: React.FC = () => {
               <h3 className="text-lg font-semibold text-neutral-800">
                 Conformité aux Normes IFRS
               </h3>
+
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>
+                  Référentiel indicatif : liste des normes IFRS applicables. Les statuts de conformité
+                  et dates de revue sont fournis à titre de repère et ne constituent pas une évaluation auditée.
+                </span>
+              </div>
 
               <div className="overflow-x-auto">
                 <table className="w-full">
