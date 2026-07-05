@@ -27,7 +27,10 @@ const EcartsConversionPage: React.FC = () => {
         if (entry.status !== 'validated' && entry.status !== 'posted') continue;
         for (const line of ((entry as any).lines || [])) {
           const code = line.accountCode || '';
-          if (code.startsWith('476') || code.startsWith('477')) {
+          // SYSCOHADA révisé : 478 = écarts de conversion (4784 actif / 4786
+          // passif). 476/477 = charges/produits constatés d'avance (CCA/PCA),
+          // à NE PAS confondre — c'était la source du bug.
+          if (code.startsWith('478')) {
             ecartLines.push({
               id: `${entry.id}-${line.id}`,
               entryId: entry.id,
@@ -65,8 +68,10 @@ const EcartsConversionPage: React.FC = () => {
     setProcessing(false);
   };
 
-  const total476 = ecarts.filter(e => e.compte.startsWith('476')).reduce((s, e) => s + e.debit - e.credit, 0);
-  const total477 = ecarts.filter(e => e.compte.startsWith('477')).reduce((s, e) => s + e.credit - e.debit, 0);
+  // 4784 = écart de conversion ACTIF (perte latente, débiteur) ; 4786 = écart
+  // de conversion PASSIF (gain latent, créditeur).
+  const total476 = ecarts.filter(e => e.compte.startsWith('4784')).reduce((s, e) => s + e.debit - e.credit, 0);
+  const total477 = ecarts.filter(e => e.compte.startsWith('4786')).reduce((s, e) => s + e.credit - e.debit, 0);
 
   return (
     <FeatureGuard module="ecarts_conversion">
@@ -81,7 +86,7 @@ const EcartsConversionPage: React.FC = () => {
                 <ArrowLeftRight className="w-5 h-5 text-gray-600" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Écarts de Conversion (476 / 477)</h1>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">Écarts de Conversion (4784 / 4786)</h1>
                 <p className="text-sm text-[var(--color-text-tertiary)]">Gestion et extourne des écarts de conversion — SYSCOHADA</p>
               </div>
             </div>
@@ -104,11 +109,11 @@ const EcartsConversionPage: React.FC = () => {
         {/* KPI */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts actif (476)</p>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts actif (4784)</p>
             <p className="text-xl font-bold text-[var(--color-primary)]">{formatCurrency(Math.abs(total476))}</p>
           </div>
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts passif (477)</p>
+            <p className="text-xs text-[var(--color-text-tertiary)]">Écarts passif (4786)</p>
             <p className="text-xl font-bold text-[var(--color-primary)]">{formatCurrency(Math.abs(total477))}</p>
           </div>
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
@@ -125,7 +130,7 @@ const EcartsConversionPage: React.FC = () => {
             <div className="p-12 text-center text-[var(--color-text-tertiary)]">
               <ArrowLeftRight className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <p className="font-medium">Aucun écart de conversion</p>
-              <p className="text-sm mt-1">Les comptes 476 et 477 ne contiennent aucune écriture</p>
+              <p className="text-sm mt-1">Les comptes 4784 et 4786 ne contiennent aucune écriture</p>
             </div>
           ) : (
             <table className="w-full">
@@ -145,7 +150,7 @@ const EcartsConversionPage: React.FC = () => {
                     <td className="p-3 text-sm font-mono">{e.entryNumber || '—'}</td>
                     <td className="p-3 text-sm">{e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—'}</td>
                     <td className="p-3 text-sm">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${e.compte.startsWith('476') ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${e.compte.startsWith('4784') ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
                         {e.compte}
                       </span>
                     </td>

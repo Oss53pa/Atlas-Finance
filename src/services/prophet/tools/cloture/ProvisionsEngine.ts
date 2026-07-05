@@ -37,19 +37,25 @@ function calculerProvisions(config: ConfigProvisions) {
   let provCreances = 0;
   const tranches = config.creances.tranches || TRANCHES_DEFAUT;
 
+  // Base de dépréciation SYSCOHADA = montant HT (la TVA est récupérable). On
+  // utilise `montant_ht` s'il est fourni, sinon on dérive du TTC via le taux de
+  // TVA de la config (défaut 0 = montant supposé déjà HT — pas d'hypothèse forcée).
+  const tauxTVA = Number((config.creances as any).taux_tva ?? 0);
+  const baseHT = (c: any) => Number(c.montant_ht ?? (Number(c.montant) / (1 + tauxTVA)));
+
   if (config.creances.methode === 'balance_agee') {
     for (const creance of config.creances.creances) {
       const tranche = tranches.find(t => creance.jours_retard >= t.jours_min && creance.jours_retard <= t.jours_max);
       if (tranche && tranche.taux_provision > 0) {
-        provCreances += creance.montant * tranche.taux_provision;
+        provCreances += baseHT(creance) * tranche.taux_provision;
       }
     }
   } else if (config.creances.methode === 'taux_historique') {
-    const totalCreances = config.creances.creances.reduce((a, c) => a + c.montant, 0);
+    const totalCreances = config.creances.creances.reduce((a, c) => a + baseHT(c), 0);
     provCreances = totalCreances * (config.creances.taux_historique ?? 0.05);
   } else {
     // Individuelle — on prend les créances > 90 jours
-    provCreances = config.creances.creances.filter(c => c.jours_retard > 90).reduce((a, c) => a + c.montant, 0);
+    provCreances = config.creances.creances.filter(c => c.jours_retard > 90).reduce((a, c) => a + baseHT(c), 0);
   }
 
   provCreances = Math.round(provCreances);
@@ -89,11 +95,11 @@ function calculerProvisions(config: ConfigProvisions) {
 
   if (provStocks > existantStocks) {
     const dotation = provStocks - existantStocks;
-    ecrituresDotation.push({ compte_debit: '6593', compte_credit: '39', libelle: `Dotation dépréciation stocks (SYSCOHADA art. 41)`, montant: dotation });
+    ecrituresDotation.push({ compte_debit: '6593', compte_credit: '391', libelle: `Dotation dépréciation stocks (SYSCOHADA art. 41)`, montant: dotation });
     totalNouvelles += dotation;
   } else if (provStocks < existantStocks) {
     const reprise = existantStocks - provStocks;
-    ecrituresReprise.push({ compte_debit: '39', compte_credit: '7593', libelle: `Reprise dépréciation stocks`, montant: reprise });
+    ecrituresReprise.push({ compte_debit: '391', compte_credit: '7593', libelle: `Reprise dépréciation stocks`, montant: reprise });
     totalReprises += reprise;
   }
   details.push({ categorie: 'Stocks (39X)', montant_nouveau: provStocks, montant_existant: existantStocks, dotation: Math.max(0, provStocks - existantStocks), reprise: Math.max(0, existantStocks - provStocks) });

@@ -208,7 +208,7 @@ export async function recordForeignCurrencyPayment(
 // ============================================================================
 
 /**
- * Reverse conversion differences (476/477) at start of new fiscal year.
+ * Reverse conversion differences (478 : 4784 actif / 4786 passif) at start of new fiscal year.
  * This implements the SYSCOHADA requirement to extourne écarts de conversion
  * at January 1st of N+1.
  */
@@ -236,9 +236,15 @@ export async function extourneEcartsConversion(
 
     // Only reverse entries from the previous year (before the extourne date)
     if (entryData.date >= dateExtourne) continue;
+    // Idempotence : ne pas ré-extourner une écriture déjà contrepassée, ni une
+    // écriture d'extourne elle-même (qui contient aussi des lignes 478).
+    if ((entryData as any).reversed) continue;
+    const ref = String((entryData as any).reference || '');
+    if (ref.startsWith('EXT-') || ref.startsWith('EXTOURNE-')) continue;
 
+    // SYSCOHADA révisé : 478 = écarts de conversion (4784 actif / 4786 passif).
     const conversionLines = (entryData.lines || []).filter(
-      l => l.accountCode.startsWith('476') || l.accountCode.startsWith('477')
+      l => l.accountCode.startsWith('478')
     );
 
     if (conversionLines.length > 0) {
@@ -278,6 +284,8 @@ export async function extourneEcartsConversion(
     });
 
     reversalIds.push(reversal.id);
+    // Marque l'originale comme extournée (idempotence : évite la double extourne).
+    await adapter.update('journalEntries', ce.entryId, { reversed: true, reversedAt: dateExtourne, reversedBy: 'system' });
   }
 
   return reversalIds;

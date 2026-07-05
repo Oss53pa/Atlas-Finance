@@ -412,10 +412,22 @@ export const closureOrchestrator = {
       // 6. REGULARISATIONS — Régularisations charges à payer (CCA, FNP, FAE, PCA)
       // -----------------------------------------------------------------------
       case 'REGULARISATIONS': {
-        // Auto-extourne des régularisations de l'exercice précédent
+        // Extourne des régularisations de N à l'OUVERTURE de N+1 (1er jour de
+        // l'exercice suivant), et NON au 1er jour de N : la contrepassation doit
+        // rattacher la charge/produit à N+1, donc être POSTÉRIEURE à la régul.
+        const allFY = await ctx.adapter.getAll<{ id: string; startDate: string; endDate: string }>('fiscalYears');
+        const nextFY = allFY
+          .filter(f => f.startDate > fy.endDate)
+          .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
+        let dateExtourne = nextFY?.startDate;
+        if (!dateExtourne) {
+          const d = new Date(fy.endDate);
+          d.setDate(d.getDate() + 1);
+          dateExtourne = d.toISOString().split('T')[0];
+        }
         const result = await genererExtournes(ctx.adapter, {
           exerciceClotureId: ctx.exerciceId,
-          dateExtourne: fy.startDate,
+          dateExtourne,
         });
         await ctx.adapter.logAudit({
           action: 'CLOSURE_STEP_REGULARISATIONS',

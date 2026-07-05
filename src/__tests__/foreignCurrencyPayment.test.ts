@@ -113,7 +113,7 @@ describe('foreignCurrencyPaymentService', () => {
         label: 'Écart de conversion actif',
         status: 'validated',
         lines: [
-          { id: crypto.randomUUID(), accountCode: '476', accountName: 'Écart conversion actif', label: 'ECA', debit: 500000, credit: 0 },
+          { id: crypto.randomUUID(), accountCode: '4784', accountName: 'Écart conversion actif', label: 'ECA', debit: 500000, credit: 0 },
           { id: crypto.randomUUID(), accountCode: '401', accountName: 'Fournisseur', label: 'ECA', debit: 0, credit: 500000 },
         ],
         totalDebit: 500000,

@@ -133,7 +133,8 @@ export async function genererExtournes(adapter: DataAdapter, request: ExtourneRe
       date: dateExtourne,
       reference: `EXTOURNE-${original.entryNumber}`,
       label: `Extourne ${type} - ${original.label}`,
-      status: 'draft' as const,
+      // 'validated' : l'extourne doit affecter l'exercice d'ouverture N+1.
+      status: 'validated' as const,
       lines: reversedLines,
       reversalOf: original.id,
       reversalReason: `Extourne automatique regularisation ${type}`,
