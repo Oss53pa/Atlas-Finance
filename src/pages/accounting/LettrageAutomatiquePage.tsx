@@ -3,7 +3,7 @@ import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useData } from '../../contexts/DataContext';
-import { autoLettrage, applyLettrage } from '../../services/lettrageService';
+import { autoLettrage, applyLettrage, applyManualLettrage } from '../../services/lettrageService';
 import { useToast } from '../../hooks/useToast';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import {
@@ -34,6 +34,9 @@ interface LettrageMatch {
   similarity_score?: number;
   pattern_type?: string;
   learning_feedback?: 'positive' | 'negative';
+  // Références des deux lignes à lettrer (pour appliquer LA paire, pas un lettrage global).
+  debitRef?: { entryId: string; lineId: string };
+  creditRef?: { entryId: string; lineId: string };
 }
 
 interface MLFactor {
@@ -75,6 +78,8 @@ const LettrageAutomatiquePage: React.FC = () => {
   const reconcilableLines = useMemo(() => {
     const lines: Array<{
       id: string;
+      entryId: string;
+      lineId: string;
       accountCode: string;
       label: string;
       date: string;
@@ -92,6 +97,8 @@ const LettrageAutomatiquePage: React.FC = () => {
         if (!line.accountCode.startsWith('41') && !line.accountCode.startsWith('40')) continue;
         lines.push({
           id: `${entry.id}-${line.id}`,
+          entryId: entry.id,
+          lineId: line.id,
           accountCode: line.accountCode,
           label: line.label || entry.label,
           date: entry.date,
@@ -143,6 +150,8 @@ const LettrageAutomatiquePage: React.FC = () => {
             reference: d.reference,
             date: new Date(d.date),
             description: `${d.label} / ${c.label}`,
+            debitRef: { entryId: d.entryId, lineId: d.lineId },
+            creditRef: { entryId: c.entryId, lineId: c.lineId },
           });
           usedCredits.add(c.id);
           break;
@@ -156,6 +165,8 @@ const LettrageAutomatiquePage: React.FC = () => {
             reference: d.reference,
             date: new Date(d.date),
             description: `${d.label} / ${c.label}`,
+            debitRef: { entryId: d.entryId, lineId: d.lineId },
+            creditRef: { entryId: c.entryId, lineId: c.lineId },
           });
           usedCredits.add(c.id);
           break;
@@ -166,6 +177,32 @@ const LettrageAutomatiquePage: React.FC = () => {
   }, [reconcilableLines]);
 
   const { toast } = useToast();
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
+  const [validatingId, setValidatingId] = useState<string | null>(null);
+
+  const reload = async () => {
+    const e = await adapter.getAll('journalEntries');
+    setAllEntries(e as Record<string, unknown>[]);
+  };
+
+  // Applique LA paire affichée (pas un lettrage global) : écrit un code partagé dans
+  // journal_lines via applyManualLettrage (qui vérifie l'équilibre débit=crédit).
+  const validateMatch = async (m: LettrageMatch) => {
+    if (!m.debitRef || !m.creditRef) return;
+    setValidatingId(m.id);
+    try {
+      const code = await applyManualLettrage(adapter, [m.debitRef, m.creditRef]);
+      await reload();
+      toast.success(`Lettrage ${code} appliqué`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Lettrage impossible');
+    } finally {
+      setValidatingId(null);
+    }
+  };
+
+  // Rejeter = écarter la suggestion de la liste (décision de session, pas une donnée métier).
+  const rejectMatch = (id: string) => setRejectedIds(prev => new Set(prev).add(id));
 
   const runAutoLettrage = async () => {
     setIsRunning(true);
@@ -173,6 +210,7 @@ const LettrageAutomatiquePage: React.FC = () => {
       const result = await autoLettrage(adapter, { tolerance: 1 });
       if (result.matches.length > 0) {
         const applied = await applyLettrage(adapter, result.matches);
+        await reload();
         toast.success(`${applied} écriture(s) lettrée(s) automatiquement`);
       } else {
         toast.warning('Aucune correspondance trouvée');
@@ -335,7 +373,7 @@ const LettrageAutomatiquePage: React.FC = () => {
           </div>
 
           <div className="space-y-4">
-            {matches.map((match) => (
+            {matches.filter(m => !rejectedIds.has(m.id)).map((match) => (
               <motion.div
                 key={match.id}
                 initial={{ opacity: 0 }}
@@ -389,12 +427,15 @@ const LettrageAutomatiquePage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    <button onClick={() => {
-                      runAutoLettrage();
-                    }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-                      Valider
+                    <button
+                      onClick={() => validateMatch(match)}
+                      disabled={validatingId === match.id}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm disabled:opacity-50">
+                      {validatingId === match.id ? 'Lettrage…' : 'Valider'}
                     </button>
-                    <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm">
+                    <button
+                      onClick={() => rejectMatch(match.id)}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                       Rejeter
                     </button>
                   </div>
@@ -403,7 +444,7 @@ const LettrageAutomatiquePage: React.FC = () => {
             ))}
           </div>
 
-          {matches.length === 0 && (
+          {matches.filter(m => !rejectedIds.has(m.id)).length === 0 && (
             <div className="text-center py-12">
               <Link className="h-12 w-12 text-gray-700 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">

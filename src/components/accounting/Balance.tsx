@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
@@ -47,6 +48,7 @@ const CLASSE_LABELS: Record<string, string> = {
 
 const Balance: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const fmt = useMoneyFormat();
   const { adapter } = useData();
   const { printRef, handlePrint } = usePrintReport({
@@ -1520,7 +1522,7 @@ const Balance: React.FC = () => {
                 </span>
               </div>
               <div className="flex space-x-2">
-                <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm">
+                <button onClick={() => navigate('/closures/periodic')} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm">
                   Valider la clôture
                 </button>
                 <button className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm">
@@ -1734,7 +1736,7 @@ const Balance: React.FC = () => {
                     </div>
 
                     <div className="mt-3 pt-3 border-t">
-                      <button className="w-full px-3 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm font-semibold">
+                      <button onClick={() => navigate('/closures/periodic')} className="w-full px-3 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] text-sm font-semibold">
                         Valider la clôture
                       </button>
                     </div>
