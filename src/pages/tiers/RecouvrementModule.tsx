@@ -1351,6 +1351,34 @@ const ContentieuxTab = ({
     }>;
   }}>({});
 
+  // Persistance du suivi + workflow judiciaire (settings.recovery_workflow) — fini le
+  // useState volatil : les etapes/commentaires survivent au rechargement.
+  const wfLoadedRef = React.useRef(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await adapter.getById<{ value: string }>('settings', 'recovery_workflow');
+        if (s?.value) {
+          const p = JSON.parse(s.value);
+          if (Array.isArray(p.suiviEtapes)) setSuiviEtapes(p.suiviEtapes);
+          if (p.workflowData && typeof p.workflowData === 'object') setWorkflowData(p.workflowData);
+        }
+      } catch { /* ignore */ }
+      wfLoadedRef.current = true;
+    })();
+  }, [adapter]);
+  useEffect(() => {
+    if (!wfLoadedRef.current) return;
+    (async () => {
+      try {
+        const value = JSON.stringify({ suiviEtapes, workflowData });
+        const cur = await adapter.getById('settings', 'recovery_workflow').catch(() => null);
+        if (cur) await adapter.update('settings', 'recovery_workflow', { value } as any);
+        else await adapter.create('settings', { key: 'recovery_workflow', value } as any);
+      } catch { /* best-effort */ }
+    })();
+  }, [suiviEtapes, workflowData, adapter]);
+
   // Fonction pour initialiser le workflow d'un dossier
   const initWorkflowForDossier = (dossierId: string) => {
     if (!workflowData[dossierId]) {
