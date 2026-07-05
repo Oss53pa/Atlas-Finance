@@ -35,8 +35,8 @@ export const SpacerBlockRenderer: React.FC<{ block: SpacerBlock }> = ({ block })
 // ---- Cover Page ----
 const bgStyles: Record<string, string> = {
   'corporate-classic': 'bg-white border-l-8 border-neutral-900',
-  'executive-dark': 'text-neutral-900 text-white',
-  'finance-modern': 'bg-gradient-to-br from-blue-600 to-blue-900 text-white',
+  'executive-dark': 'bg-neutral-900 text-white',
+  'finance-modern': 'bg-gradient-to-br from-[#235A6E] to-[#123540] text-white',
   'formal': 'bg-white border-2 border-gray-800',
   'custom': 'bg-white',
 };

@@ -88,7 +88,7 @@ export default function PROPHETAnalysisBlockRenderer({ block }: Props) {
       {!result && !loading && !error && (
         <p className="text-sm text-neutral-600">
           Cliquez sur « Analyser avec PROPH3T » pour obtenir commentaires, recommandations,
-          prédictions et alertes générés par l\'IA.
+          prédictions et alertes générés par l&apos;IA.
         </p>
       )}
 

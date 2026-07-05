@@ -65,7 +65,9 @@ const TopBar: React.FC = () => {
 
   const handleExport = useCallback(() => {
     if (!doc) return;
-    exportToPDF(doc).catch(() => {});
+    exportToPDF(doc).catch((err) => {
+      toast.error(err?.message || "Échec de l'export PDF");
+    });
   }, [doc]);
 
   if (!doc) return null;
