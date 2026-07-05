@@ -181,8 +181,12 @@ const Immobilisations: React.FC = () => {
     return dbAssets.map(asset => {
       const taux = asset.usefulLifeYears > 0 ? 100 / asset.usefulLifeYears : 0;
       const annuel = asset.usefulLifeYears > 0 ? (asset.acquisitionValue - asset.residualValue) / asset.usefulLifeYears : 0;
-      const yearsElapsed = Math.max(0, Math.floor((Date.now() - new Date(asset.acquisitionDate).getTime()) / (365.25 * 86400000)));
-      const cumules = Math.min(annuel * yearsElapsed, asset.acquisitionValue - asset.residualValue);
+      // Cumul RÉEL stocké sur la fiche (cohérent avec le reste du module et le
+      // grand livre), et non un recalcul linéaire théorique par l'âge.
+      const cumules = Math.min(
+        Number((asset as any).cumulDepreciation) || 0,
+        asset.acquisitionValue - asset.residualValue,
+      );
       const categorie: 'corporelle' | 'incorporelle' | 'financiere' =
         asset.accountCode.startsWith('20') || asset.accountCode.startsWith('21') ? 'incorporelle' :
         asset.accountCode.startsWith('26') || asset.accountCode.startsWith('27') ? 'financiere' : 'corporelle';

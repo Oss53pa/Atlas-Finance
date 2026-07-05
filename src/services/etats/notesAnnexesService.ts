@@ -128,9 +128,22 @@ function netByAccountPrefix(entries: DBJournalEntry[], prefix: string): number {
 // ============================================================================
 
 async function generateNote2(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
-  // Immobilisations incorporelles (comptes 21x)
-  const valeurBrute = netByAccountPrefix(entries, '21');
-  const amortissements = netByAccountPrefix(entries, '281');
+  // Immobilisations incorporelles (comptes 21x) — amort cumulés = solde
+  // créditeur des comptes miroir 281x (positif), VNC = brut fin − amort.
+  const amortCumul = (prefix281: string) => Math.max(0, -netByAccountPrefix(entries, prefix281));
+  const ligne = (rubrique: string, prefix21: string, prefix281: string) => {
+    const brutFin = netByAccountPrefix(entries, prefix21);
+    const amort = amortCumul(prefix281);
+    return {
+      Rubrique: rubrique,
+      'Valeur brute debut': 0,
+      Augmentations: sumByAccountPrefix(entries, prefix21, 'debit'),
+      Diminutions: sumByAccountPrefix(entries, prefix21, 'credit'),
+      'Valeur brute fin': brutFin,
+      'Amortissements cumules': amort,
+      VNC: money(brutFin).subtract(money(amort)).round(2).toNumber(),
+    };
+  };
   return {
     numero: 2,
     titre: 'Immobilisations incorporelles',
@@ -139,9 +152,10 @@ async function generateNote2(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
       titre: 'Immobilisations incorporelles',
       colonnes: ['Rubrique', 'Valeur brute debut', 'Augmentations', 'Diminutions', 'Valeur brute fin', 'Amortissements cumules', 'VNC'],
       lignes: [
-        { Rubrique: 'Frais d\'etablissement', 'Valeur brute debut': 0, Augmentations: sumByAccountPrefix(entries, '211', 'debit'), Diminutions: sumByAccountPrefix(entries, '211', 'credit'), 'Valeur brute fin': netByAccountPrefix(entries, '211'), 'Amortissements cumules': 0, VNC: 0 },
-        { Rubrique: 'Brevets, licences', 'Valeur brute debut': 0, Augmentations: sumByAccountPrefix(entries, '212', 'debit'), Diminutions: sumByAccountPrefix(entries, '212', 'credit'), 'Valeur brute fin': netByAccountPrefix(entries, '212'), 'Amortissements cumules': 0, VNC: 0 },
-        { Rubrique: 'Fonds commercial', 'Valeur brute debut': 0, Augmentations: sumByAccountPrefix(entries, '215', 'debit'), Diminutions: sumByAccountPrefix(entries, '215', 'credit'), 'Valeur brute fin': netByAccountPrefix(entries, '215'), 'Amortissements cumules': 0, VNC: 0 },
+        ligne('Frais de developpement', '211', '2811'),
+        ligne('Brevets, licences', '212', '2812'),
+        ligne('Logiciels', '213', '2813'),
+        ligne('Fonds commercial', '215', '2815'),
       ],
     }],
     calculsAuto: true,
@@ -153,13 +167,21 @@ async function generateNote3(entries: DBJournalEntry[], assets: DBAsset[]): Prom
   // Immobilisations corporelles (comptes 22x-24x)
   const categories = ['Terrains', 'Constructions', 'Materiel et outillage', 'Materiel de transport', 'Materiel informatique'];
   const prefixes = ['22', '23', '241', '245', '244'];
-  const lignes = categories.map((cat, i) => ({
-    Rubrique: cat,
-    'Nombre': assets.filter(a => a.accountCode.startsWith(prefixes[i])).length,
-    'Valeur brute': assets.filter(a => a.accountCode.startsWith(prefixes[i])).reduce((s, a) => s + a.acquisitionValue, 0),
-    'Acquisitions exercice': sumByAccountPrefix(entries, prefixes[i], 'debit'),
-    'Cessions exercice': sumByAccountPrefix(entries, prefixes[i], 'credit'),
-  }));
+  const lignes = categories.map((cat, i) => {
+    const inCat = assets.filter(a => (a.accountCode || '').startsWith(prefixes[i]));
+    const valeurBrute = inCat.reduce((s, a) => s + (a.acquisitionValue || 0), 0);
+    // Amortissements cumulés RÉELS depuis la fiche (cohérent avec le registre/GL).
+    const amortCumul = inCat.reduce((s, a) => s + (Number((a as any).cumulDepreciation) || 0), 0);
+    return {
+      Rubrique: cat,
+      'Nombre': inCat.length,
+      'Valeur brute': valeurBrute,
+      'Acquisitions exercice': sumByAccountPrefix(entries, prefixes[i], 'debit'),
+      'Cessions exercice': sumByAccountPrefix(entries, prefixes[i], 'credit'),
+      'Amortissements cumules': Math.round(amortCumul),
+      VNC: Math.round(valeurBrute - amortCumul),
+    };
+  });
 
   return {
     numero: 3,
@@ -167,7 +189,7 @@ async function generateNote3(entries: DBJournalEntry[], assets: DBAsset[]): Prom
     contenu: 'Mouvements des immobilisations corporelles et tableau des amortissements.',
     tableaux: [{
       titre: 'Tableau des immobilisations corporelles',
-      colonnes: ['Rubrique', 'Nombre', 'Valeur brute', 'Acquisitions exercice', 'Cessions exercice'],
+      colonnes: ['Rubrique', 'Nombre', 'Valeur brute', 'Acquisitions exercice', 'Cessions exercice', 'Amortissements cumules', 'VNC'],
       lignes,
     }],
     calculsAuto: true,

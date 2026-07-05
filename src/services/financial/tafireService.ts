@@ -137,6 +137,11 @@ export async function calculateTAFIRE(adapter: DataAdapter, fiscalYear?: string)
   const debitClass2 = (() => {
     let total = money(0);
     for (const entry of entries) {
+      // EXCLURE les à-nouveaux : ils portent tout le brut historique de la
+      // classe 2 au débit → sinon les « acquisitions de l'exercice » gonflent
+      // de toute la valeur brute d'ouverture (≈ plusieurs milliards). Seuls les
+      // vrais mouvements d'acquisition de la période comptent.
+      if (entry.journal === 'AN' || entry.journal === 'RAN') continue;
       for (const line of entry.lines) {
         if (line.accountCode.startsWith('2') && !line.accountCode.startsWith('28') && line.debit > 0) {
           total = total.add(money(line.debit));
