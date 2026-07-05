@@ -4,14 +4,15 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTableData } from '../../hooks/useBlockData';
+import { useMoneyFormat } from '../../../../hooks/useMoneyFormat';
 import type { TableBlock, TableColumn } from '../../types';
 
-function formatCell(value: string | number | null, format?: string): string {
+function formatCell(value: string | number | null, format: string | undefined, fmtMoney: (v: number) => string): string {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'string') return value;
   switch (format) {
     case 'currency':
-      return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
+      return fmtMoney(value) + ' FCFA';
     case 'percent':
       return value.toFixed(1) + '%';
     case 'number':
@@ -23,6 +24,7 @@ function formatCell(value: string | number | null, format?: string): string {
 
 const TableBlockRenderer: React.FC<{ block: TableBlock }> = ({ block }) => {
   const { data: liveData, loading } = useTableData(block.source, block.periodOverride);
+  const fmtMoney = useMoneyFormat();
 
   // Use live data if available, otherwise fall back to block's stored data
   const columns: TableColumn[] = liveData?.columns
@@ -30,11 +32,12 @@ const TableBlockRenderer: React.FC<{ block: TableBlock }> = ({ block }) => {
     : block.columns.filter(c => c.visible);
   const rows = liveData?.rows ?? block.rows;
 
-  // Compute totals
+  // Compute totals — on ne somme QUE les colonnes montantaires (currency/number).
+  // Additionner une colonne de pourcentages n'a aucun sens comptable → exclue.
   const totals: Record<string, number> = {};
   if (block.showTotal) {
     for (const col of columns) {
-      if (col.format === 'currency' || col.format === 'number' || col.format === 'percent') {
+      if (col.format === 'currency' || col.format === 'number') {
         totals[col.key] = rows.reduce((sum, row) => {
           const v = row[col.key];
           return sum + (typeof v === 'number' ? v : 0);
@@ -76,7 +79,7 @@ const TableBlockRenderer: React.FC<{ block: TableBlock }> = ({ block }) => {
                   const isNeg = block.highlightNegative && typeof value === 'number' && value < 0;
                   return (
                     <td key={col.key} className={`px-3 py-1.5 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${isNeg ? 'text-red-600 font-medium' : 'text-neutral-700'} ${(col.format === 'currency' || col.format === 'number') ? "font-['JetBrains_Mono',monospace]" : ''}`}>
-                      {formatCell(value ?? null, col.format)}
+                      {formatCell(value ?? null, col.format, fmtMoney)}
                     </td>
                   );
                 })}
@@ -88,7 +91,9 @@ const TableBlockRenderer: React.FC<{ block: TableBlock }> = ({ block }) => {
               <tr className="bg-neutral-100 border-t-2 border-neutral-300 font-bold">
                 {columns.map((col, ci) => (
                   <td key={col.key} className={`px-3 py-2 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'} ${(col.format === 'currency' || col.format === 'number') ? "font-['JetBrains_Mono',monospace]" : ''}`}>
-                    {ci === 0 && totals[col.key] === undefined ? 'TOTAL' : formatCell(totals[col.key] ?? null, col.format)}
+                    {ci === 0
+                      ? 'TOTAL'
+                      : (totals[col.key] !== undefined ? formatCell(totals[col.key], col.format, fmtMoney) : '')}
                   </td>
                 ))}
               </tr>

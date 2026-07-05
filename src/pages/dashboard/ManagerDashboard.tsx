@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
-import { formatCurrency } from '../../utils/formatters';
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
+import { computeDashboardMetrics, periodRange, type DashboardPeriod } from '../../utils/dashboardMetrics';
 import {
   TrendingUp,
   BarChart3,
@@ -9,10 +10,6 @@ import {
   DollarSign,
   Users,
   Target,
-  TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  Calendar,
   Download,
   RefreshCw,
   Eye,
@@ -21,74 +18,79 @@ import {
 
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
   const [timeRange, setTimeRange] = useState('month');
   const [activeTab, setActiveTab] = useState('financial');
   const { adapter } = useData();
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // KPIs from DataContext
-  const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, margin: 0, pendingCount: 0 });
+  // KPIs dérivés de la SOURCE UNIQUE (glHelpers via computeDashboardMetrics).
+  const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0 });
+
+  const handleExport = () => {
+    const rows = [
+      ['Indicateur', 'Valeur'],
+      ['Chiffre d\'affaires', String(liveKpiData.revenue)],
+      ['Charges', String(liveKpiData.expenses)],
+      ['Résultat net', String(liveKpiData.resultatNet)],
+      ['Marge nette (%)', liveKpiData.margin.toFixed(2)],
+      ['Trésorerie nette', String(liveKpiData.treasury)],
+      ['Écritures en attente', String(liveKpiData.pendingCount)],
+    ];
+    const csv = '﻿' + rows.map(r => r.join(';')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `dashboard-manager-${timeRange}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     const load = async () => {
-      const entries = await adapter.getAll('journalEntries') as { date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
-      // Revenue: credit on class 7
-      let revenue = 0;
-      let expenses = 0;
-      let treasury = 0;
-      for (const e of entries) {
-        for (const l of e.lines) {
-          if (l.accountCode.startsWith('7')) revenue += l.credit - l.debit;
-          if (l.accountCode.startsWith('6')) expenses += l.debit - l.credit;
-          if (l.accountCode.startsWith('5')) treasury += l.debit - l.credit;
-        }
+      const entries = await adapter.getAll<any>('journalEntries');
+      // Plage de dates réelle dérivée du sélecteur (semaine = 7 derniers jours).
+      let range: DashboardPeriod;
+      if (timeRange === 'week') {
+        const now = new Date();
+        const from = new Date(now); from.setDate(from.getDate() - 6);
+        range = { from: from.toISOString().slice(0, 10), to: now.toISOString().slice(0, 10) };
+      } else {
+        range = periodRange(timeRange as 'month' | 'quarter' | 'year');
       }
-      const margin = revenue > 0 ? ((revenue - expenses) / revenue * 100) : 0;
-      const pendingEntries = entries.filter((e: any) => e.status === 'draft' || e.status === 'pending');
-      setLiveKpiData({ revenue, expenses, treasury, margin, pendingCount: pendingEntries.length });
+      const m = computeDashboardMetrics(entries, range);
+      const pendingCount = entries.filter((e: any) => e.status === 'draft').length;
+      setLiveKpiData({ revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount });
     };
     load();
-  }, [adapter]);
+  }, [adapter, timeRange, reloadKey]);
 
   const kpis = [
     {
       title: 'Chiffre d\'Affaires',
-      value: formatCurrency(liveKpiData.revenue),
-      change: '',
-      trend: 'up' as const,
+      value: fmt(liveKpiData.revenue),
       color: 'blue',
       icon: DollarSign,
-      description: 'Total produits',
-      target: '-'
+      description: 'Produits (classe 7, net)',
     },
     {
-      title: 'Marge Brute',
-      value: `${liveKpiData.margin.toFixed(1)}%`,
-      change: '',
-      trend: 'up' as const,
+      title: 'Marge nette',
+      value: `${liveKpiData.margin.toFixed(2)}%`,
       color: 'green',
       icon: TrendingUp,
-      description: 'Produits - Charges',
-      target: '-'
+      description: 'Résultat net / CA (après impôt)',
     },
     {
       title: 'Écritures en attente',
       value: `${liveKpiData.pendingCount}`,
-      change: '',
-      trend: 'down' as const,
       color: 'orange',
       icon: Target,
-      description: 'À valider',
-      target: '0'
+      description: 'Brouillons à valider',
     },
     {
       title: 'Trésorerie Nette',
-      value: formatCurrency(liveKpiData.treasury),
-      change: '',
-      trend: 'up' as const,
+      value: fmt(liveKpiData.treasury),
       color: 'primary',
       icon: BarChart3,
-      description: 'Comptes classe 5',
-      target: '-'
+      description: 'Classe 5 (hors virements internes 58)',
     }
   ];
 
@@ -122,10 +124,10 @@ const ManagerDashboard: React.FC = () => {
               <option value="quarter">Ce trimestre</option>
               <option value="year">Cette année</option>
             </select>
-            <button className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
+            <button onClick={() => setReloadKey(k => k + 1)} className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[var(--color-text-secondary)]" />
             </button>
-            <button className="bg-[var(--color-success)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-success-dark)] transition-colors">
+            <button onClick={handleExport} className="bg-[var(--color-success)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-success-dark)] transition-colors">
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
@@ -167,35 +169,19 @@ const ManagerDashboard: React.FC = () => {
       <main className="p-6">
         {/* KPIs Executive - Style Kads Agency Premium */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {kpis.map((kpi, index) => {
+          {kpis.map((kpi) => {
             const IconComponent = kpi.icon;
             return (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-lg transition-all duration-300 group">
+              <div key={kpi.title} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-lg transition-all duration-300 group">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center bg-gradient-to-r from-${kpi.color}-500 to-${kpi.color}-600 group-hover:shadow-md transition-shadow`}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-[var(--color-primary)] group-hover:shadow-md transition-shadow">
                     <IconComponent className="w-7 h-7 text-white" />
-                  </div>
-                  <div className={`flex items-center space-x-1 text-sm font-medium ${
-                    kpi.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                  }`}>
-                    {kpi.trend === 'up' ? (
-                      <ArrowUpRight className="w-4 h-4" />
-                    ) : (
-                      <ArrowDownRight className="w-4 h-4" />
-                    )}
-                    <span>{kpi.change}</span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-lg font-bold text-[var(--color-text-primary)]">{kpi.value}</h3>
                   <p className="text-[var(--color-text-primary)] font-medium">{kpi.title}</p>
                   <p className="text-[var(--color-text-secondary)] text-sm">{kpi.description}</p>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs text-[var(--color-text-secondary)]">Objectif: {kpi.target}</span>
-                    <div className="w-16 h-1 bg-[var(--color-border)] rounded-full overflow-hidden">
-                      <div className={`h-full bg-${kpi.color}-500 rounded-full`} style={{width: '75%'}}></div>
-                    </div>
-                  </div>
                 </div>
               </div>
             );
@@ -206,20 +192,21 @@ const ManagerDashboard: React.FC = () => {
           {/* Graphique principal */}
           <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Évolution du Chiffre d'Affaires</h2>
-              <div className="flex items-center space-x-2">
-                <button className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Mensuel</button>
-                <button className="text-sm text-[var(--color-primary)] font-medium">Trimestriel</button>
-                <button className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">Annuel</button>
-              </div>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Synthèse de la période</h2>
             </div>
-            
-            {/* Graphique placeholder - à remplacer par Chart.js/Recharts */}
-            <div className="h-80 bg-gradient-to-br from-blue-50 to-primary-100 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <BarChart3 className="w-16 h-16 text-[var(--color-primary)] mx-auto mb-4" />
-                <p className="text-[var(--color-text-primary)]">Graphique CA - À intégrer avec Chart.js</p>
-                <p className="text-sm text-[var(--color-text-secondary)] mt-2">Tendance: +15.3% vs période précédente</p>
+            {/* Synthèse chiffrée réelle (pas de graphe factice ni de tendance inventée) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
+                <p className="text-sm text-[var(--color-text-secondary)]">Produits</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">{fmt(liveKpiData.revenue)}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
+                <p className="text-sm text-[var(--color-text-secondary)]">Charges</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)]">{fmt(liveKpiData.expenses)}</p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
+                <p className="text-sm text-[var(--color-text-secondary)]">Résultat net</p>
+                <p className={`text-lg font-bold ${liveKpiData.resultatNet >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>{fmt(liveKpiData.resultatNet)}</p>
               </div>
             </div>
           </div>

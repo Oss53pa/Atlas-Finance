@@ -27,6 +27,7 @@ import { DebtCollection, CollectionAction, InvoiceDebt } from '../../types/tiers
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '../../components/ui';
 import { createTransfertContentieuxSchema } from '../../services/modules/tiers.service';
+import { createRecoveryService } from '../../features/recovery/services/recoveryService';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
 
@@ -7374,24 +7375,24 @@ Service Contentieux
 
   // --- Data from DataContext for customer third parties and journal entries ---
   const { adapter } = useData();
+  const recoverySvc = useMemo(() => createRecoveryService(adapter), [adapter]);
   const [customerThirdParties, setCustomerThirdParties] = useState<any[]>([]);
   const [allJournalEntries, setAllJournalEntries] = useState<any[]>([]);
   const [recoveryCases, setRecoveryCases] = useState<any[]>([]);
 
-  useEffect(() => {
-    const load = async () => {
-      const [tps, entries, cases] = await Promise.all([
-        adapter.getAll('thirdParties'),
-        adapter.getAll('journalEntries'),
-        adapter.getAll('recoveryCases').catch(() => []),
-      ]);
-      const allTps = tps as Record<string, unknown>[];
-      setCustomerThirdParties(allTps.filter(tp => tp.type === 'customer' || tp.type === 'both'));
-      setAllJournalEntries(entries as Record<string, unknown>[]);
-      setRecoveryCases(cases as Record<string, unknown>[]);
-    };
-    load();
+  const reloadRecovery = React.useCallback(async () => {
+    const [tps, entries, cases] = await Promise.all([
+      adapter.getAll('thirdParties'),
+      adapter.getAll('journalEntries'),
+      adapter.getAll('recoveryCases').catch(() => []),
+    ]);
+    const allTps = tps as Record<string, unknown>[];
+    setCustomerThirdParties(allTps.filter(tp => tp.type === 'customer' || tp.type === 'both'));
+    setAllJournalEntries(entries as Record<string, unknown>[]);
+    setRecoveryCases(cases as Record<string, unknown>[]);
   }, [adapter]);
+
+  useEffect(() => { reloadRecovery(); }, [reloadRecovery]);
 
   // Plans de remboursement — dérivés des dossiers de recouvrement réels (recoveryCases).
   // Les champs sans source réelle (échéancier mensuel) restent volontairement vides.
@@ -7747,40 +7748,53 @@ Service Contentieux
     setOpenDropdownId(openDropdownId === dossierId ? null : dossierId);
   };
 
-  const handleDossierAction = (action: string, dossier: DossierRecouvrement) => {
+  const handleDossierAction = async (action: string, dossier: DossierRecouvrement) => {
     setOpenDropdownId(null);
 
-    switch (action) {
-      case 'details':
-        toast(`Affichage des détails pour ${dossier.numeroRef}`);
-        break;
-      case 'relance':
-        toast.success(`Relance envoyée pour ${dossier.client}`);
-        break;
-      case 'plan':
-        toast(`Plan de règlement proposé pour ${dossier.client}`);
-        break;
-      case 'regle':
-        toast.success(`Dossier ${dossier.numeroRef} marqué comme réglé`);
-        break;
-      case 'contentieux':
-        toast(`Dossier ${dossier.client} envoyé en pré-contentieux`);
-        break;
-      case 'transfert':
-        setSelectedTransferDossier(dossier);
-        setShowTransferModal(true);
-        setTransferDetails({
-          destinataire: '',
-          motif: '',
-          notes: '',
-          validationStatus: 'pending'
-        });
-        break;
-      case 'supprimer':
-        if (confirm(`Êtes-vous sûr de vouloir supprimer le dossier ${dossier.numeroRef} ?`)) {
-          toast.success(`Dossier ${dossier.numeroRef} supprimé`);
-        }
-        break;
+    try {
+      switch (action) {
+        case 'details':
+          toast(`Affichage des détails pour ${dossier.numeroRef}`);
+          break;
+        case 'relance':
+          // Persistance RÉELLE : ajoute une action de relance au dossier (historique).
+          await recoverySvc.addAction(dossier.id, { type: 'EMAIL', resultat: `Relance envoyée à ${dossier.client}`, notes: 'Relance manuelle' });
+          await reloadRecovery();
+          toast.success(`Relance enregistrée pour ${dossier.client}`);
+          break;
+        case 'plan':
+          toast(`Plan de règlement proposé pour ${dossier.client}`);
+          break;
+        case 'regle':
+          await recoverySvc.updateDossier(dossier.id, { statut: 'cloture', montantPaye: dossier.montantTotal });
+          await reloadRecovery();
+          toast.success(`Dossier ${dossier.numeroRef} marqué comme réglé`);
+          break;
+        case 'contentieux':
+          await recoverySvc.updateDossier(dossier.id, { statut: 'juridique' });
+          await reloadRecovery();
+          toast.success(`Dossier ${dossier.client} passé en contentieux`);
+          break;
+        case 'transfert':
+          setSelectedTransferDossier(dossier);
+          setShowTransferModal(true);
+          setTransferDetails({
+            destinataire: '',
+            motif: '',
+            notes: '',
+            validationStatus: 'pending'
+          });
+          break;
+        case 'supprimer':
+          if (confirm(`Êtes-vous sûr de vouloir supprimer le dossier ${dossier.numeroRef} ?`)) {
+            await recoverySvc.deleteDossier(dossier.id);
+            await reloadRecovery();
+            toast.success(`Dossier ${dossier.numeroRef} supprimé`);
+          }
+          break;
+      }
+    } catch (err) {
+      toast.error('Action impossible : ' + (err instanceof Error ? err.message : 'erreur'));
     }
   };
 
@@ -12387,13 +12401,31 @@ Service Contentieux
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  // Ici on implémenterait la logique de création du dossier
-                  toast.success('Dossier de recouvrement créé avec succès !');
-                  setShowCreateDossierModal(false);
-                  setSelectedFactures(new Set());
-                  // Basculer les factures sélectionnées vers l'onglet dossiers
-                  setActiveTab('dossiers');
+                onClick={async () => {
+                  try {
+                    // Création RÉELLE : regrouper les factures sélectionnées par client et
+                    // créer un dossier de recouvrement (recoveryCases) par client.
+                    const byClient = new Map<string, { name: string; montant: number }>();
+                    for (const cr of mockCreances) {
+                      for (const f of (cr.factures || [])) {
+                        if (!selectedFactures.has(f.factureId)) continue;
+                        const cur = byClient.get(cr.clientCode) || { name: cr.clientNom, montant: 0 };
+                        cur.montant += f.montantRestant || 0;
+                        byClient.set(cr.clientCode, cur);
+                      }
+                    }
+                    if (byClient.size === 0) { toast.error('Aucune facture sélectionnée'); return; }
+                    for (const [code, info] of byClient) {
+                      await recoverySvc.createDossier({ client: info.name, clientId: code, montantPrincipal: info.montant, statut: 'actif', typeRecouvrement: 'amiable' } as any);
+                    }
+                    await reloadRecovery();
+                    toast.success(`${byClient.size} dossier(s) de recouvrement créé(s)`);
+                    setShowCreateDossierModal(false);
+                    setSelectedFactures(new Set());
+                    setActiveTab('dossiers');
+                  } catch (err) {
+                    toast.error('Création impossible : ' + (err instanceof Error ? err.message : 'erreur'));
+                  }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
@@ -14319,24 +14351,39 @@ L'équipe recouvrement`}
                 Annuler
               </button>
               <button
-                onClick={() => {
-                  // Action créée avec les données suivantes:
-                  const actionData = {
-                    creance: selectedCreance,
-                    ...actionFormData
-                  };
-                  setShowActionModal(false);
-                  setActionFormData({
-                    typeAction: 'APPEL',
-                    date: new Date().toISOString().split('T')[0],
-                    heure: new Date().toTimeString().slice(0, 5),
-                    responsable: '',
-                    details: '',
-                    montantPromis: '',
-                    datePromesse: ''
-                  });
+                onClick={async () => {
+                  try {
+                    if (!selectedCreance) return;
+                    // Persistance RÉELLE : trouver (ou créer) le dossier de recouvrement du
+                    // client, puis y enregistrer l'action (relance/appel/mise en demeure…).
+                    let dossier: any = recoveryCases.find((c: any) => c.clientId === selectedCreance.clientCode || c.clientName === selectedCreance.clientNom);
+                    if (!dossier) {
+                      dossier = await recoverySvc.createDossier({ client: selectedCreance.clientNom, clientId: selectedCreance.clientCode, montantPrincipal: selectedCreance.montantTotal || 0, statut: 'actif', typeRecouvrement: 'amiable' } as any);
+                    }
+                    await recoverySvc.addAction(dossier.id, {
+                      type: (actionFormData.typeAction || 'APPEL') as any,
+                      date: actionFormData.date,
+                      responsable: actionFormData.responsable,
+                      resultat: actionFormData.details,
+                      notes: actionFormData.montantPromis ? `Promesse: ${actionFormData.montantPromis} le ${actionFormData.datePromesse}` : '',
+                    });
+                    await reloadRecovery();
+                    toast.success('Action enregistrée');
+                    setShowActionModal(false);
+                    setActionFormData({
+                      typeAction: 'APPEL',
+                      date: new Date().toISOString().split('T')[0],
+                      heure: new Date().toTimeString().slice(0, 5),
+                      responsable: '',
+                      details: '',
+                      montantPromis: '',
+                      datePromesse: ''
+                    });
+                  } catch (err) {
+                    toast.error('Enregistrement impossible : ' + (err instanceof Error ? err.message : 'erreur'));
+                  }
                 }}
-                disabled={!actionFormData.date || !actionFormData.responsable || !actionFormData.details}
+                disabled={!actionFormData.date || !actionFormData.details}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center space-x-2">

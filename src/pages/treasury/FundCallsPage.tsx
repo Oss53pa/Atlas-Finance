@@ -416,13 +416,19 @@ const FundCallsPage: React.FC = () => {
     try {
       const raw: any = (fundCallsSetting as any)?.value ?? fundCallsSetting;
       const existing: any[] = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw || '[]') : []);
+      // Schéma aligné sur l'interface FundCall (sinon l'historique lisait reference/
+      // requestedBy/totalAmount = undefined et workflowStep.replace(...) plantait la table).
       const call = {
         id: crypto.randomUUID(),
+        reference: `AF-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${String(existing.length + 1).padStart(3, '0')}`,
         date: new Date().toISOString().split('T')[0],
-        statut,
-        montant: selectedAmount,
-        nbItems: proposedPayments.length,
-        items: proposedPayments.map(p => ({ id: p.id, beneficiaire: p.vendor, code: p.vendorCode, montant: p.outstanding, type: p.invoiceType })),
+        requestedBy: 'Utilisateur',
+        totalAmount: selectedAmount,
+        status: statut === 'soumis' ? 'SOUMIS' : 'BROUILLON',
+        workflowStep: statut === 'soumis' ? 'VALIDATION_COMPTABLE' : 'CREATION',
+        approvers: {},
+        items: proposedPayments,
+        justification: '',
       };
       const next = [call, ...existing];
       const value = JSON.stringify(next);

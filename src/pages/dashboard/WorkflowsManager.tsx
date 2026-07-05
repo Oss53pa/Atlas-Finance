@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import {
@@ -135,20 +136,28 @@ const WorkflowsManager: React.FC = () => {
 
         setWorkflows(builtWorkflows);
 
-        // Build approval requests from draft entries
-        const builtApprovals: ApprovalRequest[] = draftEntries.slice(0, 10).map((entry: any) => ({
-          id: `apr-${entry.id}`,
-          workflowId: 'wf-draft',
-          type: 'Écriture comptable',
-          title: entry.label || `Écriture ${entry.entryNumber || entry.id}`,
-          description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
-          requester: entry.createdBy || 'Système',
-          amount: entry.totalDebit || 0,
-          priority: (entry.totalDebit || 0) > 50000 ? 'high' : 'medium' as const,
-          status: 'pending',
-          createdAt: new Date(entry.createdAt || Date.now()),
-          dueDate: new Date(Date.now() + 86400000 * 7),
-        }));
+        // Build approval requests from draft entries.
+        // Priorité RELATIVE (pas de seuil FCFA arbitraire hors échelle) : "high" si le
+        // montant dépasse 1,5× la moyenne des brouillons à approuver.
+        const amountOf = (e: any) => e.totalDebit || (e.lines || []).reduce((s: number, l: any) => s + (l.debit || 0), 0);
+        const draftAmounts = draftEntries.map(amountOf);
+        const avgDraft = draftAmounts.length ? draftAmounts.reduce((a: number, b: number) => a + b, 0) / draftAmounts.length : 0;
+        const builtApprovals: ApprovalRequest[] = draftEntries.slice(0, 10).map((entry: any) => {
+          const amount = amountOf(entry);
+          return {
+            id: `apr-${entry.id}`,
+            workflowId: 'wf-draft',
+            type: 'Écriture comptable',
+            title: entry.label || `Écriture ${entry.entryNumber || entry.id}`,
+            description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
+            requester: entry.createdBy || 'Système',
+            amount,
+            priority: (avgDraft > 0 && amount >= avgDraft * 1.5 ? 'high' : 'medium') as ApprovalRequest['priority'],
+            status: 'pending' as ApprovalRequest['status'],
+            createdAt: new Date(entry.createdAt || Date.now()),
+            dueDate: new Date(Date.now() + 86400000 * 7),
+          };
+        });
         setApprovals(builtApprovals);
       } catch (err) {
         setWorkflows([]);
@@ -209,10 +218,12 @@ const WorkflowsManager: React.FC = () => {
     const entryId = approvalId.replace(/^apr-/, '');
     try {
       await adapter.update<any>('journalEntries', entryId, { status: 'validated' });
+      // Ne marquer "approuvé" QUE si la persistance a réussi (pas d'optimiste-sur-échec).
       setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'approved' as const } : a));
+      (adapter as any).invalidateCache?.();
+      toast.success('Écriture validée');
     } catch {
-      // If direct update fails (e.g. Supabase RLS), optimistic update only
-      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'approved' as const } : a));
+      toast.error('Validation impossible (droits/verrou). L\'écriture reste en attente.');
     }
   };
 
@@ -221,8 +232,10 @@ const WorkflowsManager: React.FC = () => {
     try {
       await adapter.update<any>('journalEntries', entryId, { status: 'draft' });
       setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'rejected' as const } : a));
+      (adapter as any).invalidateCache?.();
+      toast.success('Écriture renvoyée en brouillon');
     } catch {
-      setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'rejected' as const } : a));
+      toast.error('Rejet impossible (droits/verrou).');
     }
   };
 

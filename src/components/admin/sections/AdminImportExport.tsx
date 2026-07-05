@@ -3,7 +3,7 @@ import { Upload, Download, FileText, Users, Package, CheckCircle, Trash2 } from 
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
 
-interface Props { subTab: number; setSubTab: (n: number) => void; }
+interface Props { subTab: number; setSubTab: (n: number) => void; onGoToMigration?: () => void; }
 
 const tabs = ['Import Plan Comptable', 'Import Ecritures', 'Import Tiers', 'Export FEC', 'Export Grand Livre'];
 
@@ -47,11 +47,13 @@ const UploadZone = ({
   formats,
   templateCols,
   templateKey,
+  onImport,
 }: {
   label: string;
   formats: string;
   templateCols: string[];
   templateKey: string;
+  onImport?: () => void;
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
@@ -93,7 +95,7 @@ const UploadZone = ({
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <button onClick={() => toast.info('Lancement de l\'import...')} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm">Importer</button>
+            <button onClick={() => onImport ? onImport() : toast.info('Utilisez l\'assistant de migration')} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm">Importer</button>
             <button onClick={() => setUploadedFile(null)} className="p-2 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-500" /></button>
           </div>
         </div>
@@ -177,33 +179,41 @@ const ExportForm = ({ label, saving, onExport }: ExportFormProps) => {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
+const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab, onGoToMigration }) => {
   const { adapter } = useData();
   const [saving, setSaving] = useState(false);
 
+  // FEC conforme : une ligne par MOUVEMENT (CompteNum/CompteLib/Debit/Credit réels),
+  // pas par pièce. Les lignes sont portées par journal_lines (ré-injectées dans .lines
+  // par l'adapter, déjà paginées → pas de troncature à 1000).
   const handleExportFEC = async () => {
     try {
       setSaving(true);
-      const entries = await adapter.getAll('journalEntries');
+      const entries = await adapter.getAll<any>('journalEntries');
       const header = 'JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|PieceRef|PieceDate|EcritureLib|Debit|Credit\n';
-      const rows = (entries as any[]).map(e =>
-        [
-          e.journal || '',
-          `Journal ${e.journal || ''}`,
-          e.entry_number || e.entryNumber || '',
-          (e.date || '').replace(/-/g, ''),
-          '',
-          '',
-          e.reference || '',
-          e.date || '',
-          (e.label || '').substring(0, 99),
-          e.total_debit ?? e.totalDebit ?? 0,
-          e.total_credit ?? e.totalCredit ?? 0,
-        ].join('|')
-      ).join('\n');
-      const blob = new Blob([header + rows], { type: 'text/plain;charset=utf-8' });
+      const lines: string[] = [];
+      let nbLignes = 0;
+      for (const e of entries as any[]) {
+        for (const l of (e.lines || [])) {
+          nbLignes++;
+          lines.push([
+            e.journal || '',
+            `Journal ${e.journal || ''}`,
+            e.entry_number || e.entryNumber || '',
+            (e.date || '').replace(/-/g, ''),
+            l.accountCode || l.account_code || '',
+            (l.accountName || l.account_name || '').substring(0, 99),
+            e.reference || '',
+            e.date || '',
+            (l.label || e.label || '').substring(0, 99),
+            l.debit ?? 0,
+            l.credit ?? 0,
+          ].join('|'));
+        }
+      }
+      const blob = new Blob([header + lines.join('\n')], { type: 'text/plain;charset=utf-8' });
       triggerDownload(blob, 'FEC.txt');
-      toast.success(`FEC exporte — ${entries.length} ecritures`);
+      toast.success(`FEC exporte — ${nbLignes} lignes / ${entries.length} ecritures`);
     } catch {
       toast.error('Erreur export FEC');
     } finally {
@@ -211,25 +221,30 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
     }
   };
 
+  // Grand Livre : une ligne par mouvement, avec le compte réel.
   const handleExportGrandLivre = async () => {
     try {
       setSaving(true);
-      const entries = await adapter.getAll('journalEntries');
-      const header = 'Date,Journal,Numero,Libelle,Debit,Credit,Statut\n';
-      const rows = (entries as any[]).map(e =>
-        [
-          e.date || '',
-          e.journal || '',
-          e.entry_number || e.entryNumber || '',
-          '"' + (e.label || '').replace(/"/g, '') + '"',
-          e.total_debit ?? e.totalDebit ?? 0,
-          e.total_credit ?? e.totalCredit ?? 0,
-          e.status || '',
-        ].join(',')
-      ).join('\n');
-      const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8' });
+      const entries = await adapter.getAll<any>('journalEntries');
+      const header = 'Date,Journal,Numero,Compte,Libelle,Debit,Credit,Statut\n';
+      const rows: string[] = [];
+      for (const e of entries as any[]) {
+        for (const l of (e.lines || [])) {
+          rows.push([
+            e.date || '',
+            e.journal || '',
+            e.entry_number || e.entryNumber || '',
+            l.accountCode || l.account_code || '',
+            '"' + (l.label || e.label || '').replace(/"/g, '') + '"',
+            l.debit ?? 0,
+            l.credit ?? 0,
+            e.status || '',
+          ].join(','));
+        }
+      }
+      const blob = new Blob(['﻿' + header + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
       triggerDownload(blob, 'GrandLivre.csv');
-      toast.success(`Grand Livre exporte — ${entries.length} ecritures`);
+      toast.success(`Grand Livre exporte — ${rows.length} lignes`);
     } catch {
       toast.error('Erreur export GL');
     } finally {
@@ -241,12 +256,26 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
     <div className="p-6">
       <h2 className="text-lg font-bold mb-4">Import / Export</h2>
       <ImportExportTabBar subTab={subTab} setSubTab={setSubTab} />
+      {subTab <= 2 && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start justify-between gap-4">
+          <p className="text-sm text-blue-800">
+            L'import réel (parsing, contrôle d'équilibre débit=crédit, détection de doublons, intégrité SHA-256)
+            passe par l'<strong>assistant de migration</strong>. Le bouton « Importer » ci-dessous vous y redirige.
+          </p>
+          {onGoToMigration && (
+            <button onClick={onGoToMigration} className="shrink-0 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
+              Ouvrir l'assistant
+            </button>
+          )}
+        </div>
+      )}
       {subTab === 0 && (
         <UploadZone
           key={0}
           label="Plan Comptable"
           formats=".csv, .xlsx"
           templateKey="plan-comptable"
+          onImport={onGoToMigration}
           templateCols={['numero', 'libelle', 'classe', 'type_compte', 'sens_normal', 'compte_collectif', 'statut']}
         />
       )}
@@ -256,6 +285,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
           label="Ecritures Comptables"
           formats=".csv, .xlsx, .txt (FEC)"
           templateKey="ecritures"
+          onImport={onGoToMigration}
           templateCols={['journal', 'numero_piece', 'date_piece', 'compte', 'tiers_code', 'libelle', 'debit', 'credit', 'date_echeance', 'lettrage_ref']}
         />
       )}
@@ -265,6 +295,7 @@ const AdminImportExport: React.FC<Props> = ({ subTab, setSubTab }) => {
           label="Tiers (Clients/Fournisseurs)"
           formats=".csv, .xlsx"
           templateKey="tiers"
+          onImport={onGoToMigration}
           templateCols={['code', 'type', 'raison_sociale', 'nif', 'rccm', 'pays', 'compte_collectif', 'email', 'telephone', 'adresse', 'conditions_paiement']}
         />
       )}

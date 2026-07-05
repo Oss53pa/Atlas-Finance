@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
-import { supabase } from '../../lib/supabase';
+import SecurityActions from '../../components/security/SecurityActions';
 import { toast } from 'sonner';
 
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
@@ -62,6 +62,7 @@ const AdminWorkspace: React.FC = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const changeSection = (section: string) => { setActiveSection(section); setAdminSubTab(0); };
 
@@ -104,13 +105,24 @@ const AdminWorkspace: React.FC = () => {
           thirdParties: thirdParties.length,
           drafts,
         });
-        // Charger le téléphone de la société
-        const companies = await adapter.getAll<any>('companies');
-        if (companies.length > 0) {
-          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
-        }
+        // Téléphone : source canonique settings.admin_company_legal (companies peut être vide/diverger)
+        try {
+          const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+          const legal = legalRow?.value ? JSON.parse(legalRow.value) : null;
+          if (legal?.telephone) {
+            setCompanyPhone(legal.telephone);
+          } else {
+            const companies = await adapter.getAll<any>('companies');
+            if (companies.length > 0) setCompanyPhone(companies[0].telephone || companies[0].phone || '');
+          }
+        } catch { /* téléphone optionnel */ }
+        // État du mode maintenance (lu depuis settings, reflète l'état réel du toggle)
+        try {
+          const mRow = await adapter.getById<any>('settings', 'maintenance_mode');
+          setMaintenanceMode(mRow?.value === 'true' || mRow?.value === true);
+        } catch { /* défaut off */ }
       } catch (err) {
-        /* ignored */
+        console.error('[AdminWorkspace] Erreur chargement stats:', err);
       }
     };
     loadStats();
@@ -134,24 +146,8 @@ const AdminWorkspace: React.FC = () => {
           <p><span className="text-xs text-gray-500">Email:</span> {userData.email}</p>
           <p className="mt-2"><span className="text-xs text-gray-500">Tel:</span> {userData.phone}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 border">
-          <h4 className="font-semibold mb-4 flex items-center"><Lock className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Securite</h4>
-          <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] mb-2">Changer mot de passe</button>
-          <button onClick={async () => { try { const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } }); if (error) throw error; toast.success('2FA mis à jour'); } catch { toast.error('Erreur 2FA'); } }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-accent)] flex justify-between"><span>2FA</span><span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span></button>
-        </div>
+        <SecurityActions email={userData.email} accentVar="var(--color-accent)" />
       </div>
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
-            <h3 className="font-bold text-lg">Changer le mot de passe</h3>
-            <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
-              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => { setPasswordSaving(true); try { const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) throw error; toast.success('Mot de passe mis à jour'); setShowPasswordModal(false); setNewPassword(''); } catch { toast.error('Erreur'); } finally { setPasswordSaving(false); } }} className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 
@@ -171,14 +167,28 @@ const AdminWorkspace: React.FC = () => {
       <div className="bg-white rounded-xl p-6 border">
         <h4 className="font-semibold mb-4">Maintenance</h4>
         <div className="space-y-3">
-          <button onClick={async () => { try { const entries = await adapter.getAll('journalEntries'); const accounts = await adapter.getAll('accounts'); const blob = new Blob([JSON.stringify({ entries, accounts }, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'backup.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); toast.success('Sauvegarde téléchargée'); } catch { toast.error('Erreur sauvegarde'); } }} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
-            <span>Sauvegarder la base</span><Database className="w-5 h-5 text-[var(--color-accent)]" />
+          <button onClick={() => changeSection('backup')} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
+            <span>Sauvegarder la base (export complet)</span><Database className="w-5 h-5 text-[var(--color-accent)]" />
           </button>
-          <button onClick={() => { try { Object.keys(localStorage).filter(k => k.startsWith('atlas-cache-')).forEach(k => localStorage.removeItem(k)); toast.success('Cache vidé'); } catch { toast.error('Erreur cache'); } }} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
+          <button onClick={() => { try { Object.keys(localStorage).filter(k => k.startsWith('atlas-cache-')).forEach(k => localStorage.removeItem(k)); (adapter as any).invalidateCache?.(); toast.success('Cache vidé'); } catch { toast.error('Erreur cache'); } }} className="w-full p-4 border rounded-lg text-left hover:border-[var(--color-accent)] flex justify-between items-center">
             <span>Vider le cache</span><Cog className="w-5 h-5 text-[var(--color-accent)]" />
           </button>
-          <button onClick={async () => { const ok = window.confirm('Activer le mode maintenance ?'); try { await adapter.create('settings' as any, { key: 'maintenance_mode', value: JSON.stringify(ok), updatedAt: 'now' }); toast.success(ok ? 'Mode maintenance activé' : 'Désactivé'); } catch { toast.error('Erreur maintenance'); } }} className="w-full p-4 border rounded-lg text-left hover:border-yellow-500 flex justify-between items-center text-yellow-600">
-            <span>Mode maintenance</span><AlertTriangle className="w-5 h-5" />
+          <button onClick={async () => {
+            const next = !maintenanceMode;
+            if (!window.confirm(next ? 'Activer le mode maintenance ?' : 'Désactiver le mode maintenance ?')) return;
+            try {
+              const payload = { key: 'maintenance_mode', value: String(next), updatedAt: new Date().toISOString() };
+              if ((adapter as any).upsert) await (adapter as any).upsert('settings' as any, payload);
+              else {
+                const existing = await adapter.getById<any>('settings', 'maintenance_mode').catch(() => null);
+                if (existing) await adapter.update('settings' as any, 'maintenance_mode', payload);
+                else await adapter.create('settings' as any, payload);
+              }
+              setMaintenanceMode(next);
+              toast.success(next ? 'Mode maintenance activé' : 'Mode maintenance désactivé');
+            } catch { toast.error('Erreur maintenance'); }
+          }} className={`w-full p-4 border rounded-lg text-left flex justify-between items-center ${maintenanceMode ? 'border-yellow-500 bg-yellow-50 text-yellow-700' : 'hover:border-yellow-500 text-yellow-600'}`}>
+            <span>Mode maintenance {maintenanceMode ? '(actif)' : '(inactif)'}</span><AlertTriangle className="w-5 h-5" />
           </button>
         </div>
       </div>
@@ -379,7 +389,7 @@ const AdminWorkspace: React.FC = () => {
           {activeSection === 'security' && <AdminSecurity subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'company' && <AdminCompany subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'backup' && <AdminBackup subTab={adminSubTab} setSubTab={setAdminSubTab} />}
-          {activeSection === 'import-export' && <AdminImportExport subTab={adminSubTab} setSubTab={setAdminSubTab} />}
+          {activeSection === 'import-export' && <AdminImportExport subTab={adminSubTab} setSubTab={setAdminSubTab} onGoToMigration={() => changeSection('migration')} />}
           {activeSection === 'audit-trail' && <AdminAuditTrail subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'api' && <AdminAPI subTab={adminSubTab} setSubTab={setAdminSubTab} />}
           {activeSection === 'ocr' && <AdminOCR />}

@@ -599,20 +599,22 @@ const MultiCurrency: React.FC = () => {
                         <div className="flex justify-between items-end">
                           <span className="text-lg font-bold text-neutral-800">{(rate.rate ?? 0).toFixed(4)}</span>
                           <div className="flex items-center space-x-1">
+                            {/* Variation à 3 états : pas de flèche baissière rouge par défaut
+                                quand la variation est nulle/indisponible (aucun historique). */}
                             {rate.change24h > 0 ? (
                               <ArrowUpRight className="h-4 w-4 text-green-600" />
-                            ) : (
+                            ) : rate.change24h < 0 ? (
                               <ArrowDownRight className="h-4 w-4 text-red-600" />
-                            )}
+                            ) : null}
                             <span className={getChangeColor(rate.change24h)}>
-                              {Math.abs(rate.change24h * 100).toFixed(2)}%
+                              {rate.change24h ? `${Math.abs(rate.change24h * 100).toFixed(2)}%` : '—'}
                             </span>
                           </div>
                         </div>
 
                         <div className="flex justify-between text-sm text-neutral-500">
-                          <span>7j: {rate.change7d > 0 ? '+' : ''}{(rate.change7d * 100).toFixed(2)}%</span>
-                          <span>30j: {rate.change30d > 0 ? '+' : ''}{(rate.change30d * 100).toFixed(2)}%</span>
+                          <span>7j: {rate.change7d ? `${rate.change7d > 0 ? '+' : ''}${(rate.change7d * 100).toFixed(2)}%` : '—'}</span>
+                          <span>30j: {rate.change30d ? `${rate.change30d > 0 ? '+' : ''}${(rate.change30d * 100).toFixed(2)}%` : '—'}</span>
                         </div>
                       </div>
 

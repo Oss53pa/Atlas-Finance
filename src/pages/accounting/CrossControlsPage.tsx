@@ -9,8 +9,9 @@ function StatusBadge({ status }: { status: ControlResult['status'] }) {
     OK: 'bg-green-100 text-green-800',
     ECART: 'bg-red-100 text-red-800',
     ERROR: 'bg-yellow-100 text-yellow-800',
+    INFO: 'bg-blue-100 text-blue-800',
   };
-  const labels = { OK: 'OK', ECART: 'ÉCART', ERROR: 'ERREUR' };
+  const labels = { OK: 'OK', ECART: 'ÉCART', ERROR: 'ERREUR', INFO: 'INFO' };
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors[status]}`}>
       {labels[status]}
@@ -71,9 +72,9 @@ export default function CrossControlsPage() {
       const result = await runAllCrossControls(adapter, 'default', fiscalYear);
       setReport(result);
       if (result.totalEcart === 0) {
-        toast.success(`Contrôles terminés: ${result.totalOk}/20 OK`);
+        toast.success(`Contrôles terminés: ${result.score}% (${result.totalOk} OK, ${result.totalError} en erreur)`);
       } else {
-        toast.warning(`Contrôles terminés: ${result.totalOk}/20 OK, ${result.totalEcart} écarts`);
+        toast.warning(`Contrôles terminés: ${result.score}% — ${result.totalEcart} écart(s), ${result.totalOk} OK`);
       }
     } catch (err) {
       toast.error(`Erreur: ${err instanceof Error ? err.message : 'Inconnue'}`);
@@ -136,7 +137,7 @@ export default function CrossControlsPage() {
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg border p-4">
               <p className="text-sm text-gray-500">Contrôles OK</p>
-              <p className="text-3xl font-bold text-green-600">{report.totalOk}/20</p>
+              <p className="text-3xl font-bold text-green-600">{report.totalOk}/{report.controls.filter(c => c.status !== 'INFO').length}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg border p-4">
               <p className="text-sm text-gray-500">Écarts détectés</p>
@@ -152,7 +153,7 @@ export default function CrossControlsPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg border p-4">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium">Progression</span>
-              <span className="text-sm text-gray-500">{report.totalOk}/20 contrôles validés</span>
+              <span className="text-sm text-gray-500">{report.totalOk}/{report.controls.filter(c => c.status !== 'INFO').length} contrôles validés</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div

@@ -299,14 +299,18 @@ const AutresTiersModule: React.FC = () => {
   // ── KPIs ────────────────────────────────────────────────────────────────────
   const kpis = useMemo(() => {
     const byClasse = (c: string) => tiers.filter(t => t.classe === c);
-    const soldeSum = (arr: AutreTiers[]) => arr.reduce((s, t) => s + Math.max(t.solde, 0), 0);
+    // solde = débit − crédit. Une DETTE (44/43/47) a un solde CRÉDITEUR (négatif) : on
+    // somme sa valeur absolue ; un DÉBITEUR (46) a un solde débiteur (positif). L'ancien
+    // Math.max(solde,0) mettait toutes les dettes à 0 (anti-pattern banni).
+    const soldeCrediteur = (arr: AutreTiers[]) => arr.reduce((s, t) => s + (t.solde < 0 ? -t.solde : 0), 0);
+    const soldeDebiteur = (arr: AutreTiers[]) => arr.reduce((s, t) => s + (t.solde > 0 ? t.solde : 0), 0);
     return {
       total: tiers.length,
       actifs: tiers.filter(t => t.is_active).length,
-      dettesFiscales: soldeSum(byClasse('44')),
-      chargesSociales: soldeSum(byClasse('43')),
-      crediteursDivers: soldeSum(byClasse('47')),
-      debiteursAssocies: soldeSum(byClasse('46')),
+      dettesFiscales: soldeCrediteur(byClasse('44')),
+      chargesSociales: soldeCrediteur(byClasse('43')),
+      crediteursDivers: soldeCrediteur(byClasse('47')),
+      debiteursAssocies: soldeDebiteur(byClasse('46')),
     };
   }, [tiers]);
 

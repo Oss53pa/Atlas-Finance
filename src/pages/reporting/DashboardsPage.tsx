@@ -71,13 +71,25 @@ const DashboardsPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
+  // Personnalisation locale RÉELLE (favoris + masquage) : les tableaux de bord sont dérivés
+  // des données (synthétiques), il n'existe pas de table dédiée. On persiste donc les
+  // préférences utilisateur dans localStorage — au lieu d'écrire dans `settings` avec un
+  // catch avalé qui affichait un faux succès sans rien changer à l'écran.
+  const readIds = (key: string): Set<string> => {
+    try { return new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch { return new Set(); }
+  };
+  const [starredIds, setStarredIds] = useState<Set<string>>(() => readIds('atlas_dash_starred'));
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(() => readIds('atlas_dash_hidden'));
+  const persistStarred = (s: Set<string>) => { setStarredIds(new Set(s)); localStorage.setItem('atlas_dash_starred', JSON.stringify([...s])); };
+  const persistHidden = (s: Set<string>) => { setHiddenIds(new Set(s)); localStorage.setItem('atlas_dash_hidden', JSON.stringify([...s])); };
+
   // Load fiscal years and journal entries from Dexie
-  const { data: fiscalYears = [] } = useQuery({
+  const { data: fiscalYears = [], isLoading: fyLoading } = useQuery({
     queryKey: ['dashboards-fiscal-years'],
     queryFn: () => adapter.getAll<any>('fiscalYears'),
   });
 
-  const { data: journalEntries = [] } = useQuery({
+  const { data: journalEntries = [], isLoading: jeLoading } = useQuery({
     queryKey: ['dashboards-journal-entries'],
     queryFn: () => adapter.getAll<any>('journalEntries'),
   });
@@ -87,7 +99,8 @@ const DashboardsPage: React.FC = () => {
     queryFn: () => adapter.getAll<any>('accounts'),
   });
 
-  const isLoading = fiscalYears === undefined;
+  // `data = []` par défaut → jamais undefined ; on lit le vrai état de chargement des queries.
+  const isLoading = fyLoading || jeLoading;
 
   // Build dashboards from real DB data
   const allDashboards: Dashboard[] = useMemo(() => {
@@ -214,8 +227,11 @@ const DashboardsPage: React.FC = () => {
       tags: ['template', 'finance', 'standard']
     });
 
-    return result;
-  }, [fiscalYears, journalEntries, accounts]);
+    // Applique l'état « favori » local et exclut les tableaux masqués par l'utilisateur.
+    return result
+      .filter(d => !hiddenIds.has(d.id))
+      .map(d => ({ ...d, isStarred: starredIds.has(d.id) }));
+  }, [fiscalYears, journalEntries, accounts, starredIds, hiddenIds]);
 
   // Apply filters
   const dashboards = useMemo(() => {
@@ -230,61 +246,18 @@ const DashboardsPage: React.FC = () => {
     );
   }, [allDashboards, searchTerm, selectedCategory, selectedType, selectedStatus]);
 
-  const toggleStarMutation = useMutation({
-    mutationFn: async ({ dashboardId, isStarred }: { dashboardId: string; isStarred: boolean }) => {
-      try {
-        await adapter.update('settings' as any, dashboardId, { starred: isStarred } as any);
-      } catch {
-        // table may not exist yet — ignore and optimistically reflect in UI
-      }
-      return { dashboardId, isStarred };
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboards'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboards-fiscal-years'] });
-    },
-    onError: () => {
-      toast.error('Impossible de mettre à jour le favori');
-    }
-  });
-
-  const duplicateDashboardMutation = useMutation({
-    mutationFn: async (dashboard: Dashboard) => {
-      try {
-        await adapter.create('settings' as any, {
-          ...dashboard,
-          id: crypto.randomUUID(),
-          title: (dashboard.name || '') + ' (copie)',
-        } as any);
-      } catch {
-        // table may not exist yet — ignore
-      }
-      return dashboard.id;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboards'] });
-      toast.success('Tableau de bord dupliqué');
-    },
-    onError: () => {
-      toast.error('Impossible de dupliquer le tableau de bord');
-    }
-  });
-
   const deleteDashboardMutation = useMutation({
     mutationFn: async (dashboardId: string) => {
-      try {
-        await adapter.delete('settings' as any, dashboardId);
-      } catch {
-        // table may not exist yet — ignore
-      }
+      const s = new Set(hiddenIds);
+      s.add(dashboardId);
+      persistHidden(s);
       return dashboardId;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dashboards'] });
-      toast.success('Tableau de bord supprimé');
+      toast.success('Tableau de bord masqué');
     },
     onError: () => {
-      toast.error('Impossible de supprimer le tableau de bord');
+      toast.error('Impossible de masquer le tableau de bord');
     }
   });
 
@@ -318,14 +291,9 @@ const DashboardsPage: React.FC = () => {
   };
 
   const handleToggleStar = (dashboard: Dashboard) => {
-    toggleStarMutation.mutate({
-      dashboardId: dashboard.id,
-      isStarred: !dashboard.isStarred
-    });
-  };
-
-  const handleDuplicate = (dashboard: Dashboard) => {
-    duplicateDashboardMutation.mutate(dashboard);
+    const s = new Set(starredIds);
+    if (s.has(dashboard.id)) s.delete(dashboard.id); else s.add(dashboard.id);
+    persistStarred(s);
   };
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; dashboard: Dashboard | null }>({
@@ -354,7 +322,9 @@ const DashboardsPage: React.FC = () => {
   const totalDashboards = dashboards.length;
   const activeDashboards = dashboards.filter(d => d.status === 'active').length;
   const sharedDashboards = dashboards.filter(d => d.type === 'shared' || d.isPublic).length;
-  const totalViews = dashboards.reduce((sum, d) => sum + d.views, 0);
+  // Le suivi des vues n'est pas instrumenté (views toujours 0) → on affiche un indicateur
+  // réel : le nombre total de widgets composant les tableaux de bord.
+  const totalWidgets = dashboards.reduce((sum, d) => sum + (d.widgetCount || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -423,8 +393,8 @@ const DashboardsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">Vues Totales</p>
-              <p className="text-lg font-bold text-[var(--color-warning)]">{totalViews.toLocaleString()}</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">Widgets</p>
+              <p className="text-lg font-bold text-[var(--color-warning)]">{totalWidgets.toLocaleString()}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
               <ClockIcon className="h-6 w-6 text-[var(--color-warning)]" />
@@ -662,17 +632,9 @@ const DashboardsPage: React.FC = () => {
                       <Cog6ToothIcon className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDuplicate(dashboard)}
-                      className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors"
-                      title="Dupliquer"
-                      disabled={duplicateDashboardMutation.isPending}
-                    >
-                      <DocumentDuplicateIcon className="h-4 w-4" />
-                    </button>
-                    <button
                       onClick={() => handleDeleteClick(dashboard)}
                       className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-error)] transition-colors"
-                      title={t('common.delete')}
+                      title="Masquer"
                       disabled={deleteDashboardMutation.isPending}
                     >
                       <TrashIcon className="h-4 w-4" />
@@ -875,9 +837,12 @@ const DashboardsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 p-6 border-t">
-              <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-              <button onClick={() => { setShowCreateModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.create')}</button>
+            <div className="flex items-center justify-between gap-3 p-6 border-t">
+              <span className="text-xs text-[var(--color-text-secondary)]">Aperçu — la configuration n'est pas encore enregistrée.</span>
+              <div className="flex space-x-3">
+                <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
+                <button onClick={() => { setShowCreateModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.create')}</button>
+              </div>
             </div>
           </div>
         </div>

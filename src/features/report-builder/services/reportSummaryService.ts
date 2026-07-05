@@ -68,8 +68,8 @@ function pickSources(reportType: ReportSummaryType): Array<{
   switch (reportType) {
     case 'bilan':
       return [
-        { label: 'Total Actif', source: 'kpi.ca_total', format: 'currency' },
-        { label: 'Capitaux Propres', source: 'kpi.roe', format: 'currency' },
+        { label: 'Total Actif', source: 'kpi.total_actif', format: 'currency' },
+        { label: 'Capitaux Propres', source: 'kpi.capitaux_propres', format: 'currency' },
         { label: 'Trésorerie Nette', source: 'kpi.tresorerie_nette', format: 'currency' },
         { label: 'Ratio Liquidité', source: 'kpi.ratio_liquidite', format: 'number' },
       ];

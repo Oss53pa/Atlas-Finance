@@ -124,6 +124,7 @@ const ChartOfAccountsPage: React.FC = () => {
     const accountStats: Record<string, { debit: number; credit: number; moves: number }> = {};
     for (const entry of dbEntries) {
       if (!entry.lines) continue;
+      if (entry.status === 'draft') continue; // brouillons exclus (cohérence balance/plan SYSCOHADA)
       for (const line of entry.lines) {
         const code = String(line.accountCode || '');
         if (!code) continue;

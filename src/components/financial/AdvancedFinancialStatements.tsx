@@ -162,11 +162,26 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       return money(debit).subtract(money(credit)).toNumber();
     };
     const creditNet = (prefix: string | string[]) => -net(prefix);
-    // Côté débiteur / créditeur d'une classe (empêche le DOUBLE COMPTAGE des
-    // tiers : une même classe 4 ne doit apparaître QUE d'un côté du bilan selon
-    // le signe de son solde, jamais en actif ET en passif).
-    const debiteur = (p: string | string[]) => Math.max(0, net(p));
-    const crediteur = (p: string | string[]) => Math.max(0, creditNet(p));
+    // Solde net PAR COMPTE, puis placement par SIGNE (règle SYSCOHADA du bilan).
+    // ⚠️ Ne PAS faire Math.max(0, net(classe)) : agréger le net d'une CLASSE avant de
+    // choisir le côté compense les comptes de sens opposés (ex. 441 débiteur vs 444
+    // créditeur), ce qui déséquilibre le bilan. On somme donc compte par compte.
+    const soldesByAccount = (p: string | string[]): number[] => {
+      const prefixes = Array.isArray(p) ? p : [p];
+      const byAccount = new Map<string, number>();
+      for (const e of entries) {
+        for (const l of e.lines) {
+          if (prefixes.some(x => l.accountCode.startsWith(x))) {
+            byAccount.set(l.accountCode, money(byAccount.get(l.accountCode) || 0).add(money(l.debit)).subtract(money(l.credit)).toNumber());
+          }
+        }
+      }
+      return Array.from(byAccount.values());
+    };
+    // Σ des soldes DÉBITEURS (>0) compte par compte.
+    const debiteur = (p: string | string[]) => soldesByAccount(p).reduce((s, v) => v > 0 ? money(s).add(money(v)).toNumber() : s, 0);
+    // Σ des soldes CRÉDITEURS (<0) compte par compte, en valeur absolue.
+    const crediteur = (p: string | string[]) => soldesByAccount(p).reduce((s, v) => v < 0 ? money(s).add(money(-v)).toNumber() : s, 0);
     // Résultat NET d'impôt (−cl.89) calculé AVANT le bilan pour l'y injecter au
     // passif (sinon `creditNet('13')` ≠ résultat net → Actif ≠ Passif).
     const resultatNetReal = money(creditNet('7')).subtract(money(net('6'))).subtract(money(net('89'))).toNumber();
@@ -202,15 +217,17 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
       produits: {
         chiffreAffaires: money(creditNet('70')).add(money(creditNet('71'))).add(money(creditNet('72'))).toNumber(),
         productionStockee: creditNet('73'),
-        autresProduits: money(creditNet('74')).add(money(creditNet('75'))).add(money(creditNet('78'))).toNumber(),
+        autresProduits: money(creditNet('74')).add(money(creditNet('75'))).add(money(creditNet('78'))).add(money(creditNet('79'))).toNumber(),
         produitsFinanciers: money(creditNet('76')).add(money(creditNet('77'))).toNumber(),
         produitsExceptionnels: money(creditNet('84')).add(money(creditNet('86'))).add(money(creditNet('88'))).toNumber(),
       },
       charges: {
         achatsConsommes: money(net('60')).add(money(net('61'))).toNumber(),
-        servicesExterieurs: money(net('62')).add(money(net('63'))).toNumber(),
+        // 65 (autres charges) rattaché ici pour que Σ charges couvre TOUTE la classe 6
+        // → Total Produits − Total Charges = résultat net (65 et 69 étaient oubliés).
+        servicesExterieurs: money(net('62')).add(money(net('63'))).add(money(net('65'))).toNumber(),
         personnel: money(net('64')).add(money(net('66'))).toNumber(),
-        amortissements: net('68'),
+        amortissements: money(net('68')).add(money(net('69'))).toNumber(),
         chargesFinancieres: net('67'),
         chargesExceptionnelles: money(net('83')).add(money(net('85'))).add(money(net('87'))).toNumber(),
         impotsSocietes: net('89'),
@@ -253,28 +270,35 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
     const totalCapitaux = Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0);
     const totalDettes = Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0);
     
+    // Division protégée : jamais de NaN/Infinity si un dénominateur est nul.
+    const sd = (n: number, d: number) => (d !== 0 && Number.isFinite(n / d)) ? n / d : 0;
+    const actifImmob = Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0);
+    const actifCirc = Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0);
+    const dettesCT = bilanData.dettes.dettesFournisseurs + bilanData.dettes.dettesExploitation;
+    const ca = compteResultatData.produits.chiffreAffaires;
+
     return {
       structure: {
-        autonomieFinanciere: (totalCapitaux / totalActif) * 100,
-        gearing: (bilanData.dettes.dettesFinancieres / totalCapitaux) * 100,
-        couvertureImmobilisations: (totalCapitaux / Math.abs(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0))) * 100
+        autonomieFinanciere: sd(totalCapitaux, totalActif) * 100,
+        gearing: sd(bilanData.dettes.dettesFinancieres, totalCapitaux) * 100,
+        couvertureImmobilisations: sd(totalCapitaux, Math.abs(actifImmob)) * 100
       },
       liquidite: {
-        liquiditeGenerale: (Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0) / (bilanData.dettes.dettesFournisseurs + bilanData.dettes.dettesExploitation)),
-        liquiditeReduite: ((bilanData.actifCirculant.creancesClients + bilanData.actifCirculant.disponibilites) / (bilanData.dettes.dettesFournisseurs + bilanData.dettes.dettesExploitation)),
-        liquiditeImmediate: (bilanData.actifCirculant.disponibilites / (bilanData.dettes.dettesFournisseurs + bilanData.dettes.dettesExploitation))
+        liquiditeGenerale: sd(actifCirc, dettesCT),
+        liquiditeReduite: sd(bilanData.actifCirculant.creancesClients + bilanData.actifCirculant.disponibilites, dettesCT),
+        liquiditeImmediate: sd(bilanData.actifCirculant.disponibilites, dettesCT)
       },
       rentabilite: {
-        roa: (sigData.resultatNet / totalActif) * 100,
-        roe: (sigData.resultatNet / totalCapitaux) * 100,
-        margeNette: (sigData.resultatNet / compteResultatData.produits.chiffreAffaires) * 100,
-        margeBrute: (sigData.margeCommerciale / compteResultatData.produits.chiffreAffaires) * 100
+        roa: sd(sigData.resultatNet, totalActif) * 100,
+        roe: sd(sigData.resultatNet, totalCapitaux) * 100,
+        margeNette: sd(sigData.resultatNet, ca) * 100,
+        margeBrute: sd(sigData.margeCommerciale, ca) * 100
       },
       activite: {
-        rotationStocks: compteResultatData.charges.achatsConsommes / bilanData.actifCirculant.stocks,
-        dso: (bilanData.actifCirculant.creancesClients / compteResultatData.produits.chiffreAffaires) * 365,
-        dpo: (bilanData.dettes.dettesFournisseurs / compteResultatData.charges.achatsConsommes) * 365,
-        rotationActif: compteResultatData.produits.chiffreAffaires / totalActif
+        rotationStocks: sd(compteResultatData.charges.achatsConsommes, bilanData.actifCirculant.stocks),
+        dso: sd(bilanData.actifCirculant.creancesClients, ca) * 365,
+        dpo: sd(bilanData.dettes.dettesFournisseurs, compteResultatData.charges.achatsConsommes) * 365,
+        rotationActif: sd(compteResultatData.produits.chiffreAffaires, totalActif)
       }
     };
   }, [bilanData, compteResultatData, sigData]);
@@ -1050,8 +1074,9 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
         const augCap = creditN('10'); const emp = creditN('16'); const rembE = net('16') > 0 ? net('16') : 0; const div = net('465');
         const fFinanc = money(augCap).add(money(emp)).subtract(money(rembE)).subtract(money(div)).toNumber();
         const varTreso = money(fExploit).add(money(fInvest)).add(money(fFinanc)).toNumber();
-        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5')) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); } return t; })();
-        const tresoClo = net('5');
+        // Trésorerie = classe 5 HORS 59 (dépréciations des titres de placement, créditrices).
+        const tresoOuv = (() => { let t = 0; for (const e of entries) { if (e.journal === 'AN' || e.journal === 'RAN') for (const l of e.lines) if (l.accountCode.startsWith('5') && !l.accountCode.startsWith('59')) t = money(t).add(money(l.debit).subtract(money(l.credit))).toNumber(); } return t; })();
+        const tresoClo = money(net('5')).subtract(money(net('59'))).toNumber();
 
         // Méthode directe
         let dEC = 0, dDF = 0, dDP = 0, dDI = 0, dAE = 0, dAD = 0, dDA = 0, dDAF = 0, dECe = 0, dECa = 0, dEE = 0, dDRE = 0, dDD = 0;

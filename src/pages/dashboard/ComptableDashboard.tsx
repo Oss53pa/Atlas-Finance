@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
-import { formatCurrency } from '../../utils/formatters';
-import { 
-  Calculator, 
-  FileText, 
-  TrendingUp, 
+import { useMoneyFormat } from '../../hooks/useMoneyFormat';
+import { computeDashboardMetrics } from '../../utils/dashboardMetrics';
+import {
+  Calculator,
+  FileText,
   DollarSign,
   CheckCircle,
-  AlertCircle,
   Clock,
   BarChart3,
   PieChart,
-  ArrowUpRight,
-  ArrowDownRight,
   Plus,
   Search,
   Filter,
@@ -23,9 +20,11 @@ import {
 
 const ComptableDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const fmt = useMoneyFormat();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [showNewEntryModal, setShowNewEntryModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const [filterParams, setFilterParams] = useState({
     dateFrom: '',
     dateTo: '',
@@ -34,58 +33,36 @@ const ComptableDashboard: React.FC = () => {
   });
   const { adapter } = useData();
 
-  const handleExportData = () => {
-    const csvContent = recentEntries.map(e =>
-      `${e.id};${e.date};${e.description};${e.debit};${e.credit};${e.status}`
-    ).join('\n');
-    const blob = new Blob([`N°;Date;Description;Débit;Crédit;Statut\n${csvContent}`], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'ecritures_comptables.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleQuickAction = (path: string) => {
-    window.location.href = path;
-  };
-
   // Metrics from DataContext
   const [liveData, setLiveData] = useState<{ todayCount: number; pendingCount: number; validatedCount: number; treasuryBalance: number; recentEntries: any[] }>({ todayCount: 0, pendingCount: 0, validatedCount: 0, treasuryBalance: 0, recentEntries: [] });
 
   useEffect(() => {
     const load = async () => {
       const today = new Date().toISOString().split('T')[0];
-      const allEntries = await adapter.getAll('journalEntries') as { date: string; status: string; lines: Array<{ accountCode: string; debit: number; credit: number }> }[];
+      const allEntries = await adapter.getAll<any>('journalEntries');
       const todayEntries = allEntries.filter((e: any) => e.date === today);
-      const pendingEntries = allEntries.filter((e: any) => e.status === 'draft' || e.status === 'pending');
-      const validatedEntries = allEntries.filter((e: any) => e.status === 'posted');
+      const pendingEntries = allEntries.filter((e: any) => e.status === 'draft');
+      // 'validated' ET 'posted' comptent comme validées (les 529 écritures sont 'validated').
+      const validatedEntries = allEntries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
 
-      // Compute treasury balance from class 5 accounts
-      let treasuryBalance = 0;
-      for (const entry of allEntries) {
-        for (const line of entry.lines) {
-          if (line.accountCode.startsWith('5')) {
-            treasuryBalance += line.debit - line.credit;
-          }
-        }
-      }
+      // Trésorerie via la source unique (classe 5 hors 58).
+      const treasuryBalance = computeDashboardMetrics(allEntries).treasury;
 
-      // Recent entries
-      const recent = allEntries
-        .sort((a: any, b: any) => b.date.localeCompare(a.date))
-        .slice(0, 10)
+      // Recent entries — on garde les montants NUMÉRIQUES + date/statut bruts pour filtrer/formater.
+      const recent = [...allEntries]
+        .sort((a: any, b: any) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
+        .slice(0, 20)
         .map((e: any) => {
-          const totalDebit = e.lines.reduce((s: number, l: any) => s + l.debit, 0);
-          const totalCredit = e.lines.reduce((s: number, l: any) => s + l.credit, 0);
+          const totalDebit = (e.lines || []).reduce((s: number, l: any) => s + (l.debit || 0), 0);
+          const totalCredit = (e.lines || []).reduce((s: number, l: any) => s + (l.credit || 0), 0);
           return {
             id: e.entryNumber || e.id,
-            date: new Date(e.date).toLocaleDateString('fr-FR'),
-            description: e.description || e.reference || '-',
-            debit: formatCurrency(totalDebit),
-            credit: formatCurrency(totalCredit),
-            status: e.status === 'posted' ? 'validated' : e.status === 'draft' ? 'draft' : 'pending',
+            rawDate: String(e.date || '').slice(0, 10),
+            date: e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—',
+            description: e.description || e.label || e.reference || '-',
+            debit: totalDebit,
+            credit: totalCredit,
+            status: (e.status === 'validated' || e.status === 'posted') ? 'validated' : e.status === 'draft' ? 'draft' : 'pending',
           };
         });
 
@@ -100,46 +77,40 @@ const ComptableDashboard: React.FC = () => {
     load();
   }, [adapter]);
 
+  const handleExportData = () => {
+    const csvContent = recentEntries.map(e =>
+      `${e.id};${e.rawDate};${e.description};${e.debit};${e.credit};${e.status}`
+    ).join('\n');
+    const blob = new Blob([`﻿N°;Date;Description;Débit;Crédit;Statut\n${csvContent}`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ecritures_comptables.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleQuickAction = (path: string) => navigate(path);
+
   const metrics = [
-    {
-      title: 'Écritures du jour',
-      value: String(liveData.todayCount),
-      change: '',
-      trend: 'up' as const,
-      color: 'blue',
-      icon: FileText,
-      description: 'Nouvelles écritures'
-    },
-    {
-      title: 'En attente validation',
-      value: String(liveData.pendingCount),
-      change: '',
-      trend: 'down' as const,
-      color: 'orange',
-      icon: Clock,
-      description: 'À valider'
-    },
-    {
-      title: 'Écritures validées',
-      value: String(liveData.validatedCount),
-      change: '',
-      trend: 'up' as const,
-      color: 'green',
-      icon: CheckCircle,
-      description: 'Total validées'
-    },
-    {
-      title: 'Solde de trésorerie',
-      value: formatCurrency(liveData.treasuryBalance),
-      change: '',
-      trend: 'up' as const,
-      color: 'primary',
-      icon: DollarSign,
-      description: 'Position actuelle'
-    }
+    { title: 'Écritures du jour', value: String(liveData.todayCount), color: 'blue', icon: FileText, description: 'Saisies aujourd\'hui' },
+    { title: 'En attente validation', value: String(liveData.pendingCount), color: 'orange', icon: Clock, description: 'Brouillons à valider' },
+    { title: 'Écritures validées', value: String(liveData.validatedCount), color: 'green', icon: CheckCircle, description: 'Total comptabilisées' },
+    { title: 'Solde de trésorerie', value: fmt(liveData.treasuryBalance), color: 'primary', icon: DollarSign, description: 'Classe 5 (hors 58)' },
   ];
 
-  const recentEntries = liveData.recentEntries;
+  // Filtres réellement appliqués (recherche + période + statut + sens).
+  const recentEntries = useMemo(() => {
+    return liveData.recentEntries.filter((e: any) => {
+      if (searchText && !`${e.id} ${e.description}`.toLowerCase().includes(searchText.toLowerCase())) return false;
+      if (filterParams.dateFrom && e.rawDate < filterParams.dateFrom) return false;
+      if (filterParams.dateTo && e.rawDate > filterParams.dateTo) return false;
+      if (filterParams.status !== 'all' && e.status !== filterParams.status) return false;
+      if (filterParams.type === 'debit' && !(e.debit > 0)) return false;
+      if (filterParams.type === 'credit' && !(e.credit > 0)) return false;
+      return true;
+    });
+  }, [liveData.recentEntries, searchText, filterParams]);
 
   const quickActions = [
     { label: 'Nouvelle écriture', icon: Plus, color: 'blue', path: '/accounting/entries' },
@@ -166,7 +137,7 @@ const ComptableDashboard: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setShowNewEntryModal(true)}
+              onClick={() => navigate('/accounting/entries')}
               className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-primary-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -212,23 +183,13 @@ const ComptableDashboard: React.FC = () => {
           <>
             {/* Métriques principales - Style Kads Agency */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {metrics.map((metric, index) => {
+              {metrics.map((metric) => {
                 const IconComponent = metric.icon;
                 return (
-                  <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow">
+                  <div key={metric.title} className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-4">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center bg-${metric.color}-100`}>
-                        <IconComponent className={`w-6 h-6 text-${metric.color}-600`} />
-                      </div>
-                      <div className={`flex items-center space-x-1 text-sm ${
-                        metric.trend === 'up' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                      }`}>
-                        {metric.trend === 'up' ? (
-                          <ArrowUpRight className="w-4 h-4" />
-                        ) : (
-                          <ArrowDownRight className="w-4 h-4" />
-                        )}
-                        <span>{metric.change}</span>
+                      <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-[var(--color-primary)]/10">
+                        <IconComponent className="w-6 h-6 text-[var(--color-primary)]" />
                       </div>
                     </div>
                     <div>
@@ -278,6 +239,8 @@ const ComptableDashboard: React.FC = () => {
                     <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
                     <input
                       type="text"
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
                       placeholder="Rechercher..."
                       className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -314,8 +277,8 @@ const ComptableDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {recentEntries.map((entry, index) => (
-                    <tr key={index} className="hover:bg-[var(--color-background-secondary)]">
+                  {recentEntries.map((entry) => (
+                    <tr key={entry.id} className="hover:bg-[var(--color-background-secondary)]">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-primary)]">
                         {entry.id}
                       </td>
@@ -326,13 +289,13 @@ const ComptableDashboard: React.FC = () => {
                         {entry.description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
-                        {entry.debit !== '0.00' && (
-                          <span className="text-[var(--color-error)]">{entry.debit}€</span>
+                        {entry.debit > 0 && (
+                          <span className="text-[var(--color-error)]">{fmt(entry.debit)}</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
-                        {entry.credit !== '0.00' && (
-                          <span className="text-[var(--color-success)]">{entry.credit}€</span>
+                        {entry.credit > 0 && (
+                          <span className="text-[var(--color-success)]">{fmt(entry.credit)}</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -356,118 +319,6 @@ const ComptableDashboard: React.FC = () => {
 
         {/* Contenu des autres onglets à développer */}
       </main>
-
-      {/* Modal Nouvelle Écriture */}
-      {showNewEntryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full">
-            <div className="p-6 border-b border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
-                    <Plus className="w-5 h-5 text-[var(--color-text-secondary)]" />
-                  </div>
-                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvelle Écriture Comptable</h2>
-                </div>
-                <button onClick={() => setShowNewEntryModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
-              </div>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-                  <input
-                    type="date"
-                    defaultValue={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Journal *</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="achats">Achats</option>
-                    <option value="ventes">Ventes</option>
-                    <option value="banque">Banque</option>
-                    <option value="caisse">Caisse</option>
-                    <option value="operations_diverses">Opérations Diverses</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Libellé de l'écriture"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte *</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="N° de compte"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tiers</label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Client / Fournisseur"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.debit')}</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('accounting.credit')}</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Référence pièce</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="N° facture, reçu, etc."
-                />
-              </div>
-            </div>
-            <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
-              <button
-                onClick={() => setShowNewEntryModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={() => {
-                  toast.success('Écriture créée avec succès !');
-                  setShowNewEntryModal(false);
-                }}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
-              >
-                Créer l'écriture
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal Filtres */}
       {showFilterModal && (
@@ -546,10 +397,7 @@ const ComptableDashboard: React.FC = () => {
                   Annuler
                 </button>
                 <button
-                  onClick={() => {
-                    toast.success('Filtres appliqués !');
-                    setShowFilterModal(false);
-                  }}
+                  onClick={() => setShowFilterModal(false)}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
                 >
                   Appliquer

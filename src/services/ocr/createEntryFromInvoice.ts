@@ -80,7 +80,10 @@ export async function createEntryFromInvoice(
     date,
     reference: data.documentNumber || '',
     label,
-    status: 'draft',
+    // Écriture équilibrée (D=C forcé) issue d'une facture auto-validée : postée
+    // comptabilisée (validated) pour apparaître dans balance/états, en cohérence avec
+    // l'UI OCR (« validée & comptabilisée »). Un brouillon en serait exclu.
+    status: 'validated',
     lines,
     totalDebit: ttc,
     totalCredit: ttc,

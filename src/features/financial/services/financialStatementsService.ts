@@ -244,14 +244,20 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
   const warnings: BilanWarning[] = [];
 
   // ACTIF — SYSCOHADA classes 2 (immobilisé), 3 (stocks), 4 débit (créances), 5 débit (trésorerie)
-  const immobilisationsIncorporelles = netByPrefix(entries, '21');
-  const immobilisationsCorporelles = netByPrefix(entries, '22', '23', '24');
-  const immobilisationsFinancieres = netByPrefix(entries, '25', '26', '27');
-  const amortissements = netByPrefix(entries, '28'); // credit balance → negative
+  // Brut par nature + amortissements VENTILÉS par poste (pas cumulés sur les corporelles).
+  //  - Charges immobilisées (20) regroupées avec les incorporelles (21).
+  //  - Avances/immobilisations en cours (25) = corporelles, PAS financières.
+  const grossIncorporelles = netByPrefix(entries, '20', '21');
+  const grossCorporelles = netByPrefix(entries, '22', '23', '24', '25');
+  const grossFinancieres = netByPrefix(entries, '26', '27');
+  const amortissements = netByPrefix(entries, '28'); // solde créditeur → négatif
+  const amortIncorporelles = netByPrefix(entries, '280', '281'); // amort charges immo + incorporelles
+  const amortCorporelles = money(amortissements).subtract(money(amortIncorporelles)).toNumber();
+  const immobilisationsIncorporelles = money(grossIncorporelles).add(money(amortIncorporelles)).toNumber(); // net
+  const immobilisationsFinancieres = grossFinancieres;
   const totalActifImmobilise = money(immobilisationsIncorporelles)
-    .add(immobilisationsCorporelles)
-    .add(immobilisationsFinancieres)
-    .add(amortissements)
+    .add(money(grossCorporelles)).add(money(amortCorporelles))
+    .add(money(grossFinancieres))
     .toNumber();
 
   const stocks = netByPrefix(entries, '3');
@@ -275,8 +281,8 @@ function computeBilan(entries: DBJournalEntry[], exercice: string): Bilan {
   const totalActif = money(totalActifImmobilise).add(totalActifCirculant).toNumber();
 
   // P1-1a: Signal anomalies instead of silently masking with Math.max(0,...)
-  const immoCorpNet = money(immobilisationsCorporelles).add(amortissements).toNumber();
-  if (immobilisationsIncorporelles < 0) warnings.push({ field: 'immobilisationsIncorporelles', message: 'Actif incorporel négatif — vérifier les écritures de la classe 21', amount: immobilisationsIncorporelles });
+  const immoCorpNet = money(grossCorporelles).add(money(amortCorporelles)).toNumber();
+  if (immobilisationsIncorporelles < 0) warnings.push({ field: 'immobilisationsIncorporelles', message: 'Actif incorporel négatif — vérifier les écritures des classes 20/21', amount: immobilisationsIncorporelles });
   if (immoCorpNet < 0) warnings.push({ field: 'immobilisationsCorporelles', message: 'Actif corporel net négatif — amortissements excessifs sur classes 22-24', amount: immoCorpNet });
   if (stocks < 0) warnings.push({ field: 'stocks', message: 'Stocks négatifs — vérifier les mouvements de la classe 3', amount: stocks });
   if (tresorerieActif < 0) warnings.push({ field: 'tresorerieActif', message: 'Trésorerie négative — vérifier les comptes de la classe 5', amount: tresorerieActif });

@@ -163,6 +163,9 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       const backup = JSON.parse(text);
       if (!backup._meta) { toast.error('Fichier de sauvegarde invalide'); return; }
       const tables = Object.keys(backup).filter(k => k !== '_meta') as TableName[];
+      const tenantId = (adapter as any).tenantId;
+      let okCount = 0, errCount = 0;
+      const failedTables: string[] = [];
       for (let i = 0; i < tables.length; i++) {
         const table = tables[i];
         const rows = backup[table];
@@ -172,15 +175,31 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         // Upsert via Supabase directement (les tables ont id ou key comme PK)
         const pgTable = (adapter as any).pgTable?.(table) || table;
         const pkCol = table === 'settings' ? 'key' : 'id';
+        // SECURITE : forcer le tenant courant sur chaque ligne portant un tenant_id,
+        // pour empêcher toute injection cross-tenant depuis un fichier manipulé.
+        const scoped = tenantId
+          ? rows.map((r: any) => (r && typeof r === 'object' && 'tenant_id' in r ? { ...r, tenant_id: tenantId } : r))
+          : rows;
         try {
-          const { error } = await (supabase as any).from(pgTable).upsert(rows, { onConflict: pkCol, ignoreDuplicates: false });
-          if (error) console.error(`[Restore] ${table}:`, error.message);
-        } catch (e) { /* table peut ne pas exister en SaaS */ }
+          const { error } = await (supabase as any).from(pgTable).upsert(scoped, { onConflict: pkCol, ignoreDuplicates: false });
+          if (error) { console.error(`[Restore] ${table}:`, error.message); errCount++; failedTables.push(table); }
+          else okCount++;
+        } catch (e) { errCount++; failedTables.push(table); }
       }
       setBackupProgress(100);
-      setBackupLabel('Restauration terminée');
-      toast.success('Restauration effectuée avec succès');
-      await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Restauration', size: (restoreFile.size / 1024).toFixed(0) + ' Ko', status: 'Succes' });
+      // Statut réel (pas de "succès" systématique) : Succès / Partiel / Échec
+      const status = errCount === 0 ? 'Succes' : okCount === 0 ? 'Echec' : 'Partiel';
+      if (errCount === 0) {
+        setBackupLabel('Restauration terminée');
+        toast.success('Restauration effectuée avec succès');
+      } else if (okCount === 0) {
+        setBackupLabel('Restauration échouée');
+        toast.error(`Restauration échouée — aucune table restaurée (${failedTables.join(', ')})`);
+      } else {
+        setBackupLabel(`Restauration partielle (${errCount} table(s) en échec)`);
+        toast.warning(`Restauration partielle : ${okCount} OK, ${errCount} en échec (${failedTables.join(', ')})`);
+      }
+      await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Restauration', size: (restoreFile.size / 1024).toFixed(0) + ' Ko', status });
       setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
     } catch (err) {
       toast.error('Erreur lors de la restauration : ' + String(err));

@@ -401,74 +401,53 @@ const Balance: React.FC = () => {
 
   // Fonctions pour les actions rapides
   const handleExportExcel = () => {
-    // Créer un fichier Excel avec les données de la balance
-    const data = [
-      ['Balance de Clôture - Exercice 2024'],
+    // Export RÉEL à partir des comptes affichés (plus de valeurs en dur).
+    const rows: string[][] = [
+      ['Balance Générale'],
       [''],
-      ['Classe', 'Libellé', 'Solde Débit', 'Solde Crédit'],
-      ['1-5', 'COMPTES DE BILAN', '18 000 000', '11 500 000'],
-      ['6', 'COMPTES DE CHARGES', '23 500 000', '—'],
-      ['7', 'COMPTES DE PRODUITS', '—', '37 500 000'],
-      ['89', 'RÉSULTAT NET', '14 000 000 (BÉNÉFICE)', ''],
-      [''],
-      ['TOTAUX GÉNÉRAUX', '', '41 500 000', '63 000 000'],
-      ['ÉTAT DE L\'EXERCICE', 'BÉNÉFICIAIRE', '+59.6%', '']
+      ['Compte', 'Libellé', 'Solde Débit', 'Solde Crédit'],
+      ...accounts.map(a => [a.code, a.libelle, String(a.soldeDebiteur || 0), String(a.soldeCrediteur || 0)]),
     ];
+    const totDeb = accounts.reduce((s, a) => s + (a.soldeDebiteur || 0), 0);
+    const totCred = accounts.reduce((s, a) => s + (a.soldeCrediteur || 0), 0);
+    rows.push([''], ['TOTAUX', '', String(totDeb), String(totCred)]);
 
-    // Simuler le téléchargement
-    const csvContent = data.map(row => row.join(';')).join('\n');
+    const csvContent = '﻿' + rows.map(row => row.join(';')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', 'balance_cloture_2024.csv');
-    link.style.visibility = 'hidden';
+    link.setAttribute('download', 'balance_generale.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    toast.success('Export Excel généré avec succès !');
+    URL.revokeObjectURL(url);
+    toast.success('Export CSV généré');
   };
 
   const handleGeneratePDF = () => {
-    // Simuler la génération d'un rapport PDF
-    toast('Génération du rapport PDF en cours...\n\nLe rapport sera disponible dans quelques instants.');
+    // Impression réelle (le navigateur permet « Enregistrer en PDF »).
+    window.print();
   };
 
   const handleSendEmail = () => {
-    // Simuler l'envoi par email
-    const email = prompt('Entrez l\'adresse email de destination:');
-    if (email) {
-      toast.success(`Balance de clôture envoyée avec succès à: ${email}\n\nObjet: Balance de Clôture - Exercice 2024\nContenu: Rapport de balance avec synthèse et actions de clôture.`);
-    }
+    // Pas d'envoi factice : l'envoi d'email nécessite un backend. On exporte le CSV
+    // pour que l'utilisateur puisse le joindre lui-même.
+    toast.info('Envoi par email indisponible ici — utilisez « Exporter » puis joignez le fichier.');
   };
 
-  // Fonctions pour les actions des lignes de tableau
+  // Fonctions pour les actions des lignes de tableau (balance = LECTURE SEULE)
   const handleViewAccount = (account: BalanceAccount) => {
-    toast(`Consultation du compte:\n\nCode: ${account.code}\nLibellé: ${account.libelle}\nSolde Débiteur: ${formatAmount(account.soldeDebiteur)}\nSolde Créditeur: ${formatAmount(account.soldeCrediteur)}`);
+    toast(`Compte ${account.code} — ${account.libelle}\nSolde Débiteur: ${formatAmount(account.soldeDebiteur)}\nSolde Créditeur: ${formatAmount(account.soldeCrediteur)}`);
   };
 
-  const handleEditAccount = (account: BalanceAccount) => {
-    const newLibelle = prompt(`Modifier le libellé du compte ${account.code}:`, account.libelle);
-    if (newLibelle && newLibelle !== account.libelle) {
-      // Mettre à jour le compte
-      const updatedAccounts = accounts.map(acc =>
-        acc.code === account.code
-          ? { ...acc, libelle: newLibelle }
-          : acc
-      );
-      setAccounts(updatedAccounts);
-      toast.success(`Compte ${account.code} modifié avec succès !`);
-    }
+  const handleEditAccount = (_account: BalanceAccount) => {
+    // Une balance ne modifie pas le plan comptable — pas de fausse sauvegarde locale.
+    toast.info('Modification du plan comptable : écran « Plan comptable ».');
   };
 
-  const handleDeleteAccount = (account: BalanceAccount) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le compte ?\n\nCode: ${account.code}\nLibellé: ${account.libelle}\n\nCette action est irréversible.`)) {
-      // Supprimer le compte
-      const updatedAccounts = accounts.filter(acc => acc.code !== account.code);
-      setAccounts(updatedAccounts);
-      toast.success(`Compte ${account.code} supprimé avec succès !`);
-    }
+  const handleDeleteAccount = (_account: BalanceAccount) => {
+    toast.info('Suppression de compte : écran « Plan comptable » (une balance est en lecture seule).');
   };
 
   const handlePrintAccount = (account: BalanceAccount) => {

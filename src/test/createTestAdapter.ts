@@ -85,14 +85,16 @@ export function createTestAdapter(): DataAdapter {
     getBalanceByAccount: async () => new Map(),
 
     saveJournalEntry: async (entry: any) => {
-      const id = crypto.randomUUID();
+      // Aligné sur les vrais adapters : respecte l'id fourni et préserve les totaux
+      // déjà calculés par safeAddEntry (au lieu de forcer un nouvel id + totaux à 0).
+      const id = entry.id ?? crypto.randomUUID();
       const record = {
         ...entry,
         id,
-        createdAt: new Date().toISOString(),
+        createdAt: entry.createdAt ?? new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        totalDebit: 0,
-        totalCredit: 0,
+        totalDebit: entry.totalDebit ?? 0,
+        totalCredit: entry.totalCredit ?? 0,
       };
       await db.journalEntries.add(record);
       return record;

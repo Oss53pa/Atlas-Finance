@@ -30,6 +30,7 @@ import {
 import JournalEntryModal from '../../components/accounting/JournalEntryModal';
 import { formatCurrency, formatDate } from '../../lib/utils';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
+import { computeDashboardMetrics, periodRange } from '../../utils/dashboardMetrics';
 
 type TabKey = 'overview' | 'entries' | 'balance' | 'actions';
 
@@ -67,51 +68,18 @@ const AccountingDashboard: React.FC = () => {
     loadData();
   }, [adapter]);
 
-  // Computed stats from real data
+  // Computed stats — SOURCE UNIQUE glHelpers via computeDashboardMetrics.
+  // La période (Mois/Trimestre/Année) filtre RÉELLEMENT les écritures par date.
   const stats = useMemo(() => {
-    const posted = entries.filter((e: any) => e.status === 'posted' || e.status === 'validated');
+    const posted = entries.filter((e: any) => e.status !== 'draft');
     const drafts = entries.filter((e: any) => e.status === 'draft');
     const activeAccounts = accounts.filter((a: any) => a.isActive !== false);
 
-    let totalMouvements = 0;
-    const classSoldes: Record<string, number> = {};
+    const m = computeDashboardMetrics(entries, periodRange(period));
 
-    for (const entry of posted) {
-      if (!entry.lines) continue;
-      for (const line of entry.lines) {
-        totalMouvements += (line.debit || 0);
-        const code = String(line.accountCode || '');
-        const cls = code.charAt(0);
-        if (cls >= '1' && cls <= '9') {
-          classSoldes[cls] = (classSoldes[cls] || 0) + (line.debit || 0);
-        }
-      }
-    }
-
-    // Balance: compute totals by class groups
-    let totalActif = 0;  // classes 2+3+4(debit)+5
-    let totalPassif = 0;  // classes 1+4(credit)
-    let totalCharges = 0; // class 6
-    let totalProduits = 0; // class 7
-
-    for (const entry of posted) {
-      if (!entry.lines) continue;
-      for (const line of entry.lines) {
-        const code = String(line.accountCode || '');
-        const d = line.debit || 0;
-        const c = line.credit || 0;
-        if (code.startsWith('1')) { totalPassif += c - d; }
-        if (code.startsWith('2')) { totalActif += d - c; }
-        if (code.startsWith('3')) { totalActif += d - c; }
-        if (code.startsWith('4')) {
-          if (code.startsWith('41')) { totalActif += d - c; }  // créances
-          else { totalPassif += c - d; }  // dettes
-        }
-        if (code.startsWith('5')) { totalActif += d - c; }
-        if (code.startsWith('6')) { totalCharges += d - c; }
-        if (code.startsWith('7')) { totalProduits += c - d; }
-      }
-    }
+    // Balance (rough) par SIGNE du solde net — pas de Math.abs qui masque le signe.
+    const totalActif = m.h.net('2') + m.h.net('3') + m.h.net('41') + m.h.net('5');
+    const totalPassif = m.h.creditNet('1') + m.h.creditNet('40', '42', '43', '44', '45', '46', '47', '48', '49');
 
     return {
       total_comptes: accounts.length,
@@ -119,14 +87,14 @@ const AccountingDashboard: React.FC = () => {
       ecritures_total: entries.length,
       ecritures_validees: posted.length,
       ecritures_brouillon: drafts.length,
-      montant_total: totalMouvements,
-      classSoldes,
-      totalActif: Math.abs(totalActif),
-      totalPassif: Math.abs(totalPassif),
-      totalCharges: Math.abs(totalCharges),
-      totalProduits: Math.abs(totalProduits),
+      resultatNet: m.resultatNet,
+      classSoldes: m.classNet,
+      totalActif,
+      totalPassif,
+      totalCharges: m.charges,
+      totalProduits: m.ca,
     };
-  }, [entries, accounts]);
+  }, [entries, accounts, period]);
 
   // Recent entries (last 5 posted)
   const recentEntries = useMemo(() => {
@@ -199,11 +167,11 @@ const AccountingDashboard: React.FC = () => {
           withChart={true}
         />
         <KPICard
-          title="Mouvements (FCFA)"
-          value={fmt(stats.montant_total)}
-          subtitle={`${period === 'month' ? 'Ce mois' : period === 'quarter' ? 'Ce trimestre' : 'Cette année'}`}
+          title="Résultat net (FCFA)"
+          value={fmt(stats.resultatNet)}
+          subtitle={`${period === 'month' ? 'Ce mois' : period === 'quarter' ? 'Ce trimestre' : 'Cette année'} • après impôt`}
           icon={DollarSign}
-          color="success"
+          color={stats.resultatNet >= 0 ? 'success' : 'warning'}
           delay={0.3}
           withChart={true}
         />
@@ -322,9 +290,9 @@ const AccountingDashboard: React.FC = () => {
       { label: 'CHARGES (Classe 6)', value: stats.totalCharges, desc: 'Achats, Services, Personnel, Finances' },
       { label: 'PRODUITS (Classe 7)', value: stats.totalProduits, desc: 'Ventes, Production, Produits accessoires' },
     ];
-    const resultat = stats.totalProduits - stats.totalCharges;
+    const resultat = stats.resultatNet; // net après impôt (cl.89), source unique glHelpers
     const showResultat = stats.totalProduits > 0 || stats.totalCharges > 0;
-    const resultatPositif = stats.totalProduits >= stats.totalCharges;
+    const resultatPositif = resultat >= 0;
 
     const Card = ({ item }: { item: typeof items[number] }) => (
       <div className="p-6 rounded-2xl border bg-neutral-50/80 border-neutral-200/60 h-full">

@@ -57,12 +57,14 @@ class TreasuryMLService {
           confidence_upper: 0
         });
       }
+      // Pas de modèle ML branché : renvoyer des scénarios NULS (0) plutôt que des
+      // montants inventés (60M/52M/45M) qui s'affichaient comme une vraie prévision.
       return {
         predictions,
         scenarios: {
-          optimistic: 60000000,
-          most_likely: 52000000,
-          pessimistic: 45000000
+          optimistic: 0,
+          most_likely: 0,
+          pessimistic: 0
         }
       };
     }

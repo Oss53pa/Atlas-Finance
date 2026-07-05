@@ -157,8 +157,11 @@ const AssetsDisposals: React.FC = () => {
     for (const r of disposalRecords) if (r.asset_id) recByAsset.set(r.asset_id, r);
     return dbDisposedAssets.map((asset: DBAsset) => {
       const rec = recByAsset.get(asset.id);
-      // VNC : enregistrement réel si présent, sinon residualValue de la table.
-      const bookValue = rec ? Number(rec.book_value) || 0 : asset.residualValue;
+      // VNC = valeur brute − amortissements cumulés (JAMAIS residualValue, qui
+      // est la valeur de récupération prévisionnelle, pas la valeur nette).
+      const bookValue = rec
+        ? Number(rec.book_value) || 0
+        : Math.max(0, (Number(asset.acquisitionValue) || 0) - (Number(asset.cumulDepreciation) || 0));
 
       return {
         id: asset.id,
@@ -1340,10 +1343,13 @@ const AssetsDisposals: React.FC = () => {
                         if (disposalModal.mode === 'create') {
                           handleCreateDisposal();
                         } else if (disposalModal.mode === 'approve') {
-                          toast.success('Sortie approuvée avec succès');
+                          // Une cession créée est déjà comptabilisée (écriture validée) :
+                          // pas de faux « approuvé ».
+                          toast('Cette cession est déjà comptabilisée et définitive (écriture validée).', { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         } else {
-                          toast.success('Modifications sauvegardées');
+                          // Une écriture de cession ne se modifie pas : contrepasser puis ressaisir.
+                          toast('Une cession comptabilisée ne se modifie pas : contrepassez puis ressaisissez si nécessaire.', { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         }
                       }}

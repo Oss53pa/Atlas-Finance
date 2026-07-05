@@ -14,6 +14,11 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { safeAddEntry } from '../entryGuard';
+import {
+  complementaryDepreciationForDisposal,
+  dotationAccountFor,
+  amortAccountFor,
+} from './depreciationEngine';
 
 function getClient(adapter: DataAdapter): any | null {
   const c = (adapter as any).client;
@@ -55,32 +60,75 @@ export async function createDisposal(adapter: DataAdapter, input: DisposalInput,
   const asset: any = await adapter.getById<any>('assets', input.assetId);
   if (!asset) throw new Error('Actif introuvable.');
 
+  // Idempotence : un bien déjà sorti ne peut être cédé une seconde fois.
+  const currentStatus = String(asset.status ?? 'active');
+  if (currentStatus === 'disposed' || currentStatus === 'scrapped') {
+    throw new Error('Actif déjà sorti — cession impossible.');
+  }
+
   const brut = Number(asset.acquisitionValue ?? asset.acquisition_value ?? 0);
-  const cumulBrut = Number(asset.cumulDepreciation ?? asset.cumul_depreciation ?? 0);
-  // L'amortissement repris ne peut EXCÉDER le brut (sinon Dr 28 > Cr 2x →
-  // écriture déséquilibrée en cas de sur-amortissement). amort + vnc = brut.
-  const cumul = Math.min(Math.max(0, cumulBrut), brut);
+  const residual = Number(asset.residualValue ?? asset.residual_value ?? 0);
+  const storedCumulRaw = Number(asset.cumulDepreciation ?? asset.cumul_depreciation ?? 0);
+
+  const compteImmo = String(asset.accountCode ?? asset.account_code ?? '').trim();
+  // Refuser de produire une écriture fausse sur un compte de regroupement.
+  if (!compteImmo || compteImmo.length < 2) {
+    throw new Error("Compte d'immobilisation manquant sur la fiche — impossible de céder sans imputation valable.");
+  }
+  const compteAmort = amortAccountFor(compteImmo, asset.depreciationAccountCode ?? asset.depreciation_account_code);
+  const nom = String(asset.name ?? asset.code ?? input.assetId);
+  const acquisitionDate = String(asset.acquisitionDate ?? asset.acquisition_date ?? input.disposalDate);
+
+  const now = new Date().toISOString();
+  const L = (accountCode: string, accountName: string, label: string, debit: number, credit: number) =>
+    ({ id: crypto.randomUUID(), accountCode, accountName, label, debit, credit });
+
+  // ── Dotation complémentaire jusqu'à la DATE DE CESSION ─────────────────
+  // Sans elle, la VNC (donc la plus/moins-value) est fausse en cours d'exercice.
+  const complement = complementaryDepreciationForDisposal(
+    { acquisitionValue: brut, residualValue: residual, usefulLifeYears: Number(asset.usefulLifeYears ?? asset.useful_life_years ?? 0), depreciationMethod: asset.depreciationMethod ?? asset.depreciation_method, acquisitionDate, cumulDepreciation: storedCumulRaw },
+    input.disposalDate,
+  );
+  const base = Math.max(0, brut - residual);
+  const cumul = Math.min(Math.max(0, storedCumulRaw) + complement, base); // amort cumulé à la date de sortie
   const vnc = brut - cumul;
   const prix = Number(input.disposalValue) || 0;
   const gainLoss = prix - vnc;
 
-  const compteImmo = String(asset.accountCode ?? asset.account_code ?? '2');
-  const compteAmort = String(asset.depreciationAccountCode ?? asset.depreciation_account_code ?? ('28' + compteImmo.slice(1)));
-  const nom = String(asset.name ?? asset.code ?? input.assetId);
+  if (complement > 0) {
+    await safeAddEntry(adapter, {
+      id: crypto.randomUUID(),
+      entryNumber: `AMORT-CESS-${input.disposalDate.replace(/-/g, '')}-${input.assetId.substring(0, 6)}`,
+      journal: 'OD',
+      date: input.disposalDate,
+      reference: `AMORT-COMPL-${input.assetId}`,
+      label: `Dotation complémentaire avant cession - ${nom}`,
+      status: 'validated',
+      lines: [
+        L(dotationAccountFor(compteImmo), 'Dotation aux amortissements', `Dotation complémentaire ${nom}`, complement, 0),
+        L(compteAmort, 'Amortissements cumulés', `Amort. complémentaire ${nom}`, 0, complement),
+      ],
+      createdAt: now,
+      createdBy: createdBy || 'system',
+    }, { skipSyncValidation: true });
+    // Aligne le cumul stocké avant la sortie.
+    await adapter.update('assets', input.assetId, { cumulDepreciation: cumul });
+  }
 
-  // Lignes de l'écriture de cession (équilibrée par construction).
-  const L = (accountCode: string, accountName: string, label: string, debit: number, credit: number) =>
-    ({ id: crypto.randomUUID(), accountCode, accountName, label, debit, credit });
+  // ── Écriture de CESSION SYSCOHADA (équilibrée par construction) ─────────
+  //   Dr 28x amort cumulé + Dr 81 VNC / Cr 2x brut
+  //   Dr 485 créance sur cession / Cr 82 produit de cession
   const lines: any[] = [];
   if (cumul > 0) lines.push(L(compteAmort, 'Amortissements cumulés', `Sortie ${nom}`, cumul, 0));
   if (vnc > 0) lines.push(L('812', "Valeurs comptables des cessions d'immobilisations", `VNC ${nom}`, vnc, 0));
   lines.push(L(compteImmo, String(asset.name ?? 'Immobilisation'), `Sortie ${nom}`, 0, brut));
   if (prix > 0) {
-    lines.push(L('521', 'Banque', `Cession ${nom}`, prix, 0));
+    // 485 « Créances sur cessions d'immobilisations » — l'encaissement effectif
+    // se solde ensuite en trésorerie (Dr 521 / Cr 485), pas ici.
+    lines.push(L('485', "Créances sur cessions d'immobilisations", `Cession ${nom}`, prix, 0));
     lines.push(L('822', "Produits des cessions d'immobilisations", `Produit cession ${nom}`, 0, prix));
   }
 
-  const now = new Date().toISOString();
   const entryId = crypto.randomUUID();
   const entryNumber = `CESS-${input.disposalDate.replace(/-/g, '')}-${input.assetId.substring(0, 6)}`;
   await safeAddEntry(adapter, {

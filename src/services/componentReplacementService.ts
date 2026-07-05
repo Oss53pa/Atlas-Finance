@@ -36,6 +36,10 @@ export async function replaceComponent(
   // Get old component
   const oldAsset = await adapter.getById<DBAsset>('assets', oldComponentId);
   if (!oldAsset) throw new Error(`Composant ${oldComponentId} introuvable`);
+  // Idempotence : un composant déjà sorti ne peut être remplacé une 2e fois.
+  if (oldAsset.status && oldAsset.status !== 'active') {
+    throw new Error(`Composant ${oldAsset.name} déjà sorti — remplacement impossible.`);
+  }
 
   const acquisitionValue = new Decimal(oldAsset.acquisitionValue);
   const cumulAmort = new Decimal(oldAsset.cumulDepreciation || 0);
@@ -61,12 +65,14 @@ export async function replaceComponent(
     },
   ];
 
-  // If VNC > 0, record as charge
+  // Si VNC > 0, la valeur résiduelle du composant retiré part en charge HAO
+  // (812 « Valeurs comptables des cessions d'immobilisations »), et JAMAIS en
+  // 681 (dotation aux amortissements), qui gonflerait à tort les dotations.
   if (vnc.gt(0)) {
     exitLines.push({
       id: crypto.randomUUID(),
-      accountCode: '681',
-      accountName: 'Valeur nette comptable sortie composant',
+      accountCode: '812',
+      accountName: "Valeurs comptables des cessions d'immobilisations",
       label: `VNC sortie composant: ${oldAsset.name}`,
       debit: vnc.toNumber(),
       credit: 0,

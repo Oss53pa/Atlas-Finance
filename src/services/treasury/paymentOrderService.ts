@@ -79,6 +79,12 @@ export async function createPaymentOrder(adapter: DataAdapter, p: {
 export async function setPaymentStatus(adapter: DataAdapter, id: string, status: PaymentStatus): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
+  // Un paiement EXÉCUTÉ est intangible : interdire toute ré-ouverture (sinon on pourrait
+  // le repasser en 'validated' puis le ré-exécuter → double décaissement).
+  const { data: cur } = await client.from('fna_payment_order').select('status').eq('id', id).single();
+  if (cur?.status === 'executed' && status !== 'executed') {
+    throw new Error('Un paiement exécuté ne peut pas changer de statut.');
+  }
   const { error } = await client.from('fna_payment_order').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
   if (error) throw new Error(error.message);
 }
@@ -111,28 +117,41 @@ export async function executePaymentOrder(adapter: DataAdapter, id: string, exec
   const date = new Date().toISOString().split('T')[0];
   const nom = String(order.beneficiary || order.reference || 'Bénéficiaire');
 
+  // VERROU ATOMIQUE anti-double-décaissement : on flippe le statut à 'executed' AVANT de
+  // poster l'écriture, via un update CONDITIONNEL (.neq('status','executed')). Deux appels
+  // concurrents (double clic / relance) : un seul obtient une ligne modifiée, l'autre voit
+  // 0 ligne et abandonne. En cas d'échec du posting, on revert le statut.
+  const { data: locked, error: lockErr } = await client.from('fna_payment_order')
+    .update({ status: 'executed', executed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq('id', id).neq('status', 'executed').select('id');
+  if (lockErr) throw new Error(lockErr.message);
+  if (!locked || locked.length === 0) throw new Error('Paiement déjà exécuté ou en cours d\'exécution.');
+
   const debitLineId = crypto.randomUUID();
   const lines = [
     { id: debitLineId, accountCode: compteCharge, accountName: 'Fournisseurs', label: `Règlement ${nom}`, debit: montant, credit: 0, thirdPartyCode: tiers },
     { id: crypto.randomUUID(), accountCode: compteBank, accountName: compteBank === '571' ? 'Caisse' : 'Banque', label: `Règlement ${nom}`, debit: 0, credit: montant },
   ];
   const entryId = crypto.randomUUID();
-  await safeAddEntry(adapter, {
-    id: entryId,
-    entryNumber: `REGL-${date.replace(/-/g, '')}-${id.substring(0, 6)}`,
-    journal: 'BQ',
-    date,
-    reference: order.reference || `PAY-${id.substring(0, 8)}`,
-    label: `Règlement ${order.method} - ${nom}`,
-    status: 'validated',
-    lines,
-    createdAt: new Date().toISOString(),
-    createdBy: executedBy || 'system',
-  }, { skipSyncValidation: true });
-
-  await client.from('fna_payment_order').update({
-    status: 'executed', journal_entry_id: entryId, executed_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-  }).eq('id', id);
+  try {
+    await safeAddEntry(adapter, {
+      id: entryId,
+      entryNumber: `REGL-${date.replace(/-/g, '')}-${id.substring(0, 6)}`,
+      journal: 'BQ',
+      date,
+      reference: order.reference || `PAY-${id.substring(0, 8)}`,
+      label: `Règlement ${order.method} - ${nom}`,
+      status: 'validated',
+      lines,
+      createdAt: new Date().toISOString(),
+      createdBy: executedBy || 'system',
+    }, { skipSyncValidation: true });
+    await client.from('fna_payment_order').update({ journal_entry_id: entryId }).eq('id', id);
+  } catch (e) {
+    // Revert du verrou si l'écriture n'a pas pu être postée.
+    await client.from('fna_payment_order').update({ status: order.status, executed_at: null }).eq('id', id);
+    throw e;
+  }
   (adapter as any).invalidateCache?.();
 
   // Best-effort : lettrer le débit de règlement avec des crédits fournisseur

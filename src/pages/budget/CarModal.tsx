@@ -11,7 +11,7 @@ import { useToast } from '../../hooks/useToast';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
-import { setCapexStatut, type CapexRequest } from '../../features/budget/services/budgetService';
+import { setCapexStatut, setCapexUtilise, type CapexRequest } from '../../features/budget/services/budgetService';
 import { listCars, createCar, deleteCar, type Car } from '../../features/budget/services/capexCarService';
 import { Landmark, X, CheckCircle, Trash2 } from 'lucide-react';
 
@@ -48,6 +48,8 @@ const CarModal: React.FC<Props> = ({ open, request, onClose, onSaved }) => {
       });
       // L'émission d'une CAR rend les fonds disponibles (workflow business case).
       if (request.statut === 'approuve') await setCapexStatut(adapter, request.id, 'fonds_disponibles');
+      // Réconcilier `montant_utilise` sur capex_requests = total approprié (sert au PIR/clôture).
+      await setCapexUtilise(adapter, request.id, dejaApproprie + montant).catch(() => {});
       toast.success('CAR émise — fonds appropriés');
       onSaved?.(); load();
       setF({ reference: '', montant: '', date: '', justification: '' });
@@ -101,7 +103,7 @@ const CarModal: React.FC<Props> = ({ open, request, onClose, onSaved }) => {
               <div><span className="font-mono text-gray-500">{c.reference || '—'}</span> <span className="text-gray-400 text-xs">{c.date_appropriation || ''}</span></div>
               <div className="flex items-center gap-3">
                 <span className="font-medium text-gray-900">{formatCurrency(c.montant_approprie)}</span>
-                <button onClick={() => deleteCar(adapter, c.id).then(() => { load(); onSaved?.(); })} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                <button onClick={() => deleteCar(adapter, c.id).then(async () => { await setCapexUtilise(adapter, request.id, Math.max(0, dejaApproprie - c.montant_approprie)).catch(() => {}); load(); onSaved?.(); })} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>
             </div>
           ))}

@@ -170,6 +170,9 @@ interface KPICardProps {
   color?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
   delay?: number;
   withChart?: boolean;
+  /** Série de valeurs RÉELLES pour la mini-courbe. Sans elle, aucune sparkline n'est
+   *  rendue (on n'affiche jamais une courbe factice/ascendante en dur). */
+  series?: number[];
   /** Override la taille de police de la valeur (ex. '1.125rem') pour les
    *  montants longs qui déborderaient à la taille par défaut. */
   valueFontSize?: string;
@@ -184,6 +187,7 @@ export const KPICard: React.FC<KPICardProps> = ({
   color = 'primary',
   delay = 0,
   withChart = false,
+  series,
   valueFontSize
 }) => {
   const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileBg: string; tileColor: string; trendBg: string; trendColor: string }> = {
@@ -196,6 +200,21 @@ export const KPICard: React.FC<KPICardProps> = ({
   const t = TONE[color];
   // id de gradient SVG unique & valide (le titre contient des espaces -> id invalide -> fill noir)
   const gradId = 'kpi-grad-' + React.useId().replace(/[^a-zA-Z0-9]/g, '');
+
+  // Sparkline dérivée d'une VRAIE série (pas de courbe en dur). Rendue seulement si
+  // withChart ET une série d'au moins 2 points est fournie.
+  const chartPaths = React.useMemo(() => {
+    if (!withChart || !series || series.length < 2) return null;
+    const n = series.length;
+    const min = Math.min(...series);
+    const max = Math.max(...series);
+    const span = max - min || 1;
+    const x = (i: number) => (i / (n - 1)) * 200;
+    const y = (v: number) => 30 - ((v - min) / span) * 26; // marge haut/bas
+    const line = series.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+    const area = `${line} L 200 32 L 0 32 Z`;
+    return { line, area };
+  }, [withChart, series]);
 
   return (
     <motion.article
@@ -254,7 +273,7 @@ export const KPICard: React.FC<KPICardProps> = ({
         </div>
       )}
 
-      {withChart && (
+      {chartPaths && (
         <div className="mt-3 -mx-1">
           <svg width="100%" height="32" viewBox="0 0 200 32" preserveAspectRatio="none">
             <defs>
@@ -263,8 +282,8 @@ export const KPICard: React.FC<KPICardProps> = ({
                 <stop offset="100%" stopColor={t.stroke} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4 L 200 32 L 0 32 Z" fill={`url(#${gradId})`} />
-            <path d="M 0 24 C 30 22, 50 18, 70 14 S 110 8, 140 10 S 180 6, 200 4" fill="none" stroke={t.stroke} strokeWidth="1.5" strokeLinecap="round" />
+            <path d={chartPaths.area} fill={`url(#${gradId})`} />
+            <path d={chartPaths.line} fill="none" stroke={t.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
       )}

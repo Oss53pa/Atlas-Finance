@@ -141,19 +141,21 @@ export const immobilisationsControls: AuditControl[] = [
   },
   {
     ref: 'C34', niveau: 4, categorie: 'immobilisations',
-    libelle: 'Cessions correctement comptabilisées (691/791)',
+    libelle: 'Cessions correctement comptabilisées (81/82)',
     severite: 'MINEUR', reference: 'SYSCOHADA révisé Art. 42',
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
+      // SYSCOHADA révisé : 81 = valeurs comptables des cessions (charge HAO),
+      // 82 = produits des cessions d'immobilisations (produit HAO).
       const vncCession = balance
-        .filter(r => (r.accountCode || '').startsWith('691'))
+        .filter(r => (r.accountCode || '').startsWith('81'))
         .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       const prixCession = balance
-        .filter(r => (r.accountCode || '').startsWith('791'))
+        .filter(r => (r.accountCode || '').startsWith('82'))
         .reduce((s, r) => s + (r.creditMouvement || 0) - (r.debitMouvement || 0), 0);
       if (vncCession === 0 && prixCession === 0) return ok('C34', 'Cessions immo', 'Aucune cession d\'immobilisation.', 'SYSCOHADA révisé Art. 42');
       if ((vncCession > 0 && prixCession === 0) || (prixCession > 0 && vncCession === 0)) {
-        return alerte('C34', 'Cessions immo', 'MINEUR', `VNC cession (691) = ${Math.round(vncCession)}, Prix cession (791) = ${Math.round(prixCession)} — écritures incomplètes`, 'SYSCOHADA révisé Art. 42');
+        return alerte('C34', 'Cessions immo', 'MINEUR', `VNC cession (81) = ${Math.round(vncCession)}, Prix cession (82) = ${Math.round(prixCession)} — écritures incomplètes`, 'SYSCOHADA révisé Art. 42');
       }
       return ok('C34', 'Cessions immo', `VNC cession = ${Math.round(vncCession)}, Prix cession = ${Math.round(prixCession)}`, 'SYSCOHADA révisé Art. 42');
     },
@@ -165,10 +167,10 @@ export const immobilisationsControls: AuditControl[] = [
     execute: async (adapter) => {
       const balance = await adapter.getTrialBalance();
       const vncCession = balance
-        .filter(r => (r.accountCode || '').startsWith('691'))
+        .filter(r => (r.accountCode || '').startsWith('81'))
         .reduce((s, r) => s + (r.debitMouvement || 0) - (r.creditMouvement || 0), 0);
       if (vncCession === 0) return skip('C35', 'VNC cession', 'MAJEUR', 'Pas de cession d\'immobilisation', 'SYSCOHADA révisé Art. 42');
-      return ok('C35', 'VNC cession', `VNC cession (691) = ${Math.round(vncCession)} — vérification détaillée requiert le tableau des cessions`, 'SYSCOHADA révisé Art. 42');
+      return ok('C35', 'VNC cession', `VNC cession (81) = ${Math.round(vncCession)} — vérification détaillée requiert le tableau des cessions`, 'SYSCOHADA révisé Art. 42');
     },
   },
   {

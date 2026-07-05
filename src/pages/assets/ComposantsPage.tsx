@@ -23,7 +23,10 @@ const ComposantsPage: React.FC = () => {
     setLoading(true);
     try {
       const all = await adapter.getAll('assets') as Record<string, unknown>[];
-      setComponents(all.filter(a => a.isComponent));
+      const actif = (a: Record<string, unknown>) => (a.status ?? 'active') === 'active';
+      // Exclure les composants SORTIS (status disposed/scrapped) pour ne pas
+      // les recompter dans la liste et les totaux.
+      setComponents(all.filter(a => a.isComponent && actif(a)));
       setParentAssets(all.filter(a => !a.isComponent));
     } catch (err) { /* silent */ setComponents([]); setParentAssets([]); }
     setLoading(false);

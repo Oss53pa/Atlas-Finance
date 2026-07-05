@@ -677,15 +677,28 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
         : transactionType === 'transfer' ? 'TR'
         : 'OD';
 
+      // Tiers de l'écriture (selon la section) — propagé aux lignes de compte collectif
+      // 40/41 pour que le lettrage PAR TIERS fonctionne (sinon regroupement par compte seul).
+      const tiersCode =
+        transactionType === 'purchase' ? factureInfo.fournisseur
+        : transactionType === 'sale' ? venteInfo.client
+        : transactionType === 'payment' ? reglementInfo.tiers
+        : '';
+      const tiersFiche = thirdPartiesList.find(t => t.code === tiersCode);
+
       // Validation complète via le validateur dédié (Money class, D=C, comptes, période)
-      const lines = lignesEcriture.map((l, i) => ({
-        id: `L${i + 1}`,
+      // id de ligne = UUID GLOBAL (les lignes vivent dans journal_lines, PK unique ;
+      // "L1"/"L2" auraient collisionné entre écritures).
+      const lines = lignesEcriture.map((l) => ({
+        id: crypto.randomUUID(),
         accountCode: l.compte,
         accountName: l.libelle,
         label: l.libelle,
         debit: l.debit,
         credit: l.credit,
         analyticalCode: l.codeAnalytique || undefined,
+        thirdPartyCode: (tiersCode && /^4[01]/.test(String(l.compte))) ? tiersCode : undefined,
+        thirdPartyName: (tiersCode && /^4[01]/.test(String(l.compte))) ? (tiersFiche?.name || undefined) : undefined,
       }));
 
       const result = await validateJournalEntry(adapter, {

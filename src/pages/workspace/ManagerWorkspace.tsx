@@ -10,7 +10,7 @@ import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
-import { supabase } from '../../lib/supabase';
+import SecurityActions from '../../components/security/SecurityActions';
 import { toast } from 'sonner';
 import {
   Briefcase, FileText, BarChart3, Users, PieChart, TrendingUp,
@@ -101,7 +101,7 @@ const ManagerWorkspace: React.FC = () => {
       setStatsLoading(true);
       try {
         const entries = await adapter.getAll<any>('journalEntries');
-        let ca = 0, charges = 0, treasury = 0;
+        let ca = 0, charges = 0, impots = 0, treasury = 0;
         for (const entry of entries) {
           if (!entry.lines) continue;
           if (entry.status === 'draft') continue;
@@ -109,17 +109,33 @@ const ManagerWorkspace: React.FC = () => {
             // Classement SYSCOHADA direct sur le code de compte de la ligne (accountCode)
             const accNum = String(line.accountCode || '');
             if (!accNum) continue;
-            if (accNum.startsWith('7')) ca += (line.credit || 0);
-            if (accNum.startsWith('6')) charges += (line.debit || 0);
-            if (accNum.startsWith('5')) treasury += (line.debit || 0) - (line.credit || 0);
+            const debit = line.debit || 0;
+            const credit = line.credit || 0;
+            // Produits (cl.7) = solde créditeur NET : déduire les débits (annulations/avoirs)
+            if (accNum.startsWith('7')) ca += credit - debit;
+            // Charges (cl.6) = solde débiteur NET : déduire les crédits (avoirs/RRR obtenus)
+            else if (accNum.startsWith('6')) charges += debit - credit;
+            // Impôt sur le résultat (cl.89 : IMF/IS) — requis pour obtenir le résultat NET
+            else if (accNum.startsWith('89')) impots += debit - credit;
+            // Trésorerie = comptes de disponibilités classe 5, HORS 58 (virements internes en transit)
+            if (accNum.startsWith('5') && !accNum.startsWith('58')) treasury += debit - credit;
           }
         }
-        const marge = ca > 0 ? ((ca - charges) / ca) * 100 : 0;
+        // Marge nette = résultat net / CA ; résultat net = produits − charges − impôt (cl.89)
+        const resultatNet = ca - charges - impots;
+        const marge = ca > 0 ? (resultatNet / ca) * 100 : 0;
         setMgrStats({ ca, charges, marge, treasury });
-        const companies = await adapter.getAll<any>('companies');
-        if (companies.length > 0) {
-          setCompanyPhone(companies[0].phone || companies[0].telephone || '');
-        }
+        // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
+        try {
+          const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
+          const legal = legalRow?.value ? JSON.parse(legalRow.value) : null;
+          if (legal?.telephone) {
+            setCompanyPhone(legal.telephone);
+          } else {
+            const companies = await adapter.getAll<any>('companies');
+            if (companies.length > 0) setCompanyPhone(companies[0].telephone || companies[0].phone || '');
+          }
+        } catch { /* téléphone optionnel */ }
       } catch (err) {
         console.error('[ManagerWorkspace] Erreur chargement stats:', err);
         toast.error('Impossible de charger les statistiques du workspace');
@@ -137,8 +153,8 @@ const ManagerWorkspace: React.FC = () => {
       try {
         const keys = ['Email', 'Push', 'Rapports hebdo'] as const;
         const loaded: Record<string, boolean> = { Email: true, Push: true, 'Rapports hebdo': true };
+        const rows = await adapter.getAll<any>('settings' as any);
         for (const key of keys) {
-          const rows = await adapter.getAll<any>('settings' as any);
           const row = rows.find((r: any) => r.key === `notif_manager_${key}`);
           if (row) loaded[key] = row.value === 'true';
         }
@@ -170,52 +186,8 @@ const ManagerWorkspace: React.FC = () => {
           <p><span className="text-xs text-gray-500">Email:</span> {userData.email}</p>
           <p className="mt-2"><span className="text-xs text-gray-500">Tel:</span> {userData.phone}</p>
         </div>
-        <div className="bg-white rounded-xl p-6 border">
-          <h4 className="font-semibold mb-4 flex items-center"><Shield className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Securite</h4>
-          <button onClick={() => setShowPasswordModal(true)} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] mb-2">Changer mot de passe</button>
-          {/* W18: log + toast sur erreur 2FA */}
-          <button onClick={async () => {
-            try {
-              const { error } = await supabase.auth.updateUser({ data: { twoFactorEnabled: !userData.twoFactorEnabled } });
-              if (error) throw error;
-              toast.success('2FA mis à jour');
-            } catch (err) {
-              console.error('[ManagerWorkspace] Erreur toggle 2FA:', err);
-              toast.error('Erreur mise à jour 2FA');
-            }
-          }} className="w-full p-3 border rounded-lg text-sm hover:border-[var(--color-secondary)] flex justify-between">
-            <span>2FA</span>
-            <span className={`text-xs px-2 py-1 rounded ${userData.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{userData.twoFactorEnabled ? 'Actif' : 'Off'}</span>
-          </button>
-        </div>
+        <SecurityActions email={userData.email} accentVar="var(--color-secondary)" />
       </div>
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 space-y-4">
-            <h3 className="font-bold text-lg">Changer le mot de passe</h3>
-            <input type="password" placeholder="Nouveau mot de passe (6 car. min)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
-            <div className="flex gap-3 justify-end">
-              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); }} className="px-4 py-2 border rounded-lg text-sm">Annuler</button>
-              {/* W19: log + toast sur erreur changement de mot de passe */}
-              <button disabled={passwordSaving || newPassword.length < 6} onClick={async () => {
-                setPasswordSaving(true);
-                try {
-                  const { error } = await supabase.auth.updateUser({ password: newPassword });
-                  if (error) throw error;
-                  toast.success('Mot de passe mis à jour');
-                  setShowPasswordModal(false);
-                  setNewPassword('');
-                } catch (err) {
-                  console.error('[ManagerWorkspace] Erreur changement de mot de passe:', err);
-                  toast.error('Erreur changement de mot de passe');
-                } finally {
-                  setPasswordSaving(false);
-                }
-              }} className="px-4 py-2 bg-[var(--color-secondary)] text-white rounded-lg text-sm disabled:opacity-50">{passwordSaving ? 'En cours...' : 'Enregistrer'}</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 

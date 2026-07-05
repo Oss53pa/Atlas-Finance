@@ -309,7 +309,12 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     const parts = largestRemainderAllocate(fcfa, weights.map(w => w.valeur));
     weights.forEach((w, i) => {
       if (parts[i] === 0) return;
-      ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: w.section_id, pourcentage: fcfa !== 0 ? +((parts[i] / fcfa) * 100).toFixed(4) : 0, montant: parts[i] });
+      // La colonne `pourcentage` a une contrainte CHECK (pourcentage > 0 AND <= 100) et est
+      // NUMERIC(5,2). Un pourcentage négatif (produits cl.7, fcfa < 0) ou < 0,005 (arrondi à
+      // 0,00) ferait ÉCHOUER l'insert. On clampe en [0,01 ; 100] (valeur absolue). Le `montant`
+      // signé reste la source de vérité ; le pourcentage n'est qu'indicatif.
+      const pct = fcfa !== 0 ? Math.abs((parts[i] / fcfa) * 100) : 100;
+      ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: w.section_id, pourcentage: Math.min(100, Math.max(0.01, Math.round(pct * 100) / 100)), montant: parts[i] });
     });
     assigned.add(l.id);
   }

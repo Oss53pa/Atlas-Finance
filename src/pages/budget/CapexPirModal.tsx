@@ -35,7 +35,10 @@ const CapexPirModal: React.FC<Props> = ({ open, request, onClose, onSaved }) => 
 
   if (!request) return null;
   const coutFinal = parseFloat(f.cout_final) || 0;
-  const ecartBudget = coutFinal - request.montant; // coût final − enveloppe approuvée
+  // Enveloppe AUTORISÉE = montant approuvé + provision pour aléas (contingence). Un
+  // dépassement absorbé par la contingence ne doit pas être compté comme un écart.
+  const enveloppeAutorisee = request.montant * (1 + (((request as any).contingence_pct || 0) / 100));
+  const ecartBudget = coutFinal - enveloppeAutorisee;
 
   const submit = async () => {
     setSaving(true);

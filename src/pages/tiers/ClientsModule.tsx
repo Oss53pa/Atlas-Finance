@@ -522,6 +522,21 @@ const ClientsModule: React.FC = () => {
 
   const handleSaveNewClient = async () => {
     try {
+      // Validation : raison sociale obligatoire + unicité du code (évite les fiches
+      // fantômes et les collisions de rattachement des écritures).
+      if (!newClient.raisonSociale?.trim()) {
+        toast.error('La raison sociale est obligatoire');
+        return;
+      }
+      if (newClient.code?.trim()) {
+        const existing = (await adapter.getAll<any>('thirdParties')).find(
+          (tp: any) => tp.code === newClient.code && tp.id !== editingId
+        );
+        if (existing) {
+          toast.error(`Le code « ${newClient.code} » est déjà utilisé par « ${existing.name || existing.raisonSociale} »`);
+          return;
+        }
+      }
       const common = {
         code: newClient.code,
         name: newClient.raisonSociale,
@@ -647,10 +662,26 @@ const ClientsModule: React.FC = () => {
   };
 
   const handleDeleteClient = async (clientId: string) => {
+    // Bloquer la suppression d'un client mouvementé (encours ou CA ≠ 0) : cela orphelinerait
+    // les écritures 411 rattachées. On propose de le DÉSACTIVER à la place (SYSCOHADA).
+    const client = clients.find(c => c.id === clientId);
+    if (client && (client.encoursActuel !== 0 || client.chiffreAffaires !== 0)) {
+      if (window.confirm('Ce client a des écritures comptables et ne peut pas être supprimé.\n\nVoulez-vous le DÉSACTIVER à la place ?')) {
+        try {
+          await adapter.update('thirdParties', clientId, { isActive: false });
+          setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: 'INACTIF' as any } : c));
+          toast.success('Client désactivé');
+        } catch {
+          toast.error('Erreur lors de la désactivation');
+        }
+      }
+      return;
+    }
     if (!window.confirm('Supprimer ce client définitivement ?')) return;
     try {
       await adapter.delete('thirdParties', clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
+      toast.success('Client supprimé');
     } catch {
       toast.error('Erreur lors de la suppression du client');
     }

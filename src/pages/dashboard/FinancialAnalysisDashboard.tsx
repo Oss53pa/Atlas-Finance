@@ -86,6 +86,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
   const liveFinancials = useMemo(() => {
     let revenue = 0, expenses = 0, treasury = 0;
     let actifCirculant = 0, passifCirculant = 0;
+    let impots = 0;          // cl.89 (IS/IMF) — pour le résultat NET
+    let chargesFin = 0;      // cl.66 (charges financières) — add-back EBITDA
+    let dotations = 0;       // cl.68 (dotations amort./prov.) — add-back EBITDA
+    let immobilisations = 0; // cl.2 (VNC, net des amortissements 28) — pour le ROA
     const monthlyRev = new Array(12).fill(0);
     const monthlyExp = new Array(12).fill(0);
     const revenueByClass: Record<string, number> = {};
@@ -112,8 +116,15 @@ const FinancialAnalysisDashboard: React.FC = () => {
           monthlyExp[m] += v;
           const cls = l.accountCode.substring(0, 2);
           expenseByClass[cls] = (expenseByClass[cls] || 0) + v;
+          if (l.accountCode.startsWith('66')) chargesFin += v;
+          if (l.accountCode.startsWith('68')) dotations += v;
         }
-        if (l.accountCode.startsWith('5')) treasury += (l.debit || 0) - (l.credit || 0);
+        // Impôt sur le résultat (cl.89) — requis pour le résultat NET
+        if (l.accountCode.startsWith('89')) impots += (l.debit || 0) - (l.credit || 0);
+        // Immobilisations (cl.2, net des amortissements 28) — pour le ROA
+        if (l.accountCode.startsWith('2')) immobilisations += (l.debit || 0) - (l.credit || 0);
+        // Trésorerie = classe 5 HORS 58 (virements internes en transit)
+        if (l.accountCode.startsWith('5') && !l.accountCode.startsWith('58')) treasury += (l.debit || 0) - (l.credit || 0);
         // Actif circulant: classes 3 (stocks) and 4 debit (créances)
         if (l.accountCode.startsWith('3')) {
           const v = (l.debit || 0) - (l.credit || 0);
@@ -139,6 +150,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
       revenue,
       expenses,
       treasury,
+      impots,
+      chargesFin,
+      dotations,
+      immobilisations,
       monthlyRev,
       monthlyExp,
       actifCirculant,
@@ -152,8 +167,13 @@ const FinancialAnalysisDashboard: React.FC = () => {
   }, [filteredEntries]);
 
   const financialMetrics = useMemo(() => {
-    const grossProfit = liveFinancials.revenue - liveFinancials.expenses;
-    const grossMargin = liveFinancials.revenue > 0 ? +(grossProfit / liveFinancials.revenue * 100).toFixed(1) : 0;
+    const grossProfit = liveFinancials.revenue - liveFinancials.expenses; // résultat avant impôt
+    const netProfit = grossProfit - liveFinancials.impots;                // résultat NET (après cl.89)
+    // EBITDA ≈ résultat avant impôt + charges financières (66) + dotations amort./prov. (68)
+    const ebitda = grossProfit + liveFinancials.chargesFin + liveFinancials.dotations;
+    const grossMargin = liveFinancials.revenue > 0 ? +(grossProfit / liveFinancials.revenue * 100).toFixed(2) : 0;
+    const netMargin = liveFinancials.revenue > 0 ? +(netProfit / liveFinancials.revenue * 100).toFixed(2) : 0;
+    const ebitdaMargin = liveFinancials.revenue > 0 ? +(ebitda / liveFinancials.revenue * 100).toFixed(2) : 0;
     const workingCapital = liveFinancials.actifCirculant - liveFinancials.passifCirculant;
     const currentRatio = liveFinancials.passifCirculant > 0
       ? +(liveFinancials.actifCirculant / liveFinancials.passifCirculant).toFixed(2)
@@ -163,8 +183,9 @@ const FinancialAnalysisDashboard: React.FC = () => {
     const quickRatio = liveFinancials.passifCirculant > 0
       ? +(quickAssets / liveFinancials.passifCirculant).toFixed(2)
       : 0;
-    const totalAssets = liveFinancials.actifCirculant + liveFinancials.treasury;
-    const roa = totalAssets > 0 ? +(grossProfit / totalAssets * 100).toFixed(1) : 0;
+    // Total actif = immobilisations (cl.2) + actif circulant + trésorerie
+    const totalAssets = liveFinancials.immobilisations + liveFinancials.actifCirculant + liveFinancials.treasury;
+    const roa = totalAssets > 0 ? +(netProfit / totalAssets * 100).toFixed(2) : 0;
 
     return {
       revenue: {
@@ -183,11 +204,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
       },
       profit: {
         gross: grossProfit,
-        net: grossProfit,
-        ebitda: grossProfit,
+        net: netProfit,
+        ebitda,
         grossMargin,
-        netMargin: grossMargin,
-        ebitdaMargin: grossMargin,
+        netMargin,
+        ebitdaMargin,
       },
       cashflow: {
         operating: liveFinancials.treasury,
@@ -378,9 +399,8 @@ const FinancialAnalysisDashboard: React.FC = () => {
             <div className="text-lg font-bold text-[var(--color-text-primary)]">
               {formatCurrency(financialMetrics.revenue.current)}
             </div>
-            <div className={`text-xs mt-1 flex items-center gap-1 ${getVarianceColor(financialMetrics.revenue.variance)}`}>
-              {financialMetrics.revenue.variance > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-              {Math.abs(financialMetrics.revenue.variance)}% vs N-1
+            <div className="text-xs mt-1 text-[var(--color-text-secondary)]">
+              Produits nets (classe 7)
             </div>
           </div>
 
@@ -466,23 +486,12 @@ const FinancialAnalysisDashboard: React.FC = () => {
                     Réel
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    Budget
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    Écart
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    N-1
-                  </th>
-                  <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    Var %
+                    % du total
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {plData.map((item) => {
-                  const budgetVariance = item.actual - item.budget;
-                  const previousVariance = ((item.actual - item.previous) / Math.abs(item.previous)) * 100;
                   const isOpen = expanded.has(item.key);
                   const labels = item.key === 'prod' ? revAccountLabels : expAccountLabels;
                   const subRows = Object.entries(item.byClass)
@@ -504,20 +513,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                         {formatCurrency(item.actual)}
                       </td>
                       <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                        {formatCurrency(item.budget)}
-                      </td>
-                      <td className={`py-3 px-4 text-right font-medium ${
-                        item.actual > 0
-                          ? budgetVariance >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                          : budgetVariance <= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
-                      }`}>
-                        {formatCurrency(budgetVariance)}
-                      </td>
-                      <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                        {formatCurrency(item.previous)}
-                      </td>
-                      <td className={`py-3 px-4 text-right font-medium ${getVarianceColor(previousVariance)}`}>
-                        {previousVariance > 0 ? '+' : ''}{previousVariance.toFixed(1)}%
+                        100%
                       </td>
                     </tr>
                     {isOpen && subRows.map(([cls, v]) => (
@@ -528,9 +524,6 @@ const FinancialAnalysisDashboard: React.FC = () => {
                           <span className="font-mono text-[var(--color-text-tertiary)] mr-2">{cls}</span>{labels[cls] || `Classe ${cls}`}
                         </td>
                         <td className="py-2 px-4 text-right text-[var(--color-text-primary)]">{formatCurrency(item.sign * (v as number))}</td>
-                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
-                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
-                        <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">—</td>
                         <td className="py-2 px-4 text-right text-[var(--color-text-tertiary)]">
                           {item.actual !== 0 ? `${((item.sign * (v as number) / item.actual) * 100).toFixed(1)}%` : '—'}
                         </td>
@@ -545,15 +538,6 @@ const FinancialAnalysisDashboard: React.FC = () => {
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-primary)]">
                     {formatCurrency(financialMetrics.profit.net)}
-                  </td>
-                  <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                    —
-                  </td>
-                  <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                    —
-                  </td>
-                  <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
-                    —
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-secondary)]">
                     —
@@ -681,7 +665,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">Cash Ratio</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
-                    {liveFinancials.revenue > 0 ? (liveFinancials.treasury / liveFinancials.expenses).toFixed(2) : '—'}
+                    {liveFinancials.passifCirculant > 0 ? (liveFinancials.treasury / liveFinancials.passifCirculant).toFixed(2) : '—'}
                   </span>
                 </div>
               </div>

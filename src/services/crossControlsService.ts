@@ -13,7 +13,7 @@ export interface ControlResult {
   id: string;
   name: string;
   description: string;
-  status: 'OK' | 'ECART' | 'ERROR';
+  status: 'OK' | 'ECART' | 'ERROR' | 'INFO';
   expectedValue?: Decimal;
   actualValue?: Decimal;
   ecart?: Decimal;
@@ -93,7 +93,7 @@ async function control02_SupplierBalance(
     id: 'P02',
     name: 'Solde fournisseurs balance = bilan',
     description: 'Vérification du solde fournisseurs',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: balanceFournisseurs.abs(),
     details: `Fournisseurs (401): ${balanceFournisseurs}`,
   };
@@ -113,7 +113,7 @@ async function control03_BankBalance(
     id: 'P03',
     name: 'Solde banques + caisse = trésorerie bilan',
     description: 'Cohérence trésorerie entre balance et bilan',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: soldeBanques.plus(soldeCaisse),
     details: `Banques: ${soldeBanques}, Caisse: ${soldeCaisse}`,
   };
@@ -164,7 +164,7 @@ async function control05_DepreciationConsistency(
     id: 'P05',
     name: 'Dotations amortissements = compte 681',
     description: 'Dotations du fichier immobilisations = dotations comptabilisées',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: dotation681,
     details: `Dotations (681): ${dotation681}`,
   };
@@ -183,7 +183,7 @@ async function control06_PayrollCharges(
     id: 'P06',
     name: 'Charges de personnel = comptes 64x',
     description: 'Cohérence entre la masse salariale comptabilisée et le CR',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: charges66,
     details: `Charges personnel (64x): ${charges66}`,
   };
@@ -308,20 +308,31 @@ async function control11_SequentialNumbering(
     journalGroups.get(journal)!.push(entryData.entryNumber);
   }
 
-  // Check for gaps within each journal
+  let doublons = 0;
+  // Détecte les DOUBLONS et les TROUS (ruptures de séquence), avec un tri NUMÉRIQUE
+  // (l'ancien numbers.sort() lexicographique classait "10" avant "9" → faux).
   for (const [, numbers] of journalGroups.entries()) {
-    numbers.sort();
-    // Simple check: no duplicate numbers
     const uniqueSet = new Set(numbers);
-    if (uniqueSet.size !== numbers.length) gaps++;
+    if (uniqueSet.size !== numbers.length) doublons++;
+    // Extraire la partie numérique de chaque n° de pièce (ex. "AC-000042" → 42).
+    const nums = numbers
+      .map(n => { const m = String(n).match(/(\d+)\s*$/); return m ? parseInt(m[1], 10) : NaN; })
+      .filter(n => Number.isFinite(n))
+      .sort((a, b) => a - b);
+    for (let i = 1; i < nums.length; i++) {
+      if (nums[i] - nums[i - 1] > 1) gaps += (nums[i] - nums[i - 1] - 1);
+    }
   }
 
+  const anomalies = gaps + doublons;
   return {
     id: 'P11',
     name: 'Numérotation séquentielle sans rupture',
     description: 'Les pièces comptables doivent être numérotées séquentiellement par journal',
-    status: gaps === 0 ? 'OK' : 'ECART',
-    details: gaps > 0 ? `${gaps} ruptures détectées` : 'Numérotation continue',
+    status: anomalies === 0 ? 'OK' : 'ECART',
+    details: anomalies > 0
+      ? `${doublons} doublon(s), ${gaps} n° manquant(s) détecté(s)`
+      : 'Numérotation continue',
   };
 }
 
@@ -404,7 +415,7 @@ async function control14_PrudencePrinciple(
     id: 'P14',
     name: 'Principe de prudence - Écarts de conversion',
     description: 'Les gains latents (477) ne doivent pas générer de produit',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: ecartConversionPassif,
     details: `Écarts de conversion passif (477): ${ecartConversionPassif}`,
   };
@@ -424,7 +435,7 @@ async function control15_CNPSReconciliation(
     id: 'P15',
     name: 'Comptes CNPS cohérents avec la paie',
     description: 'Soldes CNPS salariale et patronale doivent correspondre aux bulletins',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: cnpsSalariale.plus(cnpsPatronale),
     details: `CNPS salariale: ${cnpsSalariale}, patronale: ${cnpsPatronale}`,
   };
@@ -464,7 +475,7 @@ async function control17_TVADeclaredVsComputed(
     id: 'P17',
     name: 'TVA due = TVA collectée - TVA déductible',
     description: 'Cohérence du calcul de la TVA',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: tvaDue,
     details: `Collectée: ${tvaCollectee}, Déductible: ${tvaDeductible}, Due: ${tvaDue}`,
   };
@@ -484,7 +495,7 @@ async function control18_StockVariation(
     id: 'P18',
     name: 'Cohérence variation de stocks',
     description: 'La variation de stock comptabilisée doit correspondre à la variation physique',
-    status: 'OK',
+    status: 'INFO', // informatif : valeur calculée, sans référence externe de comparaison
     actualValue: stockFinal,
     details: `Stock final: ${stockFinal}, Variation comptabilisée: ${variationComptabilisee}`,
   };
@@ -503,10 +514,12 @@ async function control19_HashChainIntegrity(
 
   let broken = 0;
   let prevHash = '';
+  let withHash = 0;
 
   for (const entry of entries) {
     const entryData = entry as { hash?: string; previousHash?: string };
     if (entryData.hash && entryData.previousHash !== undefined) {
+      withHash++;
       if (prevHash && entryData.previousHash !== prevHash) {
         broken++;
       }
@@ -514,12 +527,24 @@ async function control19_HashChainIntegrity(
     }
   }
 
+  // Faux négatif évité : si AUCUNE écriture n'a de hash, la chaîne n'existe pas — ce
+  // n'est pas « intacte ». On le signale (INFO) au lieu de renvoyer un « OK » trompeur.
+  if (entries.length > 0 && withHash === 0) {
+    return {
+      id: 'P19',
+      name: 'Intégrité chaîne de hachage SHA-256',
+      description: 'La chaîne de hachage des écritures validées ne doit pas être rompue',
+      status: 'INFO',
+      details: `Chaîne d'intégrité absente (${entries.length} écritures sans hash)`,
+    };
+  }
+
   return {
     id: 'P19',
     name: 'Intégrité chaîne de hachage SHA-256',
     description: 'La chaîne de hachage des écritures validées ne doit pas être rompue',
     status: broken === 0 ? 'OK' : 'ECART',
-    details: broken > 0 ? `${broken} rupture(s) dans la chaîne` : 'Chaîne intacte',
+    details: broken > 0 ? `${broken} rupture(s) dans la chaîne` : `Chaîne intacte (${withHash} écritures)`,
   };
 }
 
@@ -528,19 +553,44 @@ async function control19_HashChainIntegrity(
  */
 async function control20_BalanceSheetEquilibrium(
   adapter: DataAdapter,
-  dateRange: { start: string; end: string }
+  _dateRange: { start: string; end: string }
 ): Promise<ControlResult> {
-  const actif = await sumAccountBalance(adapter, ['1', '2', '3', '4', '5'], dateRange, 'debit');
-  const passif = await sumAccountBalance(adapter, ['1', '2', '3', '4', '5'], dateRange, 'credit');
-  const ecart = actif.minus(passif).abs();
+  // Équilibre RÉEL du bilan : chaque compte cl.1-5 placé par SIGNE de son solde
+  // (par compte, pas par classe → pas de compensation), et le résultat net (cl.7−6−89)
+  // figure au passif (capitaux propres). Donc Actif = Passif + Résultat net.
+  // L'ancienne version comparait Σdébit(1-5) vs Σcrédit(1-5) → l'écart valait le
+  // résultat net → « ECART » systématique pour une entreprise bénéficiaire.
+  const entries = await adapter.getJournalEntries();
+  const byAccount = new Map<string, Decimal>();
+  let net6 = new Decimal(0), credit7 = new Decimal(0), net89 = new Decimal(0);
+  for (const e of entries as any[]) {
+    if (e.status === 'draft') continue;
+    for (const l of (e.lines || [])) {
+      const code = String(l.accountCode || '');
+      const c = code.charAt(0);
+      const d = new Decimal(l.debit || 0);
+      const cr = new Decimal(l.credit || 0);
+      if (c >= '1' && c <= '5') byAccount.set(code, (byAccount.get(code) || new Decimal(0)).plus(d).minus(cr));
+      if (code.startsWith('6')) net6 = net6.plus(d).minus(cr);
+      if (code.startsWith('7')) credit7 = credit7.plus(cr).minus(d);
+      if (code.startsWith('89')) net89 = net89.plus(d).minus(cr);
+    }
+  }
+  let actif = new Decimal(0), passif = new Decimal(0);
+  for (const v of byAccount.values()) {
+    if (v.gt(0)) actif = actif.plus(v); else passif = passif.plus(v.abs());
+  }
+  const resultatNet = credit7.minus(net6).minus(net89);
+  const passifTotal = passif.plus(resultatNet);
+  const ecart = actif.minus(passifTotal).abs();
 
   return {
     id: 'P20',
     name: 'Bilan actif = Bilan passif',
-    description: 'Le total de l\'actif doit être égal au total du passif',
+    description: 'Le total de l\'actif doit être égal au passif + résultat net',
     status: ecart.lte(1) ? 'OK' : 'ECART',
     expectedValue: actif,
-    actualValue: passif,
+    actualValue: passifTotal,
     ecart,
   };
 }
@@ -585,6 +635,9 @@ export async function runAllCrossControls(
   const totalOk = controls.filter(c => c.status === 'OK').length;
   const totalEcart = controls.filter(c => c.status === 'ECART').length;
   const totalError = controls.filter(c => c.status === 'ERROR').length;
+  // Score calculé UNIQUEMENT sur les contrôles réellement ÉVALUÉS (hors INFO), pour ne
+  // pas le gonfler avec des contrôles informatifs qui ne comparent rien.
+  const evalues = controls.filter(c => c.status !== 'INFO').length;
 
   return {
     date: new Date().toISOString(),
@@ -594,6 +647,6 @@ export async function runAllCrossControls(
     totalOk,
     totalEcart,
     totalError,
-    score: Math.round((totalOk / controls.length) * 100),
+    score: evalues > 0 ? Math.round((totalOk / evalues) * 100) : 100,
   };
 }

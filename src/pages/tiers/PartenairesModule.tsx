@@ -129,13 +129,29 @@ const PartenairesModule: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Create partenaire mutation
+  // Create partenaire mutation — via l'adapter (thirdParties, type 'partner'). L'ancien
+  // chemin (createPartenaireSchema.parse + tiersService.create) échouait toujours : schéma
+  // incompatible (attendait code/nom/type mixte) + backend REST inexistant.
   const createMutation = useMutation({
-    mutationFn: (data: z.infer<typeof createPartenaireSchema>) =>
-      tiersService.create(data as any),
+    mutationFn: async (data: typeof formData) => {
+      const code = `PART${Date.now().toString().slice(-6)}`;
+      await adapter.create('thirdParties', {
+        code,
+        name: data.raison_sociale,
+        type: 'partner',
+        email: data.email || undefined,
+        phone: data.telephone || undefined,
+        address: [data.adresse, data.code_postal, data.ville, data.pays].filter(Boolean).join(', '),
+        taxId: data.siren || data.tva_intracommunautaire || undefined,
+        conditionsPaiement: data.conditions_paiement ? { modePaiement: data.conditions_paiement } : undefined,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      } as any);
+    },
     onSuccess: () => {
       toast.success('Partenaire créé avec succès');
       queryClient.invalidateQueries({ queryKey: ['partenaires'] });
+      loadData();
       setShowPartenaireModal(false);
       resetForm();
     },
@@ -180,21 +196,15 @@ const PartenairesModule: React.FC = () => {
     try {
       setIsSubmitting(true);
       setErrors({});
-
-      const validatedData = createPartenaireSchema.parse(formData);
-      await createMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
-      } else {
-        toast.error('Erreur lors de la création');
+      // Validation inline (le schéma Zod REST était incompatible avec ce formulaire).
+      if (!formData.raison_sociale.trim()) {
+        setErrors({ raison_sociale: 'La raison sociale est obligatoire' });
+        toast.error('La raison sociale est obligatoire');
+        return;
       }
+      await createMutation.mutateAsync(formData);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de la création');
     } finally {
       setIsSubmitting(false);
     }
@@ -206,34 +216,33 @@ const PartenairesModule: React.FC = () => {
   // Écritures par tiers (third_party_code) — pour la fiche partenaire (œil).
   const [partnerLinesMap, setPartnerLinesMap] = useState<Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]>>({});
 
-  useEffect(() => {
-    const load = async () => {
-      const [tps, entries] = await Promise.all([
-        adapter.getAll('thirdParties'),
-        adapter.getAll<any>('journalEntries'),
-      ]);
-      setThirdParties(tps as Record<string, unknown>[]);
-      const pieceNumbers = buildPieceNumbers(entries as any);
-      const byCode: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
-      for (const e of entries) {
-        if (e.status === 'draft') continue;
-        for (const l of (e.lines || [])) {
-          const tpc = l.thirdPartyCode || l.third_party_code;
-          if (!tpc) continue;
-          (byCode[tpc] ||= []).push({
-            date: e.date,
-            piece: pieceNumberOf(e, pieceNumbers),
-            libelle: l.label || e.label || '',
-            debit: l.debit || 0,
-            credit: l.credit || 0,
-          });
-        }
+  const loadData = React.useCallback(async () => {
+    const [tps, entries] = await Promise.all([
+      adapter.getAll('thirdParties'),
+      adapter.getAll<any>('journalEntries'),
+    ]);
+    setThirdParties(tps as Record<string, unknown>[]);
+    const pieceNumbers = buildPieceNumbers(entries as any);
+    const byCode: Record<string, { date: string; piece: string; libelle: string; debit: number; credit: number }[]> = {};
+    for (const e of entries) {
+      if (e.status === 'draft') continue;
+      for (const l of (e.lines || [])) {
+        const tpc = l.thirdPartyCode || l.third_party_code;
+        if (!tpc) continue;
+        (byCode[tpc] ||= []).push({
+          date: e.date,
+          piece: pieceNumberOf(e, pieceNumbers),
+          libelle: l.label || e.label || '',
+          debit: l.debit || 0,
+          credit: l.credit || 0,
+        });
       }
-      for (const k in byCode) byCode[k].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-      setPartnerLinesMap(byCode);
-    };
-    load();
+    }
+    for (const k in byCode) byCode[k].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    setPartnerLinesMap(byCode);
   }, [adapter]);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   // Map third parties to partenaire format
   const mockPartenaires: Partenaire[] = thirdParties.map((tp) => {

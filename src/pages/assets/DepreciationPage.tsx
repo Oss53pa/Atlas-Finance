@@ -52,6 +52,12 @@ import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { useData } from '../../contexts/DataContext';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { safeAddEntry, EntryGuardError } from '../../services/entryGuard';
+import {
+  accumulatedDepreciationAt,
+  dotationAccountFor,
+  amortAccountFor,
+} from '../../services/immobilisations/depreciationEngine';
 
 interface DepreciationRecord {
   id: string;
@@ -60,6 +66,8 @@ interface DepreciationRecord {
   date_amortissement: string;
   nom_actif: string;
   code_actif: string;
+  account_code: string;
+  depreciation_account_code: string;
   methode: string;
   periode: string;
   valeur_base: number;
@@ -70,6 +78,85 @@ interface DepreciationRecord {
   statut: string;
   date_debut?: string;
   date_fin?: string;
+}
+
+/**
+ * Construit la ligne d'amortissement d'un actif pour l'exercice (année civile)
+ * via le moteur SYSCOHADA partagé. `montant_dotation` = dotation RESTANT à
+ * comptabiliser = cumul cible en fin d'exercice − cumul déjà comptabilisé.
+ */
+function buildDepreciationRecord(a: Record<string, any>, currentYear: number): DepreciationRecord {
+  const exerciceStr = String(currentYear);
+  const exerciceEnd = `${currentYear}-12-31`;
+  const valeur = Number(a.acquisitionValue) || 0;
+  const residual = Number(a.residualValue) || 0;
+  const duree = Number(a.usefulLifeYears) || 5;
+  const storedCumul = Number(a.cumulDepreciation) || 0;
+  const methodeRaw = String(a.depreciationMethod || 'linear');
+  const acqDate = String(a.acquisitionDate || `${currentYear}-01-01`);
+  const base = Math.max(0, valeur - residual);
+  const cumulCibleFin = Math.min(
+    accumulatedDepreciationAt(
+      { acquisitionValue: valeur, residualValue: residual, usefulLifeYears: duree, depreciationMethod: methodeRaw, acquisitionDate: acqDate, cumulDepreciation: storedCumul },
+      exerciceEnd,
+    ),
+    base,
+  );
+  const dotation = Math.max(0, Math.round(cumulCibleFin - storedCumul));
+  const taux = duree > 0 ? Math.round((1 / duree) * 100 * 100) / 100 : 0;
+  return {
+    id: String(a.id),
+    immobilisation_id: String(a.id),
+    exercice: exerciceStr,
+    date_amortissement: exerciceEnd,
+    nom_actif: String(a.name || ''),
+    code_actif: String(a.code || ''),
+    account_code: String(a.accountCode || ''),
+    depreciation_account_code: String(a.depreciationAccountCode || ''),
+    methode: methodeRaw === 'declining' ? 'degressive' : 'lineaire',
+    periode: 'annuel',
+    valeur_base: valeur,
+    taux_amortissement: taux,
+    montant_dotation: dotation,
+    cumul_amortissements: storedCumul,
+    valeur_nette_comptable: valeur - storedCumul,
+    statut: dotation <= 0 ? 'comptabilise' : 'calcule',
+  };
+}
+
+/**
+ * Comptabilise la dotation d'un actif pour l'exercice : écriture OD équilibrée
+ * (Dr 681x / Cr 28x sur les VRAIS comptes de l'actif), idempotente (le numéro
+ * de pièce AMORT-{exercice}-{code} est unique → safeAddEntry bloque les
+ * doublons), et synchronise `cumulDepreciation` sur la fiche.
+ */
+async function postDepreciation(adapter: any, rec: DepreciationRecord): Promise<number> {
+  const montant = rec.montant_dotation;
+  if (montant <= 0) return 0;
+  const dotationAccount = dotationAccountFor(rec.account_code);
+  const amortAccount = amortAccountFor(rec.account_code, rec.depreciation_account_code);
+  const now = new Date().toISOString();
+  await safeAddEntry(adapter, {
+    id: crypto.randomUUID(),
+    entryNumber: `AMORT-${rec.exercice}-${rec.code_actif || rec.id.slice(0, 6)}`,
+    journal: 'OD',
+    date: rec.date_amortissement,
+    reference: `AMORT-${rec.exercice}-${rec.immobilisation_id}`,
+    label: `Dotation amortissement ${rec.exercice} — ${rec.nom_actif}`,
+    status: 'validated',
+    lines: [
+      { id: crypto.randomUUID(), accountCode: dotationAccount, accountName: 'Dotation aux amortissements', label: `Dotation ${rec.nom_actif}`, debit: montant, credit: 0 },
+      { id: crypto.randomUUID(), accountCode: amortAccount, accountName: 'Amortissements cumulés', label: `Amort. ${rec.nom_actif}`, debit: 0, credit: montant },
+    ],
+    createdAt: now,
+    createdBy: 'system',
+  } as any, { skipSyncValidation: true });
+  // Synchronise le cumul sur l'immobilisation (registre ↔ comptabilité).
+  const asset = await adapter.getById('assets', rec.immobilisation_id) as Record<string, unknown> | null;
+  if (asset) {
+    await adapter.update('assets', rec.immobilisation_id, { cumulDepreciation: (Number(asset.cumulDepreciation) || 0) + montant });
+  }
+  return montant;
 }
 
 interface DepreciationFilters {
@@ -120,15 +207,40 @@ const DepreciationPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Create amortissement mutation — Bug #7 fix: use adapter directly
+  // Create amortissement mutation — poste une VRAIE écriture (registre ↔ compta)
   const createMutation = useMutation({
     mutationFn: async (data: { immobilisation_id: string; exercice: string; montant: number; date_debut?: string; date_fin?: string; methode?: string }) => {
       if (!adapter) throw new Error('Adapter non disponible');
-      // Add montant as additional depreciation on the asset
-      const asset = await adapter.getById('assets', data.immobilisation_id) as Record<string, unknown> | null;
+      const asset = await adapter.getById('assets', data.immobilisation_id) as Record<string, any> | null;
       if (!asset) throw new Error('Immobilisation introuvable');
-      const currentCumul = (asset.cumulDepreciation as number) || 0;
-      await adapter.update('assets', data.immobilisation_id, { cumulDepreciation: currentCumul + data.montant });
+      const montant = Number(data.montant) || 0;
+      if (montant <= 0) throw new Error('Le montant de la dotation doit être positif.');
+      const brut = Number(asset.acquisitionValue) || 0;
+      const residual = Number(asset.residualValue) || 0;
+      const base = Math.max(0, brut - residual);
+      const currentCumul = Number(asset.cumulDepreciation) || 0;
+      if (currentCumul + montant > base + 1) {
+        throw new Error(`Dotation refusée : le cumul (${currentCumul} + ${montant}) dépasserait la base amortissable (${base}).`);
+      }
+      const accountCode = String(asset.accountCode || '');
+      if (!accountCode) throw new Error("Compte d'immobilisation manquant sur la fiche.");
+      const date = data.date_fin || `${data.exercice}-12-31`;
+      await safeAddEntry(adapter, {
+        id: crypto.randomUUID(),
+        entryNumber: `AMORT-MAN-${Date.now().toString(36).toUpperCase()}-${String(asset.code || '').slice(0, 6)}`,
+        journal: 'OD',
+        date,
+        reference: `AMORT-${data.exercice}-${data.immobilisation_id}`,
+        label: `Dotation amortissement (manuelle) — ${asset.name}`,
+        status: 'validated',
+        lines: [
+          { id: crypto.randomUUID(), accountCode: dotationAccountFor(accountCode), accountName: 'Dotation aux amortissements', label: `Dotation ${asset.name}`, debit: montant, credit: 0 },
+          { id: crypto.randomUUID(), accountCode: amortAccountFor(accountCode, String(asset.depreciationAccountCode || '')), accountName: 'Amortissements cumulés', label: `Amort. ${asset.name}`, debit: 0, credit: montant },
+        ],
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+      } as any, { skipSyncValidation: true });
+      await adapter.update('assets', data.immobilisation_id, { cumulDepreciation: currentCumul + montant });
       return data;
     },
     onSuccess: () => {
@@ -151,31 +263,22 @@ const DepreciationPage: React.FC = () => {
       const allAssets = await adapter.getAll('assets') as Array<Record<string, unknown>>;
       const activeAssets = allAssets.filter(a => a.status === 'active');
 
-      // Build depreciation records — one per asset per year
-      const currentYear = new Date().getFullYear().toString();
+      const currentYear = new Date().getFullYear();
+      const exerciceStr = String(currentYear);
+
+      // Écritures d'amortissement déjà comptabilisées pour l'exercice (statut réel).
+      const allEntries = await adapter.getAll('journalEntries') as Array<Record<string, any>>;
+      const postedRefs = new Set<string>();
+      for (const e of allEntries) {
+        const ref = String(e.reference || '');
+        if (ref.startsWith(`AMORT-${exerciceStr}-`)) postedRefs.add(ref);
+      }
+
+      // Une ligne par actif pour l'exercice, dotation calculée par le moteur SYSCOHADA.
       let records: DepreciationRecord[] = activeAssets.map(a => {
-        const valeur = (a.acquisitionValue as number) || 0;
-        const duree = (a.usefulLifeYears as number) || 5;
-        const cumul = (a.cumulDepreciation as number) || 0;
-        const dotationAnnuelle = duree > 0 ? valeur / duree : 0;
-        const vnc = valeur - cumul;
-        const taux = duree > 0 ? Math.round((1 / duree) * 100 * 100) / 100 : 0;
-        return {
-          id: String(a.id),
-          immobilisation_id: String(a.id),
-          exercice: currentYear,
-          date_amortissement: new Date().toISOString().split('T')[0],
-          nom_actif: String(a.name || ''),
-          code_actif: String(a.code || ''),
-          methode: (a.depreciationMethod as string) === 'declining' ? 'degressive' : 'lineaire',
-          periode: 'annuel',
-          valeur_base: valeur,
-          taux_amortissement: taux,
-          montant_dotation: dotationAnnuelle,
-          cumul_amortissements: cumul,
-          valeur_nette_comptable: vnc,
-          statut: cumul >= valeur ? 'comptabilise' : 'calcule',
-        } as DepreciationRecord;
+        const rec = buildDepreciationRecord(a, currentYear);
+        if (postedRefs.has(`AMORT-${exerciceStr}-${rec.immobilisation_id}`)) rec.statut = 'comptabilise';
+        return rec;
       });
 
       // Apply filters
@@ -229,59 +332,76 @@ const DepreciationPage: React.FC = () => {
     },
   });
 
-  // Calculate depreciation mutation — Bug #7 fix: update cumulDepreciation for all active assets
+  // Calculer les amortissements = RECALCUL/aperçu (aucune écriture, aucune
+  // mutation). Les dotations sont calculées à la volée par le moteur ; la
+  // comptabilisation se fait ensuite via « Comptabiliser ». (L'ancienne version
+  // muterait cumulDepreciation SANS écriture → registre/GL désynchronisés.)
   const calculateDepreciationMutation = useMutation({
     mutationFn: async (_params: { date_debut: string; date_fin: string; methode: string }) => {
       if (!adapter) throw new Error('Adapter non disponible');
-      const allAssets = await adapter.getAll('assets') as Array<Record<string, unknown>>;
+      const allAssets = await adapter.getAll('assets') as Array<Record<string, any>>;
       const activeAssets = allAssets.filter(a => a.status === 'active');
+      const currentYear = new Date().getFullYear();
       let count = 0;
+      let total = 0;
       for (const a of activeAssets) {
-        const valeur = (a.acquisitionValue as number) || 0;
-        const duree = (a.usefulLifeYears as number) || 5;
-        const dotation = duree > 0 ? valeur / duree : 0;
-        const currentCumul = (a.cumulDepreciation as number) || 0;
-        if (currentCumul < valeur && dotation > 0) {
-          await adapter.update('assets', String(a.id), {
-            cumulDepreciation: Math.min(currentCumul + dotation, valeur),
-          });
-          count++;
-        }
+        const rec = buildDepreciationRecord(a, currentYear);
+        if (rec.montant_dotation > 0) { count++; total += rec.montant_dotation; }
       }
-      return { count };
+      return { count, total };
     },
     onSuccess: (result) => {
-      toast.success(`${result.count} amortissements calculés`);
+      toast.success(`${result.count} dotation(s) à comptabiliser — total ${new Intl.NumberFormat('fr-FR').format(result.total)} FCFA`);
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
-      queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Erreur lors du calcul des amortissements');
     }
   });
 
-  // Delete depreciation mutation — subtract one period's dotation instead of resetting cumul to 0
+  // Supprimer = CONTREPASSER la dotation de l'exercice (écriture inverse
+  // Dr 28x / Cr 681x) et décrémenter le cumul en conséquence. Jamais de mutation
+  // silencieuse du cumul sans trace comptable.
   const deleteDepreciationMutation = useMutation({
     mutationFn: async (depreciationId: string) => {
       if (!adapter) throw new Error('Adapter non disponible');
-      // depreciationId == asset id in our computed model
-      const asset = await adapter.getById('assets', depreciationId) as Record<string, unknown> | null;
+      const asset = await adapter.getById('assets', depreciationId) as Record<string, any> | null;
       if (!asset) throw new Error('Actif introuvable');
-      const valeur = (asset.acquisitionValue as number) || 0;
-      const duree = (asset.usefulLifeYears as number) || 5;
-      const currentCumul = (asset.cumulDepreciation as number) || 0;
-      // Subtract one annual dotation (reversal), floor at 0
-      const dotation = duree > 0 ? valeur / duree : 0;
-      const newCumul = Math.max(0, currentCumul - dotation);
-      await adapter.update('assets', depreciationId, { cumulDepreciation: newCumul });
+      const exercice = String(new Date().getFullYear());
+      const code = String(asset.code || '');
+      // Retrouver l'écriture de dotation de l'exercice pour cet actif.
+      const allEntries = await adapter.getAll('journalEntries') as Array<Record<string, any>>;
+      const posted = allEntries.find(e => String(e.reference || '') === `AMORT-${exercice}-${depreciationId}`
+        && !String(e.entryNumber || '').startsWith('AMORT-REV-'));
+      if (!posted) throw new Error(`Aucune dotation comptabilisée pour ${exercice} à contrepasser.`);
+      const montant = Number(posted.totalDebit) || 0;
+      if (montant <= 0) throw new Error('Dotation nulle — rien à contrepasser.');
+      const accountCode = String(asset.accountCode || '');
+      await safeAddEntry(adapter, {
+        id: crypto.randomUUID(),
+        entryNumber: `AMORT-REV-${exercice}-${code.slice(0, 6)}`,
+        journal: 'OD',
+        date: `${exercice}-12-31`,
+        reference: `AMORT-REV-${exercice}-${depreciationId}`,
+        label: `Contrepassation dotation ${exercice} — ${asset.name}`,
+        status: 'validated',
+        lines: [
+          { id: crypto.randomUUID(), accountCode: amortAccountFor(accountCode, String(asset.depreciationAccountCode || '')), accountName: 'Amortissements cumulés', label: `Reprise amort. ${asset.name}`, debit: montant, credit: 0 },
+          { id: crypto.randomUUID(), accountCode: dotationAccountFor(accountCode), accountName: 'Dotation aux amortissements', label: `Annulation dotation ${asset.name}`, debit: 0, credit: montant },
+        ],
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+      } as any, { skipSyncValidation: true });
+      await adapter.update('assets', depreciationId, { cumulDepreciation: Math.max(0, (Number(asset.cumulDepreciation) || 0) - montant) });
     },
     onSuccess: () => {
-      toast.success('Amortissement supprimé avec succès');
+      toast.success('Dotation contrepassée (écriture inverse comptabilisée)');
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
+      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la suppression');
+      toast.error(error.message || 'Erreur lors de la contrepassation');
     }
   });
 
@@ -294,52 +414,10 @@ const DepreciationPage: React.FC = () => {
   const comptabiliserMutation = useMutation({
     mutationFn: async (dep: DepreciationRecord) => {
       if (!adapter) throw new Error('Adapter non disponible');
-
-      const montant = dep.montant_dotation;
-
-      // Warning #25 fix: use SYSCOHADA standard accounts instead of deriving from asset code string
-      // 6813 = Dotations aux amortissements sur immobilisations corporelles
-      // 2813 = Amortissements des constructions / equipment — default generic account
-      const dotationAccount = '6813';
-      const amortAccount = '2813';
-
-      const entryNumber = `OD-${Date.now().toString(36).toUpperCase()}`;
-      const entry = {
-        id: crypto.randomUUID(),
-        entryNumber,
-        journal: 'OD',
-        date: dep.date_amortissement || new Date().toISOString().split('T')[0],
-        label: `Dotation amortissement — ${dep.nom_actif}`,
-        reference: dep.code_actif,
-        status: 'validated',
-        lines: [
-          {
-            id: crypto.randomUUID(),
-            accountCode: dotationAccount,
-            accountName: 'Dotation aux amortissements',
-            label: `Dotation ${dep.nom_actif}`,
-            debit: montant,
-            credit: 0,
-          },
-          {
-            id: crypto.randomUUID(),
-            accountCode: amortAccount,
-            accountName: 'Amortissements cumulés',
-            label: `Amort. ${dep.nom_actif}`,
-            debit: 0,
-            credit: montant,
-          },
-        ],
-        totalDebit: montant,
-        totalCredit: montant,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Enregistrer dans le journal
-      await adapter.create('journalEntries', entry as any);
-
-      return { entryIds: [entry.id], count: 1, total: montant };
+      if (dep.montant_dotation <= 0) throw new Error('Aucune dotation à comptabiliser (exercice déjà à jour).');
+      if (!dep.account_code) throw new Error("Compte d'immobilisation manquant sur la fiche.");
+      const total = await postDepreciation(adapter, dep);
+      return { count: 1, total };
     },
     onSuccess: (result) => {
       toast.success(
@@ -360,49 +438,34 @@ const DepreciationPage: React.FC = () => {
     mutationFn: async () => {
       if (!adapter) throw new Error('Adapter non disponible');
 
-      // Utiliser les amortissements déjà affichés dans le tableau
-      const results = depreciationData?.results || [];
-      const nonComptabilises = results.filter((d: DepreciationRecord) => d.statut !== 'comptabilise');
+      // Traiter TOUS les actifs actifs (pas seulement la page affichée).
+      const allAssets = await adapter.getAll('assets') as Array<Record<string, any>>;
+      const activeAssets = allAssets.filter(a => a.status === 'active');
+      const currentYear = new Date().getFullYear();
 
-      if (nonComptabilises.length === 0) throw new Error('Aucune dotation à comptabiliser');
-
-      const entryIds: string[] = [];
+      let count = 0;
       let total = 0;
-
-      for (const dep of nonComptabilises) {
-        const montant = dep.montant_dotation;
-        // Warning #25 fix: use SYSCOHADA standard accounts
-        const dotationAccount = '6813';
-        const amortAccount = '2813';
-
-        const entry = {
-          id: crypto.randomUUID(),
-          entryNumber: `OD-${Date.now().toString(36).toUpperCase()}-${entryIds.length + 1}`,
-          journal: 'OD',
-          date: dep.date_amortissement || new Date().toISOString().split('T')[0],
-          label: `Dotation amortissement — ${dep.nom_actif}`,
-          reference: dep.code_actif,
-          status: 'validated',
-          lines: [
-            { id: crypto.randomUUID(), accountCode: dotationAccount, accountName: 'Dotation aux amortissements', label: `Dotation ${dep.nom_actif}`, debit: montant, credit: 0 },
-            { id: crypto.randomUUID(), accountCode: amortAccount, accountName: 'Amortissements cumulés', label: `Amort. ${dep.nom_actif}`, debit: 0, credit: montant },
-          ],
-          totalDebit: montant,
-          totalCredit: montant,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        await adapter.create('journalEntries', entry as any);
-        entryIds.push(entry.id);
-        total += montant;
+      let skipped = 0;
+      for (const a of activeAssets) {
+        const rec = buildDepreciationRecord(a, currentYear);
+        if (rec.montant_dotation <= 0) continue;
+        if (!rec.account_code) { skipped++; continue; }
+        try {
+          const posted = await postDepreciation(adapter, rec);
+          if (posted > 0) { count++; total += posted; }
+        } catch (e) {
+          // Écriture déjà passée pour cet exercice (doublon) → idempotent, on ignore.
+          if (e instanceof EntryGuardError) continue;
+          throw e;
+        }
       }
 
-      return { entryIds, count: nonComptabilises.length, total };
+      if (count === 0) throw new Error('Aucune dotation à comptabiliser (exercice déjà à jour).');
+      return { entryIds: [], count, total, skipped };
     },
     onSuccess: (result) => {
       toast.success(
-        `${result.count} dotation(s) déversée(s) en comptabilité pour un total de ${new Intl.NumberFormat('fr-FR').format(result.total)} FCFA — ${result.entryIds.length} écriture(s) OD créée(s)`
+        `${result.count} dotation(s) comptabilisée(s) pour un total de ${new Intl.NumberFormat('fr-FR').format(result.total)} FCFA${result.skipped ? ` (${result.skipped} ignorée(s) : compte manquant)` : ''}`
       );
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
       queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
@@ -447,16 +510,52 @@ const DepreciationPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       if (!adapter) throw new Error('Adapter non disponible');
-      // Bug #3 fix: persist the new montant_dotation as updated cumulDepreciation on the asset
+      // Ajustement du cumul d'amortissement : on saisit le cumul CIBLE, et on
+      // poste une écriture d'AJUSTEMENT pour l'écart (jamais d'écrasement muet
+      // du cumul, qui désynchroniserait registre et grand livre).
       const assetId = depreciationToEdit.immobilisation_id || depreciationToEdit.id;
-      const asset = await adapter.getById('assets', assetId) as Record<string, unknown> | null;
+      const asset = await adapter.getById('assets', assetId) as Record<string, any> | null;
       if (!asset) throw new Error('Immobilisation introuvable');
-      const valeur = (asset.acquisitionValue as number) || 0;
-      const newCumul = Math.min(formData.montant, valeur);
+      const brut = Number(asset.acquisitionValue) || 0;
+      const residual = Number(asset.residualValue) || 0;
+      const base = Math.max(0, brut - residual);
+      const accountCode = String(asset.accountCode || '');
+      if (!accountCode) throw new Error("Compte d'immobilisation manquant sur la fiche.");
+      const oldCumul = Number(asset.cumulDepreciation) || 0;
+      const newCumul = Math.min(Math.max(0, formData.montant), base);
+      const delta = Math.round(newCumul - oldCumul);
+      if (delta === 0) { toast('Aucun changement de cumul.'); setShowEditDepreciationModal(false); setDepreciationToEdit(null); resetForm(); return; }
+      const exercice = String(new Date().getFullYear());
+      const dotationAccount = dotationAccountFor(accountCode);
+      const amortAccount = amortAccountFor(accountCode, String(asset.depreciationAccountCode || ''));
+      const abs = Math.abs(delta);
+      // delta>0 : dotation complémentaire (Dr 681 / Cr 28). delta<0 : reprise (Dr 28 / Cr 681).
+      const lines = delta > 0
+        ? [
+            { id: crypto.randomUUID(), accountCode: dotationAccount, accountName: 'Dotation aux amortissements', label: `Ajustement dotation ${asset.name}`, debit: abs, credit: 0 },
+            { id: crypto.randomUUID(), accountCode: amortAccount, accountName: 'Amortissements cumulés', label: `Ajustement amort. ${asset.name}`, debit: 0, credit: abs },
+          ]
+        : [
+            { id: crypto.randomUUID(), accountCode: amortAccount, accountName: 'Amortissements cumulés', label: `Reprise amort. ${asset.name}`, debit: abs, credit: 0 },
+            { id: crypto.randomUUID(), accountCode: dotationAccount, accountName: 'Dotation aux amortissements', label: `Reprise dotation ${asset.name}`, debit: 0, credit: abs },
+          ];
+      await safeAddEntry(adapter, {
+        id: crypto.randomUUID(),
+        entryNumber: `AMORT-ADJ-${Date.now().toString(36).toUpperCase()}-${String(asset.code || '').slice(0, 6)}`,
+        journal: 'OD',
+        date: `${exercice}-12-31`,
+        reference: `AMORT-ADJ-${exercice}-${assetId}`,
+        label: `Ajustement amortissement — ${asset.name}`,
+        status: 'validated',
+        lines,
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+      } as any, { skipSyncValidation: true });
       await adapter.update('assets', assetId, { cumulDepreciation: newCumul });
-      toast.success('Amortissement mis à jour avec succès');
+      toast.success('Amortissement ajusté (écriture d\'ajustement comptabilisée)');
       queryClient.invalidateQueries({ queryKey: ['depreciation'] });
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
+      queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
       setShowEditDepreciationModal(false);
       setDepreciationToEdit(null);
       resetForm();

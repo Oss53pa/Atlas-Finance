@@ -210,30 +210,30 @@ const PersonnelModule: React.FC = () => {
       const soldesMap: Record<string, { montant: number; count: number }> = {};
       COLLECTIF_OPTIONS.forEach(c => { soldesMap[c] = { montant: 0, count: 0 }; });
 
+      // Solde par compte collectif : UNE SEULE passe sur les lignes. L'ancienne version
+      // bouclait par membre × préfixe → une ligne 422 était comptée autant de fois qu'il
+      // y avait de membres sur ce collectif (masse salariale massivement gonflée).
+      allEntries.forEach((entry: any) => {
+        if (entry.status === 'draft') return;
+        (entry.lines || []).forEach((line: any) => {
+          const code = String(line.accountCode || '');
+          const collectif = COLLECTIF_OPTIONS.find(c => code.startsWith(c));
+          if (collectif) soldesMap[collectif].montant += (line.debit || 0) - (line.credit || 0);
+        });
+      });
+      // Nombre de fiches par collectif
       perso.forEach((tp: any) => {
         const collectif = tp.collectif_account || guessCollectif(tp.code || '422');
         if (soldesMap[collectif]) soldesMap[collectif].count++;
-
-        allEntries.forEach((entry: any) => {
-          if (entry.status === 'draft') return;
-          (entry.lines || []).forEach((line: any) => {
-            if (
-              line.thirdPartyCode === tp.code ||
-              line.accountCode === tp.accountCode ||
-              (line.accountCode || '').startsWith(collectif)
-            ) {
-              // Debit = charge/avance, Credit = remboursement
-              soldesMap[collectif].montant += (line.debit || 0) - (line.credit || 0);
-            }
-          });
-        });
       });
 
       setSoldes(
         COLLECTIF_OPTIONS.map(c => ({
           compte: c,
           label: COLLECTIF_LABELS[c],
-          montant: Math.max(soldesMap[c].montant, 0),
+          // Solde net SIGNÉ (débiteur = avances 421 ; créditeur = rémunérations dues 422).
+          // Pas de Math.max(…,0) qui écrasait à 0 les comptes à solde créditeur.
+          montant: soldesMap[c].montant,
           count: soldesMap[c].count,
         }))
       );

@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { useReportBuilderStore } from '../store/useReportBuilderStore';
 import { exportToPDF } from '../services/pdfExportService';
+import { saveReport } from '../services/reportPersistenceService';
+import { useData } from '@/contexts/DataContext';
+import { toast } from 'react-hot-toast';
 import PeriodSelector from './PeriodSelector';
 import ValidationPanel from './ValidationPanel';
 import PreviewModal from './PreviewModal';
@@ -29,10 +32,24 @@ const TopBar: React.FC = () => {
     document: doc, updateTitle, canUndo, canRedo, undo, redo,
     zoomLevel, setZoom, toggleSidebarLeft, toggleSidebarRight,
   } = useReportBuilderStore();
+  const { adapter } = useData();
   const [showPeriod, setShowPeriod] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  const handleSave = useCallback(async () => {
+    if (!doc || !adapter) return;
+    setSaveState('saving');
+    try {
+      await saveReport(adapter, doc);
+      setSaveState('saved');
+      setTimeout(() => setSaveState('idle'), 1500);
+    } catch {
+      setSaveState('idle');
+      toast.error("Échec de l'enregistrement du rapport");
+    }
+  }, [doc, adapter]);
 
   // Ctrl+S save
   useEffect(() => {
@@ -44,48 +61,13 @@ const TopBar: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const handleSave = useCallback(async () => {
-    if (!doc) return;
-    setSaving(true);
-    try {
-      // Save report document to DataAdapter 'reports' table
-      const { adapter } = await import('@/contexts/DataContext').then(m => {
-        // Access adapter from the current React tree is not possible via dynamic import
-        // Instead we save to localStorage as persistence layer for local mode
-        return { adapter: null };
-      });
-      // Persist to localStorage for local mode
-      const saved = JSON.parse(localStorage.getItem('atlas_reports') || '[]');
-      const idx = saved.findIndex((r: any) => r.id === doc.id);
-      const record = {
-        id: doc.id,
-        title: doc.title,
-        status: doc.status,
-        period_label: doc.period.label,
-        period: doc.period,
-        pages: doc.pages,
-        pageSettings: doc.pageSettings,
-        theme: doc.theme,
-        typography: doc.typography,
-        version: doc.version,
-        page_count: doc.pages.length,
-        created_at: doc.createdAt,
-        updated_at: new Date().toISOString(),
-      };
-      if (idx >= 0) { saved[idx] = record; } else { saved.push(record); }
-      localStorage.setItem('atlas_reports', JSON.stringify(saved));
-    } catch (err) {
-      /* ignored */
-    } finally {
-      setSaving(false);
-    }
-  }, [doc]);
+  }, [handleSave]);
 
   const handleExport = useCallback(() => {
     if (!doc) return;
-    exportToPDF(doc).catch(() => {});
+    exportToPDF(doc).catch((err) => {
+      toast.error(err?.message || "Échec de l'export PDF");
+    });
   }, [doc]);
 
   if (!doc) return null;
@@ -139,13 +121,14 @@ const TopBar: React.FC = () => {
           {/* Save */}
           <button
             onClick={handleSave}
+            disabled={saveState === 'saving'}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              saving ? 'text-primary-600 bg-primary-50' : 'text-neutral-600 hover:bg-neutral-100'
+              saveState === 'saved' ? 'text-primary-600 bg-primary-50' : 'text-neutral-600 hover:bg-neutral-100'
             }`}
             title="Enregistrer (Ctrl+S)"
           >
             <Save className="w-3.5 h-3.5" />
-            {saving ? 'Enregistré' : 'Enregistrer'}
+            {saveState === 'saving' ? 'Enregistrement…' : saveState === 'saved' ? 'Enregistré' : 'Enregistrer'}
           </button>
 
           <div className="w-px h-5 bg-neutral-200 mx-1" />

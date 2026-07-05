@@ -500,6 +500,11 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
 
       {subTab === 2 && (
         <div className="space-y-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+            ⚠️ Matrice de <strong>référence</strong> : ces permissions sont enregistrées mais l'application effective
+            des droits est assurée par les rôles et la sécurité au niveau des données (RLS Supabase). Modifier une case
+            ici ne restreint pas encore l'accès tant que la règle serveur correspondante n'est pas déployée.
+          </div>
           <div className="flex items-center space-x-4">
             <label htmlFor="perm-role" className="text-sm font-medium text-gray-700">Role :</label>
             <select

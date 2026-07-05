@@ -76,12 +76,17 @@ const PositionTresoreriePage: React.FC = () => {
     let dailyVariation = 0;
     const todayMovements: CashFlowItem[] = [];
 
-    const postedEntries = journalEntriesData.filter((e: any) => e.status === 'posted');
+    // Écritures comptabilisées = 'validated' (ou 'posted'). NE PAS filtrer 'posted' seul
+    // (le tenant n'a que des 'validated' → toute la page tombait à 0).
+    const postedEntries = journalEntriesData.filter((e: any) => e.status !== 'draft');
 
     for (const entry of postedEntries) {
       if (!entry.lines) continue;
+      const jnl = String(entry.journal || '').toUpperCase();
+      if (jnl === 'AN' || jnl === 'RAN') { /* À Nouveau : compte dans le solde mais pas dans la variation du jour */ }
       for (const line of entry.lines) {
-        if (line.accountCode?.startsWith('5')) {
+        // Trésorerie = classe 5 HORS 58 (virements internes) et 59 (dépréciations).
+        if (line.accountCode?.startsWith('5') && !line.accountCode?.startsWith('58') && !line.accountCode?.startsWith('59')) {
           const net = (line.debit || 0) - (line.credit || 0);
           totalCash += net;
           // Accumulate per-account balance

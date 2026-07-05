@@ -139,27 +139,42 @@ function normalizeAccount(r: any): any {
 }
 
 function normalizeThirdParty(r: any): any {
-  return {
+  // On termine par normalizeGeneric pour aliaser TOUTES les colonnes snake_case restantes
+  // (tax_id→taxId, regime_fiscal→regimeFiscal, conditions_paiement→conditionsPaiement,
+  // third_party_code, credit_limit…). Sans ça, un normaliseur DÉDIÉ court-circuite le
+  // générique et laisse ces champs métier `undefined` côté composants.
+  return normalizeGeneric({
     ...r,
     raisonSociale: r.raisonSociale || r.name || '',
     isActive:      r.is_active     ?? r.isActive ?? true,
     accountCode:   r.account_code  || r.accountCode || '',
-  }
+  })
 }
 
 function normalizeAsset(r: any): any {
-  return {
+  const cumul = Number(r.cumul_depreciation ?? r.cumulDepreciation ?? 0)
+  const acquisition = Number(r.acquisition_value ?? r.acquisitionValue ?? 0)
+  // On termine par normalizeGeneric pour aliaser TOUTES les colonnes étendues
+  // snake_case restantes (manufacturer, serial_number, warranty_*, insurance_*,
+  // building_name, revaluation_amount, impairment_amount…) en camelCase. Sans
+  // ça, un normaliseur DÉDIÉ court-circuite le générique et laisse ces champs
+  // métier `undefined` côté composants.
+  return normalizeGeneric({
     ...r,
     accountCode:        r.account_code        || r.accountCode || '',
-    acquisitionValue:   Number(r.acquisition_value  ?? r.acquisitionValue ?? 0),
+    acquisitionValue:   acquisition,
     residualValue:      Number(r.residual_value     ?? r.residualValue ?? 0),
     acquisitionDate:    r.acquisition_date    || r.acquisitionDate || '',
     usefulLife:         Number(r.useful_life_years  ?? r.usefulLife ?? r.usefulLifeYears ?? 0),
     usefulLifeYears:    Number(r.useful_life_years  ?? r.usefulLifeYears ?? 0),
-    cumulDepreciation:  Number(r.cumul_depreciation ?? r.cumulDepreciation ?? 0),
+    cumulDepreciation:  cumul,
+    // Alias métier fréquents pour la VNC/amortissement (lus par certains écrans).
+    accumulatedDepreciation: cumul,
+    amortissementsCumules:   cumul,
+    netBookValue:            acquisition - cumul,
     depreciationMethod: r.depreciation_method || r.depreciationMethod || 'linear',
     depreciationAccountCode: r.depreciation_account_code || r.depreciationAccountCode || '',
-  }
+  })
 }
 
 // Normaliseur GÉNÉRIQUE : ajoute pour chaque clé snake_case son alias camelCase
@@ -341,7 +356,18 @@ export class SupabaseAdapter implements DataAdapter {
     // lisaient des champs undefined (ex. asset.acquisitionValue) → calculs faussés
     // (la mise à jour d'amortissement écrasait le cumul à 0).
     const normalizer = TABLE_NORMALIZERS[pg]
-    return (normalizer ? normalizer(data) : data) as T | null
+    const normalized: any = normalizer ? normalizer(data) : data
+    // Injection des lignes pour journal_entries — comme getAll/getPage. Sans ça, les
+    // consommateurs de getById (validation, contrepassation) lisaient lines=undefined en
+    // SaaS → « min 2 lignes » échouait et reverseEntry plantait sur original.lines.map.
+    if (pg === 'journal_entries' && normalized) {
+      try {
+        const { data: linesData } = await this.client
+          .from('journal_lines').select('*').eq('entry_id', id).eq('tenant_id', this.tenantId)
+        normalized.lines = (linesData || []).map((l: any) => normalizeJournalLine(l))
+      } catch { normalized.lines = normalized.lines ?? [] }
+    }
+    return normalized as T | null
   }
 
   // Pagination par tranches pour contourner le plafond `max-rows` de PostgREST

@@ -7,6 +7,7 @@ import { AlertTriangle, Loader2, PenLine } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useReportBuilderStore } from '../../store/useReportBuilderStore';
 import { getDefaultSummary, type SummaryPayload, type ReportSummaryType } from '../../services/reportSummaryService';
+import { isFavorableTrend } from '../../services/kpiSemantics';
 import { useMoneyFormat } from '../../../../hooks/useMoneyFormat';
 import type { SommaireBlock } from '../../types';
 
@@ -84,15 +85,17 @@ export default function SommaireBlockRenderer({ block }: Props) {
                 <div className="text-xl font-semibold text-neutral-900 mt-1 tabular-nums">
                   {formatVal(k.value, k.format)}
                 </div>
-                {typeof k.variation === 'number' && (
-                  <div
-                    className={`text-xs mt-1 ${
-                      k.variation > 0 ? 'text-emerald-600' : k.variation < 0 ? 'text-red-600' : 'text-neutral-500'
-                    }`}
-                  >
-                    {k.variation > 0 ? '▲' : k.variation < 0 ? '▼' : '='} {Math.abs(k.variation).toFixed(1)}%
-                  </div>
-                )}
+                {typeof k.variation === 'number' && (() => {
+                  // Favorabilité selon la nature du KPI (charge/dette en hausse = défavorable).
+                  const dir = k.variation > 0 ? 'up' : k.variation < 0 ? 'down' : 'flat';
+                  const fav = isFavorableTrend(dir, k.source);
+                  const color = fav === null ? 'text-neutral-500' : fav ? 'text-emerald-600' : 'text-red-600';
+                  return (
+                    <div className={`text-xs mt-1 ${color}`}>
+                      {k.variation > 0 ? '▲' : k.variation < 0 ? '▼' : '='} {Math.abs(k.variation).toFixed(1)}%
+                    </div>
+                  );
+                })()}
               </div>
             ))}
           </div>

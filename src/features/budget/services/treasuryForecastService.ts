@@ -183,13 +183,21 @@ export async function buildForecast(adapter: DataAdapter, nowIso: string, horizo
     buckets.set(ym, { enc: 0, dec: 0 });
     order.push(ym);
   }
-  // Les flux passés/échus sont rattachés au 1er mois (à régulariser).
   const firstYm = order[0];
   for (const f of flows) {
     const d = new Date(f.date_prevue);
     let ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (!buckets.has(ym)) ym = (d < now) ? firstYm : '';
-    if (!ym || !buckets.has(ym)) continue;
+    if (!buckets.has(ym)) {
+      if (d < now) {
+        // Un flux de BUDGET passé est DÉJÀ consommé par le réalisé (inclus dans currentCash)
+        // → l'ignorer (sinon on entasse tous les mois écoulés sur le mois 1 = point bas
+        // artificiel). Un poste ouvert / flux manuel échu reste dû → rattaché au 1er mois.
+        if (f.source === 'budget') continue;
+        ym = firstYm;
+      } else {
+        continue; // au-delà de l'horizon
+      }
+    }
     const b = buckets.get(ym)!;
     if (f.sens === 'encaissement') b.enc += f.montant; else b.dec += f.montant;
   }

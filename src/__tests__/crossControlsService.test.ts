@@ -114,7 +114,9 @@ describe('CrossControlsService', () => {
       end: '2025-12-31',
     });
 
-    expect(report.score).toBe(Math.round((report.totalOk / 20) * 100));
+    // Score sur les contrôles ÉVALUÉS (hors INFO informatifs).
+    const evalues = report.controls.filter(c => c.status !== 'INFO').length;
+    expect(report.score).toBe(evalues > 0 ? Math.round((report.totalOk / evalues) * 100) : 100);
   });
 
   it('should have all control IDs from P01 to P20', async () => {

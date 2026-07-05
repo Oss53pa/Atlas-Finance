@@ -80,6 +80,12 @@ const BudgetInvestissementPage: React.FC = () => {
 
   // Validation/rejet avec trace d'approbation immuable (audit + niveau requis).
   const decideCar = async (r: CapexRequest, statut: 'approuve' | 'rejete') => {
+    // SÉPARATION DES TÂCHES (SoD) : l'approbateur ne peut pas être le demandeur.
+    const createdBy = (r as any).created_by || (r as any).createdBy;
+    if (createdBy && user?.id && createdBy === user.id) {
+      toast.error('Séparation des tâches : vous ne pouvez pas approuver votre propre demande CAPEX.');
+      return;
+    }
     const br = requiredApprover(matrix, r.montant);
     await carAction(async () => {
       await setCapexStatut(adapter, r.id, statut);

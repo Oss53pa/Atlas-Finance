@@ -592,21 +592,33 @@ const ReconciliationPage: React.FC = () => {
       let modified = 0;
       const lineIdSet = new Set(match.lineIds);
       const entryIdSet = new Set(match.entryIds);
-      for (const entryId of entryIdSet) {
-        const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
-        if (!entry) continue;
-        // Créer une copie des lignes pour ne pas muter l'objet du cache adaptateur avant
-        // que la mise à jour soit confirmée en base (évite la corruption de l'état si update échoue)
-        const updatedLines = entry.lines.map(line => {
-          if (lineIdSet.has(line.id) && line.lettrageCode) {
-            return { ...line, lettrageCode: undefined };
+      const client = (adapter as any).client;
+      if (client) {
+        // SaaS : effacer lettrage_code DIRECTEMENT dans journal_lines (table SÉPARÉE).
+        // L'ancien adapter.update('journalEntries',{lines}) visait une colonne inexistante →
+        // l'annulation affichait "succès" sans dé-lettrer réellement.
+        const lineIds = Array.from(lineIdSet);
+        const tenantId = (adapter as any).tenantId;
+        const { error } = await client.from('journal_lines').update({ lettrage_code: null }).in('id', lineIds).eq('tenant_id', tenantId);
+        if (error) throw new Error(error.message);
+        modified = lineIds.length;
+        (adapter as any).invalidateCache?.();
+      } else {
+        // Local (Dexie) : lignes embarquées sur l'entête.
+        for (const entryId of entryIdSet) {
+          const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
+          if (!entry) continue;
+          const updatedLines = entry.lines.map(line => {
+            if (lineIdSet.has(line.id) && line.lettrageCode) {
+              return { ...line, lettrageCode: undefined };
+            }
+            return line;
+          });
+          const changed = updatedLines.some((l, i) => l !== entry.lines[i]);
+          if (changed) {
+            await adapter.update('journalEntries', entryId, { lines: updatedLines, updatedAt: new Date().toISOString() });
+            modified++;
           }
-          return line;
-        });
-        const changed = updatedLines.some((l, i) => l !== entry.lines[i]);
-        if (changed) {
-          await adapter.update('journalEntries', entryId, { lines: updatedLines, updatedAt: new Date().toISOString() });
-          modified++;
         }
       }
 

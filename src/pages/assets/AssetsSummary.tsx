@@ -3,6 +3,7 @@ import { formatCurrency } from '@/utils/formatters';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
+import { listMaintenance } from '../../services/immobilisations/maintenanceService';
 import { motion } from 'framer-motion';
 import {
   Building2,
@@ -138,6 +139,8 @@ const AssetsSummary: React.FC = () => {
   // et amortissements cumulés (28), utilisés tant que le registre des biens est
   // vide. Permet d'afficher le patrimoine immobilisé issu de la comptabilité.
   const [glAssets, setGlAssets] = useState<{ gross: number; amort: number; count: number }>({ gross: 0, amort: 0, count: 0 });
+  // Coût de maintenance RÉEL (table fna_asset_maintenance), pas une estimation.
+  const [maintenanceCost, setMaintenanceCost] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -146,6 +149,10 @@ const AssetsSummary: React.FC = () => {
         adapter.getAll<any>('journalEntries'),
       ]);
       setDbAssets(assets);
+      try {
+        const maint = await listMaintenance(adapter);
+        setMaintenanceCost(maint.reduce((s: number, m: any) => s + (Number(m.cost) || Number(m.estimated_cost) || 0), 0));
+      } catch { setMaintenanceCost(0); }
       const byCode: Record<string, number> = {};
       for (const e of entries) {
         if (e.status === 'draft') continue;
@@ -220,13 +227,13 @@ const AssetsSummary: React.FC = () => {
     {
       id: 'maintenance_cost',
       title: 'Coûts de Maintenance',
-      value: `${formatCurrency((totalAcquisitionValue * 0.02))}`,
+      value: `${formatCurrency(maintenanceCost)}`,
       change: 0,
-      changeLabel: 'estimation',
+      changeLabel: 'réel',
       icon: <Wrench className="w-6 h-6" />,
       color: '[var(--color-text-secondary)]',
       trend: 'down' as const,
-      description: 'Estimation basée sur 2% de la valeur brute'
+      description: 'Coûts de maintenance enregistrés'
     },
     {
       id: 'asset_count',
@@ -250,7 +257,7 @@ const AssetsSummary: React.FC = () => {
       trend: 'up' as const,
       description: 'Pourcentage d\'actifs en utilisation'
     }
-  ], [dbAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate]);
+  ], [dbAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate, maintenanceCost]);
 
   // Catégories = CLASSES SYSCOHADA réelles (préfixe 2 chiffres du compte d'immobilisation).
   // Le champ `category` n'a qu'UNE valeur à l'import (« Autre ») → inutilisable.

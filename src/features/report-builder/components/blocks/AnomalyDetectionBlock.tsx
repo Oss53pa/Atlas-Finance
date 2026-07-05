@@ -67,17 +67,23 @@ export default function AnomalyDetectionBlockRenderer({ block }: Props) {
     try {
       const raw = (await adapter.getAll('journalEntries')) as JournalEntryLike[];
       const candidates = raw
-        .filter(e => inPeriod(e.date, period))
-        .map(e => ({
-          id: e.id ?? `${e.entryNumber ?? ''}-${e.date ?? ''}`,
-          entryNumber: e.entryNumber ?? '',
-          date: e.date ?? '',
-          journal: e.journal ?? '',
-          label: e.label ?? '',
-          montant: e.totalDebit ?? e.totalCredit ?? (e.lines || []).reduce((s, l) => s + (l.debit || 0), 0),
-          debit: e.totalDebit ?? 0,
-          credit: e.totalCredit ?? 0,
-        }));
+        .filter(e => (e as { status?: string }).status !== 'draft' && inPeriod(e.date, period))
+        .map(e => {
+          const sumD = (e.lines || []).reduce((s, l) => s + (l.debit || 0), 0);
+          const sumC = (e.lines || []).reduce((s, l) => s + (l.credit || 0), 0);
+          return {
+            id: e.id ?? `${e.entryNumber ?? ''}-${e.date ?? ''}`,
+            entryNumber: e.entryNumber ?? '',
+            date: e.date ?? '',
+            journal: e.journal ?? '',
+            label: e.label ?? '',
+            // Montant de l'écriture = max(Σdébit, Σcrédit) si les totaux ne sont pas fournis
+            // (ne pas se limiter aux débits : une écriture n'ayant que des lignes crédit tomberait à 0).
+            montant: e.totalDebit ?? e.totalCredit ?? Math.max(sumD, sumC),
+            debit: e.totalDebit ?? sumD,
+            credit: e.totalCredit ?? sumC,
+          };
+        });
 
       if (candidates.length === 0) {
         setAnomalies([]);

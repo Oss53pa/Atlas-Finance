@@ -117,16 +117,19 @@ const ConnexionsBancairesPage: React.FC = () => {
         nom_compte: (acc.libelle as string) || (acc.numero_compte as string),
         numero_compte: acc.numero_compte as string,
         type_compte: (acc.type_compte as string) || 'courant',
-        statut: acc.actif ? 'connecté' : 'déconnecté',
-        derniere_sync: (acc.date_derniere_sync as string) || new Date().toISOString(),
+        // HONNÊTE : ces comptes viennent du plan comptable (521xxx), il n'existe AUCUNE
+        // connexion bancaire réelle (pas de handshake EBICS/PSD2). On ne prétend donc pas
+        // « connecté / OAuth / SSL / OAuth » — c'est du suivi MANUEL.
+        statut: 'manuel',
+        derniere_sync: (acc.date_derniere_sync as string) || '',
         solde_actuel: (acc.solde_courant as number) || 0,
         devise: (acc.devise_code as string) || 'XOF',
-        api_type: 'API_BANQUE' as const,
-        derniere_transaction: (acc.date_derniere_transaction as string) || new Date().toISOString(),
+        api_type: 'MANUEL' as const,
+        derniere_transaction: (acc.date_derniere_transaction as string) || '',
         nb_transactions: 0,
-        auto_sync: true,
-        certificat_ssl: true,
-        authentification: 'OAuth' as const
+        auto_sync: false,
+        certificat_ssl: false,
+        authentification: 'Aucune' as const
       }));
     },
     staleTime: 30000, // 30 seconds

@@ -76,13 +76,13 @@ describe('P0-4: soldeReleve calculé correctement avec Money', () => {
     await db.journalEntries.bulkAdd([
       // Encaissement client: 500 000 (débit banque)
       makeEntry('e1', [
-        { accountCode: '512000', debit: 500_000, credit: 0 },
+        { accountCode: '521000', debit: 500_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 500_000 },
       ]),
       // Paiement fournisseur: 200 000 (crédit banque)
       makeEntry('e2', [
         { accountCode: '401000', debit: 200_000, credit: 0 },
-        { accountCode: '512000', debit: 0, credit: 200_000 },
+        { accountCode: '521000', debit: 0, credit: 200_000 },
       ]),
     ]);
 
@@ -109,7 +109,7 @@ describe('Matching exact montant + date', () => {
   it('rapproche une transaction bancaire avec une écriture comptable', async () => {
     await db.journalEntries.bulkAdd([
       makeEntry('e1', [
-        { accountCode: '512000', debit: 100_000, credit: 0 },
+        { accountCode: '521000', debit: 100_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 100_000 },
       ]),
     ]);
@@ -135,12 +135,12 @@ describe('Matching par référence', () => {
   it('rapproche par référence identique + montant', async () => {
     await db.journalEntries.bulkAdd([
       makeEntry('e1', [
-        { accountCode: '512000', debit: 75_000, credit: 0 },
+        { accountCode: '521000', debit: 75_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 75_000 },
       ], 'FAC-2026-001'),
       // Une autre écriture avec un montant différent
       makeEntry('e2', [
-        { accountCode: '512000', debit: 75_000, credit: 0 },
+        { accountCode: '521000', debit: 75_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 75_000 },
       ], 'FAC-2026-002'),
     ]);
@@ -177,7 +177,7 @@ describe('Détection des non-rapprochés', () => {
   it('identifie les écritures non rapprochées', async () => {
     await db.journalEntries.bulkAdd([
       makeEntry('e1', [
-        { accountCode: '512000', debit: 100_000, credit: 0 },
+        { accountCode: '521000', debit: 100_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 100_000 },
       ]),
     ]);
@@ -196,7 +196,7 @@ describe('État de rapprochement SYSCOHADA', () => {
   it('génère un état de rapprochement équilibré', async () => {
     await db.journalEntries.bulkAdd([
       makeEntry('e1', [
-        { accountCode: '512000', debit: 300_000, credit: 0 },
+        { accountCode: '521000', debit: 300_000, credit: 0 },
         { accountCode: '411000', debit: 0, credit: 300_000 },
       ]),
     ]);
@@ -206,7 +206,7 @@ describe('État de rapprochement SYSCOHADA', () => {
     ];
 
     const result = await rapprochementAutomatique(adapter, bankTxs);
-    const etat = await genererEtatRapprochement('512000', bankTxs, result);
+    const etat = await genererEtatRapprochement('521000', bankTxs, result);
 
     expect(etat.isRapproche).toBe(true);
     expect(Math.abs(etat.soldeBanqueCorrige - etat.soldeComptaCorrige)).toBeLessThan(0.01);
