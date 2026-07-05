@@ -208,7 +208,8 @@ async function generateNote5(entries: DBJournalEntry[]): Promise<NoteAnnexe> {
       colonnes: ['Nature', 'Montant brut', 'Provisions', 'Montant net'],
       lignes: [
         { Nature: 'Clients', 'Montant brut': netByAccountPrefix(entries, '411'), Provisions: netByAccountPrefix(entries, '491'), 'Montant net': netByAccountPrefix(entries, '411') - netByAccountPrefix(entries, '491') },
-        { Nature: 'Autres creances', 'Montant brut': netByAccountPrefix(entries, '41'), Provisions: 0, 'Montant net': netByAccountPrefix(entries, '41') },
+        // « Autres créances » = classe 41 HORS 411 (déjà listé ci-dessus) → sinon double comptage.
+        { Nature: 'Autres creances', 'Montant brut': netByAccountPrefix(entries, '41') - netByAccountPrefix(entries, '411'), Provisions: 0, 'Montant net': netByAccountPrefix(entries, '41') - netByAccountPrefix(entries, '411') },
       ],
     }],
     calculsAuto: true,

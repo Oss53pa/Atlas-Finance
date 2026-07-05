@@ -983,7 +983,7 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Services extérieurs</span>
+                    <span className="text-sm text-gray-600">Services extérieurs & autres charges</span>
                     <span className="text-sm font-mono font-medium">
                       {fmt(compteResultatData.charges.servicesExterieurs)}
                     </span>
