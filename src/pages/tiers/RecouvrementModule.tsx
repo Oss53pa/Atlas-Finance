@@ -7380,6 +7380,68 @@ Service Contentieux
   const [allJournalEntries, setAllJournalEntries] = useState<any[]>([]);
   const [recoveryCases, setRecoveryCases] = useState<any[]>([]);
 
+  // ─── Pénalités de retard (persistées, fini le mock FAC001-003) ───────────────
+  interface Penalite {
+    id: string; dateCreation: string; factures: string; montantCreance: number;
+    joursRetard: number; tauxApplique: number; montantPenalite: number;
+    statut: 'En attente validation' | 'Validée' | 'Envoyée facturation' | 'Rejetée';
+    dateValidation: string | null; validateur: string | null;
+  }
+  const [penalites, setPenalites] = useState<Penalite[]>([]);
+  const [penForm, setPenForm] = useState({ factures: '', montantCreance: '', joursRetard: '', taux: '5' });
+
+  const loadPenalites = React.useCallback(async () => {
+    try {
+      const s = await adapter.getById<{ value: string }>('settings', 'recovery_penalties');
+      setPenalites(s?.value ? JSON.parse(s.value) : []);
+    } catch { setPenalites([]); }
+  }, [adapter]);
+  useEffect(() => { loadPenalites(); }, [loadPenalites]);
+
+  const savePenalites = async (list: Penalite[]) => {
+    setPenalites(list);
+    const payload = { key: 'recovery_penalties', value: JSON.stringify(list), updatedAt: new Date().toISOString() };
+    try {
+      const cur = await adapter.getById('settings', 'recovery_penalties');
+      if (cur) await adapter.update('settings', 'recovery_penalties', payload);
+      else await adapter.create('settings', payload);
+    } catch { /* persistance best-effort */ }
+  };
+  const today = () => new Date().toISOString().slice(0, 10);
+  const validatePenalite = (id: string) => savePenalites(penalites.map(p => p.id === id ? { ...p, statut: 'Validée', dateValidation: today() } : p));
+  const rejectPenalite = (id: string) => savePenalites(penalites.map(p => p.id === id ? { ...p, statut: 'Rejetée', dateValidation: today() } : p));
+  const sendPenalite = (id: string) => savePenalites(penalites.map(p => p.id === id ? { ...p, statut: 'Envoyée facturation' } : p));
+  const createPenalite = () => {
+    const creance = Number(penForm.montantCreance) || 0;
+    const taux = Number(penForm.taux) || 0;
+    if (creance <= 0 || taux <= 0) { toast.error('Renseignez un montant de créance et un taux valides'); return; }
+    const p: Penalite = {
+      id: `PEN-${Date.now()}`, dateCreation: today(),
+      factures: penForm.factures.trim() || '—', montantCreance: creance,
+      joursRetard: Number(penForm.joursRetard) || 0, tauxApplique: taux,
+      montantPenalite: Math.round(creance * (taux / 100)),
+      statut: 'En attente validation', dateValidation: null, validateur: null,
+    };
+    savePenalites([p, ...penalites]);
+    setPenForm({ factures: '', montantCreance: '', joursRetard: '', taux: '5' });
+    toast.success('Pénalité créée (en attente de validation)');
+  };
+
+  // KPIs pénalités calculés depuis la liste réelle.
+  const penStats = useMemo(() => {
+    const actives = penalites.filter(p => p.statut !== 'Rejetée');
+    const total = actives.reduce((s, p) => s + p.montantPenalite, 0);
+    const attente = penalites.filter(p => p.statut === 'En attente validation');
+    const validees = penalites.filter(p => p.statut === 'Validée' || p.statut === 'Envoyée facturation');
+    const tauxMoyen = actives.length ? actives.reduce((s, p) => s + p.tauxApplique, 0) / actives.length : 0;
+    return {
+      total,
+      attente: attente.reduce((s, p) => s + p.montantPenalite, 0), attenteCount: attente.length,
+      validees: validees.reduce((s, p) => s + p.montantPenalite, 0),
+      tauxMoyen: Math.round(tauxMoyen * 10) / 10,
+    };
+  }, [penalites]);
+
   const reloadRecovery = React.useCallback(async () => {
     const [tps, entries, cases] = await Promise.all([
       adapter.getAll('thirdParties'),
@@ -7528,10 +7590,16 @@ Service Contentieux
               montantOriginal: l.debit,
               montantRestant: l.debit, // simplified: full amount outstanding
               joursRetard,
+              libelle: l.label,   // description réelle de la facture
+              credit: l.credit,   // règlement éventuel imputé
             };
           });
 
         const maxRetard = Math.max(0, ...factures.map(f => f.joursRetard));
+        // DSO moyen RÉEL = moyenne des jours de retard des factures (pas le max).
+        const dsoMoyen = factures.length > 0
+          ? Math.round(factures.reduce((s, f) => s + Math.max(0, f.joursRetard), 0) / factures.length)
+          : 0;
         let niveauRelance: string = 'AUCUNE';
         if (maxRetard > 90) niveauRelance = 'CONTENTIEUX';
         else if (maxRetard > 60) niveauRelance = 'RELANCE_3';
@@ -7546,6 +7614,7 @@ Service Contentieux
           factures,
           montantTotal: solde,
           joursRetard: maxRetard,
+          dsoMoyen,
           niveauRelance,
           derniereRelance: null as string | null,
           prochaineRelance: null as string | null,
@@ -7576,9 +7645,12 @@ Service Contentieux
           montantOriginal: number;
           montantRestant: number;
           joursRetard: number;
+          libelle: string;
+          credit: number;
         }>;
         montantTotal: number;
         joursRetard: number;
+        dsoMoyen: number;
         niveauRelance: string;
         derniereRelance: string | null;
         prochaineRelance: string | null;
@@ -7615,7 +7687,7 @@ Service Contentieux
         montantTotal: c.montantTotal,
         montantPaye: 0,
         nombreFactures: c.factures.length,
-        dsoMoyen: c.joursRetard,
+        dsoMoyen: c.dsoMoyen,
         dateOuverture: c.factures[0]?.date || new Date().toISOString().slice(0, 10),
         statut: (c.joursRetard > 90 ? 'juridique' : c.joursRetard > 0 ? 'actif' : 'cloture') as 'actif' | 'suspendu' | 'cloture' | 'juridique',
         typeRecouvrement: (c.joursRetard > 90 ? 'judiciaire' : 'amiable') as 'amiable' | 'judiciaire' | 'huissier',
@@ -7626,6 +7698,18 @@ Service Contentieux
         prochainEtape: '',
       }));
   }, [mockCreances]);
+
+  // Créance réelle correspondant au dossier ouvert dans le détail (par client/id).
+  // Fournit les VRAIES factures (lignes 411x) au lieu des données mock hardcodées.
+  const detailCreance = useMemo(() => {
+    if (!selectedDossierDetail) return null;
+    return mockCreances.find(c =>
+      c.clientNom === selectedDossierDetail.client ||
+      c.clientCode === selectedDossierDetail.client ||
+      c.id === selectedDossierDetail.id,
+    ) || null;
+  }, [selectedDossierDetail, mockCreances]);
+  const detailFactures = detailCreance?.factures ?? [];
 
   const tabs = [
     { id: 'creances', label: 'Créances', icon: DollarSign },
@@ -10324,19 +10408,19 @@ Service Contentieux
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div>
                         <div className="text-sm text-gray-600 mb-1">Entité légale</div>
-                        <div className="text-sm font-medium">-</div>
+                        <div className="text-sm font-medium">{selectedDossierDetail.client || '—'}</div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-600 mb-1">Enseigne</div>
-                        <div className="text-sm font-medium">-</div>
+                        <div className="text-sm font-medium">{detailCreance?.clientNom || selectedDossierDetail.client || '—'}</div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-600 mb-1">Code Prospect</div>
-                        <div className="text-sm font-medium">-</div>
+                        <div className="text-sm font-medium">{detailCreance?.clientCode || '—'}</div>
                       </div>
                       <div>
                         <div className="text-sm text-gray-600 mb-1">N° de compte</div>
-                        <div className="text-sm font-medium">-</div>
+                        <div className="text-sm font-medium">{detailCreance?.clientCode || '—'}</div>
                       </div>
                     </div>
                   </div>
@@ -10371,14 +10455,23 @@ Service Contentieux
                       <div className="space-y-4">
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Paiement</div>
+                          {/* Comportement de paiement dérivé du DSO moyen réel. */}
+                          <div className={`text-sm font-semibold ${selectedDossierDetail.dsoMoyen <= 30 ? 'text-green-700' : selectedDossierDetail.dsoMoyen <= 60 ? 'text-orange-600' : 'text-red-600'}`}>
+                            {selectedDossierDetail.dsoMoyen <= 30 ? 'Bon' : selectedDossierDetail.dsoMoyen <= 60 ? 'Moyen' : 'À risque'} ({selectedDossierDetail.dsoMoyen} j)
+                          </div>
                         </div>
 
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Chiffre d'affaires</div>
+                          <div className="text-sm font-medium text-gray-400">— (hors périmètre)</div>
                         </div>
 
                         <div>
                           <div className="text-sm text-gray-600 mb-1">Séniorité</div>
+                          <div className="text-sm font-medium">{(() => {
+                            const dates = detailFactures.map(f => f.date).filter(Boolean).sort();
+                            return dates.length > 0 ? `depuis ${new Date(dates[0]).toLocaleDateString('fr-FR')}` : '—';
+                          })()}</div>
                         </div>
                       </div>
                     </div>
@@ -10395,12 +10488,12 @@ Service Contentieux
 
                       <div className="text-center mb-4">
                         <div className="text-sm text-gray-600">Taux</div>
-                        <div className="text-lg font-bold text-gray-900">0 %</div>
+                        <div className="text-lg font-bold text-gray-900">{detailFactures.length > 0 ? Math.round((detailFactures.filter(f => f.joursRetard > 0).length / detailFactures.length) * 100) : 0} %</div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">Total des retards de paiement</div>
-                        <div className="text-lg font-bold text-gray-900">0</div>
+                        <div className="text-lg font-bold text-gray-900">{detailFactures.filter(f => f.joursRetard > 0).length}</div>
                       </div>
                     </div>
 
@@ -10416,12 +10509,16 @@ Service Contentieux
 
                       <div className="text-center mb-4">
                         <div className="text-sm text-gray-600">% du chiffre d'affaires total</div>
-                        <div className="text-lg font-bold text-gray-900">0 %</div>
+                        {/* Nécessite le CA société (hors périmètre recouvrement) → non disponible ici. */}
+                        <div className="text-lg font-bold text-gray-400">—</div>
                       </div>
 
                       <div className="text-center">
                         <div className="text-sm text-gray-600">% des créances</div>
-                        <div className="text-lg font-bold text-gray-900">0 %</div>
+                        <div className="text-lg font-bold text-gray-900">{(() => {
+                          const totalAll = mockCreances.reduce((s, c) => s + (c.montantTotal || 0), 0);
+                          return totalAll > 0 ? Math.round((selectedDossierDetail.montantTotal / totalAll) * 100) : 0;
+                        })()} %</div>
                       </div>
                     </div>
                   </div>
@@ -10434,26 +10531,26 @@ Service Contentieux
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">0-30 Days</span>
-                          <span className="text-sm font-medium">0</span>
+                          <span className="text-sm font-medium">{detailFactures.filter(f => f.joursRetard <= 30).length}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">31-60 Days</span>
-                          <span className="text-sm font-medium">0</span>
+                          <span className="text-sm font-medium">{detailFactures.filter(f => f.joursRetard > 30 && f.joursRetard <= 60).length}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">61-90 Days</span>
-                          <span className="text-sm font-medium">0</span>
+                          <span className="text-sm font-medium">{detailFactures.filter(f => f.joursRetard > 60 && f.joursRetard <= 90).length}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm text-gray-600">90+ Days</span>
-                          <span className="text-sm font-medium">0</span>
+                          <span className="text-sm font-medium">{detailFactures.filter(f => f.joursRetard > 90).length}</span>
                         </div>
                       </div>
 
                       <div className="mt-6 h-32 flex items-center justify-center">
                         <div className="text-center">
-                          <div className="text-lg font-bold text-gray-300">0</div>
-                          <div className="text-sm text-gray-700">Jours</div>
+                          <div className="text-lg font-bold text-gray-700">{selectedDossierDetail.dsoMoyen}</div>
+                          <div className="text-sm text-gray-700">Jours (DSO moyen)</div>
                         </div>
                       </div>
                     </div>
@@ -10554,51 +10651,21 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {/* Données mock pour les factures */}
-                          {[
-                            {
-                              facNum: 'FAC001',
-                              numDocument: 'DOC-2024-001',
-                              date: '2024-01-15',
-                              periodeFacturation: '01/2024',
-                              description: 'Prestation de services - Janvier',
-                              debit: 5000,
-                              credit: 0,
-                              solde: 5000,
-                              dateEcheance: '2024-02-14',
-                              ps: 'En cours',
-                              sr: 'Non',
-                              age: 45
-                            },
-                            {
-                              facNum: 'FAC002',
-                              numDocument: 'DOC-2024-002',
-                              date: '2024-02-15',
-                              periodeFacturation: '02/2024',
-                              description: 'Prestation de services - Février',
-                              debit: 6000,
-                              credit: 0,
-                              solde: 6000,
-                              dateEcheance: '2024-03-16',
-                              ps: 'En cours',
-                              sr: 'Non',
-                              age: 15
-                            },
-                            {
-                              facNum: 'FAC003',
-                              numDocument: 'DOC-2024-003',
-                              date: '2024-03-15',
-                              periodeFacturation: '03/2024',
-                              description: 'Prestation de services - Mars',
-                              debit: 5000,
-                              credit: 2000,
-                              solde: 3000,
-                              dateEcheance: '2024-04-14',
-                              ps: 'Partiel',
-                              sr: 'Oui',
-                              age: 30
-                            }
-                          ].map((facture, index) => (
+                          {/* Vraies factures du dossier (lignes 411x réelles) */}
+                          {detailFactures.map((f) => ({
+                            facNum: f.numero,
+                            numDocument: f.numero,
+                            date: f.date,
+                            periodeFacturation: new Date(f.date).toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' }),
+                            description: f.libelle || '—',
+                            debit: f.montantOriginal,
+                            credit: f.credit || 0,
+                            solde: f.montantRestant,
+                            dateEcheance: f.dateEcheance,
+                            ps: f.credit > 0 ? 'Partiel' : (f.joursRetard > 0 ? 'En retard' : 'En cours'),
+                            sr: f.joursRetard > 30 ? 'Oui' : 'Non',
+                            age: Math.max(0, f.joursRetard),
+                          })).map((facture, index) => (
                             <tr key={index} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-blue-600">
@@ -10682,25 +10749,25 @@ Service Contentieux
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Total Débit</div>
                       <div className="text-lg font-bold text-blue-900">
-                        {formatCurrency((5000 + 6000 + 5000))}
+                        {formatCurrency(detailFactures.reduce((s, f) => s + (f.montantOriginal || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Total Crédit</div>
                       <div className="text-lg font-bold text-green-900">
-                        {formatCurrency((2000))}
+                        {formatCurrency(detailFactures.reduce((s, f) => s + (f.credit || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Solde Total</div>
                       <div className="text-lg font-bold text-orange-900">
-                        {formatCurrency((5000 + 6000 + 3000))}
+                        {formatCurrency(detailFactures.reduce((s, f) => s + (f.montantRestant || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-red-50 rounded-lg p-4">
                       <div className="text-sm text-red-600 font-medium">Factures en retard</div>
                       <div className="text-lg font-bold text-red-900">
-                        2
+                        {detailFactures.filter(f => f.joursRetard > 0).length}
                       </div>
                     </div>
                   </div>
@@ -11285,32 +11352,34 @@ Service Contentieux
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold text-gray-900">Gestion des Intérêts et Pénalités</h3>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                    <button
+                      onClick={() => document.getElementById('penalite-calculateur')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                       <Plus className="w-4 h-4" />
                       Nouvelle Pénalité
                     </button>
                   </div>
 
-                  {/* Statistiques générales */}
+                  {/* Statistiques générales (calculées depuis la liste réelle) */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-red-50 rounded-lg p-4">
                       <div className="text-sm text-red-600 font-medium">Total Pénalités</div>
-                      <div className="text-lg font-bold text-red-900">750 FCFA</div>
+                      <div className="text-lg font-bold text-red-900">{formatCurrency(penStats.total)}</div>
                       <div className="text-xs text-red-600 mt-1">Sur créances en retard</div>
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-4">
                       <div className="text-sm text-yellow-600 font-medium">En Attente Validation</div>
-                      <div className="text-lg font-bold text-yellow-900">250 FCFA</div>
-                      <div className="text-xs text-yellow-600 mt-1">2 dossiers</div>
+                      <div className="text-lg font-bold text-yellow-900">{formatCurrency(penStats.attente)}</div>
+                      <div className="text-xs text-yellow-600 mt-1">{penStats.attenteCount} dossier(s)</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Validées</div>
-                      <div className="text-lg font-bold text-green-900">500 FCFA</div>
+                      <div className="text-lg font-bold text-green-900">{formatCurrency(penStats.validees)}</div>
                       <div className="text-xs text-green-600 mt-1">Envoyées à facturation</div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
                       <div className="text-sm text-blue-600 font-medium">Taux Moyen</div>
-                      <div className="text-lg font-bold text-blue-900">4.5%</div>
+                      <div className="text-lg font-bold text-blue-900">{penStats.tauxMoyen}%</div>
                       <div className="text-xs text-blue-600 mt-1">Taux appliqué</div>
                     </div>
                   </div>
@@ -11354,45 +11423,11 @@ Service Contentieux
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {[
-                            {
-                              id: 'PEN-001',
-                              dateCreation: '2024-03-15',
-                              factures: 'FAC001',
-                              montantCreance: 5000,
-                              joursRetard: 45,
-                              tauxApplique: 5.0,
-                              montantPenalite: 250,
-                              statut: 'En attente validation',
-                              dateValidation: null,
-                              validateur: null
-                            },
-                            {
-                              id: 'PEN-002',
-                              dateCreation: '2024-03-10',
-                              factures: 'FAC002',
-                              montantCreance: 6000,
-                              joursRetard: 30,
-                              tauxApplique: 4.0,
-                              montantPenalite: 200,
-                              statut: 'Validée',
-                              dateValidation: '2024-03-11',
-                              validateur: ''
-                            },
-                            {
-                              id: 'PEN-003',
-                              dateCreation: '2024-03-01',
-                              factures: 'FAC003',
-                              montantCreance: 3000,
-                              joursRetard: 60,
-                              tauxApplique: 6.0,
-                              montantPenalite: 300,
-                              statut: 'Envoyée facturation',
-                              dateValidation: '2024-03-02',
-                              validateur: ''
-                            }
-                          ].map((penalite, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
+                          {penalites.length === 0 && (
+                            <tr><td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">Aucune pénalité enregistrée. Créez-en une avec le calculateur ci-dessous.</td></tr>
+                          )}
+                          {penalites.map((penalite) => (
+                            <tr key={penalite.id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">
                                   {new Date(penalite.dateCreation).toLocaleDateString()}
@@ -11449,19 +11484,22 @@ Service Contentieux
                                   {penalite.statut === 'En attente validation' && (
                                     <>
                                       <button
+                                        onClick={() => validatePenalite(penalite.id)}
                                         className="text-green-600 hover:text-green-900 p-1 rounded"
                                         title={t('actions.validate')} aria-label="Valider">
                                         <CheckCircle className="w-4 h-4" />
                                       </button>
                                       <button
+                                        onClick={() => rejectPenalite(penalite.id)}
                                         className="text-red-600 hover:text-red-900 p-1 rounded"
-                                        title="Rejeter" aria-label="Fermer">
+                                        title="Rejeter" aria-label="Rejeter">
                                         <XCircle className="w-4 h-4" />
                                       </button>
                                     </>
                                   )}
                                   {penalite.statut === 'Validée' && (
                                     <button
+                                      onClick={() => sendPenalite(penalite.id)}
                                       className="text-blue-600 hover:text-blue-900 p-1 rounded"
                                       title="Envoyer à facturation"
                                     >
@@ -11469,6 +11507,7 @@ Service Contentieux
                                     </button>
                                   )}
                                   <button
+                                    onClick={() => toast(`Pénalité ${penalite.factures} — créance ${formatCurrency(penalite.montantCreance)}, ${penalite.joursRetard}j, taux ${penalite.tauxApplique}% → ${formatCurrency(penalite.montantPenalite)}`, { duration: 6000 })}
                                     className="text-gray-600 hover:text-gray-900 p-1 rounded"
                                     title="Voir détails" aria-label="Voir les détails">
                                     <Eye className="w-4 h-4" />
@@ -11485,38 +11524,22 @@ Service Contentieux
                   {/* Calculateur de pénalités */}
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">Calculateur de Pénalités</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6" id="penalite-calculateur">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Sélectionner les factures
-                        </label>
-                        <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                          <option value="">Choisir une facture</option>
-                          <option value="FAC001">FAC001 - 5,000 FCFA (45 jours de retard)</option>
-                          <option value="FAC002">FAC002 - 6,000 FCFA (15 jours de retard)</option>
-                          <option value="FAC003">FAC003 - 3,000 FCFA (30 jours de retard)</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Réf. facture / pièce</label>
+                        <input type="text" placeholder="ex. FAC001" value={penForm.factures} onChange={(e) => setPenForm(f => ({ ...f, factures: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Taux de pénalité (%)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          defaultValue="4.5"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                        />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Montant créance</label>
+                        <input type="number" min="0" placeholder="0" value={penForm.montantCreance} onChange={(e) => setPenForm(f => ({ ...f, montantCreance: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Type de calcul
-                        </label>
-                        <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                          <option value="monthly">Mensuel</option>
-                          <option value="daily">Journalier</option>
-                          <option value="fixed">Montant fixe</option>
-                        </select>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Jours de retard</label>
+                        <input type="number" min="0" placeholder="0" value={penForm.joursRetard} onChange={(e) => setPenForm(f => ({ ...f, joursRetard: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Taux de pénalité (%)</label>
+                        <input type="number" step="0.1" min="0" value={penForm.taux} onChange={(e) => setPenForm(f => ({ ...f, taux: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                     </div>
 
@@ -11525,29 +11548,26 @@ Service Contentieux
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-gray-600">Montant créance:</span>
-                          <div className="font-medium">5,000 FCFA</div>
+                          <div className="font-medium">{formatCurrency(Number(penForm.montantCreance) || 0)}</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Jours de retard:</span>
-                          <div className="font-medium">45 jours</div>
+                          <div className="font-medium">{Number(penForm.joursRetard) || 0} jours</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Taux appliqué:</span>
-                          <div className="font-medium">4.5%</div>
+                          <div className="font-medium">{Number(penForm.taux) || 0}%</div>
                         </div>
                         <div>
                           <span className="text-gray-600">Pénalité calculée:</span>
-                          <div className="font-bold text-red-600">225 FCFA</div>
+                          <div className="font-bold text-red-600">{formatCurrency(Math.round((Number(penForm.montantCreance) || 0) * (Number(penForm.taux) || 0) / 100))}</div>
                         </div>
                       </div>
                     </div>
 
                     <div className="mt-4 flex gap-3">
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Calculer
-                      </button>
-                      <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Créer Pénalité
+                      <button onClick={createPenalite} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Créer la pénalité
                       </button>
                     </div>
                   </div>
