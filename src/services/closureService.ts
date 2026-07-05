@@ -183,6 +183,12 @@ export async function previewClosure(adapter: DataAdapter, exerciceId: string): 
 // ============================================================================
 
 /**
+ * @deprecated Moteur de clôture MONOLITHIQUE — NON utilisé par l'application.
+ * Le chemin de clôture réel est l'orchestrateur (closureOrchestrator) en 15
+ * étapes, qui appelle generateResultatEntry / affectation / à-nouveaux et pose
+ * isClosed en dernier. Ne PAS rebrancher ce moteur (statuts `posted` divergents,
+ * séquence figée) : conservé uniquement pour compat historique/tests.
+ *
  * Execute the full closure sequence.
  * @param config Closure configuration
  * @param onProgress Optional progress callback

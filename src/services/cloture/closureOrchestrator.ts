@@ -27,7 +27,10 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import type { DBFiscalYear } from '../../lib/db';
-import { previewClosure, executerCloture, canClose, generateResultatEntry } from '../closureService';
+// NOTE : executerCloture (moteur monolithique) N'EST PAS importé — l'orchestrateur
+// est le SEUL chemin de clôture réel (étapes generateResultatEntry / affectation /
+// à-nouveaux). Éviter de réintroduire le moteur monolithique (divergence).
+import { previewClosure, canClose, generateResultatEntry } from '../closureService';
 import type { ClosureConfig, ClosurePreview } from '../closureService';
 import { posterAmortissements } from '../postingService';
 import { executerCarryForward, previewCarryForward } from './carryForwardService';

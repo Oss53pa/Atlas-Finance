@@ -1,6 +1,13 @@
 
 /**
- * ProvisionsEngine — Provisions & dépréciations automatiques SYSCOHADA art. 38-42
+ * ProvisionsEngine — Provisions & dépréciations automatiques SYSCOHADA art. 38-42.
+ *
+ * ⚠️ OUTIL CONSULTATIF (Proph3t) PAR CONCEPTION : il CALCULE les dotations/reprises
+ * proposées (créances sur base HT, stocks, risques) et renvoie les écritures
+ * SUGGÉRÉES — il ne les COMPTABILISE pas. La comptabilisation effective relève de
+ * l'étape « Provisions » de la clôture (table provisions, statut PROPOSEE→VALIDEE),
+ * qui poste les écritures via le flux validé. Ne pas faire booker cet outil
+ * directement (il éviterait le circuit de validation).
  */
 import type { ToolDefinition } from '../ToolRegistry';
 import type { DataAdapter } from '@atlas/data';
