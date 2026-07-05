@@ -428,9 +428,17 @@ export async function deleteCapexRequest(adapter: DataAdapter, id: string): Prom
 }
 
 /** Dotation annuelle d'amortissement = (montant − valeur résiduelle) / durée. */
-export function dotationAnnuelle(req: { montant: number; valeur_residuelle: number; duree_amortissement: number }): number {
+export function dotationAnnuelle(req: { montant: number; valeur_residuelle: number; duree_amortissement: number; methode?: 'lineaire' | 'degressif' }): number {
   if (!req.duree_amortissement) return 0;
-  return Math.round(((req.montant - req.valeur_residuelle) / req.duree_amortissement) * 100) / 100;
+  const base = req.montant - req.valeur_residuelle;
+  // Dégressif SYSCOHADA : taux linéaire × coefficient (1,5 si 3-4 ans ; 2 si 5-6 ; 2,5 si >6).
+  // Renvoie la 1re annuité (décroissante les années suivantes). En deçà de 3 ans, linéaire.
+  if (req.methode === 'degressif' && req.duree_amortissement >= 3) {
+    const coef = req.duree_amortissement <= 4 ? 1.5 : req.duree_amortissement <= 6 ? 2 : 2.5;
+    const taux = (1 / req.duree_amortissement) * coef;
+    return Math.round(base * taux * 100) / 100;
+  }
+  return Math.round((base / req.duree_amortissement) * 100) / 100;
 }
 
 // ── Gestion des versions (validation DG → verrouillage) ──────────────────────

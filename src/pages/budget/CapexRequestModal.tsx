@@ -118,8 +118,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
 
   const accountName = (code: string) => accounts.find(a => a.code === code)?.name || '';
   const dotation = useMemo(() => dotationAnnuelle({
-    montant: parseFloat(f.montant) || 0, valeur_residuelle: parseFloat(f.valeur_residuelle) || 0, duree_amortissement: parseInt(f.duree_amortissement) || 0,
-  }), [f.montant, f.valeur_residuelle, f.duree_amortissement]);
+    montant: parseFloat(f.montant) || 0, valeur_residuelle: parseFloat(f.valeur_residuelle) || 0, duree_amortissement: parseInt(f.duree_amortissement) || 0, methode: f.methode,
+  }), [f.montant, f.valeur_residuelle, f.duree_amortissement, f.methode]);
 
   const flows = useMemo(() => f.flowsText.split(/[,;\n]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n)), [f.flowsText]);
   const metrics = useMemo(() => {
@@ -205,8 +205,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
           </div>
           <div className="mt-3">{field('Justification', <textarea value={f.justification} disabled={readOnly} onChange={e => setF(s => ({ ...s, justification: e.target.value }))} rows={2} placeholder="Motivation de l'investissement, ROI attendu…" className={inputCls} />)}</div>
           <div className="mt-4 bg-gray-50 rounded-lg p-3 flex items-center justify-between text-sm">
-            <span className="text-gray-600">Dotation annuelle d'amortissement ({f.methode})</span>
-            <span className="font-semibold text-[var(--color-primary)]">{formatCurrency(dotation)}{(parseInt(f.duree_amortissement) || 0) > 0 && <span className="text-xs text-gray-400 font-normal"> /an × {f.duree_amortissement} ans</span>}</span>
+            <span className="text-gray-600">Dotation d'amortissement ({f.methode === 'degressif' ? 'dégressif — 1re annuité' : 'linéaire'})</span>
+            <span className="font-semibold text-[var(--color-primary)]">{formatCurrency(dotation)}{(parseInt(f.duree_amortissement) || 0) > 0 && <span className="text-xs text-gray-400 font-normal"> {f.methode === 'degressif' ? `(puis décroissant, ${f.duree_amortissement} ans)` : `/an × ${f.duree_amortissement} ans`}</span>}</span>
           </div>
         </>)}
 
