@@ -267,12 +267,17 @@ const AssetsSummary: React.FC = () => {
       '23': 'Bâtiments et installations', '24': 'Matériel, mobilier & transport',
       '25': 'Avances sur immobilisations', '26': 'Titres de participation', '27': 'Autres immo. financières',
     };
-    const catMap: Record<string, { count: number; value: number }> = {};
+    const catMap: Record<string, { count: number; value: number; subs: Record<string, { count: number; value: number }> }> = {};
     for (const asset of dbAssets) {
-      const cls = String((asset as any).accountCode || '').substring(0, 2) || '2?';
-      if (!catMap[cls]) catMap[cls] = { count: 0, value: 0 };
+      const code = String((asset as any).accountCode || '');
+      const cls = code.substring(0, 2) || '2?';
+      const sub = code.substring(0, 3) || cls;
+      if (!catMap[cls]) catMap[cls] = { count: 0, value: 0, subs: {} };
       catMap[cls].count++;
       catMap[cls].value += asset.acquisitionValue;
+      if (!catMap[cls].subs[sub]) catMap[cls].subs[sub] = { count: 0, value: 0 };
+      catMap[cls].subs[sub].count++;
+      catMap[cls].subs[sub].value += asset.acquisitionValue;
     }
     const totalVal = dbAssets.reduce((s, a) => s + a.acquisitionValue, 0) || 1;
     const colors = ['#235A6E', '#15803D', '#E89A2E', '#525252', '#C0322B', '#2D7D9A', '#6B9E6E'];
@@ -285,7 +290,11 @@ const AssetsSummary: React.FC = () => {
         count: data.count,
         value: data.value,
         percentage: Math.round((data.value / totalVal) * 1000) / 10,
-        color: colors[index % colors.length]
+        color: colors[index % colors.length],
+        // Sous-catégories réelles (par compte 3 chiffres) → active le drill-down (etait jamais peuplé).
+        subCategories: Object.entries(data.subs)
+          .sort((a, b) => b[1].value - a[1].value)
+          .map(([code, d]) => ({ name: `Compte ${code}`, count: d.count, value: d.value })),
       }));
   }, [dbAssets]);
 
