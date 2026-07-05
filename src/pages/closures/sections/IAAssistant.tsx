@@ -460,16 +460,19 @@ const IAAssistant: React.FC = () => {
       return 'Je n\'ai pas pu charger l\'aperçu de clôture. Vérifiez qu\'un exercice fiscal actif existe dans la base de données.';
     }
 
+    // IMPORTANT : ne JAMAIS inventer de chiffres (un comptable pourrait agir
+    // dessus). Les analyses stocks/créances/provisions renvoient vers les modules
+    // réels qui calculent sur les données du client, sans montants fabriqués.
     if (lowerInput.includes('stock') || lowerInput.includes('inventaire')) {
-      return 'Après analyse de vos stocks, je constate :\n\n• 3 articles critiques nécessitant un réapprovisionnement urgent\n• Un écart de valorisation de 50K FCFA à vérifier\n• Des provisions pour obsolescence recommandées : 815K FCFA\n\nSouhaitez-vous que je génère un rapport détaillé ou que je propose des actions correctives ?';
+      return "L'analyse des stocks (valorisation, rotation, provisions pour obsolescence) se fait dans le module **Stocks / Inventaire**, qui calcule sur vos données réelles. Je ne communique pas de montants sans les tirer de la base — ouvrez le module pour le détail chiffré.";
     }
 
     if (lowerInput.includes('créance') || lowerInput.includes('client')) {
-      return 'Concernant vos créances clients :\n\n• 2 créances présentent un risque d\'impayé élevé (6M FCFA)\n• Délai moyen de paiement : 45 jours (objectif : 30 jours)\n• Provisions recommandées : 4.5M FCFA selon règles SYSCOHADA\n\nJe peux automatiser le calcul des provisions et générer les lettres de relance si vous le souhaitez.';
+      return "Le suivi des créances clients (balance âgée, risque d'impayé, provisions SYSCOHADA) est calculé dans le module **Gestion des Tiers / Recouvrement** à partir de vos écritures réelles. Consultez-y la balance âgée pour les montants exacts — je n'avance aucun chiffre non issu de la base.";
     }
 
     if (lowerInput.includes('provision') || lowerInput.includes('risque')) {
-      return 'Analyse des provisions :\n\n• Provisions actuelles : 27.5M FCFA\n• Nouvelles provisions recommandées : 3.2M FCFA\n• Reprises possibles : 1.5M FCFA\n• Taux de couverture des risques : 87%\n\nToutes les provisions respectent les règles SYSCOHADA. Voulez-vous le détail par type de risque ?';
+      return "Le calcul des provisions et dépréciations (créances douteuses sur base HT, stocks, risques) relève des étapes de clôture dédiées, sur vos données réelles. Je ne fournis pas de montants fabriqués : lancez l'étape « Provisions » de la clôture pour obtenir les dotations/reprises chiffrées.";
     }
 
     if (p) {

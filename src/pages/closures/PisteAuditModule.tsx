@@ -170,9 +170,30 @@ const PisteAuditModule: React.FC = () => {
     );
   };
 
-  const exporterAudit = () => {
-    toast.success('Export de la piste d\'audit en cours...');
-    // Logique d'export
+  const exporterAudit = async () => {
+    try {
+      if (filteredEntries.length === 0) { toast.error('Aucune entrée à exporter'); return; }
+      const cols = ['id', 'date', 'utilisateur', 'action', 'entite', 'details'];
+      const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const rows = filteredEntries.map((e: any) =>
+        [e.id, e.date ?? e.timestamp ?? '', e.utilisateur ?? '', e.action ?? '', e.entite ?? e.entityType ?? '', e.details ?? '']
+          .map(esc).join(','));
+      const body = [cols.join(','), ...rows].join('\n');
+      // Empreinte SHA-256 RÉELLE du contenu exporté (plus de fausse certification).
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body));
+      const hash = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const content = `${body}\n# Piste d'audit — ${filteredEntries.length} entrée(s)\n# SHA-256: ${hash}`;
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `piste-audit-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Export certifié généré (SHA-256 ${hash.slice(0, 12)}…)`);
+    } catch (err: any) {
+      toast.error('Erreur export : ' + (err?.message || 'inconnue'));
+    }
   };
 
   const handleCancelConfig = () => {

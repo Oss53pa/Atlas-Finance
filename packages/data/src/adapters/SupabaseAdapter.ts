@@ -215,6 +215,11 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   audit_logs:        normalizeGeneric,
   inventory_items:   normalizeGeneric,
   exchange_rates:    normalizeGeneric,
+  // Clôture : sans ces alias, les dates (start_date→startDate…) revenaient
+  // undefined → « Période undefined → ∞ » sur les engagements hors bilan, et le
+  // service de révision lisait tous ses champs undefined en SaaS.
+  off_balance_commitments: normalizeGeneric,
+  revision_items:          normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {

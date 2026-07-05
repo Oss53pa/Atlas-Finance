@@ -169,8 +169,10 @@ export default function OffBalanceCommitmentsPage() {
                 const fd = new FormData(form);
                 try {
                   const now = new Date().toISOString();
+                  // Pas de companyId 'default' : la colonne company_id n'existe
+                  // pas (la table a tenant_id, injecté par l'adaptateur en SaaS).
+                  // L'envoyer faisait échouer l'insert Postgres → création cassée.
                   await adapter.create('offBalanceCommitments', {
-                    companyId: 'default',
                     type: fd.get('type') as string,
                     counterparty: fd.get('counterparty') as string,
                     description: fd.get('description') as string,
