@@ -103,7 +103,7 @@ const ChartBlockRenderer: React.FC<{ block: ChartBlock }> = ({ block }) => {
               innerRadius={chartType === 'donut' ? '50%' : 0}
               outerRadius="80%"
               paddingAngle={2}
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }) => `${name} ${Number.isFinite(percent) ? (percent * 100).toFixed(0) : '0'}%`}
             >
               {data.map((_, i) => (
                 <Cell key={i} fill={COLORS[i % COLORS.length]} />

@@ -98,6 +98,37 @@ const prodNet = (entries: JournalEntry[], cls: string, p: PeriodSelection) => su
 const chargeNet = (entries: JournalEntry[], cls: string, p: PeriodSelection) =>
   sumByClass(entries, cls, p, 'debit') - sumByClass(entries, cls, p, 'credit');
 
+/**
+ * Résultat AVANT impôt = produits (cl.7) − charges (cl.6). Réf tenant : 67 349 583.
+ * Source unique = glHelpers.resultatAvantImpot (mêmes classes).
+ */
+const resultatAvantImpotLocal = (entries: JournalEntry[], p: PeriodSelection) =>
+  prodNet(entries, '7', p) - chargeNet(entries, '6', p);
+/**
+ * Résultat NET = résultat avant impôt − IMF/IS (classe 89). Réf tenant : 62 349 583.
+ * ⚠️ Déduire la classe 89 est REQUIS (sinon divergence de 5 M avec le vrai résultat net
+ * et incohérence interne avec financial.sig / financial.tft_indirect qui la déduisent déjà).
+ */
+const resultatNetLocal = (entries: JournalEntry[], p: PeriodSelection) =>
+  resultatAvantImpotLocal(entries, p) - chargeNet(entries, '89', p);
+
+/**
+ * Lecture paginée d'une vue/table Supabase (PostgREST tronque à 1000 lignes).
+ * `build` doit renvoyer un query builder ; on ajoute un tri déterministe + range en boucle.
+ */
+async function fetchAllRows(build: () => any, orderCol: string): Promise<any[]> {
+  const all: any[] = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await build().order(orderCol, { ascending: true }).range(from, from + PAGE - 1);
+    if (error) break;
+    const rows = data ?? [];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return all;
+}
+
 /** Code analytique d'une ligne (snake ou camel). */
 const lineAnalytical = (l: JournalLine) => l.analytical_code || l.analyticalCode || '';
 /** Code de lettrage d'une ligne (snake ou camel). */
@@ -121,9 +152,7 @@ export async function fetchKPIValue(
         return sumByClass(entries, '7', p, 'net');
 
       case 'kpi.resultat_net': {
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        return produits - charges;
+        return resultatNetLocal(entries, p);
       }
 
       case 'kpi.ebitda': {
@@ -142,12 +171,13 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.tresorerie_nette': {
-        // Trésorerie = comptes 5xx
+        // Trésorerie = classe 5 HORS 58 (virements internes) et 59 (dépréciations)
         let total = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
           for (const l of (e.lines || [])) {
-            if (l.accountCode?.startsWith('5')) {
+            const code = l.accountCode || '';
+            if (code.startsWith('5') && !code.startsWith('58') && !code.startsWith('59')) {
               total += (l.debit || 0) - (l.credit || 0);
             }
           }
@@ -256,9 +286,7 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.roe': {
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         let capitaux = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
@@ -273,9 +301,7 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.roi': {
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         let totalActif = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
@@ -309,9 +335,7 @@ export async function fetchKPIValue(
 
       case 'kpi.caf': {
         // CAF = Résultat net + Dotations amort/prov - Reprises prov
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit')
           + sumByClass(entries, '69', p, 'debit') - sumByClass(entries, '69', p, 'credit');
         const reprises = sumByClass(entries, '78', p, 'net') + sumByClass(entries, '79', p, 'net');
@@ -320,9 +344,7 @@ export async function fetchKPIValue(
 
       case 'kpi.flux_exploitation': {
         // Flux exploitation = CAF - Variation BFR
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit')
           + sumByClass(entries, '69', p, 'debit') - sumByClass(entries, '69', p, 'credit');
         const reprises = sumByClass(entries, '78', p, 'net') + sumByClass(entries, '79', p, 'net');
@@ -346,9 +368,7 @@ export async function fetchKPIValue(
 
       case 'kpi.free_cashflow': {
         // FCF = Flux exploitation + Flux investissement
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         const dotations = sumByClass(entries, '68', p, 'debit') - sumByClass(entries, '68', p, 'credit');
         const reprises = sumByClass(entries, '78', p, 'net');
         const caf = resultat + dotations - reprises;
@@ -381,8 +401,7 @@ export async function fetchKPIValue(
       case 'kpi.net_margin': {
         const ca = sumByClass(entries, '7', p, 'net');
         if (ca === 0) return 0;
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        return ((ca - charges) / ca) * 100;
+        return (resultatNetLocal(entries, p) / ca) * 100;
       }
 
       case 'kpi.ebitda_margin': {
@@ -395,9 +414,7 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.roa': {
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        const resultat = resultatNetLocal(entries, p);
         let actif = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
@@ -412,10 +429,8 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.roic': {
-        // ROIC ≈ Résultat / (Capitaux + Dettes LT)
-        const produits = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const resultat = produits - charges;
+        // ROIC ≈ Résultat net / Capitaux investis (classe 1)
+        const resultat = resultatNetLocal(entries, p);
         let invested = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
@@ -532,10 +547,15 @@ export async function fetchKPIValue(
       }
 
       case 'kpi.altman_zscore': {
-        // Altman Z simplified = 1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(E/TL) + 1.0*(S/TA)
+        // Altman Z = 1.2*(WC/TA) + 1.4*(RE/TA) + 3.3*(EBIT/TA) + 0.6*(E/TL) + 1.0*(S/TA)
+        // WC = actif circulant réel − passif circulant réel ; RE = réserves+report (11+12) ;
+        // EBIT = résultat avant impôt (distinct de RE, ne pas compter deux fois).
         let totalActif = 0;
-        let capitaux = 0;
-        let dettes = 0;
+        let capitaux = 0;   // E (capitaux propres 10-13)
+        let dettes = 0;     // TL (dettes financières + fournisseurs)
+        let re = 0;         // RE (réserves 11 + report à nouveau 12)
+        let actifCirculant = 0;
+        let passifCirculant = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, p)) continue;
           for (const l of (e.lines || [])) {
@@ -546,18 +566,27 @@ export async function fetchKPIValue(
             if (code.startsWith('10') || code.startsWith('11') || code.startsWith('12') || code.startsWith('13')) {
               capitaux += (l.credit || 0) - (l.debit || 0);
             }
+            if (code.startsWith('11') || code.startsWith('12')) {
+              re += (l.credit || 0) - (l.debit || 0);
+            }
             if (code.startsWith('16') || code.startsWith('17') || code.startsWith('40')) {
               dettes += (l.credit || 0) - (l.debit || 0);
+            }
+            if (code.startsWith('3') || code.startsWith('41') || code.startsWith('5')) {
+              const net = (l.debit || 0) - (l.credit || 0);
+              if (net > 0) actifCirculant += net;
+            }
+            if (code.startsWith('40') || code.startsWith('42') || code.startsWith('43') || code.startsWith('44')) {
+              const net = (l.credit || 0) - (l.debit || 0);
+              if (net > 0) passifCirculant += net;
             }
           }
         }
         if (totalActif === 0) return 0;
         const ca = sumByClass(entries, '7', p, 'net');
-        const charges = sumByClass(entries, '6', p, 'debit') - sumByClass(entries, '6', p, 'credit');
-        const ebit = ca - charges;
-        // WC ≈ actif circulant - passif circulant (approximation via BFR)
-        const wc = totalActif * 0.3; // rough heuristic
-        const z = 1.2 * (wc / totalActif) + 1.4 * (ebit / totalActif) + 3.3 * (ebit / totalActif)
+        const ebit = resultatAvantImpotLocal(entries, p);
+        const wc = actifCirculant - passifCirculant;
+        const z = 1.2 * (wc / totalActif) + 1.4 * (re / totalActif) + 3.3 * (ebit / totalActif)
           + 0.6 * (capitaux / (dettes || 1)) + 1.0 * (ca / totalActif);
         return z;
       }
@@ -624,6 +653,37 @@ export async function fetchKPIValue(
         const days = (new Date(p.endDate).getTime() - new Date(p.startDate).getTime()) / (1000 * 60 * 60 * 24);
         const dso = (creances / ca) * days;
         return Math.max(0, Math.min(100, 100 - dso));
+      }
+
+      case 'kpi.total_actif': {
+        // Total Actif = Σ soldes des classes 2-5 (débit − crédit).
+        let total = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('2') || code.startsWith('3') || code.startsWith('4') || code.startsWith('5')) {
+              total += (l.debit || 0) - (l.credit || 0);
+            }
+          }
+        }
+        return total;
+      }
+
+      case 'kpi.capitaux_propres': {
+        // Capitaux propres = capital + réserves + report à nouveau (10-12, crédit − débit)
+        // + résultat net de l'exercice (calculé, pas encore affecté au 13).
+        let cp = 0;
+        for (const e of entries) {
+          if (!inPeriod(e.date, p)) continue;
+          for (const l of (e.lines || [])) {
+            const code = l.accountCode || '';
+            if (code.startsWith('10') || code.startsWith('11') || code.startsWith('12')) {
+              cp += (l.credit || 0) - (l.debit || 0);
+            }
+          }
+        }
+        return cp + resultatNetLocal(entries, p);
       }
 
       default:
@@ -720,7 +780,7 @@ export async function fetchTableData(
       try {
         const client = (adapter as any).client;
         if (client) {
-          const { data: bva } = await client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'exploitation');
+          const bva = await fetchAllRows(() => client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'exploitation'), 'account_code');
           for (const r of (bva || [])) budgetByClass.set(String(r.account_code).slice(0, 2), (budgetByClass.get(String(r.account_code).slice(0, 2)) || 0) + (Number(r.budget) || 0));
         }
       } catch { /* vue absente */ }
@@ -764,20 +824,30 @@ export async function fetchTableData(
         { code: '41', label: 'Créances Clients' },
         { code: '5', label: 'Trésorerie Actif' },
       ];
+      // Comptes de dépréciation/amortissement (créditeurs) à isoler du brut : 28x/29x (immo),
+      // 39x (stocks), 49x (créances), 59x (trésorerie). Brut = valeur d'origine, Net = VNC.
+      const isProvision = (code: string) =>
+        code.startsWith('28') || code.startsWith('29') || code.startsWith('39') ||
+        code.startsWith('49') || code.startsWith('59');
       const rows = postes.map(p => {
         let brut = 0;
+        let amort = 0;
         for (const e of entries) {
           if (!inPeriod(e.date, period)) continue;
           for (const l of (e.lines || [])) {
-            if (l.accountCode?.startsWith(p.code)) brut += (l.debit || 0) - (l.credit || 0);
+            const code = l.accountCode || '';
+            if (!code.startsWith(p.code)) continue;
+            if (isProvision(code)) amort += (l.credit || 0) - (l.debit || 0);
+            else brut += (l.debit || 0) - (l.credit || 0);
           }
         }
-        return { label: p.label, brut, net: brut };
+        return { label: p.label, brut, amort, net: brut - amort };
       });
       return {
         columns: [
           { key: 'label', label: 'Poste', align: 'left' },
           { key: 'brut', label: 'Brut', align: 'right', format: 'currency' },
+          { key: 'amort', label: 'Amort./Prov.', align: 'right', format: 'currency' },
           { key: 'net', label: 'Net', align: 'right', format: 'currency' },
         ],
         rows,
@@ -916,6 +986,7 @@ export async function fetchTableData(
         const age = (now - new Date(e.date || period.endDate).getTime()) / (1000 * 60 * 60 * 24);
         for (const l of (e.lines || [])) {
           if (!l.accountCode?.startsWith(prefix)) continue;
+          if (lineLettrage(l)) continue; // ligne lettrée = soldée → exclue (cf. keystone getAgedReceivables)
           const montant = isClients ? (l.debit || 0) - (l.credit || 0) : (l.credit || 0) - (l.debit || 0);
           if (montant <= 0) continue;
           if (age <= 30) buckets['0-30'] += montant;
@@ -1040,11 +1111,9 @@ export async function fetchTableData(
     }
 
     case 'tax.tva_declaration': {
-      const collectee = -chargeNet(entries, '443', period); // crédit net = collectée
       const collecteePos = sumByClass(entries, '443', period, 'credit') - sumByClass(entries, '443', period, 'debit');
       const deductible = sumByClass(entries, '445', period, 'debit') - sumByClass(entries, '445', period, 'credit');
       const aPayer = collecteePos - deductible;
-      void collectee;
       const rows = [
         { poste: 'TVA collectée (443)', montant: collecteePos },
         { poste: 'TVA déductible (445)', montant: deductible },
@@ -1170,7 +1239,7 @@ export async function fetchTableData(
         { controle: 'Équilibre global Débit = Crédit', resultat: ok(Math.abs(totalDebit - totalCredit) < 1), detail: `Δ ${Math.round(totalDebit - totalCredit)}` },
         { controle: 'Écritures équilibrées (par pièce)', resultat: ok(nbDesequilibrees === 0), detail: `${nbDesequilibrees} déséquilibrée(s)` },
         { controle: 'Écritures avec lignes', resultat: ok(nbSansLignes === 0), detail: `${nbSansLignes} sans ligne` },
-        { controle: 'Écritures validées uniquement', resultat: ok(inP.every(e => e.status === 'validated' || e.status === 'posted')), detail: `${inP.length} écriture(s)` },
+        { controle: 'Écritures validées uniquement', resultat: ok(inP.every(e => e.status === 'validated')), detail: `${inP.length} écriture(s)` },
       ];
       return {
         columns: [
@@ -1382,7 +1451,7 @@ export async function fetchTableData(
       try {
         const client = (adapter as any).client;
         if (client) {
-          const { data: bva } = await client.from('v_budget_vs_actual').select('*');
+          const bva = await fetchAllRows(() => client.from('v_budget_vs_actual').select('*'), 'account_code');
           if (Array.isArray(bva) && bva.length > 0) {
             const byNat = new Map<string, { code: string; budget: number; realise: number }>();
             for (const r of bva) {
@@ -1648,9 +1717,9 @@ export async function fetchTableData(
       const client = (adapter as any).client;
       if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module Budget indisponible.' }] };
       const annee = String(new Date(period.endDate).getFullYear());
-      const [{ data: inv }, { data: bva }] = await Promise.all([
-        client.from('v_actual_investment').select('account_code,account_name,montant_realise').eq('annee', annee),
-        client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'investissement'),
+      const [inv, bva] = await Promise.all([
+        fetchAllRows(() => client.from('v_actual_investment').select('account_code,account_name,montant_realise').eq('annee', annee), 'account_code'),
+        fetchAllRows(() => client.from('v_budget_vs_actual').select('account_code,budget').eq('budget_type', 'investissement'), 'account_code'),
       ]);
       const map = new Map<string, { code: string; label: string; realise: number; budget: number }>();
       for (const r of (inv || [])) { const c = String(r.account_code); if (!map.has(c)) map.set(c, { code: c, label: r.account_name || c, realise: 0, budget: 0 }); map.get(c)!.realise += Number(r.montant_realise) || 0; }
@@ -1672,7 +1741,7 @@ export async function fetchTableData(
       const client = (adapter as any).client;
       if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module Analytique indisponible.' }] };
       const annee = String(new Date(period.endDate).getFullYear());
-      const { data } = await client.from('v_actual_by_section').select('*').eq('annee', annee);
+      const data = await fetchAllRows(() => client.from('v_actual_by_section').select('*').eq('annee', annee), 'section_code');
       const map = new Map<string, { code: string; produits: number; charges: number }>();
       for (const r of (data || [])) { const c = String(r.section_code); if (!map.has(c)) map.set(c, { code: c, produits: 0, charges: 0 }); const m = map.get(c)!; const v = Number(r.montant) || 0; if (r.classe === '7') m.produits += v; else if (r.classe === '6') m.charges += v; }
       const rows = Array.from(map.values()).map(m => ({ section: m.code, produits: m.produits, charges: m.charges, resultat: m.produits - m.charges })).sort((a, b) => b.resultat - a.resultat);
@@ -1691,7 +1760,7 @@ export async function fetchTableData(
       const client = (adapter as any).client;
       if (!client) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Module LFT indisponible.' }] };
       // Flux manuels + budget : agrégés par mois (les postes ouverts dépendent des échéances)
-      const { data: flows } = await client.from('treasury_flows').select('sens,date_prevue,montant').order('date_prevue');
+      const flows = await fetchAllRows(() => client.from('treasury_flows').select('sens,date_prevue,montant'), 'date_prevue');
       const byMonth = new Map<string, { enc: number; dec: number }>();
       for (const f of (flows || [])) {
         const ym = String(f.date_prevue).slice(0, 7);
@@ -1809,8 +1878,32 @@ export async function fetchChartData(
     }
 
     case 'chart.budget_vs_actual': {
-      // Simplified — uses class 6 data vs a flat budget assumption
       const months = getMonthsInPeriod(period);
+      // Budget mensuel RÉEL (charges cl.6) depuis la version active. Aucune valeur inventée :
+      // si le budget n'existe pas, la barre budget reste à 0 (honnête) au lieu de « réel × 1,1 ».
+      const budgetByMonth = new Map<string, number>();
+      try {
+        const client = (adapter as any).client;
+        if (client) {
+          const { data: ver } = await client.from('budget_versions').select('id').eq('is_active', true).limit(1);
+          const vid = ver?.[0]?.id;
+          if (vid) {
+            const { data: lines } = await client.from('budget_lines')
+              .select('id,account_code').eq('version_id', vid).eq('budget_type', 'exploitation');
+            const chargeIds = (lines || [])
+              .filter((l: any) => String(l.account_code || '').startsWith('6')).map((l: any) => l.id);
+            if (chargeIds.length) {
+              const periods = await fetchAllRows(
+                () => client.from('budget_line_periods').select('period,montant_prevu').in('budget_line_id', chargeIds),
+                'period');
+              for (const pr of periods) {
+                const mm = String(pr.period).padStart(2, '0');
+                budgetByMonth.set(mm, (budgetByMonth.get(mm) || 0) + (Number(pr.montant_prevu) || 0));
+              }
+            }
+          }
+        }
+      } catch { /* budget indisponible → budget = 0 */ }
       const data = months.map(m => {
         let reel = 0;
         for (const e of entries) {
@@ -1819,7 +1912,8 @@ export async function fetchChartData(
             if (l.accountCode?.startsWith('6')) reel += (l.debit || 0) - (l.credit || 0);
           }
         }
-        return { month: m.label, reel, budget: reel * 1.1 }; // Budget = 110% of actual as placeholder
+        const mm = m.prefix.slice(5, 7);
+        return { month: m.label, reel, budget: budgetByMonth.get(mm) || 0 };
       });
       return {
         data,
@@ -1893,6 +1987,7 @@ export async function fetchChartData(
         const age = (now - new Date(e.date || period.endDate).getTime()) / (1000 * 60 * 60 * 24);
         for (const l of (e.lines || [])) {
           if (!l.accountCode?.startsWith(prefix)) continue;
+          if (lineLettrage(l)) continue; // ligne lettrée = soldée → exclue (cf. keystone getAgedReceivables)
           const montant = isClients ? (l.debit || 0) - (l.credit || 0) : (l.credit || 0) - (l.debit || 0);
           if (montant <= 0) continue;
           if (age <= 30) buckets['0-30'] += montant;
@@ -2070,11 +2165,14 @@ export async function fetchChartData(
       const creances = sumByClass(entries, '41', period, 'debit') - sumByClass(entries, '41', period, 'credit');
       const treso = sumByClass(entries, '5', period, 'debit') - sumByClass(entries, '5', period, 'credit');
       return {
+        // Camembert de structure d'actif : ne peut afficher que des parts positives.
+        // On filtre les postes ≤ 0 (ex. trésorerie créditrice = découvert, qui relève du passif)
+        // plutôt que de les écraser silencieusement à 0 par Math.max.
         data: [
-          { name: 'Immobilisations', value: Math.max(0, Math.round(immo)) },
-          { name: 'Stocks', value: Math.max(0, Math.round(stocks)) },
-          { name: 'Créances', value: Math.max(0, Math.round(creances)) },
-          { name: 'Trésorerie', value: Math.max(0, Math.round(treso)) },
+          { name: 'Immobilisations', value: Math.round(immo) },
+          { name: 'Stocks', value: Math.round(stocks) },
+          { name: 'Créances', value: Math.round(creances) },
+          { name: 'Trésorerie', value: Math.round(treso) },
         ].filter(d => d.value > 0),
         xAxisKey: 'name',
         series: [{ key: 'value', label: 'Montant' }],
