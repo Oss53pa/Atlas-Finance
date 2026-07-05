@@ -85,27 +85,43 @@ export async function getActiveBudgetVersion(adapter: DataAdapter): Promise<Budg
   return data?.[0] ?? null;
 }
 
+// Pagination par tranches : PostgREST tronque à 1000 lignes. Ces vues sont granulaires
+// (compte × mois → potentiellement > 1000 lignes) → sans boucle range(), le réalisé/écart
+// serait sous-évalué SILENCIEUSEMENT. Un tri stable est requis pour que le range soit fiable.
+async function fetchAllRows(build: () => any, chunk = 1000): Promise<any[]> {
+  const all: any[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await build().range(from, from + chunk - 1);
+    if (error) throw new Error(error.message);
+    const batch = (data || []) as any[];
+    all.push(...batch);
+    if (batch.length < chunk) break;
+    from += chunk;
+  }
+  return all;
+}
+
 export async function getActualExploitation(adapter: DataAdapter, annee: string): Promise<ActualExploitationRow[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data, error } = await client
+  const data = await fetchAllRows(() => client
     .from('v_actual_exploitation')
     .select('*')
-    .eq('annee', annee);
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
+    .eq('annee', annee)
+    .order('account_code', { ascending: true }).order('period', { ascending: true }));
+  return data.map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
 }
 
 export async function getTreasuryActual(adapter: DataAdapter, annee: string): Promise<TreasuryActualRow[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data, error } = await client
+  const data = await fetchAllRows(() => client
     .from('v_actual_treasury')
     .select('*')
     .eq('annee', annee)
-    .order('period', { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r: any) => ({
+    .order('period', { ascending: true }));
+  return data.map((r: any) => ({
     ...r,
     encaissements: Number(r.encaissements) || 0,
     decaissements: Number(r.decaissements) || 0,
@@ -117,9 +133,9 @@ export async function getTreasuryActual(adapter: DataAdapter, annee: string): Pr
 export async function getBudgetVsActual(adapter: DataAdapter): Promise<BudgetVsActualRow[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data, error } = await client.from('v_budget_vs_actual').select('*');
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r: any) => ({
+  const data = await fetchAllRows(() => client.from('v_budget_vs_actual').select('*')
+    .order('account_code', { ascending: true }).order('period', { ascending: true }));
+  return data.map((r: any) => ({
     ...r,
     budget: Number(r.budget) || 0,
     realise: Number(r.realise) || 0,
@@ -227,9 +243,9 @@ export async function getInvestmentSummary(adapter: DataAdapter, annee: string):
   const client = getClient(adapter);
   if (!client) return { totalRealise: 0, totalBudget: 0, totalExistant: 0, totalNouveau: 0, parCompte: [], mensuel: [] };
   // split : existant (À-Nouveaux) vs nouveau (acquisitions). Budget = CAR validées+.
-  const [{ data: split }, { data: actual }, { data: cars }] = await Promise.all([
-    client.from('v_capex_by_account').select('*').eq('annee', annee),
-    client.from('v_actual_investment').select('*').eq('annee', annee),
+  const [split, actual, { data: cars }] = await Promise.all([
+    fetchAllRows(() => client.from('v_capex_by_account').select('*').eq('annee', annee).order('account_code', { ascending: true })),
+    fetchAllRows(() => client.from('v_actual_investment').select('*').eq('annee', annee).order('account_code', { ascending: true }).order('period', { ascending: true })),
     client.from('capex_requests').select('account_code,montant,statut').in('statut', ['approuve', 'fonds_disponibles', 'clos']),
   ]);
   const rows = (actual ?? []).map((r: any) => ({ ...r, montant_realise: Number(r.montant_realise) || 0, period: Number(r.period) }));
