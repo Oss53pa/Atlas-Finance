@@ -6,9 +6,9 @@
 import React from 'react';
 import { X, Download, Printer, ZoomIn, ZoomOut } from 'lucide-react';
 import { useReportBuilderStore } from '../store/useReportBuilderStore';
-import { renderBlock } from './blocks';
+import { renderBlockContent } from './blocks';
 import { exportToPDF } from '../services/pdfExportService';
-import type { TextBlock } from '../types';
+import { toast } from 'react-hot-toast';
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
@@ -27,12 +27,14 @@ const PreviewModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const scale = zoom / 100;
   const totalPages = doc.pages.length;
 
+  // Imprimer et Exporter passent par le même pipeline (fenêtre dédiée fidèle, multi-pages)
+  // plutôt que window.print() qui imprimerait l'overlay de l'aperçu.
   const handlePrint = () => {
-    window.print();
+    exportToPDF(doc).catch((err) => toast.error(err?.message || "Échec de l'impression"));
   };
 
   const handleExportPDF = () => {
-    exportToPDF(doc).catch(() => {});
+    exportToPDF(doc).catch((err) => toast.error(err?.message || "Échec de l'export PDF"));
   };
 
   return (
@@ -152,29 +154,11 @@ const PreviewModal: React.FC<Props> = ({ isOpen, onClose }) => {
 };
 
 /**
- * Render a block in preview mode (no selection ring, no drag handle)
- * Re-uses the same renderers but without BlockWrapper
+ * Rendu d'un bloc en mode aperçu : contenu SANS BlockWrapper (ni anneau de sélection ni
+ * poignée d'édition) pour TOUS les types de blocs — un aperçu avant impression fidèle.
  */
 function renderBlockPreview(block: any): React.ReactNode {
-  // We use the same renderBlock but it wraps in BlockWrapper which adds
-  // selection/drag. For preview we just render the inner content directly.
-  // Import individual renderers:
-  switch (block.type) {
-    case 'text': {
-      const styles: Record<string, string> = {
-        h1: 'text-2xl font-semibold text-neutral-900',
-        h2: 'text-xl font-semibold text-neutral-800',
-        h3: 'text-lg font-medium text-neutral-700',
-        paragraph: 'text-sm text-neutral-600 leading-relaxed',
-        quote: 'text-sm text-neutral-500 italic border-l-4 border-neutral-400 pl-4',
-        footnote: 'text-[10px] text-neutral-400 border-t border-neutral-200 pt-2',
-      };
-      return <div className={styles[block.variant] || styles.paragraph} style={{ textAlign: block.alignment }}>{block.content}</div>;
-    }
-    default:
-      // For all other blocks, use the standard renderer (it'll have BlockWrapper but in preview it's non-interactive)
-      return renderBlock(block);
-  }
+  return renderBlockContent(block);
 }
 
 export default PreviewModal;

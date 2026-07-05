@@ -30,9 +30,12 @@ import PROPHETAnalysisBlockRenderer from './PROPHETAnalysisBlock';
 import AnomalyDetectionBlockRenderer from './AnomalyDetectionBlock';
 import ExecutiveSummaryBlockRenderer from './ExecutiveSummaryBlock';
 
-export function renderBlock(block: ReportBlock): React.ReactNode {
-  const inner = (() => {
-    switch (block.type) {
+/**
+ * Rendu du CONTENU d'un bloc, SANS BlockWrapper (pas d'anneau de sélection ni de poignée).
+ * Utilisé par l'aperçu avant impression et l'export, qui doivent être fidèles (lecture seule).
+ */
+export function renderBlockContent(block: ReportBlock): React.ReactNode {
+  switch (block.type) {
       case 'text':
         return <TextBlockRenderer block={block} />;
       case 'kpi':
@@ -95,12 +98,13 @@ export function renderBlock(block: ReportBlock): React.ReactNode {
             Bloc non supporté : {(block as ReportBlock).type}
           </div>
         );
-    }
-  })();
+  }
+}
 
+export function renderBlock(block: ReportBlock): React.ReactNode {
   return (
     <BlockWrapper key={block.id} block={block}>
-      {inner}
+      {renderBlockContent(block)}
     </BlockWrapper>
   );
 }

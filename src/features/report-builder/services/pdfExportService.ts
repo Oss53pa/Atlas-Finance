@@ -18,9 +18,10 @@ export async function exportToPDF(
   document: ReportDocument,
   options: Partial<ExportOptions> = {}
 ): Promise<void> {
-  // Find the canvas element
-  const canvas = window.document.querySelector('[data-report-canvas]');
-  if (!canvas) {
+  // Toutes les pages (une par [data-report-canvas]) — querySelectorAll, pas querySelector,
+  // sinon l'export serait tronqué à la 1re page.
+  const canvases = Array.from(window.document.querySelectorAll('[data-report-canvas]'));
+  if (canvases.length === 0) {
     throw new Error('Canvas du rapport non trouvé');
   }
 
@@ -101,8 +102,8 @@ export async function exportToPDF(
       z-index: 0;
     }` : ''}
 
-    /* Hide editorial comments */
-    .comment-block.hide-on-print { display: none !important; }
+    /* Masquer les éléments non imprimables (poignées, notes éditoriales) */
+    .comment-block.hide-on-print, .hide-on-print, [data-hide-on-print], [data-no-print] { display: none !important; }
 
     /* Table styles */
     table { border-collapse: collapse; width: 100%; }
@@ -135,19 +136,23 @@ export async function exportToPDF(
     .text-positive { color: ${document.theme.positive}; }
   `;
 
-  // Clone the canvas content
-  const content = canvas.cloneNode(true) as HTMLElement;
+  // Fige la taille des graphiques (recharts via ResponsiveContainer calcule sa largeur au
+  // runtime ; dans une fenêtre détachée sans layout, ils rendraient vides). On stamp la
+  // taille rendue en pixels sur le DOM VIVANT (visuellement identique) puis on restaure.
+  const restore: Array<() => void> = [];
+  window.document.querySelectorAll<HTMLElement>('[data-report-canvas] .recharts-responsive-container').forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) return;
+    const prevW = el.style.width, prevH = el.style.height;
+    el.style.width = `${Math.round(r.width)}px`;
+    el.style.height = `${Math.round(r.height)}px`;
+    restore.push(() => { el.style.width = prevW; el.style.height = prevH; });
+  });
 
-  // Remove non-printable elements (drag handles, action buttons, selection rings)
-  content.querySelectorAll('[data-no-print]').forEach(el => el.remove());
-  content.querySelectorAll('.group-hover\\:opacity-100').forEach(el => el.remove());
-
-  // Write to print window using srcdoc-style DOM construction (avoids document.write XSS risk)
+  // Write to print window using DOM construction (avoids document.write XSS risk)
   const printDoc = printWindow.document;
   printDoc.open();
   printDoc.close();
-
-  // Build the document safely via DOM APIs
   printDoc.documentElement.setAttribute('lang', 'fr');
 
   const head = printDoc.head;
@@ -159,22 +164,36 @@ export async function exportToPDF(
   titleEl.textContent = `${document.title} — ${document.period.label}`;
   head.appendChild(titleEl);
 
+  // Copie les feuilles de style de l'application (Tailwind + tokens) pour que les classes
+  // utilitaires des renderers s'appliquent réellement dans la fenêtre d'impression.
+  window.document.querySelectorAll('style, link[rel="stylesheet"]').forEach(node => {
+    head.appendChild(printDoc.importNode(node, true));
+  });
+
+  // Notre CSS d'impression EN DERNIER (sauts de page, @page, masquage éditorial → priorité).
   const styleEl = printDoc.createElement('style');
   styleEl.textContent = printCSS;
   head.appendChild(styleEl);
 
-  // Append cloned content into body
-  const importedContent = printDoc.importNode(content, true);
-  printDoc.body.appendChild(importedContent);
+  // Une page imprimée par canvas, enveloppée dans .report-page (sauts de page).
+  canvases.forEach(cv => {
+    const clone = cv.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll('[data-no-print], .hide-on-print, [data-hide-on-print]').forEach(el => el.remove());
+    const page = printDoc.createElement('div');
+    page.className = 'report-page';
+    page.appendChild(printDoc.importNode(clone, true));
+    printDoc.body.appendChild(page);
+  });
 
-  // Wait for content to load, then print
-  printWindow.onload = () => {
-    setTimeout(() => {
-      printWindow.print();
-      // Close after print dialog (user may cancel)
-      printWindow.onafterprint = () => printWindow.close();
-    }, 500);
-  };
+  // Restaure le DOM vivant (tailles de charts).
+  restore.forEach(fn => fn());
+
+  // Laisse le temps aux feuilles de style/polices de charger, puis imprime.
+  printWindow.onafterprint = () => printWindow.close();
+  setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+  }, 700);
 }
 
 /**
