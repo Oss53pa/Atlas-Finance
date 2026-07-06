@@ -1,6 +1,10 @@
 /**
- * Espace Collaboratif — discussions d'équipe, tâches (Kanban), fil d'activité.
- * Persisté via DataAdapter (Dexie local / Supabase SaaS). @mentions + présence.
+ * ESPACE COLLABORATIF — module de résolution de problèmes (CDC v1.0).
+ * « Slack fait parler les gens ; l'Espace Collaboratif fait converger un
+ * problème vers zéro. » Deux écrans : Portefeuille (kanban par statut) et
+ * Espace (3 colonnes : Méthode | Fil typé | Résolution). Données réelles :
+ * convergence & critères dérivés du grand livre, décisions gouvernées par
+ * seuils, snapshots hashés, clôture opposable. Aucun calcul par LLM.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
@@ -8,657 +12,972 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
 import { Avatar } from '../../components/ui';
 import {
-  MessageSquare, CheckSquare, Activity, Hash, Plus, Send, Smile, Users,
-  Search, X, Circle, Clock, Flag, Trash2, CornerUpLeft, MoreHorizontal, Calendar,
+  Plus, Send, ArrowLeft, Target, ListChecks, Gavel, FileText, Radio, Camera,
+  Lock, Unlock, ChevronRight, Circle, CheckCircle2, AlertTriangle, Sparkles,
+  Link2, Hash, ShieldCheck, X, Clock, Flag, Layers, PenLine, TrendingUp,
 } from 'lucide-react';
 import {
-  ensureDefaultChannels, createChannel, listMessages, postMessage,
-  deleteMessage, toggleReaction, heartbeatPresence, listPresence,
-  markChannelRead, subscribeMessages,
+  listSpaces, createSpace, getSpace, updateSpace, transitionSpace,
+  computeConvergence, refreshConvergence, evaluateExitCriteria, satisfyCriterion,
+  closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
+  postEcriture, postSnapshot, approveDecision, toggleReaction, buildSnapshotPayload,
+  heartbeatPresence, isLate, type ConvergenceResult,
 } from '../../features/collaboration/services/collaborationService';
-import {
-  listTasks, createTask, updateTask, deleteTask, listTaskComments, addTaskComment,
-} from '../../features/collaboration/services/collabTasksService';
+import { listTasks, createTask, updateTask } from '../../features/collaboration/services/collabTasksService';
 import type {
-  Channel, Message, Task, TaskComment, TeamMember, Presence, TaskStatus, TaskPriority,
+  Space, SpaceEvent, Task, ExitCriterion, EventType, DecisionPayload, EcriturePayload,
+  SnapshotPayload, SpaceStatus, GovernanceRule,
 } from '../../features/collaboration/types';
-import { TASK_STATUS_LABELS, TASK_PRIORITY_LABELS } from '../../features/collaboration/types';
+import {
+  SPACE_STATUS_LABELS, SPACE_STATUS_ORDER, ANCHOR_TYPE_LABELS, DEFAULT_GOVERNANCE,
+  requiredRoleFor,
+} from '../../features/collaboration/types';
 
-const REACTIONS = ['👍', '✅', '🎉', '❤️', '👀', '🙏'];
-
-const PRIORITY_COLOR: Record<TaskPriority, string> = {
-  low: '#7FA3AF', medium: '#E89A2E', high: '#C77E2C', urgent: '#E24B4A',
+// ── Palette (CDC §12.1 — thème clair Atlas FNA) ───────────────────────────────
+const T = {
+  cream: '#F2EFE8', surface: '#FFFFFF', petrol: '#1E5A64', orange: '#E8912D', gold: '#C97E12',
+  green: '#2E9E6B', red: '#E24B4A', purple: '#7C5CBF', blue: '#3B7BD1',
+  ink: '#1C2B2E', sub: '#607377', line: '#E6E0D4', softLine: '#EFEAE0',
 };
-const STATUS_ORDER: TaskStatus[] = ['todo', 'in_progress', 'review', 'done'];
+const MONO = "'JetBrains Mono', ui-monospace, monospace";
 
+const EVENT_META: Record<EventType, { label: string; color: string; icon: React.ComponentType<any> }> = {
+  ecriture: { label: 'Écriture', color: T.green, icon: PenLine },
+  decision: { label: 'Décision', color: T.orange, icon: Gavel },
+  snapshot: { label: 'Snapshot', color: T.purple, icon: Camera },
+  message: { label: 'Message', color: T.blue, icon: Send },
+  system: { label: 'Vigie PROPH3T', color: T.petrol, icon: Sparkles },
+};
+
+const fmtXof = (n?: number) => (n == null ? '—' : Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+const dayFR = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—');
+const timeHM = (iso: string) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 function timeAgo(iso: string): string {
-  const d = new Date(iso).getTime();
-  const s = Math.floor((Date.now() - d) / 1000);
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
   if (s < 60) return "à l'instant";
   if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
   if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
   return new Date(iso).toLocaleDateString('fr-FR');
 }
-function timeHM(iso: string): string {
-  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-}
 
-const CollaborationWorkspace: React.FC = () => {
+// ════════════════════════════════════════════════════════════════════════════
+export default function CollaborationWorkspace() {
   const { adapter } = useData();
   const { user } = useAuth();
   const { toast } = useToast();
-
   const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
-  const me: TeamMember = useMemo(() => ({
+  const me = useMemo(() => ({
     id: user?.id || 'me',
-    name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'Moi',
-    email: user?.email, role: user?.role, avatarUrl: user?.photo_url,
+    name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email || 'Moi',
+    role: (user?.role || 'comptable') as string,
   }), [user]);
 
-  const [tab, setTab] = useState<'discussions' | 'tasks' | 'activity'>('discussions');
-  const [channels, setChannels] = useState<Channel[]>([]);
-  const [presence, setPresence] = useState<Presence[]>([]);
-
-  // Membres d'équipe = utilisateur courant + toute présence vue dans l'espace.
-  const members: TeamMember[] = useMemo(() => {
-    const map = new Map<string, TeamMember>();
-    map.set(me.id, me);
-    for (const p of presence) {
-      if (!map.has(p.id)) map.set(p.id, { id: p.id, name: p.userName || p.id });
-    }
-    return [...map.values()];
-  }, [me, presence]);
-
-  const reload = useCallback(async () => {
-    try {
-      const chs = await ensureDefaultChannels(adapter, tenantId, me.id);
-      setChannels(chs);
-    } catch { /* ignore */ }
-  }, [adapter, tenantId, me.id]);
-
-  useEffect(() => { reload(); }, [reload]);
-
-  // Battement de présence + rafraîchissement de la liste des présents.
-  useEffect(() => {
-    let active = true;
-    const beat = async () => {
-      try {
-        await heartbeatPresence(adapter, { userId: me.id, tenantId, userName: me.name, status: 'online' });
-        const p = await listPresence(adapter, tenantId);
-        if (active) setPresence(p);
-      } catch { /* ignore */ }
-    };
-    beat();
-    const t = setInterval(beat, 30000);
-    return () => { active = false; clearInterval(t); };
-  }, [adapter, tenantId, me.id, me.name]);
-
-  return (
-    <div className="flex flex-col h-full min-h-0 bg-[var(--color-background)]">
-      {/* En-tête + onglets */}
-      <div className="px-5 pt-4 pb-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: 'var(--color-primary)' }}>
-            <Users className="w-5 h-5" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Espace Collaboratif</h1>
-            <p className="text-xs text-[var(--color-text-secondary)]">Discussions, tâches et activité de l'équipe</p>
-          </div>
-          <div className="ml-auto flex items-center -space-x-2">
-            {presence.filter(p => p.status === 'online').slice(0, 6).map(p => (
-              <Avatar key={p.id} name={p.userName || p.id} size="sm" status="online" className="ring-2 ring-[var(--color-surface)]" />
-            ))}
-            {presence.filter(p => p.status === 'online').length > 0 && (
-              <span className="pl-4 text-xs text-[var(--color-text-secondary)]">{presence.filter(p => p.status === 'online').length} en ligne</span>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-1">
-          {([
-            ['discussions', 'Discussions', MessageSquare],
-            ['tasks', 'Tâches', CheckSquare],
-            ['activity', 'Activité', Activity],
-          ] as const).map(([k, lbl, Icon]) => (
-            <button key={k} onClick={() => setTab(k)}
-              className={`flex items-center gap-2 px-4 py-2 text-sm rounded-t-lg border-b-2 transition-colors ${tab === k ? 'border-[var(--color-primary)] text-[var(--color-primary)] font-medium' : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}`}>
-              <Icon className="w-4 h-4" /> {lbl}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {tab === 'discussions' && (
-          <DiscussionsView adapter={adapter} tenantId={tenantId} me={me} members={members}
-            channels={channels} onChannelsChanged={reload} toast={toast} />
-        )}
-        {tab === 'tasks' && (
-          <TasksView adapter={adapter} tenantId={tenantId} me={me} members={members} toast={toast} />
-        )}
-        {tab === 'activity' && (
-          <ActivityView adapter={adapter} />
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ══════════════════════════════════════════════════════════════════════════
-// DISCUSSIONS
-// ══════════════════════════════════════════════════════════════════════════
-
-interface ViewProps {
-  adapter: any; tenantId: string; me: TeamMember; members: TeamMember[];
-  toast: ReturnType<typeof useToast>['toast'];
-}
-
-const DiscussionsView: React.FC<ViewProps & { channels: Channel[]; onChannelsChanged: () => void }> = ({
-  adapter, tenantId, me, members, toast, channels, onChannelsChanged,
-}) => {
-  const [activeId, setActiveId] = useState<string>('');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [mentionIds, setMentionIds] = useState<string[]>([]);
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const active = channels.find(c => c.id === activeId) || channels[0];
-  const seenIds = useRef<Set<string>>(new Set());
-  const firstLoad = useRef(true);
-
-  useEffect(() => { if (!activeId && channels[0]) setActiveId(channels[0].id); }, [channels, activeId]);
-  // Reset du suivi des mentions au changement de canal.
-  useEffect(() => { seenIds.current = new Set(); firstLoad.current = true; }, [active?.id]);
-
-  const loadMessages = useCallback(async () => {
-    if (!active) return;
-    try {
-      const msgs = await listMessages(adapter, active.id);
-      // Notifier les NOUVELLES @mentions de l'utilisateur courant (hors 1er chargement).
-      if (!firstLoad.current) {
-        for (const m of msgs) {
-          if (!seenIds.current.has(m.id) && m.authorId !== me.id && Array.isArray(m.mentions) && m.mentions.includes(me.id)) {
-            toast.info(`${m.authorName || 'Quelqu\'un'} vous a mentionné dans #${active.name}`);
-          }
-        }
-      }
-      msgs.forEach(m => seenIds.current.add(m.id));
-      firstLoad.current = false;
-      setMessages(msgs);
-      markChannelRead(me.id, active.id); // le canal ouvert est considéré lu
-    } catch { /* ignore */ }
-  }, [adapter, active, me.id, toast]);
-
-  useEffect(() => { loadMessages(); }, [loadMessages]);
-  // Rafraîchissement léger (polling) tant que le canal est ouvert.
-  useEffect(() => {
-    const t = setInterval(loadMessages, 5000);
-    return () => clearInterval(t);
-  }, [loadMessages]);
-  // Temps réel (SaaS) : rafraîchit dès qu'un message est inséré (no-op en local).
-  useEffect(() => subscribeMessages(adapter, loadMessages), [adapter, loadMessages]);
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }); }, [messages]);
-
-  const onInputChange = (v: string) => {
-    setInput(v);
-    const m = v.match(/@([\w.\-]*)$/);
-    setMentionQuery(m ? m[1].toLowerCase() : null);
-  };
-  const insertMention = (member: TeamMember) => {
-    setInput(prev => prev.replace(/@([\w.\-]*)$/, `@${member.name} `));
-    setMentionIds(prev => prev.includes(member.id) ? prev : [...prev, member.id]);
-    setMentionQuery(null);
-  };
-
-  const send = async () => {
-    const body = input.trim();
-    if (!body || !active) return;
-    setInput(''); setMentionQuery(null);
-    const usedMentions = mentionIds.filter(id => body.includes(`@${members.find(m => m.id === id)?.name}`));
-    setMentionIds([]);
-    try {
-      await postMessage(adapter, { channelId: active.id, tenantId, authorId: me.id, authorName: me.name, body, mentions: usedMentions });
-      await loadMessages();
-    } catch { toast.error('Message non envoyé'); }
-  };
-
-  const onCreateChannel = async () => {
-    const name = window.prompt('Nom du nouveau canal :');
-    if (!name?.trim()) return;
-    try {
-      const c = await createChannel(adapter, { tenantId, name, createdBy: me.id });
-      onChannelsChanged();
-      setActiveId(c.id);
-    } catch { toast.error('Canal non créé'); }
-  };
-
-  const mentionMatches = mentionQuery !== null
-    ? members.filter(m => m.name.toLowerCase().includes(mentionQuery)).slice(0, 5)
-    : [];
-
-  return (
-    <div className="flex h-full min-h-0">
-      {/* Rail canaux */}
-      <div className="w-56 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] flex flex-col">
-        <div className="flex items-center justify-between px-3 py-2.5">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">Canaux</span>
-          <button onClick={onCreateChannel} className="p-1 rounded hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]" title="Nouveau canal"><Plus className="w-4 h-4" /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto px-2 space-y-0.5">
-          {channels.filter(c => c.type === 'channel').map(c => (
-            <button key={c.id} onClick={() => setActiveId(c.id)}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm ${active?.id === c.id ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-medium' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}>
-              <Hash className="w-4 h-4 shrink-0" /> <span className="truncate">{c.name}</span>
-            </button>
-          ))}
-        </div>
-        <div className="px-3 py-2 border-t border-[var(--color-border)]">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">Équipe</span>
-          <div className="mt-1.5 space-y-1">
-            {members.map(m => (
-              <div key={m.id} className="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                <Avatar name={m.name} size="xs" status="online" />
-                <span className="truncate">{m.name}{m.id === me.id ? ' (vous)' : ''}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Fil de messages */}
-      <div className="flex-1 min-w-0 flex flex-col bg-[var(--color-background)]">
-        <div className="px-4 py-2.5 border-b border-[var(--color-border)] flex items-center gap-2 bg-[var(--color-surface)]">
-          <Hash className="w-4 h-4 text-[var(--color-text-secondary)]" />
-          <span className="font-semibold text-[var(--color-text-primary)]">{active?.name || '—'}</span>
-          {active?.description && <span className="text-xs text-[var(--color-text-tertiary)] ml-1">— {active.description}</span>}
-        </div>
-
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1">
-          {messages.length === 0 && (
-            <div className="h-full flex flex-col items-center justify-center text-center text-[var(--color-text-tertiary)]">
-              <MessageSquare className="w-10 h-10 mb-2 opacity-40" />
-              <p className="text-sm">Aucun message. Lancez la discussion !</p>
-            </div>
-          )}
-          {messages.map((msg, i) => {
-            const prev = messages[i - 1];
-            const grouped = prev && prev.authorId === msg.authorId && (new Date(msg.createdAt).getTime() - new Date(prev.createdAt).getTime() < 5 * 60 * 1000);
-            return (
-              <MessageRow key={msg.id} msg={msg} grouped={!!grouped} me={me} members={members}
-                onReact={async (emoji) => { await toggleReaction(adapter, msg, emoji, me.id); loadMessages(); }}
-                onDelete={async () => { await deleteMessage(adapter, msg.id); loadMessages(); }} />
-            );
-          })}
-        </div>
-
-        {/* Composer */}
-        <div className="px-4 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)] relative">
-          {mentionMatches.length > 0 && (
-            <div className="absolute bottom-full left-4 mb-1 w-64 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg overflow-hidden z-10">
-              {mentionMatches.map(m => (
-                <button key={m.id} onClick={() => insertMention(m)} className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-[var(--color-surface-hover)] text-left">
-                  <Avatar name={m.name} size="xs" /> <span>{m.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex items-end gap-2">
-            <textarea
-              value={input}
-              onChange={e => onInputChange(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              rows={1}
-              placeholder={`Message ${active ? '#' + active.name : ''}   (@ pour mentionner)`}
-              className="flex-1 resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 max-h-32"
-            />
-            <button onClick={send} disabled={!input.trim()}
-              className="p-2.5 rounded-lg text-white disabled:opacity-40" style={{ background: 'var(--color-primary)' }} title="Envoyer">
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const MessageRow: React.FC<{
-  msg: Message; grouped: boolean; me: TeamMember; members: TeamMember[];
-  onReact: (emoji: string) => void; onDelete: () => void;
-}> = ({ msg, grouped, me, members, onReact, onDelete }) => {
-  const [hover, setHover] = useState(false);
-  const [showReacts, setShowReacts] = useState(false);
-  const author = msg.authorName || members.find(m => m.id === msg.authorId)?.name || 'Utilisateur';
-
-  // Rendu du corps avec @mentions surlignées.
-  const rendered = useMemo(() => {
-    const parts = msg.body.split(/(@[\w.\-]+(?:\s[\w.\-]+)?)/g);
-    return parts.map((part, i) => part.startsWith('@')
-      ? <span key={i} className="text-[var(--color-primary)] font-medium bg-[var(--color-primary)]/10 rounded px-0.5">{part}</span>
-      : <span key={i}>{part}</span>);
-  }, [msg.body]);
-
-  return (
-    <div className={`group flex gap-2.5 px-1 rounded-md hover:bg-[var(--color-surface-hover)] relative ${grouped ? 'py-0.5' : 'pt-2 pb-0.5'}`}
-      onMouseEnter={() => setHover(true)} onMouseLeave={() => { setHover(false); setShowReacts(false); }}>
-      <div className="w-9 shrink-0">
-        {!grouped && <Avatar name={author} size="sm" />}
-      </div>
-      <div className="min-w-0 flex-1">
-        {!grouped && (
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-[var(--color-text-primary)]">{author}</span>
-            <span className="text-[11px] text-[var(--color-text-tertiary)]">{timeHM(msg.createdAt)}</span>
-          </div>
-        )}
-        <div className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap break-words">{rendered}{msg.editedAt && <span className="text-[10px] text-[var(--color-text-tertiary)] ml-1">(modifié)</span>}</div>
-        {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {Object.entries(msg.reactions).map(([emoji, ids]) => ids.length > 0 && (
-              <button key={emoji} onClick={() => onReact(emoji)}
-                className={`text-xs px-1.5 py-0.5 rounded-full border ${ids.includes(me.id) ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}>
-                {emoji} {ids.length}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      {hover && (
-        <div className="absolute -top-3 right-2 flex items-center gap-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-sm px-1 py-0.5">
-          <button onClick={() => setShowReacts(s => !s)} className="p-1 rounded hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]" title="Réagir"><Smile className="w-3.5 h-3.5" /></button>
-          {msg.authorId === me.id && <button onClick={onDelete} className="p-1 rounded hover:bg-[var(--color-surface-hover)] text-[var(--color-error)]" title="Supprimer"><Trash2 className="w-3.5 h-3.5" /></button>}
-          {showReacts && (
-            <div className="absolute top-full right-0 mt-1 flex gap-0.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg shadow-lg p-1">
-              {REACTIONS.map(e => <button key={e} onClick={() => { onReact(e); setShowReacts(false); }} className="text-base hover:scale-125 transition-transform px-0.5">{e}</button>)}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ══════════════════════════════════════════════════════════════════════════
-// TÂCHES (Kanban)
-// ══════════════════════════════════════════════════════════════════════════
-
-const TasksView: React.FC<ViewProps> = ({ adapter, tenantId, me, members, toast }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [detail, setDetail] = useState<Task | null>(null);
-  const [creating, setCreating] = useState(false);
+  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [selId, setSelId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
 
   const load = useCallback(async () => {
-    try { setTasks(await listTasks(adapter, tenantId)); } catch { /* ignore */ }
+    try { setSpaces(await listSpaces(adapter, tenantId)); } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [adapter, tenantId]);
-  useEffect(() => { load(); }, [load]);
 
-  const move = async (task: Task, status: TaskStatus) => {
-    await updateTask(adapter, task.id, { status });
-    load();
-  };
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    heartbeatPresence(adapter, { userId: me.id, tenantId, userName: me.name }).catch(() => {});
+    const t = setInterval(() => heartbeatPresence(adapter, { userId: me.id, tenantId, userName: me.name }).catch(() => {}), 60000);
+    return () => clearInterval(t);
+  }, [adapter, tenantId, me.id, me.name]);
+
+  const selected = spaces.find(s => s.id === selId) || null;
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
-        <span className="text-sm text-[var(--color-text-secondary)]">{tasks.length} tâche(s)</span>
-        <button onClick={() => setCreating(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg text-white" style={{ background: 'var(--color-primary)' }}>
-          <Plus className="w-4 h-4" /> Nouvelle tâche
+    <div style={{ background: T.cream, minHeight: '100%', color: T.ink, fontFamily: 'Exo 2, system-ui, sans-serif' }}>
+      {selected ? (
+        <SpaceView key={selected.id} space={selected} me={me} tenantId={tenantId}
+          onBack={() => { setSelId(null); load(); }} onChanged={load} />
+      ) : (
+        <Portfolio spaces={spaces} loading={loading} onOpen={setSelId} onNew={() => setShowCreate(true)} />
+      )}
+      {showCreate && (
+        <CreateSpaceModal me={me} tenantId={tenantId}
+          onClose={() => setShowCreate(false)}
+          onCreated={async (id) => { setShowCreate(false); await load(); setSelId(id); }} />
+      )}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════ PORTEFEUILLE (kanban) ══════
+function Portfolio({ spaces, loading, onOpen, onNew }: {
+  spaces: Space[]; loading: boolean; onOpen: (id: string) => void; onNew: () => void;
+}) {
+  const active = spaces.filter(s => s.status !== 'archive' && s.status !== 'abandonne');
+  const late = active.filter(isLate);
+  const resolved90 = spaces.filter(s => s.status === 'archive' && s.closedAt && (Date.now() - new Date(s.closedAt).getTime()) < 90 * 864e5);
+  const cols = SPACE_STATUS_ORDER;
+
+  return (
+    <div style={{ padding: '24px 28px', maxWidth: 1500, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: T.petrol }}>Espaces de résolution</h1>
+          <p style={{ margin: '4px 0 0', color: T.sub, fontSize: 13.5, maxWidth: 640 }}>
+            Chaque espace naît d'un problème comptable ancré au grand livre et meurt résolu. La méthode fait converger l'écart vers zéro.
+          </p>
+        </div>
+        <button onClick={onNew} style={btn(T.petrol)}>
+          <Plus size={16} /> Nouvel espace
         </button>
       </div>
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-4">
-        <div className="flex gap-4 h-full min-w-max">
-          {STATUS_ORDER.map(status => {
-            const items = tasks.filter(t => t.status === status);
+
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+        <Stat label="En cours" value={active.length} color={T.petrol} icon={Layers} />
+        <Stat label="En retard" value={late.length} color={T.red} icon={AlertTriangle} />
+        <Stat label="Résolus / 90 j" value={resolved90.length} color={T.green} icon={CheckCircle2} />
+      </div>
+
+      {loading ? (
+        <div style={{ color: T.sub, padding: 40, textAlign: 'center' }}>Chargement…</div>
+      ) : spaces.length === 0 ? (
+        <EmptyPortfolio onNew={onNew} />
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(240px, 1fr))`, gap: 12, alignItems: 'start' }}>
+          {cols.map(st => {
+            const items = spaces.filter(s => s.status === st);
             return (
-              <div key={status} className="w-72 flex flex-col rounded-xl bg-[var(--color-surface)] border border-[var(--color-border)]">
-                <div className="flex items-center justify-between px-3 py-2.5 border-b border-[var(--color-border)]">
-                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">{TASK_STATUS_LABELS[status]}</span>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">{items.length}</span>
+              <div key={st} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: 10, minHeight: 120 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 10px' }}>
+                  <span style={{ fontWeight: 700, fontSize: 12.5, color: T.ink }}>{SPACE_STATUS_LABELS[st]}</span>
+                  <span style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 8, padding: '1px 7px' }}>{items.length}</span>
                 </div>
-                <div className="flex-1 overflow-y-auto p-2 space-y-2">
-                  {items.length === 0 && <p className="text-xs text-[var(--color-text-tertiary)] text-center py-4">—</p>}
-                  {items.map(t => (
-                    <div key={t.id} onClick={() => setDetail(t)}
-                      className="bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg p-2.5 cursor-pointer hover:shadow-sm">
-                      <div className="flex items-start gap-2">
-                        <span className="w-1.5 h-1.5 mt-1.5 rounded-full shrink-0" style={{ background: PRIORITY_COLOR[t.priority] }} />
-                        <span className="text-sm text-[var(--color-text-primary)] flex-1">{t.title}</span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        {t.assigneeName && <Avatar name={t.assigneeName} size="xs" />}
-                        {t.dueDate && <span className="text-[11px] text-[var(--color-text-tertiary)] flex items-center gap-0.5"><Calendar className="w-3 h-3" />{new Date(t.dueDate).toLocaleDateString('fr-FR')}</span>}
-                        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: PRIORITY_COLOR[t.priority] + '22', color: PRIORITY_COLOR[t.priority] }}>{TASK_PRIORITY_LABELS[t.priority]}</span>
-                      </div>
-                      <div className="flex gap-1 mt-2">
-                        {STATUS_ORDER.filter(s => s !== status).map(s => (
-                          <button key={s} onClick={(e) => { e.stopPropagation(); move(t, s); }}
-                            className="text-[10px] px-1.5 py-0.5 rounded border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]">
-                            → {TASK_STATUS_LABELS[s]}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                  {items.map(s => <SpaceCard key={s.id} space={s} onOpen={() => onOpen(s.id)} />)}
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {creating && (
-        <TaskModal adapter={adapter} tenantId={tenantId} me={me} members={members} toast={toast}
-          onClose={() => setCreating(false)} onSaved={() => { setCreating(false); load(); }} />
-      )}
-      {detail && (
-        <TaskDetail adapter={adapter} tenantId={tenantId} me={me} members={members} task={detail} toast={toast}
-          onClose={() => setDetail(null)} onChanged={() => { load(); }} />
       )}
     </div>
   );
-};
+}
 
-const TaskModal: React.FC<ViewProps & { onClose: () => void; onSaved: () => void }> = ({
-  adapter, tenantId, me, members, toast, onClose, onSaved,
-}) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<TaskPriority>('medium');
-  const [assigneeId, setAssigneeId] = useState('');
-  const [dueDate, setDueDate] = useState('');
-
-  const save = async () => {
-    if (!title.trim()) { toast.error('Titre requis'); return; }
-    const assignee = members.find(m => m.id === assigneeId);
-    try {
-      await createTask(adapter, {
-        tenantId, title: title.trim(), description: description.trim() || undefined, priority,
-        assigneeId: assignee?.id, assigneeName: assignee?.name, dueDate: dueDate || undefined, createdBy: me.id,
-      });
-      toast.success('Tâche créée');
-      onSaved();
-    } catch { toast.error('Tâche non créée'); }
-  };
-
+function SpaceCard({ space, onOpen }: { space: Space; onOpen: () => void }) {
+  const bp = space.convergenceBp ?? 0;
+  const late = isLate(space);
+  const anchor = space.anchors?.[0] || (space.linkedLabel ? { type: 'reconciliation', label: space.linkedLabel } as any : null);
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-[var(--color-surface)] rounded-xl shadow-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--color-border)]">
-          <h3 className="font-semibold text-[var(--color-text-primary)]">Nouvelle tâche</h3>
-          <button onClick={onClose} className="text-[var(--color-text-secondary)]"><X className="w-5 h-5" /></button>
-        </div>
-        <div className="p-5 space-y-3">
-          <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="Titre de la tâche"
-            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30" />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Description (optionnel)"
-            className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30" />
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs text-[var(--color-text-secondary)]">Priorité</label>
-              <select value={priority} onChange={e => setPriority(e.target.value as TaskPriority)} className="w-full mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1.5 text-sm">
-                {(Object.keys(TASK_PRIORITY_LABELS) as TaskPriority[]).map(p => <option key={p} value={p}>{TASK_PRIORITY_LABELS[p]}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs text-[var(--color-text-secondary)]">Échéance</label>
-              <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="w-full mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1.5 text-sm" />
-            </div>
-          </div>
-          <div>
-            <label className="text-xs text-[var(--color-text-secondary)]">Assigné à</label>
-            <select value={assigneeId} onChange={e => setAssigneeId(e.target.value)} className="w-full mt-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1.5 text-sm">
-              <option value="">Non assigné</option>
-              {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-[var(--color-border)]">
-          <button onClick={onClose} className="px-3 py-1.5 text-sm rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]">Annuler</button>
-          <button onClick={save} className="px-4 py-1.5 text-sm rounded-lg text-white" style={{ background: 'var(--color-primary)' }}>Créer</button>
-        </div>
+    <button onClick={onOpen} style={{
+      textAlign: 'left', width: '100%', background: T.surface, border: `1px solid ${late ? T.red + '55' : T.line}`,
+      borderRadius: 12, padding: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8,
+      boxShadow: '0 1px 2px rgba(30,90,100,.04)',
+    }}>
+      {anchor && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: T.petrol, background: T.petrol + '12', borderRadius: 7, padding: '2px 7px', width: 'fit-content' }}>
+          <Link2 size={11} /> {anchor.label}
+        </span>
+      )}
+      <span style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.3 }}>{space.title}</span>
+      {space.objective && <span style={{ fontSize: 11.5, color: T.sub, lineHeight: 1.35 }}>{space.objective}</span>}
+      <ConvergenceBar bp={bp} compact />
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: late ? T.red : T.sub, fontWeight: late ? 700 : 500 }}>
+          {late ? <AlertTriangle size={12} /> : <Clock size={12} />} {dayFR(space.deadline)}
+        </span>
+        {space.responsibleName && <Avatar name={space.responsibleName} size="xs" />}
       </div>
+    </button>
+  );
+}
+
+function EmptyPortfolio({ onNew }: { onNew: () => void }) {
+  return (
+    <div style={{ background: T.surface, border: `1px dashed ${T.line}`, borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
+      <div style={{ width: 52, height: 52, borderRadius: 14, background: T.petrol + '14', color: T.petrol, display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
+        <Target size={26} />
+      </div>
+      <h3 style={{ margin: 0, fontSize: 17, color: T.ink }}>Aucun espace de résolution</h3>
+      <p style={{ color: T.sub, fontSize: 13, maxWidth: 460, margin: '8px auto 18px' }}>
+        Un espace se crée à partir d'un problème concret ancré au grand livre : un écart de rapprochement, une créance à recouvrer, une clôture de période. Il converge vers zéro puis s'archive avec un rapport opposable.
+      </p>
+      <button onClick={onNew} style={{ ...btn(T.petrol), margin: '0 auto' }}><Plus size={16} /> Ouvrir un espace</button>
     </div>
   );
-};
+}
 
-const TaskDetail: React.FC<ViewProps & { task: Task; onClose: () => void; onChanged: () => void }> = ({
-  adapter, tenantId, me, members, task, toast, onClose, onChanged,
-}) => {
-  const [comments, setComments] = useState<TaskComment[]>([]);
-  const [input, setInput] = useState('');
+// ════════════════════════════════════════════════ ESPACE (3 colonnes) ════════
+function SpaceView({ space, me, tenantId, onBack, onChanged }: {
+  space: Space; me: { id: string; name: string; role: string }; tenantId: string;
+  onBack: () => void; onChanged: () => void;
+}) {
+  const { adapter } = useData();
+  const { toast } = useToast();
+  const [sp, setSp] = useState<Space>(space);
+  const [events, setEvents] = useState<SpaceEvent[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [criteria, setCriteria] = useState<ExitCriterion[]>(space.exitCriteria || []);
+  const [conv, setConv] = useState<ConvergenceResult | null>(null);
+  const [rightTab, setRightTab] = useState<'actions' | 'decisions' | 'pieces' | 'diffusion'>('actions');
+  const feedRef = useRef<HTMLDivElement>(null);
 
-  const loadComments = useCallback(async () => {
-    try { setComments(await listTaskComments(adapter, task.id)); } catch { /* ignore */ }
-  }, [adapter, task.id]);
-  useEffect(() => { loadComments(); }, [loadComments]);
+  const reload = useCallback(async () => {
+    const [fresh, ev, tk] = await Promise.all([
+      getSpace(adapter, space.id), listEvents(adapter, space.id), listTasks(adapter, tenantId, space.id),
+    ]);
+    if (fresh) {
+      setSp(fresh);
+      const [c, crit] = await Promise.all([computeConvergence(adapter, fresh), evaluateExitCriteria(adapter, fresh)]);
+      setConv(c); setCriteria(crit);
+    }
+    setEvents(ev); setTasks(tk);
+  }, [adapter, space.id, tenantId]);
 
-  const addComment = async () => {
-    if (!input.trim()) return;
-    const body = input.trim(); setInput('');
-    try { await addTaskComment(adapter, { taskId: task.id, tenantId, authorId: me.id, authorName: me.name, body }); loadComments(); }
-    catch { toast.error('Commentaire non ajouté'); }
-  };
-  const setAssignee = async (id: string) => {
-    const m = members.find(x => x.id === id);
-    await updateTask(adapter, task.id, { assigneeId: m?.id, assigneeName: m?.name });
-    onChanged();
-  };
-  const removeTask = async () => {
-    if (!window.confirm('Supprimer cette tâche ?')) return;
-    await deleteTask(adapter, task.id); onChanged(); onClose();
+  useEffect(() => { reload(); }, [reload]);
+  // Recalcule et fige la convergence à l'ouverture (dérivée du GL).
+  useEffect(() => { refreshConvergence(adapter, space).catch(() => {}); }, [adapter, space]);
+  useEffect(() => { if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight; }, [events.length]);
+
+  const allCriteriaMet = criteria.length > 0 && criteria.every(c => c.met);
+  const readOnly = sp.status === 'archive' || sp.status === 'abandonne';
+
+  const doClose = async () => {
+    if (!allCriteriaMet) { toast.warning(`Clôture verrouillée · ${criteria.filter(c => c.met).length}/${criteria.length} critères`); return; }
+    const { hash } = await closeSpace(adapter, sp, events);
+    toast.success(`Espace clôturé · rapport scellé ${hash.slice(0, 10)}…`);
+    await reload(); onChanged();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-end z-50" onClick={onClose}>
-      <div className="bg-[var(--color-surface)] w-full max-w-md h-full flex flex-col shadow-xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--color-border)]">
-          <span className="text-xs uppercase tracking-wide text-[var(--color-text-tertiary)]">Tâche</span>
-          <div className="flex items-center gap-1">
-            <button onClick={removeTask} className="p-1.5 rounded hover:bg-[var(--color-surface-hover)] text-[var(--color-error)]"><Trash2 className="w-4 h-4" /></button>
-            <button onClick={onClose} className="p-1.5 rounded hover:bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]"><X className="w-5 h-5" /></button>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* En-tête */}
+      <header style={{ background: T.surface, borderBottom: `1px solid ${T.line}`, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button onClick={onBack} style={iconBtn}><ArrowLeft size={18} /></button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h2 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sp.title}</h2>
+            <StatusPill status={sp.status} />
           </div>
+          {(sp.anchors?.[0] || sp.linkedLabel) && (
+            <div style={{ fontSize: 11.5, color: T.sub, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+              <Link2 size={12} /> Ouvert depuis : {sp.anchors?.[0]?.label || sp.linkedLabel}
+              {sp.anchors?.[0]?.path && <span style={{ color: T.petrol }}> · ouvrir l'écran source</span>}
+            </div>
+          )}
         </div>
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{task.title}</h3>
-          {task.description && <p className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap">{task.description}</p>}
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <div className="text-xs text-[var(--color-text-tertiary)] mb-1">Statut</div>
-              <span className="px-2 py-1 rounded bg-[var(--color-surface-hover)] text-[var(--color-text-primary)]">{TASK_STATUS_LABELS[task.status]}</span>
-            </div>
-            <div>
-              <div className="text-xs text-[var(--color-text-tertiary)] mb-1">Priorité</div>
-              <span className="px-2 py-1 rounded" style={{ background: PRIORITY_COLOR[task.priority] + '22', color: PRIORITY_COLOR[task.priority] }}>{TASK_PRIORITY_LABELS[task.priority]}</span>
-            </div>
-            <div>
-              <div className="text-xs text-[var(--color-text-tertiary)] mb-1">Échéance</div>
-              <span className="text-[var(--color-text-primary)]">{task.dueDate ? new Date(task.dueDate).toLocaleDateString('fr-FR') : '—'}</span>
-            </div>
-            <div>
-              <div className="text-xs text-[var(--color-text-tertiary)] mb-1">Assigné à</div>
-              <select value={task.assigneeId || ''} onChange={e => setAssignee(e.target.value)} className="w-full rounded border border-[var(--color-border)] bg-[var(--color-background)] px-2 py-1 text-sm">
-                <option value="">Non assigné</option>
-                {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="pt-2 border-t border-[var(--color-border)]">
-            <div className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)] mb-2">Commentaires</div>
-            <div className="space-y-2.5">
-              {comments.length === 0 && <p className="text-sm text-[var(--color-text-tertiary)]">Aucun commentaire.</p>}
-              {comments.map(c => (
-                <div key={c.id} className="flex gap-2">
-                  <Avatar name={c.authorName || c.authorId} size="xs" />
-                  <div>
-                    <div className="text-xs"><span className="font-semibold text-[var(--color-text-primary)]">{c.authorName || 'Utilisateur'}</span> <span className="text-[var(--color-text-tertiary)]">{timeAgo(c.createdAt)}</span></div>
-                    <div className="text-sm text-[var(--color-text-secondary)] whitespace-pre-wrap">{c.body}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontSize: 10.5, color: T.sub, textTransform: 'uppercase', letterSpacing: .5 }}>Convergence</div>
+          <div style={{ fontFamily: MONO, fontWeight: 800, fontSize: 20, color: T.gold }}>{conv ? conv.pct : sp.convergenceBp ? Math.round(sp.convergenceBp / 100) : 0}%</div>
         </div>
-        <div className="px-5 py-3 border-t border-[var(--color-border)] flex items-center gap-2">
-          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') addComment(); }}
-            placeholder="Ajouter un commentaire…" className="flex-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30" />
-          <button onClick={addComment} className="p-2 rounded-lg text-white" style={{ background: 'var(--color-primary)' }}><Send className="w-4 h-4" /></button>
-        </div>
-      </div>
-    </div>
-  );
-};
+      </header>
 
-// ══════════════════════════════════════════════════════════════════════════
-// ACTIVITÉ (audit logs)
-// ══════════════════════════════════════════════════════════════════════════
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '300px 1fr 340px', gap: 0, minHeight: 0 }}>
+        {/* ── Colonne MÉTHODE ── */}
+        <MethodColumn sp={sp} criteria={criteria} conv={conv} readOnly={readOnly} me={me}
+          adapter={adapter} tenantId={tenantId} allCriteriaMet={allCriteriaMet}
+          onClose={doClose} onReload={reload} />
 
-const ActivityView: React.FC<{ adapter: any }> = ({ adapter }) => {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const all = await adapter.getAll('auditLogs');
-        setLogs((all as any[]).sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || ''))).slice(0, 100));
-      } catch { setLogs([]); }
-      setLoading(false);
-    })();
-  }, [adapter]);
-
-  return (
-    <div className="h-full overflow-y-auto p-5">
-      <div className="max-w-2xl mx-auto">
-        {loading ? (
-          <p className="text-sm text-[var(--color-text-tertiary)]">Chargement…</p>
-        ) : logs.length === 0 ? (
-          <div className="text-center text-[var(--color-text-tertiary)] py-16">
-            <Activity className="w-10 h-10 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">Aucune activité enregistrée.</p>
+        {/* ── Colonne FIL TYPÉ ── */}
+        <section style={{ display: 'flex', flexDirection: 'column', minWidth: 0, background: T.cream }}>
+          <div style={{ padding: '10px 16px', borderBottom: `1px solid ${T.line}`, background: T.surface }}>
+            <ProphetSynthesis sp={sp} conv={conv} events={events} criteria={criteria} tasks={tasks} />
           </div>
-        ) : (
-          <div className="relative pl-6">
-            <div className="absolute left-2 top-1 bottom-1 w-px bg-[var(--color-border)]" />
-            {logs.map((l, i) => (
-              <div key={l.id || i} className="relative mb-4">
-                <div className="absolute -left-[18px] top-1 w-3 h-3 rounded-full border-2 border-[var(--color-surface)]" style={{ background: 'var(--color-primary)' }} />
-                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-3 py-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="font-medium text-[var(--color-text-primary)]">{String(l.action || 'Action')}</span>
-                    {l.entityType && <span className="text-xs px-1.5 py-0.5 rounded bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)]">{l.entityType}</span>}
-                    <span className="ml-auto text-[11px] text-[var(--color-text-tertiary)]">{l.timestamp ? timeAgo(l.timestamp) : ''}</span>
-                  </div>
-                  {(l.details || l.entityId) && <div className="text-xs text-[var(--color-text-secondary)] mt-0.5 truncate">{String(l.details || l.entityId)}</div>}
-                </div>
-              </div>
+          <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
+            {events.length === 0 && <div style={{ color: T.sub, textAlign: 'center', paddingTop: 30, fontSize: 13 }}>Le fil est vide — énoncez le problème, proposez une solution.</div>}
+            {events.map(ev => <FeedEvent key={ev.id} ev={ev} me={me} adapter={adapter} onReload={reload} readOnly={readOnly} />)}
+          </div>
+          {!readOnly && <Composer sp={sp} me={me} tenantId={tenantId} adapter={adapter} onSent={reload} />}
+        </section>
+
+        {/* ── Colonne RÉSOLUTION ── */}
+        <aside style={{ borderLeft: `1px solid ${T.line}`, background: T.surface, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <ObjectiveCard sp={sp} conv={conv} criteria={criteria} readOnly={readOnly} me={me}
+            adapter={adapter} onReload={reload} />
+          <div style={{ display: 'flex', borderBottom: `1px solid ${T.line}`, padding: '0 8px' }}>
+            {([['actions', 'Actions', ListChecks], ['decisions', 'Décisions', Gavel], ['pieces', 'Pièces', FileText], ['diffusion', 'Diffusion', Radio]] as const).map(([k, lbl, Ic]) => (
+              <button key={k} onClick={() => setRightTab(k)} style={{
+                flex: 1, padding: '9px 4px', border: 'none', background: 'none', cursor: 'pointer',
+                borderBottom: `2px solid ${rightTab === k ? T.orange : 'transparent'}`,
+                color: rightTab === k ? T.ink : T.sub, fontSize: 11.5, fontWeight: 600,
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+              }}><Ic size={14} />{lbl}</button>
             ))}
           </div>
-        )}
+          <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+            {rightTab === 'actions' && <ActionsTab sp={sp} tasks={tasks} me={me} tenantId={tenantId} adapter={adapter} onReload={reload} readOnly={readOnly} />}
+            {rightTab === 'decisions' && <DecisionsTab events={events} me={me} adapter={adapter} onReload={reload} readOnly={readOnly} />}
+            {rightTab === 'pieces' && <PiecesTab events={events} />}
+            {rightTab === 'diffusion' && <DiffusionTab sp={sp} events={events} />}
+          </div>
+        </aside>
       </div>
     </div>
   );
-};
+}
 
-export default CollaborationWorkspace;
+// ── Colonne Méthode ───────────────────────────────────────────────────────────
+function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onReload }: any) {
+  const { toast } = useToast();
+  const [solTitle, setSolTitle] = useState('');
+  const kept = (sp.solutions || []).find((s: any) => s.state === 'kept');
+
+  const propose = async () => {
+    if (!solTitle.trim()) return;
+    await addSolution(adapter, sp, { title: solTitle.trim(), authorId: me.id, authorName: me.name });
+    setSolTitle(''); toast.success('Solution proposée'); onReload();
+  };
+  const decide = async (id: string, state: 'kept' | 'rejected') => {
+    let motif: string | undefined;
+    if (state === 'rejected') { motif = window.prompt('Motif de l\'écartement (tracé) :') || undefined; if (!motif) return; }
+    await decideSolution(adapter, sp, id, state, me, motif); toast.success(state === 'kept' ? 'Solution retenue' : 'Solution écartée'); onReload();
+  };
+
+  return (
+    <div style={{ borderRight: `1px solid ${T.line}`, background: T.surface, overflowY: 'auto', padding: '14px 14px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* ① Problème */}
+      <Step n="①" label="Problème">
+        <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: T.ink }}>{sp.problem || '—'}</p>
+        {conv && conv.initialGap > 0 && (
+          <div style={{ marginTop: 8, fontSize: 11.5, color: T.sub }}>
+            Écart initial <b style={{ fontFamily: MONO, color: T.gold }}>{fmtXof(conv.initialGap)}</b> FCFA
+          </div>
+        )}
+      </Step>
+
+      {/* ② Solutions */}
+      <Step n="②" label="Solutions">
+        {(sp.solutions || []).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune solution proposée.</div>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {(sp.solutions || []).map((s: any) => (
+            <div key={s.id} style={{ border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '7px 9px', background: s.state === 'kept' ? T.green + '0d' : s.state === 'rejected' ? '#0000000a' : T.surface }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {s.state === 'kept' && <CheckCircle2 size={13} color={T.green} />}
+                {s.state === 'rejected' && <X size={13} color={T.sub} />}
+                {s.state === 'proposed' && <Circle size={13} color={T.orange} />}
+                <span style={{ fontSize: 12, fontWeight: 600, textDecoration: s.state === 'rejected' ? 'line-through' : 'none', color: s.state === 'rejected' ? T.sub : T.ink }}>{s.title}</span>
+              </div>
+              {s.motif && <div style={{ fontSize: 10.5, color: T.sub, marginTop: 3, paddingLeft: 19 }}>Motif : {s.motif}</div>}
+              {s.decisionRef && <div style={{ fontSize: 10.5, color: T.orange, marginTop: 3, paddingLeft: 19, fontFamily: MONO }}>{s.decisionRef}</div>}
+              {!readOnly && s.state === 'proposed' && (
+                <div style={{ display: 'flex', gap: 6, marginTop: 6, paddingLeft: 19 }}>
+                  <button onClick={() => decide(s.id, 'kept')} style={miniBtn(T.green)}>Retenir</button>
+                  <button onClick={() => decide(s.id, 'rejected')} style={miniBtn(T.sub)}>Écarter</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        {!readOnly && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            <input value={solTitle} onChange={e => setSolTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && propose()}
+              placeholder="Proposer une solution…" style={inp} />
+            <button onClick={propose} style={iconBtn}><Plus size={16} /></button>
+          </div>
+        )}
+      </Step>
+
+      {/* ③ Échéances */}
+      <Step n="③" label="Échéances">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {(sp.milestones || []).map((m: any, i: number) => (
+            <div key={m.id} style={{ display: 'flex', gap: 9, position: 'relative', paddingBottom: i === (sp.milestones.length - 1) ? 0 : 12 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={{ width: 10, height: 10, borderRadius: 5, background: m.state === 'done' ? T.green : m.state === 'late' ? T.red : m.state === 'now' ? T.orange : T.line, marginTop: 3 }} />
+                {i < sp.milestones.length - 1 && <div style={{ width: 2, flex: 1, background: T.softLine }} />}
+              </div>
+              <div style={{ paddingBottom: 4 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600 }}>{m.label}</div>
+                <div style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{dayFR(m.date)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Step>
+
+      {/* ④ Clôture */}
+      <Step n="④" label="Clôture">
+        <div style={{ fontSize: 11.5, color: T.sub, marginBottom: 8 }}>
+          {criteria.filter((c: ExitCriterion) => c.met).length}/{criteria.length} critères de sortie satisfaits
+        </div>
+        {readOnly ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
+            <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
+            {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
+          </div>
+        ) : (
+          <button onClick={onClose} disabled={!allCriteriaMet} style={{
+            ...btn(allCriteriaMet ? T.green : T.line), width: '100%', justifyContent: 'center',
+            cursor: allCriteriaMet ? 'pointer' : 'not-allowed', color: allCriteriaMet ? '#fff' : T.sub,
+          }}>
+            {allCriteriaMet ? <Unlock size={15} /> : <Lock size={15} />}
+            Clôturer & sceller le rapport
+          </button>
+        )}
+      </Step>
+    </div>
+  );
+}
+
+// ── Synthèse PROPH3T épinglée ─────────────────────────────────────────────────
+function ProphetSynthesis({ sp, conv, events, criteria, tasks }: any) {
+  const openActions = (tasks as Task[]).filter(t => t.status !== 'done').length;
+  const kept = (sp.solutions || []).find((s: any) => s.state === 'kept');
+  const line = `Convergence ${conv?.pct ?? 0} %${conv?.initialGap ? ` · écart restant ${fmtXof(conv.currentGap)} / ${fmtXof(conv.initialGap)} FCFA` : ''}. `
+    + `${(sp.solutions || []).length} solution(s), ${kept ? `retenue : « ${kept.title} »` : 'aucune retenue'}. `
+    + `${openActions} action(s) ouverte(s), ${criteria.filter((c: ExitCriterion) => c.met).length}/${criteria.length} critères verts.`;
+  return (
+    <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+      <div style={{ width: 26, height: 26, borderRadius: 8, background: T.petrol + '15', color: T.petrol, display: 'grid', placeItems: 'center', flexShrink: 0 }}><Sparkles size={15} /></div>
+      <div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.petrol }}>Synthèse PROPH3T <span style={{ color: T.sub, fontWeight: 500 }}>· mode strict, chiffres issus du GL</span></div>
+        <div style={{ fontSize: 12, color: T.ink, lineHeight: 1.45, marginTop: 2 }}>{line}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Événement du fil ──────────────────────────────────────────────────────────
+function FeedEvent({ ev, me, adapter, onReload, readOnly }: { ev: SpaceEvent; me: any; adapter: any; onReload: () => void; readOnly: boolean }) {
+  const meta = EVENT_META[ev.type];
+  const Icon = meta.icon;
+  const react = async (emoji: string) => { await toggleReaction(adapter, ev, emoji, me.id); onReload(); };
+
+  if (ev.type === 'system') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
+        <span style={{ fontSize: 11, color: T.petrol, background: T.petrol + '10', borderRadius: 12, padding: '3px 12px', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
+          <Sparkles size={12} /> {ev.body} · {timeAgo(ev.createdAt)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
+      <Avatar name={ev.authorName || 'Utilisateur'} size="sm" />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ev.authorName || 'Utilisateur'}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: meta.color, background: meta.color + '15', borderRadius: 6, padding: '1px 6px' }}>
+            <Icon size={11} /> {meta.label}
+          </span>
+          {ev.via && <span style={{ fontSize: 10.5, color: T.sub }}>via {ev.via}</span>}
+          <span style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{timeHM(ev.createdAt)}</span>
+        </div>
+
+        {ev.type === 'message' && <div style={{ fontSize: 13, color: T.ink, marginTop: 3, lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>{renderRefs(ev.body)}</div>}
+        {ev.type === 'ecriture' && <EcritureChip p={ev.payload as EcriturePayload} body={ev.body} />}
+        {ev.type === 'decision' && <DecisionChip p={ev.payload as DecisionPayload} />}
+        {ev.type === 'snapshot' && <SnapshotChip p={ev.payload as SnapshotPayload} />}
+
+        {/* réactions */}
+        <div style={{ display: 'flex', gap: 5, marginTop: 6, alignItems: 'center' }}>
+          {Object.entries(ev.reactions || {}).map(([em, ids]) => (ids as string[]).length > 0 && (
+            <button key={em} onClick={() => react(em)} style={{ fontSize: 11, border: `1px solid ${T.line}`, borderRadius: 10, padding: '0 7px', background: (ids as string[]).includes(me.id) ? T.orange + '22' : T.surface, cursor: 'pointer' }}>
+              {em} {(ids as string[]).length}
+            </button>
+          ))}
+          {!readOnly && <button onClick={() => react('👍')} style={{ fontSize: 11, color: T.sub, border: 'none', background: 'none', cursor: 'pointer' }}>+</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function renderRefs(body: string) {
+  // Surligne les #références (compte / pièce) — liens résolus vers FNA (CDC §6.4).
+  const parts = body.split(/(#[0-9A-Za-z-]+)/g);
+  return parts.map((p, i) => p.startsWith('#')
+    ? <span key={i} style={{ color: T.petrol, fontWeight: 700, fontFamily: MONO }}>{p}</span>
+    : <React.Fragment key={i}>{p}</React.Fragment>);
+}
+
+function EcritureChip({ p, body }: { p: EcriturePayload; body: string }) {
+  return (
+    <div style={{ marginTop: 5 }}>
+      {body && <div style={{ fontSize: 13, color: T.ink, marginBottom: 5 }}>{body}</div>}
+      <div style={{ border: `1px solid ${T.green}33`, background: T.green + '0c', borderRadius: 9, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <PenLine size={16} color={T.green} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, fontFamily: MONO }}>{p.entryNumber}{p.journal ? ` · ${p.journal}` : ''}</div>
+          <div style={{ fontSize: 11, color: T.sub }}>{p.accounts}{p.amount != null ? ` · ${fmtXof(p.amount)} FCFA` : ''}</div>
+        </div>
+        <span style={{ fontSize: 11, color: T.green, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>Ouvrir dans FNA <ChevronRight size={13} /></span>
+      </div>
+    </div>
+  );
+}
+
+function DecisionChip({ p }: { p: DecisionPayload }) {
+  const approved = !!p.approvedAt;
+  return (
+    <div style={{ marginTop: 5, border: `1px solid ${T.orange}44`, background: T.orange + '0c', borderRadius: 9, padding: '9px 11px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 800 }}>{p.title}</span>
+        {p.ref && <span style={{ fontFamily: MONO, fontSize: 10.5, color: T.orange, fontWeight: 700 }}>{p.ref}</span>}
+      </div>
+      {p.detail && <div style={{ fontSize: 12, color: T.ink, marginTop: 3 }}>{p.detail}</div>}
+      {p.amount != null && <div style={{ fontFamily: MONO, fontSize: 13, color: T.gold, fontWeight: 800, marginTop: 4 }}>{fmtXof(p.amount)} FCFA</div>}
+      {p.governanceRule && (
+        <div style={{ fontSize: 11, color: T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+          <ShieldCheck size={13} color={approved ? T.green : T.orange} /> {p.governanceRule}
+        </div>
+      )}
+      <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: approved ? T.green : T.red }}>
+        {approved ? `✓ Validée par ${p.approvedByName} · ${dayFR(p.approvedAt)}` : `En attente de validation — ${(p.requiredRole || '').toUpperCase()}`}
+      </div>
+    </div>
+  );
+}
+
+function SnapshotChip({ p }: { p: SnapshotPayload }) {
+  return (
+    <div style={{ marginTop: 5, border: `1px solid ${T.purple}44`, background: T.purple + '0a', borderRadius: 9, padding: '9px 11px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+        <Camera size={15} color={T.purple} />
+        <span style={{ fontSize: 12.5, fontWeight: 700 }}>{p.title}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: T.sub, fontFamily: MONO }}>#{p.hash}</span>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ fontSize: 11, borderCollapse: 'collapse', width: '100%' }}>
+          <thead><tr>{p.columns.map((c, i) => <th key={i} style={{ textAlign: 'left', padding: '3px 8px', color: T.sub, borderBottom: `1px solid ${T.line}`, fontWeight: 600 }}>{c}</th>)}</tr></thead>
+          <tbody>{p.rows.slice(0, 6).map((r, ri) => <tr key={ri}>{r.map((cell, ci) => <td key={ci} style={{ padding: '3px 8px', fontFamily: typeof cell === 'number' ? MONO : undefined, color: typeof cell === 'number' ? T.gold : T.ink }}>{typeof cell === 'number' ? fmtXof(cell) : cell}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
+      <div style={{ fontSize: 10, color: T.sub, marginTop: 5 }}>Figé le {new Date(p.frozenAt).toLocaleString('fr-FR')} · {p.source} · immuable</div>
+    </div>
+  );
+}
+
+// ── Composeur multi-type ──────────────────────────────────────────────────────
+function Composer({ sp, me, tenantId, adapter, onSent }: any) {
+  const { toast } = useToast();
+  const [mode, setMode] = useState<'message' | 'ecriture' | 'decision' | 'snapshot'>('message');
+  const [text, setText] = useState('');
+  // Écriture
+  const [entryNumber, setEntryNumber] = useState('');
+  const [accounts, setAccounts] = useState('');
+  const [amount, setAmount] = useState('');
+  // Décision
+  const [decTitle, setDecTitle] = useState('');
+
+  const send = async () => {
+    try {
+      if (mode === 'message') {
+        if (!text.trim()) return;
+        await postMessage(adapter, { spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name, body: text.trim(), via: 'Atlas FNA · Espace' });
+      } else if (mode === 'ecriture') {
+        if (!entryNumber.trim()) return;
+        await postEcriture(adapter, {
+          spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name,
+          body: text.trim(), via: 'Atlas FNA · Journaux',
+          payload: { entryNumber: entryNumber.trim(), accounts: accounts.trim(), amount: amount ? Number(amount) : undefined },
+        });
+        // Un geste comptable rapproche l'écart → recalcul convergence.
+        await refreshConvergence(adapter, sp).catch(() => {});
+      } else if (mode === 'decision') {
+        if (!decTitle.trim()) return;
+        const { ref } = await postDecision(adapter, {
+          space: sp, tenantId, authorId: me.id, authorName: me.name,
+          title: decTitle.trim(), detail: text.trim() || undefined, amount: amount ? Number(amount) : undefined,
+        });
+        toast.success(`Décision ${ref} enregistrée`);
+      } else if (mode === 'snapshot') {
+        const payload = await buildSnapshotPayload(
+          text.trim() || 'Snapshot convergence',
+          'Atlas FNA · Espace',
+          ['Indicateur', 'Valeur'],
+          [['Écart restant', sp.convergence?.source?.kind === 'manual' ? sp.convergence.source.currentGap : 0], ['Convergence bp', sp.convergenceBp || 0]],
+        );
+        await postSnapshot(adapter, { spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name, body: '', payload, via: 'Atlas FNA' });
+      }
+      setText(''); setEntryNumber(''); setAccounts(''); setAmount(''); setDecTitle('');
+      onSent();
+    } catch (e) { console.error(e); toast.error('Échec de l\'envoi'); }
+  };
+
+  const modes: [typeof mode, string, React.ComponentType<any>][] = [
+    ['message', 'Message', Send], ['ecriture', 'Écriture', PenLine], ['decision', 'Décision', Gavel], ['snapshot', 'Snapshot', Camera],
+  ];
+  const amt = amount ? Number(amount) : 0;
+  const rule = mode === 'decision' && amt ? requiredRoleFor(amt) : null;
+
+  return (
+    <div style={{ borderTop: `1px solid ${T.line}`, background: T.surface, padding: 12 }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 9 }}>
+        {modes.map(([k, lbl, Ic]) => (
+          <button key={k} onClick={() => setMode(k)} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600,
+            border: `1px solid ${mode === k ? EVENT_META[k].color : T.line}`, color: mode === k ? EVENT_META[k].color : T.sub,
+            background: mode === k ? EVENT_META[k].color + '12' : T.surface, borderRadius: 8, padding: '4px 10px', cursor: 'pointer',
+          }}><Ic size={13} /> {lbl}</button>
+        ))}
+      </div>
+
+      {mode === 'ecriture' && (
+        <div style={{ display: 'flex', gap: 6, marginBottom: 7 }}>
+          <input value={entryNumber} onChange={e => setEntryNumber(e.target.value)} placeholder="N° pièce (ex. BQ-2026-03-0142)" style={inp} />
+          <input value={accounts} onChange={e => setAccounts(e.target.value)} placeholder="Comptes (521100 / 411…)" style={inp} />
+          <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant" type="number" style={{ ...inp, width: 110 }} />
+        </div>
+      )}
+      {mode === 'decision' && (
+        <div style={{ marginBottom: 7 }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input value={decTitle} onChange={e => setDecTitle(e.target.value)} placeholder="Intitulé de la décision" style={inp} />
+            <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant FCFA" type="number" style={{ ...inp, width: 130 }} />
+          </div>
+          {rule && (
+            <div style={{ fontSize: 11, color: rule.threshold > 0 ? T.orange : T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <ShieldCheck size={13} /> {fmtXof(amt)} FCFA → validation <b>{rule.label}</b> requise
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <textarea value={text} onChange={e => setText(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send(); }}
+          placeholder={mode === 'message' ? 'Écrire un message (#521100 pour référencer)…' : mode === 'decision' ? 'Corps / justification (optionnel)…' : mode === 'ecriture' ? 'Contexte de l\'écriture…' : 'Titre du snapshot…'}
+          rows={2} style={{ ...inp, resize: 'none', flex: 1, fontFamily: 'inherit' }} />
+        <button onClick={send} style={{ ...btn(T.petrol), padding: '9px 14px' }}><Send size={16} /></button>
+      </div>
+    </div>
+  );
+}
+
+// ── Carte Objectif & critères ─────────────────────────────────────────────────
+function ObjectiveCard({ sp, conv, criteria, readOnly, me, adapter, onReload }: any) {
+  const { toast } = useToast();
+  const check = async (c: ExitCriterion) => {
+    if (c.auto) { toast.info('Critère calculé — se satisfait automatiquement depuis le GL'); return; }
+    await satisfyCriterion(adapter, sp, c.id, me); toast.success('Critère validé'); onReload();
+  };
+  return (
+    <div style={{ padding: 14, borderBottom: `1px solid ${T.line}` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+        <Target size={15} color={T.petrol} />
+        <span style={{ fontWeight: 800, fontSize: 13 }}>Objectif</span>
+      </div>
+      <p style={{ margin: '0 0 10px', fontSize: 12, color: T.ink, lineHeight: 1.4 }}>{sp.objective || '—'}</p>
+      {conv && (
+        <>
+          <ConvergenceBar bp={conv.bp} />
+          {conv.formula && <div style={{ fontSize: 9.5, color: T.sub, fontFamily: MONO, marginTop: 4 }}>{conv.formula}</div>}
+          <div style={{ fontSize: 9.5, color: T.petrol, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingUp size={11} /> calculé · jamais saisi</div>
+        </>
+      )}
+      <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 7 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.sub, textTransform: 'uppercase', letterSpacing: .4 }}>Critères de sortie</span>
+        {criteria.length === 0 && <span style={{ fontSize: 11.5, color: T.sub }}>Aucun critère.</span>}
+        {criteria.map((c: ExitCriterion) => (
+          <button key={c.id} onClick={() => !readOnly && !c.met && check(c)} disabled={readOnly || c.met}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: readOnly || c.met ? 'default' : 'pointer' }}>
+            {c.met ? <CheckCircle2 size={16} color={T.green} /> : <Circle size={16} color={T.line} />}
+            <span style={{ flex: 1, fontSize: 12, color: c.met ? T.ink : T.sub }}>{c.label}</span>
+            {c.auto && <span style={{ fontSize: 9, color: T.petrol, background: T.petrol + '12', borderRadius: 5, padding: '1px 5px' }}>calculé</span>}
+            {c.value && <span style={{ fontSize: 10.5, color: c.met ? T.green : T.gold, fontFamily: MONO }}>{c.value}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Onglet Actions (checklist de résolution) ──────────────────────────────────
+function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: any) {
+  const { toast } = useToast();
+  const [label, setLabel] = useState('');
+  const [critical, setCritical] = useState(false);
+
+  const add = async () => {
+    if (!label.trim()) return;
+    await createTask(adapter, { tenantId, spaceId: sp.id, title: label.trim(), createdBy: me.id, assigneeId: me.id, assigneeName: me.name, criticalPath: critical });
+    setLabel(''); setCritical(false); onReload();
+  };
+  const toggle = async (t: Task) => {
+    await updateTask(adapter, t.id, { status: t.status === 'done' ? 'todo' : 'done' });
+    if (t.status !== 'done') toast.success('Action complétée');
+    onReload();
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {(tasks as Task[]).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune action.</div>}
+      {(tasks as Task[]).map(t => (
+        <div key={t.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '8px 9px', borderLeft: t.criticalPath ? `3px solid ${T.red}` : `1px solid ${T.softLine}` }}>
+          <button onClick={() => !readOnly && toggle(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: readOnly ? 'default' : 'pointer', marginTop: 1 }}>
+            {t.status === 'done' ? <CheckCircle2 size={16} color={T.green} /> : <Circle size={16} color={T.line} />}
+          </button>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, textDecoration: t.status === 'done' ? 'line-through' : 'none', color: t.status === 'done' ? T.sub : T.ink }}>{t.title}</div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center', flexWrap: 'wrap' }}>
+              {t.criticalPath && <span style={{ fontSize: 9.5, color: T.red, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Flag size={10} /> chemin critique</span>}
+              {t.assigneeName && <span style={{ fontSize: 10.5, color: T.sub }}>{t.assigneeName}</span>}
+              {t.linkedRef && <span style={{ fontSize: 10, color: T.green, fontFamily: MONO }}>{t.linkedRef}</span>}
+            </div>
+          </div>
+        </div>
+      ))}
+      {!readOnly && (
+        <div style={{ marginTop: 4 }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input value={label} onChange={e => setLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="Nouvelle action…" style={inp} />
+            <button onClick={add} style={iconBtn}><Plus size={16} /></button>
+          </div>
+          <label style={{ fontSize: 10.5, color: T.sub, display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, cursor: 'pointer' }}>
+            <input type="checkbox" checked={critical} onChange={e => setCritical(e.target.checked)} /> chemin critique (bloquant)
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Onglet Décisions (registre + matrice de validation) ───────────────────────
+function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
+  const { toast } = useToast();
+  const decisions = (events as SpaceEvent[]).filter(e => e.type === 'decision');
+  const canApprove = (p: DecisionPayload) => {
+    // Le rôle courant doit couvrir le rôle requis (matrice de seuils).
+    const order = ['comptable', 'daf', 'dg'];
+    return order.indexOf(me.role) >= order.indexOf(p.requiredRole || 'comptable');
+  };
+  const approve = async (ev: SpaceEvent) => {
+    const p = ev.payload as DecisionPayload;
+    if (!canApprove(p)) { toast.error(`Validation réservée au rôle ${(p.requiredRole || '').toUpperCase()}`); return; }
+    await approveDecision(adapter, ev, me); toast.success(`${p.ref} validée`); onReload();
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      {decisions.length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune décision enregistrée.</div>}
+      {decisions.map(ev => {
+        const p = ev.payload as DecisionPayload;
+        return (
+          <div key={ev.id}>
+            <DecisionChip p={p} />
+            {!readOnly && !p.approvedAt && (
+              <button onClick={() => approve(ev)} style={{ ...miniBtn(T.green), marginTop: 5 }}>Valider ({(p.requiredRole || '').toUpperCase()})</button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Onglet Pièces (3 familles) ────────────────────────────────────────────────
+function PiecesTab({ events }: { events: SpaceEvent[] }) {
+  const ecritures = events.filter(e => e.type === 'ecriture');
+  const snaps = events.filter(e => e.type === 'snapshot');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <PieceGroup title="Écritures référencées" color={T.green} count={ecritures.length}>
+        {ecritures.map(e => <EcritureChip key={e.id} p={e.payload as EcriturePayload} body={e.body} />)}
+      </PieceGroup>
+      <PieceGroup title="Snapshots figés" color={T.purple} count={snaps.length}>
+        {snaps.map(e => <SnapshotChip key={e.id} p={e.payload as SnapshotPayload} />)}
+      </PieceGroup>
+      <PieceGroup title="Documents versionnés" color={T.blue} count={0}>
+        <div style={{ fontSize: 11, color: T.sub }}>Aucun document joint.</div>
+      </PieceGroup>
+    </div>
+  );
+}
+function PieceGroup({ title, color, count, children }: any) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+        <span style={{ width: 8, height: 8, borderRadius: 4, background: color }} />
+        <span style={{ fontSize: 11.5, fontWeight: 700 }}>{title}</span>
+        <span style={{ fontSize: 10.5, color: T.sub }}>· {count}</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>{children}</div>
+    </div>
+  );
+}
+
+// ── Onglet Diffusion (routage) ────────────────────────────────────────────────
+function DiffusionTab({ sp, events }: { sp: Space; events: SpaceEvent[] }) {
+  const mentions = events.filter(e => (e.mentions || []).length > 0).length;
+  const decisions = events.filter(e => e.type === 'decision' && !(e.payload as DecisionPayload)?.approvedAt).length;
+  const rows = [
+    { who: sp.responsibleName || 'Responsable', surface: 'Workspace FNA', what: 'Synthèse + validations', state: decisions > 0 ? `${decisions} en attente` : 'à jour' },
+    { who: 'Équipe', surface: 'Dock « Mes espaces »', what: 'Mentions + relances', state: `${mentions} mention(s)` },
+    { who: 'DAF', surface: 'Digest e-mail 18h', what: 'Décisions > seuil', state: 'programmé' },
+  ];
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+      <div style={{ fontSize: 11, color: T.sub, marginBottom: 2 }}>Qui reçoit quoi, où — routage rendu visible (CDC §8.4).</div>
+      {rows.map((r, i) => (
+        <div key={i} style={{ border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '8px 10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, fontWeight: 700 }}>{r.who}</span>
+            <span style={{ fontSize: 10, color: T.petrol, background: T.petrol + '10', borderRadius: 6, padding: '1px 7px' }}>{r.surface}</span>
+          </div>
+          <div style={{ fontSize: 11, color: T.sub, marginTop: 3 }}>{r.what} · <b style={{ color: T.ink }}>{r.state}</b></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════ CRÉATION D'ESPACE ══════════
+function CreateSpaceModal({ me, tenantId, onClose, onCreated }: {
+  me: { id: string; name: string; role: string }; tenantId: string;
+  onClose: () => void; onCreated: (id: string) => void;
+}) {
+  const { adapter } = useData();
+  const { toast } = useToast();
+  const [title, setTitle] = useState('');
+  const [problem, setProblem] = useState('');
+  const [objective, setObjective] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [anchorType, setAnchorType] = useState<keyof typeof ANCHOR_TYPE_LABELS>('reconciliation');
+  const [anchorLabel, setAnchorLabel] = useState('');
+  const [account, setAccount] = useState('');
+  const [initialGap, setInitialGap] = useState('');
+  const [critLabel, setCritLabel] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (!title.trim() || !problem.trim() || !objective.trim()) { toast.warning('Titre, problème et objectif sont requis'); return; }
+    if (!anchorLabel.trim()) { toast.warning('Un espace ne vit pas sans ancrage métier'); return; }
+    setBusy(true);
+    try {
+      // Critère calculé obligatoire : compte à solder si un compte est fourni,
+      // sinon un critère manuel saisi.
+      const criteria: ExitCriterion[] = [];
+      if (account.trim()) criteria.push({ id: crypto.randomUUID?.() || String(Date.now()), label: `Écart ${account.trim()} soldé`, met: false, auto: { kind: 'account_zero', accountCode: account.trim() } });
+      if (critLabel.trim()) criteria.push({ id: (crypto.randomUUID?.() || String(Date.now())) + 'm', label: critLabel.trim(), met: false });
+      if (criteria.length === 0) criteria.push({ id: 'c0', label: 'Objectif atteint (validation responsable)', met: false });
+
+      const convergence = account.trim() && initialGap
+        ? { initialGap: Number(initialGap), source: { kind: 'account_balance' as const, accountCode: account.trim() }, label: `écart ${account.trim()}` }
+        : undefined;
+
+      const space = await createSpace(adapter, {
+        tenantId, title: title.trim(), problem: problem.trim(), objective: objective.trim(),
+        createdBy: me.id, responsibleId: me.id, responsibleName: me.name, deadline: deadline || undefined,
+        convergence, exitCriteria: criteria,
+        anchors: [{ type: anchorType, app: 'fna', label: anchorLabel.trim(), isPrimary: true, ref: account ? { accountCode: account.trim() } : undefined }],
+      });
+      toast.success('Espace de résolution ouvert');
+      onCreated(space.id);
+    } catch (e) { console.error(e); toast.error('Échec de la création'); } finally { setBusy(false); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,43,46,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 20 }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: T.surface, borderRadius: 16, width: 'min(600px, 100%)', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800 }}>Ouvrir un espace de résolution</h3>
+          <button onClick={onClose} style={iconBtn}><X size={18} /></button>
+        </div>
+        <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 13 }}>
+          <Field label="Titre">
+            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. Écarts BICICI 521100 — Mars 2026" style={inpFull} />
+          </Field>
+          <Field label="Problème (constat chiffré, impact, origine)">
+            <textarea value={problem} onChange={e => setProblem(e.target.value)} rows={3} placeholder="Ex. 14 120 000 FCFA d'écarts non justifiés sur le compte 521100 constatés à la clôture de mars par la DAF." style={{ ...inpFull, resize: 'vertical' }} />
+          </Field>
+          <Field label="Objectif de résolution">
+            <input value={objective} onChange={e => setObjective(e.target.value)} placeholder="Ex. Ramener l'écart 521100 à zéro, justifié pièce par pièce." style={inpFull} />
+          </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="Type d'ancrage">
+              <select value={anchorType} onChange={e => setAnchorType(e.target.value as any)} style={inpFull}>
+                {Object.entries(ANCHOR_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </Field>
+            <Field label="Échéance">
+              <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inpFull} />
+            </Field>
+          </div>
+          <Field label="Objet ancré (libellé)">
+            <input value={anchorLabel} onChange={e => setAnchorLabel(e.target.value)} placeholder="Ex. Rapprochement 521100 · Mars 2026" style={inpFull} />
+          </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <Field label="Compte GL (convergence calculée)">
+              <input value={account} onChange={e => setAccount(e.target.value)} placeholder="Ex. 521100" style={{ ...inpFull, fontFamily: MONO }} />
+            </Field>
+            <Field label="Écart initial (FCFA)">
+              <input value={initialGap} onChange={e => setInitialGap(e.target.value)} type="number" placeholder="Ex. 14120000" style={{ ...inpFull, fontFamily: MONO }} />
+            </Field>
+          </div>
+          <Field label="Critère de sortie manuel (optionnel)">
+            <input value={critLabel} onChange={e => setCritLabel(e.target.value)} placeholder="Ex. Liasse validée par la DAF" style={inpFull} />
+          </Field>
+          <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px', display: 'flex', gap: 7 }}>
+            <Sparkles size={14} color={T.petrol} style={{ flexShrink: 0, marginTop: 1 }} />
+            La convergence sera <b>calculée depuis le grand livre</b> (jamais saisie). Un critère « compte à solder » se satisfait automatiquement quand le solde atteint zéro.
+          </div>
+        </div>
+        <div style={{ padding: '14px 20px', borderTop: `1px solid ${T.line}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button onClick={onClose} style={{ ...btn('#0000'), color: T.sub, border: `1px solid ${T.line}` }}>Annuler</button>
+          <button onClick={submit} disabled={busy} style={btn(T.petrol)}>{busy ? 'Création…' : 'Ouvrir l\'espace'}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════ PETITS COMPOSANTS ══════════
+function ConvergenceBar({ bp, compact }: { bp: number; compact?: boolean }) {
+  const pct = Math.round(bp / 100);
+  const color = pct >= 100 ? T.green : pct >= 50 ? T.gold : T.orange;
+  return (
+    <div>
+      {!compact && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: T.sub, marginBottom: 3 }}>
+        <span>Convergence</span><span style={{ fontFamily: MONO, color, fontWeight: 700 }}>{pct}%</span>
+      </div>}
+      <div style={{ height: compact ? 5 : 7, background: T.softLine, borderRadius: 4, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 4, transition: 'width .4s' }} />
+      </div>
+    </div>
+  );
+}
+function StatusPill({ status }: { status: SpaceStatus }) {
+  const map: Record<SpaceStatus, string> = { ouvert: T.blue, analyse: T.orange, action: T.petrol, resolu: T.green, archive: T.sub, abandonne: T.red };
+  const c = map[status];
+  return <span style={{ fontSize: 10.5, fontWeight: 700, color: c, background: c + '15', borderRadius: 7, padding: '2px 9px' }}>{SPACE_STATUS_LABELS[status]}</span>;
+}
+function Stat({ label, value, color, icon: Icon }: any) {
+  return (
+    <div style={{ flex: 1, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 11 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 9, background: color + '15', color, display: 'grid', placeItems: 'center' }}><Icon size={17} /></div>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 800, fontFamily: MONO, color: T.ink, lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 11, color: T.sub, marginTop: 2 }}>{label}</div>
+      </div>
+    </div>
+  );
+}
+function Step({ n, label, children }: { n: string; label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+        <span style={{ fontSize: 15, fontWeight: 800, color: T.orange }}>{n}</span>
+        <span style={{ fontWeight: 800, fontSize: 13, color: T.ink }}>{label}</span>
+      </div>
+      <div style={{ paddingLeft: 2 }}>{children}</div>
+    </div>
+  );
+}
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'block' }}>
+      <span style={{ fontSize: 11.5, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 4 }}>{label}</span>
+      {children}
+    </label>
+  );
+}
+
+// ── styles ────────────────────────────────────────────────────────────────────
+const btn = (bg: string): React.CSSProperties => ({
+  display: 'inline-flex', alignItems: 'center', gap: 7, background: bg, color: '#fff', border: 'none',
+  borderRadius: 10, padding: '9px 15px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+});
+const iconBtn: React.CSSProperties = { display: 'grid', placeItems: 'center', width: 34, height: 34, borderRadius: 9, border: `1px solid ${T.line}`, background: T.surface, color: T.sub, cursor: 'pointer' };
+const miniBtn = (c: string): React.CSSProperties => ({ fontSize: 11, fontWeight: 700, color: '#fff', background: c, border: 'none', borderRadius: 7, padding: '3px 10px', cursor: 'pointer' });
+const inp: React.CSSProperties = { flex: 1, border: `1px solid ${T.line}`, borderRadius: 9, padding: '8px 11px', fontSize: 12.5, outline: 'none', color: T.ink, background: T.surface, minWidth: 0 };
+const inpFull: React.CSSProperties = { ...inp, width: '100%', boxSizing: 'border-box' };

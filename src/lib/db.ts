@@ -603,30 +603,58 @@ export interface DBReport {
 // ESPACE COLLABORATIF
 // ============================================================================
 
+// Espace de RÉSOLUTION (centré sur un problème comptable). Les objets riches
+// (convergence, exitCriteria, solutions, milestones) sont stockés en champs
+// non indexés — Dexie ne requiert pas de bump de schéma pour ceux-ci.
 export interface DBCollabChannel {
   id: string;
   tenantId: string;
-  name: string;
+  name: string;               // = titre de l'espace
   description?: string;
-  type: 'channel' | 'dm';
+  type: 'channel' | 'dm' | 'space';
+  // ── Modèle espace de résolution ──
+  problem?: string;
+  objective?: string;
+  responsibleId?: string;
+  responsibleName?: string;
+  deadline?: string;
+  status?: 'ouvert' | 'analyse' | 'action' | 'resolu' | 'archive' | 'abandonne';
+  convergenceBp?: number;     // convergence figée en points de base (0-10000)
+  anchors?: any[];            // SpaceAnchor[] — ancrage objets métier (bidirectionnel)
+  decisionSeq?: number;       // dernière séquence DEC-AAAA-NNN (portée espace)
+  convergence?: any;          // ConvergenceConfig (source de calcul)
+  exitCriteria?: any[];       // ExitCriterion[]
+  solutions?: any[];          // Solution[]
+  milestones?: any[];         // Milestone[]
+  linkedType?: string;
+  linkedId?: string;
+  linkedLabel?: string;
+  linkedPath?: string;
+  abandonReason?: string;     // motif obligatoire si statut = abandonne
+  closedAt?: string;
+  closureHash?: string;
   isPrivate?: boolean;
-  members?: string[];        // userIds (pour dm/privé)
+  members?: string[];
   createdBy: string;
   createdAt: string;
   updatedAt: string;
   archived?: boolean;
 }
 
+// Événement TYPÉ du fil (message/décision/écriture/snapshot/système).
 export interface DBCollabMessage {
   id: string;
-  channelId: string;
+  channelId: string;          // = spaceId
   tenantId: string;
+  type?: 'message' | 'decision' | 'ecriture' | 'snapshot' | 'system';
   authorId: string;
   authorName?: string;
+  via?: string;
   body: string;
-  mentions?: string[];        // userIds mentionnés
-  parentId?: string;          // réponse dans un fil
-  reactions?: Record<string, string[]>; // emoji -> userIds
+  mentions?: string[];
+  parentId?: string;
+  reactions?: Record<string, string[]>;
+  payload?: any;              // DecisionPayload | EcriturePayload | SnapshotPayload
   attachments?: { name: string; url?: string; size?: number }[];
   editedAt?: string;
   deletedAt?: string;
@@ -636,6 +664,7 @@ export interface DBCollabMessage {
 export interface DBCollabTask {
   id: string;
   tenantId: string;
+  spaceId?: string;
   title: string;
   description?: string;
   status: 'todo' | 'in_progress' | 'review' | 'done';
@@ -643,9 +672,13 @@ export interface DBCollabTask {
   assigneeId?: string;
   assigneeName?: string;
   dueDate?: string;
+  criticalPath?: boolean;
+  blocksCount?: number;
+  blockedReason?: string;
+  linkedRef?: string;
   tags?: string[];
   watchers?: string[];
-  linkedType?: string;        // ex: 'journalEntry' | 'closure' | 'recovery'
+  linkedType?: string;
   linkedId?: string;
   order?: number;
   createdBy: string;

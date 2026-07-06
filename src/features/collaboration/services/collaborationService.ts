@@ -1,143 +1,348 @@
 /**
- * Service collaboration — discussions (canaux/messages), présence.
- * Persisté via DataAdapter (Dexie en local, Supabase en SaaS).
+ * Service collaboration — ESPACES DE RÉSOLUTION (CDC v1.0).
+ * Espaces (problème/objectif/ancrage/convergence/critères/solutions/échéances),
+ * fil d'événements TYPÉS append-only (message/décision/écriture/snapshot/système),
+ * gouvernance par seuils, snapshots hashés, clôture opposable. Présence + non-lus.
+ * Persisté via DataAdapter (Dexie local / Supabase SaaS). Aucun calcul par LLM :
+ * convergence & critères sont dérivés du grand livre en code déterministe.
  */
 import type { DataAdapter } from '@atlas/data';
 import type {
-  DBCollabChannel, DBCollabMessage, DBCollabPresence,
+  DBCollabChannel, DBCollabMessage, DBCollabPresence, DBJournalEntry,
 } from '../../../lib/db';
-import type { Channel, Message, Presence, PresenceStatus } from '../types';
+import type {
+  Space, SpaceEvent, Presence, PresenceStatus, EventType, ExitCriterion,
+  DecisionPayload, EcriturePayload, SnapshotPayload, Solution, Milestone,
+  SpaceAnchor, SpaceStatus, GovernanceRule,
+} from '../types';
+import { requiredRoleFor, DEFAULT_GOVERNANCE } from '../types';
 
 const now = () => new Date().toISOString();
 const uid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.round(Math.random() * 1e9)}`);
+const fmt = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-const DEFAULT_CHANNELS = [
-  { name: 'général', description: 'Discussion générale de l\'équipe' },
-  { name: 'comptabilité', description: 'Écritures, lettrage, questions comptables' },
-  { name: 'clôture', description: 'Coordination des travaux de clôture' },
-];
-
-// ── CANAUX ──────────────────────────────────────────────────────────────────
-
-export async function listChannels(adapter: DataAdapter, tenantId: string): Promise<Channel[]> {
-  const all = await adapter.getAll<DBCollabChannel>('collabChannels');
-  return (all as Channel[])
-    .filter(c => c.tenantId === tenantId && !c.archived)
-    .sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : a.type === 'channel' ? -1 : 1));
+async function sha256(text: string): Promise<string> {
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+  } catch { return uid().replace(/-/g, ''); }
 }
 
-export async function ensureDefaultChannels(adapter: DataAdapter, tenantId: string, userId: string): Promise<Channel[]> {
-  const existing = await listChannels(adapter, tenantId);
-  const channels = existing.filter(c => c.type === 'channel');
-  if (channels.length > 0) return existing;
-  for (const def of DEFAULT_CHANNELS) {
-    await adapter.create<DBCollabChannel>('collabChannels', {
-      id: uid(), tenantId, name: def.name, description: def.description,
-      type: 'channel', isPrivate: false, createdBy: userId, createdAt: now(), updatedAt: now(),
-    } as DBCollabChannel);
+// ── SOLDE D'UN COMPTE (pour convergence & critères auto, requête GL) ──────────
+
+async function accountBalance(adapter: DataAdapter, accountCode: string): Promise<number> {
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  let bal = 0;
+  for (const e of entries as any[]) {
+    if (e.status === 'draft') continue;
+    for (const l of (e.lines || [])) {
+      if (String(l.accountCode || '').startsWith(accountCode)) bal += (l.debit || 0) - (l.credit || 0);
+    }
   }
-  return listChannels(adapter, tenantId);
+  return bal;
 }
 
-export async function createChannel(
-  adapter: DataAdapter,
-  data: { tenantId: string; name: string; description?: string; type?: 'channel' | 'dm'; isPrivate?: boolean; members?: string[]; createdBy: string },
-): Promise<Channel> {
+// ── ESPACES ──────────────────────────────────────────────────────────────────
+
+function toSpace(c: DBCollabChannel): Space {
+  return {
+    id: c.id, tenantId: c.tenantId, title: c.name, problem: c.problem || '', objective: c.objective || '',
+    responsibleId: c.responsibleId, responsibleName: c.responsibleName, deadline: c.deadline,
+    status: (c.status as SpaceStatus) || 'ouvert', convergence: c.convergence, convergenceBp: c.convergenceBp,
+    exitCriteria: c.exitCriteria || [], solutions: c.solutions || [], milestones: c.milestones || [],
+    anchors: c.anchors || [], decisionSeq: c.decisionSeq,
+    linkedType: c.linkedType, linkedId: c.linkedId, linkedLabel: c.linkedLabel, linkedPath: c.linkedPath,
+    abandonReason: c.abandonReason,
+    createdBy: c.createdBy, createdAt: c.createdAt, updatedAt: c.updatedAt,
+    closedAt: c.closedAt, closureHash: c.closureHash, archived: c.archived,
+  };
+}
+
+const isLate = (s: Space) => !!s.deadline && s.status !== 'resolu' && s.status !== 'archive' && s.deadline < now().slice(0, 10);
+const rank = (s: SpaceStatus) => ({ ouvert: 0, analyse: 1, action: 2, resolu: 3, archive: 4, abandonne: 5 }[s] ?? 0);
+
+export async function listSpaces(adapter: DataAdapter, tenantId: string): Promise<Space[]> {
+  const all = await adapter.getAll<DBCollabChannel>('collabChannels');
+  return (all as DBCollabChannel[])
+    .filter(c => c.tenantId === tenantId && c.type === 'space')
+    .map(toSpace)
+    .sort((a, b) => rank(a.status) - rank(b.status) || b.updatedAt.localeCompare(a.updatedAt));
+}
+
+export async function getSpace(adapter: DataAdapter, id: string): Promise<Space | null> {
+  const c = await adapter.getById<DBCollabChannel>('collabChannels', id).catch(() => null);
+  return c ? toSpace(c) : null;
+}
+
+export async function createSpace(adapter: DataAdapter, data: {
+  tenantId: string; title: string; problem: string; objective: string; createdBy: string;
+  responsibleId?: string; responsibleName?: string; deadline?: string;
+  convergence?: Space['convergence']; exitCriteria?: ExitCriterion[]; anchors?: SpaceAnchor[];
+  linkedType?: string; linkedId?: string; linkedLabel?: string; linkedPath?: string;
+}): Promise<Space> {
+  const primary = data.anchors?.find(a => a.isPrimary) || data.anchors?.[0];
+  const milestone: Milestone = { id: uid(), date: now().slice(0, 10), label: 'Ouverture de l\'espace', state: 'done' };
   const c = await adapter.create<DBCollabChannel>('collabChannels', {
-    id: uid(), tenantId: data.tenantId, name: data.name.replace(/^#/, '').trim(),
-    description: data.description, type: data.type || 'channel', isPrivate: data.isPrivate ?? false,
-    members: data.members, createdBy: data.createdBy, createdAt: now(), updatedAt: now(),
+    id: uid(), tenantId: data.tenantId, name: data.title, type: 'space',
+    problem: data.problem, objective: data.objective, responsibleId: data.responsibleId,
+    responsibleName: data.responsibleName, deadline: data.deadline, status: 'ouvert',
+    convergence: data.convergence, exitCriteria: data.exitCriteria || [], solutions: [],
+    milestones: [milestone], anchors: data.anchors || [], decisionSeq: 0,
+    linkedType: data.linkedType || primary?.type, linkedId: data.linkedId,
+    linkedLabel: data.linkedLabel || primary?.label, linkedPath: data.linkedPath || primary?.path,
+    createdBy: data.createdBy, createdAt: now(), updatedAt: now(),
   } as DBCollabChannel);
-  return c as Channel;
+  const space = toSpace(c);
+  // Snapshot de référence + convergence initiale figée.
+  const conv = await computeConvergence(adapter, space);
+  await adapter.update<DBCollabChannel>('collabChannels', space.id, { convergenceBp: conv.bp }).catch(() => {});
+  await postSystem(adapter, { spaceId: space.id, tenantId: data.tenantId, body: `Espace ouvert · convergence initiale ${(conv.bp / 100).toFixed(0)} %` });
+  return { ...space, convergenceBp: conv.bp };
 }
 
-export async function archiveChannel(adapter: DataAdapter, id: string): Promise<void> {
-  await adapter.update<DBCollabChannel>('collabChannels', id, { archived: true, updatedAt: now() });
+export async function updateSpace(adapter: DataAdapter, id: string, patch: Partial<Space>): Promise<Space> {
+  const upd: Partial<DBCollabChannel> = { updatedAt: now() };
+  if (patch.title !== undefined) upd.name = patch.title;
+  for (const k of ['problem', 'objective', 'responsibleId', 'responsibleName', 'deadline', 'status',
+    'convergence', 'convergenceBp', 'exitCriteria', 'solutions', 'milestones', 'anchors', 'decisionSeq',
+    'abandonReason', 'closedAt', 'closureHash'] as const) {
+    if ((patch as any)[k] !== undefined) (upd as any)[k] = (patch as any)[k];
+  }
+  const c = await adapter.update<DBCollabChannel>('collabChannels', id, upd);
+  return toSpace(c);
 }
 
-// ── MESSAGES ────────────────────────────────────────────────────────────────
+/** Transition de statut (événement système), avec verrous CDC §2.1. */
+export async function transitionSpace(adapter: DataAdapter, space: Space, to: SpaceStatus, opts?: { reason?: string }): Promise<Space> {
+  if (to === 'abandonne' && !opts?.reason) throw new Error('Motif obligatoire pour abandonner un espace.');
+  const patch: Partial<Space> = { status: to };
+  if (to === 'abandonne') patch.abandonReason = opts?.reason;
+  const updated = await updateSpace(adapter, space.id, patch);
+  await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: `Statut → ${to}${opts?.reason ? ' · ' + opts.reason : ''}` });
+  return updated;
+}
 
-export async function listMessages(adapter: DataAdapter, channelId: string): Promise<Message[]> {
-  const all = await adapter.getAll<DBCollabMessage>('collabMessages', { where: { channelId } });
-  return (all as Message[])
-    .filter(m => m.channelId === channelId && !m.deletedAt)
+// ── CONVERGENCE (calculée, jamais saisie — CDC §5) ────────────────────────────
+
+export interface ConvergenceResult { pct: number; bp: number; currentGap: number; initialGap: number; formula: string; }
+
+export async function computeConvergence(adapter: DataAdapter, space: Space): Promise<ConvergenceResult> {
+  const cfg = space.convergence;
+  // Défaut : critères satisfaits / critères totaux (CDC §5.2).
+  if (!cfg) {
+    const crit = await evaluateExitCriteria(adapter, space);
+    const total = crit.length || 0;
+    const met = crit.filter(c => c.met).length;
+    const bp = total > 0 ? Math.floor(met * 10000 / total) : (space.status === 'archive' ? 10000 : 0);
+    return { pct: Math.round(bp / 100), bp, currentGap: total - met, initialGap: total, formula: `${met}/${total} critères satisfaits` };
+  }
+  const currentGap = cfg.source.kind === 'manual'
+    ? Math.abs(cfg.source.currentGap)
+    : Math.abs(await accountBalance(adapter, cfg.source.accountCode));
+  const initialGap = Math.abs(cfg.initialGap || 0);
+  // Points de base (bigint-like) : 10000 − (écart_restant × 10000 / écart_initial).
+  const bp = initialGap > 0
+    ? Math.max(0, Math.min(10000, 10000 - Math.floor(currentGap * 10000 / initialGap)))
+    : (currentGap === 0 ? 10000 : 0);
+  return {
+    pct: Math.round(bp / 100), bp, currentGap, initialGap,
+    formula: `10000 − (écart_restant ${fmt(currentGap)} × 10000 / écart_initial ${fmt(initialGap)})`,
+  };
+}
+
+/** Recalcule la convergence depuis le GL et la fige (bp) sur l'espace. */
+export async function refreshConvergence(adapter: DataAdapter, space: Space): Promise<ConvergenceResult> {
+  const conv = await computeConvergence(adapter, space);
+  await adapter.update<DBCollabChannel>('collabChannels', space.id, { convergenceBp: conv.bp, updatedAt: now() }).catch(() => {});
+  return conv;
+}
+
+/** Recalcule les critères de sortie « calculés » (compte à solder) depuis le GL. */
+export async function evaluateExitCriteria(adapter: DataAdapter, space: Space): Promise<ExitCriterion[]> {
+  const out: ExitCriterion[] = [];
+  for (const c of space.exitCriteria || []) {
+    if (c.auto?.kind === 'account_zero') {
+      const bal = Math.abs(await accountBalance(adapter, c.auto.accountCode));
+      out.push({ ...c, met: bal < 1, value: bal < 1 ? '0 · justifié' : fmt(bal) });
+    } else out.push(c);
+  }
+  return out;
+}
+
+/** Passe un critère manuel à satisfait (valideur tracé + événement). */
+export async function satisfyCriterion(adapter: DataAdapter, space: Space, criterionId: string, by: { id: string; name: string }): Promise<Space> {
+  const exitCriteria = (space.exitCriteria || []).map(c => c.id === criterionId ? { ...c, met: true, value: `validé · ${by.name}` } : c);
+  const updated = await updateSpace(adapter, space.id, { exitCriteria });
+  const crit = exitCriteria.find(c => c.id === criterionId);
+  await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: `Critère satisfait : ${crit?.label || ''} (${by.name})` });
+  await refreshConvergence(adapter, updated);
+  return updated;
+}
+
+// ── CLÔTURE (rapport opposable hashé — CDC §2.1, §10) ─────────────────────────
+
+export interface ClosureReport { hash: string; content: any; }
+
+export async function closeSpace(adapter: DataAdapter, space: Space, events: SpaceEvent[]): Promise<ClosureReport> {
+  const kept = (space.solutions || []).filter(s => s.state === 'kept');
+  const discarded = (space.solutions || []).filter(s => s.state === 'rejected');
+  const decisions = events.filter(e => e.type === 'decision').map(e => e.payload as DecisionPayload);
+  const pieces = events.filter(e => e.type === 'ecriture').map(e => e.payload as EcriturePayload);
+  const snapshots = events.filter(e => e.type === 'snapshot').map(e => ({ ...(e.payload as SnapshotPayload), rows: undefined }));
+  const content = {
+    space: { id: space.id, title: space.title, problem: space.problem, objective: space.objective },
+    responsable: space.responsibleName, ouvertLe: space.createdAt, clotureLe: now(),
+    dureeJours: Math.round((Date.now() - new Date(space.createdAt).getTime()) / 86400000),
+    solutionsRetenues: kept, solutionsEcartees: discarded.map(s => ({ title: s.title, motif: s.motif })),
+    criteres: space.exitCriteria, decisions, piecesReferencees: pieces, snapshots,
+    chronologie: events.map(e => ({ type: e.type, auteur: e.authorName, texte: e.body, le: e.createdAt })),
+    ancrages: space.anchors,
+  };
+  const hash = await sha256(JSON.stringify(content));
+  await updateSpace(adapter, space.id, { status: 'archive', closedAt: now(), closureHash: hash });
+  await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: `Espace clôturé · rapport scellé SHA-256 ${hash.slice(0, 12)}…` });
+  return { hash, content };
+}
+
+// ── SOLUTIONS / ÉCHÉANCES (méthode CDC §2.2) ──────────────────────────────────
+
+export async function addSolution(adapter: DataAdapter, space: Space, sol: Omit<Solution, 'id' | 'createdAt' | 'state'>): Promise<Space> {
+  const solutions = [...(space.solutions || []), { ...sol, id: uid(), state: 'proposed' as const, createdAt: now() }];
+  const updated = await updateSpace(adapter, space.id, { solutions, status: space.status === 'ouvert' ? 'analyse' : space.status });
+  await postEvent(adapter, { spaceId: space.id, tenantId: space.tenantId, type: 'message', authorId: sol.authorId || 'system', authorName: sol.authorName, body: `Solution proposée : ${sol.title}`, payload: { subtype: 'solution_proposed' } as any });
+  return updated;
+}
+
+export async function decideSolution(adapter: DataAdapter, space: Space, solutionId: string, state: Solution['state'], by: { id: string; name: string }, motif?: string, decisionRef?: string): Promise<Space> {
+  const solutions = (space.solutions || []).map(s => s.id === solutionId
+    ? { ...s, state, decidedBy: by.name, decidedAt: now(), motif, decisionRef } : s);
+  const chosen = solutions.find(s => s.id === solutionId);
+  const updated = await updateSpace(adapter, space.id, { solutions, status: state === 'kept' && space.status === 'analyse' ? 'action' : space.status });
+  await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: state === 'kept' ? `Solution retenue : ${chosen?.title}` : `Solution écartée : ${chosen?.title}${motif ? ' — motif : ' + motif : ''}` });
+  return updated;
+}
+
+// ── ÉVÉNEMENTS TYPÉS (fil append-only — CDC §6) ───────────────────────────────
+
+function toEvent(m: DBCollabMessage): SpaceEvent {
+  return {
+    id: m.id, spaceId: m.channelId, tenantId: m.tenantId, type: (m.type as EventType) || 'message',
+    authorId: m.authorId, authorName: m.authorName, via: m.via, body: m.body, mentions: m.mentions,
+    reactions: m.reactions, payload: m.payload, createdAt: m.createdAt, deletedAt: m.deletedAt,
+  };
+}
+
+export async function listEvents(adapter: DataAdapter, spaceId: string): Promise<SpaceEvent[]> {
+  const all = await adapter.getAll<DBCollabMessage>('collabMessages', { where: { channelId: spaceId } });
+  return (all as DBCollabMessage[])
+    .filter(m => m.channelId === spaceId && !m.deletedAt)
+    .map(toEvent)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-export async function postMessage(
-  adapter: DataAdapter,
-  data: { channelId: string; tenantId: string; authorId: string; authorName?: string; body: string; mentions?: string[]; parentId?: string },
-): Promise<Message> {
+async function postEvent(adapter: DataAdapter, data: {
+  spaceId: string; tenantId: string; type: EventType; authorId: string; authorName?: string;
+  via?: string; body: string; mentions?: string[]; payload?: any;
+}): Promise<SpaceEvent> {
   const m = await adapter.create<DBCollabMessage>('collabMessages', {
-    id: uid(), channelId: data.channelId, tenantId: data.tenantId, authorId: data.authorId,
-    authorName: data.authorName, body: data.body, mentions: data.mentions ?? [],
-    parentId: data.parentId, reactions: {}, createdAt: now(),
+    id: uid(), channelId: data.spaceId, tenantId: data.tenantId, type: data.type, authorId: data.authorId,
+    authorName: data.authorName, via: data.via, body: data.body, mentions: data.mentions ?? [],
+    reactions: {}, payload: data.payload, createdAt: now(),
   } as DBCollabMessage);
-  // Touche le canal (pour le tri par activité).
-  await adapter.update<DBCollabChannel>('collabChannels', data.channelId, { updatedAt: now() }).catch(() => {});
-  return m as Message;
+  await adapter.update<DBCollabChannel>('collabChannels', data.spaceId, { updatedAt: now() }).catch(() => {});
+  return toEvent(m);
 }
 
-export async function editMessage(adapter: DataAdapter, id: string, body: string): Promise<void> {
-  await adapter.update<DBCollabMessage>('collabMessages', id, { body, editedAt: now() });
+export const postMessage = (adapter: DataAdapter, d: { spaceId: string; tenantId: string; authorId: string; authorName?: string; body: string; mentions?: string[]; via?: string }) =>
+  postEvent(adapter, { ...d, type: 'message' });
+export const postEcriture = (adapter: DataAdapter, d: { spaceId: string; tenantId: string; authorId: string; authorName?: string; body: string; payload: EcriturePayload; via?: string }) =>
+  postEvent(adapter, { ...d, type: 'ecriture' });
+export const postSnapshot = (adapter: DataAdapter, d: { spaceId: string; tenantId: string; authorId: string; authorName?: string; body: string; payload: SnapshotPayload; via?: string }) =>
+  postEvent(adapter, { ...d, type: 'snapshot' });
+export const postSystem = (adapter: DataAdapter, d: { spaceId: string; tenantId: string; body: string }) =>
+  postEvent(adapter, { spaceId: d.spaceId, tenantId: d.tenantId, authorId: 'system', authorName: 'PROPH3T · Vigie', type: 'system', body: d.body });
+
+/** Publie une décision gouvernée : résout la matrice de seuils + réf DEC-AAAA-NNN. */
+export async function postDecision(adapter: DataAdapter, d: {
+  space: Space; tenantId: string; authorId: string; authorName?: string;
+  title: string; detail?: string; amount?: number; solutionId?: string;
+  rules?: GovernanceRule[]; via?: string;
+}): Promise<{ event: SpaceEvent; ref: string }> {
+  const rules = d.rules || DEFAULT_GOVERNANCE;
+  const seq = (d.space.decisionSeq || 0) + 1;
+  const year = new Date(d.space.createdAt).getFullYear();
+  const ref = `DEC-${year}-${String(seq).padStart(3, '0')}`;
+  const rule = d.amount != null ? requiredRoleFor(d.amount, rules) : rules[0];
+  const governanceRule = d.amount != null
+    ? `${fmt(d.amount)} FCFA ${d.amount >= rule.threshold && rule.threshold > 0 ? `> seuil ${rule.label} (${fmt(rule.threshold)})` : `< premier seuil`} → validation ${rule.label} requise`
+    : undefined;
+  const payload: DecisionPayload = {
+    title: d.title, detail: d.detail, amount: d.amount, ref,
+    governanceRule, requiredRole: rule.role,
+  };
+  const event = await postEvent(adapter, { spaceId: d.space.id, tenantId: d.tenantId, type: 'decision', authorId: d.authorId, authorName: d.authorName, body: d.title, payload, via: d.via });
+  await updateSpace(adapter, d.space.id, { decisionSeq: seq });
+  if (d.solutionId) await decideSolution(adapter, d.space, d.solutionId, 'kept', { id: d.authorId, name: d.authorName || '' }, undefined, ref);
+  return { event, ref };
 }
 
-export async function deleteMessage(adapter: DataAdapter, id: string): Promise<void> {
+/** Approuve une décision (gouvernance — vérif rôle côté appelant). */
+export async function approveDecision(adapter: DataAdapter, ev: SpaceEvent, approver: { id: string; name: string }): Promise<void> {
+  const payload = { ...(ev.payload as DecisionPayload), approvedById: approver.id, approvedByName: approver.name, approvedAt: now() };
+  await adapter.update<DBCollabMessage>('collabMessages', ev.id, { payload });
+  await postSystem(adapter, { spaceId: ev.spaceId, tenantId: ev.tenantId, body: `Décision ${(payload as DecisionPayload).ref || ''} validée par ${approver.name}` });
+}
+
+export async function deleteEvent(adapter: DataAdapter, id: string): Promise<void> {
+  // Append-only : on marque (rectification), on ne supprime jamais physiquement.
   await adapter.update<DBCollabMessage>('collabMessages', id, { deletedAt: now() });
 }
-
-export async function toggleReaction(adapter: DataAdapter, message: Message, emoji: string, userId: string): Promise<void> {
-  const reactions: Record<string, string[]> = { ...(message.reactions || {}) };
+export async function toggleReaction(adapter: DataAdapter, ev: SpaceEvent, emoji: string, userId: string): Promise<void> {
+  const reactions: Record<string, string[]> = { ...(ev.reactions || {}) };
   const set = new Set(reactions[emoji] || []);
   if (set.has(userId)) set.delete(userId); else set.add(userId);
   if (set.size === 0) delete reactions[emoji]; else reactions[emoji] = [...set];
-  await adapter.update<DBCollabMessage>('collabMessages', message.id, { reactions });
+  await adapter.update<DBCollabMessage>('collabMessages', ev.id, { reactions });
 }
 
-// ── PRÉSENCE ────────────────────────────────────────────────────────────────
+/** Crée un snapshot figé + hash SHA-256 à partir d'une table (CDC §9.2). */
+export async function buildSnapshotPayload(title: string, source: string, columns: string[], rows: (string | number)[][]): Promise<SnapshotPayload> {
+  const hash = (await sha256(JSON.stringify({ title, columns, rows }))).slice(0, 16);
+  return { title, source, columns, rows, hash, frozenAt: now() };
+}
 
-export async function heartbeatPresence(
-  adapter: DataAdapter,
-  data: { userId: string; tenantId: string; userName?: string; status?: PresenceStatus },
-): Promise<void> {
+// ── PRÉSENCE ──────────────────────────────────────────────────────────────────
+
+export async function heartbeatPresence(adapter: DataAdapter, data: { userId: string; tenantId: string; userName?: string; status?: PresenceStatus }): Promise<void> {
   const existing = await adapter.getById<DBCollabPresence>('collabPresence', data.userId).catch(() => null);
-  const payload = {
-    id: data.userId, tenantId: data.tenantId, userName: data.userName,
-    status: data.status || 'online', lastSeenAt: now(),
-  } as DBCollabPresence;
+  const payload = { id: data.userId, tenantId: data.tenantId, userName: data.userName, status: data.status || 'online', lastSeenAt: now() } as DBCollabPresence;
   if (existing) await adapter.update<DBCollabPresence>('collabPresence', data.userId, payload);
   else await adapter.create<DBCollabPresence>('collabPresence', payload);
 }
-
 export async function listPresence(adapter: DataAdapter, tenantId: string): Promise<Presence[]> {
   const all = await adapter.getAll<DBCollabPresence>('collabPresence');
-  const cutoff = Date.now() - 2 * 60 * 1000; // en ligne si vu < 2 min
-  return (all as Presence[])
-    .filter(p => p.tenantId === tenantId)
+  const cutoff = Date.now() - 2 * 60 * 1000;
+  return (all as Presence[]).filter(p => p.tenantId === tenantId)
     .map(p => ({ ...p, status: (new Date(p.lastSeenAt).getTime() >= cutoff ? 'online' : 'offline') as PresenceStatus }));
 }
 
-// ── NON-LUS / ÉTAT DE LECTURE (par utilisateur, local device) ────────────────
+// ── NON-LUS (dock « Mes espaces ») ────────────────────────────────────────────
 
 const READ_KEY = (userId: string) => `wb_collab_read_${userId}`;
-
 export function getReadState(userId: string): Record<string, string> {
   try { return JSON.parse(localStorage.getItem(READ_KEY(userId)) || '{}'); } catch { return {}; }
 }
-export function markChannelRead(userId: string, channelId: string): void {
-  const s = getReadState(userId);
-  s[channelId] = new Date().toISOString();
+export function markSpaceRead(userId: string, spaceId: string): void {
+  const s = getReadState(userId); s[spaceId] = now();
   try { localStorage.setItem(READ_KEY(userId), JSON.stringify(s)); } catch { /* ignore */ }
 }
-
 export interface UnreadState { total: number; mentions: number; byChannel: Record<string, number>; }
-
 export async function getUnread(adapter: DataAdapter, tenantId: string, userId: string): Promise<UnreadState> {
   const read = getReadState(userId);
   const all = await adapter.getAll<DBCollabMessage>('collabMessages');
   const byChannel: Record<string, number> = {};
   let total = 0, mentions = 0;
-  for (const m of all as Message[]) {
+  for (const m of all as DBCollabMessage[]) {
     if (m.tenantId !== tenantId || m.deletedAt || m.authorId === userId) continue;
     const last = read[m.channelId];
     if (last && m.createdAt <= last) continue;
@@ -148,17 +353,17 @@ export async function getUnread(adapter: DataAdapter, tenantId: string, userId: 
   return { total, mentions, byChannel };
 }
 
-// ── TEMPS RÉEL (SaaS uniquement, best-effort) ────────────────────────────────
-// S'abonne aux insertions sur collab_messages via Supabase Realtime. Renvoie une
-// fonction de désabonnement. En mode local (Dexie) : no-op (le polling suffit).
+// ── TEMPS RÉEL (SaaS — bus d'événements Atlas Core) ───────────────────────────
+
 export function subscribeMessages(adapter: DataAdapter, onChange: () => void): () => void {
   try {
     const client: any = (adapter as any).client;
     if (adapter.getMode?.() !== 'saas' || !client?.channel) return () => {};
-    const ch = client
-      .channel('collab-messages')
+    const ch = client.channel('collab-messages')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'collab_messages' }, () => onChange())
       .subscribe();
     return () => { try { client.removeChannel(ch); } catch { /* ignore */ } };
   } catch { return () => {}; }
 }
+
+export { isLate };

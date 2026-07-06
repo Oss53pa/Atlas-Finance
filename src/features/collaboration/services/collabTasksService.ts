@@ -9,11 +9,11 @@ import type { Task, TaskComment, TaskStatus, TaskPriority } from '../types';
 const now = () => new Date().toISOString();
 const uid = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.round(Math.random() * 1e9)}`);
 
-export async function listTasks(adapter: DataAdapter, tenantId: string): Promise<Task[]> {
+export async function listTasks(adapter: DataAdapter, tenantId: string, spaceId?: string): Promise<Task[]> {
   const all = await adapter.getAll<DBCollabTask>('collabTasks');
-  return (all as Task[])
-    .filter(t => t.tenantId === tenantId)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || b.createdAt.localeCompare(a.createdAt));
+  return (all as DBCollabTask[])
+    .filter(t => t.tenantId === tenantId && (spaceId === undefined || t.spaceId === spaceId))
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || b.createdAt.localeCompare(a.createdAt)) as unknown as Task[];
 }
 
 export async function createTask(
@@ -22,6 +22,7 @@ export async function createTask(
     tenantId: string; title: string; description?: string; status?: TaskStatus; priority?: TaskPriority;
     assigneeId?: string; assigneeName?: string; dueDate?: string; tags?: string[]; watchers?: string[];
     linkedType?: string; linkedId?: string; createdBy: string;
+    spaceId?: string; criticalPath?: boolean; blockedReason?: string; linkedRef?: string;
   },
 ): Promise<Task> {
   const t = await adapter.create<DBCollabTask>('collabTasks', {
@@ -29,6 +30,7 @@ export async function createTask(
     status: data.status || 'todo', priority: data.priority || 'medium',
     assigneeId: data.assigneeId, assigneeName: data.assigneeName, dueDate: data.dueDate,
     tags: data.tags ?? [], watchers: data.watchers ?? [], linkedType: data.linkedType, linkedId: data.linkedId,
+    spaceId: data.spaceId, criticalPath: data.criticalPath, blockedReason: data.blockedReason, linkedRef: data.linkedRef,
     order: Date.now(), createdBy: data.createdBy, createdAt: now(), updatedAt: now(),
   } as DBCollabTask);
   return t as Task;
