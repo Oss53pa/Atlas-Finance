@@ -12,8 +12,9 @@ import {
   Search, X, Circle, Clock, Flag, Trash2, CornerUpLeft, MoreHorizontal, Calendar,
 } from 'lucide-react';
 import {
-  listChannels, ensureDefaultChannels, createChannel, listMessages, postMessage,
+  ensureDefaultChannels, createChannel, listMessages, postMessage,
   deleteMessage, toggleReaction, heartbeatPresence, listPresence,
+  markChannelRead, subscribeMessages,
 } from '../../features/collaboration/services/collaborationService';
 import {
   listTasks, createTask, updateTask, deleteTask, listTaskComments, addTaskComment,
@@ -163,13 +164,31 @@ const DiscussionsView: React.FC<ViewProps & { channels: Channel[]; onChannelsCha
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const active = channels.find(c => c.id === activeId) || channels[0];
+  const seenIds = useRef<Set<string>>(new Set());
+  const firstLoad = useRef(true);
 
   useEffect(() => { if (!activeId && channels[0]) setActiveId(channels[0].id); }, [channels, activeId]);
+  // Reset du suivi des mentions au changement de canal.
+  useEffect(() => { seenIds.current = new Set(); firstLoad.current = true; }, [active?.id]);
 
   const loadMessages = useCallback(async () => {
     if (!active) return;
-    try { setMessages(await listMessages(adapter, active.id)); } catch { /* ignore */ }
-  }, [adapter, active]);
+    try {
+      const msgs = await listMessages(adapter, active.id);
+      // Notifier les NOUVELLES @mentions de l'utilisateur courant (hors 1er chargement).
+      if (!firstLoad.current) {
+        for (const m of msgs) {
+          if (!seenIds.current.has(m.id) && m.authorId !== me.id && Array.isArray(m.mentions) && m.mentions.includes(me.id)) {
+            toast.info(`${m.authorName || 'Quelqu\'un'} vous a mentionné dans #${active.name}`);
+          }
+        }
+      }
+      msgs.forEach(m => seenIds.current.add(m.id));
+      firstLoad.current = false;
+      setMessages(msgs);
+      markChannelRead(me.id, active.id); // le canal ouvert est considéré lu
+    } catch { /* ignore */ }
+  }, [adapter, active, me.id, toast]);
 
   useEffect(() => { loadMessages(); }, [loadMessages]);
   // Rafraîchissement léger (polling) tant que le canal est ouvert.
@@ -177,6 +196,8 @@ const DiscussionsView: React.FC<ViewProps & { channels: Channel[]; onChannelsCha
     const t = setInterval(loadMessages, 5000);
     return () => clearInterval(t);
   }, [loadMessages]);
+  // Temps réel (SaaS) : rafraîchit dès qu'un message est inséré (no-op en local).
+  useEffect(() => subscribeMessages(adapter, loadMessages), [adapter, loadMessages]);
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }); }, [messages]);
 
   const onInputChange = (v: string) => {

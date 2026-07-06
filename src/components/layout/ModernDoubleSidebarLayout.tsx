@@ -22,6 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTenantPlan, hasFeature } from '../../features/platform/hooks/useTenantPlan';
 import { useFeatureAccess } from '../../components/gating';
 import { useBadgeCounts } from '../../hooks/useBadgeCounts';
+import { useCollabUnread } from '../../features/collaboration/hooks/useCollabUnread';
 import { useNotifications } from '../../hooks/useNotifications';
 import { useInvalidateOnEntryChange } from '../../hooks/useInvalidateOnEntryChange';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -66,6 +67,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const { theme, themeType, setTheme } = useTheme();
   const { user, logout } = useAuth();
   const badgeCounts = useBadgeCounts();
+  const collabUnread = useCollabUnread();
   const { plan: tenantPlan, isStarter } = useTenantPlan();
   const { allowed: hasDedicatedSupport } = useFeatureAccess('support_dedie');
   const { adapter } = useData();
@@ -217,6 +219,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       id: 'collaboration',
       label: 'Espace Collaboratif',
       icon: <MessageSquare className="w-5 h-5" />,
+      badge: collabUnread.total > 0 ? collabUnread.total : undefined,
       ariaLabel: "Discussions, tâches et activité de l'équipe"
     }
     // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
@@ -229,7 +232,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       return false;
     }
     return true;
-  }), [t, user?.role, isStarter, tenantPlan]);
+  }), [t, user?.role, isStarter, tenantPlan, collabUnread.total]);
 
   // Sous-menus restructurés et enrichis
   const secondaryMenuItems: Record<string, MenuItem[]> = useMemo(() => ({

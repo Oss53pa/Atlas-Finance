@@ -116,3 +116,49 @@ export async function listPresence(adapter: DataAdapter, tenantId: string): Prom
     .filter(p => p.tenantId === tenantId)
     .map(p => ({ ...p, status: (new Date(p.lastSeenAt).getTime() >= cutoff ? 'online' : 'offline') as PresenceStatus }));
 }
+
+// ── NON-LUS / ÉTAT DE LECTURE (par utilisateur, local device) ────────────────
+
+const READ_KEY = (userId: string) => `wb_collab_read_${userId}`;
+
+export function getReadState(userId: string): Record<string, string> {
+  try { return JSON.parse(localStorage.getItem(READ_KEY(userId)) || '{}'); } catch { return {}; }
+}
+export function markChannelRead(userId: string, channelId: string): void {
+  const s = getReadState(userId);
+  s[channelId] = new Date().toISOString();
+  try { localStorage.setItem(READ_KEY(userId), JSON.stringify(s)); } catch { /* ignore */ }
+}
+
+export interface UnreadState { total: number; mentions: number; byChannel: Record<string, number>; }
+
+export async function getUnread(adapter: DataAdapter, tenantId: string, userId: string): Promise<UnreadState> {
+  const read = getReadState(userId);
+  const all = await adapter.getAll<DBCollabMessage>('collabMessages');
+  const byChannel: Record<string, number> = {};
+  let total = 0, mentions = 0;
+  for (const m of all as Message[]) {
+    if (m.tenantId !== tenantId || m.deletedAt || m.authorId === userId) continue;
+    const last = read[m.channelId];
+    if (last && m.createdAt <= last) continue;
+    byChannel[m.channelId] = (byChannel[m.channelId] || 0) + 1;
+    total++;
+    if (Array.isArray(m.mentions) && m.mentions.includes(userId)) mentions++;
+  }
+  return { total, mentions, byChannel };
+}
+
+// ── TEMPS RÉEL (SaaS uniquement, best-effort) ────────────────────────────────
+// S'abonne aux insertions sur collab_messages via Supabase Realtime. Renvoie une
+// fonction de désabonnement. En mode local (Dexie) : no-op (le polling suffit).
+export function subscribeMessages(adapter: DataAdapter, onChange: () => void): () => void {
+  try {
+    const client: any = (adapter as any).client;
+    if (adapter.getMode?.() !== 'saas' || !client?.channel) return () => {};
+    const ch = client
+      .channel('collab-messages')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'collab_messages' }, () => onChange())
+      .subscribe();
+    return () => { try { client.removeChannel(ch); } catch { /* ignore */ } };
+  } catch { return () => {}; }
+}
