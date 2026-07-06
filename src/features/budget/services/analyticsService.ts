@@ -110,6 +110,45 @@ export async function deleteSection(adapter: DataAdapter, id: string): Promise<v
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Amorce une structure analytique standard (axes + sections) de façon IDEMPOTENTE :
+ * n'ajoute que ce qui manque (par code). Écrit dans axes_analytiques /
+ * sections_analytiques (RLS société). Renvoie ce qui a été réellement créé.
+ */
+export async function seedStandardAnalyticalStructure(
+  adapter: DataAdapter,
+  structure: {
+    axes: Array<{ code: string; libelle: string; type_axe?: string }>;
+    sections: Array<{ code: string; libelle: string; axeCode: string; budget_annuel?: number }>;
+  },
+): Promise<{ axesCreated: number; sectionsCreated: number; axesSkipped: number; sectionsSkipped: number }> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+
+  const existingAxes = await listAxes(adapter);
+  const axeCodes = new Set(existingAxes.map(a => a.code));
+  let axesCreated = 0, axesSkipped = 0;
+  for (const ax of structure.axes) {
+    if (axeCodes.has(ax.code)) { axesSkipped++; continue; }
+    await createAxe(adapter, { code: ax.code, libelle: ax.libelle, type_axe: ax.type_axe });
+    axesCreated++;
+  }
+
+  const axesNow = await listAxes(adapter);
+  const idByCode = new Map(axesNow.map(a => [a.code, a.id]));
+  const existingSections = await listSections(adapter);
+  const secCodes = new Set(existingSections.map(s => s.code));
+  let sectionsCreated = 0, sectionsSkipped = 0;
+  for (const s of structure.sections) {
+    if (secCodes.has(s.code)) { sectionsSkipped++; continue; }
+    const axeId = idByCode.get(s.axeCode);
+    if (!axeId) { sectionsSkipped++; continue; }
+    await createSection(adapter, { axe_id: axeId, code: s.code, libelle: s.libelle, budget_annuel: s.budget_annuel ?? 0 });
+    sectionsCreated++;
+  }
+  return { axesCreated, sectionsCreated, axesSkipped, sectionsSkipped };
+}
+
 // ── Ventilation (attribution de sections aux écritures) ──────────────────────
 
 export interface VentilationRule {

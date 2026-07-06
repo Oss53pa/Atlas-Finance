@@ -1,509 +1,230 @@
-import React, { useState } from 'react';
+/**
+ * CostCentersPage — /analytics/cost-centers
+ *
+ * Centres de coût = sections analytiques RÉELLES (table sections_analytiques via
+ * analyticsService). Réalisé = charges ventilées (getSectionPerformance →
+ * v_actual_by_section). Écart budgétaire = budget − coûts réels (favorable si
+ * l'on est sous le budget). Création/édition/(dés)activation persistées ; export
+ * CSV ; amorçage d'une structure standard. Zéro champ fantôme, zéro bouton mort.
+ */
+import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Users,
-  Plus,
-  Search,
-  Filter,
-  Edit,
-  Trash2,
-  Eye,
-  Target,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  BarChart3,
-  AlertCircle,
-  CheckCircle,
-  Download,
-  Upload,
-  User,
-  Building
+import {
+  Users, Plus, Search, Filter, Edit, Target, DollarSign, BarChart3,
+  CheckCircle, XCircle, Download, Sparkles, User, Building, Gauge, X,
 } from 'lucide-react';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardContent, 
-  Button, 
-  Input, 
-  Badge,
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-  LoadingSpinner,
-  Pagination,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
+import {
+  Card, CardHeader, CardTitle, CardContent, Button, Input, Badge,
+  Table, TableHeader, TableRow, TableHead, TableBody, TableCell,
+  LoadingSpinner, Pagination, Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '../../components/ui';
-import { createCentreSchema } from '../../services/modules/analytics.service';
 import { useData } from '../../contexts/DataContext';
-import { createSection, updateSection, listAxes, getSectionPerformance } from '../../features/budget/services/analyticsService';
-import { z } from 'zod';
-import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
+import {
+  createSection, updateSection, listAxes, getSectionPerformance, seedStandardAnalyticalStructure,
+} from '../../features/budget/services/analyticsService';
+import { STANDARD_ANALYTICAL_STRUCTURE } from '../../features/budget/data/standardAnalyticalStructure';
+import { formatCurrency, formatPercentage } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
-interface CostCentersFilters {
-  search: string;
-  axe: string;
-  type: string;
-  statut: string;
-  responsable: string;
+interface CostCentersFilters { search: string; axe: string; statut: string; responsable: string }
+interface CenterRow {
+  id: string; code: string; libelle: string; axeId: string | null; nom_axe: string; code_axe: string;
+  responsable: string | null; budget: number; couts_reels: number; ecart_budget: number;
+  realisation: number | null; actif: boolean;
 }
+const PAGE_SIZE = 20;
+const emptyForm = { id: '', code: '', libelle: '', axe_id: '', responsable: '', budget_annuel: 0, actif: true };
 
 const CostCentersPage: React.FC = () => {
-  const { t } = useLanguage();
-  const [filters, setFilters] = useState<CostCentersFilters>({
-    search: '',
-    axe: '',
-    type: '',
-    statut: '',
-    responsable: ''
-  });
-  const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState<Record<string, unknown> | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [formData, setFormData] = useState({
-    code: '',
-    libelle: '',
-    axe_id: '',
-    type: 'operationnel' as 'operationnel' | 'support' | 'structure' | 'projet',
-    responsable: '',
-    budget_annuel: 0,
-    suivi_budget: false,
-    parent_id: '',
-    actif: true,
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { adapter } = useData();
   const annee = String(new Date().getFullYear());
 
-  // Create centre mutation — via la VRAIE table sections_analytiques (l'ancien
-  // analyticsService REST /api/v1/... n'existe pas → création perdue en silence).
-  const createMutation = useMutation({
-    mutationFn: (data: any) => createSection(adapter, {
-      axe_id: data.axe_id || null, code: data.code, libelle: data.libelle,
-      responsable: data.responsable || undefined, budget_annuel: Number(data.budget_annuel) || 0,
-    }),
-    onSuccess: () => {
-      toast.success('Centre de coût créé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
-      setShowCreateModal(false);
-      resetForm();
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création');
-    },
-  });
+  const [filters, setFilters] = useState<CostCentersFilters>({ search: '', axe: '', statut: '', responsable: '' });
+  const [page, setPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ ...emptyForm });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEdit = !!form.id;
 
-  // Fetch cost centers = sections réelles + performance, mappées à la forme attendue.
-  const { data: centersData, isLoading } = useQuery({
-    queryKey: ['cost-centers', 'list', page, filters, annee],
-    queryFn: async () => {
-      const [perf, axesList] = await Promise.all([getSectionPerformance(adapter, annee), listAxes(adapter)]);
-      const axeById = new Map(axesList.map(a => [a.id, a]));
-      let results = perf.map((s: any) => {
-        const ax = s.axe_id ? axeById.get(s.axe_id) : null;
-        return {
-          id: s.id, code: s.code, libelle: s.libelle, nom: s.libelle,
-          nom_axe: ax?.libelle || '—', code_axe: ax?.code || '',
-          responsable: s.responsable, budget: s.budget_annuel, realise: s.charges,
-          ecart: s.ecartBudget, actif: s.actif,
-        };
-      });
-      // Filtres appliqués côté client
-      const q = (filters.search || '').toLowerCase();
-      if (q) results = results.filter(r => r.code.toLowerCase().includes(q) || (r.libelle || '').toLowerCase().includes(q));
-      if (filters.axe) results = results.filter(r => r.code_axe === filters.axe);
-      if (filters.responsable) results = results.filter(r => (r.responsable || '').toLowerCase().includes(filters.responsable.toLowerCase()));
-      if (filters.statut) results = results.filter(r => (filters.statut === 'actif') === !!r.actif);
-      const total_budget = results.reduce((a, r) => a + (r.budget || 0), 0);
-      const total_actual_costs = results.reduce((a, r) => a + (r.realise || 0), 0);
-      const total_variance = total_budget - total_actual_costs;
-      return {
-        results,
-        count: results.length,
-        active_count: results.filter(r => r.actif).length,
-        total_costs: total_actual_costs,
-        total_budget,
-        total_actual_costs,
-        total_variance,
-        realization_rate: total_budget > 0 ? (total_actual_costs / total_budget) * 100 : 0,
-        average_performance: 0,
-      };
-    },
-  });
-
-  // Fetch analytical axes for selection
-  const { data: axes } = useQuery({
+  const { data: axesData } = useQuery({
     queryKey: ['analytical-axes', 'list'],
     queryFn: async () => ({ results: await listAxes(adapter) }),
   });
 
-  // Delete = désactivation (soft delete) : on ne supprime pas un centre mouvementé.
-  const deleteCenterMutation = useMutation({
-    mutationFn: (id: string) => updateSection(adapter, id, { actif: false }),
-    onSuccess: () => {
-      toast.success('Centre désactivé');
-      queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
+  const { data, isLoading } = useQuery({
+    queryKey: ['cost-centers', 'list', annee],
+    queryFn: async (): Promise<CenterRow[]> => {
+      const [perf, axesList] = await Promise.all([getSectionPerformance(adapter, annee), listAxes(adapter)]);
+      const axeById = new Map(axesList.map(a => [a.id, a]));
+      return perf.map((s): CenterRow => {
+        const ax = s.axe_id ? axeById.get(s.axe_id) : null;
+        const couts = s.charges;
+        return {
+          id: s.id, code: s.code, libelle: s.libelle, axeId: s.axe_id,
+          nom_axe: ax?.libelle || '—', code_axe: ax?.code || '',
+          responsable: s.responsable, budget: s.budget_annuel, couts_reels: couts,
+          ecart_budget: s.budget_annuel - couts, // > 0 = sous le budget (favorable)
+          realisation: s.budget_annuel > 0 ? (couts / s.budget_annuel) * 100 : null,
+          actif: s.actif,
+        };
+      });
     },
-    onError: () => {
-      toast.error('Erreur lors de la désactivation');
-    }
   });
 
-  const handleDeleteCenter = (centerId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce centre de coût ?')) {
-      deleteCenterMutation.mutate(centerId);
-    }
-  };
+  const centers = useMemo(() => {
+    let rows = data || [];
+    const q = filters.search.trim().toLowerCase();
+    if (q) rows = rows.filter(r => r.code.toLowerCase().includes(q) || (r.libelle || '').toLowerCase().includes(q));
+    if (filters.axe) rows = rows.filter(r => r.code_axe === filters.axe);
+    if (filters.responsable) rows = rows.filter(r => (r.responsable || '').toLowerCase().includes(filters.responsable.toLowerCase()));
+    if (filters.statut) rows = rows.filter(r => (filters.statut === 'actif') === r.actif);
+    return rows;
+  }, [data, filters]);
 
-  const handleFilterChange = (key: keyof CostCentersFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPage(1);
-  };
+  const totals = useMemo(() => {
+    const budget = centers.reduce((a, r) => a + r.budget, 0);
+    const couts = centers.reduce((a, r) => a + r.couts_reels, 0);
+    return {
+      count: centers.length,
+      active: centers.filter(r => r.actif).length,
+      budget, couts, ecart: budget - couts,
+      realisation: budget > 0 ? (couts / budget) * 100 : null,
+    };
+  }, [centers]);
 
-  const resetFilters = () => {
-    setFilters({
-      search: '',
-      axe: '',
-      type: '',
-      statut: '',
-      responsable: ''
-    });
-    setPage(1);
-  };
+  const pageRows = centers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const setFilter = (k: keyof CostCentersFilters, v: string) => { setFilters(p => ({ ...p, [k]: v })); setPage(1); };
 
-  const resetForm = () => {
-    setFormData({
-      code: '',
-      libelle: '',
-      axe_id: '',
-      type: 'operationnel',
-      responsable: '',
-      budget_annuel: 0,
-      suivi_budget: false,
-      parent_id: '',
-      actif: true,
-    });
-    setErrors({});
-    setIsSubmitting(false);
-  };
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['cost-centers'] });
 
-  const handleInputChange = (field: string, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error for this field
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-      setErrors({});
-
-      // Validate with Zod
-      const validatedData = createCentreSchema.parse(formData);
-
-      // Submit to backend
-      await createMutation.mutateAsync(validatedData);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        // Map Zod errors to form fields
-        const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
-          const field = err.path[0] as string;
-          fieldErrors[field] = err.message;
-        });
-        setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+  const saveMutation = useMutation({
+    mutationFn: async (f: typeof emptyForm) => {
+      if (f.id) {
+        await updateSection(adapter, f.id, { libelle: f.libelle.trim(), responsable: f.responsable || null, budget_annuel: Number(f.budget_annuel) || 0, actif: f.actif });
       } else {
-        toast.error('Erreur lors de la création');
+        await createSection(adapter, { axe_id: f.axe_id || null, code: f.code.trim(), libelle: f.libelle.trim(), responsable: f.responsable || undefined, budget_annuel: Number(f.budget_annuel) || 0 });
       }
-    } finally {
-      setIsSubmitting(false);
-    }
+    },
+    onSuccess: () => { toast.success(isEdit ? 'Centre mis à jour' : 'Centre créé'); invalidate(); setShowModal(false); setForm({ ...emptyForm }); },
+    onError: (e: Error) => toast.error(e.message || 'Erreur'),
+  });
+
+  const toggleActif = useMutation({
+    mutationFn: ({ id, actif }: { id: string; actif: boolean }) => updateSection(adapter, id, { actif }),
+    onSuccess: (_d, v) => { toast.success(v.actif ? 'Centre réactivé' : 'Centre désactivé'); invalidate(); },
+    onError: () => toast.error('Action impossible'),
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: () => seedStandardAnalyticalStructure(adapter, STANDARD_ANALYTICAL_STRUCTURE),
+    onSuccess: (r) => {
+      toast.success(`Structure standard : ${r.axesCreated} axe(s) + ${r.sectionsCreated} centre(s) créés (${r.sectionsSkipped} déjà présents).`);
+      queryClient.invalidateQueries({ queryKey: ['analytical-axes'] });
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || 'Amorçage impossible'),
+  });
+
+  const openCreate = () => { setForm({ ...emptyForm }); setErrors({}); setShowModal(true); };
+  const openEdit = (c: CenterRow) => { setForm({ id: c.id, code: c.code, libelle: c.libelle, axe_id: c.axeId || '', responsable: c.responsable || '', budget_annuel: c.budget, actif: c.actif }); setErrors({}); setShowModal(true); };
+
+  const submit = async () => {
+    const e: Record<string, string> = {};
+    if (!form.code.trim()) e.code = 'Code requis';
+    if (!form.libelle.trim()) e.libelle = 'Libellé requis';
+    if (!isEdit && !form.axe_id) e.axe_id = 'Axe requis';
+    setErrors(e);
+    if (Object.keys(e).length) { toast.error('Corrigez les champs requis'); return; }
+    setIsSubmitting(true);
+    try { await saveMutation.mutateAsync(form); } finally { setIsSubmitting(false); }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'operationnel': return 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]';
-      case 'support': return 'bg-green-100 text-green-800';
-      case 'structure': return 'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]';
-      case 'projet': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const exportCsv = () => {
+    const header = ['Code', 'Libellé', 'Axe', 'Responsable', 'Budget', 'Coûts réels', 'Écart', 'Réalisation %', 'Statut'];
+    const lines = centers.map(c => [
+      c.code, c.libelle, c.code_axe, c.responsable || '', c.budget, c.couts_reels, c.ecart_budget,
+      c.realisation != null ? Math.round(c.realisation) : '', c.actif ? 'actif' : 'inactif',
+    ]);
+    const csv = [header, ...lines].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
+    const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a'); a.href = url; a.download = `centres_de_couts_${annee}.csv`; a.click(); URL.revokeObjectURL(url);
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'operationnel': return 'Opérationnel';
-      case 'support': return 'Support';
-      case 'structure': return 'Structure';
-      case 'projet': return 'Projet';
-      default: return type;
-    }
-  };
-
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'actif': return 'bg-green-100 text-green-800';
-      case 'inactif': return 'bg-gray-100 text-gray-800';
-      case 'archive': return 'bg-yellow-100 text-yellow-800';
-      case 'ferme': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (statut: string) => {
-    switch (statut) {
-      case 'actif': return 'Actif';
-      case 'inactif': return 'Inactif';
-      case 'archive': return 'Archivé';
-      case 'ferme': return 'Fermé';
-      default: return statut;
-    }
-  };
-
-  const getPerformanceColor = (performance: number) => {
-    if (performance >= 90) return 'text-green-700';
-    if (performance >= 70) return 'text-yellow-700';
-    return 'text-red-700';
-  };
-
-  const getPerformanceIcon = (performance: number) => {
-    if (performance >= 90) return <CheckCircle className="h-4 w-4 text-green-600" />;
-    if (performance >= 70) return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-    return <AlertCircle className="h-4 w-4 text-red-600" />;
-  };
-
-  const getVariationIcon = (variation: number) => {
-    if (variation > 0) return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (variation < 0) return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <Target className="h-4 w-4 text-gray-600" />;
-  };
+  const axes = axesData?.results || [];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="border-b border-gray-200 pb-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
-              <Users className="mr-3 h-7 w-7" />
-              Centres de Coûts
-            </h1>
-            <p className="mt-2 text-[var(--color-text-secondary)]">
-              Gestion des centres de coûts et d'analyse de performance
-            </p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center"><Users className="mr-3 h-7 w-7" />Centres de Coûts</h1>
+            <p className="mt-1 text-[var(--color-text-secondary)]">Sections analytiques · réalisé ventilé vs budget · Exercice {annee}</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <PageHeaderActions
-              onToggleFilters={() => setShowFilters((v) => !v)}
+              onToggleFilters={() => setShowFilters(v => !v)}
               filtersOpen={showFilters}
-              activeFilters={[filters.search, filters.axe, filters.type, filters.statut, filters.responsable].filter(Boolean).length}
+              activeFilters={[filters.search, filters.axe, filters.statut, filters.responsable].filter(Boolean).length}
+              printTitle={`Centres de coûts ${annee}`}
             />
-            <Button variant="outline">
-              <Download className="mr-2 h-4 w-4" />
-              Exporter
+            <Button variant="outline" onClick={exportCsv} disabled={centers.length === 0}><Download className="mr-2 h-4 w-4" />Exporter</Button>
+            <Button variant="outline" onClick={() => { if (window.confirm('Créer la structure analytique standard (axes + 10 centres de coût courants) ? Idempotent : n’ajoute que ce qui manque.')) seedMutation.mutate(); }} disabled={seedMutation.isPending}>
+              <Sparkles className="mr-2 h-4 w-4" />{seedMutation.isPending ? 'Amorçage…' : 'Structure standard'}
             </Button>
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              Importer
-            </Button>
-            <Button 
-              className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
-              onClick={() => setShowCreateModal(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Nouveau Centre
-            </Button>
+            <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white" onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Nouveau Centre</Button>
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
-                <Users className="h-6 w-6 text-[var(--color-primary)]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Centres</p>
-                <p className="text-lg font-bold text-gray-900">
-                  {centersData?.count ? centersData.count : '—'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-green-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Centres Actifs</p>
-                <p className="text-lg font-bold text-green-700">
-                  {centersData?.active_count ? centersData.active_count : '—'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full">
-                <DollarSign className="h-6 w-6 text-[var(--color-text-secondary)]" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Coûts Totaux</p>
-                <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-                  {centersData?.total_costs ? formatCurrency(centersData.total_costs) : '—'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="flex items-center p-6">
-            <div className="flex items-center space-x-4">
-              <div className="p-2 bg-orange-100 rounded-full">
-                <Target className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">Performance Moy.</p>
-                <p className="text-lg font-bold text-orange-700">
-                  {centersData?.average_performance ? formatPercentage(centersData.average_performance) : '—'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="flex items-center p-6"><div className="flex items-center space-x-4"><div className="p-2 bg-[var(--color-primary)]/10 rounded-full"><Users className="h-6 w-6 text-[var(--color-primary)]" /></div><div><p className="text-sm font-medium text-gray-600">Total Centres</p><p className="text-lg font-bold text-gray-900">{totals.count || '—'}</p></div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center p-6"><div className="flex items-center space-x-4"><div className="p-2 bg-green-100 rounded-full"><CheckCircle className="h-6 w-6 text-green-600" /></div><div><p className="text-sm font-medium text-gray-600">Centres Actifs</p><p className="text-lg font-bold text-green-700">{totals.active || '—'}</p></div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center p-6"><div className="flex items-center space-x-4"><div className="p-2 bg-[var(--color-text-secondary)]/10 rounded-full"><DollarSign className="h-6 w-6 text-[var(--color-text-secondary)]" /></div><div><p className="text-sm font-medium text-gray-600">Coûts Réels</p><p className="text-lg font-bold text-[var(--color-text-secondary)]">{totals.couts ? formatCurrency(totals.couts) : '—'}</p></div></div></CardContent></Card>
+        <Card><CardContent className="flex items-center p-6"><div className="flex items-center space-x-4"><div className="p-2 bg-orange-100 rounded-full"><Gauge className="h-6 w-6 text-orange-600" /></div><div><p className="text-sm font-medium text-gray-600">Taux de Réalisation</p><p className="text-lg font-bold text-orange-700">{totals.realisation != null ? formatPercentage(totals.realisation) : '—'}</p></div></div></CardContent></Card>
       </div>
 
-      {/* Filters (repliable via l'entonnoir de l'en-tête) */}
       {showFilters && (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="mr-2 h-5 w-5" />
-            Filtres
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-5">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
-              <Input
-                placeholder="Rechercher un centre..."
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="pl-10"
-              />
+        <Card>
+          <CardHeader><CardTitle className="flex items-center"><Filter className="mr-2 h-5 w-5" />Filtres</CardTitle></CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="relative"><Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" /><Input placeholder="Rechercher un centre..." value={filters.search} onChange={(e) => setFilter('search', e.target.value)} className="pl-10" /></div>
+              <Select value={filters.axe} onValueChange={(v) => setFilter('axe', v)}>
+                <SelectTrigger><SelectValue placeholder="Tous les axes" /></SelectTrigger>
+                <SelectContent><SelectItem value="">Tous les axes</SelectItem>{axes.map((a: any) => <SelectItem key={a.id} value={a.code}>{a.libelle}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={filters.statut} onValueChange={(v) => setFilter('statut', v)}>
+                <SelectTrigger><SelectValue placeholder="Tous les statuts" /></SelectTrigger>
+                <SelectContent><SelectItem value="">Tous les statuts</SelectItem><SelectItem value="actif">Actif</SelectItem><SelectItem value="inactif">Inactif</SelectItem></SelectContent>
+              </Select>
+              <div className="relative"><User className="absolute left-3 top-3 h-4 w-4 text-gray-700" /><Input placeholder="Responsable" value={filters.responsable} onChange={(e) => setFilter('responsable', e.target.value)} className="pl-10" /></div>
             </div>
-            
-            <Select value={filters.axe} onValueChange={(value) => handleFilterChange('axe', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tous les axes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les axes</SelectItem>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {axes?.results?.map((axe: any) => (
-                  <SelectItem key={axe.id} value={axe.code}>
-                    {axe.libelle}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.type} onValueChange={(value) => handleFilterChange('type', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tous les types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
-                <SelectItem value="operationnel">Opérationnel</SelectItem>
-                <SelectItem value="support">Support</SelectItem>
-                <SelectItem value="structure">Structure</SelectItem>
-                <SelectItem value="projet">Projet</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filters.statut} onValueChange={(value) => handleFilterChange('statut', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tous les statuts" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="actif">Actif</SelectItem>
-                <SelectItem value="inactif">Inactif</SelectItem>
-                <SelectItem value="archive">Archivé</SelectItem>
-                <SelectItem value="ferme">Fermé</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
-              <Input
-                placeholder="Responsable"
-                value={filters.responsable}
-                onChange={(e) => handleFilterChange('responsable', e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={resetFilters}>
-              Réinitialiser
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex justify-end mt-4"><Button variant="outline" onClick={() => { setFilters({ search: '', axe: '', statut: '', responsable: '' }); setPage(1); }}>Réinitialiser</Button></div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Cost Centers Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Liste des Centres de Coûts</span>
-            {centersData && (
-              <Badge variant="outline">
-                {centersData.count} centre(s)
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="flex items-center justify-between"><span>Liste des Centres de Coûts</span>{data && <Badge variant="outline">{centers.length} centre(s)</Badge>}</CardTitle></CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" text="Chargement des centres..." />
+            <div className="flex justify-center py-8"><LoadingSpinner size="lg" text="Chargement des centres..." /></div>
+          ) : centers.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun centre de coût</h3>
+              <p className="text-gray-600 mb-6">{filters.search || filters.axe || filters.statut || filters.responsable ? 'Aucun centre ne correspond aux critères.' : 'Amorcez une structure standard ou créez un centre pour démarrer.'}</p>
+              <div className="flex justify-center gap-2">
+                <Button variant="outline" onClick={() => seedMutation.mutate()} disabled={seedMutation.isPending}><Sparkles className="mr-2 h-4 w-4" />Structure standard</Button>
+                <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white" onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Créer un centre</Button>
+              </div>
             </div>
           ) : (
             <>
@@ -513,129 +234,43 @@ const CostCentersPage: React.FC = () => {
                     <TableRow>
                       <TableHead>Code/Libellé</TableHead>
                       <TableHead>Axe</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead>Responsable</TableHead>
-                      <TableHead className="text-right">{t('navigation.budget')}</TableHead>
+                      <TableHead className="text-right">Budget</TableHead>
                       <TableHead className="text-right">Coûts Réels</TableHead>
                       <TableHead className="text-right">Écart</TableHead>
-                      <TableHead>Performance</TableHead>
+                      <TableHead className="text-right">Réalisation</TableHead>
                       <TableHead>Statut</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {centersData?.results?.map((center: any) => (
-                      <TableRow key={center.id} className="hover:bg-gray-50">
+                    {pageRows.map((c) => (
+                      <TableRow key={c.id} className="hover:bg-gray-50">
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <div className="p-2 bg-[var(--color-primary)]/10 rounded-full">
-                              {center.type === 'operationnel' ? (
-                                <Building className="h-4 w-4 text-[var(--color-primary)]" />
-                              ) : (
-                                <Users className="h-4 w-4 text-[var(--color-primary)]" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-[var(--color-text-primary)]">{center.libelle}</p>
-                              <p className="text-sm text-[var(--color-text-secondary)] font-mono">
-                                {center.code}
-                              </p>
-                            </div>
+                            <div className="p-2 bg-[var(--color-primary)]/10 rounded-full"><Building className="h-4 w-4 text-[var(--color-primary)]" /></div>
+                            <div><p className="font-medium text-[var(--color-text-primary)]">{c.libelle}</p><p className="text-sm text-[var(--color-text-secondary)] font-mono">{c.code}</p></div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-sm">{center.nom_axe}</p>
-                            <p className="text-xs text-gray-700">{center.code_axe}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getTypeColor(center.type)}>
-                            {getTypeLabel(center.type)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {center.responsable && (
-                            <div className="flex items-center space-x-2">
-                              <div className="p-1 bg-gray-100 rounded-full">
-                                <User className="h-3 w-3 text-gray-600" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">{center.responsable}</p>
-                                {center.email_responsable && (
-                                  <p className="text-xs text-gray-700">{center.email_responsable}</p>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </TableCell>
+                        <TableCell><div><p className="font-medium text-sm">{c.nom_axe}</p><p className="text-xs text-gray-700 font-mono">{c.code_axe}</p></div></TableCell>
+                        <TableCell>{c.responsable ? <div className="flex items-center space-x-2"><div className="p-1 bg-gray-100 rounded-full"><User className="h-3 w-3 text-gray-600" /></div><span className="text-sm font-medium">{c.responsable}</span></div> : <span className="text-gray-400">—</span>}</TableCell>
+                        <TableCell className="text-right"><span className="font-semibold text-[var(--color-primary)]">{formatCurrency(c.budget)}</span></TableCell>
+                        <TableCell className="text-right"><span className="font-semibold text-gray-700">{formatCurrency(c.couts_reels)}</span></TableCell>
                         <TableCell className="text-right">
-                          <span className="font-semibold text-[var(--color-primary)]">
-                            {formatCurrency(center.budget || 0)}
+                          <span className={`font-bold ${c.budget === 0 ? 'text-gray-400' : c.ecart_budget >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+                            {c.budget === 0 ? '—' : `${c.ecart_budget >= 0 ? '+' : ''}${formatCurrency(c.ecart_budget)}`}
                           </span>
                         </TableCell>
                         <TableCell className="text-right">
-                          <span className="font-semibold text-gray-700">
-                            {formatCurrency(center.couts_reels || 0)}
-                          </span>
+                          {c.realisation == null ? <span className="text-gray-400">—</span>
+                            : <span className={`font-medium ${c.realisation > 100 ? 'text-red-700' : c.realisation > 90 ? 'text-orange-600' : 'text-green-700'}`}>{formatPercentage(c.realisation)}</span>}
                         </TableCell>
+                        <TableCell><Badge className={c.actif ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'}>{c.actif ? 'Actif' : 'Inactif'}</Badge></TableCell>
                         <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-1">
-                            {getVariationIcon(center.ecart_budget || 0)}
-                            <span className={`font-bold ${
-                              (center.ecart_budget || 0) >= 0 ? 'text-green-700' : 'text-red-700'
-                            }`}>
-                              {formatCurrency(Math.abs(center.ecart_budget || 0))}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            {getPerformanceIcon(center.performance || 0)}
-                            <span className={`font-medium ${getPerformanceColor(center.performance || 0)}`}>
-                              {formatPercentage(center.performance || 0)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(center.statut)}>
-                            {getStatusLabel(center.statut)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSelectedCenter(center)}
-                              aria-label="Voir les détails"
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label="Analyse"
-                            >
-                              <BarChart3 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label="Modifier"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteCenter(center.id)}
-                              className="text-red-600 hover:text-red-700"
-                              aria-label="Supprimer"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                          <div className="flex justify-end space-x-1">
+                            <Button variant="ghost" size="sm" onClick={() => navigate('/budget/exploitation')} aria-label="Analyse Budget vs Réalisé" title="Budget vs Réalisé"><BarChart3 className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="sm" onClick={() => openEdit(c)} aria-label="Modifier" title="Modifier"><Edit className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="sm" onClick={() => toggleActif.mutate({ id: c.id, actif: !c.actif })} aria-label={c.actif ? 'Désactiver' : 'Réactiver'} title={c.actif ? 'Désactiver' : 'Réactiver'} className={c.actif ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}>{c.actif ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}</Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -644,352 +279,68 @@ const CostCentersPage: React.FC = () => {
                 </Table>
               </div>
 
-              {/* Summary */}
-              {centersData && centersData.results && centersData.results.length > 0 && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-600">Budget Total</p>
-                      <p className="text-lg font-bold text-[var(--color-primary)]">
-                        {formatCurrency(centersData.total_budget || 0)}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-600">Coûts Réels</p>
-                      <p className="text-lg font-bold text-gray-700">
-                        {formatCurrency(centersData.total_actual_costs || 0)}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-600">Écart Global</p>
-                      <p className={`text-lg font-bold ${
-                        (centersData.total_variance || 0) >= 0 ? 'text-green-700' : 'text-red-700'
-                      }`}>
-                        {formatCurrency(Math.abs(centersData.total_variance || 0))}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-medium text-gray-600">Taux de Réalisation</p>
-                      <p className="text-lg font-bold text-[var(--color-text-secondary)]">
-                        {formatPercentage(centersData.realization_rate || 0)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg grid gap-4 md:grid-cols-4">
+                <div className="text-center"><p className="text-sm font-medium text-gray-600">Budget Total</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totals.budget)}</p></div>
+                <div className="text-center"><p className="text-sm font-medium text-gray-600">Coûts Réels</p><p className="text-lg font-bold text-gray-700">{formatCurrency(totals.couts)}</p></div>
+                <div className="text-center"><p className="text-sm font-medium text-gray-600">Écart Global</p><p className={`text-lg font-bold ${totals.ecart >= 0 ? 'text-green-700' : 'text-red-700'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</p></div>
+                <div className="text-center"><p className="text-sm font-medium text-gray-600">Taux de Réalisation</p><p className="text-lg font-bold text-[var(--color-text-secondary)]">{totals.realisation != null ? formatPercentage(totals.realisation) : '—'}</p></div>
+              </div>
 
-              {/* Pagination */}
-              {centersData && centersData.count > 0 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={page}
-                    totalPages={Math.ceil(centersData.count / 20)}
-                    onPageChange={setPage}
-                  />
-                </div>
-              )}
-
-              {(!centersData?.results || centersData.results.length === 0) && (
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun centre de coût trouvé</h3>
-                  <p className="text-gray-700 mb-6">
-                    {filters.search || filters.axe || filters.type || filters.statut || filters.responsable
-                      ? 'Aucun centre ne correspond aux critères de recherche.'
-                      : 'Aucune donnée — module non alimenté par l\'import. Créez un centre de coût pour démarrer.'}
-                  </p>
-                  <Button 
-                    className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
-                    onClick={() => setShowCreateModal(true)}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Créer un centre
-                  </Button>
-                </div>
+              {centers.length > PAGE_SIZE && (
+                <div className="mt-6"><Pagination currentPage={page} totalPages={Math.ceil(centers.length / PAGE_SIZE)} onPageChange={setPage} /></div>
               )}
             </>
           )}
         </CardContent>
       </Card>
 
-      {/* Create/Edit Cost Center Modal */}
-      {showCreateModal && (
+      {/* Create / Edit modal — uniquement des champs réellement persistés */}
+      {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
-            {/* Sticky header */}
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <div className="flex items-center space-x-3">
-                <div className="bg-primary-100 text-[var(--color-text-secondary)] p-2 rounded-lg">
-                  <Target className="w-5 h-5" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900">
-                  Nouveau Centre de Coûts
-                </h2>
-              </div>
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-                className="text-gray-700 hover:text-gray-700"
-                disabled={isSubmitting}
-              >
-                <Plus className="w-6 h-6 rotate-45" />
-              </button>
+              <div className="flex items-center space-x-3"><div className="bg-[var(--color-primary)]/10 text-[var(--color-primary)] p-2 rounded-lg"><Target className="w-5 h-5" /></div><h2 className="text-lg font-bold text-gray-900">{isEdit ? 'Modifier le centre' : 'Nouveau centre de coût'}</h2></div>
+              <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-800" disabled={isSubmitting}><X className="w-6 h-6" /></button>
             </div>
-
-            {/* Scrollable content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
-              <div className="space-y-6">
-                {/* Info */}
-                <div className="bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg p-4">
-                  <div className="flex items-start space-x-2">
-                    <AlertCircle className="w-5 h-5 text-[var(--color-text-secondary)] flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-sm font-medium text-primary-900 mb-1">Centres de Coûts</h4>
-                      <p className="text-sm text-primary-800">
-                        Les centres de coûts permettent de répartir et suivre les dépenses par département, projet ou activité.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Identification */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Identification</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Code <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="CC001"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        value={formData.code}
-                        onChange={(e) => handleInputChange('code', e.target.value)}
-                        disabled={isSubmitting}
-                      />
-                      {errors.code && (
-                        <p className="mt-1 text-sm text-red-600">{errors.code}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Type <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        value={formData.type}
-                        onChange={(e) => handleInputChange('type', e.target.value)}
-                        disabled={isSubmitting}
-                      >
-                        <option value="">Sélectionner un type</option>
-                        <option value="operationnel">Opérationnel</option>
-                        <option value="support">Support</option>
-                        <option value="structure">Structure</option>
-                        <option value="projet">Projet</option>
-                      </select>
-                      {errors.type && (
-                        <p className="mt-1 text-sm text-red-600">{errors.type}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Libellé <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Nom du centre de coûts"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                      value={formData.libelle}
-                      onChange={(e) => handleInputChange('libelle', e.target.value)}
-                      disabled={isSubmitting}
-                    />
-                    {errors.libelle && (
-                      <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Axe analytique <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                      value={formData.axe_id}
-                      onChange={(e) => handleInputChange('axe_id', e.target.value)}
-                      disabled={isSubmitting}
-                    >
-                      <option value="">Sélectionner un axe</option>
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {axes?.results?.map((axe: any) => (
-                        <option key={axe.id} value={axe.id}>
-                          {axe.libelle}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.axe_id && (
-                      <p className="mt-1 text-sm text-red-600">{errors.axe_id}</p>
-                    )}
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="Description du centre de coûts..."
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                    />
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Code <span className="text-red-500">*</span></label>
+                  <input type="text" placeholder="ex. PROD" className="w-full border border-gray-300 rounded-lg px-3 py-2 disabled:bg-gray-100" value={form.code} onChange={(e) => setForm(f => ({ ...f, code: e.target.value }))} disabled={isSubmitting || isEdit} />
+                  {errors.code && <p className="mt-1 text-sm text-red-600">{errors.code}</p>}
                 </div>
-
-                {/* Responsabilité */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Responsabilité</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Responsable
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Nom du responsable"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        value={formData.responsable}
-                        onChange={(e) => handleInputChange('responsable', e.target.value)}
-                        disabled={isSubmitting}
-                      />
-                      {errors.responsable && (
-                        <p className="mt-1 text-sm text-red-600">{errors.responsable}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email du responsable
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="responsable@company.com"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Budget */}
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('navigation.budget')}</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Budget annuel (FCFA)
-                      </label>
-                      <input
-                        type="number"
-                        placeholder="0"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                        value={formData.budget_annuel}
-                        onChange={(e) => handleInputChange('budget_annuel', parseFloat(e.target.value) || 0)}
-                        disabled={isSubmitting}
-                      />
-                      {errors.budget_annuel && (
-                        <p className="mt-1 text-sm text-red-600">{errors.budget_annuel}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Statut <span className="text-red-500">*</span>
-                      </label>
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent">
-                        <option value="actif">Actif</option>
-                        <option value="inactif">Inactif</option>
-                        <option value="archive">Archivé</option>
-                        <option value="ferme">Fermé</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Options */}
-                <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Options</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="suivi_budget"
-                        className="w-4 h-4 text-[var(--color-text-secondary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
-                        checked={formData.suivi_budget}
-                        onChange={(e) => handleInputChange('suivi_budget', e.target.checked)}
-                        disabled={isSubmitting}
-                      />
-                      <label htmlFor="suivi_budget" className="ml-2 text-sm text-gray-700">
-                        Activer le suivi budgétaire et alertes de dépassement
-                      </label>
-                    </div>
-
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="imputation"
-                        className="w-4 h-4 text-[var(--color-text-secondary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
-                      />
-                      <label htmlFor="imputation" className="ml-2 text-sm text-gray-700">
-                        Imputation automatique des écritures comptables
-                      </label>
-                    </div>
-
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id="reporting"
-                        defaultChecked
-                        className="w-4 h-4 text-[var(--color-text-secondary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
-                      />
-                      <label htmlFor="reporting" className="ml-2 text-sm text-gray-700">
-                        Inclure dans les rapports analytiques
-                      </label>
-                    </div>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Axe analytique <span className="text-red-500">*</span></label>
+                  <select className="w-full border border-gray-300 rounded-lg px-3 py-2 disabled:bg-gray-100" value={form.axe_id} onChange={(e) => setForm(f => ({ ...f, axe_id: e.target.value }))} disabled={isSubmitting || isEdit}>
+                    <option value="">Sélectionner un axe</option>
+                    {axes.map((a: any) => <option key={a.id} value={a.id}>{a.code} · {a.libelle}</option>)}
+                  </select>
+                  {errors.axe_id && <p className="mt-1 text-sm text-red-600">{errors.axe_id}</p>}
                 </div>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Libellé <span className="text-red-500">*</span></label>
+                <input type="text" placeholder="Nom du centre" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.libelle} onChange={(e) => setForm(f => ({ ...f, libelle: e.target.value }))} disabled={isSubmitting} />
+                {errors.libelle && <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Responsable</label>
+                  <input type="text" placeholder="Nom du responsable" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.responsable} onChange={(e) => setForm(f => ({ ...f, responsable: e.target.value }))} disabled={isSubmitting} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Budget annuel (FCFA)</label>
+                  <input type="number" placeholder="0" className="w-full border border-gray-300 rounded-lg px-3 py-2" value={form.budget_annuel} onChange={(e) => setForm(f => ({ ...f, budget_annuel: parseFloat(e.target.value) || 0 }))} disabled={isSubmitting} />
+                </div>
+              </div>
+              {isEdit && (
+                <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={form.actif} onChange={(e) => setForm(f => ({ ...f, actif: e.target.checked }))} />Centre actif</label>
+              )}
             </div>
-
-            {/* Sticky footer */}
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-                disabled={isSubmitting}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
-                {isSubmitting ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    <span>Création...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Créer le centre</span>
-                  </>
-                )}
+              <button onClick={() => setShowModal(false)} disabled={isSubmitting} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 disabled:opacity-50">Annuler</button>
+              <button onClick={submit} disabled={isSubmitting} className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:opacity-90 flex items-center space-x-2 disabled:opacity-50">
+                {isSubmitting ? <><LoadingSpinner size="sm" /><span>Enregistrement…</span></> : <><CheckCircle className="w-4 h-4" /><span>{isEdit ? 'Enregistrer' : 'Créer le centre'}</span></>}
               </button>
             </div>
           </div>
