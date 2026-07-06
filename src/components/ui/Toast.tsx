@@ -12,7 +12,10 @@ export interface ToastProps {
   onDismiss?: (id: string) => void;
 }
 
-export const Toast: React.FC<ToastProps> = ({
+// forwardRef : AnimatePresence (framer-motion, mode="popLayout") transmet une ref
+// à ses enfants pour mesurer/animer la sortie. Sans forwardRef → warning
+// « Function components cannot be given refs ». On relaie la ref au motion.div.
+export const Toast = React.forwardRef<HTMLDivElement, ToastProps>(({
   id,
   title,
   message,
@@ -20,7 +23,7 @@ export const Toast: React.FC<ToastProps> = ({
   duration = 5000,
   dismissible = true,
   onDismiss,
-}) => {
+}, ref) => {
   const variants = {
     success: {
       bg: 'bg-white border-l-4 border-green-500 shadow-lg',
@@ -63,6 +66,7 @@ export const Toast: React.FC<ToastProps> = ({
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, x: 300, scale: 0.8 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 300, scale: 0.8 }}
@@ -105,7 +109,8 @@ export const Toast: React.FC<ToastProps> = ({
       )}
     </motion.div>
   );
-};
+});
+Toast.displayName = 'Toast';
 
 export const ToastContainer: React.FC<{
   toasts: ToastProps[];
