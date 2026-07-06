@@ -247,16 +247,21 @@ const EtatsSYSCOHADA: React.FC = () => {
     },
   ];
 
-  // Bilan Actif — computed from real account balances
-  const immoIncorp = getSoldeDebiteur(['20', '21']);
+  // Bilan Actif — placement par SIGNE du solde (net), pour que Actif = Passif =
+  // Σ soldes cl.1-5 (identité comptable). Immo en NET : les contreparties
+  // créditrices 28/29 (amortissements + dépréciations) sont déduites.
+  const immoIncorp = getSolde(['20', '21']);
   // 25 = avances/immobilisations en cours → corporelles (PAS financières),
   // cohérent avec le Bilan canonique (financialStatementsService).
-  const immoCorp = getSoldeDebiteur(['22', '23', '24', '25']);
-  const immoFin = getSoldeDebiteur(['26', '27']);
-  const amortImmo = Math.abs(getSolde(['28']));
-  const totalImmo = immoIncorp + immoCorp + immoFin - amortImmo;
-  const stocks = getSoldeDebiteur(['3']);
-  const creances = getSoldeDebiteur(['41', '42', '43', '44', '45', '46', '47']);
+  const immoCorp = getSolde(['22', '23', '24', '25']);
+  const immoFin = getSolde(['26', '27']);
+  const amortImmo = getSoldeCrediteur(['28', '29']); // amortissements + dépréciations d'immo.
+  const totalImmo = immoIncorp + immoCorp + immoFin - amortImmo; // = getSolde(['2'])
+  const stocks = getSolde(['3']); // net des dépréciations de stocks (39)
+  // Emplois/créances = TOUS les comptes DÉBITEURS des classes 1 & 4 (dont 40 & 48
+  // débiteurs). Se restreindre à 41-47 droppait les fournisseurs débiteurs (409),
+  // les créances HAO (48) et les débiteurs de classe 1 → déséquilibre.
+  const creances = getSoldeDebiteur(['1', '4']);
   const tresoActif = getSoldeDebiteur(['5']);
   const totalCirculant = stocks + creances + tresoActif;
   const totalGenActif = totalImmo + totalCirculant;
@@ -285,8 +290,11 @@ const EtatsSYSCOHADA: React.FC = () => {
   const capitauxPropres = capital + reserves + realResultat;
   const subventions = getSoldeCrediteur(['14']);
   const provisions = getSoldeCrediteur(['15', '19']);
-  const dettesFinancieres = getSoldeCrediteur(['16', '17']);
-  const dettesCirculantes = getSoldeCrediteur(['40', '42', '43', '44', '45', '46', '47']);
+  const dettesFinancieres = getSoldeCrediteur(['16', '17', '18']);
+  // TOUS les comptes CRÉDITEURS de la classe 4 (40 fournisseurs, 41 clients
+  // créditeurs, 48 dettes HAO, 49 dépréciations…). Se restreindre à 40/42-47
+  // droppait 41-créditeur, 48 et 49 → déséquilibre.
+  const dettesCirculantes = getSoldeCrediteur(['4']);
   const tresoPassif = getSoldeCrediteur(['5']);
   const totalDettes = provisions + dettesFinancieres + dettesCirculantes + tresoPassif;
   const totalGenPassif = capitauxPropres + subventions + totalDettes;
