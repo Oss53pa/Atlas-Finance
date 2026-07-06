@@ -25,6 +25,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
+import { SpaceLinkBadge } from '../../features/collaboration/components/SpaceLinkBadge';
 
 interface LedgerEntry {
   id: string;
@@ -1615,11 +1616,23 @@ const AdvancedGeneralLedger: React.FC = () => {
                           </h3>
                           <p className="text-gray-600">{account.libelle}</p>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-[var(--color-primary)]">
-                            {fmt(account.soldeFermeture)}
+                        <div className="flex items-center gap-3">
+                          <SpaceLinkBadge
+                            context={{
+                              anchorType: 'account_period', anchorLabel: `Compte ${account.compte} · ${account.libelle}`,
+                              accountCode: account.compte, initialGap: Math.abs(account.soldeFermeture),
+                              title: `Anomalie compte ${account.compte}`,
+                              problem: `À instruire sur le compte ${account.compte} — ${account.libelle} (solde ${fmt(account.soldeFermeture)}).`,
+                              objective: `Résoudre l'anomalie du compte ${account.compte}.`,
+                            }}
+                            match={{ accountCode: account.compte }}
+                          />
+                          <div className="text-right">
+                            <div className="text-lg font-bold text-[var(--color-primary)]">
+                              {fmt(account.soldeFermeture)}
+                            </div>
+                            <div className="text-sm text-gray-700">Solde actuel</div>
                           </div>
-                          <div className="text-sm text-gray-700">Solde actuel</div>
                         </div>
                       </div>
                       

@@ -69,6 +69,7 @@ export type TableName =
   | 'collabTasks'
   | 'collabTaskComments'
   | 'collabPresence'
+  | 'collabDocuments'
 
 export interface QueryFilters {
   where?: Record<string, any>

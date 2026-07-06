@@ -706,6 +706,24 @@ export interface DBCollabPresence {
   lastSeenAt: string;
 }
 
+export interface DBCollabDocument {
+  id: string;
+  tenantId: string;
+  spaceId: string;
+  name: string;
+  version: number;            // v1, v2… (incrément par nom dans l'espace)
+  size?: number;
+  mime?: string;
+  dataUrl?: string;           // contenu inline (base64) pour petits fichiers
+  storagePath?: string;       // chemin Supabase Storage (gros fichiers, v2)
+  checksum?: string;          // SHA-256 du contenu
+  linkedDecisionId?: string;
+  linkedActionId?: string;
+  uploadedBy: string;
+  uploadedByName?: string;
+  uploadedAt: string;
+}
+
 // ============================================================================
 // DATABASE
 // ============================================================================
@@ -754,6 +772,7 @@ class AtlasFnADB extends Dexie {
   collabTasks!: Table<DBCollabTask, string>;
   collabTaskComments!: Table<DBCollabTaskComment, string>;
   collabPresence!: Table<DBCollabPresence, string>;
+  collabDocuments!: Table<DBCollabDocument, string>;
   constructor() {
     super('AtlasFnADB');
     this.version(1).stores({
@@ -949,6 +968,10 @@ class AtlasFnADB extends Dexie {
       collabTasks: 'id, tenantId, status, assigneeId, updatedAt',
       collabTaskComments: 'id, taskId, tenantId, createdAt',
       collabPresence: 'id, tenantId, lastSeenAt',
+    });
+    // v12 — Documents versionnés des espaces de résolution
+    this.version(12).stores({
+      collabDocuments: 'id, tenantId, spaceId, name, version, uploadedAt, [spaceId+name]',
     });
   }
 }

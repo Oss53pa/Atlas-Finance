@@ -7,6 +7,7 @@
  * seuils, snapshots hashés, clôture opposable. Aucun calcul par LLM.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
@@ -21,8 +22,9 @@ import {
   computeConvergence, refreshConvergence, evaluateExitCriteria, satisfyCriterion,
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
   postEcriture, postSnapshot, approveDecision, toggleReaction, buildSnapshotPayload,
-  heartbeatPresence, isLate, type ConvergenceResult,
+  heartbeatPresence, isLate, listDocuments, addDocument, type ConvergenceResult,
 } from '../../features/collaboration/services/collaborationService';
+import type { DBCollabDocument } from '../../lib/db';
 import { listTasks, createTask, updateTask } from '../../features/collaboration/services/collabTasksService';
 import type {
   Space, SpaceEvent, Task, ExitCriterion, EventType, DecisionPayload, EcriturePayload,
@@ -32,6 +34,8 @@ import {
   SPACE_STATUS_LABELS, SPACE_STATUS_ORDER, ANCHOR_TYPE_LABELS, DEFAULT_GOVERNANCE,
   requiredRoleFor,
 } from '../../features/collaboration/types';
+import { parseNewSpaceParams, type ParsedNewSpace } from '../../features/collaboration/link';
+import { SPACE_TEMPLATES, type SpaceTemplate } from '../../features/collaboration/templates';
 
 // ── Palette (CDC §12.1 — thème clair Atlas FNA) ───────────────────────────────
 const T = {
@@ -76,12 +80,24 @@ export default function CollaborationWorkspace() {
   const [selId, setSelId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [prefill, setPrefill] = useState<ParsedNewSpace | undefined>(undefined);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const load = useCallback(async () => {
     try { setSpaces(await listSpaces(adapter, tenantId)); } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [adapter, tenantId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Deux surfaces, un système (CDC §8) : ouverture depuis un écran métier via
+  // query params — ?space=ID ouvre l'espace, ?new=1&… lance la création ancrée.
+  useEffect(() => {
+    const sid = searchParams.get('space');
+    const np = parseNewSpaceParams(searchParams);
+    if (sid) { setSelId(sid); setSearchParams({}, { replace: true }); }
+    else if (np) { setPrefill(np); setShowCreate(true); setSearchParams({}, { replace: true }); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
   useEffect(() => {
     heartbeatPresence(adapter, { userId: me.id, tenantId, userName: me.name }).catch(() => {});
     const t = setInterval(() => heartbeatPresence(adapter, { userId: me.id, tenantId, userName: me.name }).catch(() => {}), 60000);
@@ -99,9 +115,9 @@ export default function CollaborationWorkspace() {
         <Portfolio spaces={spaces} loading={loading} onOpen={setSelId} onNew={() => setShowCreate(true)} />
       )}
       {showCreate && (
-        <CreateSpaceModal me={me} tenantId={tenantId}
-          onClose={() => setShowCreate(false)}
-          onCreated={async (id) => { setShowCreate(false); await load(); setSelId(id); }} />
+        <CreateSpaceModal me={me} tenantId={tenantId} prefill={prefill}
+          onClose={() => { setShowCreate(false); setPrefill(undefined); }}
+          onCreated={async (id) => { setShowCreate(false); setPrefill(undefined); await load(); setSelId(id); }} />
       )}
     </div>
   );
@@ -217,19 +233,21 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [criteria, setCriteria] = useState<ExitCriterion[]>(space.exitCriteria || []);
   const [conv, setConv] = useState<ConvergenceResult | null>(null);
+  const [documents, setDocuments] = useState<DBCollabDocument[]>([]);
   const [rightTab, setRightTab] = useState<'actions' | 'decisions' | 'pieces' | 'diffusion'>('actions');
   const feedRef = useRef<HTMLDivElement>(null);
 
   const reload = useCallback(async () => {
-    const [fresh, ev, tk] = await Promise.all([
+    const [fresh, ev, tk, docs] = await Promise.all([
       getSpace(adapter, space.id), listEvents(adapter, space.id), listTasks(adapter, tenantId, space.id),
+      listDocuments(adapter, space.id),
     ]);
     if (fresh) {
       setSp(fresh);
       const [c, crit] = await Promise.all([computeConvergence(adapter, fresh), evaluateExitCriteria(adapter, fresh)]);
       setConv(c); setCriteria(crit);
     }
-    setEvents(ev); setTasks(tk);
+    setEvents(ev); setTasks(tk); setDocuments(docs);
   }, [adapter, space.id, tenantId]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -305,7 +323,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
           <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
             {rightTab === 'actions' && <ActionsTab sp={sp} tasks={tasks} me={me} tenantId={tenantId} adapter={adapter} onReload={reload} readOnly={readOnly} />}
             {rightTab === 'decisions' && <DecisionsTab events={events} me={me} adapter={adapter} onReload={reload} readOnly={readOnly} />}
-            {rightTab === 'pieces' && <PiecesTab events={events} />}
+            {rightTab === 'pieces' && <PiecesTab events={events} documents={documents} sp={sp} me={me} adapter={adapter} onReload={reload} readOnly={readOnly} />}
             {rightTab === 'diffusion' && <DiffusionTab sp={sp} events={events} />}
           </div>
         </aside>
@@ -553,12 +571,29 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
   const { toast } = useToast();
   const [mode, setMode] = useState<'message' | 'ecriture' | 'decision' | 'snapshot'>('message');
   const [text, setText] = useState('');
-  // Écriture
+  // Écriture (liée à une VRAIE pièce GL)
   const [entryNumber, setEntryNumber] = useState('');
   const [accounts, setAccounts] = useState('');
   const [amount, setAmount] = useState('');
+  const [entryId, setEntryId] = useState<string | undefined>(undefined);
+  const [journal, setJournal] = useState<string | undefined>(undefined);
+  const [entryQuery, setEntryQuery] = useState('');
+  const [hits, setHits] = useState<import('../../features/collaboration/services/collaborationService').EntryHit[]>([]);
   // Décision
   const [decTitle, setDecTitle] = useState('');
+
+  useEffect(() => {
+    if (mode !== 'ecriture') return;
+    let alive = true;
+    const t = setTimeout(async () => {
+      try {
+        const { searchJournalEntries } = await import('../../features/collaboration/services/collaborationService');
+        const r = await searchJournalEntries(adapter, entryQuery, 8);
+        if (alive) setHits(r);
+      } catch { /* ignore */ }
+    }, 200);
+    return () => { alive = false; clearTimeout(t); };
+  }, [mode, entryQuery, adapter]);
 
   const send = async () => {
     try {
@@ -570,7 +605,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
         await postEcriture(adapter, {
           spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name,
           body: text.trim(), via: 'Atlas FNA · Journaux',
-          payload: { entryNumber: entryNumber.trim(), accounts: accounts.trim(), amount: amount ? Number(amount) : undefined },
+          payload: { entryId, entryNumber: entryNumber.trim(), journal, accounts: accounts.trim(), amount: amount ? Number(amount) : undefined },
         });
         // Un geste comptable rapproche l'écart → recalcul convergence.
         await refreshConvergence(adapter, sp).catch(() => {});
@@ -591,6 +626,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
         await postSnapshot(adapter, { spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name, body: '', payload, via: 'Atlas FNA' });
       }
       setText(''); setEntryNumber(''); setAccounts(''); setAmount(''); setDecTitle('');
+      setEntryId(undefined); setJournal(undefined); setEntryQuery(''); setHits([]);
       onSent();
     } catch (e) { console.error(e); toast.error('Échec de l\'envoi'); }
   };
@@ -614,10 +650,35 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
       </div>
 
       {mode === 'ecriture' && (
-        <div style={{ display: 'flex', gap: 6, marginBottom: 7 }}>
-          <input value={entryNumber} onChange={e => setEntryNumber(e.target.value)} placeholder="N° pièce (ex. BQ-2026-03-0142)" style={inp} />
-          <input value={accounts} onChange={e => setAccounts(e.target.value)} placeholder="Comptes (521100 / 411…)" style={inp} />
-          <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant" type="number" style={{ ...inp, width: 110 }} />
+        <div style={{ marginBottom: 7 }}>
+          {entryId ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `1px solid ${T.green}44`, background: T.green + '0c', borderRadius: 9, padding: '7px 10px' }}>
+              <PenLine size={15} color={T.green} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, fontFamily: MONO }}>{entryNumber}{journal ? ` · ${journal}` : ''}</div>
+                <div style={{ fontSize: 11, color: T.sub }}>{accounts}{amount ? ` · ${fmtXof(Number(amount))} FCFA` : ''}</div>
+              </div>
+              <button onClick={() => { setEntryId(undefined); setEntryNumber(''); setAccounts(''); setAmount(''); setJournal(undefined); }} style={{ ...iconBtn, width: 28, height: 28 }}><X size={14} /></button>
+            </div>
+          ) : (
+            <div style={{ position: 'relative' }}>
+              <input value={entryQuery} onChange={e => setEntryQuery(e.target.value)} placeholder="Rechercher une pièce réelle (n°, compte, libellé)…" style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
+              {hits.length > 0 && (
+                <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,.12)', maxHeight: 220, overflowY: 'auto', zIndex: 5 }}>
+                  {hits.map(h => (
+                    <button key={h.id} onClick={() => { setEntryId(h.id); setEntryNumber(h.entryNumber); setJournal(h.journal); setAccounts(h.accounts); setAmount(String(Math.round(h.amount))); setHits([]); }}
+                      style={{ display: 'flex', width: '100%', textAlign: 'left', gap: 8, padding: '7px 10px', border: 'none', borderBottom: `1px solid ${T.softLine}`, background: 'none', cursor: 'pointer' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, fontFamily: MONO }}>{h.entryNumber}{h.journal ? ` · ${h.journal}` : ''}</div>
+                        <div style={{ fontSize: 10.5, color: T.sub, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{h.accounts}{h.date ? ` · ${dayFR(h.date)}` : ''}</div>
+                      </div>
+                      <span style={{ fontSize: 11, fontFamily: MONO, color: T.gold }}>{fmtXof(h.amount)}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       {mode === 'decision' && (
@@ -765,20 +826,58 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
   );
 }
 
-// ── Onglet Pièces (3 familles) ────────────────────────────────────────────────
-function PiecesTab({ events }: { events: SpaceEvent[] }) {
+// ── Onglet Pièces (3 familles juridiques distinctes) ──────────────────────────
+function PiecesTab({ events, documents, sp, me, adapter, onReload, readOnly }: {
+  events: SpaceEvent[]; documents: DBCollabDocument[]; sp: Space; me: any; adapter: any; onReload: () => void; readOnly: boolean;
+}) {
+  const { toast } = useToast();
   const ecritures = events.filter(e => e.type === 'ecriture');
   const snaps = events.filter(e => e.type === 'snapshot');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Regroupe par nom → version courante (max) + historique.
+  const byName = new Map<string, DBCollabDocument[]>();
+  for (const d of documents) { const a = byName.get(d.name) || []; a.push(d); byName.set(d.name, a); }
+
+  const onFile = async (file?: File) => {
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { toast.warning('Fichier > 3 Mo (limite v1 inline)'); return; }
+    const dataUrl = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(file); });
+    await addDocument(adapter, { spaceId: sp.id, tenantId: sp.tenantId, name: file.name, dataUrl, size: file.size, mime: file.type, uploadedBy: me.id, uploadedByName: me.name });
+    toast.success('Document joint'); onReload();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <PieceGroup title="Écritures référencées" color={T.green} count={ecritures.length}>
+        {ecritures.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucune écriture liée.</div>}
         {ecritures.map(e => <EcritureChip key={e.id} p={e.payload as EcriturePayload} body={e.body} />)}
       </PieceGroup>
       <PieceGroup title="Snapshots figés" color={T.purple} count={snaps.length}>
+        {snaps.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucun snapshot.</div>}
         {snaps.map(e => <SnapshotChip key={e.id} p={e.payload as SnapshotPayload} />)}
       </PieceGroup>
-      <PieceGroup title="Documents versionnés" color={T.blue} count={0}>
-        <div style={{ fontSize: 11, color: T.sub }}>Aucun document joint.</div>
+      <PieceGroup title="Documents versionnés" color={T.blue} count={byName.size}>
+        {byName.size === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucun document joint.</div>}
+        {[...byName.entries()].map(([name, versions]) => {
+          const cur = versions.slice().sort((a, b) => b.version - a.version)[0];
+          return (
+            <div key={name} style={{ border: `1px solid ${T.blue}33`, background: T.blue + '0a', borderRadius: 9, padding: '8px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <FileText size={15} color={T.blue} />
+                <a href={cur.dataUrl} download={cur.name} style={{ flex: 1, fontSize: 12, fontWeight: 700, color: T.ink, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</a>
+                <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background: T.blue + '18', borderRadius: 6, padding: '1px 6px' }}>v{cur.version}</span>
+              </div>
+              {cur.checksum && <div style={{ fontSize: 9.5, color: T.sub, fontFamily: MONO, marginTop: 3 }}>#{cur.checksum} · {versions.length} version(s)</div>}
+            </div>
+          );
+        })}
+        {!readOnly && (
+          <div>
+            <input ref={fileRef} type="file" style={{ display: 'none' }} onChange={e => onFile(e.target.files?.[0])} />
+            <button onClick={() => fileRef.current?.click()} style={{ ...miniBtn(T.blue), marginTop: 2 }}><Plus size={12} /> Joindre / versionner un document</button>
+          </div>
+        )}
       </PieceGroup>
     </div>
   );
@@ -822,22 +921,33 @@ function DiffusionTab({ sp, events }: { sp: Space; events: SpaceEvent[] }) {
 }
 
 // ════════════════════════════════════════════════ CRÉATION D'ESPACE ══════════
-function CreateSpaceModal({ me, tenantId, onClose, onCreated }: {
-  me: { id: string; name: string; role: string }; tenantId: string;
+function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
+  me: { id: string; name: string; role: string }; tenantId: string; prefill?: ParsedNewSpace;
   onClose: () => void; onCreated: (id: string) => void;
 }) {
   const { adapter } = useData();
   const { toast } = useToast();
-  const [title, setTitle] = useState('');
-  const [problem, setProblem] = useState('');
-  const [objective, setObjective] = useState('');
+  const [title, setTitle] = useState(prefill?.title || '');
+  const [problem, setProblem] = useState(prefill?.problem || '');
+  const [objective, setObjective] = useState(prefill?.objective || '');
   const [deadline, setDeadline] = useState('');
-  const [anchorType, setAnchorType] = useState<keyof typeof ANCHOR_TYPE_LABELS>('reconciliation');
-  const [anchorLabel, setAnchorLabel] = useState('');
-  const [account, setAccount] = useState('');
-  const [initialGap, setInitialGap] = useState('');
+  const [anchorType, setAnchorType] = useState<keyof typeof ANCHOR_TYPE_LABELS>((prefill?.anchorType as any) || 'reconciliation');
+  const [anchorLabel, setAnchorLabel] = useState(prefill?.anchorLabel || '');
+  const [account, setAccount] = useState(prefill?.accountCode || '');
+  const [initialGap, setInitialGap] = useState(prefill?.initialGap != null ? String(prefill.initialGap) : '');
   const [critLabel, setCritLabel] = useState('');
   const [busy, setBusy] = useState(false);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const partnerId = prefill?.partnerId;
+  const entryId = prefill?.entryId;
+
+  const applyTemplate = (t: SpaceTemplate) => {
+    setTemplateId(t.id);
+    setAnchorType(t.anchorType as any);
+    if (!problem.trim()) setProblem(t.problem);
+    if (!objective.trim()) setObjective(t.objective);
+    if (!critLabel.trim() && t.manualCriterion) setCritLabel(t.manualCriterion);
+  };
 
   const submit = async () => {
     if (!title.trim() || !problem.trim() || !objective.trim()) { toast.warning('Titre, problème et objectif sont requis'); return; }
@@ -859,8 +969,23 @@ function CreateSpaceModal({ me, tenantId, onClose, onCreated }: {
         tenantId, title: title.trim(), problem: problem.trim(), objective: objective.trim(),
         createdBy: me.id, responsibleId: me.id, responsibleName: me.name, deadline: deadline || undefined,
         convergence, exitCriteria: criteria,
-        anchors: [{ type: anchorType, app: 'fna', label: anchorLabel.trim(), isPrimary: true, ref: account ? { accountCode: account.trim() } : undefined }],
+        anchors: [{
+          type: anchorType, app: 'fna', label: anchorLabel.trim(), isPrimary: true,
+          ref: {
+            ...(account.trim() ? { accountCode: account.trim() } : {}),
+            ...(partnerId ? { partnerId } : {}),
+            ...(entryId ? { entryId } : {}),
+            ...(prefill?.period ? { period: prefill.period } : {}),
+          },
+        }],
       });
+      // Template → actions types pré-chargées comme checklist de résolution.
+      const tpl = SPACE_TEMPLATES.find(t => t.id === templateId);
+      if (tpl) {
+        for (const label of tpl.actions) {
+          await createTask(adapter, { tenantId, spaceId: space.id, title: label, createdBy: me.id }).catch(() => {});
+        }
+      }
       toast.success('Espace de résolution ouvert');
       onCreated(space.id);
     } catch (e) { console.error(e); toast.error('Échec de la création'); } finally { setBusy(false); }
@@ -874,6 +999,18 @@ function CreateSpaceModal({ me, tenantId, onClose, onCreated }: {
           <button onClick={onClose} style={iconBtn}><X size={18} /></button>
         </div>
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 13 }}>
+          <div>
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 6 }}>Partir d'un template</span>
+            <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+              {SPACE_TEMPLATES.map(t => (
+                <button key={t.id} type="button" onClick={() => applyTemplate(t)} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, fontWeight: 600,
+                  border: `1px solid ${templateId === t.id ? T.petrol : T.line}`, color: templateId === t.id ? T.petrol : T.sub,
+                  background: templateId === t.id ? T.petrol + '10' : T.surface, borderRadius: 8, padding: '5px 10px', cursor: 'pointer',
+                }}>{t.icon} {t.label}</button>
+              ))}
+            </div>
+          </div>
           <Field label="Titre">
             <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. Écarts BICICI 521100 — Mars 2026" style={inpFull} />
           </Field>

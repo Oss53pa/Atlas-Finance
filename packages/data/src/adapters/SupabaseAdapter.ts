@@ -61,6 +61,7 @@ const TABLE_MAP: Record<TableName, string> = {
   collabTasks: 'collab_tasks',
   collabTaskComments: 'collab_task_comments',
   collabPresence: 'collab_presence',
+  collabDocuments: 'collab_documents',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -232,6 +233,7 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   collab_tasks:         normalizeGeneric,
   collab_task_comments: normalizeGeneric,
   collab_presence:      normalizeGeneric,
+  collab_documents:     normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {

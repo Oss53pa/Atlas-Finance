@@ -8,7 +8,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import type {
-  DBCollabChannel, DBCollabMessage, DBCollabPresence, DBJournalEntry,
+  DBCollabChannel, DBCollabMessage, DBCollabPresence, DBCollabDocument, DBJournalEntry,
 } from '../../../lib/db';
 import type {
   Space, SpaceEvent, Presence, PresenceStatus, EventType, ExitCriterion,
@@ -42,6 +42,31 @@ async function accountBalance(adapter: DataAdapter, accountCode: string): Promis
   return bal;
 }
 
+// ── RECHERCHE DE PIÈCES GL (composeur « Écriture » — lien pièce réelle) ───────
+
+export interface EntryHit { id: string; entryNumber: string; journal?: string; date?: string; accounts: string; amount: number; }
+export async function searchJournalEntries(adapter: DataAdapter, query: string, limit = 8): Promise<EntryHit[]> {
+  const q = query.trim().toLowerCase();
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  const hits: EntryHit[] = [];
+  for (const e of entries as any[]) {
+    if (e.status === 'draft') continue;
+    const num = String(e.entryNumber || e.pieceNumber || e.id || '');
+    const lines = e.lines || [];
+    const accs = lines.map((l: any) => String(l.accountCode || '')).filter(Boolean);
+    const label = String(e.label || e.description || '');
+    const hay = `${num} ${label} ${accs.join(' ')} ${e.journal || ''}`.toLowerCase();
+    if (q && !hay.includes(q)) continue;
+    const amount = lines.reduce((s: number, l: any) => s + (l.debit || 0), 0);
+    hits.push({
+      id: e.id, entryNumber: num, journal: e.journal, date: e.date,
+      accounts: [...new Set(accs)].slice(0, 4).join(' / '), amount,
+    });
+    if (hits.length >= limit) break;
+  }
+  return hits;
+}
+
 // ── ESPACES ──────────────────────────────────────────────────────────────────
 
 function toSpace(c: DBCollabChannel): Space {
@@ -72,6 +97,19 @@ export async function listSpaces(adapter: DataAdapter, tenantId: string): Promis
 export async function getSpace(adapter: DataAdapter, id: string): Promise<Space | null> {
   const c = await adapter.getById<DBCollabChannel>('collabChannels', id).catch(() => null);
   return c ? toSpace(c) : null;
+}
+
+/** Objet → Espace : retrouve les espaces ancrés à un objet métier (CDC §4.1). */
+export interface AnchorMatch { accountCode?: string; partnerId?: string; entryId?: string; period?: string; }
+export async function findSpacesForAnchor(adapter: DataAdapter, tenantId: string, match: AnchorMatch): Promise<Space[]> {
+  const spaces = await listSpaces(adapter, tenantId);
+  return spaces.filter(s => (s.anchors || []).some(a => {
+    const r = (a.ref || {}) as Record<string, any>;
+    if (match.accountCode && r.accountCode && String(r.accountCode).startsWith(match.accountCode)) return true;
+    if (match.partnerId && r.partnerId && String(r.partnerId) === match.partnerId) return true;
+    if (match.entryId && r.entryId && String(r.entryId) === match.entryId) return true;
+    return false;
+  }) || (match.accountCode && s.linkedId === match.accountCode));
 }
 
 export async function createSpace(adapter: DataAdapter, data: {
@@ -309,6 +347,38 @@ export async function toggleReaction(adapter: DataAdapter, ev: SpaceEvent, emoji
 export async function buildSnapshotPayload(title: string, source: string, columns: string[], rows: (string | number)[][]): Promise<SnapshotPayload> {
   const hash = (await sha256(JSON.stringify({ title, columns, rows }))).slice(0, 16);
   return { title, source, columns, rows, hash, frozenAt: now() };
+}
+
+// ── DOCUMENTS VERSIONNÉS (CDC §9.1.2) ─────────────────────────────────────────
+
+export async function listDocuments(adapter: DataAdapter, spaceId: string): Promise<DBCollabDocument[]> {
+  const all = await adapter.getAll<DBCollabDocument>('collabDocuments', { where: { spaceId } });
+  return (all as DBCollabDocument[])
+    .filter(d => d.spaceId === spaceId)
+    .sort((a, b) => a.name.localeCompare(b.name) || b.version - a.version);
+}
+
+/** Ajoute une VERSION d'un document (v1, v2… par nom) + checksum SHA-256 + événement. */
+export async function addDocument(adapter: DataAdapter, data: {
+  spaceId: string; tenantId: string; name: string; dataUrl?: string; size?: number; mime?: string;
+  uploadedBy: string; uploadedByName?: string; linkedDecisionId?: string; linkedActionId?: string;
+}): Promise<DBCollabDocument> {
+  const existing = await listDocuments(adapter, data.spaceId);
+  const sameName = existing.filter(d => d.name === data.name);
+  const version = sameName.length ? Math.max(...sameName.map(d => d.version)) + 1 : 1;
+  const checksum = data.dataUrl ? (await sha256(data.dataUrl)).slice(0, 16) : undefined;
+  const doc = await adapter.create<DBCollabDocument>('collabDocuments', {
+    id: uid(), tenantId: data.tenantId, spaceId: data.spaceId, name: data.name, version,
+    size: data.size, mime: data.mime, dataUrl: data.dataUrl, checksum,
+    linkedDecisionId: data.linkedDecisionId, linkedActionId: data.linkedActionId,
+    uploadedBy: data.uploadedBy, uploadedByName: data.uploadedByName, uploadedAt: now(),
+  } as DBCollabDocument);
+  await postEvent(adapter, {
+    spaceId: data.spaceId, tenantId: data.tenantId, type: 'message', authorId: data.uploadedBy,
+    authorName: data.uploadedByName, body: `Document ${version > 1 ? 'versionné' : 'joint'} : ${data.name} (v${version})`,
+    payload: { subtype: version > 1 ? 'document_versioned' : 'document_added' } as any,
+  });
+  return doc;
 }
 
 // ── PRÉSENCE ──────────────────────────────────────────────────────────────────

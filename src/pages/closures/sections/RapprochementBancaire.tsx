@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui
 import { Alert, AlertDescription } from '../../../components/ui/Alert';
 import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
+import { SpaceLinkBadge } from '../../../features/collaboration/components/SpaceLinkBadge';
 import { Progress } from '../../../components/ui/Progress';
 
 interface RapprochementItem {
@@ -372,6 +373,23 @@ const RapprochementBancaire: React.FC = () => {
                 )}
               </div>
               <div className="flex items-center space-x-3">
+                {(() => {
+                  const acc = selectedTab === 'banques'
+                    ? (selectedBank || '521')
+                    : (comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.numero || '5');
+                  const label = `Rapprochement ${acc} · ${selectedPeriod}`;
+                  return (
+                    <SpaceLinkBadge
+                      context={{
+                        anchorType: 'reconciliation', anchorLabel: label, accountCode: acc, period: selectedPeriod,
+                        title: `Écarts de rapprochement ${acc} — ${selectedPeriod}`,
+                        problem: `Écarts constatés au rapprochement du compte ${acc} sur la période ${selectedPeriod} (${stats.ecarts} opération(s) en écart).`,
+                        objective: `Justifier et solder les écarts du compte ${acc}.`,
+                      }}
+                      match={{ accountCode: acc }}
+                    />
+                  );
+                })()}
                 {selectedTab === 'banques' && (
                   <select
                     value={selectedBank}

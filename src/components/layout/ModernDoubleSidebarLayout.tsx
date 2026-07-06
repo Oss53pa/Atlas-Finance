@@ -29,6 +29,7 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { MobileConsultationBanner } from './MobileConsultationBanner';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
 import HelpDrawer from './HelpDrawer';
+import { MySpacesDock } from '../../features/collaboration/components/MySpacesDock';
 import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 import MoneyFormatToggle from './MoneyFormatToggle';
@@ -1044,6 +1045,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         </main>
       </div>
       <HelpDrawer />
+      <MySpacesDock />
     </div>
   );
 };

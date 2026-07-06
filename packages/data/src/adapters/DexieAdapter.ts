@@ -61,6 +61,7 @@ class AtlasFnADexie extends Dexie {
   collabTasks!: Table<any, string>
   collabTaskComments!: Table<any, string>
   collabPresence!: Table<any, string>
+  collabDocuments!: Table<any, string>
 
   constructor(dbName: string = 'AtlasFnADB') {
     super(dbName)
@@ -255,6 +256,10 @@ class AtlasFnADexie extends Dexie {
       collabTasks: 'id, tenantId, status, assigneeId, updatedAt',
       collabTaskComments: 'id, taskId, tenantId, createdAt',
       collabPresence: 'id, tenantId, lastSeenAt',
+    })
+    // v12 — Documents versionnés des espaces de résolution
+    this.version(12).stores({
+      collabDocuments: 'id, tenantId, spaceId, name, version, uploadedAt, [spaceId+name]',
     })
   }
 }
