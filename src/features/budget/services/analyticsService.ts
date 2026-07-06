@@ -101,6 +101,15 @@ export async function updateSection(adapter: DataAdapter, id: string, patch: Par
   if (error) throw new Error(error.message);
 }
 
+/** Supprime une section ET ses ventilations rattachées (FK section_id). */
+export async function deleteSection(adapter: DataAdapter, id: string): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  await client.from('ventilations_analytiques').delete().eq('section_id', id);
+  const { error } = await client.from('sections_analytiques').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
 // ── Ventilation (attribution de sections aux écritures) ──────────────────────
 
 export interface VentilationRule {
@@ -167,6 +176,54 @@ export async function getVentilationCoverage(adapter: DataAdapter): Promise<{ ve
     .from('ventilations_analytiques')
     .select('id', { count: 'exact', head: true });
   return { ventilated: count ?? 0 };
+}
+
+/** Ventilation agrégée par section : nb de lignes + montant net attribué. */
+export async function listVentilationBySection(adapter: DataAdapter): Promise<Map<string, { lignes: number; montant: number }>> {
+  const client = getClient(adapter);
+  const m = new Map<string, { lignes: number; montant: number }>();
+  if (!client) return m;
+  const { data } = await client.from('ventilations_analytiques').select('section_id,montant');
+  for (const r of (data ?? []) as any[]) {
+    const cur = m.get(r.section_id) || { lignes: 0, montant: 0 };
+    cur.lignes += 1;
+    cur.montant += Number(r.montant) || 0;
+    m.set(r.section_id, cur);
+  }
+  return m;
+}
+
+/** Retire TOUTES les ventilations d'une section (annulation). Retourne le nb supprimé. */
+export async function clearSectionVentilation(adapter: DataAdapter, sectionId: string): Promise<number> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { count } = await client
+    .from('ventilations_analytiques')
+    .select('id', { count: 'exact', head: true })
+    .eq('section_id', sectionId);
+  const { error } = await client.from('ventilations_analytiques').delete().eq('section_id', sectionId);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+/** Détail d'une section : montant net réalisé par compte (drill-down). */
+export async function getSectionAccountBreakdown(adapter: DataAdapter, sectionId: string): Promise<Array<{ account_code: string; account_name: string; montant: number; lignes: number }>> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client
+    .from('ventilations_analytiques')
+    .select('montant, journal_lines!inner(account_code,account_name)')
+    .eq('section_id', sectionId);
+  const byAccount = new Map<string, { account_code: string; account_name: string; montant: number; lignes: number }>();
+  for (const r of (data ?? []) as any[]) {
+    const jl = Array.isArray(r.journal_lines) ? r.journal_lines[0] : r.journal_lines;
+    const code = String(jl?.account_code || '—');
+    const cur = byAccount.get(code) || { account_code: code, account_name: jl?.account_name || '', montant: 0, lignes: 0 };
+    cur.montant += Number(r.montant) || 0;
+    cur.lignes += 1;
+    byAccount.set(code, cur);
+  }
+  return Array.from(byAccount.values()).sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant));
 }
 
 /** Performance par section : réalisé (vue) + budget annuel (table).
