@@ -54,6 +54,7 @@ const AnalyticsSectionsPage: React.FC = () => {
   };
   const addSection = async () => {
     if (!newSection.code || !newSection.libelle) { toast.error('Code et libellé requis'); return; }
+    if (!newSection.axe_id) { toast.error('Sélectionnez un axe analytique pour la section.'); return; }
     try {
       await createSection(adapter, {
         code: newSection.code, libelle: newSection.libelle,
@@ -151,14 +152,29 @@ const AnalyticsSectionsPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-2">
             <input value={newSection.code} onChange={e => setNewSection(s => ({ ...s, code: e.target.value }))} placeholder="Code section" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
             <input value={newSection.libelle} onChange={e => setNewSection(s => ({ ...s, libelle: e.target.value }))} placeholder="Libellé" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
-            <select value={newSection.axe_id} onChange={e => setNewSection(s => ({ ...s, axe_id: e.target.value }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-              <option value="">— Axe —</option>
+            <select value={newSection.axe_id} onChange={e => setNewSection(s => ({ ...s, axe_id: e.target.value }))} className={`border rounded-lg px-2 py-1.5 text-sm ${newSection.axe_id ? 'border-gray-300' : 'border-amber-300'}`}>
+              <option value="">— Axe (requis) —</option>
               {axes.map(a => <option key={a.id} value={a.id}>{a.code} · {a.libelle}</option>)}
             </select>
             <input type="number" value={newSection.budget_annuel} onChange={e => setNewSection(s => ({ ...s, budget_annuel: e.target.value }))} placeholder="Budget annuel" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
           </div>
-          <button onClick={addSection} className="mt-3 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center gap-1"><Plus className="w-4 h-4" />Créer la section</button>
-          <p className="text-[11px] text-gray-400 mt-2">Le réalisé est attribué via le code analytique des écritures (= code section).</p>
+          <button onClick={addSection} disabled={axes.length === 0 || !newSection.axe_id} className="mt-3 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-4 h-4" />Créer la section</button>
+          {axes.length === 0
+            ? <p className="text-[11px] text-amber-600 mt-2">Créez d'abord un axe analytique (à gauche) : une section appartient à un axe.</p>
+            : <p className="text-[11px] text-gray-400 mt-2">Une section appartient à un axe. Le réalisé est attribué via la ventilation ou le code analytique des écritures.</p>}
+          {/* Sections existantes — feedback immédiat après création */}
+          {perf.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-[11px] font-medium text-gray-500 mb-1">Sections existantes ({perf.length})</p>
+              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+                {perf.map(s => (
+                  <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[11px]">
+                    <span className="font-mono">{s.code}</span> {s.libelle}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

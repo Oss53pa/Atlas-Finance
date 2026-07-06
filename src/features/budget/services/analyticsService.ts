@@ -83,8 +83,12 @@ export async function listSections(adapter: DataAdapter): Promise<Section[]> {
 export async function createSection(adapter: DataAdapter, sec: { axe_id?: string | null; code: string; libelle: string; responsable?: string; budget_annuel?: number }): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
+  // Une section appartient OBLIGATOIREMENT à un axe (sections_analytiques.axe_id
+  // NOT NULL en base) → garde explicite : sans axe, l'INSERT échouait avec un
+  // message SQL cryptique (« null value in column axe_id »).
+  if (!sec.axe_id) throw new Error('Sélectionnez un axe analytique pour la section.');
   const { error } = await client.from('sections_analytiques').insert({
-    tenant_id: tenantOf(adapter), axe_id: sec.axe_id || null, code: sec.code.trim(), libelle: sec.libelle.trim(),
+    tenant_id: tenantOf(adapter), axe_id: sec.axe_id, code: sec.code.trim(), libelle: sec.libelle.trim(),
     responsable: sec.responsable || null, budget_annuel: sec.budget_annuel ?? 0, actif: true,
   });
   if (error) throw new Error(error.message);
