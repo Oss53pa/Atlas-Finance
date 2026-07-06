@@ -174,7 +174,9 @@ const LandingPage: React.FC = () => {
     if (isAuthenticated && user) {
       navigate(getWorkspacePath(user.role || ''));
     } else {
-      window.location.href = ATLAS_STUDIO.LOGIN;
+      // Connexion à l'app (entreprise déjà créée dans la console) → login interne
+      // Supabase, PAS le site vitrine Atlas Studio (qui n'a pas de vrai formulaire).
+      navigate('/login');
     }
   };
 
@@ -234,7 +236,7 @@ const LandingPage: React.FC = () => {
               </button>
             ) : (
               <>
-                <a href={ATLAS_STUDIO.LOGIN} className="px-4 py-2 text-sm font-medium transition-colors" style={c.sSec}>Se connecter</a>
+                <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium transition-colors" style={c.sSec}>Se connecter</button>
                 <a href={ATLAS_STUDIO.LOGIN} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all`} style={c.sBtnP}>Souscrire maintenant</a>
               </>
             )}
