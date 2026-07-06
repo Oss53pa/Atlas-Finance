@@ -160,8 +160,13 @@ export interface ExploitationSummary {
     code: string; classe: string; label: string; realise: number; budget: number; ecart: number;
     comptes: Array<{ account_code: string; label: string; realise: number; budget: number; ecart: number }>;
   }>;
-  /** Mensuel : produits / charges / résultat par mois (1..12). */
-  mensuel: Array<{ period: number; produits: number; charges: number; resultat: number }>;
+  /**
+   * Par section analytique (budget). Le réalisé n'est ventilé par section que si les
+   * écritures portent un code analytique — sinon `realise = 0` (honnête, cf. UI).
+   */
+  parSection: Array<{ section_id: string | null; classe: string; budget: number; realise: number }>;
+  /** Mensuel : produits / charges / résultat réalisés + budget mensuel (1..12). */
+  mensuel: Array<{ period: number; produits: number; charges: number; resultat: number; produitsBudget: number; chargesBudget: number }>;
 }
 
 export async function getExploitationSummary(adapter: DataAdapter, annee: string): Promise<ExploitationSummary> {
@@ -213,18 +218,31 @@ export async function getExploitationSummary(adapter: DataAdapter, annee: string
     }))
     .sort((a, b) => Math.abs(b.realise) - Math.abs(a.realise));
 
-  // Mensuel
-  const mensuel: Array<{ period: number; produits: number; charges: number; resultat: number }> = [];
+  // Par section (budget). Réalisé par section = 0 tant que les écritures ne portent
+  // pas de code analytique ventilé (UI affiche l'état « non ventilé »).
+  const sectionMap = new Map<string, { section_id: string | null; classe: string; budget: number; realise: number }>();
+  for (const b of expBudget) {
+    const classe = b.account_code[0];
+    const key = `${b.section_id ?? ''}|${classe}`;
+    if (!sectionMap.has(key)) sectionMap.set(key, { section_id: b.section_id ?? null, classe, budget: 0, realise: 0 });
+    sectionMap.get(key)!.budget += b.budget;
+  }
+  const parSection = Array.from(sectionMap.values());
+
+  // Mensuel (réalisé + budget par mois)
+  const mensuel: Array<{ period: number; produits: number; charges: number; resultat: number; produitsBudget: number; chargesBudget: number }> = [];
   for (let p = 1; p <= 12; p++) {
     const produits = rows.filter(r => r.period === p && r.classe === '7').reduce((s, r) => s + r.montant_realise, 0);
     const charges = rows.filter(r => r.period === p && r.classe === '6').reduce((s, r) => s + r.montant_realise, 0);
-    mensuel.push({ period: p, produits, charges, resultat: produits - charges });
+    const produitsBudget = expBudget.filter(b => b.period === p && b.account_code.startsWith('7')).reduce((s, b) => s + b.budget, 0);
+    const chargesBudget = expBudget.filter(b => b.period === p && b.account_code.startsWith('6')).reduce((s, b) => s + b.budget, 0);
+    mensuel.push({ period: p, produits, charges, resultat: produits - charges, produitsBudget, chargesBudget });
   }
 
   return {
     caRealise, chargesRealise, resultatRealise,
     caBudget, chargesBudget, resultatBudget, tauxRealisationResultat,
-    parNature, mensuel,
+    parNature, parSection, mensuel,
   };
 }
 

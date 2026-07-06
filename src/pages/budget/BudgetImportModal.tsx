@@ -13,7 +13,10 @@ import {
   getActiveFiscalYear, inferBudgetType, importBudget, listBudgetVersions, createBudgetVersion,
   type BudgetImportLine, type BudgetVersionFull,
 } from '../../features/budget/services/budgetService';
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch } from 'lucide-react';
+import {
+  buildStandardImportLines, buildStandardTemplateSheets, standardCounts,
+} from '../../features/budget/data/standardBudgetStructure';
+import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch, LayoutTemplate } from 'lucide-react';
 
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
@@ -24,9 +27,9 @@ function parseNumber(v: any): number {
   return isNaN(n) ? 0 : n;
 }
 
-interface Props { open: boolean; onClose: () => void; onImported?: () => void }
+interface Props { open: boolean; onClose: () => void; onImported?: () => void; initialVersionId?: string }
 
-const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
+const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported, initialVersionId }) => {
   const { adapter } = useData();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -44,21 +47,28 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
   useEffect(() => {
     if (!open) return;
     listBudgetVersions(adapter).then(setVersions).catch(() => setVersions([]));
-  }, [open, adapter]);
+    if (initialVersionId) setTarget(initialVersionId);
+  }, [open, adapter, initialVersionId]);
 
-  const reset = () => { setRows([]); setFileName(''); setWarnings([]); setTarget(''); setNewLabel(''); };
+  const reset = () => { setRows([]); setFileName(''); setWarnings([]); setTarget(initialVersionId || ''); setNewLabel(''); };
 
+  // Modèle Excel = STRUCTURE STANDARD complète (référentiel SYSCOHADA) : toutes les
+  // rubriques normalisées, prêtes à chiffrer, + onglet Notice.
   const downloadTemplate = () => {
-    const header = ['Compte', 'Libellé', 'Type (exploitation/investissement)', 'Section (optionnel)', ...MONTHS];
-    const example = [
-      ['601100', 'Achats de marchandises', 'exploitation', '', 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000],
-      ['701000', 'Ventes', 'exploitation', '', 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000, 2000000],
-      ['241000', 'Matériel (CAPEX)', 'investissement', '', 0, 0, 5000000, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    ];
-    const ws = XLSX.utils.aoa_to_sheet([header, ...example]);
+    const { budget, notice } = buildStandardTemplateSheets(MONTHS);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Budget');
-    XLSX.writeFile(wb, 'modele_budget_atlas.xlsx');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(budget), 'Budget');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(notice), 'Notice');
+    XLSX.writeFile(wb, 'modele_budget_standard_syscohada.xlsx');
+  };
+
+  // Charge la structure standard (toutes lignes à 0) directement dans l'aperçu :
+  // permet de créer le squelette budgétaire sans passer par Excel.
+  const loadStandardSkeleton = () => {
+    setRows(buildStandardImportLines());
+    setFileName('Structure standard SYSCOHADA');
+    setWarnings(['Squelette à 0 : chiffrez ensuite les montants via « Saisir » ou par ré-import.']);
+    toast.success(`${standardCounts().total} lignes standard chargées`);
   };
 
   const onFile = async (file: File) => {
@@ -142,33 +152,40 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported }) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={downloadTemplate} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"><Download className="w-4 h-4" />Modèle</button>
+            <button onClick={loadStandardSkeleton} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5" title="Charger toutes les rubriques standard (montants à 0)"><LayoutTemplate className="w-4 h-4" />Structure standard</button>
+            <button onClick={downloadTemplate} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"><Download className="w-4 h-4" />Modèle Excel</button>
             <button onClick={() => { reset(); onClose(); }} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
           </div>
         </div>
 
         {/* Versioning : version cible de l'import */}
-        <div className="mb-4 bg-gray-50 rounded-lg p-3">
-          <label className="text-xs font-medium text-gray-600 flex items-center gap-1 mb-1.5"><GitBranch className="w-3.5 h-3.5" />Version budgétaire cible</label>
-          <select value={target} onChange={e => setTarget(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-            <option value="">Version active {versions.find(v => v.is_active) ? `(« ${versions.find(v => v.is_active)!.libelle} »)` : '(créée si absente)'}</option>
-            {versions.filter(v => !v.is_active && v.statut !== 'verrouille').map(v => (
-              <option key={v.id} value={v.id}>{v.libelle} — {v.type} ({v.statut})</option>
-            ))}
-            <option value="new">➕ Nouvelle version…</option>
-          </select>
-          {target === 'new' && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Libellé (ex. Budget révisé S2)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
-              <select value={newType} onChange={e => setNewType(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                <option value="initial">Initial</option>
-                <option value="revise">Révisé</option>
-                <option value="atterrissage">Atterrissage</option>
-              </select>
-            </div>
-          )}
-          <p className="text-[10px] text-gray-400 mt-1.5">L'import est versionné : choisissez la version active, une version existante, ou créez-en une nouvelle (devient active).</p>
-        </div>
+        {initialVersionId ? (
+          <div className="mb-4 bg-gray-50 rounded-lg p-3 text-xs text-gray-600 flex items-center gap-1.5">
+            <GitBranch className="w-3.5 h-3.5" />Import dans la version « {versions.find(v => v.id === initialVersionId)?.libelle || 'courante'} »
+          </div>
+        ) : (
+          <div className="mb-4 bg-gray-50 rounded-lg p-3">
+            <label className="text-xs font-medium text-gray-600 flex items-center gap-1 mb-1.5"><GitBranch className="w-3.5 h-3.5" />Version budgétaire cible</label>
+            <select value={target} onChange={e => setTarget(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+              <option value="">Version active {versions.find(v => v.is_active) ? `(« ${versions.find(v => v.is_active)!.libelle} »)` : '(créée si absente)'}</option>
+              {versions.filter(v => !v.is_active && v.statut !== 'verrouille').map(v => (
+                <option key={v.id} value={v.id}>{v.libelle} — {v.type} ({v.statut})</option>
+              ))}
+              <option value="new">➕ Nouvelle version…</option>
+            </select>
+            {target === 'new' && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Libellé (ex. Budget révisé S2)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+                <select value={newType} onChange={e => setNewType(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
+                  <option value="initial">Initial</option>
+                  <option value="revise">Révisé</option>
+                  <option value="atterrissage">Atterrissage</option>
+                </select>
+              </div>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1.5">L'import est versionné : choisissez la version active, une version existante, ou créez-en une nouvelle (devient active).</p>
+          </div>
+        )}
 
         <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
         <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 flex flex-col items-center justify-center hover:border-[var(--color-primary)] transition-colors">

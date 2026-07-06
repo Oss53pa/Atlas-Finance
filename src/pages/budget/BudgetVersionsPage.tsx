@@ -14,7 +14,9 @@ import {
 } from '../../features/budget/services/budgetService';
 import { formatCurrency } from '../../utils/formatters';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
-import { ArrowLeft, Lock, CheckCircle, Star, RefreshCw, GitBranch, ChevronRight, ChevronDown, ExternalLink } from 'lucide-react';
+import BudgetImportModal from './BudgetImportModal';
+import BudgetSaisieModal from './BudgetSaisieModal';
+import { ArrowLeft, Lock, CheckCircle, Star, RefreshCw, GitBranch, ChevronRight, ChevronDown, ExternalLink, Upload, PencilLine, Maximize2 } from 'lucide-react';
 
 const STATUT_BADGE: Record<string, string> = {
   brouillon: 'bg-gray-100 text-gray-700',
@@ -34,6 +36,8 @@ const BudgetVersionsPage: React.FC = () => {
   const [lines, setLines] = useState<Record<string, BudgetLineEdit[]>>({});
   const [linesLoading, setLinesLoading] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showSaisie, setShowSaisie] = useState(false);
   const [statutFilter, setStatutFilter] = useState<'all' | 'brouillon' | 'valide' | 'verrouille'>('all');
   const visibleVersions = versions.filter(v => statutFilter === 'all' || v.statut === statutFilter);
 
@@ -74,6 +78,8 @@ const BudgetVersionsPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Versions budgétaires</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Brouillon → validation (DG) → verrouillage</p>
         </div>
+        <button onClick={() => setShowSaisie(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><PencilLine className="w-4 h-4" />Saisir</button>
+        <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />Importer</button>
         <button onClick={load} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200" title="Rafraîchir"><RefreshCw className="w-4 h-4" /></button>
         <PageHeaderActions
           onToggleFilters={() => setFiltersOpen(o => !o)}
@@ -133,6 +139,7 @@ const BudgetVersionsPage: React.FC = () => {
                 </td>
                 <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center justify-end gap-2">
+                    <button onClick={() => navigate(`/budget/versions/${v.id}`)} title="Détail complet (phasage mensuel)" className="px-2.5 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Maximize2 className="w-3 h-3" />Détail</button>
                     {!v.is_active && (
                       <button onClick={() => { setBusy(v.id); act(() => setVersionActive(adapter, v.id, v.fiscal_year_id), 'Version activée'); }}
                         disabled={busy === v.id} className="px-2.5 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50">Activer</button>
@@ -159,7 +166,7 @@ const BudgetVersionsPage: React.FC = () => {
                     {linesLoading && !lines[v.id] ? (
                       <p className="text-xs text-gray-400">Chargement du détail…</p>
                     ) : (lines[v.id]?.length ?? 0) === 0 ? (
-                      <p className="text-xs text-gray-400">Aucune ligne budgétaire dans cette version. Saisissez ou importez un budget depuis le Cockpit.</p>
+                      <p className="text-xs text-gray-400">Aucune ligne budgétaire dans cette version. Utilisez « Saisir » ou « Importer » ci-dessus, ou <button onClick={() => navigate(`/budget/versions/${v.id}`)} className="text-[var(--color-primary)] hover:underline">ouvrez le détail complet</button>.</p>
                     ) : (
                       <table className="w-full text-xs bg-white rounded-lg border border-gray-200">
                         <thead className="bg-gray-50">
@@ -184,6 +191,9 @@ const BudgetVersionsPage: React.FC = () => {
                         </tbody>
                       </table>
                     )}
+                    {(lines[v.id]?.length ?? 0) > 0 && (
+                      <button onClick={() => navigate(`/budget/versions/${v.id}`)} className="mt-2 text-xs text-[var(--color-primary)] hover:underline flex items-center gap-1"><Maximize2 className="w-3 h-3" />Ouvrir le détail complet (phasage mensuel)</button>
+                    )}
                   </td>
                 </tr>
               )}
@@ -192,6 +202,9 @@ const BudgetVersionsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <BudgetImportModal open={showImport} onClose={() => setShowImport(false)} onImported={load} />
+      <BudgetSaisieModal open={showSaisie} onClose={() => setShowSaisie(false)} onSaved={load} />
     </div>
   );
 };
