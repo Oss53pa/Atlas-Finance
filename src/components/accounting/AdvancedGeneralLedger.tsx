@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { DBJournalEntry, DBAccount } from '../../lib/db';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -62,6 +62,7 @@ const AdvancedGeneralLedger: React.FC = () => {
   // Drill-down entrant : /accounting/general-ledger?compte=521100 (trésorerie, budget…)
   // ouvre directement le détail du compte au lieu de la vue par défaut.
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   useEffect(() => {
     const compte = searchParams.get('compte');
     if (compte) {
@@ -2670,69 +2671,33 @@ const AdvancedGeneralLedger: React.FC = () => {
                 Espaces de Travail Collaboratifs
               </h3>
               <button
-                onClick={() => setShowNewWorkspaceModal(true)}
+                onClick={() => navigate('/collaboration')}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
               >
                 <Building className="w-4 h-4" />
-                <span>Nouvel Espace</span>
+                <span>Ouvrir l'espace</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                {
-                  name: "Équipe Comptabilité",
-                  members: 8,
-                  color: "bg-blue-500",
-                  activity: "3 annotations aujourd'hui",
-                  searches: ["Clients en retard", "Fournisseurs Q1"]
-                },
-                {
-                  name: "Contrôle de Gestion",
-                  members: 4,
-                  color: "bg-green-500",
-                  activity: "12 analyses cette semaine",
-                  searches: ["Centres de coûts", "Budget vs Réel"]
-                },
-                {
-                  name: "Direction Financière",
-                  members: 3,
-                  color: "bg-primary-500",
-                  activity: "2 validations en attente",
-                  searches: ["Investissements", "Cash flow"]
-                }
-              ].map((workspace, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-3 h-3 rounded-full ${workspace.color}`}></div>
-                      <h4 className="font-medium text-gray-900">{workspace.name}</h4>
-                    </div>
-                    <span className="text-xs text-gray-700">{workspace.members} membres</span>
-                  </div>
-
-                  <div className="text-sm text-gray-600 mb-3">{workspace.activity}</div>
-
-                  <div className="space-y-1">
-                    <div className="text-xs text-gray-700 mb-1">Recherches fréquentes:</div>
-                    {workspace.searches.map((search, searchIndex) => (
-                      <div key={searchIndex} className="text-xs bg-gray-100 px-2 py-1 rounded">
-                        {search}
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setSelectedWorkspace(workspace.name);
-                      setShowJoinWorkspaceModal(true);
-                    }}
-                    className="mt-3 w-full py-2 text-sm text-orange-600 border border-orange-300 rounded hover:bg-orange-50"
-                  >
-                    Rejoindre l'espace
-                  </button>
-                </div>
-              ))}
+            {/* Point d'entrée RÉEL vers l'espace collaboratif (discussions, tâches,
+                activité) — plus de cartes mock (membres/annotations inventés). */}
+            <div className="border border-gray-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center gap-4 bg-gray-50">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0" style={{ background: 'var(--color-primary)' }}>
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900">Espace Collaboratif de l'équipe</h4>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Discussions par canaux avec @mentions, tâches partagées (Kanban) et fil d'activité — sur vos données réelles.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/collaboration')}
+                className="px-5 py-2.5 text-sm font-medium rounded-lg text-white shrink-0"
+                style={{ background: 'var(--color-primary)' }}
+              >
+                Ouvrir l'espace collaboratif →
+              </button>
             </div>
           </div>
 
