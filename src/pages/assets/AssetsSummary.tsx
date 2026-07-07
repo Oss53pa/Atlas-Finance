@@ -1,5 +1,6 @@
 
 import { formatCurrency } from '@/utils/formatters';
+import { formatAccountWithLabel } from '@/utils/accountLabels';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
@@ -294,7 +295,7 @@ const AssetsSummary: React.FC = () => {
         // Sous-catégories réelles (par compte 3 chiffres) → active le drill-down (etait jamais peuplé).
         subCategories: Object.entries(data.subs)
           .sort((a, b) => b[1].value - a[1].value)
-          .map(([code, d]) => ({ name: `Compte ${code}`, count: d.count, value: d.value })),
+          .map(([code, d]) => ({ name: `Compte ${formatAccountWithLabel(code)}`, count: d.count, value: d.value })),
       }));
   }, [dbAssets]);
 
