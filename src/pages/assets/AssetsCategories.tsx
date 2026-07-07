@@ -11,6 +11,7 @@ import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
+import { getAccountLabel } from '../../utils/accountLabels';
 
 interface SubCategory {
   id: number;
@@ -110,7 +111,8 @@ const AssetsCategories: React.FC = () => {
           const amort = subAssets.reduce((s, a) => s + (a.cumulDepreciation || 0), 0);
           return {
             id: (idx + 1) * 100 + si + 1,
-            name: subAssets[0]?.name || subAssets[0]?.designation || code,
+            // Libellé du COMPTE (pas le nom d'un actif isolé) : référentiel SYSCOHADA.
+            name: getAccountLabel(code) || subAssets[0]?.name || subAssets[0]?.designation || code,
             code,
             count: subAssets.length,
             value,

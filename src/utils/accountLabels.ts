@@ -36,12 +36,18 @@ export function getAccountLabel(code: string | number | null | undefined): strin
 }
 
 /**
- * « 235 — Aménagements de bureaux » (code + libellé). Si le libellé est inconnu,
- * renvoie le code seul. `sep` personnalisable (défaut « — »).
+ * « 235 — Aménagements de bureaux » (code + libellé). Priorise le nom RÉEL du
+ * tenant (`tenantName`, ex. accounts.name) quand il est fourni et non vide, sinon
+ * retombe sur le libellé standard du référentiel. Renvoie le code seul si aucun
+ * libellé. `sep` personnalisable (défaut « — »).
  */
-export function formatAccountWithLabel(code: string | number | null | undefined, sep = ' — '): string {
+export function formatAccountWithLabel(
+  code: string | number | null | undefined,
+  tenantName?: string | null,
+  sep = ' — ',
+): string {
   const c = String(code ?? '').trim();
   if (!c) return '';
-  const label = getAccountLabel(c);
+  const label = (tenantName && tenantName.trim()) ? tenantName.trim() : getAccountLabel(c);
   return label ? `${c}${sep}${label}` : c;
 }

@@ -10,6 +10,7 @@ import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
 import { formatCompactCurrency, formatCurrency } from '../../utils/formatters';
+import { getAccountLabel } from '../../utils/accountLabels';
 
 // SYSCOHADA class definitions (reference structure — values come from data)
 // Classes SYSCOHADA OFFICIELLES (les anciens libellés étaient faux : 21≠corporelles,
@@ -57,7 +58,7 @@ const AssetsClasses: React.FC = () => {
       for (const line of ((entry as any).lines || [])) {
         const code = String(line.accountCode || '');
         if (!/^2/.test(code)) continue;
-        if (!balByCode[code]) balByCode[code] = { balance: 0, name: line.accountName || code };
+        if (!balByCode[code]) balByCode[code] = { balance: 0, name: line.accountName || getAccountLabel(code) || code };
         balByCode[code].balance += (line.debit || 0) - (line.credit || 0);
       }
     }

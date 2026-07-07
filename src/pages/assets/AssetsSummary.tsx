@@ -1,6 +1,6 @@
 
 import { formatCurrency } from '@/utils/formatters';
-import { formatAccountWithLabel } from '@/utils/accountLabels';
+import { useAccountNames } from '@/hooks/useAccountNames';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAsset } from '../../lib/db';
@@ -133,6 +133,7 @@ const AssetsSummary: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const { adapter } = useData();
+  const { format: formatAccount } = useAccountNames();
 
   // Assets from DataContext
   const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
@@ -295,9 +296,9 @@ const AssetsSummary: React.FC = () => {
         // Sous-catégories réelles (par compte 3 chiffres) → active le drill-down (etait jamais peuplé).
         subCategories: Object.entries(data.subs)
           .sort((a, b) => b[1].value - a[1].value)
-          .map(([code, d]) => ({ name: `Compte ${formatAccountWithLabel(code)}`, count: d.count, value: d.value })),
+          .map(([code, d]) => ({ name: `Compte ${formatAccount(code)}`, count: d.count, value: d.value })),
       }));
-  }, [dbAssets]);
+  }, [dbAssets, formatAccount]);
 
   // Geographic data - group by category as proxy (no location field in DBAsset)
   const geographicData: GeographicData[] = useMemo(() => {
