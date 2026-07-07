@@ -4,6 +4,7 @@ import type { DBJournalEntry } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { autoLettrage, applyLettrage, applyManualLettrage, delettrage } from '../../services/lettrageService';
 import type { LettrageResult } from '../../services/lettrageService';
 import toast from 'react-hot-toast';
@@ -68,6 +69,7 @@ const Lettrage: React.FC = () => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const queryClient = useQueryClient();
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const currentYear = new Date().getFullYear();
@@ -883,7 +885,7 @@ const Lettrage: React.FC = () => {
                         <div className="flex items-center justify-between mb-1 gap-2">
                           <span className="text-sm text-gray-700 truncate">
                             <span className="font-medium">{group.tiers}</span>
-                            <span className="ml-2 font-mono text-xs text-gray-400">{group.compte}</span>
+                            <span className="ml-2 font-mono text-xs text-gray-400">{fmtAccount(group.compte)}</span>
                           </span>
                           <span className="text-sm text-gray-600 whitespace-nowrap">
                             {lettrees}/{total} ({Math.round(percentage)}%)
@@ -1540,7 +1542,7 @@ const Lettrage: React.FC = () => {
                       <td className="px-4 py-2 text-sm text-gray-600 whitespace-nowrap">{new Date(entry.date).toLocaleDateString('fr-FR')}</td>
                       <td className="px-4 py-2 text-sm font-mono text-gray-800">{entry.piece}</td>
                       <td className="px-4 py-2 text-sm text-gray-900">{entry.libelle}</td>
-                      <td className="px-4 py-2 text-sm font-mono text-gray-600">{entry.compte}</td>
+                      <td className="px-4 py-2 text-sm font-mono text-gray-600">{fmtAccount(entry.compte)}</td>
                       <td className="px-4 py-2 text-center">
                         <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-mono">{entry.journal}</span>
                       </td>

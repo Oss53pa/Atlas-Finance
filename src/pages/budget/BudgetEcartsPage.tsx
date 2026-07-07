@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { formatCurrency } from '../../utils/formatters';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
@@ -16,6 +17,7 @@ const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', '
 
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const navigate = useNavigate();
   const [rows, setRows] = useState<BudgetVsActualRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +196,7 @@ const BudgetEcartsPage: React.FC = () => {
                 <div className="ml-8 mb-1 border-l-2 border-gray-100 pl-3">
                   {detailForNature(n.code).map(d => (
                     <div key={d.account_code} className="flex items-center justify-between text-[11px] py-0.5">
-                      <span className="font-mono text-gray-500">{d.account_code}</span>
+                      <span className="font-mono text-gray-500">{fmtAccount(d.account_code)}</span>
                       <span className="text-gray-400">B {formatCurrency(d.budget)} · R {formatCurrency(d.realise)}</span>
                       <span className={`font-medium w-24 text-right ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</span>
                     </div>

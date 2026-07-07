@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { formatCurrency } from '../../utils/formatters';
 import {
   Users, Search, Plus, Trash2, X, UserCheck, UserX,
@@ -107,6 +108,7 @@ async function generateCode(
 
 const PersonnelModule: React.FC = () => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'liste' | 'soldes' | 'analytics'>('liste');
@@ -1428,7 +1430,7 @@ const PersonnelModule: React.FC = () => {
                     <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                       <div>
                         <p className="text-xs font-medium text-gray-700">{h.libelle}</p>
-                        <p className="text-xs text-gray-400">{h.date} · Cpte {h.compte}</p>
+                        <p className="text-xs text-gray-400">{h.date} · Cpte {fmtAccount(h.compte)}</p>
                       </div>
                       <span
                         className="text-sm font-bold"

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { useToast } from '../../hooks/useToast';
 import FeatureGuard from '../../components/auth/FeatureGuard';
 import { extourneEcartsConversion } from '../../services/foreignCurrencyPaymentService';
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 const EcartsConversionPage: React.FC = () => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [ecarts, setEcarts] = useState<any[]>([]);
@@ -151,7 +153,7 @@ const EcartsConversionPage: React.FC = () => {
                     <td className="p-3 text-sm">{e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—'}</td>
                     <td className="p-3 text-sm">
                       <span className={`px-2 py-1 rounded text-xs font-medium ${e.compte.startsWith('4784') ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
-                        {e.compte}
+                        {fmtAccount(e.compte)}
                       </span>
                     </td>
                     <td className="p-3 text-sm">{e.libelle}</td>

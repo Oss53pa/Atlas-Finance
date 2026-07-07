@@ -4,6 +4,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
@@ -87,6 +88,7 @@ interface BalanceAgeeFournisseurItem {
 const FournisseursModule: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const [isLoading, setIsLoading] = useState(true);
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [activeTab, setActiveTab] = useState('liste');
@@ -1925,7 +1927,7 @@ const FournisseursModule: React.FC = () => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div><span className="text-[var(--color-text-secondary)]">Code:</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
                       <div><span className="text-[var(--color-text-secondary)]">Raison sociale:</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">Compte comptable:</span> <span className="ml-2 font-mono">{newFournisseur.compteComptable}{newFournisseur.compteAuxiliaire}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">Compte comptable:</span> <span className="ml-2 font-mono">{fmtAccount(`${newFournisseur.compteComptable}${newFournisseur.compteAuxiliaire}`)}</span></div>
                       <div><span className="text-[var(--color-text-secondary)]">NIU:</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
                       <div><span className="text-[var(--color-text-secondary)]">Délai paiement:</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} jours</span></div>
                       <div><span className="text-[var(--color-text-secondary)]">Limite crédit:</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>

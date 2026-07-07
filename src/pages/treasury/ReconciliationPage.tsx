@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import {
@@ -98,6 +99,7 @@ interface ReconciliationFilters {
 const ReconciliationPage: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const ocrFileInputRef = useRef<HTMLInputElement>(null);
   const [rapprochementResult, setRapprochementResult] = useState<RapprochementResult | null>(null);
@@ -1184,7 +1186,7 @@ const ReconciliationPage: React.FC = () => {
                 </div>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                Date du rapprochement : {formatDate(etatRapprochement.dateRapprochement)} — Compte {etatRapprochement.compte}
+                Date du rapprochement : {formatDate(etatRapprochement.dateRapprochement)} — Compte {fmtAccount(etatRapprochement.compte)}
               </p>
             </div>
           </CardContent>

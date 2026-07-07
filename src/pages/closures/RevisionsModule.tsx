@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { toast } from 'react-hot-toast';
 import {
   FileSearch, CheckCircle, AlertTriangle, Clock, Filter,
@@ -171,6 +172,7 @@ interface RisqueControle {
 const RevisionsModule: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const [activeMainTab, setActiveMainTab] = useState<'revisions' | 'lead_schedule' | 'risques' | 'ajustements' | 'analytique'>('revisions');
   const [activeTab, setActiveTab] = useState('tous');
   const [filterType, setFilterType] = useState('tous');
@@ -1197,7 +1199,7 @@ const RevisionsModule: React.FC = () => {
                     <tbody>
                       {revision.ecritureProposee?.lignes.map((ligne, index) => (
                         <tr key={index} className="text-sm">
-                          <td className="py-2 font-mono">{ligne.compte}</td>
+                          <td className="py-2 font-mono">{fmtAccount(ligne.compte)}</td>
                           <td className="py-2">{ligne.libelle}</td>
                           <td className="py-2 text-right font-mono">
                             {ligne.debit > 0 ? formatMontant(ligne.debit) : '-'}
@@ -1468,7 +1470,7 @@ const RevisionsModule: React.FC = () => {
                           <tbody>
                             {selectedRevision.ecritureProposee.lignes.map((ligne, index) => (
                               <tr key={index} className="border-b border-gray-100">
-                                <td className="py-2 px-3 font-mono text-sm">{ligne.compte}</td>
+                                <td className="py-2 px-3 font-mono text-sm">{fmtAccount(ligne.compte)}</td>
                                 <td className="py-2 px-3 text-sm">{ligne.libelle}</td>
                                 <td className="py-2 px-3 text-right font-mono text-sm">
                                   {ligne.debit > 0 ? formatMontant(ligne.debit) : ''}

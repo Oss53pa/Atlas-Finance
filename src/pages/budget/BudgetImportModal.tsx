@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
@@ -31,6 +32,7 @@ interface Props { open: boolean; onClose: () => void; onImported?: () => void; i
 
 const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported, initialVersionId }) => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<BudgetImportLine[]>([]);
@@ -207,7 +209,7 @@ const BudgetImportModal: React.FC<Props> = ({ open, onClose, onImported, initial
                 <thead className="bg-gray-50 sticky top-0"><tr><th className="px-3 py-2 text-left text-gray-600">Compte</th><th className="px-3 py-2 text-left text-gray-600">Type</th><th className="px-3 py-2 text-right text-gray-600">Total annuel</th></tr></thead>
                 <tbody className="divide-y divide-gray-100">
                   {rows.slice(0, 200).map((r, i) => (
-                    <tr key={i}><td className="px-3 py-1.5 font-mono">{r.account_code}</td><td className="px-3 py-1.5">{r.budget_type}</td><td className="px-3 py-1.5 text-right">{formatCurrency(Object.values(r.periods).reduce((s, v) => s + v, 0))}</td></tr>
+                    <tr key={i}><td className="px-3 py-1.5 font-mono">{fmtAccount(r.account_code)}</td><td className="px-3 py-1.5">{r.budget_type}</td><td className="px-3 py-1.5 text-right">{formatCurrency(Object.values(r.periods).reduce((s, v) => s + v, 0))}</td></tr>
                   ))}
                 </tbody>
               </table>

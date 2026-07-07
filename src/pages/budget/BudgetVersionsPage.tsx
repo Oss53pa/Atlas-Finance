@@ -6,6 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
 import {
@@ -26,6 +27,7 @@ const STATUT_BADGE: Record<string, string> = {
 
 const BudgetVersionsPage: React.FC = () => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -180,7 +182,7 @@ const BudgetVersionsPage: React.FC = () => {
                         <tbody className="divide-y divide-gray-100">
                           {lines[v.id].map(l => (
                             <tr key={l.id}>
-                              <td className="px-3 py-1.5 font-mono text-gray-700">{l.account_code}</td>
+                              <td className="px-3 py-1.5 font-mono text-gray-700">{fmtAccount(l.account_code)}</td>
                               <td className="px-3 py-1.5 text-gray-600">{l.budget_type}</td>
                               <td className="px-3 py-1.5 text-right text-gray-900">{formatCurrency(Object.values(l.periods).reduce((s, x) => s + (x || 0), 0))}</td>
                               <td className="px-3 py-1.5 text-center">

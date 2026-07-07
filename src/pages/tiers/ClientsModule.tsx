@@ -5,6 +5,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
@@ -163,6 +164,7 @@ interface BalanceAgeeItem {
 const ClientsModule: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
 
   // États
   const [isLoading, setIsLoading] = useState(true);
@@ -1001,7 +1003,7 @@ const ClientsModule: React.FC = () => {
                         <span className="text-sm font-medium text-[var(--color-primary)]">{client.code}</span>
                       </td>
                       <td className="p-3">
-                        <span className="text-sm font-mono text-[var(--color-primary)]">{client.compteComptable}</span>
+                        <span className="text-sm font-mono text-[var(--color-primary)]">{fmtAccount(client.compteComptable)}</span>
                       </td>
                       <td className="p-3">
                         <div>
@@ -2342,7 +2344,7 @@ const ClientsModule: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-[var(--color-text-secondary)]">Compte comptable:</span>
-                        <span className="ml-2 font-mono">{newClient.compteComptable}{newClient.compteAuxiliaire}</span>
+                        <span className="ml-2 font-mono">{fmtAccount(`${newClient.compteComptable}${newClient.compteAuxiliaire}`)}</span>
                       </div>
                       <div>
                         <span className="text-[var(--color-text-secondary)]">NIU:</span>
@@ -2401,7 +2403,7 @@ const ClientsModule: React.FC = () => {
             <div className="flex items-center justify-between p-5 border-b">
               <div>
                 <h3 className="text-lg font-bold text-[var(--color-primary)]">{viewingClient.raisonSociale}</h3>
-                <p className="text-sm text-gray-500 font-mono">{viewingClient.code} · {viewingClient.compteComptable}</p>
+                <p className="text-sm text-gray-500 font-mono">{viewingClient.code} · {fmtAccount(viewingClient.compteComptable)}</p>
               </div>
               <button onClick={() => setViewingClient(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>

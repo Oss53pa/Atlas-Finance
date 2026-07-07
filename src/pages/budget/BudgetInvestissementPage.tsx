@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { formatCurrency } from '../../utils/formatters';
 import { KPICard, ColorfulBarChart } from '../../components/ui/DesignSystem';
 import {
@@ -37,6 +38,7 @@ const CAR_LABEL: Record<string, string> = {
 
 const BudgetInvestissementPage: React.FC = () => {
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -198,7 +200,7 @@ const BudgetInvestissementPage: React.FC = () => {
                 {filteredRequests.map(r => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-gray-800">{r.libelle}</td>
-                    <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{r.account_code}</span></td>
+                    <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{fmtAccount(r.account_code)}</span></td>
                     <td className="px-4 py-2.5 text-right font-medium text-gray-900">{formatCurrency(r.montant)}</td>
                     <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.date_prevue || '—'}</td>
                     <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.duree_amortissement ? `${r.duree_amortissement} ans` : '—'}</td>

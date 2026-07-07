@@ -37,6 +37,7 @@ import { isEntryEditable, isEntryReversible } from '../../utils/reversalService'
 import { validateJournalEntry, getNextPieceNumber } from '../../validators/journalEntryValidator';
 
 import { useData } from '../../contexts/DataContext';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { safeAddEntry } from '../../services/entryGuard';
 import { analyzeEntryPostSave, type PostSaveAnalysisResult } from '../../services/prophet/postSaveAnalysis';
 import PostSaveAnalysisToast from './PostSaveAnalysisToast';
@@ -91,6 +92,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   const [reversalReason, setReversalReason] = useState('');
   const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const { adapter } = useData();
+  const { format: fmtAccount } = useAccountNames();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('details');
   const [transactionType, setTransactionType] = useState<TransactionType>('purchase');
@@ -2131,7 +2133,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               {ligne.debit > 0 ? 'DT' : 'CT'}
                             </span>
                             <span className={`font-mono text-sm ${!ligne.compte ? 'text-red-500 italic' : ''}`}>
-                              {ligne.compte || '(compte manquant)'}
+                              {ligne.compte ? fmtAccount(ligne.compte) : '(compte manquant)'}
                             </span>
                             <span className="text-sm text-gray-600">{ligne.libelle}</span>
                           </div>
