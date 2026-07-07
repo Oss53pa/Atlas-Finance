@@ -21,8 +21,9 @@ import {
   listSpaces, createSpace, getSpace, updateSpace, transitionSpace,
   computeConvergence, refreshConvergence, evaluateExitCriteria, satisfyCriterion,
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
-  postEcriture, postSnapshot, approveDecision, toggleReaction, buildSnapshotPayload,
-  heartbeatPresence, isLate, listDocuments, addDocument, type ConvergenceResult,
+  postEcriture, postSnapshot, approveDecision, rejectDecision, toggleReaction, buildSnapshotPayload,
+  heartbeatPresence, isLate, listDocuments, addDocument, DECISION_TYPES, REJECT_MOTIVES,
+  type ConvergenceResult,
 } from '../../features/collaboration/services/collaborationService';
 import type { DBCollabDocument } from '../../lib/db';
 import { listTasks, createTask, updateTask } from '../../features/collaboration/services/collabTasksService';
@@ -526,22 +527,47 @@ function EcritureChip({ p, body }: { p: EcriturePayload; body: string }) {
 }
 
 function DecisionChip({ p }: { p: DecisionPayload }) {
-  const approved = !!p.approvedAt;
+  const pp = p as any;
+  const status: string = pp.status || (pp.approvedAt ? 'approved' : 'in_approval');
+  const chain: string[] = Array.isArray(pp.chain) ? pp.chain : (p.requiredRole ? [p.requiredRole] : []);
+  const step: number = pp.currentStep || 1;
+  const borderC = status === 'rejected' ? T.red : status === 'approved' ? T.green : T.orange;
   return (
-    <div style={{ marginTop: 5, border: `1px solid ${T.orange}44`, background: T.orange + '0c', borderRadius: 9, padding: '9px 11px' }}>
+    <div style={{ marginTop: 5, border: `1px solid ${borderC}44`, background: borderC + '0c', borderRadius: 9, padding: '9px 11px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <span style={{ fontSize: 12.5, fontWeight: 800 }}>{p.title}</span>
-        {p.ref && <span style={{ fontFamily: MONO, fontSize: 10.5, color: T.orange, fontWeight: 700 }}>{p.ref}</span>}
+        {p.ref && <span style={{ fontFamily: MONO, fontSize: 10.5, color: borderC, fontWeight: 700 }}>{p.ref}</span>}
       </div>
       {p.detail && <div style={{ fontSize: 12, color: T.ink, marginTop: 3 }}>{p.detail}</div>}
       {p.amount != null && <div style={{ fontFamily: MONO, fontSize: 13, color: T.gold, fontWeight: 800, marginTop: 4 }}>{fmtXof(p.amount)} FCFA</div>}
       {p.governanceRule && (
         <div style={{ fontSize: 11, color: T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-          <ShieldCheck size={13} color={approved ? T.green : T.orange} /> {p.governanceRule}
+          <ShieldCheck size={13} color={borderC} /> {p.governanceRule}
         </div>
       )}
-      <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: approved ? T.green : T.red }}>
-        {approved ? `✓ Validée par ${p.approvedByName} · ${dayFR(p.approvedAt)}` : `En attente de validation — ${(p.requiredRole || '').toUpperCase()}`}
+      {/* Chaîne de validation (cumul multi-validateurs) */}
+      {chain.length > 0 && status !== 'cancelled' && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 7, flexWrap: 'wrap' }}>
+          {chain.map((role, i) => {
+            const pos = i + 1;
+            const done = status === 'approved' || pos < step;
+            const pending = status === 'in_approval' && pos === step;
+            const rejectedHere = status === 'rejected' && pos === step;
+            const c = done ? T.green : rejectedHere ? T.red : pending ? T.orange : T.sub;
+            const sym = done ? '✓' : rejectedHere ? '✗' : pending ? '②'.replace('②', String(pos)) : String(pos);
+            return (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700, color: c, background: c + '15', borderRadius: 6, padding: '2px 8px' }}>
+                {sym} {role.toUpperCase()}{pending ? ' · en attente' : ''}
+              </span>
+            );
+          })}
+        </div>
+      )}
+      <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: status === 'approved' ? T.green : status === 'rejected' ? T.red : status === 'cancelled' ? T.sub : T.orange }}>
+        {status === 'approved' && `✓ Validée${pp.approvedByName ? ` · ${pp.approvedByName}` : ''}${pp.approvedAt ? ` · ${dayFR(pp.approvedAt)}` : ''}${pp.effect ? ` · effet ${pp.effect}` : ''}`}
+        {status === 'rejected' && `✗ Rejetée${pp.rejectMotive ? ` : ${pp.rejectMotive}` : ''}`}
+        {status === 'cancelled' && 'Annulée'}
+        {status === 'in_approval' && `En attente · étape ${step}/${chain.length || 1} — ${(chain[step - 1] || p.requiredRole || '').toUpperCase()}`}
       </div>
     </div>
   );
@@ -581,6 +607,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
   const [hits, setHits] = useState<import('../../features/collaboration/services/collaborationService').EntryHit[]>([]);
   // Décision
   const [decTitle, setDecTitle] = useState('');
+  const [decType, setDecType] = useState('regularisation');
 
   useEffect(() => {
     if (mode !== 'ecriture') return;
@@ -611,11 +638,11 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
         await refreshConvergence(adapter, sp).catch(() => {});
       } else if (mode === 'decision') {
         if (!decTitle.trim()) return;
-        const { ref } = await postDecision(adapter, {
-          space: sp, tenantId, authorId: me.id, authorName: me.name,
+        const { ref, chain } = await postDecision(adapter, {
+          space: sp, tenantId, authorId: me.id, authorName: me.name, decisionType: decType,
           title: decTitle.trim(), detail: text.trim() || undefined, amount: amount ? Number(amount) : undefined,
         });
-        toast.success(`Décision ${ref} enregistrée`);
+        toast.success(`Décision ${ref} soumise${chain && chain.length ? ` · chaîne ${chain.map(r => r.toUpperCase()).join(' → ')}` : ''}`);
       } else if (mode === 'snapshot') {
         const payload = await buildSnapshotPayload(
           text.trim() || 'Snapshot convergence',
@@ -625,7 +652,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
         );
         await postSnapshot(adapter, { spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name, body: '', payload, via: 'Atlas FNA' });
       }
-      setText(''); setEntryNumber(''); setAccounts(''); setAmount(''); setDecTitle('');
+      setText(''); setEntryNumber(''); setAccounts(''); setAmount(''); setDecTitle(''); setDecType('regularisation');
       setEntryId(undefined); setJournal(undefined); setEntryQuery(''); setHits([]);
       onSent();
     } catch (e) { console.error(e); toast.error('Échec de l\'envoi'); }
@@ -635,7 +662,6 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
     ['message', 'Message', Send], ['ecriture', 'Écriture', PenLine], ['decision', 'Décision', Gavel], ['snapshot', 'Snapshot', Camera],
   ];
   const amt = amount ? Number(amount) : 0;
-  const rule = mode === 'decision' && amt ? requiredRoleFor(amt) : null;
 
   return (
     <div style={{ borderTop: `1px solid ${T.line}`, background: T.surface, padding: 12 }}>
@@ -683,15 +709,16 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
       )}
       {mode === 'decision' && (
         <div style={{ marginBottom: 7 }}>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <input value={decTitle} onChange={e => setDecTitle(e.target.value)} placeholder="Intitulé de la décision" style={inp} />
+          <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+            <select value={decType} onChange={e => setDecType(e.target.value)} style={{ ...inp, flex: '0 0 160px' }}>
+              {DECISION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
             <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant FCFA" type="number" style={{ ...inp, width: 130 }} />
           </div>
-          {rule && (
-            <div style={{ fontSize: 11, color: rule.threshold > 0 ? T.orange : T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <ShieldCheck size={13} /> {fmtXof(amt)} FCFA → validation <b>{rule.label}</b> requise
-            </div>
-          )}
+          <input value={decTitle} onChange={e => setDecTitle(e.target.value)} placeholder="Intitulé de la décision" style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
+          <div style={{ fontSize: 11, color: T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
+            <ShieldCheck size={13} color={T.orange} /> La chaîne de validation ({DECISION_TYPES.find(t => t.value === decType)?.label} · {fmtXof(amt)} FCFA) sera résolue par la matrice du tenant — cumul possible (ex. DAF puis DG).
+          </div>
         </div>
       )}
 
@@ -797,33 +824,69 @@ function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: an
 // ── Onglet Décisions (registre + matrice de validation) ───────────────────────
 function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
   const { toast } = useToast();
+  const [rejecting, setRejecting] = useState<string | null>(null);
+  const [motive, setMotive] = useState('piece_manquante');
   const decisions = (events as SpaceEvent[]).filter(e => e.type === 'decision');
-  const canApprove = (p: DecisionPayload) => {
-    // Le rôle courant doit couvrir le rôle requis (matrice de seuils).
-    const order = ['comptable', 'daf', 'dg'];
-    return order.indexOf(me.role) >= order.indexOf(p.requiredRole || 'comptable');
-  };
+
+  // Rôle requis de l'étape courante (chaîne) — hint UI ; le serveur fait foi.
+  const currentRole = (p: any): string => Array.isArray(p.chain) ? (p.chain[(p.currentStep || 1) - 1] || p.requiredRole) : p.requiredRole;
+  const isOpen = (p: any) => (p.status || (p.approvedAt ? 'approved' : 'in_approval')) === 'in_approval';
+
   const approve = async (ev: SpaceEvent) => {
-    const p = ev.payload as DecisionPayload;
-    if (!canApprove(p)) { toast.error(`Validation réservée au rôle ${(p.requiredRole || '').toUpperCase()}`); return; }
-    await approveDecision(adapter, ev, me); toast.success(`${p.ref} validée`); onReload();
+    try { await approveDecision(adapter, ev, me, 'space'); toast.success('Étape validée'); onReload(); }
+    catch (e: any) { toast.error(mapErr(e?.message)); }
   };
+  const reject = async (ev: SpaceEvent) => {
+    try { await rejectDecision(adapter, ev, me, motive); toast.success('Décision rejetée'); setRejecting(null); onReload(); }
+    catch (e: any) { toast.error(mapErr(e?.message)); }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
       {decisions.length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune décision enregistrée.</div>}
       {decisions.map(ev => {
-        const p = ev.payload as DecisionPayload;
+        const p = ev.payload as any;
+        const req = (currentRole(p) || '').toUpperCase();
         return (
           <div key={ev.id}>
             <DecisionChip p={p} />
-            {!readOnly && !p.approvedAt && (
-              <button onClick={() => approve(ev)} style={{ ...miniBtn(T.green), marginTop: 5 }}>Valider ({(p.requiredRole || '').toUpperCase()})</button>
+            {!readOnly && isOpen(p) && (
+              rejecting === ev.id ? (
+                <div style={{ marginTop: 6, border: `1px solid ${T.line}`, borderRadius: 8, padding: 8 }}>
+                  <select value={motive} onChange={e => setMotive(e.target.value)} style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 6 }}>
+                    {REJECT_MOTIVES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                  </select>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <button onClick={() => reject(ev)} style={miniBtn(T.red)}>Confirmer le rejet</button>
+                    <button onClick={() => setRejecting(null)} style={{ ...miniBtn(T.sub) }}>Annuler</button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 6, marginTop: 5 }}>
+                  <button onClick={() => approve(ev)} style={miniBtn(T.green)}><ShieldCheck size={12} /> Valider ({req})</button>
+                  <button onClick={() => setRejecting(ev.id)} style={miniBtn(T.sub)}>Rejeter</button>
+                </div>
+              )
             )}
           </div>
         );
       })}
     </div>
   );
+}
+
+/** Traduit les codes d'erreur de gouvernance serveur en message lisible. */
+function mapErr(code?: string): string {
+  const m: Record<string, string> = {
+    ROLE_REQUIRED: 'Validation réservée au rôle requis de cette étape.',
+    SOD_AUTHOR: 'Séparation des tâches : l\'auteur ne valide pas sa décision.',
+    SOD_DISTINCT: 'Séparation des tâches : validateurs distincts par étape.',
+    NOT_IN_APPROVAL: 'Décision déjà clôturée.',
+    NO_PENDING_STEP: 'Aucune étape en attente.',
+    MOTIVE_REQUIRED: 'Motif de rejet obligatoire.',
+    NO_GOVERNANCE_RULE: 'Aucune règle de gouvernance pour ce type/montant.',
+  };
+  return (code && m[code]) || code || 'Échec de l\'opération';
 }
 
 // ── Onglet Pièces (3 familles juridiques distinctes) ──────────────────────────

@@ -300,12 +300,54 @@ export const postSnapshot = (adapter: DataAdapter, d: { spaceId: string; tenantI
 export const postSystem = (adapter: DataAdapter, d: { spaceId: string; tenantId: string; body: string }) =>
   postEvent(adapter, { spaceId: d.spaceId, tenantId: d.tenantId, authorId: 'system', authorName: 'PROPH3T · Vigie', type: 'system', body: d.body });
 
-/** Publie une décision gouvernée : résout la matrice de seuils + réf DEC-AAAA-NNN. */
+/** Types de décision de la matrice (dimension decision_type — Doc Maître §B). */
+export const DECISION_TYPES: { value: string; label: string }[] = [
+  { value: 'regularisation', label: 'Régularisation' },
+  { value: 'abattement', label: 'Abattement' },
+  { value: 'passage_perte', label: 'Passage en perte' },
+  { value: 'report', label: 'Report' },
+  { value: 'methode', label: 'Méthode comptable' },
+];
+/** Motifs de rejet codifiés (Doc Maître §B3). */
+export const REJECT_MOTIVES: { value: string; label: string }[] = [
+  { value: 'piece_manquante', label: 'Pièce manquante' },
+  { value: 'montant_conteste', label: 'Montant contesté' },
+  { value: 'imputation_erronee', label: 'Imputation erronée' },
+  { value: 'opportunite', label: 'Opportunité' },
+  { value: 'autre', label: 'Autre' },
+];
+
+/** Client d'Edge Functions si l'on est en SaaS (gouvernance souveraine serveur). */
+function fnClient(adapter: DataAdapter): any | null {
+  try {
+    const c = (adapter as any).client;
+    return (adapter.getMode?.() === 'saas' && c?.functions) ? c : null;
+  } catch { return null; }
+}
+
+/**
+ * Soumet une décision au circuit de validation.
+ * SaaS : Edge Function `decision-submit` (souveraine, chaîne multi-validateurs
+ * résolue serveur, hash figé). Local/desktop : repli mono-validateur en payload.
+ */
 export async function postDecision(adapter: DataAdapter, d: {
   space: Space; tenantId: string; authorId: string; authorName?: string;
-  title: string; detail?: string; amount?: number; solutionId?: string;
-  rules?: GovernanceRule[]; via?: string;
-}): Promise<{ event: SpaceEvent; ref: string }> {
+  title: string; detail?: string; amount?: number; decisionType?: string;
+  pieceIds?: string[]; solutionId?: string; rules?: GovernanceRule[]; via?: string;
+}): Promise<{ ref: string; chain?: string[]; ruleLabel?: string }> {
+  const client = fnClient(adapter);
+  if (client) {
+    const { data, error } = await client.functions.invoke('decision-submit', { body: {
+      space_id: d.space.id, decision_type: d.decisionType ?? 'regularisation', title: d.title,
+      body: d.detail ?? null, amount_xof: d.amount ?? null, piece_ids: d.pieceIds ?? [],
+      author_name: d.authorName ?? null, via: d.via ?? 'Atlas FNA · Espace',
+    } });
+    const err = (data && (data as any).error) || (error && error.message);
+    if (err) throw new Error(err);
+    if (d.solutionId) await decideSolution(adapter, d.space, d.solutionId, 'kept', { id: d.authorId, name: d.authorName || '' }, undefined, (data as any).ref);
+    return { ref: (data as any).ref, chain: (data as any).chain, ruleLabel: (data as any).rule_label };
+  }
+  // Repli local (dev/desktop) : mono-validateur en payload d'événement.
   const rules = d.rules || DEFAULT_GOVERNANCE;
   const seq = (d.space.decisionSeq || 0) + 1;
   const year = new Date(d.space.createdAt).getFullYear();
@@ -314,22 +356,49 @@ export async function postDecision(adapter: DataAdapter, d: {
   const governanceRule = d.amount != null
     ? `${fmt(d.amount)} FCFA ${d.amount >= rule.threshold && rule.threshold > 0 ? `> seuil ${rule.label} (${fmt(rule.threshold)})` : `< premier seuil`} → validation ${rule.label} requise`
     : undefined;
-  const payload: DecisionPayload = {
-    title: d.title, detail: d.detail, amount: d.amount, ref,
-    governanceRule, requiredRole: rule.role,
-  };
-  const event = await postEvent(adapter, { spaceId: d.space.id, tenantId: d.tenantId, type: 'decision', authorId: d.authorId, authorName: d.authorName, body: d.title, payload, via: d.via });
+  const payload: any = { title: d.title, detail: d.detail, amount: d.amount, ref, governanceRule, requiredRole: rule.role, chain: [rule.role], status: 'in_approval', currentStep: 1 };
+  await postEvent(adapter, { spaceId: d.space.id, tenantId: d.tenantId, type: 'decision', authorId: d.authorId, authorName: d.authorName, body: d.title, payload, via: d.via });
   await updateSpace(adapter, d.space.id, { decisionSeq: seq });
   if (d.solutionId) await decideSolution(adapter, d.space, d.solutionId, 'kept', { id: d.authorId, name: d.authorName || '' }, undefined, ref);
-  return { event, ref };
+  return { ref, chain: [rule.role] };
 }
 
-/** Approuve une décision (gouvernance — vérif rôle côté appelant). */
-export async function approveDecision(adapter: DataAdapter, ev: SpaceEvent, approver: { id: string; name: string }): Promise<void> {
-  const payload = { ...(ev.payload as DecisionPayload), approvedById: approver.id, approvedByName: approver.name, approvedAt: now() };
-  await adapter.update<DBCollabMessage>('collabMessages', ev.id, { payload });
-  await postSystem(adapter, { spaceId: ev.spaceId, tenantId: ev.tenantId, body: `Décision ${(payload as DecisionPayload).ref || ''} validée par ${approver.name}` });
+/**
+ * Approuve ou rejette l'étape courante d'une décision.
+ * SaaS : Edge Function `decision-act` (vérif rôle en table tenant + SoD + hash
+ * côté serveur). Local : repli sur le payload (mono-validateur).
+ */
+export async function actOnDecision(adapter: DataAdapter, d: {
+  ev: SpaceEvent; action: 'approve' | 'reject'; actor: { id: string; name: string; role?: string };
+  motiveCode?: string; comment?: string; via?: string;
+}): Promise<void> {
+  const client = fnClient(adapter);
+  const decisionId = (d.ev.payload as any)?.decisionId;
+  if (client && decisionId) {
+    const { data, error } = await client.functions.invoke('decision-act', { body: {
+      decision_id: decisionId, action: d.action, motive_code: d.motiveCode, comment: d.comment,
+      acted_via: d.via ?? 'dock', actor_name: d.actor.name,
+    } });
+    const err = (data && (data as any).error) || (error && error.message);
+    if (err) throw new Error(err);
+    return;
+  }
+  // Repli local (mono-validateur).
+  if (d.action === 'approve') {
+    const payload = { ...(d.ev.payload as any), approvedById: d.actor.id, approvedByName: d.actor.name, approvedAt: now(), status: 'approved' };
+    await adapter.update<DBCollabMessage>('collabMessages', d.ev.id, { payload });
+    await postSystem(adapter, { spaceId: d.ev.spaceId, tenantId: d.ev.tenantId, body: `Décision ${payload.ref || ''} validée par ${d.actor.name}` });
+  } else {
+    const payload = { ...(d.ev.payload as any), status: 'rejected', rejectMotive: d.motiveCode };
+    await adapter.update<DBCollabMessage>('collabMessages', d.ev.id, { payload });
+    await postSystem(adapter, { spaceId: d.ev.spaceId, tenantId: d.ev.tenantId, body: `Décision ${payload.ref || ''} rejetée (${d.motiveCode})` });
+  }
 }
+
+export const approveDecision = (adapter: DataAdapter, ev: SpaceEvent, approver: { id: string; name: string; role?: string }, via?: string) =>
+  actOnDecision(adapter, { ev, action: 'approve', actor: approver, via });
+export const rejectDecision = (adapter: DataAdapter, ev: SpaceEvent, actor: { id: string; name: string; role?: string }, motiveCode: string, comment?: string) =>
+  actOnDecision(adapter, { ev, action: 'reject', actor, motiveCode, comment });
 
 export async function deleteEvent(adapter: DataAdapter, id: string): Promise<void> {
   // Append-only : on marque (rectification), on ne supprime jamais physiquement.

@@ -42,7 +42,10 @@ export const MySpacesDock: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const { total, mentions, refresh: refreshUnread } = useCollabUnread(20000);
 
-  const canApprove = useCallback((p: DecisionPayload) => ROLE_ORDER.indexOf(me.role) >= ROLE_ORDER.indexOf(p.requiredRole || 'comptable'), [me.role]);
+  // Rôle requis de l'étape courante de la chaîne (le serveur reste souverain).
+  const currentReqRole = (p: any): string => Array.isArray(p?.chain) ? (p.chain[(p.currentStep || 1) - 1] || p.requiredRole) : p?.requiredRole;
+  const isOpen = (p: any) => (p?.status || (p?.approvedAt ? 'approved' : 'in_approval')) === 'in_approval';
+  const canApprove = useCallback((p: any) => me.role === currentReqRole(p), [me.role]);
 
   const load = useCallback(async () => {
     try {
@@ -56,8 +59,8 @@ export const MySpacesDock: React.FC = () => {
         const evs = await listEvents(adapter, s.id);
         for (const ev of evs) {
           if (ev.type === 'decision') {
-            const p = ev.payload as DecisionPayload;
-            if (p && !p.approvedAt && canApprove(p)) pend.push({ ev, space: s });
+            const p = ev.payload as any;
+            if (p && isOpen(p) && canApprove(p)) pend.push({ ev, space: s });
           }
         }
       }
@@ -75,7 +78,8 @@ export const MySpacesDock: React.FC = () => {
   };
   const toggleTask = async (t: Task) => { await updateTask(adapter, t.id, { status: 'done' }); toast.success('Action complétée'); load(); };
   const approve = async (ev: SpaceEvent) => {
-    await approveDecision(adapter, ev, me); toast.success(`${(ev.payload as DecisionPayload).ref || 'Décision'} validée`); load(); refreshUnread();
+    try { await approveDecision(adapter, ev, me, 'dock'); toast.success(`${(ev.payload as any).ref || 'Décision'} · étape validée`); load(); refreshUnread(); }
+    catch (e: any) { toast.error(mapDockErr(e?.message)); }
   };
 
   return (
@@ -107,12 +111,12 @@ export const MySpacesDock: React.FC = () => {
             {pending.length > 0 && (
               <Section title={`Validations demandées (${pending.length})`} color={T.orange}>
                 {pending.map(({ ev, space }) => {
-                  const p = ev.payload as DecisionPayload;
+                  const p = ev.payload as any;
                   return (
                     <div key={ev.id} style={box}>
                       <div style={{ fontSize: 12, fontWeight: 700 }}>{p.title} <span style={{ fontFamily: 'monospace', color: T.orange, fontSize: 10.5 }}>{p.ref}</span></div>
-                      <div style={{ fontSize: 10.5, color: T.sub }}>{space.title}{p.amount != null ? ` · ${Math.round(p.amount).toLocaleString('fr-FR')} FCFA` : ''}</div>
-                      <button onClick={() => approve(ev)} style={{ ...miniBtn(T.green), marginTop: 6 }}><ShieldCheck size={12} /> Valider ({(p.requiredRole || '').toUpperCase()})</button>
+                      <div style={{ fontSize: 10.5, color: T.sub }}>{space.title}{p.amount != null ? ` · ${Math.round(p.amount).toLocaleString('fr-FR')} FCFA` : ''} · étape {p.currentStep || 1}/{Array.isArray(p.chain) ? p.chain.length : 1}</div>
+                      <button onClick={() => approve(ev)} style={{ ...miniBtn(T.green), marginTop: 6 }}><ShieldCheck size={12} /> Valider ({(currentReqRole(p) || '').toUpperCase()})</button>
                     </div>
                   );
                 })}
@@ -189,6 +193,15 @@ function Section({ title, color, children }: { title: string; color: string; chi
 }
 function Empty({ children }: { children: React.ReactNode }) {
   return <div style={{ fontSize: 11.5, color: T.sub, padding: '2px 2px 6px' }}>{children}</div>;
+}
+function mapDockErr(code?: string): string {
+  const m: Record<string, string> = {
+    ROLE_REQUIRED: 'Rôle requis non porté pour cette étape.',
+    SOD_AUTHOR: 'SoD : l\'auteur ne valide pas.',
+    SOD_DISTINCT: 'SoD : validateurs distincts par étape.',
+    NOT_IN_APPROVAL: 'Décision déjà clôturée.',
+  };
+  return (code && m[code]) || code || 'Échec';
 }
 
 export default MySpacesDock;
