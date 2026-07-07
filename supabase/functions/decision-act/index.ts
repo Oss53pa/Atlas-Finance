@@ -13,6 +13,18 @@ const cors = {
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 const MOTIVES = ["piece_manquante", "montant_conteste", "imputation_erronee", "opportunite", "autre"];
 
+// Satisfaction de rôle : les rôles applicatifs (profiles.role) couvrent les rôles
+// de gouvernance par hiérarchie (admin = super-approbateur).
+const REQ_RANK: Record<string, number> = { comptable: 1, daf: 2, dg: 3 };
+const APP_RANK: Record<string, number> = {
+  comptable: 1, accountant: 1, user: 1, employe: 1,
+  manager: 2, daf: 2, controleur: 2, controleur_gestion: 2,
+  dg: 3, directeur: 3, direction: 3,
+  admin: 4, owner: 4, super_admin: 4, proprietaire: 4,
+};
+const roleSatisfies = (appRole: string | null, req: string) =>
+  (APP_RANK[(appRole ?? "").toLowerCase()] ?? 0) >= (REQ_RANK[(req ?? "").toLowerCase()] ?? 1);
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -23,7 +35,9 @@ Deno.serve(async (req) => {
   if (!u?.user) return json({ error: "UNAUTHENTICATED" }, 401);
   const { data: tenant } = await userClient.rpc("get_user_company_id");
   if (!tenant) return json({ error: "NO_TENANT" }, 403);
-  const { data: role } = await userClient.rpc("my_role_in_tenant", { p_tenant_id: tenant });
+  // Rôle réel = profiles.role (source applicative ; licence_seats non peuplé ici).
+  const { data: prof } = await svc.from("profiles").select("role").eq("id", u.user.id).maybeSingle();
+  const role: string | null = prof?.role ?? null;
 
   const { decision_id, action, motive_code, comment, acted_via, actor_name } = await req.json().catch(() => ({}));
   if (!decision_id || !["approve", "reject"].includes(action)) return json({ error: "BAD_REQUEST" }, 400);
@@ -40,7 +54,7 @@ Deno.serve(async (req) => {
   if (!cur) return json({ error: "NO_PENDING_STEP" }, 409);
 
   // (c) rôle requis porté en table des rôles tenant.
-  if (!role || role !== cur.required_role) return json({ error: "ROLE_REQUIRED", required: cur.required_role }, 403);
+  if (!roleSatisfies(role, cur.required_role)) return json({ error: "ROLE_REQUIRED", required: cur.required_role }, 403);
   // (d) SoD : ni l'auteur, ni un validateur d'une étape antérieure.
   if (String(dec.author_id) === String(uid)) return json({ error: "SOD_AUTHOR" }, 403);
   if (chain.some((a) => a.status === "approved" && String(a.approver_id) === String(uid))) return json({ error: "SOD_DISTINCT" }, 403);

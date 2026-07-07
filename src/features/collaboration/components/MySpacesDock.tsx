@@ -12,7 +12,7 @@ import { useData } from '../../../contexts/DataContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../hooks/useToast';
 import {
-  listSpaces, listEvents, postMessage, approveDecision,
+  listSpaces, listEvents, postMessage, approveDecision, roleSatisfies,
 } from '../services/collaborationService';
 import { listTasks, updateTask } from '../services/collabTasksService';
 import { useCollabUnread } from '../hooks/useCollabUnread';
@@ -45,7 +45,7 @@ export const MySpacesDock: React.FC = () => {
   // Rôle requis de l'étape courante de la chaîne (le serveur reste souverain).
   const currentReqRole = (p: any): string => Array.isArray(p?.chain) ? (p.chain[(p.currentStep || 1) - 1] || p.requiredRole) : p?.requiredRole;
   const isOpen = (p: any) => (p?.status || (p?.approvedAt ? 'approved' : 'in_approval')) === 'in_approval';
-  const canApprove = useCallback((p: any) => me.role === currentReqRole(p), [me.role]);
+  const canApprove = useCallback((p: any) => roleSatisfies(me.role, currentReqRole(p)), [me.role]);
 
   const load = useCallback(async () => {
     try {

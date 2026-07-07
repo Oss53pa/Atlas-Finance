@@ -317,6 +317,22 @@ export const REJECT_MOTIVES: { value: string; label: string }[] = [
   { value: 'autre', label: 'Autre' },
 ];
 
+// Satisfaction de rôle : les rôles applicatifs (profiles.role) couvrent les rôles
+// de gouvernance par hiérarchie (admin = super-approbateur). Le serveur reste la
+// source de vérité ; ceci n'est qu'un miroir pour l'UI (afficher/masquer).
+const REQ_RANK: Record<string, number> = { comptable: 1, daf: 2, dg: 3 };
+const APP_RANK: Record<string, number> = {
+  comptable: 1, accountant: 1, user: 1, employe: 1,
+  manager: 2, daf: 2, controleur: 2, controleur_gestion: 2,
+  dg: 3, directeur: 3, direction: 3,
+  admin: 4, owner: 4, super_admin: 4, proprietaire: 4,
+};
+export function roleSatisfies(appRole: string | undefined, requiredRole: string): boolean {
+  const need = REQ_RANK[(requiredRole || '').toLowerCase()] ?? 1;
+  const have = APP_RANK[(appRole || '').toLowerCase()] ?? 0;
+  return have >= need;
+}
+
 /** Client d'Edge Functions si l'on est en SaaS (gouvernance souveraine serveur). */
 function fnClient(adapter: DataAdapter): any | null {
   try {
