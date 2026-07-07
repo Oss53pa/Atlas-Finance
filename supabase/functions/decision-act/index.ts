@@ -86,10 +86,19 @@ Deno.serve(async (req) => {
     return json({ status: "in_approval", current_step: step + 1, next_role: next.required_role });
   }
 
-  // Dernière approbation → effet FNA (registre), dans la foulée.
+  // Dernière approbation → effet FNA (registre) APPLIQUÉ dans la foulée.
   await svc.from("space_decision").update({ status: "approved", updated_at: now }).eq("id", decision_id);
   const { data: eff } = await svc.from("space_decision_effect").select("*").eq("tenant_id", tenant).eq("decision_type", dec.decision_type).eq("active", true).maybeSingle();
   const effKey = eff && eff.effect_key !== "none" ? eff.effect_key : null;
+  if (effKey) {
+    // Cible résolue depuis l'ancrage métier de l'espace (compte/période/tiers).
+    const { data: spRow } = await svc.from("collab_channels").select("anchors").eq("id", dec.space_id).maybeSingle();
+    const anchor = (spRow?.anchors && spRow.anchors[0]) || {};
+    await svc.from("space_effect_log").insert({
+      tenant_id: tenant, decision_id: dec.id, decision_ref: dec.ref, effect_key: effKey,
+      target: anchor.ref ?? {}, params: eff.params ?? {},
+    });
+  }
   await svc.from("space_decision").update({ effect_applied_at: now }).eq("id", decision_id);
   await event(`Décision ${dec.ref} validée ${chain.length}/${chain.length} par ${name ?? role}${effKey ? ` · effet ${effKey}` : ""}${via === "external_link" ? " · par lien externe" : ""}`);
   await patchMsg({ status: "approved", approvedByName: name, approvedAt: now, currentStep: step, effect: effKey });
