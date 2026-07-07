@@ -411,6 +411,30 @@ export async function actOnDecision(adapter: DataAdapter, d: {
   }
 }
 
+/** Récupère l'id de l'étape courante (pending) d'une décision — pour émettre un lien. */
+export async function getPendingApprovalId(adapter: DataAdapter, decisionId: string): Promise<{ id: string; requiredRole: string } | null> {
+  const client = (adapter as any).client;
+  if (!client?.from) return null;
+  const { data } = await client.from('space_decision_approval').select('id,required_role,status')
+    .eq('decision_id', decisionId).eq('status', 'pending').maybeSingle();
+  return data ? { id: data.id, requiredRole: data.required_role } : null;
+}
+
+/** Émet un lien de validation externe (B6) pour l'étape courante d'une décision. */
+export async function createApprovalLink(adapter: DataAdapter, d: {
+  approvalId: string; contactKind: 'email' | 'whatsapp' | 'sms'; contactValue: string; displayName: string;
+}): Promise<{ token: string; linkId: string; delivery: string; url: string }> {
+  const client = fnClient(adapter);
+  if (!client) throw new Error('Le lien externe requiert le mode SaaS.');
+  const { data, error } = await client.functions.invoke('approval-link-admin', { body: {
+    op: 'create', approval_id: d.approvalId, contact_kind: d.contactKind, contact_value: d.contactValue, display_name: d.displayName,
+  } });
+  const err = (data && data.error) || (error && error.message);
+  if (err) throw new Error(err);
+  const base = typeof window !== 'undefined' ? window.location.origin : '';
+  return { token: data.token, linkId: data.link_id, delivery: data.delivery, url: `${base}/validate/${data.token}` };
+}
+
 export const approveDecision = (adapter: DataAdapter, ev: SpaceEvent, approver: { id: string; name: string; role?: string }, via?: string) =>
   actOnDecision(adapter, { ev, action: 'approve', actor: approver, via });
 export const rejectDecision = (adapter: DataAdapter, ev: SpaceEvent, actor: { id: string; name: string; role?: string }, motiveCode: string, comment?: string) =>

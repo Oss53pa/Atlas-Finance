@@ -23,7 +23,7 @@ import {
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
   postEcriture, postSnapshot, approveDecision, rejectDecision, toggleReaction, buildSnapshotPayload,
   heartbeatPresence, isLate, listDocuments, addDocument, DECISION_TYPES, REJECT_MOTIVES,
-  type ConvergenceResult,
+  getPendingApprovalId, createApprovalLink, type ConvergenceResult,
 } from '../../features/collaboration/services/collaborationService';
 import type { DBCollabDocument } from '../../lib/db';
 import { listTasks, createTask, updateTask } from '../../features/collaboration/services/collabTasksService';
@@ -840,6 +840,20 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
     try { await rejectDecision(adapter, ev, me, motive); toast.success('Décision rejetée'); setRejecting(null); onReload(); }
     catch (e: any) { toast.error(mapErr(e?.message)); }
   };
+  const makeLink = async (ev: SpaceEvent) => {
+    const decisionId = (ev.payload as any)?.decisionId;
+    if (!decisionId) { toast.warning('Lien externe disponible en mode SaaS (décision serveur).'); return; }
+    const name = window.prompt('Nom du validateur externe (ex. Cheick Sanankoua (DG)) :'); if (!name) return;
+    const contact = window.prompt('E-mail du validateur :'); if (!contact) return;
+    try {
+      const step = await getPendingApprovalId(adapter, decisionId);
+      if (!step) { toast.error('Aucune étape en attente.'); return; }
+      const { url, delivery } = await createApprovalLink(adapter, { approvalId: step.id, contactKind: 'email', contactValue: contact, displayName: name });
+      try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
+      toast.success(delivery === 'sent' ? `Lien envoyé à ${contact} · copié` : `Lien créé (démo, non envoyé) · copié : ${url}`);
+      onReload();
+    } catch (e: any) { toast.error(mapErr(e?.message)); }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
@@ -862,9 +876,10 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', gap: 6, marginTop: 5 }}>
+                <div style={{ display: 'flex', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
                   <button onClick={() => approve(ev)} style={miniBtn(T.green)}><ShieldCheck size={12} /> Valider ({req})</button>
                   <button onClick={() => setRejecting(ev.id)} style={miniBtn(T.sub)}>Rejeter</button>
+                  <button onClick={() => makeLink(ev)} style={miniBtn(T.petrol)}><Link2 size={12} /> Faire valider par lien</button>
                 </div>
               )
             )}

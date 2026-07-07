@@ -50,6 +50,7 @@ const DemoPage = lazyRetry(() => import('./pages/DemoPage'));
 const LoginPage = lazyRetry(() => import('./pages/auth/LoginPage'));
 const AtlasFnAHome = lazyRetry(() => import('./pages/platform/AtlasFnAHome'));
 const ExternalAuthPage = lazyRetry(() => import('./pages/auth/ExternalAuthPage'));
+const ExternalValidation = lazyRetry(() => import('./pages/public/ExternalValidation'));
 const AtlasStudioHub = lazyRetry(() => import('./pages/auth/AtlasStudioHub'));
 
 // Onboarding
@@ -321,6 +322,8 @@ function App() {
                       <Route path="/register" element={<RegisterPage />} />
                       <Route path="/verify-email" element={<VerifyEmailPage />} />
                       <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
+                      {/* Validation externe d'une décision (lien nominatif OTP) — hors auth */}
+                      <Route path="/validate/:token" element={<ExternalValidation />} />
                       <Route path="/premier-connexion" element={<PremierConnexionPage />} />
                       <Route path="/admin-login" element={<AdminLoginPage />} />
 
