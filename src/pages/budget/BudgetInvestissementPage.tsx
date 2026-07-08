@@ -20,6 +20,7 @@ import CapexRequestModal from './CapexRequestModal';
 import CapexPirModal from './CapexPirModal';
 import CarModal from './CarModal';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
+import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import { useToast } from '../../hooks/useToast';
 import { useAuth } from '../../contexts/AuthContext';
 import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil, Search, ClipboardCheck } from 'lucide-react';
@@ -43,7 +44,8 @@ const BudgetInvestissementPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
-  const [tab, setTab] = useState<'synthese' | 'demandes' | 'detail'>('synthese');
+  // Ouvre sur la liste des business cases (CAPEX) : c'est la surface de travail du workflow.
+  const [tab, setTab] = useState<'synthese' | 'demandes' | 'detail'>('demandes');
   const [sum, setSum] = useState<InvestmentSummary | null>(null);
   const [requests, setRequests] = useState<CapexRequest[]>([]);
   const [matrix, setMatrix] = useState<ApprovalBracket[]>([]);
@@ -51,6 +53,7 @@ const BudgetInvestissementPage: React.FC = () => {
   const [editingCar, setEditingCar] = useState<CapexRequest | null>(null);
   const [pirCar, setPirCar] = useState<CapexRequest | null>(null);
   const [carForReq, setCarForReq] = useState<CapexRequest | null>(null);
+  const [carLauncherOpen, setCarLauncherOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -117,6 +120,8 @@ const BudgetInvestissementPage: React.FC = () => {
   const matches = (code?: string, label?: string) => !q || (code || '').toLowerCase().includes(q) || (label || '').toLowerCase().includes(q);
   const filteredRequests = requests.filter(r => matches(r.account_code, r.libelle));
   const filteredParCompte = s.parCompte.filter(c => matches(c.account_code, c.label));
+  // Business cases prêts pour une CAR : validés (enveloppe budgétée) ou déjà partiellement appropriés.
+  const eligibleForCar = requests.filter(r => r.statut === 'approuve' || r.statut === 'fonds_disponibles');
   const resteTotal = Math.max(0, s.totalBudget - s.totalRealise);
   const taux = s.totalBudget !== 0 ? Math.round((s.totalRealise / s.totalBudget) * 100) : null;
 
@@ -130,6 +135,15 @@ const BudgetInvestissementPage: React.FC = () => {
           <p className="text-sm text-[var(--color-text-tertiary)]">Immobilisations classe 2 · Exercice {annee}</p>
         </div>
         <button onClick={() => setShowCar(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-2"><Plus className="w-4 h-4" />Nouveau business case</button>
+        <button
+          onClick={() => {
+            if (eligibleForCar.length === 0) { toast.error('Aucun business case validé. Validez d’abord un business case pour émettre une CAR.'); return; }
+            if (eligibleForCar.length === 1) { setCarForReq(eligibleForCar[0]); return; }
+            setCarLauncherOpen(true);
+          }}
+          title="Émettre une Capital Appropriation Request (appropriation des fonds budgétés)"
+          className="px-4 py-2 border border-green-600 text-green-700 rounded-lg text-sm font-medium hover:bg-green-50 flex items-center gap-2"
+        ><Banknote className="w-4 h-4" />Capital Appropriation Request</button>
         <PageHeaderActions
           onToggleFilters={() => setFiltersOpen(o => !o)}
           filtersOpen={filtersOpen}
@@ -166,6 +180,43 @@ const BudgetInvestissementPage: React.FC = () => {
       <CapexRequestModal open={!!editingCar} editing={editingCar} onClose={() => setEditingCar(null)} onCreated={() => setRefreshKey(k => k + 1)} />
       <CapexPirModal open={!!pirCar} request={pirCar} onClose={() => setPirCar(null)} onSaved={() => setRefreshKey(k => k + 1)} />
       <CarModal open={!!carForReq} request={carForReq} onClose={() => setCarForReq(null)} onSaved={() => setRefreshKey(k => k + 1)} />
+
+      {/* Sélecteur CAR : choisir le business case validé dont on approprie les fonds. */}
+      <Dialog open={carLauncherOpen} onOpenChange={(o) => { if (!o) setCarLauncherOpen(false); }} containerClassName="max-w-lg">
+        <DialogContent>
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-green-600/10 flex items-center justify-center"><Banknote className="w-5 h-5 text-green-700" /></div>
+              <div>
+                <h3 className="text-base font-bold text-gray-900">Capital Appropriation Request</h3>
+                <p className="text-xs text-gray-500">Sélectionnez le business case validé dont vous appropriez les fonds.</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {eligibleForCar.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">Aucun business case validé. Validez d’abord un business case.</div>}
+            {eligibleForCar.map(r => (
+              <button
+                key={r.id}
+                onClick={() => { setCarForReq(r); setCarLauncherOpen(false); }}
+                className="w-full flex items-center justify-between bg-gray-50 hover:bg-green-50 border border-transparent hover:border-green-200 rounded-lg px-3 py-2.5 text-left"
+              >
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-gray-800 truncate">{r.libelle}</div>
+                  <div className="text-xs text-gray-500"><span className="font-mono">{fmtAccount(r.account_code)}</span></div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-sm font-semibold text-gray-900">{formatCurrency(r.montant)}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{CAR_LABEL[r.statut]}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+          <div className="flex justify-end mt-5">
+            <button onClick={() => setCarLauncherOpen(false)} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Fermer</button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {tab === 'demandes' && (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
