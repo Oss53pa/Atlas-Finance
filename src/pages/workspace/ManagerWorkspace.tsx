@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { MySpacesDock } from '../../features/collaboration/components/MySpacesDock';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
@@ -478,6 +479,7 @@ const ManagerFiscalWidget: React.FC<{ navigate: (path: string) => void }> = ({ n
           </button>
         )}
       </div>
+      <MySpacesDock />
     </div>
   );
 };

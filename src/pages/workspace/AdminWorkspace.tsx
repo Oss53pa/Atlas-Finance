@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import { MySpacesDock } from '../../features/collaboration/components/MySpacesDock';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { themes } from '../../styles/theme';
@@ -398,6 +399,7 @@ const AdminWorkspace: React.FC = () => {
         </main>
       </div>
       {userMenuOpen && <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />}
+      <MySpacesDock />
     </div>
   );
 };
