@@ -74,7 +74,7 @@ export async function wfSubmit(adapter: DataAdapter, d: {
 export async function wfAct(adapter: DataAdapter, d: {
   taskId: string; action: 'approve' | 'reject'; motiveCode?: string; comment?: string;
   signed?: boolean; actorName?: string; via?: string;
-}): Promise<{ status: string; next_role?: string }> {
+}): Promise<{ status: string; next_role?: string; quarantine_until?: string | null }> {
   const c = client(adapter);
   if (!c?.functions) throw new Error('MVA disponible en mode SaaS.');
   const { data, error } = await c.functions.invoke('wf-act', { body: {

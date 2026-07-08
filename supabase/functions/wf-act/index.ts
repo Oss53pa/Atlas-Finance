@@ -47,8 +47,23 @@ Deno.serve(async (req) => {
     await wfEvent(svc, tenant, inst.id, "invalidated_object_changed", uid, "user", {});
     return json({ error: "INVALIDATED_OBJECT_CHANGED" }, 409);
   }
-  if (!roleSatisfies(role, task.required_role)) return json({ error: "ROLE_REQUIRED", required: task.required_role }, 403);
-  if (String(inst.submitted_by) === String(uid)) return json({ error: "SOD_AUTHOR" }, 403);
+  // Autorisation : rôle porté, sinon délégation active bornée (type/plafond/dates).
+  const nowD = new Date();
+  const today = nowD.toISOString().slice(0, 10);
+  let onBehalfOf: string | null = null;
+  if (!roleSatisfies(role, task.required_role)) {
+    const amt = Number(inst.object_preview?.amount_xof || 0);
+    const { data: dels } = await svc.from("wf_delegation").select("*").eq("tenant_id", tenant).eq("delegate_id", uid).eq("active", true);
+    const del = (dels ?? []).find((d: any) =>
+      (!d.object_types?.length || d.object_types.includes(inst.object_type)) &&
+      (d.max_amount_xof == null || amt <= Number(d.max_amount_xof)) &&
+      (!d.from_date || d.from_date <= today) && (!d.to_date || d.to_date >= today) &&
+      roleSatisfies(d.delegator_role, task.required_role));
+    if (!del) return json({ error: "ROLE_REQUIRED", required: task.required_role }, 403);
+    onBehalfOf = del.delegator_id;
+  }
+  // SoD évaluée sur le délégataire RÉEL (l'acteur) + le délégant.
+  if (String(inst.submitted_by) === String(uid) || (onBehalfOf && String(inst.submitted_by) === String(onBehalfOf))) return json({ error: "SOD_AUTHOR" }, 403);
   const { data: prior } = await svc.from("wf_task").select("id").eq("instance_id", inst.id).eq("status", "approved").eq("assignee_id", uid);
   if (prior && prior.length) return json({ error: "SOD_DISTINCT" }, 403);
 
@@ -75,8 +90,8 @@ Deno.serve(async (req) => {
     signatureId = sig?.id ?? null;
   }
 
-  await svc.from("wf_task").update({ status: "approved", assignee_id: uid, assignee_name: actor_name ?? null, acted_via: acted_via ?? "bannette", acted_at: now, signature_id: signatureId }).eq("id", task.id);
-  await wfEvent(svc, tenant, inst.id, "approved", uid, "user", { position: task.position, signature: stage?.signature_level ?? "none" });
+  await svc.from("wf_task").update({ status: "approved", assignee_id: uid, assignee_name: actor_name ?? null, on_behalf_of: onBehalfOf, resolved_from: onBehalfOf ? "delegation" : `role:${task.required_role}`, acted_via: acted_via ?? "bannette", acted_at: now, signature_id: signatureId }).eq("id", task.id);
+  await wfEvent(svc, tenant, inst.id, "approved", uid, "user", { position: task.position, signature: stage?.signature_level ?? "none", on_behalf_of: onBehalfOf });
 
   const next = tasks.find((t: any) => t.position === task.position + 1);
   if (next) {
@@ -90,6 +105,14 @@ Deno.serve(async (req) => {
   await svc.from("wf_instance").update({ status: "approved" }).eq("id", inst.id);
   await wfEvent(svc, tenant, inst.id, "approved_final", uid, "user", { total: tasks.length });
   await svc.from("wf_instance").update({ status: "applied", closed_at: now }).eq("id", inst.id);
+  // Apply spécifique (Validatable.apply) : activation RIB avec QUARANTAINE.
+  let quarantineUntil: string | null = null;
+  const flags: string[] = inst.object_preview?.flags || [];
+  if (inst.object_type === "partner_master" && flags.includes("rib_change")) {
+    quarantineUntil = new Date(Date.now() + 5 * 86400000).toISOString();
+    await svc.from("partner_rib_quarantine").insert({ tenant_id: tenant, partner_id: inst.object_preview?.partner_id ?? inst.object_id, new_rib: inst.object_preview?.new_rib ?? null, instance_id: inst.id, decision_ref: inst.object_preview?.ref ?? null, quarantine_until: quarantineUntil });
+    await wfEvent(svc, tenant, inst.id, "rib_quarantine", "system", "system", { days: 5, partner_id: inst.object_preview?.partner_id ?? inst.object_id });
+  }
   await wfEvent(svc, tenant, inst.id, "applied", "system", "system", { object_type: inst.object_type, object_id: inst.object_id });
-  return json({ status: "applied", total: tasks.length });
+  return json({ status: "applied", total: tasks.length, quarantine_until: quarantineUntil });
 });

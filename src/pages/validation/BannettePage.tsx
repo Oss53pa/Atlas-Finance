@@ -51,14 +51,15 @@ export default function BannettePage() {
 
   const act = async (t: BannetteTask, action: 'approve' | 'reject', motiveCode?: string) => {
     // Si l'étape exige une signature, la fonction renvoie SIGNATURE_REQUIRED → on re-tente signé.
+    const q = (res: any) => res?.quarantine_until ? ' · RIB en quarantaine 5 j (paiements retenus)' : '';
     try {
       const res = await wfAct(adapter, { taskId: t.id, action, motiveCode, actorName: me.name });
-      toast.success(action === 'approve' ? (res.status === 'applied' ? 'Validé & appliqué' : `Étape validée${res.next_role ? ` · reste ${res.next_role.toUpperCase()}` : ''}`) : 'Rejeté');
+      toast.success(action === 'approve' ? (res.status === 'applied' ? `Validé & appliqué${q(res)}` : `Étape validée${res.next_role ? ` · reste ${res.next_role.toUpperCase()}` : ''}`) : 'Rejeté');
       setRejecting(null); load();
     } catch (e: any) {
       if (e?.message === 'SIGNATURE_REQUIRED') {
         // Re-tente avec signature (v1 : clic authentifié tient lieu de signature).
-        try { const res = await wfAct(adapter, { taskId: t.id, action, motiveCode, actorName: me.name, signed: true }); toast.success(res.status === 'applied' ? 'Signé, validé & appliqué' : 'Signé & validé'); setRejecting(null); load(); return; }
+        try { const res = await wfAct(adapter, { taskId: t.id, action, motiveCode, actorName: me.name, signed: true }); toast.success((res.status === 'applied' ? 'Signé, validé & appliqué' : 'Signé & validé') + q(res)); setRejecting(null); load(); return; }
         catch (e2: any) { toast.error(mvaErr(e2?.message)); return; }
       }
       toast.error(mvaErr(e?.message));
@@ -233,6 +234,17 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
         toast.success(`Bordereau soumis · ${res.included_count} incluses, ${res.exception_count} exception(s) extraite(s)`);
         onDone(); return;
       }
+      if (objectType === 'partner_master') {
+        // Modification de RIB (démo) : flag rib_change → circuit renforcé + quarantaine.
+        const objectId = `partner-rib-${Date.now()}`;
+        const res = await wfSubmit(adapter, {
+          objectType, objectId,
+          preview: { title: title.trim() || 'Modification RIB fournisseur', flags: ['rib_change'], partner_id: 'F-4021', new_rib: 'CI93-SGCI-000123', ref: objectId.slice(-8).toUpperCase(), detail: 'Changement de RIB — anti-fraude' },
+          payload: { flags: ['rib_change'] },
+        });
+        toast.success(`RIB soumis · circuit renforcé « ${res.definition} » (${res.stages.length} valideurs + OTP)`);
+        onDone(); return;
+      }
       if (!title.trim()) { toast.warning('Libellé requis'); setBusy(false); return; }
       const amt = amount ? Number(amount) : 0;
       const objectId = `manual-${objectType}-${Date.now()}`;
@@ -259,6 +271,7 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
               <option value="journal_entry">Écriture (OD)</option>
               <option value="entry_reversal">Extourne</option>
               <option value="journal_batch">Bordereau (démo 4 lignes)</option>
+              <option value="partner_master">Modification RIB (anti-fraude)</option>
             </select>
           </label>
           {objectType !== 'journal_batch' && (
@@ -276,7 +289,9 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
           <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px' }}>
             {objectType === 'journal_batch'
               ? 'Bordereau de démo (4 lignes) : 2 exceptions (compte 47x, ligne ≥ 5 M) seront extraites en dossiers individuels ; le reste forme 1 bordereau figé par root_hash.'
-              : 'Le circuit est résolu par la matrice du tenant (ex. OD ≥ 1 000 000 → Comptable puis DAF). L\'objet est figé par hash à la soumission.'}
+              : objectType === 'partner_master'
+                ? 'Modification de RIB (démo) : circuit renforcé anti-fraude — 2 valideurs distincts + signature OTP ; à l\'application, le nouveau RIB est mis en quarantaine 5 jours (paiements retenus).'
+                : 'Le circuit est résolu par la matrice du tenant (ex. OD ≥ 1 000 000 → Comptable puis DAF). L\'objet est figé par hash à la soumission.'}
           </div>
         </div>
         <div style={{ padding: '13px 18px', borderTop: `1px solid ${T.line}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
