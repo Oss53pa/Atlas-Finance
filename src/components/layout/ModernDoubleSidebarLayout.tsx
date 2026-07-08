@@ -14,7 +14,7 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split, Inbox
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { themes } from '../../styles/theme';
@@ -222,6 +222,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       icon: <MessageSquare className="w-5 h-5" />,
       badge: collabUnread.total > 0 ? collabUnread.total : undefined,
       ariaLabel: "Discussions, tâches et activité de l'équipe"
+    },
+    {
+      id: 'validation',
+      label: 'Bannette',
+      icon: <Inbox className="w-5 h-5" />,
+      ariaLabel: 'Parapheur unifié — objets à valider'
     }
     // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
     // societes) → `tenant.plan` est toujours undefined → tout le monde retombait
@@ -316,6 +322,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     collaboration: [
       { id: 'collab-space', label: 'Espace Collaboratif', path: '/collaboration', icon: <MessageSquare className="w-4 h-4" /> },
     ],
+    validation: [
+      { id: 'bannette', label: 'À valider', path: '/bannette', icon: <Inbox className="w-4 h-4" /> },
+    ],
   }), [t, user?.role]);
 
   useEffect(() => {
@@ -346,6 +355,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'financial-statements': 'reporting',
         'closures': 'closures',
         'collaboration': 'collaboration',
+        'bannette': 'validation',
         'inventory': 'assets',
         'taxation': 'reporting'
       };

@@ -95,6 +95,7 @@ const WorkspaceDashboard = lazyRetry(() => import('./pages/workspace/WorkspaceDa
 
 // Espace collaboratif
 const CollaborationWorkspace = lazyRetry(() => import('./pages/collaboration/CollaborationWorkspace'));
+const BannettePage = lazyRetry(() => import('./pages/validation/BannettePage'));
 // Dashboards
 const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/PremiumOverview'));
 const ExecutiveDashboardLegacy = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
@@ -511,6 +512,11 @@ function App() {
                         {/* Espace collaboratif */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Espace collaboratif" /></RBACGuard>}>
                           <Route path="/collaboration" element={<CollaborationWorkspace />} />
+                        </Route>
+
+                        {/* Bannette — parapheur unifié (Moteur de Validation Atlas) */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant']}><FeatureErrorBoundary feature="Bannette" /></RBACGuard>}>
+                          <Route path="/bannette" element={<BannettePage />} />
                         </Route>
 
                         {/* Etats financiers */}
