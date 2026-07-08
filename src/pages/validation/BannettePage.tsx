@@ -12,7 +12,8 @@ import { Avatar } from '../../components/ui';
 import { Inbox, ShieldCheck, PenLine, Clock, AlertTriangle, Plus, X, Layers, History } from 'lucide-react';
 import {
   listBannette, wfAct, wfSubmit, listInstanceEvents, mvaErr, OBJECT_TYPE_LABELS,
-  type BannetteTask,
+  wfBatchSubmit, wfBatchAct, listBatchLines,
+  type BannetteTask, type BatchLine,
 } from '../../features/validation/mvaService';
 
 const T = { cream: '#F2EFE8', surface: '#FFFFFF', petrol: '#1E5A64', orange: '#E8912D', gold: '#C97E12', green: '#2E9E6B', red: '#E24B4A', ink: '#1C2B2E', sub: '#607377', line: '#E6E0D4', softLine: '#EFEAE0' };
@@ -107,7 +108,9 @@ export default function BannettePage() {
                   </div>
                 </div>
                 {/* actions */}
-                {rejecting === t.id ? (
+                {inst.object_type === 'journal_batch' ? (
+                  <BatchPanel task={t} me={me} adapter={adapter} onDone={load} />
+                ) : rejecting === t.id ? (
                   <div style={{ marginTop: 10, borderTop: `1px solid ${T.softLine}`, paddingTop: 10 }}>
                     <select value={motive} onChange={e => setMotive(e.target.value)} style={{ ...field, marginBottom: 8, maxWidth: 240 }}>
                       {MOTIVES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -135,6 +138,75 @@ export default function BannettePage() {
   );
 }
 
+// ── Panneau bordereau (validation par exception + rejet partiel) ──────────────
+function BatchPanel({ task, me, adapter, onDone }: { task: BannetteTask; me: any; adapter: any; onDone: () => void }) {
+  const { toast } = useToast();
+  const inst = task.instance!; const p = inst.object_preview || {};
+  const mine = String(inst.submitted_by) === String(me.id);
+  const [open, setOpen] = useState(false);
+  const [lines, setLines] = useState<BatchLine[]>([]);
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [motive, setMotive] = useState('montant_conteste');
+
+  const loadLines = async () => { setLines(await listBatchLines(adapter, inst.id)); setOpen(true); };
+  const toggle = (ref: string) => setExcluded(s => { const n = new Set(s); n.has(ref) ? n.delete(ref) : n.add(ref); return n; });
+
+  const act = async (action: 'approve' | 'approve_excluding' | 'reject') => {
+    try {
+      const excludeRefs = [...excluded];
+      const res = await wfBatchAct(adapter, { taskId: task.id, action, excludeRefs, motiveCode: (action === 'reject' || action === 'approve_excluding') ? motive : undefined, actorName: me.name, signed: true });
+      toast.success(action === 'reject' ? 'Bordereau rejeté'
+        : res.status === 'applied' ? `Appliqué · ${fmt(res.applied_total_xof)} FCFA${res.excluded ? ` · ${res.excluded} exclue(s)` : ''}`
+        : `Étape validée${res.next_role ? ` · reste ${res.next_role.toUpperCase()}` : ''}`);
+      onDone();
+    } catch (e: any) { toast.error(mvaErr(e?.message)); }
+  };
+
+  return (
+    <div style={{ marginTop: 10, borderTop: `1px solid ${T.softLine}`, paddingTop: 10 }}>
+      <div style={{ display: 'flex', gap: 12, fontSize: 11.5, color: T.sub, flexWrap: 'wrap', marginBottom: 8 }}>
+        <span><b style={{ color: T.ink }}>{p.line_count}</b> lignes</span>
+        <span><b style={{ color: T.ink }}>{p.included_count}</b> incluses</span>
+        {p.excluded_count > 0 && <span style={{ color: T.orange }}><b>{p.excluded_count}</b> extraites en validation individuelle</span>}
+        {p.root_hash && <span style={{ fontFamily: MONO }}>root #{String(p.root_hash).slice(0, 12)}…</span>}
+      </div>
+      {!open ? (
+        <button onClick={loadLines} style={miniBtn(T.petrol)}>Voir les lignes</button>
+      ) : (
+        <div style={{ border: `1px solid ${T.softLine}`, borderRadius: 9, overflow: 'hidden', marginBottom: 9 }}>
+          <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
+            <thead><tr style={{ background: T.cream }}>
+              <th style={thc}></th><th style={thc}>Réf</th><th style={thc}>Compte</th><th style={thc}>Libellé</th><th style={{ ...thc, textAlign: 'right' }}>Montant</th>
+            </tr></thead>
+            <tbody>
+              {lines.map(l => (
+                <tr key={l.id} style={{ opacity: l.included ? 1 : .5, background: excluded.has(l.line_ref) ? T.red + '10' : undefined }}>
+                  <td style={tdc}>{l.included && !mine ? <input type="checkbox" checked={excluded.has(l.line_ref)} onChange={() => toggle(l.line_ref)} /> : null}</td>
+                  <td style={{ ...tdc, fontFamily: MONO }}>{l.line_ref}</td>
+                  <td style={{ ...tdc, fontFamily: MONO }}>{l.account_code}</td>
+                  <td style={tdc}>{l.label}{l.is_exception && <span style={{ color: T.orange, fontSize: 10 }}> · exception extraite</span>}</td>
+                  <td style={{ ...tdc, textAlign: 'right', fontFamily: MONO, color: T.gold }}>{fmt(l.amount_xof)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {!mine && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <select value={motive} onChange={e => setMotive(e.target.value)} style={{ ...field, width: 180 }}>
+            {MOTIVES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+          <button onClick={() => act('approve')} style={miniBtn(T.green)}><ShieldCheck size={13} /> Approuver tout</button>
+          <button onClick={() => act('approve_excluding')} disabled={excluded.size === 0} style={{ ...miniBtn(T.orange), opacity: excluded.size ? 1 : .5 }}>Approuver en excluant ({excluded.size})</button>
+          <button onClick={() => act('reject')} style={miniBtn(T.red)}>Rejeter tout</button>
+        </div>
+      )}
+      {mine && <span style={{ fontSize: 11, color: T.sub }}>Vous êtes l'auteur (SoD)</span>}
+    </div>
+  );
+}
+
 // ── Soumission d'un objet (démo/manuel) ───────────────────────────────────────
 function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () => void; onDone: () => void }) {
   const { toast } = useToast();
@@ -145,9 +217,23 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    if (!title.trim()) { toast.warning('Libellé requis'); return; }
     setBusy(true);
     try {
+      if (objectType === 'journal_batch') {
+        // Bordereau de démonstration : 4 lignes dont 2 exceptions (compte 47x, ≥ 5M).
+        const res = await wfBatchSubmit(adapter, {
+          journal_code: journal, period: '2026-03', source: 'import',
+          lines: [
+            { line_ref: 'L1', account_code: '601000', label: 'Achat marchandises', amount_xof: 300000 },
+            { line_ref: 'L2', account_code: '471000', label: 'Compte d\'attente', amount_xof: 800000 },
+            { line_ref: 'L3', account_code: '627000', label: 'Services bancaires', amount_xof: 6000000 },
+            { line_ref: 'L4', account_code: '606000', label: 'Fournitures', amount_xof: 450000 },
+          ],
+        });
+        toast.success(`Bordereau soumis · ${res.included_count} incluses, ${res.exception_count} exception(s) extraite(s)`);
+        onDone(); return;
+      }
+      if (!title.trim()) { toast.warning('Libellé requis'); setBusy(false); return; }
       const amt = amount ? Number(amount) : 0;
       const objectId = `manual-${objectType}-${Date.now()}`;
       const res = await wfSubmit(adapter, {
@@ -172,14 +258,26 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
             <select value={objectType} onChange={e => setObjectType(e.target.value)} style={field}>
               <option value="journal_entry">Écriture (OD)</option>
               <option value="entry_reversal">Extourne</option>
+              <option value="journal_batch">Bordereau (démo 4 lignes)</option>
             </select>
           </label>
-          <label><span style={lbl}>Libellé</span><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. OD régularisation charges" style={field} /></label>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <label style={{ flex: 1 }}><span style={lbl}>Montant FCFA</span><input value={amount} onChange={e => setAmount(e.target.value)} type="number" placeholder="0" style={{ ...field, fontFamily: MONO }} /></label>
-            <label style={{ width: 110 }}><span style={lbl}>Journal</span><input value={journal} onChange={e => setJournal(e.target.value)} style={field} /></label>
+          {objectType !== 'journal_batch' && (
+            <>
+              <label><span style={lbl}>Libellé</span><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. OD régularisation charges" style={field} /></label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <label style={{ flex: 1 }}><span style={lbl}>Montant FCFA</span><input value={amount} onChange={e => setAmount(e.target.value)} type="number" placeholder="0" style={{ ...field, fontFamily: MONO }} /></label>
+                <label style={{ width: 110 }}><span style={lbl}>Journal</span><input value={journal} onChange={e => setJournal(e.target.value)} style={field} /></label>
+              </div>
+            </>
+          )}
+          {objectType === 'journal_batch' && (
+            <label><span style={lbl}>Journal</span><input value={journal} onChange={e => setJournal(e.target.value)} style={field} /></label>
+          )}
+          <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px' }}>
+            {objectType === 'journal_batch'
+              ? 'Bordereau de démo (4 lignes) : 2 exceptions (compte 47x, ligne ≥ 5 M) seront extraites en dossiers individuels ; le reste forme 1 bordereau figé par root_hash.'
+              : 'Le circuit est résolu par la matrice du tenant (ex. OD ≥ 1 000 000 → Comptable puis DAF). L\'objet est figé par hash à la soumission.'}
           </div>
-          <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px' }}>Le circuit est résolu par la matrice du tenant (ex. OD ≥ 1 000 000 → Comptable puis DAF). L'objet est figé par hash à la soumission.</div>
         </div>
         <div style={{ padding: '13px 18px', borderTop: `1px solid ${T.line}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onClose} style={{ ...miniBtn(T.sub), background: 'none', color: T.sub, border: `1px solid ${T.line}` }}>Annuler</button>
@@ -223,3 +321,5 @@ const btn = (bg: string): React.CSSProperties => ({ display: 'inline-flex', alig
 const miniBtn = (c: string): React.CSSProperties => ({ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: '#fff', background: c, border: 'none', borderRadius: 8, padding: '6px 12px', cursor: 'pointer' });
 const field: React.CSSProperties = { width: '100%', boxSizing: 'border-box', border: `1px solid ${T.line}`, borderRadius: 9, padding: '8px 11px', fontSize: 13, outline: 'none', color: T.ink, background: T.surface };
 const lbl: React.CSSProperties = { fontSize: 11.5, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 4 };
+const thc: React.CSSProperties = { textAlign: 'left', padding: '5px 8px', color: T.sub, fontWeight: 600, borderBottom: `1px solid ${T.line}`, fontSize: 10.5 };
+const tdc: React.CSSProperties = { padding: '5px 8px', borderBottom: `1px solid ${T.softLine}` };

@@ -86,7 +86,45 @@ export async function wfAct(adapter: DataAdapter, d: {
   return data;
 }
 
+// ── Bordereaux (journal_batch, Partie D) ─────────────────────────────────────
+export interface BatchLine {
+  id: string; position: number; line_ref: string; account_code: string | null; label: string | null;
+  amount_xof: number; included: boolean; is_exception: boolean; exception_reason: string | null;
+}
+export async function listBatchLines(adapter: DataAdapter, instanceId: string): Promise<BatchLine[]> {
+  const c = client(adapter);
+  if (!c) return [];
+  const { data } = await c.from('wf_batch_line').select('*').eq('instance_id', instanceId).order('position');
+  return data ?? [];
+}
+export async function wfBatchSubmit(adapter: DataAdapter, batch: {
+  journal_code: string; period?: string; source?: string; lines: { line_ref: string; account_code: string; label: string; amount_xof: number }[];
+}): Promise<any> {
+  const c = client(adapter);
+  if (!c?.functions) throw new Error('MVA disponible en mode SaaS.');
+  const { data, error } = await c.functions.invoke('wf-batch-submit', { body: { batch } });
+  const err = (data && data.error) || (error && error.message);
+  if (err) throw new Error(err);
+  return data;
+}
+export async function wfBatchAct(adapter: DataAdapter, d: {
+  taskId: string; action: 'approve' | 'approve_excluding' | 'reject'; excludeRefs?: string[];
+  motiveCode?: string; actorName?: string; signed?: boolean;
+}): Promise<any> {
+  const c = client(adapter);
+  if (!c?.functions) throw new Error('MVA disponible en mode SaaS.');
+  const { data, error } = await c.functions.invoke('wf-batch-act', { body: {
+    task_id: d.taskId, action: d.action, exclude_refs: d.excludeRefs, motive_code: d.motiveCode, actor_name: d.actorName, signed: d.signed,
+  } });
+  const err = (data && data.error) || (error && error.message);
+  if (err) throw new Error(err);
+  return data;
+}
+
 export const MVA_ERR: Record<string, string> = {
+  BATCH_TOO_LARGE: 'Bordereau trop volumineux (> 1000 lignes) — découpage requis.',
+  NOT_A_BATCH: 'Cet objet n\'est pas un bordereau.',
+  NO_EXCLUSION: 'Sélectionnez au moins une ligne à exclure.',
   ROLE_REQUIRED: 'Validation réservée au rôle requis de cette étape.',
   SOD_AUTHOR: 'Séparation des tâches : l\'auteur ne valide pas son objet.',
   SOD_DISTINCT: 'Séparation des tâches : validateurs distincts par étape.',
