@@ -238,8 +238,35 @@ export async function closeSpace(adapter: DataAdapter, space: Space, events: Spa
   };
   const hash = await sha256(JSON.stringify(content));
   await updateSpace(adapter, space.id, { status: 'archive', closedAt: now(), closureHash: hash });
+  // Persistance du rapport (base de connaissance interrogeable) — SaaS.
+  try {
+    const client = fnClient(adapter);
+    if (client?.from) {
+      const searchText = [space.title, space.problem, space.objective,
+        ...kept.map(s => s.title), ...discarded.map(s => `${s.title} ${s.motif || ''}`),
+        ...decisions.map(d => `${d.title} ${d.ref || ''}`),
+        ...events.map(e => e.body)].filter(Boolean).join(' \n ');
+      await client.from('space_report').insert({ tenant_id: space.tenantId, space_id: space.id, title: space.title, content, hash, search_text: searchText });
+    }
+  } catch { /* best-effort */ }
   await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: `Espace clôturé · rapport scellé SHA-256 ${hash.slice(0, 12)}…` });
   return { hash, content };
+}
+
+/** Rapport de clôture d'un espace archivé (base de connaissance). */
+export async function getSpaceReport(adapter: DataAdapter, spaceId: string): Promise<any | null> {
+  const client = fnClient(adapter);
+  if (!client?.from) return null;
+  const { data } = await client.from('space_report').select('*').eq('space_id', spaceId).order('generated_at', { ascending: false }).limit(1).maybeSingle();
+  return data ?? null;
+}
+/** Recherche plein-texte dans les rapports archivés (substitut honnête à pgvector). */
+export async function searchReports(adapter: DataAdapter, tenantId: string, query: string): Promise<any[]> {
+  const client = fnClient(adapter);
+  if (!client?.from || !query.trim()) return [];
+  const { data } = await client.from('space_report').select('id,space_id,title,hash,generated_at,content')
+    .eq('tenant_id', tenantId).textSearch('search_vector', query, { config: 'french', type: 'websearch' }).limit(20);
+  return data ?? [];
 }
 
 // ── SOLUTIONS / ÉCHÉANCES (méthode CDC §2.2) ──────────────────────────────────

@@ -23,7 +23,7 @@ import {
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
   postEcriture, postSnapshot, approveDecision, rejectDecision, toggleReaction, buildSnapshotPayload,
   heartbeatPresence, isLate, listDocuments, addDocument, DECISION_TYPES, REJECT_MOTIVES,
-  getPendingApprovalId, createApprovalLink, type ConvergenceResult,
+  getPendingApprovalId, createApprovalLink, getSpaceReport, searchReports, type ConvergenceResult,
 } from '../../features/collaboration/services/collaborationService';
 import type { DBCollabDocument } from '../../lib/db';
 import { listTasks, createTask, updateTask } from '../../features/collaboration/services/collabTasksService';
@@ -128,6 +128,13 @@ export default function CollaborationWorkspace() {
 function Portfolio({ spaces, loading, onOpen, onNew }: {
   spaces: Space[]; loading: boolean; onOpen: (id: string) => void; onNew: () => void;
 }) {
+  const { adapter } = useData();
+  const { user } = useAuth();
+  const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
+  const [kbQuery, setKbQuery] = useState('');
+  const [kbResults, setKbResults] = useState<any[] | null>(null);
+  const runKb = async () => { if (!kbQuery.trim()) { setKbResults(null); return; } try { setKbResults(await searchReports(adapter, tenantId, kbQuery)); } catch { setKbResults([]); } };
+
   const active = spaces.filter(s => s.status !== 'archive' && s.status !== 'abandonne');
   const late = active.filter(isLate);
   const resolved90 = spaces.filter(s => s.status === 'archive' && s.closedAt && (Date.now() - new Date(s.closedAt).getTime()) < 90 * 864e5);
@@ -151,6 +158,27 @@ function Portfolio({ spaces, loading, onOpen, onNew }: {
         <Stat label="En cours" value={active.length} color={T.petrol} icon={Layers} />
         <Stat label="En retard" value={late.length} color={T.red} icon={AlertTriangle} />
         <Stat label="Résolus / 90 j" value={resolved90.length} color={T.green} icon={CheckCircle2} />
+      </div>
+
+      {/* Base de connaissance : recherche dans les rapports de clôture archivés */}
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input value={kbQuery} onChange={e => setKbQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && runKb()}
+            placeholder="Base de connaissance — rechercher dans les rapports clôturés (ex. « écart SGCI »)…"
+            style={{ flex: 1, border: `1px solid ${T.line}`, borderRadius: 10, padding: '9px 13px', fontSize: 13, outline: 'none', color: T.ink, background: T.surface }} />
+          <button onClick={runKb} style={btn(T.petrol)}>Rechercher</button>
+        </div>
+        {kbResults && (
+          <div style={{ marginTop: 8, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 12, padding: kbResults.length ? 8 : 14 }}>
+            {kbResults.length === 0 ? <span style={{ fontSize: 12.5, color: T.sub }}>Aucun rapport ne correspond.</span> :
+              kbResults.map(r => (
+                <button key={r.id} onClick={() => onOpen(r.space_id)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', padding: '8px 8px', borderBottom: `1px solid ${T.softLine}` }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{r.title}</div>
+                  <div style={{ fontSize: 11, color: T.sub }}>{r.content?.space?.problem?.slice(0, 120)}… · clôturé {r.generated_at ? new Date(r.generated_at).toLocaleDateString('fr-FR') : ''} · <span style={{ fontFamily: MONO }}>#{String(r.hash).slice(0, 10)}</span></div>
+                </button>
+              ))}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -258,6 +286,8 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
 
   const allCriteriaMet = criteria.length > 0 && criteria.every(c => c.met);
   const readOnly = sp.status === 'archive' || sp.status === 'abandonne';
+  const [report, setReport] = useState<any>(null);
+  const openReport = async () => { const r = await getSpaceReport(adapter, sp.id); setReport(r || { content: null }); };
 
   const doClose = async () => {
     if (!allCriteriaMet) { toast.warning(`Clôture verrouillée · ${criteria.filter(c => c.met).length}/${criteria.length} critères`); return; }
@@ -293,7 +323,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
         {/* ── Colonne MÉTHODE ── */}
         <MethodColumn sp={sp} criteria={criteria} conv={conv} readOnly={readOnly} me={me}
           adapter={adapter} tenantId={tenantId} allCriteriaMet={allCriteriaMet}
-          onClose={doClose} onReload={reload} />
+          onClose={doClose} onReload={reload} onShowReport={openReport} />
 
         {/* ── Colonne FIL TYPÉ ── */}
         <section style={{ display: 'flex', flexDirection: 'column', minWidth: 0, background: T.cream }}>
@@ -329,12 +359,13 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
           </div>
         </aside>
       </div>
+      {report && <ReportModal report={report} space={sp} onClose={() => setReport(null)} />}
     </div>
   );
 }
 
 // ── Colonne Méthode ───────────────────────────────────────────────────────────
-function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onReload }: any) {
+function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onReload, onShowReport }: any) {
   const { toast } = useToast();
   const [solTitle, setSolTitle] = useState('');
   const kept = (sp.solutions || []).find((s: any) => s.state === 'kept');
@@ -418,9 +449,12 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
           {criteria.filter((c: ExitCriterion) => c.met).length}/{criteria.length} critères de sortie satisfaits
         </div>
         {readOnly ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
-            <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
-            {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
+              <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
+              {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
+            </div>
+            <button onClick={onShowReport} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><FileText size={15} /> Voir le rapport de clôture</button>
           </div>
         ) : (
           <button onClick={onClose} disabled={!allCriteriaMet} style={{
@@ -994,6 +1028,75 @@ function DiffusionTab({ sp, events }: { sp: Space; events: SpaceEvent[] }) {
           <div style={{ fontSize: 11, color: T.sub, marginTop: 3 }}>{r.what} · <b style={{ color: T.ink }}>{r.state}</b></div>
         </div>
       ))}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════ RAPPORT DE CLÔTURE ═════════
+function ReportModal({ report, space, onClose }: { report: any; space: Space; onClose: () => void }) {
+  const c = report?.content;
+  const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, m => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[m] as string));
+  const printReport = () => {
+    if (!c) return;
+    const rows = (arr: any[], fn: (x: any) => string) => (arr || []).map(fn).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Rapport ${esc(c.space?.title)}</title>
+      <style>body{font-family:Arial,sans-serif;color:#1c2b2e;max-width:800px;margin:24px auto;padding:0 20px;line-height:1.5}
+      h1{color:#1E5A64}h2{color:#1E5A64;border-bottom:1px solid #E6E0D4;padding-bottom:4px;margin-top:26px;font-size:16px}
+      .muted{color:#607377;font-size:12px}.gold{color:#C97E12;font-weight:bold}.mono{font-family:monospace}
+      li{margin:3px 0}.tag{display:inline-block;font-size:11px;background:#f0ece2;border-radius:4px;padding:1px 6px;margin-right:4px}</style></head>
+      <body><h1>Rapport de clôture</h1>
+      <p class="muted">${esc(c.space?.title)} · réf ${esc(report.hash?.slice(0,16))}… · généré le ${new Date(report.generated_at).toLocaleString('fr-FR')}</p>
+      <h2>Problème</h2><p>${esc(c.space?.problem)}</p>
+      <h2>Objectif</h2><p>${esc(c.space?.objective)}</p>
+      <p class="muted">Responsable : ${esc(c.responsable)} · ouvert le ${esc(c.ouvertLe?.slice(0,10))} · clôturé le ${esc(c.clotureLe?.slice(0,10))} · durée ${esc(c.dureeJours)} j</p>
+      <h2>Solutions retenues</h2><ul>${rows(c.solutionsRetenues, (s:any)=>`<li>${esc(s.title)}${s.decisionRef?` <span class="tag mono">${esc(s.decisionRef)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>Solutions écartées (avec motifs)</h2><ul>${rows(c.solutionsEcartees, (s:any)=>`<li>${esc(s.title)} — <i>${esc(s.motif||'sans motif')}</i></li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>Décisions & validations</h2><ul>${rows(c.decisions, (d:any)=>`<li><b>${esc(d.ref||'')}</b> ${esc(d.title)}${d.amount!=null?` — <span class="gold">${Math.round(d.amount).toLocaleString('fr-FR')} FCFA</span>`:''}${d.governanceRule?`<br><span class="muted">${esc(d.governanceRule)}</span>`:''}${d.approvedByName?`<br><span class="muted">✓ ${esc(d.approvedByName)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>Pièces référencées</h2><ul>${rows(c.piecesReferencees, (p:any)=>`<li class="mono">${esc(p.entryNumber)} ${esc(p.accounts||'')}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>Snapshots</h2><ul>${rows(c.snapshots, (s:any)=>`<li>${esc(s.title)} <span class="mono muted">#${esc(s.hash)}</span></li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>Chronologie</h2><ul>${rows(c.chronologie, (e:any)=>`<li><span class="muted mono">${esc(e.le?.slice(0,16).replace('T',' '))}</span> <span class="tag">${esc(e.type)}</span> ${esc(e.texte)}${e.auteur?` <span class="muted">— ${esc(e.auteur)}</span>`:''}</li>`)}</ul>
+      </body></html>`;
+    const w = window.open('', '_blank'); if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 300); }
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,43,46,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 20 }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: T.surface, borderRadius: 16, width: 'min(640px, 100%)', maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
+        <div style={{ padding: '15px 20px', borderBottom: `1px solid ${T.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800, display: 'flex', gap: 8, alignItems: 'center' }}><FileText size={18} /> Rapport de clôture</h3>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {c && <button onClick={printReport} style={{ ...btn(T.petrol), padding: '7px 12px' }}>Imprimer / PDF</button>}
+            <button onClick={onClose} style={iconBtn}><X size={18} /></button>
+          </div>
+        </div>
+        <div style={{ padding: 20 }}>
+          {!c ? (
+            <div style={{ fontSize: 13, color: T.sub }}>Aucun rapport détaillé archivé pour cet espace{space.closureHash ? ` (scellé ${space.closureHash.slice(0, 12)}…).` : '.'} Les espaces clôturés avant l'activation du rapport n'ont que leur empreinte.</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13 }}>
+              <div style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{c.space?.title} · #{String(report.hash).slice(0, 16)}… · {c.dureeJours} j</div>
+              <RSec title="Problème">{c.space?.problem}</RSec>
+              <RSec title="Objectif">{c.space?.objective}</RSec>
+              <RSec title={`Solutions retenues (${(c.solutionsRetenues || []).length})`}>{(c.solutionsRetenues || []).map((s: any, i: number) => <div key={i}>• {s.title} {s.decisionRef && <span style={{ fontFamily: MONO, color: T.orange, fontSize: 11 }}>{s.decisionRef}</span>}</div>)}</RSec>
+              <RSec title={`Solutions écartées (${(c.solutionsEcartees || []).length})`}>{(c.solutionsEcartees || []).map((s: any, i: number) => <div key={i}>• {s.title} — <i style={{ color: T.sub }}>{s.motif || 'sans motif'}</i></div>)}</RSec>
+              <RSec title={`Décisions (${(c.decisions || []).length})`}>{(c.decisions || []).map((d: any, i: number) => <div key={i}>• <b>{d.ref}</b> {d.title}{d.amount != null && <span style={{ color: T.gold, fontFamily: MONO }}> · {fmtXof(d.amount)} FCFA</span>}{d.approvedByName && <span style={{ color: T.green }}> · ✓ {d.approvedByName}</span>}</div>)}</RSec>
+              <RSec title={`Pièces (${(c.piecesReferencees || []).length}) · Snapshots (${(c.snapshots || []).length})`}>
+                {(c.piecesReferencees || []).map((p: any, i: number) => <div key={i} style={{ fontFamily: MONO }}>• {p.entryNumber} {p.accounts}</div>)}
+                {(c.snapshots || []).map((s: any, i: number) => <div key={'s' + i}>📸 {s.title} <span style={{ fontFamily: MONO, color: T.sub, fontSize: 11 }}>#{s.hash}</span></div>)}
+              </RSec>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+function RSec({ title, children }: { title: string; children: React.ReactNode }) {
+  const empty = children == null || (Array.isArray(children) && children.length === 0) || children === '';
+  return (
+    <div>
+      <div style={{ fontSize: 11.5, fontWeight: 800, color: T.petrol, marginBottom: 4 }}>{title}</div>
+      <div style={{ color: T.ink, lineHeight: 1.5 }}>{empty ? <span style={{ color: T.sub }}>—</span> : children}</div>
     </div>
   );
 }
