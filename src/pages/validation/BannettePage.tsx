@@ -12,8 +12,8 @@ import { Avatar } from '../../components/ui';
 import { Inbox, ShieldCheck, PenLine, Clock, AlertTriangle, Plus, X, Layers, History } from 'lucide-react';
 import {
   listBannette, wfAct, wfSubmit, listInstanceEvents, mvaErr, OBJECT_TYPE_LABELS,
-  wfBatchSubmit, wfBatchAct, listBatchLines,
-  type BannetteTask, type BatchLine,
+  wfBatchSubmit, wfBatchAct, listBatchLines, listDecisionInbox, decisionAct,
+  type BannetteTask, type BatchLine, type DecisionInboxItem,
 } from '../../features/validation/mvaService';
 
 const T = { cream: '#F2EFE8', surface: '#FFFFFF', petrol: '#1E5A64', orange: '#E8912D', gold: '#C97E12', green: '#2E9E6B', red: '#E24B4A', ink: '#1C2B2E', sub: '#607377', line: '#E6E0D4', softLine: '#EFEAE0' };
@@ -37,6 +37,7 @@ export default function BannettePage() {
   const me = useMemo(() => ({ id: user?.id || 'me', name: user?.name || user?.email || 'Moi', role: (user?.role || 'comptable') as string }), [user]);
 
   const [tasks, setTasks] = useState<BannetteTask[]>([]);
+  const [decInbox, setDecInbox] = useState<DecisionInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [motive, setMotive] = useState('piece_manquante');
@@ -58,9 +59,18 @@ export default function BannettePage() {
   };
 
   const load = useCallback(async () => {
-    try { setTasks(await listBannette(adapter, tenantId, me.role)); } catch (e) { console.error(e); } finally { setLoading(false); }
-  }, [adapter, tenantId, me.role]);
+    try {
+      const [tk, di] = await Promise.all([listBannette(adapter, tenantId, me.role), listDecisionInbox(adapter, tenantId, me.role, me.id)]);
+      setTasks(tk); setDecInbox(di);
+    } catch (e) { console.error(e); } finally { setLoading(false); }
+  }, [adapter, tenantId, me.role, me.id]);
   useEffect(() => { load(); }, [load]);
+
+  const actDecision = async (it: DecisionInboxItem, action: 'approve' | 'reject') => {
+    if (it.mine) { toast.warning('SoD : vous êtes l\'auteur de cette décision.'); return; }
+    try { const r = await decisionAct(adapter, { decisionId: it.decisionId, action, motiveCode: action === 'reject' ? 'autre' : undefined, actorName: me.name }); toast.success(action === 'reject' ? 'Décision rejetée' : (r.status === 'approved' ? 'Décision validée' : `Étape validée${r.next_role ? ` · reste ${r.next_role.toUpperCase()}` : ''}`)); load(); }
+    catch (e: any) { toast.error(mvaErr(e?.message)); }
+  };
 
   const act = async (t: BannetteTask, action: 'approve' | 'reject', motiveCode?: string) => {
     // Si l'étape exige une signature, la fonction renvoie SIGNATURE_REQUIRED → on re-tente signé.
@@ -97,8 +107,32 @@ export default function BannettePage() {
       </div>
 
       <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 11 }}>
+        {/* Décisions d'espace (Partie B) dans le parapheur unifié */}
+        {!lotMode && decInbox.length > 0 && (
+          <div style={{ marginBottom: 4 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 800, color: T.orange, textTransform: 'uppercase', letterSpacing: .4, marginBottom: 8 }}>Décisions d'espace ({decInbox.length})</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              {decInbox.map(it => (
+                <div key={it.approvalId} style={{ background: T.surface, border: `1px solid ${T.orange}44`, borderRadius: 13, padding: 13, borderLeft: `3px solid ${T.orange}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: T.orange, background: T.orange + '15', borderRadius: 6, padding: '2px 8px' }}>Décision</span>
+                    <span style={{ fontFamily: MONO, fontSize: 11, color: T.orange, fontWeight: 700 }}>{it.ref}</span>
+                    <span style={{ fontSize: 11, color: T.sub }}>étape {it.current_step}/{it.chain_len} · {it.requiredRole.toUpperCase()}</span>
+                  </div>
+                  <div style={{ fontSize: 14, fontWeight: 700, marginTop: 6 }}>{it.title}</div>
+                  {it.amount_xof != null && <div style={{ fontFamily: MONO, fontSize: 16, color: T.gold, fontWeight: 800, marginTop: 3 }}>{fmt(it.amount_xof)} FCFA</div>}
+                  <div style={{ display: 'flex', gap: 8, marginTop: 9, borderTop: `1px solid ${T.softLine}`, paddingTop: 9 }}>
+                    <button disabled={it.mine} onClick={() => actDecision(it, 'approve')} style={{ ...miniBtn(T.green), opacity: it.mine ? .5 : 1, cursor: it.mine ? 'not-allowed' : 'pointer' }}><ShieldCheck size={13} /> Valider ({it.requiredRole.toUpperCase()})</button>
+                    <button disabled={it.mine} onClick={() => actDecision(it, 'reject')} style={{ ...miniBtn(T.sub), opacity: it.mine ? .5 : 1 }}>Rejeter</button>
+                    {it.mine && <span style={{ fontSize: 11, color: T.sub, alignSelf: 'center' }}>Vous êtes l'auteur (SoD)</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {loading ? <div style={{ color: T.sub, textAlign: 'center', padding: 40 }}>Chargement…</div>
-          : tasks.length === 0 ? (
+          : tasks.length === 0 && decInbox.length === 0 ? (
             <div style={{ background: T.surface, border: `1px dashed ${T.line}`, borderRadius: 16, padding: '48px 20px', textAlign: 'center' }}>
               <div style={{ width: 50, height: 50, borderRadius: 13, background: T.green + '15', color: T.green, display: 'grid', placeItems: 'center', margin: '0 auto 12px' }}><ShieldCheck size={26} /></div>
               <h3 style={{ margin: 0, fontSize: 16 }}>Rien à valider</h3>

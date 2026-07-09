@@ -86,6 +86,34 @@ export async function wfAct(adapter: DataAdapter, d: {
   return data;
 }
 
+// ── Bannette unifiée : décisions d'espace (Partie B) dans le même parapheur ──
+export interface DecisionInboxItem {
+  approvalId: string; decisionId: string; requiredRole: string;
+  ref: string; title: string; amount_xof: number | null; space_id: string;
+  current_step: number; chain_len: number; mine: boolean;
+}
+export async function listDecisionInbox(adapter: DataAdapter, tenantId: string, role: string | undefined, userId: string): Promise<DecisionInboxItem[]> {
+  const c = client(adapter);
+  if (!c) return [];
+  const { data: apprs } = await c.from('space_decision_approval').select('*').eq('tenant_id', tenantId).eq('status', 'pending');
+  const list = (apprs ?? []).filter((a: any) => roleSatisfies(role, a.required_role));
+  const ids = [...new Set(list.map((a: any) => a.decision_id))];
+  if (!ids.length) return [];
+  const { data: decs } = await c.from('space_decision').select('id,ref,title,amount_xof,space_id,status,current_step,chain,author_id').in('id', ids);
+  const map: Record<string, any> = Object.fromEntries((decs ?? []).map((d: any) => [d.id, d]));
+  return list
+    .filter((a: any) => map[a.decision_id]?.status === 'in_approval')
+    .map((a: any) => { const d = map[a.decision_id]; return { approvalId: a.id, decisionId: a.decision_id, requiredRole: a.required_role, ref: d.ref, title: d.title, amount_xof: d.amount_xof, space_id: d.space_id, current_step: d.current_step, chain_len: Array.isArray(d.chain) ? d.chain.length : 1, mine: String(d.author_id) === String(userId) }; });
+}
+export async function decisionAct(adapter: DataAdapter, d: { decisionId: string; action: 'approve' | 'reject'; motiveCode?: string; actorName?: string }): Promise<any> {
+  const c = client(adapter);
+  if (!c?.functions) throw new Error('MVA disponible en mode SaaS.');
+  const { data, error } = await c.functions.invoke('decision-act', { body: { decision_id: d.decisionId, action: d.action, motive_code: d.motiveCode, actor_name: d.actorName, acted_via: 'bannette' } });
+  const err = (data && data.error) || (error && error.message);
+  if (err) throw new Error(err);
+  return data;
+}
+
 // ── Bordereaux (journal_batch, Partie D) ─────────────────────────────────────
 export interface BatchLine {
   id: string; position: number; line_ref: string; account_code: string | null; label: string | null;
