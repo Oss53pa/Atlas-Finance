@@ -325,6 +325,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     ],
     validation: [
       { id: 'bannette', label: 'À valider', path: '/bannette', icon: <Inbox className="w-4 h-4" /> },
+      { id: 'gouvernance', label: 'États de gouvernance', path: '/gouvernance', icon: <Shield className="w-4 h-4" /> },
     ],
   }), [t, user?.role]);
 
@@ -357,6 +358,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'closures': 'closures',
         'collaboration': 'collaboration',
         'bannette': 'validation',
+        'gouvernance': 'validation',
         'inventory': 'assets',
         'taxation': 'reporting'
       };
