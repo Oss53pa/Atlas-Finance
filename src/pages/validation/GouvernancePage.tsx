@@ -6,8 +6,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { ShieldCheck, GitBranch, Table2, BarChart3, PenLine, KeyRound, Clock } from 'lucide-react';
-import { loadGovernance, OBJECT_TYPE_LABELS, type GovernanceData } from '../../features/validation/mvaGovernanceService';
+import { useToast } from '../../hooks/useToast';
+import { ShieldCheck, GitBranch, Table2, BarChart3, KeyRound, Clock, PlayCircle } from 'lucide-react';
+import { loadGovernance, simulateCircuit, wfAdmin, OBJECT_TYPE_LABELS, type GovernanceData, type CircuitStage } from '../../features/validation/mvaGovernanceService';
 
 const T = { cream: '#F2EFE8', surface: '#FFFFFF', petrol: '#1E5A64', orange: '#E8912D', gold: '#C97E12', green: '#2E9E6B', red: '#E24B4A', purple: '#7C5CBF', ink: '#1C2B2E', sub: '#607377', line: '#E6E0D4', softLine: '#EFEAE0' };
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
@@ -27,14 +28,33 @@ function SigIcon({ level }: { level: string }) {
 export default function GouvernancePage() {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { toast } = useToast();
   const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
+  const isAdmin = ['admin', 'owner', 'super_admin', 'manager', 'daf', 'dg', 'directeur'].includes((user?.role || '').toLowerCase());
   const [data, setData] = useState<GovernanceData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Simulation à blanc
+  const [simType, setSimType] = useState('journal_entry');
+  const [simAmount, setSimAmount] = useState('');
+  const [simFlags, setSimFlags] = useState('');
+  const [simRes, setSimRes] = useState<{ definitionName: string; stages: CircuitStage[] } | null>(null);
 
   const load = useCallback(async () => {
     try { setData(await loadGovernance(adapter, tenantId)); } catch (e) { console.error(e); } finally { setLoading(false); }
   }, [adapter, tenantId]);
   useEffect(() => { load(); }, [load]);
+
+  const runSim = async () => {
+    const payload: any = {};
+    if (simAmount) payload.amount_xof = Number(simAmount);
+    if (simFlags.trim()) payload.flags = simFlags.split(',').map(s => s.trim()).filter(Boolean);
+    try { setSimRes(await simulateCircuit(adapter, tenantId, simType, payload)); }
+    catch (e: any) { toast.error(e?.message || 'Échec de la simulation'); }
+  };
+  const toggleRule = async (ruleId: string, active: boolean) => {
+    try { await wfAdmin(adapter, { op: 'toggle_rule', rule_id: ruleId, active }); toast.success(active ? 'Règle activée' : 'Règle désactivée'); load(); }
+    catch (e: any) { toast.error(e?.message === 'ADMIN_REQUIRED' ? 'Réservé aux administrateurs / DAF.' : (e?.message || 'Échec')); }
+  };
 
   const circuitsByType = useMemo(() => {
     const m: Record<string, GovernanceData['circuits']> = {};
@@ -60,22 +80,53 @@ export default function GouvernancePage() {
           <Stat label="Taux de rejet" value={`${Math.round(s.rejectionRate * 100)}%`} color={T.orange} icon={BarChart3} />
         </div>
 
+        {/* Simulation à blanc */}
+        <Section title="Simulation à blanc" icon={PlayCircle}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <label><span style={simLbl}>Type d'objet</span>
+              <select value={simType} onChange={e => { setSimType(e.target.value); setSimRes(null); }} style={simField}>
+                {data.registry.map(r => <option key={r.object_type} value={r.object_type}>{r.label}</option>)}
+              </select>
+            </label>
+            <label><span style={simLbl}>Montant FCFA</span><input value={simAmount} onChange={e => setSimAmount(e.target.value)} type="number" placeholder="0" style={{ ...simField, width: 140, fontFamily: MONO }} /></label>
+            <label><span style={simLbl}>Indicateurs (ex. rib_change)</span><input value={simFlags} onChange={e => setSimFlags(e.target.value)} placeholder="séparés par ," style={{ ...simField, width: 180 }} /></label>
+            <button onClick={runSim} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: T.petrol, color: '#fff', border: 'none', borderRadius: 9, padding: '9px 15px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}><PlayCircle size={15} /> Simuler</button>
+          </div>
+          {simRes && (
+            <div style={{ marginTop: 12, border: `1px solid ${T.softLine}`, borderRadius: 10, padding: 12, background: T.cream }}>
+              <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 8 }}>Circuit résolu : {simRes.definitionName}</div>
+              {simRes.stages.length === 0 ? <div style={{ fontSize: 12, color: T.red }}>Aucun circuit (NO_WORKFLOW).</div> :
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {simRes.stages.map((st, i) => <React.Fragment key={i}>{i > 0 && <span style={{ color: T.sub }}>→</span>}
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, border: `1px solid ${T.line}`, borderRadius: 8, padding: '3px 8px', background: T.surface }}><RoleChip role={st.required_role} /><SigIcon level={st.signature_level} /><span style={{ fontSize: 10, color: T.sub }}>SLA {st.sla_hours}h</span></span>
+                  </React.Fragment>)}
+                </div>}
+            </div>
+          )}
+        </Section>
+
         {/* Matrice qui valide quoi */}
         <Section title="Matrice « qui valide quoi »" icon={Table2}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
               <thead><tr style={{ background: T.cream }}>
-                <th style={th}>Objet</th><th style={th}>Condition</th><th style={th}>Circuit</th><th style={th}>Chaîne de validation</th>
+                <th style={th}>Objet</th><th style={th}>Condition</th><th style={th}>Circuit</th><th style={th}>Chaîne de validation</th>{isAdmin && <th style={th}>État</th>}
               </tr></thead>
               <tbody>
-                {data.matrix.map((r, i) => (
-                  <tr key={i}>
-                    <td style={td}>{OBJECT_TYPE_LABELS[r.object_type] || r.object_type}</td>
-                    <td style={{ ...td, color: r.is_default ? T.sub : T.ink, fontStyle: r.is_default ? 'italic' : 'normal' }}>{r.condition}</td>
-                    <td style={td}>{r.definition_name}</td>
-                    <td style={td}><span style={{ display: 'inline-flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>{r.chain.map((role, j) => <React.Fragment key={j}>{j > 0 && <span style={{ color: T.sub }}>→</span>}<RoleChip role={role} /></React.Fragment>)}</span></td>
-                  </tr>
-                ))}
+                {data.matrix.map((r, i) => {
+                  const inactive = r.active === false;
+                  return (
+                    <tr key={i} style={{ opacity: inactive ? 0.5 : 1 }}>
+                      <td style={td}>{OBJECT_TYPE_LABELS[r.object_type] || r.object_type}</td>
+                      <td style={{ ...td, color: r.is_default ? T.sub : T.ink, fontStyle: r.is_default ? 'italic' : 'normal' }}>{r.condition}</td>
+                      <td style={td}>{r.definition_name}</td>
+                      <td style={td}><span style={{ display: 'inline-flex', gap: 5, alignItems: 'center', flexWrap: 'wrap' }}>{r.chain.map((role, j) => <React.Fragment key={j}>{j > 0 && <span style={{ color: T.sub }}>→</span>}<RoleChip role={role} /></React.Fragment>)}</span></td>
+                      {isAdmin && <td style={td}>{r.rule_id ? (
+                        <button onClick={() => toggleRule(r.rule_id!, inactive)} style={{ fontSize: 10.5, fontWeight: 700, border: `1px solid ${inactive ? T.line : T.green}`, color: inactive ? T.sub : T.green, background: inactive ? T.surface : T.green + '12', borderRadius: 6, padding: '2px 9px', cursor: 'pointer' }}>{inactive ? 'Inactif' : 'Actif'}</button>
+                      ) : <span style={{ fontSize: 10.5, color: T.sub }}>défaut</span>}</td>}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -159,3 +210,5 @@ function Section({ title, icon: Icon, children }: any) {
 }
 const th: React.CSSProperties = { textAlign: 'left', padding: '7px 10px', color: T.sub, fontWeight: 600, borderBottom: `1px solid ${T.line}`, fontSize: 11 };
 const td: React.CSSProperties = { padding: '7px 10px', borderBottom: `1px solid ${T.softLine}` };
+const simLbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 4 };
+const simField: React.CSSProperties = { border: `1px solid ${T.line}`, borderRadius: 8, padding: '8px 10px', fontSize: 12.5, outline: 'none', color: T.ink, background: T.surface };

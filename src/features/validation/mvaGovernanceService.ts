@@ -13,7 +13,7 @@ function client(adapter: DataAdapter): any | null {
 
 export interface CircuitStage { position: number; name: string | null; required_role: string; signature_level: string; sla_hours: number; escalate_to_role: string | null; }
 export interface Circuit { id: string; object_type: string; name: string; version: number; is_default: boolean; stages: CircuitStage[]; }
-export interface RoutingRule { object_type: string; condition: string; definition_name: string; chain: string[]; is_default: boolean; }
+export interface RoutingRule { object_type: string; condition: string; definition_name: string; chain: string[]; is_default: boolean; rule_id?: string; active?: boolean; }
 export interface GovStats {
   byStatus: Record<string, number>;
   total: number; applied: number; rejected: number; inReview: number;
@@ -65,7 +65,7 @@ export async function loadGovernance(adapter: DataAdapter, tenantId: string): Pr
   for (const r of rules) {
     const def = defById[r.definition_id];
     if (!def) continue;
-    matrix.push({ object_type: r.object_type, condition: humanCondition(r.conditions), definition_name: def.name, chain: def.stages.map(s => s.required_role), is_default: false });
+    matrix.push({ object_type: r.object_type, condition: humanCondition(r.conditions), definition_name: def.name, chain: def.stages.map(s => s.required_role), is_default: false, rule_id: r.id, active: r.active });
   }
   for (const d of circuits.filter(c2 => c2.is_default)) {
     matrix.push({ object_type: d.object_type, condition: 'par défaut', definition_name: d.name, chain: d.stages.map(s => s.required_role), is_default: true });
@@ -85,6 +85,28 @@ export async function loadGovernance(adapter: DataAdapter, tenantId: string): Pr
     stats: { byStatus, total: instances.length, applied, rejected, inReview, rejectionRate: (applied + rejected) ? rejected / (applied + rejected) : 0, motives, avgResolutionDays },
     registry: registry.map((r: any) => ({ object_type: r.object_type, label: r.label, sensitivity: r.sensitivity, batchable: r.batchable })),
   };
+}
+
+// ── Simulation à blanc (client, read-only) & administration (Edge Function) ──
+export async function simulateCircuit(adapter: DataAdapter, tenantId: string, objectType: string, payload: any): Promise<{ definitionName: string; stages: CircuitStage[] } | null> {
+  const c = client(adapter);
+  if (!c) return null;
+  const { data: defId } = await c.rpc('wf_resolve_definition', { p_tenant: tenantId, p_object_type: objectType, p_payload: payload ?? {} });
+  if (!defId) return null;
+  const [{ data: def }, { data: stages }] = await Promise.all([
+    c.from('wf_definition').select('name').eq('id', defId).maybeSingle(),
+    c.from('wf_stage').select('*').eq('definition_id', defId).order('position'),
+  ]);
+  return { definitionName: def?.name ?? '—', stages: (stages ?? []).map((s: any) => ({ position: s.position, name: s.name, required_role: s.required_role, signature_level: s.signature_level, sla_hours: s.sla_hours, escalate_to_role: s.escalate_to_role })) };
+}
+
+export async function wfAdmin(adapter: DataAdapter, body: any): Promise<any> {
+  const c = client(adapter);
+  if (!c?.functions) throw new Error('Administration disponible en mode SaaS.');
+  const { data, error } = await c.functions.invoke('wf-admin', { body });
+  const err = (data && data.error) || (error && error.message);
+  if (err) throw new Error(err);
+  return data;
 }
 
 export { OBJECT_TYPE_LABELS };
