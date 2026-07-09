@@ -23,7 +23,8 @@ import {
   LayoutDashboard,
   Building2,
   ArrowUpDown,
-  GitCompareArrows
+  GitCompareArrows,
+  Table2
 } from 'lucide-react';
 import {
   UnifiedCard,
@@ -40,11 +41,13 @@ import { Link } from 'react-router-dom';
 const BudgetsPage = lazy(() => import('./BudgetsPage'));
 const BudgetControlPage = lazy(() => import('./BudgetControlPage'));
 const BudgetRecapPage = lazy(() => import('./BudgetRecapPage'));
+const BudgetTablePage = lazy(() => import('./BudgetTablePage'));
 const CostCentersPage = lazy(() => import('../analytics/CostCentersPage'));
 
 const TABS = [
   { id: 'dashboard', label: 'Tableau de Bord', icon: LayoutDashboard },
   { id: 'elaboration', label: 'Elaboration & Creation', icon: Plus },
+  { id: 'table-import', label: 'Table & Import', icon: Table2 },
   { id: 'overview', label: 'Overview', icon: Eye },
   { id: 'controle', label: 'Controle', icon: ShieldCheck },
   { id: 'centres-couts', label: 'Centres de Couts', icon: Building2 },
@@ -230,6 +233,13 @@ const BudgetingDashboard: React.FC = () => {
         {activeTab === 'elaboration' && (
           <Suspense fallback={<TabLoader />}>
             <BudgetsPage />
+          </Suspense>
+        )}
+
+        {/* ═══ TAB: Table & Import ═══ */}
+        {activeTab === 'table-import' && (
+          <Suspense fallback={<TabLoader />}>
+            <BudgetTablePage />
           </Suspense>
         )}
 
