@@ -43,6 +43,19 @@ export default function BannettePage() {
   const [showSubmit, setShowSubmit] = useState(false);
   const [auditFor, setAuditFor] = useState<string | null>(null);
   const [audit, setAudit] = useState<any[]>([]);
+  // Lot bannette (C7) : sélection de dossiers HOMOGÈNES (même type simple + même
+  // étape), signature unique. Objets critiques (batch/RIB/paiement) exclus.
+  const [lotMode, setLotMode] = useState(false);
+  const [selLot, setSelLot] = useState<Set<string>>(new Set());
+  const lotRole = useMemo(() => tasks.find(x => selLot.has(x.id))?.required_role, [selLot, tasks]);
+  const lotEligible = (t: BannetteTask) => ['journal_entry', 'entry_reversal'].includes(t.instance?.object_type || '') && String(t.instance?.submitted_by) !== String(me.id);
+  const toggleLot = (t: BannetteTask) => setSelLot(s => { const n = new Set(s); if (n.has(t.id)) n.delete(t.id); else if (!lotRole || lotRole === t.required_role) n.add(t.id); return n; });
+  const actLot = async () => {
+    const ids = [...selLot]; let ok = 0;
+    for (const id of ids) { try { await wfAct(adapter, { taskId: id, action: 'approve', actorName: me.name, signed: true }); ok++; } catch { /* ignore */ } }
+    toast.success(`${ok}/${ids.length} dossier(s) validé(s) en lot (signature unique)`);
+    setSelLot(new Set()); setLotMode(false); load();
+  };
 
   const load = useCallback(async () => {
     try { setTasks(await listBannette(adapter, tenantId, me.role)); } catch (e) { console.error(e); } finally { setLoading(false); }
@@ -77,7 +90,10 @@ export default function BannettePage() {
           <h1 style={{ fontSize: 23, fontWeight: 800, margin: 0, color: T.petrol, display: 'flex', alignItems: 'center', gap: 9 }}><Inbox size={22} /> Bannette · À valider</h1>
           <p style={{ margin: '4px 0 0', color: T.sub, fontSize: 13.5 }}>Parapheur unifié — tous les objets en attente de votre validation, tous types confondus.</p>
         </div>
-        <button onClick={() => setShowSubmit(true)} style={btn(T.petrol)}><Plus size={16} /> Soumettre un objet</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => { setLotMode(v => !v); setSelLot(new Set()); }} style={{ ...btn(lotMode ? T.orange : '#0000'), color: lotMode ? '#fff' : T.petrol, border: `1px solid ${lotMode ? T.orange : T.line}` }}><Layers size={16} /> {lotMode ? 'Quitter le lot' : 'Mode lot'}</button>
+          <button onClick={() => setShowSubmit(true)} style={btn(T.petrol)}><Plus size={16} /> Soumettre un objet</button>
+        </div>
       </div>
 
       <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 11 }}>
@@ -109,7 +125,16 @@ export default function BannettePage() {
                   </div>
                 </div>
                 {/* actions */}
-                {inst.object_type === 'journal_batch' ? (
+                {lotMode ? (
+                  lotEligible(t) ? (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10, borderTop: `1px solid ${T.softLine}`, paddingTop: 10, fontSize: 12.5, cursor: 'pointer', color: (lotRole && lotRole !== t.required_role) ? T.sub : T.ink }}>
+                      <input type="checkbox" checked={selLot.has(t.id)} disabled={!!(lotRole && lotRole !== t.required_role)} onChange={() => toggleLot(t)} />
+                      Ajouter au lot (étape {t.required_role.toUpperCase()}){lotRole && lotRole !== t.required_role ? ' — étape différente' : ''}
+                    </label>
+                  ) : (
+                    <div style={{ marginTop: 10, borderTop: `1px solid ${T.softLine}`, paddingTop: 10, fontSize: 11.5, color: T.sub }}>Non éligible au lot (objet sensible — validation individuelle)</div>
+                  )
+                ) : inst.object_type === 'journal_batch' ? (
                   <BatchPanel task={t} me={me} adapter={adapter} onDone={load} />
                 ) : rejecting === t.id ? (
                   <div style={{ marginTop: 10, borderTop: `1px solid ${T.softLine}`, paddingTop: 10 }}>
@@ -133,6 +158,13 @@ export default function BannettePage() {
           })}
       </div>
 
+      {lotMode && selLot.size > 0 && (
+        <div style={{ position: 'fixed', left: '50%', bottom: 22, transform: 'translateX(-50%)', zIndex: 55, background: T.petrol, color: '#fff', borderRadius: 12, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 14, boxShadow: '0 10px 30px rgba(30,90,100,.35)' }}>
+          <span style={{ fontSize: 13, fontWeight: 700 }}>{selLot.size} dossier(s) · étape {(lotRole || '').toUpperCase()}</span>
+          <button onClick={actLot} style={{ ...miniBtn(T.green), padding: '7px 14px' }}><ShieldCheck size={14} /> Valider le lot (signature unique)</button>
+          <button onClick={() => setSelLot(new Set())} style={{ ...miniBtn('#ffffff22'), padding: '7px 12px' }}>Vider</button>
+        </div>
+      )}
       {showSubmit && <SubmitModal adapter={adapter} onClose={() => setShowSubmit(false)} onDone={() => { setShowSubmit(false); load(); }} />}
       {auditFor && <AuditDrawer events={audit} onClose={() => setAuditFor(null)} />}
     </div>
@@ -272,6 +304,7 @@ function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () =
               <option value="entry_reversal">Extourne</option>
               <option value="journal_batch">Bordereau (démo 4 lignes)</option>
               <option value="partner_master">Modification RIB (anti-fraude)</option>
+              <option value="payment_batch">Lot de paiement</option>
             </select>
           </label>
           {objectType !== 'journal_batch' && (
