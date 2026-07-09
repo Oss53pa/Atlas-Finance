@@ -48,9 +48,13 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     <ChatbotContext.Provider value={contextValue}>
       {children}
 
-      {/* Chatbot Widget — gated Premium (PROPH3T IA) */}
+      {/* Boule flottante Proph3t : lanceur de l'assistant = feature de BASE
+          (proph3t_base, incluse PME + Premium) → visible dans tous les plans.
+          Le gating Premium s'applique aux capacités LLM avancées À L'INTÉRIEUR
+          du widget, pas au lanceur lui-même (sinon un tenant Starter perd
+          totalement l'assistant, cf. proph3t_avance = premium-only). */}
       {enabled && (
-        <FeatureGate feature="proph3t_ia" fallback={null}>
+        <FeatureGate feature="proph3t_base" fallback={null}>
           <ChatWidget
             isOpen={isOpen}
             onToggle={toggle}
