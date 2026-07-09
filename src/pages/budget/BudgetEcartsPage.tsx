@@ -107,7 +107,7 @@ const BudgetEcartsPage: React.FC = () => {
         <div className="bg-white rounded-xl p-8 border border-[var(--color-border)] text-center">
           <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-600">Aucun écart à analyser : aucune version budgétaire active avec des montants.</p>
-          <button onClick={() => navigate('/budget/import')} className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Importer un budget</button>
+          <button onClick={() => navigate('/budget/table')} className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Importer un budget</button>
         </div>
       </div>
     );
