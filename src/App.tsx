@@ -147,6 +147,20 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
 const BudgetHubPage = lazyRetry(() => import('./pages/budget/BudgetHubPage'));
 const BudgetEngagementsPage = lazyRetry(() => import('./pages/budget/BudgetEngagementsPage'));
+const BudgetLettragePage = lazyRetry(() => import('./pages/budget/BudgetLettragePage'));
+const BudgetMatrixGridPage = lazyRetry(() => import('./pages/budget/BudgetMatrixGridPage'));
+const RevenusPickerPage = lazyRetry(() => import('./pages/budget/RevenusPickerPage'));
+const BudgetSnapshotsPage = lazyRetry(() => import('./pages/budget/BudgetSnapshotsPage'));
+const BudgetPnLPage = lazyRetry(() => import('./pages/budget/BudgetPnLPage'));
+const BudgetAlertesPage = lazyRetry(() => import('./pages/budget/BudgetAlertesPage'));
+const BudgetCampagnePage = lazyRetry(() => import('./pages/budget/BudgetCampagnePage'));
+const CapexPortfolioPage = lazyRetry(() => import('./pages/budget/CapexPortfolioPage'));
+const BCStepperPage = lazyRetry(() => import('./pages/budget/BCStepperPage'));
+const CapexPriorisationPage = lazyRetry(() => import('./pages/budget/CapexPriorisationPage'));
+const ProjetCockpitPage = lazyRetry(() => import('./pages/budget/ProjetCockpitPage'));
+const CapexEnveloppePage = lazyRetry(() => import('./pages/budget/CapexEnveloppePage'));
+const CapexReaffectationPage = lazyRetry(() => import('./pages/budget/CapexReaffectationPage'));
+const ProjetPirPage = lazyRetry(() => import('./pages/budget/ProjetPirPage'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetTablePage = lazyRetry(() => import('./pages/budgeting/BudgetTablePage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
@@ -418,11 +432,27 @@ function App() {
                           <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
                           <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
                           <Route path="/budget" element={work(<BudgetHubPage />)} />
+                          <Route path="/budget/campagne" element={work(<BudgetCampagnePage />)} />
                           <Route path="/budget/cockpit" element={work(<BudgetCockpitPage />)} />
                           <Route path="/budget/table" element={work(<BudgetTablePage />)} />
                           <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
                           <Route path="/budget/investissement" element={work(<BudgetInvestissementPage />)} />
                           <Route path="/budget/engagements" element={work(<BudgetEngagementsPage />)} />
+                          <Route path="/budget/lettrage" element={work(<BudgetLettragePage />)} />
+                          <Route path="/budget/saisie/:sectionId" element={work(<BudgetMatrixGridPage />)} />
+                          <Route path="/budget/revenus" element={work(<RevenusPickerPage />)} />
+                          <Route path="/budget/revenus/:sectionId" element={work(<BudgetMatrixGridPage nature="revenus" />)} />
+                          <Route path="/budget/pnl" element={work(<BudgetPnLPage />)} />
+                          <Route path="/budget/alertes" element={work(<BudgetAlertesPage />)} />
+                          <Route path="/budget/snapshots" element={work(<BudgetSnapshotsPage />)} />
+                          <Route path="/capex" element={work(<CapexPortfolioPage />)} />
+                          <Route path="/capex/bc/new" element={work(<BCStepperPage />)} />
+                          <Route path="/capex/bc/:id" element={work(<BCStepperPage />)} />
+                          <Route path="/capex/priorisation" element={work(<CapexPriorisationPage />)} />
+                          <Route path="/capex/projet/:id" element={work(<ProjetCockpitPage />)} />
+                          <Route path="/capex/enveloppe" element={work(<CapexEnveloppePage />)} />
+                          <Route path="/capex/reaffectations" element={work(<CapexReaffectationPage />)} />
+                          <Route path="/capex/pir/:projetId" element={work(<ProjetPirPage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />

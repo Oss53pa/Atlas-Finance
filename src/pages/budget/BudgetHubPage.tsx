@@ -209,7 +209,15 @@ const BudgetHubPage: React.FC = () => {
                   <div className="text-lg font-semibold text-neutral-900 dark:text-white">
                     {costCenters.length} centre{costCenters.length > 1 ? 's' : ''} de coût
                   </div>
-                  <div className="text-xs text-neutral-500 mt-1">{org.length} section(s) analytique(s) au total.</div>
+                  <div className="text-xs text-neutral-500 mt-1 mb-2">Saisir le budget OPEX d'un centre :</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {costCenters.slice(0, 8).map((c) => (
+                      <button key={c.id} onClick={() => navigate(`/budget/saisie/${c.id}`)}
+                        className="px-2.5 py-1 rounded-lg bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6] text-xs font-medium hover:bg-[#235A6E]/20 transition">
+                        {c.code}
+                      </button>
+                    ))}
+                  </div>
                   <button
                     onClick={() => navigate('/analytique')}
                     className="mt-3 inline-flex items-center gap-1 text-sm text-[#235A6E] dark:text-[#8fc7d6] hover:underline"

@@ -286,12 +286,22 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     control: [
       // — Pilotage budgétaire — (saisie & import = actions en modale depuis le cockpit)
       { id: 'budget-hub', label: 'Hub Budgétaire', path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'budget-campagne', label: 'Campagne', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" /> },
       { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-table', label: 'Table & Import', path: '/budget/table', icon: <FileBarChart className="w-4 h-4" /> },
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'budget-revenus', label: 'Budget des revenus', path: '/budget/revenus', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
+      { id: 'capex-portfolio', label: 'Portefeuille CAPEX', path: '/capex', icon: <Layers className="w-4 h-4" /> },
+      { id: 'capex-priorisation', label: 'Priorisation CAPEX', path: '/capex/priorisation', icon: <ChartBar className="w-4 h-4" /> },
+      { id: 'capex-enveloppe', label: 'Enveloppe CAPEX', path: '/capex/enveloppe', icon: <PiggyBank className="w-4 h-4" /> },
+      { id: 'capex-reaffectations', label: 'Réaffectations', path: '/capex/reaffectations', icon: <ArrowLeftRight className="w-4 h-4" /> },
       { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" /> },
+      { id: 'budget-lettrage', label: 'Lettrage budgétaire', path: '/budget/lettrage', icon: <Link className="w-4 h-4" /> },
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
+      { id: 'budget-pnl', label: 'Résultat budgétaire', path: '/budget/pnl', icon: <Calculator className="w-4 h-4" /> },
+      { id: 'budget-alertes', label: 'Alertes budgétaires', path: '/budget/alertes', icon: <Bell className="w-4 h-4" /> },
+      { id: 'budget-snapshots', label: 'Snapshots', path: '/budget/snapshots', icon: <Archive className="w-4 h-4" /> },
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
       // — Analytique — (sections = centres de coûts/profit, sur données live)
       { id: 'analytique-sections', label: 'Comptabilité Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" /> },

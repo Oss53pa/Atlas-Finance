@@ -18,7 +18,14 @@ import {
 } from '../../features/budget/services/engagementService';
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
 import {
-  Plus, Loader2, Unlock, XCircle, FileSignature, Repeat, Building2,
+  getMailleDisponible, decideCheck, getControlPolicy, natureOfAccount,
+  type MailleDisponible, type CheckDecision,
+} from '../../features/budget/services/budgetCheckService';
+import BudgetEquationBar from '../../components/budget/BudgetEquationBar';
+import { getDefaultAnnee } from '../../features/budget/services/budgetService';
+import { runYearEndCarryover, carryoverSummary, type CarryoverPolicy } from '../../features/budget/services/yearEndService';
+import {
+  Plus, Loader2, Unlock, XCircle, FileSignature, Repeat, Building2, CalendarX,
 } from 'lucide-react';
 
 const STATUT_STYLE: Record<EngagementStatut, string> = {
@@ -52,6 +59,19 @@ const BudgetEngagementsPage: React.FC = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ maille: MailleDisponible; decision: CheckDecision; seuil: 'consommation_90' | 'depassement' | null } | null>(null);
+  const [showClose, setShowClose] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const runCarryover = useCallback(async (policy: CarryoverPolicy) => {
+    setClosing(true); setError(null); setNotice(null);
+    try {
+      const annee = await getDefaultAnnee(adapter);
+      const r = await runYearEndCarryover(adapter, annee, policy);
+      setNotice(`Clôture ${annee} : ${r.discharged} engagement(s) dégagé(s)${policy === 'report' ? `, ${r.recreated} reporté(s) sur N+1` : ''} (reliquat ${r.totalReliquat.toLocaleString('fr-FR')}).`);
+      setShowClose(false); setRefreshKey((k) => k + 1);
+    } catch (e: any) { setError(e?.message || 'Échec de la clôture.'); } finally { setClosing(false); }
+  }, [adapter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +89,28 @@ const BudgetEngagementsPage: React.FC = () => {
     })();
     return () => { cancelled = true; };
   }, [adapter, refreshKey]);
+
+  // Aperçu live du disponible de la maille en cours de saisie (lecture seule, non journalisé).
+  useEffect(() => {
+    if (!showForm || !form.accountCode.trim() || !form.periode) { setPreview(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const annee = form.periode.slice(0, 4);
+        const period = Number(form.periode.slice(5, 7)) || undefined;
+        const [maille, policy] = await Promise.all([
+          getMailleDisponible(adapter, { accountCode: form.accountCode.trim(), sectionId: form.sectionId || null, annee, period }),
+          getControlPolicy(adapter, natureOfAccount(form.accountCode.trim())),
+        ]);
+        if (cancelled) return;
+        const { decision, seuil } = decideCheck(maille, Number(form.montant) || 0, policy);
+        setPreview({ maille, decision, seuil });
+      } catch {
+        if (!cancelled) setPreview(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter, showForm, form.accountCode, form.sectionId, form.periode, form.montant]);
 
   const sectionLabel = useCallback(
     (id: string | null) => (id ? sections.find((s) => s.id === id)?.libelle ?? '—' : '—'),
@@ -133,13 +175,28 @@ const BudgetEngagementsPage: React.FC = () => {
             Externes ingérés + saisis manuellement · pivot de l'équation budgétaire
           </p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition"
-        >
-          <Plus className="w-4 h-4" /> Engagement manuel
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowClose((s) => !s)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
+            <CalendarX className="w-4 h-4" /> Clôture d'exercice
+          </button>
+          <button onClick={() => setShowForm((s) => !s)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition">
+            <Plus className="w-4 h-4" /> Engagement manuel
+          </button>
+        </div>
       </header>
+
+      {showClose && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900 px-4 py-3 text-sm space-y-2">
+          <div className="text-amber-800 dark:text-amber-200">
+            Dégagement de fin d'exercice — {carryoverSummary(rows).count} engagement(s) ouvert(s), reliquat {carryoverSummary(rows).totalReliquat.toLocaleString('fr-FR')}. Politique :
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button disabled={closing} onClick={() => runCarryover('report')} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#235A6E] text-white text-xs font-medium disabled:opacity-50">{closing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Reporter sur N+1</button>
+            <button disabled={closing} onClick={() => runCarryover('annulation')} className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs disabled:opacity-50">Annuler les reliquats</button>
+            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-neutral-500">Fermer</button>
+          </div>
+        </div>
+      )}
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
@@ -174,6 +231,17 @@ const BudgetEngagementsPage: React.FC = () => {
                 placeholder="Bail annuel, marché signé…" className={INP} />
             </Field>
           </div>
+          {preview && (
+            <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-700 p-3">
+              <div className="text-xs font-medium text-neutral-500 mb-2">Disponible de la maille (informatif)</div>
+              <BudgetEquationBar
+                budget={preview.maille.budget} engage={preview.maille.engage}
+                realise={preview.maille.realise} disponible={preview.maille.disponible}
+                montantEnvisage={Number(form.montant) || undefined}
+                decision={preview.decision} seuil={preview.seuil}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-4 flex-wrap">
             <label className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
               <input type="checkbox" checked={form.recurrent} onChange={(e) => setForm({ ...form, recurrent: e.target.checked })} />

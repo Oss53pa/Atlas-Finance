@@ -626,6 +626,9 @@ export interface BudgetLineEdit {
   account_code: string;
   section_id: string | null;
   periods: Record<number, number>; // 1..12
+  nature?: 'opex' | 'capex' | 'revenus';
+  source_prefill?: string | null;
+  commentaire?: string | null;
 }
 
 /** Crée une version active pour l'exercice si aucune n'existe ; renvoie son id. */
@@ -649,7 +652,7 @@ export async function getBudgetLinesWithPeriods(adapter: DataAdapter, versionId:
   const client = getClient(adapter);
   if (!client) return [];
   const { data: lines } = await client
-    .from('budget_lines').select('id,budget_type,account_code,section_id').eq('version_id', versionId);
+    .from('budget_lines').select('id,budget_type,account_code,section_id,nature,source_prefill,commentaire').eq('version_id', versionId);
   const ids = (lines ?? []).map((l: any) => l.id);
   const periodsByLine = new Map<string, Record<number, number>>();
   if (ids.length) {
@@ -662,6 +665,7 @@ export async function getBudgetLinesWithPeriods(adapter: DataAdapter, versionId:
   }
   return (lines ?? []).map((l: any) => ({
     id: l.id, budget_type: l.budget_type, account_code: l.account_code, section_id: l.section_id,
+    nature: l.nature, source_prefill: l.source_prefill, commentaire: l.commentaire,
     periods: periodsByLine.get(l.id) || {},
   }));
 }
@@ -670,19 +674,26 @@ export async function getBudgetLinesWithPeriods(adapter: DataAdapter, versionId:
 export async function saveBudgetLine(
   adapter: DataAdapter,
   versionId: string,
-  line: { id?: string; budget_type: 'exploitation' | 'investissement'; account_code: string; section_id: string | null; periods: Record<number, number> },
+  line: {
+    id?: string; budget_type: 'exploitation' | 'investissement'; account_code: string;
+    section_id: string | null; periods: Record<number, number>;
+    nature?: 'opex' | 'capex' | 'revenus'; source_prefill?: string; commentaire?: string | null;
+  },
 ): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = (adapter as any).tenantId as string;
+  const nature = line.nature ?? (line.budget_type === 'investissement' ? 'capex' : 'opex');
   let lineId = line.id;
   if (lineId) {
-    const { error } = await client.from('budget_lines').update({ budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id })
-      .eq('id', lineId);
+    const patch: any = { budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id, nature };
+    if (line.source_prefill) patch.source_prefill = line.source_prefill;
+    if (line.commentaire !== undefined) patch.commentaire = line.commentaire;
+    const { error } = await client.from('budget_lines').update(patch).eq('id', lineId);
     if (error) throw new Error(error.message);
   } else {
     const { data, error } = await client.from('budget_lines')
-      .upsert({ tenant_id: tenantId, version_id: versionId, budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id },
+      .upsert({ tenant_id: tenantId, version_id: versionId, budget_type: line.budget_type, account_code: line.account_code.trim(), section_id: line.section_id, nature, source_prefill: line.source_prefill ?? 'manuel', commentaire: line.commentaire ?? null },
         { onConflict: 'version_id,budget_type,account_code,section_id' })
       .select('id').single();
     if (error) throw new Error(error.message);

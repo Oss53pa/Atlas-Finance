@@ -19,7 +19,10 @@ import {
 import {
   buildStandardImportLines, buildStandardTemplateSheets, standardCounts,
 } from '../../features/budget/data/standardBudgetStructure';
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch, LayoutTemplate } from 'lucide-react';
+import {
+  classifyImportRows, buildImportContext, type RawImportRow, type RejectedRow, type ClassifyContext,
+} from '../../features/budget/services/budgetImportService';
+import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch, LayoutTemplate, XCircle } from 'lucide-react';
 
 const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
@@ -49,6 +52,9 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   const [replace, setReplace] = useState(true);
   const [importing, setImporting] = useState(false);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [rejected, setRejected] = useState<RejectedRow[]>([]);
+  const [allOrNothing, setAllOrNothing] = useState(true);
+  const ctxRef = useRef<ClassifyContext | null>(null);
   // Versioning : cible = '' (version active), un id existant, ou 'new'
   const [versions, setVersions] = useState<BudgetVersionFull[]>([]);
   const [target, setTarget] = useState<string>(initialVersionId || '');
@@ -57,10 +63,11 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
 
   useEffect(() => {
     listBudgetVersions(adapter).then(setVersions).catch(() => setVersions([]));
+    buildImportContext(adapter).then((c) => { ctxRef.current = c; }).catch(() => {});
     if (initialVersionId) setTarget(initialVersionId);
   }, [adapter, initialVersionId]);
 
-  const reset = () => { setRows([]); setFileName(''); setWarnings([]); setTarget(initialVersionId || ''); setNewLabel(''); };
+  const reset = () => { setRows([]); setRejected([]); setFileName(''); setWarnings([]); setTarget(initialVersionId || ''); setNewLabel(''); };
 
   // Modèle Excel = STRUCTURE STANDARD complète (référentiel SYSCOHADA).
   const downloadTemplate = () => {
@@ -74,9 +81,19 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   // Charge la structure standard (toutes lignes à 0) directement dans l'aperçu.
   const loadStandardSkeleton = () => {
     setRows(buildStandardImportLines());
+    setRejected([]);
     setFileName('Structure standard SYSCOHADA');
     setWarnings(['Squelette à 0 : chiffrez ensuite les montants via « Saisir » ou par ré-import.']);
     toast.success(`${standardCounts().total} lignes standard chargées`);
+  };
+
+  const downloadReport = () => {
+    const header = 'Ligne;Compte;Motifs\n';
+    const body = rejected.map((r) => `${r.rowNumber};${r.account_code};"${r.reasons.join(' | ')}"`).join('\n');
+    const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'rapport_import_budget.csv'; a.click();
+    URL.revokeObjectURL(url);
   };
 
   const onFile = async (file: File) => {
@@ -110,8 +127,14 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       }
       if (parsed.length === 0) { toast.error('Aucune ligne exploitable'); return; }
       if (!monthCols.some(Boolean) && !annualCol) localWarnings.push('Aucune colonne de montant détectée (mois ou Annuel) — les montants seront à 0.');
-      setRows(parsed); setWarnings(localWarnings);
-      toast.success(`${parsed.length} ligne(s) lue(s)`);
+      // Validation 3 passes (structure/référentiels/montants) → valides vs rejetées.
+      const ctx = ctxRef.current ?? await buildImportContext(adapter);
+      ctxRef.current = ctx;
+      const raw: RawImportRow[] = parsed.map((p, i) => ({ rowNumber: i + 1, account_code: p.account_code, section_code: p.section_code, periods: p.periods }));
+      const { valid, rejected: rej } = classifyImportRows(raw, ctx);
+      setRows(valid); setRejected(rej); setWarnings(localWarnings);
+      if (rej.length) toast.error(`${valid.length} valide(s) · ${rej.length} rejetée(s) — voir le rapport`);
+      else toast.success(`${valid.length} ligne(s) valide(s)`);
     } catch (e: any) { toast.error('Lecture impossible : ' + (e?.message || 'fichier invalide')); }
   };
 
@@ -122,7 +145,8 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   }, [rows]);
 
   const handleImport = async () => {
-    if (rows.length === 0) { toast.error('Aucune ligne à importer'); return; }
+    if (rows.length === 0) { toast.error('Aucune ligne valide à importer'); return; }
+    if (allOrNothing && rejected.length > 0) { toast.error(`${rejected.length} ligne(s) rejetée(s) : corrigez le fichier ou décochez « tout ou rien ».`); return; }
     if (target === 'new' && !newLabel.trim()) { toast.error('Libellé de la nouvelle version requis'); return; }
     setImporting(true);
     try {
@@ -201,6 +225,28 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       {warnings.map((w, i) => (
         <div key={i} className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2"><AlertTriangle className="w-3.5 h-3.5" />{w}</div>
       ))}
+
+      {rejected.length > 0 && (
+        <div className="mt-3 border border-red-200 rounded-xl overflow-hidden">
+          <div className="p-3 border-b border-red-200 bg-red-50 flex items-center justify-between flex-wrap gap-2">
+            <span className="text-xs font-medium text-red-700 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />{rejected.length} ligne(s) rejetée(s) — aucune écriture partielle silencieuse</span>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" checked={allOrNothing} onChange={(e) => setAllOrNothing(e.target.checked)} className="rounded border-gray-300" />Tout ou rien</label>
+              <button onClick={downloadReport} className="text-xs text-red-700 underline">Télécharger le rapport</button>
+            </div>
+          </div>
+          <div className="max-h-48 overflow-y-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-red-50/50 sticky top-0"><tr><th className="px-3 py-1.5 text-left text-red-700">Ligne</th><th className="px-3 py-1.5 text-left text-red-700">Compte</th><th className="px-3 py-1.5 text-left text-red-700">Motifs</th></tr></thead>
+              <tbody className="divide-y divide-red-100">
+                {rejected.slice(0, 200).map((r) => (
+                  <tr key={r.rowNumber}><td className="px-3 py-1.5">{r.rowNumber}</td><td className="px-3 py-1.5 font-mono">{r.account_code || '—'}</td><td className="px-3 py-1.5 text-red-600">{r.reasons.join(' · ')}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {rows.length > 0 && (
         <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden">
