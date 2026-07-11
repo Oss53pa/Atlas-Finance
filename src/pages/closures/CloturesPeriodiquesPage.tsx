@@ -3,7 +3,7 @@
  * Mode Mensuelle (6 onglets, réversible) + Mode Annuelle (7 onglets, irréversible).
  * Source de vérité: Dexie via DataAdapter.
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { getClosureSessions } from '../../services/closureService';
 import { closureOrchestrator } from '../../services/cloture/closureOrchestrator';
@@ -137,7 +137,16 @@ function CloturesPeriodiquesPage() {
   // Period state (monthly)
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [periodicite, setPeriodicite] = useState<Periodicite>('mensuelle');
-  const { periods, refresh: refreshPeriods, createPeriodsForFY, lockPeriod, unlockPeriod } = useFiscalPeriods(selectedFYId);
+  const {
+    periods,
+    loading: periodsLoading,
+    createPeriodsForFY,
+    deletePeriodsForFY,
+    lockPeriod,
+    unlockPeriod,
+  } = useFiscalPeriods(selectedFYId);
+  // Garde anti-double-génération (par exercice) pour l'auto-création
+  const autoGenRef = useRef<Set<string>>(new Set());
 
   // Execution state
   const [steps, setSteps] = useState<ClotureStep[]>([]);
@@ -219,12 +228,31 @@ function CloturesPeriodiquesPage() {
   // PERIOD MANAGEMENT
   // =========================================================================
 
-  const handleCreatePeriods = async () => {
-    if (!selectedFYId) return;
+  // Auto-génération des périodes dès qu'un exercice est sélectionné (mode mensuel).
+  useEffect(() => {
+    if (mode !== 'mensuelle') return;
+    if (!selectedFYId || periodsLoading) return;
+    if (periods.length > 0) return;
+    if (autoGenRef.current.has(selectedFYId)) return;
+    autoGenRef.current.add(selectedFYId);
+    createPeriodsForFY(selectedFYId, periodicite).catch(() => {
+      autoGenRef.current.delete(selectedFYId); // autorise une nouvelle tentative en cas d'échec
+    });
+  }, [mode, selectedFYId, periodsLoading, periods.length, periodicite, createPeriodsForFY]);
+
+  // Changement de périodicité → régénère les périodes (si aucune n'est clôturée).
+  const handlePeriodiciteChange = async (next: Periodicite) => {
+    const prev = periodicite;
+    setPeriodicite(next);
+    if (!selectedFYId || mode !== 'mensuelle') return;
+    autoGenRef.current.add(selectedFYId); // empêche l'effet de recréer en parallèle
     try {
-      const created = await createPeriodsForFY(selectedFYId, periodicite);
-      toast.success(`${created.length} période(s) ${PERIODICITE_LABEL[periodicite].adj} créée(s)`);
+      if (periods.length > 0) await deletePeriodsForFY(selectedFYId);
+      const created = await createPeriodsForFY(selectedFYId, next);
+      setSelectedPeriodId('');
+      toast.success(`${created.length} période(s) ${PERIODICITE_LABEL[next].adj} générée(s)`);
     } catch (err) {
+      setPeriodicite(prev); // rollback UI si la régénération est refusée
       toast.error(err instanceof Error ? err.message : 'Erreur');
     }
   };
@@ -365,9 +393,8 @@ function CloturesPeriodiquesPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
                 <select
                   value={periodicite}
-                  onChange={e => setPeriodicite(e.target.value as Periodicite)}
-                  disabled={periods.length > 0}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-500"
+                  onChange={e => handlePeriodiciteChange(e.target.value as Periodicite)}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                 >
                   {(['mensuelle', 'trimestrielle', 'semestrielle'] as const).map(p => (
                     <option key={p} value={p}>
@@ -377,7 +404,7 @@ function CloturesPeriodiquesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Période à clôturer</label>
                 {periods.length > 0 ? (
                   <select
                     value={selectedPeriodId}
@@ -392,13 +419,10 @@ function CloturesPeriodiquesPage() {
                     ))}
                   </select>
                 ) : (
-                  <button
-                    onClick={handleCreatePeriods}
-                    disabled={!selectedFYId}
-                    className="w-full px-3 py-2 text-sm border border-dashed border-gray-300 rounded hover:bg-gray-50 text-gray-500 disabled:opacity-50"
-                  >
-                    Créer les périodes {PERIODICITE_LABEL[periodicite].adj}
-                  </button>
+                  <div className="w-full px-3 py-2 text-sm border border-gray-200 rounded bg-gray-50 text-gray-400 flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    {selectedFYId ? 'Génération des périodes…' : 'Sélectionnez un exercice'}
+                  </div>
                 )}
               </div>
             </div>
@@ -883,7 +907,7 @@ function DashboardSection({
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-500">Aucune période créée. Choisissez une périodicité (mensuelle, trimestrielle ou semestrielle) et créez les périodes depuis le sélecteur ci-dessus.</p>
+            <p className="text-sm text-gray-500">Les périodes sont générées automatiquement à la sélection de l'exercice. Ajustez la périodicité (mensuelle, trimestrielle ou semestrielle) via le sélecteur ci-dessus.</p>
           )}
         </div>
       )}

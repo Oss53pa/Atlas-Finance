@@ -137,6 +137,20 @@ export function useFiscalPeriods(fiscalYearId?: string) {
     return newPeriods;
   }, [adapter, load]);
 
+  /** Supprime toutes les périodes d'un exercice. Refuse si l'une est (en) clôturée. */
+  const deletePeriodsForFY = useCallback(async (fyId: string) => {
+    const all = await adapter.getAll<DBFiscalPeriod>('fiscalPeriods');
+    const forFY = all.filter(p => p.fiscalYearId === fyId);
+    const locked = forFY.filter(p => p.status === 'cloturee' || p.status === 'en_cloture');
+    if (locked.length > 0) {
+      throw new Error(`${locked.length} période(s) déjà (en) clôturée(s) — régénération impossible`);
+    }
+    for (const p of forFY) {
+      await adapter.delete('fiscalPeriods', p.id);
+    }
+    await load();
+  }, [adapter, load]);
+
   const lockPeriod = useCallback(async (periodId: string, userId: string) => {
     await adapter.update<DBFiscalPeriod>('fiscalPeriods', periodId, {
       status: 'cloturee',
@@ -170,6 +184,7 @@ export function useFiscalPeriods(fiscalYearId?: string) {
     error,
     refresh: load,
     createPeriodsForFY,
+    deletePeriodsForFY,
     lockPeriod,
     unlockPeriod,
     updateProgression,
