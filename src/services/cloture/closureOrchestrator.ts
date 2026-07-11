@@ -229,7 +229,11 @@ export const closureOrchestrator = {
    * Execute ONE step (manual mode — the accountant clicks one button at a time).
    */
   async executeStep(stepId: string, ctx: ClotureContext): Promise<ClotureStep> {
-    const def = STEPS_DEF.find(s => s.id === stepId);
+    // Les étapes mensuelles (M_*) et annuelles (A_*/…) n'ont pas le même
+    // exécuteur : router selon l'id, sinon le bouton « Exécuter » par étape du
+    // cycle mensuel tombe sur le défaut annuel (« Étape inconnue »).
+    const isMonthly = stepId.startsWith('M_');
+    const def = (isMonthly ? MONTHLY_STEPS_DEF : STEPS_DEF).find(s => s.id === stepId);
     const step: ClotureStep = {
       id: stepId,
       label: def?.label || stepId,
@@ -239,7 +243,9 @@ export const closureOrchestrator = {
     const initiatedBy = `${ctx.mode}:${ctx.userId}`;
 
     try {
-      const message = await this._executeStep(stepId, ctx, initiatedBy);
+      const message = isMonthly
+        ? await this._executeMonthlyStep(stepId, ctx)
+        : await this._executeStep(stepId, ctx, initiatedBy);
       step.status = 'done';
       step.message = message || 'OK';
     } catch (error: unknown) {
