@@ -150,6 +150,7 @@ const BudgetEngagementsPage = lazyRetry(() => import('./pages/budget/BudgetEngag
 const BudgetLettragePage = lazyRetry(() => import('./pages/budget/BudgetLettragePage'));
 const BudgetMatrixGridPage = lazyRetry(() => import('./pages/budget/BudgetMatrixGridPage'));
 const RevenusPickerPage = lazyRetry(() => import('./pages/budget/RevenusPickerPage'));
+const BudgetSnapshotsPage = lazyRetry(() => import('./pages/budget/BudgetSnapshotsPage'));
 const BudgetPnLPage = lazyRetry(() => import('./pages/budget/BudgetPnLPage'));
 const BudgetAlertesPage = lazyRetry(() => import('./pages/budget/BudgetAlertesPage'));
 const BudgetCampagnePage = lazyRetry(() => import('./pages/budget/BudgetCampagnePage'));
@@ -443,6 +444,7 @@ function App() {
                           <Route path="/budget/revenus/:sectionId" element={work(<BudgetMatrixGridPage nature="revenus" />)} />
                           <Route path="/budget/pnl" element={work(<BudgetPnLPage />)} />
                           <Route path="/budget/alertes" element={work(<BudgetAlertesPage />)} />
+                          <Route path="/budget/snapshots" element={work(<BudgetSnapshotsPage />)} />
                           <Route path="/capex" element={work(<CapexPortfolioPage />)} />
                           <Route path="/capex/bc/new" element={work(<BCStepperPage />)} />
                           <Route path="/capex/bc/:id" element={work(<BCStepperPage />)} />

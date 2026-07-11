@@ -301,6 +301,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-pnl', label: 'Résultat budgétaire', path: '/budget/pnl', icon: <Calculator className="w-4 h-4" /> },
       { id: 'budget-alertes', label: 'Alertes budgétaires', path: '/budget/alertes', icon: <Bell className="w-4 h-4" /> },
+      { id: 'budget-snapshots', label: 'Snapshots', path: '/budget/snapshots', icon: <Archive className="w-4 h-4" /> },
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
       // — Analytique — (sections = centres de coûts/profit, sur données live)
       { id: 'analytique-sections', label: 'Comptabilité Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" /> },
