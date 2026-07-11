@@ -44,7 +44,7 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Activity, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine
+  Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine, Inbox
 } from 'lucide-react';
 
 const AdminWorkspace: React.FC = () => {
@@ -319,6 +319,10 @@ const AdminWorkspace: React.FC = () => {
           </div>
           <div className="flex-1 max-w-md mx-6 hidden md:block"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" /><input placeholder="Recherche..." className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm" /></div></div>
           <div className="flex items-center space-x-3">
+            <button onClick={() => navigate('/bannette')} title="Bannette — objets à valider" className="press px-4 py-2 border border-[var(--color-border)] hover:bg-gray-50 rounded-lg text-[var(--color-text-primary)] font-medium flex items-center gap-2 transition-all text-sm">
+              <Inbox className="w-4 h-4" strokeWidth={1.6} />
+              <span>Bannette</span>
+            </button>
             <button onClick={() => navigate('/dashboard')} className="press group px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg text-white font-medium flex items-center gap-2 transition-all shadow-sm hover:shadow-md text-sm">
               <LayoutDashboard className="w-4 h-4" strokeWidth={1.6} />
               <span>Atlas Fna</span>

@@ -224,10 +224,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       ariaLabel: "Discussions, tâches et activité de l'équipe"
     },
     {
+      // La bannette (parapheur « à valider ») vit dans les ESPACES DE TRAVAIL
+      // (workspaces Manager/Admin/Comptable), pas dans le logiciel principal.
+      // Ce module principal ne garde que la console de gouvernance (lecture CAC).
       id: 'validation',
-      label: 'Bannette',
-      icon: <Inbox className="w-5 h-5" />,
-      ariaLabel: 'Parapheur unifié — objets à valider'
+      label: 'Gouvernance',
+      icon: <Shield className="w-5 h-5" />,
+      ariaLabel: 'États de gouvernance (console lecture)'
     }
     // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
     // societes) → `tenant.plan` est toujours undefined → tout le monde retombait
@@ -324,7 +327,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'collab-space', label: 'Espace Collaboratif', path: '/collaboration', icon: <MessageSquare className="w-4 h-4" /> },
     ],
     validation: [
-      { id: 'bannette', label: 'À valider', path: '/bannette', icon: <Inbox className="w-4 h-4" /> },
+      // Bannette déplacée dans les workspaces (voir /workspace/*).
       { id: 'gouvernance', label: 'États de gouvernance', path: '/gouvernance', icon: <Shield className="w-4 h-4" /> },
     ],
   }), [t, user?.role]);
@@ -357,7 +360,6 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'financial-statements': 'reporting',
         'closures': 'closures',
         'collaboration': 'collaboration',
-        'bannette': 'validation',
         'gouvernance': 'validation',
         'inventory': 'assets',
         'taxation': 'reporting'

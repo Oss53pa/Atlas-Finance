@@ -18,7 +18,7 @@ import {
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle
+  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle, Inbox
 } from 'lucide-react';
 
 // W3: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -86,6 +86,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const stats = comptaStats ?? { entries: 0, drafts: 0, posted: 0, treasury: 0 };
 
   const atlasFinanceLinks = [
+    { id: 'bannette', label: 'Bannette (à valider)', icon: Inbox, path: '/bannette' },
     { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: stats.drafts > 0 ? String(stats.drafts) : undefined, path: '/accounting/entries' },
     { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },

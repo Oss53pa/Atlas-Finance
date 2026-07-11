@@ -19,7 +19,7 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  AlertTriangle
+  AlertTriangle, Inbox
 } from 'lucide-react';
 
 // W16: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -85,6 +85,7 @@ const ManagerWorkspace: React.FC = () => {
   const stats = mgrStats ?? { ca: 0, charges: 0, marge: 0, treasury: 0 };
 
   const atlasFinanceLinks = [
+    { id: 'bannette', label: 'Bannette (à valider)', icon: Inbox, path: '/bannette' },
     { id: 'dashboard', label: "Tableau de bord", icon: BarChart3, path: '/dashboard' },
     { id: 'reports', label: 'Rapports', icon: FileText, path: '/reporting' },
     { id: 'budgets', label: 'Budgets', icon: Target, path: '/budgeting' },
