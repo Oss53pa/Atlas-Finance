@@ -22,8 +22,10 @@ import {
   type MailleDisponible, type CheckDecision,
 } from '../../features/budget/services/budgetCheckService';
 import BudgetEquationBar from '../../components/budget/BudgetEquationBar';
+import { getDefaultAnnee } from '../../features/budget/services/budgetService';
+import { runYearEndCarryover, carryoverSummary, type CarryoverPolicy } from '../../features/budget/services/yearEndService';
 import {
-  Plus, Loader2, Unlock, XCircle, FileSignature, Repeat, Building2,
+  Plus, Loader2, Unlock, XCircle, FileSignature, Repeat, Building2, CalendarX,
 } from 'lucide-react';
 
 const STATUT_STYLE: Record<EngagementStatut, string> = {
@@ -58,6 +60,18 @@ const BudgetEngagementsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ maille: MailleDisponible; decision: CheckDecision; seuil: 'consommation_90' | 'depassement' | null } | null>(null);
+  const [showClose, setShowClose] = useState(false);
+  const [closing, setClosing] = useState(false);
+
+  const runCarryover = useCallback(async (policy: CarryoverPolicy) => {
+    setClosing(true); setError(null); setNotice(null);
+    try {
+      const annee = await getDefaultAnnee(adapter);
+      const r = await runYearEndCarryover(adapter, annee, policy);
+      setNotice(`Clôture ${annee} : ${r.discharged} engagement(s) dégagé(s)${policy === 'report' ? `, ${r.recreated} reporté(s) sur N+1` : ''} (reliquat ${r.totalReliquat.toLocaleString('fr-FR')}).`);
+      setShowClose(false); setRefreshKey((k) => k + 1);
+    } catch (e: any) { setError(e?.message || 'Échec de la clôture.'); } finally { setClosing(false); }
+  }, [adapter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,13 +175,28 @@ const BudgetEngagementsPage: React.FC = () => {
             Externes ingérés + saisis manuellement · pivot de l'équation budgétaire
           </p>
         </div>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition"
-        >
-          <Plus className="w-4 h-4" /> Engagement manuel
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowClose((s) => !s)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
+            <CalendarX className="w-4 h-4" /> Clôture d'exercice
+          </button>
+          <button onClick={() => setShowForm((s) => !s)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition">
+            <Plus className="w-4 h-4" /> Engagement manuel
+          </button>
+        </div>
       </header>
+
+      {showClose && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900 px-4 py-3 text-sm space-y-2">
+          <div className="text-amber-800 dark:text-amber-200">
+            Dégagement de fin d'exercice — {carryoverSummary(rows).count} engagement(s) ouvert(s), reliquat {carryoverSummary(rows).totalReliquat.toLocaleString('fr-FR')}. Politique :
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button disabled={closing} onClick={() => runCarryover('report')} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#235A6E] text-white text-xs font-medium disabled:opacity-50">{closing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Reporter sur N+1</button>
+            <button disabled={closing} onClick={() => runCarryover('annulation')} className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs disabled:opacity-50">Annuler les reliquats</button>
+            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-neutral-500">Fermer</button>
+          </div>
+        </div>
+      )}
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
