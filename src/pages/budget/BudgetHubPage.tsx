@@ -21,7 +21,7 @@ import { seedStandardAnalyticalStructure } from '../../features/budget/services/
 import { STANDARD_ANALYTICAL_STRUCTURE } from '../../features/budget/data/standardAnalyticalStructure';
 import {
   Lock, Unlock, ShieldCheck, ShieldAlert, GitBranch, Sparkles, Layers, Activity, BarChart3,
-  Package, Target, Split, PieChart, ArrowRight, Loader2, Calendar,
+  Package, Target, Split, PieChart, ArrowRight, Loader2, Calendar, FileCheck, TrendingUp, Calculator, Bell,
 } from 'lucide-react';
 
 const CAMPAGNE_STEPS: CampagneStatut[] = ['preparation', 'ouverte', 'consolidation', 'arbitrage', 'votee', 'cloturee'];
@@ -31,13 +31,18 @@ const CAMPAGNE_LABEL: Record<CampagneStatut, string> = {
 };
 
 const NAV_TILES = [
+  { path: '/budget/campagne', label: 'Campagne', desc: 'Cycle & complétude de saisie', icon: Calendar },
   { path: '/budget/cockpit', label: 'Cockpit budgétaire', desc: 'Budgété vs réalisé, top écarts', icon: Activity },
   { path: '/budget/exploitation', label: 'Budget vs Réalisé', desc: 'Pivot OPEX par maille', icon: BarChart3 },
-  { path: '/budget/investissement', label: 'Investissement (CAPEX)', desc: 'Demandes, CAR, réalisé classe 2', icon: Package },
+  { path: '/budget/revenus', label: 'Budget des revenus', desc: 'Classe 7, volumes × prix', icon: TrendingUp },
+  { path: '/budget/engagements', label: 'Engagements', desc: 'Registre + lettrage', icon: FileCheck },
+  { path: '/capex', label: 'Investissement (CAPEX)', desc: 'BC, priorisation, CAR, projets', icon: Package },
+  { path: '/budget/pnl', label: 'Résultat budgétaire', desc: 'P&L de gestion SYSCOHADA', icon: Calculator },
   { path: '/budget/ecarts', label: 'Analyse des écarts', desc: 'Waterfall, heatmap', icon: Target },
+  { path: '/budget/alertes', label: 'Alertes budgétaires', desc: 'Dépassements & seuils', icon: Bell },
   { path: '/budget/versions', label: 'Versions & validation', desc: 'Verrouillage immuable', icon: Lock },
-  { path: '/budget/ventilation', label: 'Moteur de ventilation', desc: 'Attribution du réel aux sections', icon: Split },
   { path: '/analytique', label: 'Comptabilité analytique', desc: 'Axes & sections (org)', icon: PieChart },
+  { path: '/budget/ventilation', label: 'Moteur de ventilation', desc: 'Attribution du réel aux sections', icon: Split },
 ];
 
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
