@@ -18,6 +18,11 @@ import {
 } from '../../features/budget/services/engagementService';
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
 import {
+  getMailleDisponible, decideCheck, getControlPolicy, natureOfAccount,
+  type MailleDisponible, type CheckDecision,
+} from '../../features/budget/services/budgetCheckService';
+import BudgetEquationBar from '../../components/budget/BudgetEquationBar';
+import {
   Plus, Loader2, Unlock, XCircle, FileSignature, Repeat, Building2,
 } from 'lucide-react';
 
@@ -52,6 +57,7 @@ const BudgetEngagementsPage: React.FC = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ maille: MailleDisponible; decision: CheckDecision; seuil: 'consommation_90' | 'depassement' | null } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +75,28 @@ const BudgetEngagementsPage: React.FC = () => {
     })();
     return () => { cancelled = true; };
   }, [adapter, refreshKey]);
+
+  // Aperçu live du disponible de la maille en cours de saisie (lecture seule, non journalisé).
+  useEffect(() => {
+    if (!showForm || !form.accountCode.trim() || !form.periode) { setPreview(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const annee = form.periode.slice(0, 4);
+        const period = Number(form.periode.slice(5, 7)) || undefined;
+        const [maille, policy] = await Promise.all([
+          getMailleDisponible(adapter, { accountCode: form.accountCode.trim(), sectionId: form.sectionId || null, annee, period }),
+          getControlPolicy(adapter, natureOfAccount(form.accountCode.trim())),
+        ]);
+        if (cancelled) return;
+        const { decision, seuil } = decideCheck(maille, Number(form.montant) || 0, policy);
+        setPreview({ maille, decision, seuil });
+      } catch {
+        if (!cancelled) setPreview(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter, showForm, form.accountCode, form.sectionId, form.periode, form.montant]);
 
   const sectionLabel = useCallback(
     (id: string | null) => (id ? sections.find((s) => s.id === id)?.libelle ?? '—' : '—'),
@@ -174,6 +202,17 @@ const BudgetEngagementsPage: React.FC = () => {
                 placeholder="Bail annuel, marché signé…" className={INP} />
             </Field>
           </div>
+          {preview && (
+            <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-700 p-3">
+              <div className="text-xs font-medium text-neutral-500 mb-2">Disponible de la maille (informatif)</div>
+              <BudgetEquationBar
+                budget={preview.maille.budget} engage={preview.maille.engage}
+                realise={preview.maille.realise} disponible={preview.maille.disponible}
+                montantEnvisage={Number(form.montant) || undefined}
+                decision={preview.decision} seuil={preview.seuil}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-4 flex-wrap">
             <label className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
               <input type="checkbox" checked={form.recurrent} onChange={(e) => setForm({ ...form, recurrent: e.target.checked })} />
