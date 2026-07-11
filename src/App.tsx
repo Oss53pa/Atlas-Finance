@@ -149,6 +149,8 @@ const BudgetHubPage = lazyRetry(() => import('./pages/budget/BudgetHubPage'));
 const BudgetEngagementsPage = lazyRetry(() => import('./pages/budget/BudgetEngagementsPage'));
 const BudgetLettragePage = lazyRetry(() => import('./pages/budget/BudgetLettragePage'));
 const BudgetMatrixGridPage = lazyRetry(() => import('./pages/budget/BudgetMatrixGridPage'));
+const BudgetPnLPage = lazyRetry(() => import('./pages/budget/BudgetPnLPage'));
+const BudgetAlertesPage = lazyRetry(() => import('./pages/budget/BudgetAlertesPage'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetTablePage = lazyRetry(() => import('./pages/budgeting/BudgetTablePage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
@@ -427,6 +429,8 @@ function App() {
                           <Route path="/budget/engagements" element={work(<BudgetEngagementsPage />)} />
                           <Route path="/budget/lettrage" element={work(<BudgetLettragePage />)} />
                           <Route path="/budget/saisie/:sectionId" element={work(<BudgetMatrixGridPage />)} />
+                          <Route path="/budget/pnl" element={work(<BudgetPnLPage />)} />
+                          <Route path="/budget/alertes" element={work(<BudgetAlertesPage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />
