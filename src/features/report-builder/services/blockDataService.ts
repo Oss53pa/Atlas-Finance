@@ -1444,6 +1444,48 @@ export async function fetchTableData(
       };
     }
 
+    case 'budget.execution': {
+      // Exécution budgétaire (refonte OPEX/CAPEX) : Budget / Engagé / Réalisé /
+      // Disponible par classe, depuis la vue d'équation v_budget_execution.
+      const client = (adapter as any).client;
+      if (client) {
+        try {
+          const rows0 = await fetchAllRows(() => client.from('v_budget_execution').select('account_code,budget,engage,realise,disponible'), 'account_code');
+          const byNat = new Map<string, { code: string; budget: number; engage: number; realise: number; disponible: number }>();
+          for (const r of (rows0 || [])) {
+            const code = String(r.account_code || '').slice(0, 2);
+            if (!byNat.has(code)) byNat.set(code, { code, budget: 0, engage: 0, realise: 0, disponible: 0 });
+            const n = byNat.get(code)!;
+            n.budget += Number(r.budget) || 0; n.engage += Number(r.engage) || 0;
+            n.realise += Number(r.realise) || 0; n.disponible += Number(r.disponible) || 0;
+          }
+          const rows = Array.from(byNat.values()).map(n => ({
+            poste: `${n.code} — ${getClassLabel(n.code)}`,
+            budget: n.budget, engage: n.engage, realise: n.realise, disponible: n.disponible,
+          })).sort((a, b) => (b.budget + b.realise) - (a.budget + a.realise));
+          return {
+            columns: [
+              { key: 'poste', label: 'Poste', align: 'left' },
+              { key: 'budget', label: 'Budget', align: 'right', format: 'currency' },
+              { key: 'engage', label: 'Engagé', align: 'right', format: 'currency' },
+              { key: 'realise', label: 'Réalisé', align: 'right', format: 'currency' },
+              { key: 'disponible', label: 'Disponible', align: 'right', format: 'currency' },
+            ],
+            rows,
+          };
+        } catch { /* vue absente → tableau vide honnête */ }
+      }
+      return {
+        columns: [
+          { key: 'poste', label: 'Poste', align: 'left' },
+          { key: 'budget', label: 'Budget', align: 'right', format: 'currency' },
+          { key: 'engage', label: 'Engagé', align: 'right', format: 'currency' },
+          { key: 'realise', label: 'Réalisé', align: 'right', format: 'currency' },
+          { key: 'disponible', label: 'Disponible', align: 'right', format: 'currency' },
+        ],
+        rows: [],
+      };
+    }
     case 'budget.vs_actual':
     case 'budget.ecarts_significatifs': {
       // Priorité : vue live v_budget_vs_actual (module Budget V3). Repli sur le
