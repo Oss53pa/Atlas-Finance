@@ -88,7 +88,7 @@ const ManagerWorkspace: React.FC = () => {
     { id: 'bannette', label: 'Bannette (à valider)', icon: Inbox, path: '/bannette' },
     { id: 'dashboard', label: "Tableau de bord", icon: BarChart3, path: '/dashboard' },
     { id: 'reports', label: 'Rapports', icon: FileText, path: '/reporting' },
-    { id: 'budgets', label: 'Budgets', icon: Target, path: '/budgeting' },
+    { id: 'budgets', label: 'Budgets', icon: Target, path: '/budget' },
     { id: 'team', label: 'Equipe', icon: Users, path: '/security/users' },
     { id: 'treasury', label: 'Tresorerie', icon: DollarSign, path: '/treasury' },
     { id: 'analytics', label: 'Analytique', icon: Activity, path: '/analytics' },
@@ -281,7 +281,7 @@ const ManagerWorkspace: React.FC = () => {
         <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas FnA</h2>
         {/* W25: clés stables basées sur le path */}
         <div className="grid grid-cols-4 gap-3">
-          {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budgeting',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a) => (
+          {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budget',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a) => (
             <button key={a.path} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
               <span className="text-sm font-medium block text-center">{a.label}</span>
