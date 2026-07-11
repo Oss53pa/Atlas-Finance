@@ -33,8 +33,10 @@ function spread12(annual: number): Record<number, number> {
   return out;
 }
 
-const BudgetMatrixGridPage: React.FC = () => {
+const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ nature = 'opex' }) => {
   const { sectionId = '' } = useParams();
+  const isRevenus = nature === 'revenus';
+  const classPrefix = isRevenus ? '7' : '6';
   const { adapter } = useData();
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
@@ -64,14 +66,14 @@ const BudgetMatrixGridPage: React.FC = () => {
         if (v) {
           const all = await getBudgetLinesWithPeriods(adapter, v.id);
           lines = all
-            .filter((l) => l.section_id === sectionId && (l.nature === 'opex' || l.budget_type === 'exploitation'))
+            .filter((l) => l.section_id === sectionId && ((l.nature ?? 'opex') === nature))
             .map((l) => ({ id: l.id, account_code: l.account_code, periods: l.periods, dirty: false, source: l.source_prefill ?? undefined, commentaire: l.commentaire ?? undefined }));
         }
         // référence réel N-1 (société) : total par compte + détail mensuel
         const n1 = await getActualExploitation(adapter, String(Number(a) - 1));
         const ref: Record<string, number> = {};
         const refMonthly: Record<string, Record<number, number>> = {};
-        for (const r of n1) if (r.classe === '6') {
+        for (const r of n1) if (r.classe === classPrefix) {
           ref[r.account_code] = (ref[r.account_code] || 0) + r.montant_realise;
           (refMonthly[r.account_code] ??= {})[r.period] = (refMonthly[r.account_code][r.period] || 0) + r.montant_realise;
         }
@@ -149,7 +151,7 @@ const BudgetMatrixGridPage: React.FC = () => {
       for (const r of toSave) {
         await saveBudgetLine(adapter, version.id, {
           id: r.id, budget_type: 'exploitation', account_code: r.account_code.trim(),
-          section_id: sectionId, periods: r.periods, nature: 'opex', source_prefill: r.source ?? 'manuel',
+          section_id: sectionId, periods: r.periods, nature, source_prefill: r.source ?? 'manuel',
           commentaire: r.commentaire ?? null,
         });
       }
@@ -171,7 +173,7 @@ const BudgetMatrixGridPage: React.FC = () => {
           </button>
           <div>
             <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <Grid3x3 className="w-6 h-6 text-[#235A6E]" /> Saisie budgétaire OPEX
+              <Grid3x3 className="w-6 h-6 text-[#235A6E]" /> {isRevenus ? 'Budget des revenus' : 'Saisie budgétaire OPEX'}
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {section ? `${section.code} · ${section.libelle}` : 'Section inconnue'} · exercice {annee}
@@ -245,7 +247,7 @@ const BudgetMatrixGridPage: React.FC = () => {
                         </div>
                       ) : (
                         <input value={r.account_code} onChange={(e) => setAccount(idx, e.target.value)} disabled={locked}
-                          placeholder="6132" className="w-24 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm" />
+                          placeholder={isRevenus ? '7011' : '6132'} className="w-24 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm" />
                       )}
                       {(r.id || r.account_code) && (
                         <input value={r.commentaire ?? ''} onChange={(e) => setComment(idx, e.target.value)} disabled={locked}

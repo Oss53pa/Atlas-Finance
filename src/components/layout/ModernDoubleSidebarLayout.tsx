@@ -290,6 +290,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-table', label: 'Table & Import', path: '/budget/table', icon: <FileBarChart className="w-4 h-4" /> },
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'budget-revenus', label: 'Budget des revenus', path: '/budget/revenus', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
       { id: 'capex-portfolio', label: 'Portefeuille CAPEX', path: '/capex', icon: <Layers className="w-4 h-4" /> },
       { id: 'capex-priorisation', label: 'Priorisation CAPEX', path: '/capex/priorisation', icon: <ChartBar className="w-4 h-4" /> },
