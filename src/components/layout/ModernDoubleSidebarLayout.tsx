@@ -294,6 +294,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'capex-portfolio', label: 'Portefeuille CAPEX', path: '/capex', icon: <Layers className="w-4 h-4" /> },
       { id: 'capex-priorisation', label: 'Priorisation CAPEX', path: '/capex/priorisation', icon: <ChartBar className="w-4 h-4" /> },
       { id: 'capex-enveloppe', label: 'Enveloppe CAPEX', path: '/capex/enveloppe', icon: <PiggyBank className="w-4 h-4" /> },
+      { id: 'capex-reaffectations', label: 'Réaffectations', path: '/capex/reaffectations', icon: <ArrowLeftRight className="w-4 h-4" /> },
       { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" /> },
       { id: 'budget-lettrage', label: 'Lettrage budgétaire', path: '/budget/lettrage', icon: <Link className="w-4 h-4" /> },
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },

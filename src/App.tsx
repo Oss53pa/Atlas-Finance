@@ -157,6 +157,7 @@ const BCStepperPage = lazyRetry(() => import('./pages/budget/BCStepperPage'));
 const CapexPriorisationPage = lazyRetry(() => import('./pages/budget/CapexPriorisationPage'));
 const ProjetCockpitPage = lazyRetry(() => import('./pages/budget/ProjetCockpitPage'));
 const CapexEnveloppePage = lazyRetry(() => import('./pages/budget/CapexEnveloppePage'));
+const CapexReaffectationPage = lazyRetry(() => import('./pages/budget/CapexReaffectationPage'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetTablePage = lazyRetry(() => import('./pages/budgeting/BudgetTablePage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
@@ -444,6 +445,7 @@ function App() {
                           <Route path="/capex/priorisation" element={work(<CapexPriorisationPage />)} />
                           <Route path="/capex/projet/:id" element={work(<ProjetCockpitPage />)} />
                           <Route path="/capex/enveloppe" element={work(<CapexEnveloppePage />)} />
+                          <Route path="/capex/reaffectations" element={work(<CapexReaffectationPage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />
