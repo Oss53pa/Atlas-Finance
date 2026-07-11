@@ -81,8 +81,11 @@ export interface ClotureContext {
   openingExerciceId?: string;
   /** ID de la période fiscale (clôture mensuelle) */
   periodId?: string;
-  /** Code de la période, e.g. "2025-01" */
+  /** Code de la période, e.g. "2025-01" (mensuel), "2025-T1" (trimestre), "2025-S1" (semestre) */
   periodCode?: string;
+  /** Bornes de la période (YYYY-MM-DD) — filtrage générique tous types de périodicité */
+  periodStart?: string;
+  periodEnd?: string;
   onProgress?: (step: ClotureStep) => void;
   onError?: (step: ClotureStep, error: Error) => void;
 }
@@ -93,6 +96,17 @@ export interface ClotureStep {
   status: 'pending' | 'running' | 'done' | 'error' | 'skipped';
   message?: string;
   timestamp?: string;
+}
+
+/**
+ * Filtre une écriture dans la période de clôture, tous types de périodicité confondus.
+ * Priorité : bornes de dates (mensuel/trimestriel/semestriel) → préfixe de code
+ * (compat mensuel « YYYY-MM ») → exercice entier.
+ */
+function entryInClosurePeriod(e: any, ctx: ClotureContext, fy: DBFiscalYear): boolean {
+  if (ctx.periodStart && ctx.periodEnd) return e.date >= ctx.periodStart && e.date <= ctx.periodEnd;
+  if (ctx.periodCode) return e.date.startsWith(ctx.periodCode);
+  return e.date >= fy.startDate && e.date <= fy.endDate;
 }
 
 // ============================================================================
@@ -859,10 +873,7 @@ export const closureOrchestrator = {
       case 'M_VERIFICATION': {
         // Check no draft entries in the period
         const allEntries = await ctx.adapter.getAll<any>('journalEntries');
-        const periodEntries = allEntries.filter((e: any) => {
-          if (!ctx.periodCode) return e.date >= fy.startDate && e.date <= fy.endDate;
-          return e.date.startsWith(ctx.periodCode);
-        });
+        const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
         const drafts = periodEntries.filter((e: any) => e.status === 'draft');
         if (drafts.length > 0) {
           throw new Error(`${drafts.length} écriture(s) en brouillon dans la période`);
@@ -873,10 +884,7 @@ export const closureOrchestrator = {
       case 'M_RAPPROCHEMENTS': {
         // Rapprochements bancaires de la période
         const allEntries = await ctx.adapter.getAll<any>('journalEntries');
-        const periodEntries = allEntries.filter((e: any) => {
-          if (!ctx.periodCode) return e.date >= fy.startDate && e.date <= fy.endDate;
-          return e.date.startsWith(ctx.periodCode);
-        });
+        const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
         const bankEntries = periodEntries.filter((e: any) =>
           (e.lines || []).some((l: any) => l.accountCode?.startsWith('52'))
         );
@@ -901,10 +909,7 @@ export const closureOrchestrator = {
       case 'M_LETTRAGE': {
         // Lettrage des comptes de tiers pour la période
         const allEntries = await ctx.adapter.getAll<any>('journalEntries');
-        const periodEntries = allEntries.filter((e: any) => {
-          if (!ctx.periodCode) return e.date >= fy.startDate && e.date <= fy.endDate;
-          return e.date.startsWith(ctx.periodCode);
-        });
+        const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
         const tiersLines: any[] = [];
         for (const entry of periodEntries) {
           for (const line of entry.lines || []) {
@@ -949,10 +954,7 @@ export const closureOrchestrator = {
       case 'M_PROVISIONS': {
         // Vérifier les provisions et dépréciations de la période
         const allEntries = await ctx.adapter.getAll<any>('journalEntries');
-        const periodEntries = allEntries.filter((e: any) => {
-          if (!ctx.periodCode) return e.date >= fy.startDate && e.date <= fy.endDate;
-          return e.date.startsWith(ctx.periodCode);
-        });
+        const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
         let provisionCount = 0;
         let totalProvisions = 0;
         for (const entry of periodEntries) {

@@ -304,7 +304,7 @@ export interface DBFiscalPeriod {
   fiscalYearId: string;
   code: string;
   label: string;
-  type: 'mensuelle' | 'trimestrielle';
+  type: 'mensuelle' | 'trimestrielle' | 'semestrielle';
   startDate: string;
   endDate: string;
   status: 'ouverte' | 'en_cloture' | 'cloturee' | 'rouverte';

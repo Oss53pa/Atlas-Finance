@@ -11,6 +11,7 @@ import type { ClotureStep, ClotureContext } from '../../services/cloture/closure
 import { useControlesCoherence, MONTHLY_CONTROL_IDS, ANNUAL_BLOCKING_IDS } from './hooks/useControlesCoherence';
 import type { ControleStatut, ControleResult } from './hooks/useControlesCoherence';
 import { useFiscalPeriods } from './hooks/useFiscalPeriods';
+import type { Periodicite } from './hooks/useFiscalPeriods';
 import type { DBFiscalYear, DBClosureSession, DBFiscalPeriod } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
 import toast from 'react-hot-toast';
@@ -33,6 +34,7 @@ import {
   BookOpen,
   ClipboardCheck,
   ArrowRight,
+  History,
 } from 'lucide-react';
 
 // Sections
@@ -52,8 +54,8 @@ import AffectationTab from './components/AffectationTab';
 
 type ClotureMode = 'mensuelle' | 'annuelle';
 
-type MonthlyTabId = 'dashboard' | 'cycle' | 'verification' | 'regularisations' | 'controles' | 'verrouillage' | 'etats';
-type AnnualTabId = 'dashboard' | 'cycle' | 'travaux' | 'inventaire' | 'controles' | 'etats' | 'validation' | 'affectation';
+type MonthlyTabId = 'dashboard' | 'cycle' | 'verification' | 'regularisations' | 'controles' | 'verrouillage' | 'etats' | 'sessions';
+type AnnualTabId = 'dashboard' | 'cycle' | 'travaux' | 'inventaire' | 'controles' | 'etats' | 'validation' | 'affectation' | 'sessions';
 
 type TabId = MonthlyTabId | AnnualTabId;
 
@@ -68,6 +70,12 @@ interface FYStats {
 // ============================================================================
 // HELPERS
 // ============================================================================
+
+const PERIODICITE_LABEL: Record<Periodicite, { noun: string; adj: string; count: number }> = {
+  mensuelle:     { noun: 'Mensuelle',     adj: 'mensuelles',     count: 12 },
+  trimestrielle: { noun: 'Trimestrielle', adj: 'trimestrielles', count: 4 },
+  semestrielle:  { noun: 'Semestrielle',  adj: 'semestrielles',  count: 2 },
+};
 
 const STATUT_BADGE: Record<ControleStatut, { bg: string; text: string; label: string }> = {
   conforme:       { bg: 'bg-green-100', text: 'text-green-800', label: 'Conforme' },
@@ -93,6 +101,7 @@ const MONTHLY_TABS: { id: MonthlyTabId; label: string; icon: React.ReactNode }[]
   { id: 'controles',        label: 'Contrôles',         icon: <Shield className="w-4 h-4" /> },
   { id: 'verrouillage',     label: 'Verrouillage',      icon: <Lock className="w-4 h-4" /> },
   { id: 'etats',            label: 'États de gestion',  icon: <FileText className="w-4 h-4" /> },
+  { id: 'sessions',         label: 'Sessions',          icon: <History className="w-4 h-4" /> },
 ];
 
 const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] = [
@@ -104,6 +113,7 @@ const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] =
   { id: 'etats',       label: 'États financiers',       icon: <FileText className="w-4 h-4" /> },
   { id: 'validation',  label: 'Validation finale',      icon: <CheckCircle className="w-4 h-4" /> },
   { id: 'affectation', label: 'Affectation & Reports',  icon: <ArrowRight className="w-4 h-4" /> },
+  { id: 'sessions',    label: 'Sessions',               icon: <History className="w-4 h-4" /> },
 ];
 
 // ============================================================================
@@ -126,6 +136,7 @@ function CloturesPeriodiquesPage() {
 
   // Period state (monthly)
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
+  const [periodicite, setPeriodicite] = useState<Periodicite>('mensuelle');
   const { periods, refresh: refreshPeriods, createPeriodsForFY, lockPeriod, unlockPeriod } = useFiscalPeriods(selectedFYId);
 
   // Execution state
@@ -211,8 +222,8 @@ function CloturesPeriodiquesPage() {
   const handleCreatePeriods = async () => {
     if (!selectedFYId) return;
     try {
-      await createPeriodsForFY(selectedFYId);
-      toast.success('Périodes mensuelles créées');
+      const created = await createPeriodsForFY(selectedFYId, periodicite);
+      toast.success(`${created.length} période(s) ${PERIODICITE_LABEL[periodicite].adj} créée(s)`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
     }
@@ -252,6 +263,8 @@ function CloturesPeriodiquesPage() {
       openingExerciceId: openingFYId || undefined,
       periodId: selectedPeriodId || undefined,
       periodCode: period?.code,
+      periodStart: period?.startDate,
+      periodEnd: period?.endDate,
       onProgress: (step) => {
         setSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
       },
@@ -347,30 +360,47 @@ function CloturesPeriodiquesPage() {
           </div>
 
           {mode === 'mensuelle' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
-              {periods.length > 0 ? (
+            <div className="space-y-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
                 <select
-                  value={selectedPeriodId}
-                  onChange={e => setSelectedPeriodId(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  value={periodicite}
+                  onChange={e => setPeriodicite(e.target.value as Periodicite)}
+                  disabled={periods.length > 0}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <option value="">-- Sélectionner --</option>
-                  {periods.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.label} [{p.status}]
+                  {(['mensuelle', 'trimestrielle', 'semestrielle'] as const).map(p => (
+                    <option key={p} value={p}>
+                      {PERIODICITE_LABEL[p].noun} ({PERIODICITE_LABEL[p].count} périodes)
                     </option>
                   ))}
                 </select>
-              ) : (
-                <button
-                  onClick={handleCreatePeriods}
-                  disabled={!selectedFYId}
-                  className="w-full px-3 py-2 text-sm border border-dashed border-gray-300 rounded hover:bg-gray-50 text-gray-500 disabled:opacity-50"
-                >
-                  Créer les périodes mensuelles
-                </button>
-              )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Période</label>
+                {periods.length > 0 ? (
+                  <select
+                    value={selectedPeriodId}
+                    onChange={e => setSelectedPeriodId(e.target.value)}
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                  >
+                    <option value="">-- Sélectionner --</option>
+                    {periods.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.label} [{p.status}]
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <button
+                    onClick={handleCreatePeriods}
+                    disabled={!selectedFYId}
+                    className="w-full px-3 py-2 text-sm border border-dashed border-gray-300 rounded hover:bg-gray-50 text-gray-500 disabled:opacity-50"
+                  >
+                    Créer les périodes {PERIODICITE_LABEL[periodicite].adj}
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
@@ -400,6 +430,26 @@ function CloturesPeriodiquesPage() {
             </button>
           </div>
         </div>
+
+        {/* Périodes créées — dates start → end */}
+        {mode === 'mensuelle' && periods.length > 0 && (
+          <div className="mt-4 border-t border-gray-100 pt-3">
+            <p className="text-xs font-medium text-gray-500 mb-2">
+              {periods.length} période(s) — {PERIODICITE_LABEL[periods[0].type].noun}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {periods.map(p => (
+                <span
+                  key={p.id}
+                  className="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-50 border border-gray-200 rounded text-xs"
+                >
+                  <span className="font-mono font-medium text-gray-700">{p.code}</span>
+                  <span className="text-gray-400">{p.startDate} → {p.endDate}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Tab bar */}
@@ -429,7 +479,6 @@ function CloturesPeriodiquesPage() {
             loading={dashLoading}
             activeFY={selectedFY}
             stats={fyStats}
-            sessions={sessions}
             periods={periods}
             selectedPeriod={selectedPeriod}
           />
@@ -446,6 +495,11 @@ function CloturesPeriodiquesPage() {
             onExecuteStep={handleExecuteStep}
             onExecuteAll={handleExecuteAll}
           />
+        )}
+
+        {/* ===== SHARED: Sessions de clôture (onglet dédié) ===== */}
+        {tab === 'sessions' && (
+          <SessionsSection sessions={sessions} loading={dashLoading} />
         )}
 
         {/* ===== MONTHLY TABS ===== */}
@@ -724,7 +778,6 @@ function DashboardSection({
   loading,
   activeFY,
   stats,
-  sessions,
   periods,
   selectedPeriod,
 }: {
@@ -732,7 +785,6 @@ function DashboardSection({
   loading: boolean;
   activeFY: DBFiscalYear | null;
   stats: FYStats | null;
-  sessions: DBClosureSession[];
   periods: DBFiscalPeriod[];
   selectedPeriod: DBFiscalPeriod | null;
 }) {
@@ -831,54 +883,77 @@ function DashboardSection({
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-500">Aucune période créée. Utilisez le bouton ci-dessus pour créer les 12 périodes mensuelles.</p>
+            <p className="text-sm text-gray-500">Aucune période créée. Choisissez une périodicité (mensuelle, trimestrielle ou semestrielle) et créez les périodes depuis le sélecteur ci-dessus.</p>
           )}
         </div>
       )}
 
       {/* Sections overview — always visible */}
       <SectionsOverview mode={mode} />
+    </div>
+  );
+}
 
-      {/* Sessions */}
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Sessions de clôture</h2>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b text-left text-gray-500">
-              <th className="pb-2">Type</th>
-              <th className="pb-2">Période</th>
-              <th className="pb-2">Statut</th>
-              <th className="pb-2">Progression</th>
-              <th className="pb-2">Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="py-6 text-center text-gray-400">Aucune session de clôture enregistrée</td>
-              </tr>
-            ) : (
-              sessions.map(s => (
-                <tr key={s.id} className="border-b last:border-0">
-                  <td className="py-2">{s.type}</td>
-                  <td className="py-2">{s.periode}</td>
-                  <td className="py-2">
-                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                      s.statut === 'CLOTUREE' ? 'bg-green-100 text-green-700'
-                        : s.statut === 'ANNULEE' ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {s.statut}
-                    </span>
-                  </td>
-                  <td className="py-2">{s.progression}%</td>
-                  <td className="py-2 text-gray-500">{s.dateCreation.slice(0, 10)}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+// ============================================================================
+// SESSIONS SECTION (onglet dédié)
+// ============================================================================
+
+function SessionsSection({ sessions, loading }: {
+  sessions: DBClosureSession[];
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        <span className="ml-2 text-gray-500">Chargement...</span>
       </div>
+    );
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-5">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <History className="w-5 h-5 text-gray-500" />
+        Sessions de clôture
+        <span className="text-sm font-normal text-gray-500">({sessions.length})</span>
+      </h2>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b text-left text-gray-500">
+            <th className="pb-2">Type</th>
+            <th className="pb-2">Période</th>
+            <th className="pb-2">Statut</th>
+            <th className="pb-2">Progression</th>
+            <th className="pb-2">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sessions.length === 0 ? (
+            <tr>
+              <td colSpan={5} className="py-6 text-center text-gray-400">Aucune session de clôture enregistrée</td>
+            </tr>
+          ) : (
+            sessions.map(s => (
+              <tr key={s.id} className="border-b last:border-0">
+                <td className="py-2">{s.type}</td>
+                <td className="py-2">{s.periode}</td>
+                <td className="py-2">
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    s.statut === 'CLOTUREE' ? 'bg-green-100 text-green-700'
+                      : s.statut === 'ANNULEE' ? 'bg-red-100 text-red-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}>
+                    {s.statut}
+                  </span>
+                </td>
+                <td className="py-2">{s.progression}%</td>
+                <td className="py-2 text-gray-500">{s.dateCreation.slice(0, 10)}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
