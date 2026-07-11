@@ -12,6 +12,7 @@
  * vues). On passe par le client Supabase authentifié porté par l'adapter.
  */
 import type { DataAdapter } from '@atlas/data';
+import { sha256Hex } from '../../../utils/integrity';
 
 export interface ActualExploitationRow {
   tenant_id: string;
@@ -46,12 +47,16 @@ export interface TreasuryActualRow {
   flux_net: number;
 }
 
+export type BudgetVersionType = 'initial' | 'revise' | 'forecast' | 'atterrissage';
+export type BudgetVersionStatut =
+  | 'brouillon' | 'soumis' | 'valide' | 'approuve' | 'verrouille' | 'obsolete';
+
 export interface BudgetVersion {
   id: string;
   fiscal_year_id: string;
   libelle: string;
-  type: 'initial' | 'revise' | 'atterrissage';
-  statut: 'brouillon' | 'valide' | 'verrouille';
+  type: BudgetVersionType;
+  statut: BudgetVersionStatut;
   is_active: boolean;
 }
 
@@ -466,6 +471,11 @@ export interface BudgetVersionFull extends BudgetVersion {
   created_at: string;
   fiscal_year_code?: string;
   nb_lignes?: number;
+  numero?: number;
+  campagne_id?: string | null;
+  hash_sha256?: string | null;
+  verrouille_le?: string | null;
+  verrouille_par?: string | null;
 }
 
 export async function listBudgetVersions(adapter: DataAdapter): Promise<BudgetVersionFull[]> {
@@ -473,7 +483,7 @@ export async function listBudgetVersions(adapter: DataAdapter): Promise<BudgetVe
   if (!client) return [];
   const { data } = await client
     .from('budget_versions')
-    .select('id,fiscal_year_id,libelle,type,statut,is_active,validated_at,created_at')
+    .select('id,fiscal_year_id,libelle,type,statut,is_active,validated_at,created_at,numero,campagne_id,hash_sha256,verrouille_le,verrouille_par')
     .order('created_at', { ascending: false });
   const versions = (data ?? []) as BudgetVersionFull[];
   // compteur de lignes par version
@@ -487,22 +497,116 @@ export async function listBudgetVersions(adapter: DataAdapter): Promise<BudgetVe
   return versions;
 }
 
-/** Transition de statut. validate => 'valide' (validated_at/by) ; lock => 'verrouille'. */
+/**
+ * Snapshot DÉTERMINISTE du contenu d'une version (méta + lignes + phasage 12 mois),
+ * pour hachage. L'ordre stable est indispensable : le hash doit être reproductible
+ * à l'identique (sinon la vérification de chaîne échoue à tort).
+ */
+async function buildVersionSnapshot(client: any, versionId: string): Promise<string> {
+  const { data: v } = await client
+    .from('budget_versions').select('id,fiscal_year_id,type,numero').eq('id', versionId).single();
+  const { data: lines } = await client
+    .from('budget_lines').select('id,budget_type,account_code,section_id').eq('version_id', versionId);
+  const arr = (lines ?? []) as any[];
+  const ids = arr.map((l) => l.id);
+  const perByLine = new Map<string, Record<number, number>>();
+  if (ids.length) {
+    const { data: periods } = await client
+      .from('budget_line_periods').select('budget_line_id,period,montant_prevu').in('budget_line_id', ids);
+    for (const p of (periods ?? [])) {
+      if (!perByLine.has(p.budget_line_id)) perByLine.set(p.budget_line_id, {});
+      perByLine.get(p.budget_line_id)![Number(p.period)] = Number(p.montant_prevu) || 0;
+    }
+  }
+  const snapshotLines = arr
+    .map((l) => ({
+      budget_type: l.budget_type,
+      account_code: l.account_code,
+      section_id: l.section_id ?? '',
+      periods: Array.from({ length: 12 }, (_, i) => perByLine.get(l.id)?.[i + 1] ?? 0),
+    }))
+    .sort((a, b) =>
+      (a.account_code + a.budget_type + a.section_id).localeCompare(b.account_code + b.budget_type + b.section_id));
+  return JSON.stringify({
+    version: { id: v.id, fiscal_year_id: v.fiscal_year_id, type: v.type, numero: v.numero ?? 1 },
+    lines: snapshotLines,
+  });
+}
+
+/** Hash de la dernière version verrouillée du même exercice (chaînage), ou '' si aucune. */
+async function previousLockedHash(client: any, fiscalYearId: string, exceptId: string): Promise<string> {
+  const { data } = await client
+    .from('budget_versions')
+    .select('hash_sha256,verrouille_le')
+    .eq('fiscal_year_id', fiscalYearId).eq('statut', 'verrouille').neq('id', exceptId)
+    .not('hash_sha256', 'is', null)
+    .order('verrouille_le', { ascending: false }).limit(1);
+  return data?.[0]?.hash_sha256 ?? '';
+}
+
+/**
+ * Transition de statut de version.
+ *   valide/approuve => horodatage + validated_by
+ *   verrouille      => versions immuables (§A5) : calcule le hash SHA-256 du contenu,
+ *                      chaîné sur la dernière version verrouillée du même exercice,
+ *                      et fige verrouille_le/par. Ensuite les lignes deviennent
+ *                      immuables (trigger budget_lines_lock_guard).
+ */
 export async function setVersionStatut(
   adapter: DataAdapter,
   versionId: string,
-  statut: 'brouillon' | 'valide' | 'verrouille',
+  statut: BudgetVersionStatut,
 ): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
+  const { data: u } = await client.auth.getUser();
+  const uid = u?.user?.id ?? null;
   const patch: any = { statut };
-  if (statut === 'valide') {
+  if (statut === 'valide' || statut === 'approuve') {
     patch.validated_at = new Date().toISOString();
-    const { data: u } = await client.auth.getUser();
-    if (u?.user?.id) patch.validated_by = u.user.id;
+    if (uid) patch.validated_by = uid;
+  }
+  if (statut === 'verrouille') {
+    const { data: v } = await client
+      .from('budget_versions').select('fiscal_year_id').eq('id', versionId).single();
+    const prev = await previousLockedHash(client, v.fiscal_year_id, versionId);
+    const snapshot = await buildVersionSnapshot(client, versionId);
+    patch.hash_sha256 = await sha256Hex(`${snapshot}|${prev}`);
+    patch.verrouille_le = new Date().toISOString();
+    if (uid) patch.verrouille_par = uid;
   }
   const { error } = await client.from('budget_versions').update(patch).eq('id', versionId);
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Vérifie l'intégrité de la chaîne des versions verrouillées d'un exercice :
+ * recalcule chaque hash (contenu + hash précédent) et le compare au hash figé.
+ * Renvoie la 1re version dont le hash ne correspond plus (contenu altéré), ou null.
+ */
+export async function verifyVersionChain(
+  adapter: DataAdapter,
+  fiscalYearId: string,
+): Promise<{ valid: boolean; brokenVersionId?: string; checked: number }> {
+  const client = getClient(adapter);
+  if (!client) return { valid: true, checked: 0 };
+  const { data } = await client
+    .from('budget_versions')
+    .select('id,hash_sha256')
+    .eq('fiscal_year_id', fiscalYearId).eq('statut', 'verrouille')
+    .not('hash_sha256', 'is', null)
+    .order('verrouille_le', { ascending: true });
+  const versions = (data ?? []) as Array<{ id: string; hash_sha256: string }>;
+  let prev = '';
+  let checked = 0;
+  for (const v of versions) {
+    const snapshot = await buildVersionSnapshot(client, v.id);
+    const expected = await sha256Hex(`${snapshot}|${prev}`);
+    if (expected !== v.hash_sha256) return { valid: false, brokenVersionId: v.id, checked };
+    prev = v.hash_sha256;
+    checked++;
+  }
+  return { valid: true, checked };
 }
 
 export async function setVersionActive(adapter: DataAdapter, versionId: string, fiscalYearId: string): Promise<void> {

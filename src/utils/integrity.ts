@@ -19,6 +19,13 @@ export interface HashableEntry {
   hash?: string;
 }
 
+/** Generic SHA-256 hex digest of an arbitrary string payload (canonical hashing primitive). */
+export async function sha256Hex(payload: string): Promise<string> {
+  const data = new TextEncoder().encode(payload);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 /** Compute SHA-256 hash for a journal entry, chained to previous hash */
 export async function hashEntry(entry: HashableEntry, previousHash: string = ''): Promise<string> {
   const payload = JSON.stringify({

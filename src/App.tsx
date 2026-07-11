@@ -145,6 +145,8 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 
 // Tresorerie
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
+const BudgetHubPage = lazyRetry(() => import('./pages/budget/BudgetHubPage'));
+const BudgetEngagementsPage = lazyRetry(() => import('./pages/budget/BudgetEngagementsPage'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetTablePage = lazyRetry(() => import('./pages/budgeting/BudgetTablePage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
@@ -181,11 +183,7 @@ const AssetsDisposals = lazyRetry(() => import('./pages/assets/AssetsDisposals')
 const AssetsMaintenance = lazyRetry(() => import('./pages/assets/AssetsMaintenance'));
 const InventairePhysiquePage = lazyRetry(() => import('./pages/assets/InventairePhysiquePage'));
 
-// Budget
-const BudgetingDashboard = lazyRetry(() => import('./pages/budgeting/BudgetingDashboard'));
-const BudgetsPage = lazyRetry(() => import('./pages/budgeting/BudgetsPage'));
-const BudgetControlPage = lazyRetry(() => import('./pages/budgeting/BudgetControlPage'));
-const BudgetDetailPage = lazyRetry(() => import('./pages/budgeting/BudgetDetailPage'));
+// Budget — module legacy /budgeting retiré (refonte OPEX/CAPEX D2) : routes redirigées vers /budget
 
 // Clotures
 const ClosureModulesIndex = lazyRetry(() => import('./pages/closures/ClosureModulesIndex'));
@@ -419,10 +417,12 @@ function App() {
                           <Route path="/accounting/ratios" element={<FinancialRatiosPage />} />
                           <Route path="/accounting/reports" element={<ReportsPageAccounting />} />
                           <Route path="/accounting/cross-controls" element={work(<CrossControlsPage />)} />
+                          <Route path="/budget" element={work(<BudgetHubPage />)} />
                           <Route path="/budget/cockpit" element={work(<BudgetCockpitPage />)} />
                           <Route path="/budget/table" element={work(<BudgetTablePage />)} />
                           <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
                           <Route path="/budget/investissement" element={work(<BudgetInvestissementPage />)} />
+                          <Route path="/budget/engagements" element={work(<BudgetEngagementsPage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />
@@ -491,14 +491,9 @@ function App() {
 
                         {/* Budget */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><FeatureErrorBoundary feature="Budget" /></RBACGuard>}>
-                          <Route path="/budgeting" element={<BudgetingDashboard />} />
-                          <Route path="/budgeting/list" element={work(<BudgetsPage />)} />
-                          <Route path="/budgeting/control" element={work(<BudgetControlPage />)} />
-                          {/* BudgetDetailPage lit ses params via useSearchParams (?compte=…),
-                              pas via :id — la route query-based doit exister sinon le drill-down
-                              depuis BudgetRecapPage (/budgeting/detail?compte=…) ne matche pas. */}
-                          <Route path="/budgeting/detail" element={work(<BudgetDetailPage />)} />
-                          <Route path="/budgeting/detail/:id" element={work(<BudgetDetailPage />)} />
+                          {/* Legacy /budgeting retiré (D2) → redirection vers le module unifié /budget */}
+                          <Route path="/budgeting" element={<Navigate to="/budget" replace />} />
+                          <Route path="/budgeting/*" element={<Navigate to="/budget" replace />} />
                         </Route>
 
                         {/* Clotures */}

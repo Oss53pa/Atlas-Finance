@@ -19,8 +19,7 @@ export * from './useTreasury';
 // Tiers
 export * from './useThirdParty';
 
-// Budget & Contrôle de gestion
-export * from './useBudgeting';
+// Budget & Contrôle de gestion — module legacy /budgeting retiré (refonte OPEX/CAPEX, D2)
 
 // Utilitaires
 export * from './useAuth';
