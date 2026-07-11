@@ -29,6 +29,24 @@ async function tenantOf(client: any): Promise<string | null> {
 }
 const num = (v: any) => Number(v) || 0;
 
+// ── Business Case (enregistrement principal capex_requests) ──────────────────
+/** Charge un Business Case complet (tous champs capex_requests). */
+export async function getBcRequest(adapter: DataAdapter, id: string): Promise<any | null> {
+  const client = getClient(adapter);
+  if (!client) return null;
+  const { data, error } = await client.from('capex_requests').select('*').eq('id', id).single();
+  if (error) return null;
+  return data;
+}
+
+/** MAJ générique des champs BC (sponsor, obligatoire, urgence, classe_immo, statut BC, etc.). */
+export async function updateBcFields(adapter: DataAdapter, id: string, patch: Record<string, any>): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('SaaS uniquement.');
+  const { error } = await client.from('capex_requests').update(patch).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
 // ── Lignes de coût ───────────────────────────────────────────────────────────
 export async function listCostLines(adapter: DataAdapter, requestId: string): Promise<BcCostLine[]> {
   const client = getClient(adapter);
