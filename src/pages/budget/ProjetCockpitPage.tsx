@@ -5,13 +5,14 @@
  * courbe en S (cumuls mensuels plan / engagé / réalisé), alertes CPX. Réalisé = GL
  * classe 2 ventilé sur la section projet ; engagé = registre ; plan = phasage BC.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { getProjet, getProjetExecution, type CapexProjet, type ProjetExecution } from '../../features/budget/services/carService';
-import { Rocket, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { commissionProject, type CommissioningResult } from '../../features/budget/services/commissioningService';
+import { Rocket, Loader2, ArrowLeft, AlertTriangle, PackageCheck } from 'lucide-react';
 
 const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
@@ -48,6 +49,9 @@ const ProjetCockpitPage: React.FC = () => {
   const [exec, setExec] = useState<ProjetExecution | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [comm, setComm] = useState<CommissioningResult | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +68,12 @@ const ProjetCockpitPage: React.FC = () => {
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
+  }, [adapter, id, refreshKey]);
+
+  const commission = useCallback(async () => {
+    setBusy(true); setError(null);
+    try { const r = await commissionProject(adapter, id); setComm(r); setRefreshKey((k) => k + 1); }
+    catch (e: any) { setError(e?.message || 'Échec mise en service'); } finally { setBusy(false); }
   }, [adapter, id]);
 
   const reste = useMemo(() => exec ? exec.approprie - exec.engage - exec.realise : 0, [exec]);
@@ -93,7 +103,22 @@ const ProjetCockpitPage: React.FC = () => {
           <h1 className="text-xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Rocket className="w-5 h-5 text-[#235A6E]" /> {projet.code} · {projet.libelle}</h1>
           <p className="text-xs text-neutral-500">statut {projet.statut}{projet.date_mise_en_service_cible && ` · mise en service cible ${projet.date_mise_en_service_cible}`}</p>
         </div>
+        <div className="flex-1" />
+        {projet.statut === 'en_execution' && (
+          <button onClick={commission} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E89A2E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />} Mettre en service
+          </button>
+        )}
       </header>
+
+      {comm && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-900 px-4 py-3 text-sm space-y-1">
+          <div className="font-medium text-emerald-700 dark:text-emerald-300">Immobilisation {comm.assetCode} créée (base {formatCurrency(comm.base)}).</div>
+          <div className="text-xs text-emerald-700/80 dark:text-emerald-300/80 font-mono">
+            Écriture à valider en comptabilité : débit {comm.ecriture.debit_account} / crédit {comm.ecriture.credit_account} · {formatCurrency(comm.ecriture.montant)}
+          </div>
+        </div>
+      )}
 
       {alerts.map((a, i) => (
         <div key={i} className={`rounded-xl border px-4 py-3 text-sm flex items-center gap-2 ${a.sev === 'danger' ? 'border-red-200 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'}`}>
