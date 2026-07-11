@@ -18,6 +18,11 @@ function fmtLocalDate(d: Date): string {
 
 const TRIMESTRE_LABEL = ['1er', '2e', '3e', '4e'];
 
+/** closed_by / reopened_by sont des colonnes UUID : n'écrire que si l'identifiant
+ *  fourni est un UUID valide (le front peut passer un libellé ou undefined). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (v?: string): v is string => !!v && UUID_RE.test(v);
+
 export function useFiscalPeriods(fiscalYearId?: string) {
   const { adapter } = useData();
   const [periods, setPeriods] = useState<DBFiscalPeriod[]>([]);
@@ -151,21 +156,21 @@ export function useFiscalPeriods(fiscalYearId?: string) {
     await load();
   }, [adapter, load]);
 
-  const lockPeriod = useCallback(async (periodId: string, userId: string) => {
+  const lockPeriod = useCallback(async (periodId: string, userId?: string) => {
     await adapter.update<DBFiscalPeriod>('fiscalPeriods', periodId, {
       status: 'cloturee',
       closedAt: new Date().toISOString(),
-      closedBy: userId,
+      ...(isUuid(userId) ? { closedBy: userId } : {}),
       progression: 100,
     });
     await load();
   }, [adapter, load]);
 
-  const unlockPeriod = useCallback(async (periodId: string, userId: string) => {
+  const unlockPeriod = useCallback(async (periodId: string, userId?: string) => {
     await adapter.update<DBFiscalPeriod>('fiscalPeriods', periodId, {
       status: 'rouverte',
       reopenedAt: new Date().toISOString(),
-      reopenedBy: userId,
+      ...(isUuid(userId) ? { reopenedBy: userId } : {}),
     });
     await load();
   }, [adapter, load]);

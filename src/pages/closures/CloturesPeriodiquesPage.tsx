@@ -5,6 +5,7 @@
  */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { getClosureSessions } from '../../services/closureService';
 import { closureOrchestrator } from '../../services/cloture/closureOrchestrator';
 import type { ClotureStep, ClotureContext } from '../../services/cloture/closureOrchestrator';
@@ -122,6 +123,7 @@ const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] =
 
 function CloturesPeriodiquesPage() {
   const { adapter } = useData();
+  const { user } = useAuth();
   const [mode, setMode] = useState<ClotureMode>('mensuelle');
   const [tab, setTab] = useState<TabId>('dashboard');
 
@@ -147,6 +149,7 @@ function CloturesPeriodiquesPage() {
   } = useFiscalPeriods(selectedFYId);
   // Garde anti-double-génération (par exercice) pour l'auto-création
   const autoGenRef = useRef<Set<string>>(new Set());
+  const [genState, setGenState] = useState<'idle' | 'generating' | 'error'>('idle');
 
   // Execution state
   const [steps, setSteps] = useState<ClotureStep[]>([]);
@@ -229,16 +232,30 @@ function CloturesPeriodiquesPage() {
   // =========================================================================
 
   // Auto-génération des périodes dès qu'un exercice est sélectionné (mode mensuel).
+  // Une SEULE tentative par exercice : en cas d'échec on passe en état 'error'
+  // (retry manuel), jamais de boucle automatique.
   useEffect(() => {
     if (mode !== 'mensuelle') return;
     if (!selectedFYId || periodsLoading) return;
-    if (periods.length > 0) return;
+    if (periods.length > 0) { setGenState('idle'); return; }
     if (autoGenRef.current.has(selectedFYId)) return;
     autoGenRef.current.add(selectedFYId);
-    createPeriodsForFY(selectedFYId, periodicite).catch(() => {
-      autoGenRef.current.delete(selectedFYId); // autorise une nouvelle tentative en cas d'échec
-    });
-  }, [mode, selectedFYId, periodsLoading, periods.length, periodicite, createPeriodsForFY]);
+    setGenState('generating');
+    createPeriodsForFY(selectedFYId, periodicite)
+      .then(() => setGenState('idle'))
+      .catch((err) => {
+        setGenState('error');
+        console.error('[auto-gen periods]', err);
+        toast.error(err instanceof Error ? err.message : 'Échec de génération des périodes');
+      });
+  }, [mode, selectedFYId, periodsLoading, periods.length, periodicite, createPeriodsForFY, genState]);
+
+  // Retry manuel après un échec de génération.
+  const handleRetryGen = () => {
+    if (!selectedFYId) return;
+    autoGenRef.current.delete(selectedFYId);
+    setGenState('idle'); // relance l'effet ci-dessus
+  };
 
   // Changement de périodicité → régénère les périodes (si aucune n'est clôturée).
   const handlePeriodiciteChange = async (next: Periodicite) => {
@@ -260,7 +277,7 @@ function CloturesPeriodiquesPage() {
   const handleLockPeriod = async () => {
     if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
     try {
-      await lockPeriod(selectedPeriodId, 'comptable');
+      await lockPeriod(selectedPeriodId, user?.id);
       toast.success('Période verrouillée');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
@@ -270,7 +287,7 @@ function CloturesPeriodiquesPage() {
   const handleUnlockPeriod = async () => {
     if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
     try {
-      await unlockPeriod(selectedPeriodId, 'comptable');
+      await unlockPeriod(selectedPeriodId, user?.id);
       toast.success('Période réouverte');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
@@ -287,7 +304,7 @@ function CloturesPeriodiquesPage() {
       adapter,
       exerciceId: selectedFYId,
       mode: 'manual',
-      userId: 'comptable',
+      userId: user?.id || 'comptable',
       openingExerciceId: openingFYId || undefined,
       periodId: selectedPeriodId || undefined,
       periodCode: period?.code,
@@ -418,6 +435,20 @@ function CloturesPeriodiquesPage() {
                       </option>
                     ))}
                   </select>
+                ) : genState === 'error' ? (
+                  <div className="w-full px-3 py-2 text-sm border border-red-200 rounded bg-red-50 text-red-700 flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                      Échec de génération
+                    </span>
+                    <button
+                      onClick={handleRetryGen}
+                      className="flex items-center gap-1 px-2 py-0.5 text-xs bg-white border border-red-300 rounded hover:bg-red-100"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Réessayer
+                    </button>
+                  </div>
                 ) : (
                   <div className="w-full px-3 py-2 text-sm border border-gray-200 rounded bg-gray-50 text-gray-400 flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -109,6 +109,11 @@ function entryInClosurePeriod(e: any, ctx: ClotureContext, fy: DBFiscalYear): bo
   return e.date >= fy.startDate && e.date <= fy.endDate;
 }
 
+/** closed_by / reopened_by = colonnes UUID : n'écrire l'identifiant que s'il est
+ *  un UUID valide (ctx.userId peut être un libellé comme « comptable »). */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (v?: string): v is string => !!v && UUID_RE.test(v);
+
 // ============================================================================
 // STEPS DEFINITION — 15 étapes SYSCOHADA révisé
 // ============================================================================
@@ -853,7 +858,7 @@ export const closureOrchestrator = {
     await adapter.update('fiscalPeriods', periodId, {
       status: 'rouverte',
       reopenedAt: new Date().toISOString(),
-      reopenedBy: userId,
+      ...(isUuid(userId) ? { reopenedBy: userId } : {}),
     });
     await adapter.logAudit({
       action: 'PERIOD_REOPENED',
@@ -994,7 +999,7 @@ export const closureOrchestrator = {
         await ctx.adapter.update('fiscalPeriods', ctx.periodId, {
           status: 'cloturee',
           closedAt: new Date().toISOString(),
-          closedBy: ctx.userId,
+          ...(isUuid(ctx.userId) ? { closedBy: ctx.userId } : {}),
           progression: 100,
         });
         await ctx.adapter.logAudit({
