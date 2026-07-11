@@ -20,7 +20,7 @@ import { listOrgTree, type SectionOrgNode } from '../../features/budget/services
 import { Grid3x3, Loader2, Plus, Save, Lock, ArrowLeft, Trash2 } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-type Row = { id?: string; account_code: string; periods: Record<number, number>; dirty: boolean; source?: string };
+type Row = { id?: string; account_code: string; periods: Record<number, number>; dirty: boolean; source?: string; commentaire?: string };
 
 const rowTotal = (r: Row) => Array.from({ length: 12 }, (_, i) => r.periods[i + 1] || 0).reduce((a, b) => a + b, 0);
 /** Répartit un montant annuel en 12 (le dernier mois absorbe le reste d'arrondi). */
@@ -42,6 +42,8 @@ const BudgetMatrixGridPage: React.FC = () => {
   const [section, setSection] = useState<SectionOrgNode | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [refN1, setRefN1] = useState<Record<string, number>>({});
+  const [refN1Monthly, setRefN1Monthly] = useState<Record<string, Record<number, number>>>({});
+  const [taux, setTaux] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,14 +65,18 @@ const BudgetMatrixGridPage: React.FC = () => {
           const all = await getBudgetLinesWithPeriods(adapter, v.id);
           lines = all
             .filter((l) => l.section_id === sectionId && (l.nature === 'opex' || l.budget_type === 'exploitation'))
-            .map((l) => ({ id: l.id, account_code: l.account_code, periods: l.periods, dirty: false, source: l.source_prefill ?? undefined }));
+            .map((l) => ({ id: l.id, account_code: l.account_code, periods: l.periods, dirty: false, source: l.source_prefill ?? undefined, commentaire: l.commentaire ?? undefined }));
         }
-        // référence réel N-1 (société, par compte)
+        // référence réel N-1 (société) : total par compte + détail mensuel
         const n1 = await getActualExploitation(adapter, String(Number(a) - 1));
         const ref: Record<string, number> = {};
-        for (const r of n1) if (r.classe === '6') ref[r.account_code] = (ref[r.account_code] || 0) + r.montant_realise;
+        const refMonthly: Record<string, Record<number, number>> = {};
+        for (const r of n1) if (r.classe === '6') {
+          ref[r.account_code] = (ref[r.account_code] || 0) + r.montant_realise;
+          (refMonthly[r.account_code] ??= {})[r.period] = (refMonthly[r.account_code][r.period] || 0) + r.montant_realise;
+        }
         if (cancelled) return;
-        setAnnee(a); setVersion(v); setSection(sec); setRows(lines); setRefN1(ref);
+        setAnnee(a); setVersion(v); setSection(sec); setRows(lines); setRefN1(ref); setRefN1Monthly(refMonthly);
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Erreur de chargement');
       } finally {
@@ -86,6 +92,9 @@ const BudgetMatrixGridPage: React.FC = () => {
   const setAccount = useCallback((idx: number, code: string) => {
     setRows((rs) => rs.map((r, i) => i === idx ? { ...r, account_code: code, dirty: true } : r));
   }, []);
+  const setComment = useCallback((idx: number, val: string) => {
+    setRows((rs) => rs.map((r, i) => i === idx ? { ...r, commentaire: val, dirty: true } : r));
+  }, []);
   const setTotal = useCallback((idx: number, val: string) => {
     const annual = Number(val) || 0;
     setRows((rs) => rs.map((r, i) => i === idx ? { ...r, periods: spread12(annual), dirty: true, source: 'n1_indexe' } : r));
@@ -99,6 +108,30 @@ const BudgetMatrixGridPage: React.FC = () => {
       return { ...r, periods: spread12(total), dirty: true, source: 'n1' };
     }));
   }, [refN1]);
+
+  /**
+   * Pré-remplissage global depuis le réel N-1 (recopie mois par mois), éventuellement
+   * indexé de `taux` %. Génère les lignes manquantes pour tous les comptes classe 6
+   * présents en N-1, met à jour celles déjà là. ZBB = tout remettre à 0.
+   */
+  const applyFromN1 = useCallback((indexed: boolean) => {
+    const factor = indexed ? 1 + (Number(taux) || 0) / 100 : 1;
+    setRows((rs) => {
+      const map = new Map(rs.map((r) => [r.account_code, { ...r }]));
+      for (const [code, months] of Object.entries(refN1Monthly)) {
+        const periods: Record<number, number> = {};
+        for (let m = 1; m <= 12; m++) periods[m] = Math.round((months[m] || 0) * factor * 100) / 100;
+        const ex = map.get(code);
+        if (ex) { ex.periods = periods; ex.dirty = true; ex.source = indexed ? 'n1_indexe' : 'n1'; }
+        else map.set(code, { account_code: code, periods, dirty: true, source: indexed ? 'n1_indexe' : 'n1' });
+      }
+      return [...map.values()];
+    });
+  }, [refN1Monthly, taux]);
+
+  const zbbAll = useCallback(() => {
+    setRows((rs) => rs.map((r) => ({ ...r, periods: {}, dirty: true, source: 'zbb' })));
+  }, []);
 
   const columnTotals = useMemo(() => {
     const t: Record<number, number> = {};
@@ -117,6 +150,7 @@ const BudgetMatrixGridPage: React.FC = () => {
         await saveBudgetLine(adapter, version.id, {
           id: r.id, budget_type: 'exploitation', account_code: r.account_code.trim(),
           section_id: sectionId, periods: r.periods, nature: 'opex', source_prefill: r.source ?? 'manuel',
+          commentaire: r.commentaire ?? null,
         });
       }
       setNotice(`${toSave.length} ligne(s) enregistrée(s).`);
@@ -162,6 +196,21 @@ const BudgetMatrixGridPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
 
+      {!loading && version && !locked && (
+        <div className="flex items-center gap-2 flex-wrap text-sm bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2">
+          <span className="text-xs font-medium text-neutral-500">Pré-remplir :</span>
+          <button onClick={() => applyFromN1(false)} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-[#235A6E]">N-1 (mensuel)</button>
+          <span className="inline-flex items-center gap-1">
+            <button onClick={() => applyFromN1(true)} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-[#235A6E]">N-1 indexé</button>
+            <input value={taux} onChange={(e) => setTaux(e.target.value)} placeholder="%" type="number"
+              className="w-14 px-1.5 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-xs font-mono" />
+            <span className="text-xs text-neutral-400">%</span>
+          </span>
+          <button onClick={zbbAll} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-red-400">ZBB (vider)</button>
+          <span className="text-xs text-neutral-400">puis Enregistrer</span>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : !version ? (
@@ -197,6 +246,11 @@ const BudgetMatrixGridPage: React.FC = () => {
                       ) : (
                         <input value={r.account_code} onChange={(e) => setAccount(idx, e.target.value)} disabled={locked}
                           placeholder="6132" className="w-24 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm" />
+                      )}
+                      {(r.id || r.account_code) && (
+                        <input value={r.commentaire ?? ''} onChange={(e) => setComment(idx, e.target.value)} disabled={locked}
+                          placeholder="justification…" title="Justification de la ligne"
+                          className="mt-1 w-full max-w-[200px] px-1.5 py-0.5 rounded border border-transparent hover:border-neutral-200 dark:hover:border-neutral-600 bg-transparent text-[11px] text-neutral-500 focus:border-[#235A6E] focus:outline-none" />
                       )}
                     </td>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (

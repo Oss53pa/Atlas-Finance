@@ -286,6 +286,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     control: [
       // — Pilotage budgétaire — (saisie & import = actions en modale depuis le cockpit)
       { id: 'budget-hub', label: 'Hub Budgétaire', path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'budget-campagne', label: 'Campagne', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" /> },
       { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-table', label: 'Table & Import', path: '/budget/table', icon: <FileBarChart className="w-4 h-4" /> },
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
