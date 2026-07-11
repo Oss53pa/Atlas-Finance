@@ -93,3 +93,48 @@ export async function getProjet(adapter: DataAdapter, id: string): Promise<Capex
   const { data } = await client.from('capex_projets').select('*').eq('id', id).limit(1);
   return data?.[0] ?? null;
 }
+
+export interface ExecPoint { period: number; planCumul: number; engageCumul: number; realiseCumul: number; }
+export interface ProjetExecution { approprie: number; engage: number; realise: number; points: ExecPoint[]; }
+
+/**
+ * Exécution d'un projet (courbe en S) : cumuls mensuels plan / engagé / réalisé.
+ *  - approprié = montant du BC (Σ lignes de coût)
+ *  - plan = phasage des lignes de coût (periode_prevue)
+ *  - engagé = engagements du registre portant la section projet (net restant)
+ *  - réalisé = GL classe 2 ventilé sur la section projet (v_actual_by_section)
+ */
+export async function getProjetExecution(adapter: DataAdapter, projet: CapexProjet, annee: string): Promise<ProjetExecution> {
+  const client = getClient(adapter);
+  const empty: ProjetExecution = { approprie: 0, engage: 0, realise: 0, points: [] };
+  if (!client) return empty;
+
+  const { data: bc } = await client.from('capex_requests').select('montant').eq('id', projet.request_id).single();
+  const approprie = Number(bc?.montant) || 0;
+
+  const plan = new Array(12).fill(0), eng = new Array(12).fill(0), real = new Array(12).fill(0);
+
+  const { data: costs } = await client.from('capex_bc_lignes_cout').select('montant,periode_prevue').eq('request_id', projet.request_id);
+  for (const c of (costs || [])) {
+    const m = c.periode_prevue ? new Date(c.periode_prevue).getMonth() : 0;
+    plan[Math.max(0, Math.min(11, m))] += Number(c.montant) || 0;
+  }
+
+  if (projet.section_analytique_projet_id) {
+    const { data: es } = await client.from('budget_engagements')
+      .select('periode,montant_initial,montant_facture,montant_degage,statut')
+      .eq('capex_section_projet_id', projet.section_analytique_projet_id);
+    for (const e of (es || [])) {
+      if (e.statut === 'annule') continue;
+      const m = new Date(e.periode).getMonth();
+      eng[Math.max(0, Math.min(11, m))] += Math.max(0, Number(e.montant_initial) - Number(e.montant_facture) - Number(e.montant_degage));
+    }
+  }
+
+  const { data: rs } = await client.from('v_actual_by_section').select('period,classe,montant').eq('section_code', projet.code).eq('annee', annee);
+  for (const r of (rs || [])) if (String(r.classe) === '2') real[Number(r.period) - 1] += Number(r.montant) || 0;
+
+  let pc = 0, ec = 0, rc = 0; const points: ExecPoint[] = [];
+  for (let m = 0; m < 12; m++) { pc += plan[m]; ec += eng[m]; rc += real[m]; points.push({ period: m + 1, planCumul: pc, engageCumul: ec, realiseCumul: rc }); }
+  return { approprie, engage: ec, realise: rc, points };
+}

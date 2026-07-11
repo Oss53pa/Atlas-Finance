@@ -105,7 +105,7 @@ const BCStepperPage: React.FC = () => {
 
   const emit = useCallback(async () => {
     setBusy(true); setError(null); setNotice(null);
-    try { const r = await emitCar(adapter, id); setNotice(`CAR émis — projet ${r.code} créé (statut car_emis).`); setRefreshKey((k) => k + 1); }
+    try { const r = await emitCar(adapter, id); setNotice(`CAR émis — projet ${r.code} créé.`); navigate(`/capex/projet/${r.projectId}`); }
     catch (e: any) { setError(e?.message || 'Échec émission CAR'); } finally { setBusy(false); }
   }, [adapter, id]);
 
