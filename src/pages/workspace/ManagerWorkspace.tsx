@@ -9,6 +9,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
+import BannettePage from '../validation/BannettePage';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import SecurityActions from '../../components/security/SecurityActions';
@@ -60,7 +61,7 @@ const ManagerWorkspace: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<'workspace' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
+  const [activeSection, setActiveSection] = useState<'workspace' | 'bannette' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -85,7 +86,6 @@ const ManagerWorkspace: React.FC = () => {
   const stats = mgrStats ?? { ca: 0, charges: 0, marge: 0, treasury: 0 };
 
   const atlasFinanceLinks = [
-    { id: 'bannette', label: 'Bannette (à valider)', icon: Inbox, path: '/bannette' },
     { id: 'dashboard', label: "Tableau de bord", icon: BarChart3, path: '/dashboard' },
     { id: 'reports', label: 'Rapports', icon: FileText, path: '/reporting' },
     { id: 'budgets', label: 'Budgets', icon: Target, path: '/budget' },
@@ -393,6 +393,7 @@ const ManagerWorkspace: React.FC = () => {
               <div className="space-y-1">
                 {[
                   {id:'workspace',label:'Accueil',icon:LayoutDashboard,badge: undefined as string | undefined},
+                  {id:'bannette',label:'Bannette',icon:Inbox,badge: undefined as string | undefined},
                   {id:'tasks',label:'Mes taches',icon:ListTodo,badge: undefined as string | undefined},
                   {id:'chat',label:'Chat equipe',icon:MessageSquare,badge: undefined as string | undefined},
                   {id:'profile',label:'Mon profil',icon:User,badge: undefined as string | undefined},
@@ -420,6 +421,7 @@ const ManagerWorkspace: React.FC = () => {
         </aside>
         <main className="flex-1 min-h-[calc(100vh-73px)] overflow-auto">
           {activeSection === 'workspace' && renderWorkspace()}
+          {activeSection === 'bannette' && <div className="p-4"><BannettePage /></div>}
           {activeSection === 'tasks' && <div className="p-4"><CompleteTasksModule /></div>}
           {activeSection === 'chat' && <div className="p-4"><CollaborationModule /></div>}
           {activeSection === 'profile' && renderProfile()}
