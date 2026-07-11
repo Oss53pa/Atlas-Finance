@@ -249,6 +249,9 @@ const InventoryValuation = lazyRetry(() => import('./pages/inventory/InventoryVa
 const StockDashboard = lazyRetry(() => import('./pages/stock/StockDashboard'));
 const StockMaterials = lazyRetry(() => import('./pages/stock/MaterialsPage'));
 const StockWarehouses = lazyRetry(() => import('./pages/stock/WarehousesPage'));
+const StockMovements = lazyRetry(() => import('./pages/stock/MovementsPage'));
+const StockValuation = lazyRetry(() => import('./pages/stock/ValuationPage'));
+const StockGlSetup = lazyRetry(() => import('./pages/stock/GlSetupPage'));
 
 // Treasury extensions (Correction #3)
 const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
@@ -596,6 +599,9 @@ function App() {
                           <Route path="/stock" element={work(<StockDashboard />)} />
                           <Route path="/stock/materials" element={work(<StockMaterials />)} />
                           <Route path="/stock/warehouses" element={work(<StockWarehouses />)} />
+                          <Route path="/stock/movements" element={work(<StockMovements />)} />
+                          <Route path="/stock/valuation" element={work(<StockValuation />)} />
+                          <Route path="/stock/gl-setup" element={work(<StockGlSetup />)} />
                         </Route>
 
                         {/* Fiscalite */}

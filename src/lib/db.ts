@@ -881,6 +881,23 @@ class AtlasFnADB extends Dexie {
   collabTaskComments!: Table<DBCollabTaskComment, string>;
   collabPresence!: Table<DBCollabPresence, string>;
   collabDocuments!: Table<DBCollabDocument, string>;
+  // Module Stock (SAP MM)
+  stockSites!: Table<DBStockSite, string>;
+  stockWarehouses!: Table<DBStockWarehouse, string>;
+  stockLocations!: Table<DBStockLocation, string>;
+  stockMaterials!: Table<DBStockMaterial, string>;
+  stockQuants!: Table<DBStockQuant, string>;
+  stockMovementTypes!: Table<DBStockMovementType, string>;
+  stockGlDetermination!: Table<DBStockGlDetermination, string>;
+  stockDocuments!: Table<any, string>;
+  stockDocumentLines!: Table<any, string>;
+  stockValuationLayers!: Table<any, string>;
+  stockBatches!: Table<any, string>;
+  stockSerials!: Table<any, string>;
+  stockUomConversions!: Table<any, string>;
+  stockCountDocuments!: Table<any, string>;
+  stockCountLines!: Table<any, string>;
+  stockReservations!: Table<any, string>;
   constructor() {
     super('AtlasFnADB');
     this.version(1).stores({
@@ -1080,6 +1097,25 @@ class AtlasFnADB extends Dexie {
     // v12 — Documents versionnés des espaces de résolution
     this.version(12).stores({
       collabDocuments: 'id, tenantId, spaceId, name, version, uploadedAt, [spaceId+name]',
+    });
+    // Module Stock (SAP MM)
+    this.version(13).stores({
+      stockSites: 'id, code',
+      stockWarehouses: 'id, code, siteId, type',
+      stockLocations: 'id, code, warehouseId',
+      stockMaterials: 'id, code, materialType, valuationClass, active',
+      stockQuants: 'id, materialId, warehouseId, locationId, batchId, serialId, stockStatus',
+      stockMovementTypes: 'id, code, direction, special',
+      stockGlDetermination: 'id, valuationClass, transactionKey',
+      stockDocuments: 'id, docNumber, docDate, movementTypeCode, status',
+      stockDocumentLines: 'id, documentId, materialId, warehouseId, direction',
+      stockValuationLayers: 'id, materialId, warehouseId, inDate',
+      stockBatches: 'id, materialId, batchNumber',
+      stockSerials: 'id, materialId, serialNumber, status',
+      stockUomConversions: 'id, materialId',
+      stockCountDocuments: 'id, docNumber, warehouseId, status',
+      stockCountLines: 'id, countDocId, materialId',
+      stockReservations: 'id, materialId, warehouseId, status',
     });
   }
 }

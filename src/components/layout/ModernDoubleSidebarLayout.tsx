@@ -337,6 +337,9 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'stock-dashboard', label: 'Tableau de bord', path: '/stock', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'stock-materials', label: 'Articles', path: '/stock/materials', icon: <Boxes className="w-4 h-4" /> },
       { id: 'stock-warehouses', label: 'Magasins & emplacements', path: '/stock/warehouses', icon: <Warehouse className="w-4 h-4" /> },
+      { id: 'stock-movements', label: 'Mouvements', path: '/stock/movements', icon: <ArrowRightLeft className="w-4 h-4" /> },
+      { id: 'stock-valuation', label: 'Valorisation', path: '/stock/valuation', icon: <Calculator className="w-4 h-4" /> },
+      { id: 'stock-gl-setup', label: 'Détermination comptable', path: '/stock/gl-setup', icon: <Settings className="w-4 h-4" /> },
     ],
     closures: [
       { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
