@@ -722,6 +722,10 @@ function CycleExecutionSection({
           const isDone = step.status === 'done';
           const isError = step.status === 'error';
           const isPending = step.status === 'pending';
+          // Garde de pré-requis : le verrouillage reste désactivé tant que les
+          // étapes précédentes ne sont pas toutes vertes (intégrité SYSCOHADA).
+          const isLockStep = /VERROUILLAGE/i.test(step.id);
+          const lockBlocked = isLockStep && steps.slice(0, index).some(s => s.status !== 'done');
 
           return (
             <div
@@ -782,7 +786,8 @@ function CycleExecutionSection({
               {/* Execute button */}
               <button
                 onClick={() => onExecuteStep(step.id)}
-                disabled={executing || missingSelection || isDone}
+                disabled={executing || missingSelection || isDone || lockBlocked}
+                title={lockBlocked ? 'Terminez les étapes précédentes avant de verrouiller' : undefined}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-shrink-0 ${
                   isDone
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
