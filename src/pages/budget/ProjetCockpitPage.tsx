@@ -12,7 +12,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { getProjet, getProjetExecution, type CapexProjet, type ProjetExecution } from '../../features/budget/services/carService';
 import { commissionProject, type CommissioningResult } from '../../features/budget/services/commissioningService';
-import { Rocket, Loader2, ArrowLeft, AlertTriangle, PackageCheck } from 'lucide-react';
+import { Rocket, Loader2, ArrowLeft, AlertTriangle, PackageCheck, ClipboardCheck } from 'lucide-react';
 
 const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
@@ -107,6 +107,11 @@ const ProjetCockpitPage: React.FC = () => {
         {projet.statut === 'en_execution' && (
           <button onClick={commission} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E89A2E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />} Mettre en service
+          </button>
+        )}
+        {projet.statut === 'mis_en_service' && (
+          <button onClick={() => navigate(`/capex/pir/${projet.id}`)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90">
+            <ClipboardCheck className="w-4 h-4" /> PIR
           </button>
         )}
       </header>
