@@ -70,6 +70,23 @@ export type TableName =
   | 'collabTaskComments'
   | 'collabPresence'
   | 'collabDocuments'
+  // Module Stock (SAP MM) — L0
+  | 'stockSites'
+  | 'stockWarehouses'
+  | 'stockLocations'
+  | 'stockMaterials'
+  | 'stockUomConversions'
+  | 'stockBatches'
+  | 'stockSerials'
+  | 'stockQuants'
+  | 'stockValuationLayers'
+  | 'stockMovementTypes'
+  | 'stockGlDetermination'
+  | 'stockDocuments'
+  | 'stockDocumentLines'
+  | 'stockCountDocuments'
+  | 'stockCountLines'
+  | 'stockReservations'
 
 export interface QueryFilters {
   where?: Record<string, any>

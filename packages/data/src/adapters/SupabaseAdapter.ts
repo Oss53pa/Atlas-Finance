@@ -62,6 +62,23 @@ const TABLE_MAP: Record<TableName, string> = {
   collabTaskComments: 'collab_task_comments',
   collabPresence: 'collab_presence',
   collabDocuments: 'collab_documents',
+  // Module Stock (SAP MM) — L0
+  stockSites: 'stock_sites',
+  stockWarehouses: 'stock_warehouses',
+  stockLocations: 'stock_locations',
+  stockMaterials: 'stock_materials',
+  stockUomConversions: 'stock_uom_conversions',
+  stockBatches: 'stock_batches',
+  stockSerials: 'stock_serials',
+  stockQuants: 'stock_quants',
+  stockValuationLayers: 'stock_valuation_layers',
+  stockMovementTypes: 'stock_movement_types',
+  stockGlDetermination: 'stock_gl_determination',
+  stockDocuments: 'stock_documents',
+  stockDocumentLines: 'stock_document_lines',
+  stockCountDocuments: 'stock_count_documents',
+  stockCountLines: 'stock_count_lines',
+  stockReservations: 'stock_reservations',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -234,6 +251,23 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   collab_task_comments: normalizeGeneric,
   collab_presence:      normalizeGeneric,
   collab_documents:     normalizeGeneric,
+  // Module Stock (SAP MM) — L0 : alias camelCase génériques
+  stock_sites:             normalizeGeneric,
+  stock_warehouses:        normalizeGeneric,
+  stock_locations:         normalizeGeneric,
+  stock_materials:         normalizeGeneric,
+  stock_uom_conversions:   normalizeGeneric,
+  stock_batches:           normalizeGeneric,
+  stock_serials:           normalizeGeneric,
+  stock_quants:            normalizeGeneric,
+  stock_valuation_layers:  normalizeGeneric,
+  stock_movement_types:    normalizeGeneric,
+  stock_gl_determination:  normalizeGeneric,
+  stock_documents:         normalizeGeneric,
+  stock_document_lines:    normalizeGeneric,
+  stock_count_documents:   normalizeGeneric,
+  stock_count_lines:       normalizeGeneric,
+  stock_reservations:      normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {
