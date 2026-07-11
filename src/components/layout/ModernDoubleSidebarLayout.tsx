@@ -34,6 +34,7 @@ import ModernButton from '../ui/ModernButton';
 import LanguageSelector from '../ui/LanguageSelector';
 import MoneyFormatToggle from './MoneyFormatToggle';
 import { useData } from '../../contexts/DataContext';
+import { groupTabsForPath, GroupTabs } from '../../pages/budget/BudgetGroupTabs';
 
 interface MenuItem {
   id: string;
@@ -43,6 +44,8 @@ interface MenuItem {
   badge?: string | number;
   submenu?: MenuItem[];
   ariaLabel?: string;
+  /** Routes membres d'une entrée-groupe (à onglets) : surligne l'entrée sur ces chemins. */
+  matchPrefixes?: string[];
 }
 
 interface Notification {
@@ -284,29 +287,18 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'effets-commerce', label: 'Effets de Commerce', path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
     ],
     control: [
-      // — Pilotage budgétaire — (saisie & import = actions en modale depuis le cockpit)
+      // Entrées-groupes : le détail est en onglets dans chaque page (voir BudgetGroupTabs).
       { id: 'budget-hub', label: 'Hub Budgétaire', path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
-      { id: 'budget-campagne', label: 'Campagne', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" /> },
-      { id: 'budget-cockpit', label: 'Cockpit Budgétaire', path: '/budget/cockpit', icon: <Activity className="w-4 h-4" /> },
-      { id: 'budget-table', label: 'Table & Import', path: '/budget/table', icon: <FileBarChart className="w-4 h-4" /> },
-      { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'budget-revenus', label: 'Budget des revenus', path: '/budget/revenus', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
-      { id: 'capex-portfolio', label: 'Portefeuille CAPEX', path: '/capex', icon: <Layers className="w-4 h-4" /> },
-      { id: 'capex-priorisation', label: 'Priorisation CAPEX', path: '/capex/priorisation', icon: <ChartBar className="w-4 h-4" /> },
-      { id: 'capex-enveloppe', label: 'Enveloppe CAPEX', path: '/capex/enveloppe', icon: <PiggyBank className="w-4 h-4" /> },
-      { id: 'capex-reaffectations', label: 'Réaffectations', path: '/capex/reaffectations', icon: <ArrowLeftRight className="w-4 h-4" /> },
-      { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" /> },
-      { id: 'budget-lettrage', label: 'Lettrage budgétaire', path: '/budget/lettrage', icon: <Link className="w-4 h-4" /> },
-      { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
-      { id: 'budget-pnl', label: 'Résultat budgétaire', path: '/budget/pnl', icon: <Calculator className="w-4 h-4" /> },
-      { id: 'budget-alertes', label: 'Alertes budgétaires', path: '/budget/alertes', icon: <Bell className="w-4 h-4" /> },
-      { id: 'budget-snapshots', label: 'Snapshots', path: '/budget/snapshots', icon: <Archive className="w-4 h-4" /> },
-      { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
-      // — Analytique — (sections = centres de coûts/profit, sur données live)
-      { id: 'analytique-sections', label: 'Comptabilité Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" /> },
-      { id: 'ventilation', label: 'Moteur de Ventilation', path: '/budget/ventilation', icon: <Split className="w-4 h-4" /> },
-      // — Analyse avancée —
+      { id: 'budget-elaboration', label: 'Élaboration', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" />,
+        matchPrefixes: ['/budget/campagne', '/budget/table', '/budget/revenus', '/budget/saisie', '/budget/import', '/budget/versions'] },
+      { id: 'budget-suivi', label: 'Suivi budgétaire', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" />,
+        matchPrefixes: ['/budget/cockpit', '/budget/exploitation', '/budget/ecarts', '/budget/pnl', '/budget/alertes', '/budget/snapshots'] },
+      { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" />,
+        matchPrefixes: ['/budget/engagements', '/budget/lettrage'] },
+      { id: 'capex', label: 'Investissement (CAPEX)', path: '/capex', icon: <Package className="w-4 h-4" />,
+        matchPrefixes: ['/capex'] },
+      { id: 'analytique', label: 'Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" />,
+        matchPrefixes: ['/analytique', '/budget/ventilation'] },
       { id: 'variance', label: 'Analyse Financière Avancée', path: '/financial-analysis-advanced', icon: <ChartBar className="w-4 h-4" /> },
     ],
     assets: [
@@ -363,6 +355,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'control': 'control',
         'budget': 'control',
         'budgeting': 'control',
+        'capex': 'control',
         'analytics': 'control',
         'analytique': 'control',
         'financial-analysis-advanced': 'control',
@@ -404,6 +397,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   }, [navigate]);
 
   const isActive = useCallback((path: string) => location.pathname === path, [location.pathname]);
+  // Surlignage d'une entrée-groupe : actif sur son path OU l'un de ses chemins membres.
+  const isSecondaryActive = useCallback((item: MenuItem) => {
+    if (item.path && location.pathname === item.path) return true;
+    return (item.matchPrefixes || []).some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
+  }, [location.pathname]);
   const isModuleActive = useCallback((moduleId: string) => selectedModule === moduleId, [selectedModule]);
 
   // Breadcrumbs
@@ -611,22 +609,22 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-2.5 transition-all duration-200',
                   'hover:bg-[var(--color-surface-hover)]',
-                  isActive(item.path || '') && 'bg-[var(--color-primary-light)] border-l-4 border-[var(--color-primary)]'
+                  isSecondaryActive(item) && 'bg-[var(--color-primary-light)] border-l-4 border-[var(--color-primary)]'
                 )}
                 role="menuitem"
-                aria-current={isActive(item.path || '') ? 'page' : undefined}
+                aria-current={isSecondaryActive(item) ? 'page' : undefined}
               >
                 {item.icon && (
                   <div className={cn(
                     'transition-colors',
-                    isActive(item.path || '') ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-tertiary)]'
+                    isSecondaryActive(item) ? 'text-[var(--color-primary)]' : 'text-[var(--color-text-tertiary)]'
                   )}>
                     {item.icon}
                   </div>
                 )}
                 <span className={cn(
                   'flex-1 text-left text-sm',
-                  isActive(item.path || '') ? 'text-[var(--color-primary)] font-medium' : 'text-[var(--color-text-secondary)]'
+                  isSecondaryActive(item) ? 'text-[var(--color-primary)] font-medium' : 'text-[var(--color-text-secondary)]'
                 )}>
                   {item.label}
                 </span>
@@ -728,12 +726,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                           className={cn(
                             'w-full flex items-center gap-3 pl-12 pr-4 py-2 text-sm',
                             'hover:bg-[var(--color-sidebar-hover)]',
-                            isActive(subItem.path || '') && 'bg-[var(--color-sidebar-active-bg)] text-[var(--color-sidebar-active)]'
+                            isSecondaryActive(subItem) && 'bg-[var(--color-sidebar-active-bg)] text-[var(--color-sidebar-active)]'
                           )}
                         >
                           {subItem.icon}
                           <span className={cn(
-                            isActive(subItem.path || '') ? 'text-[var(--color-sidebar-active)]' : 'text-[var(--color-sidebar-text-secondary)]'
+                            isSecondaryActive(subItem) ? 'text-[var(--color-sidebar-active)]' : 'text-[var(--color-sidebar-text-secondary)]'
                           )}>
                             {subItem.label}
                           </span>
@@ -1063,6 +1061,10 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           data-company-name={companyName || undefined}
         >
           <div className="p-3 lg:p-4">
+            {/* Onglets du groupe Contrôle de Gestion (Élaboration/Suivi/Engagements/
+                Analytique/CAPEX) rendus une seule fois ici selon l'URL — évite de
+                dupliquer la barre dans chaque page. */}
+            {(() => { const gt = groupTabsForPath(location.pathname); return gt ? <div className="px-3 lg:px-4 mb-2"><GroupTabs tabs={gt} /></div> : null; })()}
             {/* Pas de `key={location.pathname}` : il remontait tout le sous-arbre
                 (guard + page) à chaque navigation, ce qui re-déclenchait la sonde
                 d'auth du RBACGuard et provoquait une page blanche jusqu'au refresh.

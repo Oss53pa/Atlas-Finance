@@ -342,6 +342,10 @@ function rapportMensuelDirection(): BlockFactory[] {
     h1('Alertes & Anomalies'),
     anomalyDetection(),
     prophetAnalysis('global'),
+    pageBreak(),
+    h1('Exécution Budgétaire'),
+    table('budget.execution', 'Budget / Engagé / Réalisé / Disponible'),
+    table('budget.ecarts_significatifs', 'Écarts significatifs'),
     backPage(),
   ];
 }

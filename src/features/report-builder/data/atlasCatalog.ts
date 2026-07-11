@@ -408,6 +408,18 @@ const tables: AtlasCatalogItem[] = [
     tags: ['budget', 'réel', 'écart', 'variance'],
   },
   {
+    id: 'tbl-budget-execution',
+    label: 'Exécution budgétaire',
+    description: 'Budget / Engagé / Réalisé / Disponible par classe (refonte OPEX/CAPEX)',
+    category: 'tables',
+    subcategory: 'Budget',
+    icon: 'target',
+    source: 'budget.execution',
+    blockType: 'table',
+    periodBound: true,
+    tags: ['budget', 'engagé', 'réalisé', 'disponible', 'exécution'],
+  },
+  {
     id: 'tbl-analytique-centres',
     label: 'Analytique par Centre',
     description: 'Résultat par centre analytique (coût/profit)',
