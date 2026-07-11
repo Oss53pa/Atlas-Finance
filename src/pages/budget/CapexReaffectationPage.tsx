@@ -6,6 +6,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
+import CapexTabs from './CapexTabs';
 import { formatCurrency } from '../../utils/formatters';
 import { listCapexRequests, type CapexRequest } from '../../features/budget/services/budgetService';
 import {
@@ -70,6 +71,7 @@ const CapexReaffectationPage: React.FC = () => {
 
   return (
     <div className="p-6 space-y-5 max-w-4xl mx-auto">
+      <CapexTabs />
       <header>
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Shuffle className="w-6 h-6 text-[#235A6E]" /> Réaffectations CAPEX</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Réaffectable = approprié − engagé ferme − réalisé · transit par l'enveloppe.</p>

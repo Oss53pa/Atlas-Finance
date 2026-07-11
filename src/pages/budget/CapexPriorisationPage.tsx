@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import CapexTabs from './CapexTabs';
 import { formatCurrency } from '../../utils/formatters';
 import { listCapexRequests } from '../../features/budget/services/budgetService';
 import { updateBcFields } from '../../features/budget/services/capexBcService';
@@ -77,6 +78,7 @@ const CapexPriorisationPage: React.FC = () => {
 
   return (
     <div className="p-6 space-y-5 max-w-5xl mx-auto">
+      <CapexTabs />
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Trophy className="w-6 h-6 text-[#235A6E]" /> Priorisation du portefeuille</h1>
