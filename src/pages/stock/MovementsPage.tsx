@@ -179,8 +179,11 @@ function MovementModal({ types, materials, warehouses, userId, onClose, onPosted
           </div>
 
           <div className="space-y-2">
-            {lines.map((l, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-end border border-gray-100 rounded-lg p-2 bg-gray-50">
+            {lines.map((l, i) => {
+              const mat = materials.find(m => m.id === l.materialId);
+              return (
+              <div key={i} className="border border-gray-100 rounded-lg p-2 bg-gray-50 space-y-2">
+              <div className="grid grid-cols-12 gap-2 items-end">
                 <div className="col-span-4">
                   <label className="block text-[10px] text-gray-400 mb-0.5">Article</label>
                   <select value={l.materialId} onChange={e => setLine(i, { materialId: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm">
@@ -218,7 +221,32 @@ function MovementModal({ types, materials, warehouses, userId, onClose, onPosted
                   )}
                 </div>
               </div>
-            ))}
+
+              {mat?.batchManaged && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-400 mb-0.5">N° de lot *</label>
+                    <input value={l.batchNumber ?? ''} onChange={e => setLine(i, { batchNumber: e.target.value })} placeholder="LOT-…" className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+                  </div>
+                  {isIn && (
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-0.5">Péremption</label>
+                      <input type="date" value={l.expiryDate ?? ''} onChange={e => setLine(i, { expiryDate: e.target.value })} className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm" />
+                    </div>
+                  )}
+                </div>
+              )}
+              {mat?.serialManaged && (
+                <div>
+                  <label className="block text-[10px] text-gray-400 mb-0.5">N° de série ({(l.serialNumbers?.filter(Boolean).length) || 0}/{l.quantity}) — un par ligne</label>
+                  <textarea rows={Math.min(4, Math.max(2, l.quantity))}
+                    value={(l.serialNumbers ?? []).join('\n')}
+                    onChange={e => setLine(i, { serialNumbers: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                    placeholder="SN-0001&#10;SN-0002" className="w-full border border-gray-300 rounded px-2 py-1.5 text-sm font-mono" />
+                </div>
+              )}
+              </div>
+            );})}
             <button onClick={addLine} className="flex items-center gap-1 px-2 py-1 text-xs text-[#235A6E] hover:bg-gray-50 rounded">
               <Plus className="w-3 h-3" /> Ajouter une ligne
             </button>

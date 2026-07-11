@@ -36,6 +36,13 @@ export interface MovementLineInput {
   /** Transfert : destination */
   toWarehouseId?: string;
   toLocationId?: string;
+  // --- L3 : lots & séries ---
+  /** Article géré par lot : n° de lot (créé à la réception s'il n'existe pas). */
+  batchNumber?: string;
+  /** Date de péremption/DLC du lot (à la création). */
+  expiryDate?: string;
+  /** Article géré par n° de série : liste des n° (longueur = quantité). */
+  serialNumbers?: string[];
 }
 
 export interface MovementInput {
@@ -117,6 +124,7 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
   // ---- 1. Valorisation + préparation des mutations & lignes GL ----------
   const glLines: DBJournalLine[] = [];
   const quantOps: { quant: DBStockQuant | null; segment: any; deltaQty: number; setValue?: number }[] = [];
+  const serialOps: { materialId: string; materialCode: string; batchId?: string | null; locationId?: string | null; direction: 'in' | 'out'; serials: string[] }[] = [];
   const materialAvgUpdates = new Map<string, number>();
   const docLines: any[] = [];
   let totalAmount = money(0);
@@ -128,6 +136,43 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
     const mat = materialById.get(l.materialId);
     if (!mat) throw new Error('Article introuvable');
     if (!(l.quantity > 0)) throw new Error('Quantité invalide');
+
+    // ---- L3 : résolution du lot (batch-managed) -------------------------
+    let lineBatchId = l.batchId;
+    if (mat.batchManaged) {
+      if (!lineBatchId && l.batchNumber?.trim()) {
+        const batches = await adapter.getAll<any>('stockBatches');
+        let b = batches.find((x: any) => x.materialId === mat.id && x.batchNumber === l.batchNumber!.trim());
+        if (!b) {
+          if (mt.direction === 'out') throw new Error(`Lot « ${l.batchNumber} » inconnu pour ${mat.code}`);
+          b = await adapter.create<any>('stockBatches', {
+            materialId: mat.id, batchNumber: l.batchNumber.trim(),
+            expiryDate: l.expiryDate ?? null, qualityStatus: 'libre',
+          });
+        }
+        lineBatchId = b.id;
+      }
+      if (!lineBatchId) throw new Error(`Article ${mat.code} géré par lot : n° de lot requis`);
+    }
+
+    // ---- L3 : validation des n° de série (serial-managed, hors transfert) --
+    if (mat.serialManaged && !isTransfer) {
+      const serials = (l.serialNumbers ?? []).map(s => s.trim()).filter(Boolean);
+      if (serials.length !== l.quantity) {
+        throw new Error(`Article ${mat.code} géré par n° de série : ${l.quantity} n° attendu(s), ${serials.length} fourni(s)`);
+      }
+      if (new Set(serials).size !== serials.length) throw new Error(`N° de série en double pour ${mat.code}`);
+      if (mt.direction === 'out') {
+        // valider la disponibilité AVANT tout post (fail-fast avant l'écriture GL)
+        const known = await adapter.getAll<any>('stockSerials');
+        for (const sn of serials) {
+          const s = known.find((x: any) => x.materialId === mat.id && x.serialNumber === sn);
+          if (!s) throw new Error(`N° série ${sn} inconnu pour ${mat.code}`);
+          if (s.status !== 'en_stock') throw new Error(`N° série ${sn} non disponible (statut ${s.status})`);
+        }
+      }
+      serialOps.push({ materialId: mat.id, materialCode: mat.code, batchId: lineBatchId ?? null, locationId: l.locationId ?? null, direction: mt.direction as 'in' | 'out', serials });
+    }
 
     // Stock courant de l'article (niveau article, tous quants)
     const matQuants = allQuants.filter(q => q.materialId === l.materialId && (q.stockStatus ?? 'libre') === 'libre');
@@ -163,7 +208,7 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
       const locId = direction === 'in' && isTransfer ? l.toLocationId : l.locationId;
       const segment = {
         materialId: l.materialId, warehouseId: whId, locationId: locId ?? null,
-        batchId: l.batchId ?? null, serialId: l.serialId ?? null, stockStatus: 'libre',
+        batchId: lineBatchId ?? null, serialId: l.serialId ?? null, stockStatus: 'libre',
       };
       const existing = allQuants.find(q =>
         q.materialId === segment.materialId && q.warehouseId === segment.warehouseId &&
@@ -199,7 +244,7 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
       docLines.push({
         lineNo: ++lineNo, materialId: l.materialId,
         warehouseId: whId, locationId: locId ?? null,
-        batchId: l.batchId ?? null, serialId: l.serialId ?? null,
+        batchId: lineBatchId ?? null, serialId: l.serialId ?? null,
         direction, quantity: l.quantity, unitCost, amount,
         toWarehouseId: isTransfer ? (l.toWarehouseId ?? null) : null,
         toLocationId: isTransfer ? (l.toLocationId ?? null) : null,
@@ -278,6 +323,30 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
         const take = Math.min(rem, Number(layer.remainingQty));
         await adapter.update('stockValuationLayers', layer.id, { remainingQty: Number(layer.remainingQty) - take } as any);
         rem -= take;
+      }
+    }
+  }
+
+  // ---- 3bis. Numéros de série (L3) --------------------------------------
+  if (serialOps.length > 0) {
+    const knownSerials = await adapter.getAll<any>('stockSerials');
+    for (const so of serialOps) {
+      for (const sn of so.serials) {
+        const existing = knownSerials.find((x: any) => x.materialId === so.materialId && x.serialNumber === sn);
+        if (so.direction === 'in') {
+          if (existing) {
+            await adapter.update('stockSerials', existing.id, {
+              status: 'en_stock', batchId: so.batchId ?? null, currentLocationId: so.locationId ?? null,
+            } as any);
+          } else {
+            await adapter.create('stockSerials', {
+              materialId: so.materialId, serialNumber: sn, batchId: so.batchId ?? null,
+              status: 'en_stock', currentLocationId: so.locationId ?? null,
+            } as any);
+          }
+        } else if (existing) {
+          await adapter.update('stockSerials', existing.id, { status: 'sorti' } as any);
+        }
       }
     }
   }

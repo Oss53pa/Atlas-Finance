@@ -26,7 +26,7 @@ async function seed() {
 
 describe('stockMovementService.postMovement', () => {
   beforeEach(async () => {
-    for (const t of ['stockWarehouses', 'stockMaterials', 'stockMovementTypes', 'stockGlDetermination', 'stockQuants', 'stockDocuments', 'stockDocumentLines', 'stockValuationLayers', 'journalEntries', 'fiscalYears', 'auditLogs']) {
+    for (const t of ['stockWarehouses', 'stockMaterials', 'stockMovementTypes', 'stockGlDetermination', 'stockQuants', 'stockDocuments', 'stockDocumentLines', 'stockValuationLayers', 'stockBatches', 'stockSerials', 'journalEntries', 'fiscalYears', 'auditLogs']) {
       await (db as any)[t].clear();
     }
   });
@@ -89,5 +89,71 @@ describe('stockMovementService.postMovement', () => {
     await expect(
       postMovement(adapter, { movementTypeCode: '201', date: '2024-03-10', lines: [{ materialId: matId, warehouseId: whId, quantity: 5 }] }),
     ).rejects.toThrow(/insuffisant/i);
+  });
+
+  it('lot (batch) : réception crée le lot et segmente le quant', async () => {
+    const { whId } = await seed();
+    const mat = await adapter.create<DBStockMaterial>('stockMaterials', {
+      code: 'ART-LOT', name: 'Article lot', materialType: 'marchandise', baseUom: 'U',
+      valuationMethod: 'CUMP', valuationClass: 'MARCH', movingAvgCost: 0, currency: 'XOF',
+      batchManaged: true, serialManaged: false, hazmat: false, active: true,
+    } as any);
+    await postMovement(adapter, {
+      movementTypeCode: '101', date: '2024-03-10',
+      lines: [{ materialId: mat.id, warehouseId: whId, quantity: 5, unitCost: 50, batchNumber: 'LOT-A', expiryDate: '2025-01-01' }],
+    });
+    const batches = await adapter.getAll<any>('stockBatches');
+    expect(batches).toHaveLength(1);
+    expect(batches[0].batchNumber).toBe('LOT-A');
+    const quants = await adapter.getAll<DBStockQuant>('stockQuants');
+    const q = quants.find(x => x.materialId === mat.id);
+    expect(q?.batchId).toBe(batches[0].id);
+    expect(q?.quantity).toBe(5);
+  });
+
+  it('lot manquant : refus si article géré par lot sans n° de lot', async () => {
+    const { whId } = await seed();
+    const mat = await adapter.create<DBStockMaterial>('stockMaterials', {
+      code: 'ART-LOT2', name: 'x', materialType: 'marchandise', baseUom: 'U', valuationMethod: 'CUMP',
+      valuationClass: 'MARCH', movingAvgCost: 0, currency: 'XOF', batchManaged: true, serialManaged: false, hazmat: false, active: true,
+    } as any);
+    await expect(postMovement(adapter, {
+      movementTypeCode: '101', date: '2024-03-10',
+      lines: [{ materialId: mat.id, warehouseId: whId, quantity: 1, unitCost: 10 }],
+    })).rejects.toThrow(/lot/i);
+  });
+
+  it('n° série : réception crée les séries en_stock, sortie les marque sorti', async () => {
+    const { whId } = await seed();
+    const mat = await adapter.create<DBStockMaterial>('stockMaterials', {
+      code: 'ART-SN', name: 'Article série', materialType: 'marchandise', baseUom: 'U', valuationMethod: 'CUMP',
+      valuationClass: 'MARCH', movingAvgCost: 0, currency: 'XOF', batchManaged: false, serialManaged: true, hazmat: false, active: true,
+    } as any);
+    await postMovement(adapter, {
+      movementTypeCode: '101', date: '2024-03-10',
+      lines: [{ materialId: mat.id, warehouseId: whId, quantity: 2, unitCost: 200, serialNumbers: ['SN-1', 'SN-2'] }],
+    });
+    let serials = await adapter.getAll<any>('stockSerials');
+    expect(serials.filter(s => s.status === 'en_stock')).toHaveLength(2);
+
+    await postMovement(adapter, {
+      movementTypeCode: '201', date: '2024-03-12',
+      lines: [{ materialId: mat.id, warehouseId: whId, quantity: 1, serialNumbers: ['SN-1'] }],
+    });
+    serials = await adapter.getAll<any>('stockSerials');
+    expect(serials.find(s => s.serialNumber === 'SN-1')?.status).toBe('sorti');
+    expect(serials.find(s => s.serialNumber === 'SN-2')?.status).toBe('en_stock');
+  });
+
+  it('n° série : refus si le nombre de n° ne correspond pas à la quantité', async () => {
+    const { whId } = await seed();
+    const mat = await adapter.create<DBStockMaterial>('stockMaterials', {
+      code: 'ART-SN2', name: 'x', materialType: 'marchandise', baseUom: 'U', valuationMethod: 'CUMP',
+      valuationClass: 'MARCH', movingAvgCost: 0, currency: 'XOF', batchManaged: false, serialManaged: true, hazmat: false, active: true,
+    } as any);
+    await expect(postMovement(adapter, {
+      movementTypeCode: '101', date: '2024-03-10',
+      lines: [{ materialId: mat.id, warehouseId: whId, quantity: 3, unitCost: 10, serialNumbers: ['SN-1'] }],
+    })).rejects.toThrow(/série/i);
   });
 });
