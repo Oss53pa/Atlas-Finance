@@ -76,7 +76,7 @@ const CapexPriorisationPage: React.FC = () => {
   }, [adapter]);
 
   return (
-    <div className="p-6 space-y-5 max-w-5xl mx-auto">
+    <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Trophy className="w-6 h-6 text-[#235A6E]" /> Priorisation du portefeuille</h1>

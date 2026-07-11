@@ -69,7 +69,7 @@ const CapexReaffectationPage: React.FC = () => {
   }, [adapter]);
 
   return (
-    <div className="p-6 space-y-5 max-w-4xl mx-auto">
+    <div className="p-6 space-y-5">
       <header>
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Shuffle className="w-6 h-6 text-[#235A6E]" /> Réaffectations CAPEX</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Réaffectable = approprié − engagé ferme − réalisé · transit par l'enveloppe.</p>
