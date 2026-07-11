@@ -17,7 +17,8 @@ import {
   getActualExploitation, type BudgetVersion,
 } from '../../features/budget/services/budgetService';
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
-import { Grid3x3, Loader2, Plus, Save, Lock, ArrowLeft, Trash2 } from 'lucide-react';
+import VolumesModal from './VolumesModal';
+import { Grid3x3, Loader2, Plus, Save, Lock, ArrowLeft, Trash2, Boxes } from 'lucide-react';
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 type Row = { id?: string; account_code: string; periods: Record<number, number>; dirty: boolean; source?: string; commentaire?: string };
@@ -51,6 +52,7 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [volumesLine, setVolumesLine] = useState<{ id: string; account: string } | null>(null);
 
   const locked = version?.statut === 'verrouille';
 
@@ -273,7 +275,10 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
                     </td>
                     {!locked && (
                       <td className="px-2 py-1">
-                        {!r.id && <button onClick={() => removeRow(idx)} className="p-1 text-neutral-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>}
+                        <div className="flex items-center gap-1">
+                          {isRevenus && r.id && <button onClick={() => setVolumesLine({ id: r.id!, account: r.account_code })} title="Volumes × prix" className="p-1 text-neutral-300 hover:text-[#235A6E]"><Boxes className="w-4 h-4" /></button>}
+                          {!r.id && <button onClick={() => removeRow(idx)} className="p-1 text-neutral-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>}
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -293,6 +298,10 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
             </tfoot>
           </table>
         </div>
+      )}
+      {volumesLine && (
+        <VolumesModal adapter={adapter} budgetLineId={volumesLine.id} accountCode={volumesLine.account}
+          onClose={() => setVolumesLine(null)} onSaved={() => setRefreshKey((k) => k + 1)} />
       )}
     </div>
   );
