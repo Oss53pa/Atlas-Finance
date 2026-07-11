@@ -14,7 +14,8 @@ import {
   MessageSquare, Smartphone, Workflow, RefreshCw, Wifi,
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
-  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split, Inbox
+  Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split, Inbox,
+  Boxes, Warehouse, PackageX, ArrowRightLeft, ClipboardList
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { themes } from '../../styles/theme';
@@ -35,6 +36,7 @@ import LanguageSelector from '../ui/LanguageSelector';
 import MoneyFormatToggle from './MoneyFormatToggle';
 import { useData } from '../../contexts/DataContext';
 import { groupTabsForPath, GroupTabs } from '../../pages/budget/BudgetGroupTabs';
+import { isStockModuleEnabled } from '../../services/stock/stockActivation';
 
 interface MenuItem {
   id: string;
@@ -80,6 +82,13 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   // formatés avec formatCompactCurrency reflètent immédiatement le choix.
   useMoneyFormatStore((s) => s.mode);
   const [companyName, setCompanyName] = useState<string>('');
+  // Module Stock : entrée de menu conditionnelle (« muet sans classe 3 »).
+  const [stockEnabled, setStockEnabled] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    isStockModuleEnabled(adapter).then(v => { if (alive) setStockEnabled(v); }).catch(() => {});
+    return () => { alive = false; };
+  }, [adapter]);
   useInvalidateOnEntryChange();
   useKeyboardShortcuts();
 
@@ -208,6 +217,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       ariaLabel: 'Gérer les immobilisations'
     },
     {
+      id: 'stock',
+      label: 'Stocks',
+      icon: <Boxes className="w-5 h-5" />,
+      ariaLabel: 'Gestion des stocks et magasins'
+    },
+    {
       id: 'closures',
       label: 'Clôtures',
       icon: <Lock className="w-5 h-5" />,
@@ -244,8 +259,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     if (PLAN_GATING_ENABLED && item.id === 'control' && isStarter && !hasFeature(tenantPlan, 'budget_analytique')) {
       return false;
     }
+    // Module Stock « muet » tant qu'il n'est pas activé (pas de classe 3).
+    if (item.id === 'stock' && !stockEnabled) {
+      return false;
+    }
     return true;
-  }), [t, user?.role, isStarter, tenantPlan, collabUnread.total]);
+  }), [t, user?.role, isStarter, tenantPlan, collabUnread.total, stockEnabled]);
 
   // Sous-menus restructurés et enrichis
   const secondaryMenuItems: Record<string, MenuItem[]> = useMemo(() => ({
@@ -314,6 +333,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'reevaluation', label: 'Réévaluation', path: '/assets/reevaluation', icon: <TrendingUp className="w-4 h-4" /> },
       { id: 'composants', label: 'Composants', path: '/assets/composants', icon: <Layers className="w-4 h-4" /> }
     ],
+    stock: [
+      { id: 'stock-dashboard', label: 'Tableau de bord', path: '/stock', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'stock-materials', label: 'Articles', path: '/stock/materials', icon: <Boxes className="w-4 h-4" /> },
+      { id: 'stock-warehouses', label: 'Magasins & emplacements', path: '/stock/warehouses', icon: <Warehouse className="w-4 h-4" /> },
+    ],
     closures: [
       { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
       { id: 'revisions', label: 'Révisions', path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
@@ -367,6 +391,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         'collaboration': 'collaboration',
         'gouvernance': 'validation',
         'inventory': 'assets',
+        'stock': 'stock',
         'taxation': 'reporting'
       };
       const newModule = routeMapping[moduleId] || 'dashboard';

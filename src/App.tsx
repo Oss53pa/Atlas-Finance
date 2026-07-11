@@ -245,6 +245,11 @@ const InventoryMovements = lazyRetry(() => import('./pages/inventory/InventoryMo
 const PhysicalInventory = lazyRetry(() => import('./pages/inventory/PhysicalInventory'));
 const InventoryValuation = lazyRetry(() => import('./pages/inventory/InventoryValuation'));
 
+// Stock (module SAP MM — nouveau socle)
+const StockDashboard = lazyRetry(() => import('./pages/stock/StockDashboard'));
+const StockMaterials = lazyRetry(() => import('./pages/stock/MaterialsPage'));
+const StockWarehouses = lazyRetry(() => import('./pages/stock/WarehousesPage'));
+
 // Treasury extensions (Correction #3)
 const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
 const CashRegisterPage = lazyRetry(() => import('./pages/treasury/CashRegisterPage'));
@@ -584,6 +589,13 @@ function App() {
                           <Route path="/inventory/movements" element={work(<InventoryMovements />)} />
                           <Route path="/inventory/physical" element={work(<PhysicalInventory />)} />
                           <Route path="/inventory/valuation" element={work(<InventoryValuation />)} />
+                        </Route>
+
+                        {/* Stock (module SAP MM) */}
+                        <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
+                          <Route path="/stock" element={work(<StockDashboard />)} />
+                          <Route path="/stock/materials" element={work(<StockMaterials />)} />
+                          <Route path="/stock/warehouses" element={work(<StockWarehouses />)} />
                         </Route>
 
                         {/* Fiscalite */}

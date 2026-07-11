@@ -272,6 +272,114 @@ export interface DBStockMovement {
   createdBy?: string;
 }
 
+// ===========================================================================
+// Module STOCK (SAP MM) — nouvelles entités (voir docs/stock-module/DESIGN.md)
+// ===========================================================================
+
+export type StockMaterialType =
+  | 'marchandise' | 'matiere' | 'fourniture' | 'emballage'
+  | 'produit_fini' | 'produit_encours' | 'service';
+export type StockValuationMethod = 'CUMP' | 'FIFO';
+
+export interface DBStockSite {
+  id: string;
+  code: string;
+  name: string;
+  address?: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DBStockWarehouse {
+  id: string;
+  siteId?: string;
+  code: string;
+  name: string;
+  type: 'principal' | 'transit' | 'qualite' | 'rebut' | 'consignation';
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DBStockLocation {
+  id: string;
+  warehouseId: string;
+  code: string;
+  name?: string;
+  type?: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DBStockMaterial {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  materialType: StockMaterialType;
+  category?: string;
+  baseUom: string;
+  purchaseUom?: string;
+  salesUom?: string;
+  valuationMethod: StockValuationMethod;
+  valuationClass: string;
+  movingAvgCost: number;
+  standardPrice?: number;
+  currency: string;
+  batchManaged: boolean;
+  serialManaged: boolean;
+  shelfLifeDays?: number;
+  hazmat: boolean;
+  reorderPoint?: number;
+  safetyStock?: number;
+  maxLevel?: number;
+  minOrderQty?: number;
+  leadTimeDays?: number;
+  defaultWarehouseId?: string;
+  defaultSupplierId?: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DBStockQuant {
+  id: string;
+  materialId: string;
+  warehouseId: string;
+  locationId?: string;
+  batchId?: string;
+  serialId?: string;
+  stockStatus: 'libre' | 'bloque' | 'qualite' | 'transit';
+  quantity: number;
+  value: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DBStockMovementType {
+  id: string;
+  code: string;
+  label: string;
+  direction: 'in' | 'out' | 'transfer';
+  postsGl: boolean;
+  reverses?: string;
+  special?: 'transfer' | 'physinv' | 'goods_receipt' | 'goods_issue' | 'scrap';
+  requiresReference: boolean;
+  active: boolean;
+}
+
+export interface DBStockGlDetermination {
+  id: string;
+  valuationClass: string;
+  transactionKey: 'BSX' | 'GBB' | 'WRX' | 'PRD' | 'UMB';
+  movementContext: string;
+  debitAccount?: string;
+  creditAccount?: string;
+  analytic: boolean;
+}
+
 export interface DBRecoveryCase {
   id: string;
   numeroRef: string;
