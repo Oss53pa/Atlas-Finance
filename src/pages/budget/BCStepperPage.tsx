@@ -19,7 +19,8 @@ import {
   type BcCostLine, type BcCashflow, type BcRisque, type BcMetrics, type TypeCout, type TypeCashflow,
 } from '../../features/budget/services/capexBcService';
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
-import { Layers, Loader2, Plus, Trash2, Calculator, ArrowLeft, Send } from 'lucide-react';
+import { emitCar } from '../../features/budget/services/carService';
+import { Layers, Loader2, Plus, Trash2, Calculator, ArrowLeft, Send, Banknote } from 'lucide-react';
 
 const STEPS = ['Identification', 'Catégorie', 'Contexte', 'Alternatives', 'Coûts', 'Bénéfices', 'Évaluation', 'Risques'];
 const CATEGORIES = ['croissance', 'remplacement', 'conformite_reglementaire', 'securite_hsse', 'productivite', 'it_digital'];
@@ -102,6 +103,12 @@ const BCStepperPage: React.FC = () => {
     catch (e: any) { setError(e?.message || 'Échec'); } finally { setBusy(false); }
   }, [patch]);
 
+  const emit = useCallback(async () => {
+    setBusy(true); setError(null); setNotice(null);
+    try { const r = await emitCar(adapter, id); setNotice(`CAR émis — projet ${r.code} créé (statut car_emis).`); setRefreshKey((k) => k + 1); }
+    catch (e: any) { setError(e?.message || 'Échec émission CAR'); } finally { setBusy(false); }
+  }, [adapter, id]);
+
   const totalCosts = useMemo(() => costs.reduce((s, c) => s + c.montant, 0), [costs]);
 
   if (loading) return <div className="flex items-center gap-2 text-neutral-500 py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
@@ -136,6 +143,11 @@ const BCStepperPage: React.FC = () => {
         {(bc.statut === 'brouillon' || bc.statut === 'demande') && (
           <button onClick={submit} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Soumettre
+          </button>
+        )}
+        {(bc.statut === 'approuve' || bc.statut === 'approuve_avec_conditions') && (
+          <button onClick={emit} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E89A2E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Banknote className="w-4 h-4" />} Émettre le CAR
           </button>
         )}
       </header>
