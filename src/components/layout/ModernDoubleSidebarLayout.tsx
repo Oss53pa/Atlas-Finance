@@ -291,6 +291,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'budget-exploitation', label: 'Budget vs Réalisé', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" /> },
       { id: 'budget-investissement', label: 'Investissement (CAPEX)', path: '/budget/investissement', icon: <Package className="w-4 h-4" /> },
       { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" /> },
+      { id: 'budget-lettrage', label: 'Lettrage budgétaire', path: '/budget/lettrage', icon: <Link className="w-4 h-4" /> },
       { id: 'budget-ecarts', label: 'Analyse des Écarts', path: '/budget/ecarts', icon: <Target className="w-4 h-4" /> },
       { id: 'budget-versions', label: 'Versions & Validation', path: '/budget/versions', icon: <Lock className="w-4 h-4" /> },
       // — Analytique — (sections = centres de coûts/profit, sur données live)

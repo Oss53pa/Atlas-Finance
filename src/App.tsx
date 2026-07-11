@@ -147,6 +147,7 @@ const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPar
 const TreasuryDashboard = lazyRetry(() => import('./pages/treasury/TreasuryDashboard'));
 const BudgetHubPage = lazyRetry(() => import('./pages/budget/BudgetHubPage'));
 const BudgetEngagementsPage = lazyRetry(() => import('./pages/budget/BudgetEngagementsPage'));
+const BudgetLettragePage = lazyRetry(() => import('./pages/budget/BudgetLettragePage'));
 const BudgetCockpitPage = lazyRetry(() => import('./pages/budget/BudgetCockpitPage'));
 const BudgetTablePage = lazyRetry(() => import('./pages/budgeting/BudgetTablePage'));
 const BudgetExploitationPage = lazyRetry(() => import('./pages/budget/BudgetExploitationPage'));
@@ -423,6 +424,7 @@ function App() {
                           <Route path="/budget/exploitation" element={work(<BudgetExploitationPage />)} />
                           <Route path="/budget/investissement" element={work(<BudgetInvestissementPage />)} />
                           <Route path="/budget/engagements" element={work(<BudgetEngagementsPage />)} />
+                          <Route path="/budget/lettrage" element={work(<BudgetLettragePage />)} />
                           <Route path="/budget/ecarts" element={work(<BudgetEcartsPage />)} />
                           <Route path="/budget/versions" element={work(<BudgetVersionsPage />)} />
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />
