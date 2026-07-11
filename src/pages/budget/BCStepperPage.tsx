@@ -53,6 +53,8 @@ const BCStepperPage: React.FC = () => {
   // création
   const [newLibelle, setNewLibelle] = useState('');
   const [newAccount, setNewAccount] = useState('');
+  const [newUrgence, setNewUrgence] = useState(false);
+  const [newSousMotif, setNewSousMotif] = useState('continuite_exploitation');
 
   useEffect(() => {
     if (isNew) { setLoading(false); return; }
@@ -86,7 +88,9 @@ const BCStepperPage: React.FC = () => {
         libelle: newLibelle, account_code: (newAccount || '2').trim(), montant: 0,
         duree_amortissement: 5, methode: 'lineaire',
       });
-      await updateBcFields(adapter, newId, { statut: 'brouillon' });
+      await updateBcFields(adapter, newId, newUrgence
+        ? { statut: 'brouillon', urgence: true, urgence_sous_motif: newSousMotif, categorie: 'urgence' }
+        : { statut: 'brouillon' });
       navigate(`/capex/bc/${newId}`, { replace: true });
     } catch (e: any) { setError(e?.message || 'Échec création'); } finally { setBusy(false); }
   }, [adapter, newLibelle, newAccount, navigate]);
@@ -120,6 +124,16 @@ const BCStepperPage: React.FC = () => {
         {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
         <Field label="Intitulé de l'investissement"><input value={newLibelle} onChange={(e) => setNewLibelle(e.target.value)} className={INP} placeholder="Extension entrepôt Nord" /></Field>
         <Field label="Compte d'immobilisation (classe 2)"><input value={newAccount} onChange={(e) => setNewAccount(e.target.value)} className={INP} placeholder="2313" /></Field>
+        <label className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+          <input type="checkbox" checked={newUrgence} onChange={(e) => setNewUrgence(e.target.checked)} /> CAPEX d'urgence (fast-track)
+        </label>
+        {newUrgence && (
+          <Field label="Sous-motif d'urgence (obligatoire)">
+            <select value={newSousMotif} onChange={(e) => setNewSousMotif(e.target.value)} className={INP}>
+              {['securite_personnes', 'continuite_exploitation', 'injonction_reglementaire', 'sinistre'].map((m) => <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>)}
+            </select>
+          </Field>
+        )}
         <div className="flex gap-2">
           <button onClick={() => navigate('/capex')} className="px-4 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">Annuler</button>
           <button onClick={create} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">{busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Créer le brouillon</button>
@@ -136,7 +150,10 @@ const BCStepperPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/capex')} className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
           <div>
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white">{bc.libelle}</h1>
+            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+              {bc.libelle}
+              {bc.urgence && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-300">URGENCE · {(bc.urgence_sous_motif || '').replace(/_/g, ' ')}</span>}
+            </h1>
             <p className="text-xs text-neutral-500">{bc.reference || 'BC'} · statut {bc.statut} · investissement {formatCurrency(totalCosts)}</p>
           </div>
         </div>
