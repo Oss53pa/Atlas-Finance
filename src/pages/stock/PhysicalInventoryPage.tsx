@@ -10,7 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import type { DBStockWarehouse, DBStockMaterial } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
 import {
-  listCountDocuments, getCountLines, createCountDocument, saveCount, validateCount,
+  listCountDocuments, getCountLines, createCountDocument, saveCount, saveCountSerials, validateCount,
   COUNT_TYPE_LABELS, type CountDocument, type CountLine,
 } from '../../services/stock/inventoryCountService';
 import StockModuleGate from './StockModuleGate';
@@ -179,6 +179,13 @@ function CountDetail({ doc, whLabel, userId, onBack }: {
     setLines(ls => ls.map(l => l.id === line.id ? { ...l, countedQty: counted, varianceQty: counted - l.bookQty, varianceValue: (counted - l.bookQty) * l.unitCost } : l));
   };
 
+  const onCountSerials = async (line: CountLine, value: string) => {
+    const serials = value.split('\n').map(s => s.trim()).filter(Boolean);
+    await saveCountSerials(adapter, line, serials);
+    const counted = serials.length;
+    setLines(ls => ls.map(l => l.id === line.id ? { ...l, countedQty: counted, countedSerials: serials, varianceQty: counted - l.bookQty, varianceValue: (counted - l.bookQty) * l.unitCost } : l));
+  };
+
   const validate = async () => {
     setValidating(true);
     try {
@@ -236,7 +243,11 @@ function CountDetail({ doc, whLabel, userId, onBack }: {
                       <td className="px-4 py-2">{m ? <span><span className="font-mono text-gray-500">{m.code}</span> — {m.name}</span> : l.materialId}</td>
                       <td className="px-4 py-2 text-right tabular-nums">{l.bookQty}</td>
                       <td className="px-4 py-2 text-right">
-                        {readOnly ? <span className="tabular-nums">{l.countedQty ?? '—'}</span> : (
+                        {readOnly ? <span className="tabular-nums">{l.countedQty ?? '—'}</span> : m?.serialManaged ? (
+                          <textarea rows={2} defaultValue={(l.countedSerials ?? []).join('\n')} onBlur={e => onCountSerials(l, e.target.value)}
+                            placeholder="n° série trouvés (un par ligne)"
+                            className="w-40 border border-gray-300 rounded px-2 py-1 text-xs font-mono" />
+                        ) : (
                           <input type="number" defaultValue={l.countedQty ?? ''} onBlur={e => onCount(l, e.target.value)}
                             className="w-24 border border-gray-300 rounded px-2 py-1 text-sm text-right" />
                         )}

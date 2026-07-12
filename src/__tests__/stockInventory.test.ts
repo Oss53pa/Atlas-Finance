@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../lib/db';
 import { createTestAdapter } from '../test/createTestAdapter';
 import { postMovement } from '../services/stock/stockMovementService';
-import { createCountDocument, getCountLines, saveCount, validateCount } from '../services/stock/inventoryCountService';
+import { createCountDocument, getCountLines, saveCount, saveCountSerials, validateCount } from '../services/stock/inventoryCountService';
 import type { DBStockMaterial, DBStockQuant, DBStockWarehouse, DBJournalEntry } from '../lib/db';
 
 const adapter = createTestAdapter();
@@ -26,7 +26,7 @@ async function seed() {
 
 describe('inventoryCountService', () => {
   beforeEach(async () => {
-    for (const t of ['stockWarehouses', 'stockMaterials', 'stockMovementTypes', 'stockGlDetermination', 'stockQuants', 'stockDocuments', 'stockDocumentLines', 'stockValuationLayers', 'stockCountDocuments', 'stockCountLines', 'journalEntries', 'fiscalYears', 'auditLogs']) {
+    for (const t of ['stockWarehouses', 'stockMaterials', 'stockMovementTypes', 'stockGlDetermination', 'stockQuants', 'stockDocuments', 'stockDocumentLines', 'stockValuationLayers', 'stockCountDocuments', 'stockCountLines', 'stockSerials', 'journalEntries', 'fiscalYears', 'auditLogs']) {
       await (db as any)[t].clear();
     }
   });
@@ -72,6 +72,28 @@ describe('inventoryCountService', () => {
     const adj = entries.find(e => e.lines.some(l => l.accountCode === '758'));
     expect(adj!.lines.find(l => l.accountCode === '311')?.debit).toBe(300);
     expect(adj!.lines.find(l => l.accountCode === '758')?.credit).toBe(300);
+  });
+
+  it('article sérialisé : les n° manquants génèrent une sortie 702 par n°', async () => {
+    const { whId } = await seed();
+    const mat = await adapter.create<any>('stockMaterials', {
+      code: 'SN', name: 'Série', materialType: 'marchandise', baseUom: 'U', valuationMethod: 'CUMP',
+      valuationClass: 'MARCH', movingAvgCost: 0, currency: 'XOF', batchManaged: false, serialManaged: true, hazmat: false, active: true,
+    });
+    await postMovement(adapter, { movementTypeCode: '101', date: '2024-03-01', lines: [{ materialId: mat.id, warehouseId: whId, quantity: 3, unitCost: 200, serialNumbers: ['SN-1', 'SN-2', 'SN-3'] }] });
+
+    const doc = await createCountDocument(adapter, { warehouseId: whId, countDate: '2024-03-31' });
+    const line = (await getCountLines(adapter, doc.id)).find(l => l.materialId === mat.id)!;
+    await saveCountSerials(adapter, line, ['SN-1', 'SN-2']); // SN-3 manquant
+
+    const res = await validateCount(adapter, doc.id);
+    expect(res.adjustments).toBe(1);
+
+    const serials = await adapter.getAll<any>('stockSerials');
+    expect(serials.find(s => s.serialNumber === 'SN-3')?.status).toBe('sorti');
+    expect(serials.filter(s => s.status === 'en_stock')).toHaveLength(2);
+    const q = (await adapter.getAll<DBStockQuant>('stockQuants')).find(x => x.materialId === mat.id)!;
+    expect(q.quantity).toBe(2);
   });
 
   it('sans écart : aucune régularisation', async () => {

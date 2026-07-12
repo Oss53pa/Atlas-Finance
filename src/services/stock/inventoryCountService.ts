@@ -20,6 +20,8 @@ export interface CountLine {
   id: string; countDocId: string; materialId: string; locationId?: string; batchId?: string;
   bookQty: number; countedQty?: number; varianceQty?: number; unitCost: number;
   varianceValue?: number; recount: boolean;
+  /** Articles sérialisés : n° de série physiquement trouvés. */
+  countedSerials?: string[];
 }
 
 function getClient(adapter: DataAdapter): any | null { return (adapter as any).client ?? null; }
@@ -81,6 +83,15 @@ export async function saveCount(adapter: DataAdapter, line: CountLine, countedQt
   await adapter.update('stockCountLines', line.id, { countedQty, varianceQty, varianceValue } as any);
 }
 
+/** Saisit les n° de série trouvés (articles sérialisés) : quantité = nombre de n°. */
+export async function saveCountSerials(adapter: DataAdapter, line: CountLine, serials: string[]): Promise<void> {
+  const clean = serials.map(s => s.trim()).filter(Boolean);
+  const countedQty = clean.length;
+  const varianceQty = money(countedQty).subtract(line.bookQty).toNumber();
+  const varianceValue = money(varianceQty).multiply(line.unitCost).toNumber();
+  await adapter.update('stockCountLines', line.id, { countedQty, varianceQty, varianceValue, countedSerials: clean } as any);
+}
+
 export interface ValidateResult { adjustments: number; skippedSerial: number; totalVarianceValue: number }
 
 /**
@@ -100,13 +111,43 @@ export async function validateCount(adapter: DataAdapter, docId: string, userId?
 
   let adjustments = 0, skippedSerial = 0;
   let totalVarianceValue = money(0);
+  const allSerials = await adapter.getAll<any>('stockSerials');
 
   for (const l of lines) {
-    if (l.countedQty == null || !l.varianceQty) continue; // non compté ou écart nul
+    if (l.countedQty == null) continue; // ligne non comptée
     const mat = matById.get(l.materialId);
-    // Les articles sérialisés nécessitent un comptage par n° de série (hors L4).
-    if (mat?.serialManaged) { skippedSerial++; continue; }
 
+    // --- Articles gérés par n° de série : ajustement par n° (manquants/en trop) ---
+    if (mat?.serialManaged) {
+      const found = new Set((l.countedSerials ?? []).map(s => String(s).trim()).filter(Boolean));
+      if (found.size === 0 && !l.varianceQty) continue;
+      const enStock = allSerials.filter((s: any) => s.materialId === l.materialId && s.status === 'en_stock');
+      const missing = enStock.filter((s: any) => !found.has(s.serialNumber)).map((s: any) => s.serialNumber);
+      const knownNumbers = new Set(allSerials.filter((s: any) => s.materialId === l.materialId).map((s: any) => s.serialNumber));
+      const extra = [...found].filter(sn => !knownNumbers.has(sn));
+
+      if (missing.length > 0) {
+        await postMovement(adapter, {
+          movementTypeCode: '702', date: doc.countDate, reference: doc.docNumber, userId,
+          lines: [{ materialId: l.materialId, warehouseId: doc.warehouseId, locationId: l.locationId, quantity: missing.length, serialNumbers: missing, reason: `Manquant inventaire ${doc.docNumber}` }],
+        });
+        adjustments++;
+        totalVarianceValue = totalVarianceValue.subtract(money(missing.length).multiply(l.unitCost).toNumber());
+      }
+      if (extra.length > 0) {
+        await postMovement(adapter, {
+          movementTypeCode: '701', date: doc.countDate, reference: doc.docNumber, userId,
+          lines: [{ materialId: l.materialId, warehouseId: doc.warehouseId, locationId: l.locationId, quantity: extra.length, unitCost: l.unitCost, serialNumbers: extra, reason: `Excédent inventaire ${doc.docNumber}` }],
+        });
+        adjustments++;
+        totalVarianceValue = totalVarianceValue.add(money(extra.length).multiply(l.unitCost).toNumber());
+      }
+      if (l.varianceQty && missing.length === 0 && extra.length === 0) skippedSerial++; // écart sans détail série
+      continue;
+    }
+
+    // --- Articles non sérialisés : ajustement par quantité (701/702 agrégé) ---
+    if (!l.varianceQty) continue;
     const positive = l.varianceQty > 0;
     await postMovement(adapter, {
       movementTypeCode: positive ? '701' : '702',

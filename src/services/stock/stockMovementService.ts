@@ -288,22 +288,7 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
       allQuants.push(created);
     }
   }
-  // CUMP article + revalorisation des quants (value = qté × CUMP)
-  for (const [matId, avg] of materialAvgUpdates) {
-    await adapter.update<DBStockMaterial>('stockMaterials', matId, { movingAvgCost: avg } as any);
-  }
-  // Recalcule value pour chaque article touché (cohérence dashboard)
-  const touched = new Set(input.lines.map(l => l.materialId));
-  const freshQuants = await adapter.getAll<DBStockQuant>('stockQuants');
-  for (const matId of touched) {
-    const mat = materialById.get(matId)!;
-    const avg = materialAvgUpdates.get(matId) ?? mat.movingAvgCost ?? 0;
-    for (const q of freshQuants.filter(q => q.materialId === matId)) {
-      const val = money(Number(q.quantity) || 0).multiply(avg).toNumber();
-      if (val !== Number(q.value)) await adapter.update<DBStockQuant>('stockQuants', q.id, { value: val } as any);
-    }
-  }
-  // Couches FIFO
+  // Couches FIFO — traitées AVANT la revalorisation (elles pilotent la valeur).
   for (const l of input.lines) {
     const mat = materialById.get(l.materialId)!;
     if (mat.valuationMethod !== 'FIFO') continue;
@@ -324,6 +309,31 @@ export async function postMovement(adapter: DataAdapter, input: MovementInput): 
         await adapter.update('stockValuationLayers', layer.id, { remainingQty: Number(layer.remainingQty) - take } as any);
         rem -= take;
       }
+    }
+  }
+  // Articles FIFO : coût moyen = moyenne pondérée des couches restantes (corrige
+  // la valorisation FIFO qui restait à 0 faute de CUMP entretenu).
+  const layersAll = await adapter.getAll<any>('stockValuationLayers');
+  for (const matId of new Set(input.lines.map(l => l.materialId))) {
+    const mat = materialById.get(matId)!;
+    if (mat.valuationMethod !== 'FIFO') continue;
+    const rem = layersAll.filter((v: any) => v.materialId === matId && Number(v.remainingQty) > 0);
+    const totQ = rem.reduce((s: number, v: any) => s + Number(v.remainingQty), 0);
+    const totV = rem.reduce((s: number, v: any) => s + money(Number(v.remainingQty)).multiply(Number(v.unitCost)).toNumber(), 0);
+    materialAvgUpdates.set(matId, totQ > 0 ? money(totV).divide(totQ).toNumber() : 0);
+  }
+  // CUMP/FIFO article + revalorisation des quants (value = qté × coût moyen)
+  for (const [matId, avg] of materialAvgUpdates) {
+    await adapter.update<DBStockMaterial>('stockMaterials', matId, { movingAvgCost: avg } as any);
+  }
+  const touched = new Set(input.lines.map(l => l.materialId));
+  const freshQuants = await adapter.getAll<DBStockQuant>('stockQuants');
+  for (const matId of touched) {
+    const mat = materialById.get(matId)!;
+    const avg = materialAvgUpdates.get(matId) ?? mat.movingAvgCost ?? 0;
+    for (const q of freshQuants.filter(q => q.materialId === matId)) {
+      const val = money(Number(q.quantity) || 0).multiply(avg).toNumber();
+      if (val !== Number(q.value)) await adapter.update<DBStockQuant>('stockQuants', q.id, { value: val } as any);
     }
   }
 

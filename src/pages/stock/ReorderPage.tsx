@@ -5,9 +5,13 @@
  */
 import React, { useEffect, useState, useCallback } from 'react';
 import { PackageX, Loader2, RefreshCw, TrendingDown, TrendingUp, Clock, CalendarClock, ShoppingCart } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { useData } from '../../contexts/DataContext';
 import { getReorderProposals, getStockAlerts, type ReorderProposal, type StockAlerts } from '../../services/stock/reorderService';
+import { generatePurchaseOrders } from '../../services/stock/purchaseOrderService';
 import StockModuleGate from './StockModuleGate';
+
+function todayISO2() { return new Date().toISOString().slice(0, 10); }
 
 function todayISO() { return new Date().toISOString().slice(0, 10); }
 
@@ -17,6 +21,8 @@ function ReorderInner() {
   const [alerts, setAlerts] = useState<StockAlerts | null>(null);
   const [suppliers, setSuppliers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [generating, setGenerating] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -33,6 +39,25 @@ function ReorderInner() {
   useEffect(() => { load(); }, [load]);
 
   const supplierName = (id?: string) => (id && suppliers[id]) ? suppliers[id] : (id ? id.slice(0, 8) : '—');
+
+  const toggle = (id: string) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleAll = () => setSelected(s => s.size === proposals.length ? new Set() : new Set(proposals.map(p => p.material.id)));
+
+  const generate = async () => {
+    const chosen = proposals.filter(p => selected.has(p.material.id));
+    if (chosen.length === 0) { toast.error('Sélectionnez au moins une proposition'); return; }
+    setGenerating(true);
+    try {
+      const res = await generatePurchaseOrders(adapter, chosen, todayISO2());
+      const msg = `${res.orders.length} commande(s) fournisseur créée(s) (brouillon)`
+        + (res.skippedNoSupplier ? ` — ${res.skippedNoSupplier} article(s) sans fournisseur ignoré(s)` : '');
+      res.orders.length ? toast.success(msg) : toast.error(res.skippedNoSupplier ? 'Aucun fournisseur par défaut sur les articles sélectionnés' : msg);
+      setSelected(new Set());
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+    } finally { setGenerating(false); }
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-4">
@@ -61,7 +86,14 @@ function ReorderInner() {
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="px-4 py-3 border-b flex items-center justify-between">
               <h2 className="text-sm font-semibold text-gray-700">Propositions de réapprovisionnement</h2>
-              <span className="text-xs text-gray-400">{proposals.length} article(s)</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-gray-400">{proposals.length} article(s)</span>
+                <button onClick={generate} disabled={generating || selected.size === 0}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[#235A6E] text-white rounded-lg hover:bg-[#1c4a5b] disabled:opacity-50">
+                  {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShoppingCart className="w-3.5 h-3.5" />}
+                  Générer commande(s) ({selected.size})
+                </button>
+              </div>
             </div>
             {proposals.length === 0 ? (
               <div className="p-8 text-center text-gray-400 text-sm">Aucun réappro nécessaire (renseignez un point de commande sur les articles).</div>
@@ -69,6 +101,7 @@ function ReorderInner() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="bg-gray-50 border-b text-left text-gray-500">
+                    <th className="px-3 py-2 w-8"><input type="checkbox" checked={selected.size === proposals.length && proposals.length > 0} onChange={toggleAll} /></th>
                     <th className="px-4 py-2">Article</th><th className="px-4 py-2 text-right">Dispo</th>
                     <th className="px-4 py-2 text-right">Pt cmd</th><th className="px-4 py-2 text-right">Maxi</th>
                     <th className="px-4 py-2 text-right">Qté suggérée</th><th className="px-4 py-2">Fournisseur</th>
@@ -77,6 +110,7 @@ function ReorderInner() {
                   <tbody>
                     {proposals.map(p => (
                       <tr key={p.material.id} className="border-b last:border-0 hover:bg-gray-50">
+                        <td className="px-3 py-2"><input type="checkbox" checked={selected.has(p.material.id)} onChange={() => toggle(p.material.id)} /></td>
                         <td className="px-4 py-2"><span className="font-mono text-gray-500">{p.material.code}</span> — {p.material.name}</td>
                         <td className={`px-4 py-2 text-right tabular-nums ${p.available <= 0 ? 'text-red-600 font-medium' : ''}`}>{p.available}</td>
                         <td className="px-4 py-2 text-right tabular-nums text-gray-500">{p.reorderPoint}</td>

@@ -265,7 +265,14 @@ Chaque lot : `tsc 0` + tests verts + commit + push (sur demande).
 
 ## 15. Hors périmètre v1 (dette assumée)
 
-- Multi‑devise valorisation, WM/EWM (gestion d'entrepôt avancée, vagues, tâches), handling units, split valuation, sous‑traitance (563/movement 541), consignation fournisseur complète, prévision de demande (au‑delà du point de commande). Extensions possibles post‑v1.
+**Dettes corrigées post‑v1 (2026-07-12)** :
+- ✅ **Génération de commande fournisseur** — `purchaseOrderService.generatePurchaseOrders` : crée des PO brouillon réelles via le client brut en posant `company_id` (contourne l'injection `tenant_id` de l'adapter ; `purchase_orders.supplier_id` n'a aucune FK). Regroupement par fournisseur, comptes d'achat SYSCOHADA (601/602/604/608), bouton dans `/stock/reorder`.
+- ✅ **Valorisation FIFO** — corrigé un vrai bug : les stocks FIFO restaient à 0 (CUMP non entretenu). Le coût moyen FIFO = moyenne pondérée des couches restantes ; sortie valorisée au plus ancien (COGS exact).
+- ✅ **Inventaire des articles sérialisés** — comptage par n° de série (colonne `counted_serials`), la validation génère 702 pour les manquants (par n°) et 701 pour les excédents.
+
+**Reste hors périmètre** :
+- **SoD / gouvernance MVA sur mouvements de forte valeur** : intégration à l'**engine MVA (`wf_*` / bannette)** — workstream à part entière (définir un Validatable « mouvement stock », routage bannette, application à l'approbation). À traiter avec le module Gouvernance, pas en add‑on.
+- Multi‑devise valorisation, WM/EWM (vagues, tâches), handling units, split valuation, sous‑traitance (mvt 541), consignation fournisseur complète, prévision de demande. Extensions possibles post‑v1.
 
 ---
 
