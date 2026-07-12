@@ -340,6 +340,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'stock-movements', label: 'Mouvements', path: '/stock/movements', icon: <ArrowRightLeft className="w-4 h-4" /> },
       { id: 'stock-valuation', label: 'Valorisation', path: '/stock/valuation', icon: <Calculator className="w-4 h-4" /> },
       { id: 'stock-batches', label: 'Lots & séries', path: '/stock/batches', icon: <Layers className="w-4 h-4" /> },
+      { id: 'stock-physical', label: 'Inventaire physique', path: '/stock/physical', icon: <ClipboardList className="w-4 h-4" /> },
       { id: 'stock-gl-setup', label: 'Détermination comptable', path: '/stock/gl-setup', icon: <Settings className="w-4 h-4" /> },
     ],
     closures: [
