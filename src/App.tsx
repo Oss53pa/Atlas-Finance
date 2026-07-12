@@ -254,6 +254,7 @@ const StockValuation = lazyRetry(() => import('./pages/stock/ValuationPage'));
 const StockGlSetup = lazyRetry(() => import('./pages/stock/GlSetupPage'));
 const StockBatches = lazyRetry(() => import('./pages/stock/BatchesPage'));
 const StockPhysical = lazyRetry(() => import('./pages/stock/PhysicalInventoryPage'));
+const StockReorder = lazyRetry(() => import('./pages/stock/ReorderPage'));
 
 // Treasury extensions (Correction #3)
 const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
@@ -605,6 +606,7 @@ function App() {
                           <Route path="/stock/valuation" element={work(<StockValuation />)} />
                           <Route path="/stock/batches" element={work(<StockBatches />)} />
                           <Route path="/stock/physical" element={work(<StockPhysical />)} />
+                          <Route path="/stock/reorder" element={work(<StockReorder />)} />
                           <Route path="/stock/gl-setup" element={work(<StockGlSetup />)} />
                         </Route>
 
