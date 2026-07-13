@@ -43,6 +43,10 @@ export default function StockModuleGate({ children }: { children: React.ReactNod
               try {
                 await activate();
                 toast.success('Module Stock activé');
+                // Le menu latéral vérifie isStockModuleEnabled une seule fois au
+                // montage (état local, non réactif à cette activation) : recharger
+                // pour que l'entrée « Stocks » apparaisse immédiatement partout.
+                setTimeout(() => window.location.reload(), 600);
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Échec de l\'activation');
               }
