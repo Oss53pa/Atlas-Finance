@@ -120,6 +120,12 @@ export async function activateStockModule(adapter: DataAdapter): Promise<void> {
     } catch {
       /* seed best-effort : idempotent, réessayable */
     }
+    try {
+      // Circuit MVA (SoD mouvements de forte valeur) — additif, idempotent.
+      await client.rpc('stock_seed_mva_circuit', { p_tenant: tenant });
+    } catch {
+      /* seed best-effort : idempotent, réessayable */
+    }
   }
 
   // Magasin par défaut si aucun n'existe encore.

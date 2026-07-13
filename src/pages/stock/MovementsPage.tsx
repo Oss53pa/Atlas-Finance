@@ -9,7 +9,8 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import type { DBStockMaterial, DBStockWarehouse, DBStockMovementType } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
-import { postMovement, type MovementLineInput } from '../../services/stock/stockMovementService';
+import type { MovementLineInput } from '../../services/stock/stockMovementService';
+import { submitOrPostMovement } from '../../services/stock/stockApprovalService';
 import StockModuleGate from './StockModuleGate';
 
 interface StockDoc { id: string; docNumber: string; docDate: string; movementTypeCode: string; status: string; reference?: string; journalEntryId?: string }
@@ -141,12 +142,18 @@ function MovementModal({ types, materials, warehouses, userId, onClose, onPosted
   const submit = async () => {
     setSaving(true);
     try {
-      await postMovement(adapter, {
+      const res = await submitOrPostMovement(adapter, {
         movementTypeCode: typeCode, date, reference: reference || undefined,
         lines: lines.map(l => ({ ...l, quantity: Number(l.quantity), unitCost: l.unitCost != null ? Number(l.unitCost) : undefined })),
-        userId,
-      });
-      toast.success('Mouvement enregistré et comptabilisé');
+      }, userId);
+      if (res.applied) {
+        toast.success('Mouvement enregistré et comptabilisé');
+      } else {
+        toast.success(
+          `Mouvement de ${res.amount.toLocaleString('fr-FR')} FCFA ≥ seuil — soumis pour validation (voir « Mouvements en attente »)`,
+          { duration: 6000 },
+        );
+      }
       onPosted();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');

@@ -15,7 +15,7 @@ import {
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
   Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split, Inbox,
-  Boxes, Warehouse, PackageX, ArrowRightLeft, ClipboardList
+  Boxes, Warehouse, PackageX, ArrowRightLeft, ClipboardList, ShieldCheck
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { themes } from '../../styles/theme';
@@ -337,6 +337,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
       { id: 'stock-materials', label: 'Articles', path: '/stock/materials', icon: <Boxes className="w-4 h-4" /> },
       { id: 'stock-warehouses', label: 'Magasins & emplacements', path: '/stock/warehouses', icon: <Warehouse className="w-4 h-4" /> },
       { id: 'stock-movements', label: 'Mouvements', path: '/stock/movements', icon: <ArrowRightLeft className="w-4 h-4" /> },
+      { id: 'stock-pending', label: 'Mouvements en attente', path: '/stock/pending', icon: <ShieldCheck className="w-4 h-4" /> },
       { id: 'stock-valuation', label: 'Valorisation', path: '/stock/valuation', icon: <Calculator className="w-4 h-4" /> },
       { id: 'stock-batches', label: 'Lots & séries', path: '/stock/batches', icon: <Layers className="w-4 h-4" /> },
       { id: 'stock-physical', label: 'Inventaire physique', path: '/stock/physical', icon: <ClipboardList className="w-4 h-4" /> },

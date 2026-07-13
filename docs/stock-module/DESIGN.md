@@ -270,9 +270,22 @@ Chaque lot : `tsc 0` + tests verts + commit + push (sur demande).
 - ✅ **Valorisation FIFO** — corrigé un vrai bug : les stocks FIFO restaient à 0 (CUMP non entretenu). Le coût moyen FIFO = moyenne pondérée des couches restantes ; sortie valorisée au plus ancien (COGS exact).
 - ✅ **Inventaire des articles sérialisés** — comptage par n° de série (colonne `counted_serials`), la validation génère 702 pour les manquants (par n°) et 701 pour les excédents.
 
+- ✅ **SoD / gouvernance MVA sur mouvements de forte valeur** (2026-07-12) — voir §17.
+
 **Reste hors périmètre** :
-- **SoD / gouvernance MVA sur mouvements de forte valeur** : intégration à l'**engine MVA (`wf_*` / bannette)** — workstream à part entière (définir un Validatable « mouvement stock », routage bannette, application à l'approbation). À traiter avec le module Gouvernance, pas en add‑on.
 - Multi‑devise valorisation, WM/EWM (vagues, tâches), handling units, split valuation, sous‑traitance (mvt 541), consignation fournisseur complète, prévision de demande. Extensions possibles post‑v1.
+
+## 17. SoD / gouvernance MVA — architecture « client‑apply »
+
+L'engine MVA (`wf_*`, Edge Functions `wf-submit`/`wf-act`) est **souverain et déjà déployé** (Doc Maître Partie C, programme terminé). Plutôt que de modifier ces Edge Functions partagées (risque de collision avec la session qui a construit la MVA), le module Stock s'y **enregistre en tant que nouveau `object_type`**, de façon strictement additive — exactement comme `journal_entry`/`payment_batch`/`partner_master` l'ont fait avant lui.
+
+- **Migration `20240101000074`** : fonction `stock_seed_mva_circuit(p_tenant)` (idempotente, scope par tenant) — insère `wf_object_registry` (`stock_movement`), deux circuits (`wf_definition`/`wf_stage`) : *simple* (défaut, 1 étape Comptable) et *renforcé* (Comptable → DAF avec signature OTP), routés par `wf_rule` sur `amount_xof ≥ 1 000 000` (même convention que `journal_entry`). Appelée à l'**activation** du module (`activateStockModule`), comme `stock_seed_defaults`.
+- **`stockApprovalService.ts`** — point d'entrée unique `submitOrPostMovement(adapter, input, userId)` :
+  - **sous le seuil** (réglable, `settings['stock.mva_threshold_xof']`, défaut 1M) → `postMovement` **direct**, aucune friction, comportement L2 inchangé ;
+  - **au‑dessus** → l'intention du mouvement est **soumise** (`wf-submit`, payload `{amount_xof}`) mais **jamais postée** avant approbation. L'objet complet (`MovementInput`) est stocké dans `object_preview` (seul champ persistant côté `wf_instance` pour un payload arbitraire).
+  - **Fail‑closed** : si le moteur MVA est indisponible (mode local/desktop, pas de client Supabase), le mouvement est **refusé**, jamais posté en contournement.
+- **« Client‑apply »** : `wf-act` (générique, non modifié) marque l'instance `applied` à la dernière étape mais ne mute **aucun** objet métier (stub serveur générique, cf. mémoire MVA « Vague D non faite » — vrai pour tous les modules, pas propre au stock). C'est le **client** qui déclenche alors le `postMovement` réel (`applyApprovedInstance`), avec la **référence du document = id de l'instance** comme clé d'**idempotence** (aucun risque de double‑post). `reconcilePendingApplies` auto‑guérit toute instance `applied` non encore postée (crash navigateur, approbation faite depuis un autre poste) — appelée à chaque chargement de `/stock/pending`.
+- **UI** : `PendingApprovalsPage` (`/stock/pending`) — liste des instances `stock_movement`, statut, montant, étape/rôle requis, boutons Approuver/Rejeter (SoD visuelle : masqués si rôle insuffisant ou si l'utilisateur est l'auteur — la vraie garde reste **serveur**, dans `wf-act`).
 
 ---
 

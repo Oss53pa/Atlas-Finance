@@ -249,6 +249,7 @@ const StockBatches = lazyRetry(() => import('./pages/stock/BatchesPage'));
 const StockPhysical = lazyRetry(() => import('./pages/stock/PhysicalInventoryPage'));
 const StockReorder = lazyRetry(() => import('./pages/stock/ReorderPage'));
 const StockReporting = lazyRetry(() => import('./pages/stock/ReportingPage'));
+const StockPending = lazyRetry(() => import('./pages/stock/PendingApprovalsPage'));
 
 // Treasury extensions (Correction #3)
 const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
@@ -600,6 +601,7 @@ function App() {
                           <Route path="/stock/physical" element={work(<StockPhysical />)} />
                           <Route path="/stock/reorder" element={work(<StockReorder />)} />
                           <Route path="/stock/reporting" element={work(<StockReporting />)} />
+                          <Route path="/stock/pending" element={work(<StockPending />)} />
                           <Route path="/stock/gl-setup" element={work(<StockGlSetup />)} />
                         </Route>
 
