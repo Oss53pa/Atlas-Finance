@@ -81,7 +81,15 @@ const AssetsJournal: React.FC = () => {
 
   // Filter and map journal entries related to immobilisations
   const journalEntries = useMemo(() => {
-    const assetAccountPrefixes = ['2', '28', '681', '775', '462', '1052', '6816', '291'];
+    // Préfixes des comptes de mouvement d'immobilisation : classe 2 (biens 20-27,
+    // amort. 28x, déprec. 29x), dotations 681x, produits de cession 775, écart de
+    // réévaluation 1052.
+    // ⚠️ On NE met PAS '462' : dans ce plan, 462xxx est une créance client / FAE
+    // (utilisée avec des comptes 706), pas une « créance sur cession d'immo ». Le
+    // garder captait à tort des écritures de régularisation produits (OD) et des
+    // encaissements bancaires (BQ). La cession réelle reste captée par '775' (leg
+    // produit) et par '2' (sortie du bien).
+    const assetAccountPrefixes = ['2', '681', '775', '1052', '6816'];
 
     return dbEntries
       .filter(entry => {
