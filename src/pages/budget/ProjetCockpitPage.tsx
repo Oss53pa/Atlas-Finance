@@ -96,7 +96,7 @@ const ProjetCockpitPage: React.FC = () => {
   );
 
   return (
-    <div className="p-6 space-y-5 max-w-4xl mx-auto">
+    <div className="p-6 space-y-5">
       <header className="flex items-center gap-3">
         <button onClick={() => navigate('/capex')} className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
         <div>

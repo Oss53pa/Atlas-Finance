@@ -50,7 +50,7 @@ const BudgetSnapshotsPage: React.FC = () => {
   }, [adapter]);
 
   return (
-    <div className="p-6 space-y-5 max-w-3xl mx-auto">
+    <div className="p-6 space-y-5">
       <header>
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Archive className="w-6 h-6 text-[#235A6E]" /> Snapshots budgétaires</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Gel immuable + hashé de l'exécution au mois clos — états rejouables.</p>

@@ -59,7 +59,7 @@ const CapexEnveloppePage: React.FC = () => {
   ] : [], [state]);
 
   return (
-    <div className="p-6 space-y-5 max-w-4xl mx-auto">
+    <div className="p-6 space-y-5">
       <header>
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Wallet className="w-6 h-6 text-[#235A6E]" /> Enveloppe CAPEX</h1>
         <p className="text-sm text-neutral-500 dark:text-neutral-400">Plan d'investissement annuel · exercice {fy?.code || '—'} · votée = réservée + appropriée + disponible + réserve</p>
