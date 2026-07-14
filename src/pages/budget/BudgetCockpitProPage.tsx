@@ -73,10 +73,10 @@ const BudgetCockpitProPage: React.FC = () => {
   return (
     <div className="p-6 space-y-5">
       {/* Onglets internes */}
-      <div className="flex items-center gap-1 border-b border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-[var(--color-border)] overflow-x-auto">
         {TABS.map((tt) => (
           <button key={tt.id} onClick={() => setTab(tt.id)}
-            className={`px-4 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition ${tab === tt.id ? 'border-[#235A6E] text-[#235A6E] dark:text-[#8fc7d6] font-medium' : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
+            className={`px-4 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition ${tab === tt.id ? 'border-[var(--color-primary)] text-[var(--color-primary)] dark:text-[var(--color-primary)] font-medium' : 'border-transparent text-[var(--color-text-secondary)] hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
             {tt.label}
           </button>
         ))}
@@ -85,22 +85,22 @@ const BudgetCockpitProPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       {tab !== 'overview' ? (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 px-6 py-16 text-center text-sm text-neutral-500">
+        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
           <div className="flex justify-center mb-3 text-neutral-300">
             {tab === 'budget' ? <Wallet className="w-8 h-8" /> : tab === 'variance' ? <PieChart className="w-8 h-8" /> : <TrendingUp className="w-8 h-8" />}
           </div>
           Onglet « {TABS.find((x) => x.id === tab)?.label} » — à construire après validation de l'Overview.
         </div>
       ) : loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : (
         <>
           <header className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><LayoutDashboard className="w-5 h-5 text-[#235A6E]" /> Overview</h1>
-            <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm">
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><LayoutDashboard className="w-5 h-5 text-[var(--color-primary)]" /> Overview</h1>
+            <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
               {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
             </select>
-            <span className="text-xs text-neutral-400">Sélectionnez des mois (max 3)</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">Sélectionnez des mois (max 3)</span>
           </header>
 
           {/* Bande des mois */}
@@ -109,7 +109,7 @@ const BudgetCockpitProPage: React.FC = () => {
               const p = i + 1; const on = selected.includes(p);
               return (
                 <button key={mo} onClick={() => toggleMonth(p)}
-                  className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap ${on ? 'bg-[#235A6E] text-white' : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-500 hover:text-neutral-800'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap ${on ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] hover:text-neutral-800'}`}>
                   {mo}
                 </button>
               );
@@ -121,11 +121,11 @@ const BudgetCockpitProPage: React.FC = () => {
             {selMonths.map((m) => {
               const c = monthCard(m);
               return (
-                <div key={m.period} className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5">
+                <div key={m.period} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#E89A2E]/10 flex items-center justify-center text-[#E89A2E] shrink-0"><Banknote className="w-5 h-5" /></div>
+                    <div className="w-10 h-10 rounded-xl bg-[var(--color-warning-light)] flex items-center justify-center text-[var(--color-secondary)] shrink-0"><Banknote className="w-5 h-5" /></div>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">{MOIS[m.period - 1]} · {annee}</div>
+                      <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{MOIS[m.period - 1]} · {annee}</div>
                       <Row label={`No budgeted`} value={c.noBudget} />
                       <Row label={`Overspent`} value={c.overspent} tone={c.overspent > 0 ? 'danger' : undefined} />
                       <Row label={`Incoming`} value={c.incoming} />
@@ -139,20 +139,20 @@ const BudgetCockpitProPage: React.FC = () => {
           </div>
 
           {/* Tableau P&L par mois (Budgeted / Actual / Balance) */}
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
+                <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                   <th className="px-4 py-3 text-left">&nbsp;</th>
                   {selMonths.map((m) => (
-                    <th key={m.period} colSpan={3} className="px-4 py-2 text-center border-l border-neutral-100 dark:border-neutral-700/50">{MOIS[m.period - 1]}</th>
+                    <th key={m.period} colSpan={3} className="px-4 py-2 text-center border-l border-[var(--color-border-light)]">{MOIS[m.period - 1]}</th>
                   ))}
                 </tr>
-                <tr className="text-[11px] uppercase text-neutral-400 border-b border-neutral-200 dark:border-neutral-700">
+                <tr className="text-[11px] uppercase text-[var(--color-text-tertiary)] border-b border-[var(--color-border)]">
                   <th className="px-4 py-2 text-left" />
                   {selMonths.map((m) => (
                     <React.Fragment key={m.period}>
-                      <th className="px-4 py-2 text-right border-l border-neutral-100 dark:border-neutral-700/50">Budgeted</th>
+                      <th className="px-4 py-2 text-right border-l border-[var(--color-border-light)]">Budgeted</th>
                       <th className="px-4 py-2 text-right">Actual</th>
                       <th className="px-4 py-2 text-right">Balance</th>
                     </React.Fragment>
@@ -161,31 +161,31 @@ const BudgetCockpitProPage: React.FC = () => {
               </thead>
               <tbody>
                 {ROWS.map((r) => (
-                  <tr key={r.key} className={`border-b border-neutral-100 dark:border-neutral-700/50 ${r.strong ? 'font-medium text-neutral-900 dark:text-white' : 'text-neutral-600 dark:text-neutral-300'}`}>
+                  <tr key={r.key} className={`border-b border-[var(--color-border-light)] ${r.strong ? 'font-medium text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}>
                     <td className="px-4 py-2">{r.label}</td>
                     {selMonths.map((m) => (
                       <React.Fragment key={m.period}>
-                        <td className="px-4 py-2 text-right font-mono text-xs border-l border-neutral-100 dark:border-neutral-700/50">{cell(m, r, 'budget')}</td>
+                        <td className="px-4 py-2 text-right font-mono text-xs border-l border-[var(--color-border-light)]">{cell(m, r, 'budget')}</td>
                         <td className="px-4 py-2 text-right font-mono text-xs">{cell(m, r, 'actual')}</td>
-                        <td className="px-4 py-2 text-right font-mono text-xs text-neutral-400">{cell(m, r, 'balance')}</td>
+                        <td className="px-4 py-2 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{cell(m, r, 'balance')}</td>
                       </React.Fragment>
                     ))}
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-neutral-50 dark:bg-neutral-900/40 font-semibold text-neutral-900 dark:text-white">
+                <tr className="bg-[var(--color-surface-hover)] font-semibold text-[var(--color-text-primary)]">
                   <td className="px-4 py-3">Net Income (year)</td>
                   {selMonths.map((m) => (
-                    <td key={m.period} colSpan={3} className="px-4 py-3 text-right font-mono text-xs border-l border-neutral-100 dark:border-neutral-700/50">
-                      {fmt(yearTotal.actual)} <span className="text-neutral-400">({pct(yearTotal.actual, yearTotal.goiA)}%)</span>
+                    <td key={m.period} colSpan={3} className="px-4 py-3 text-right font-mono text-xs border-l border-[var(--color-border-light)]">
+                      {fmt(yearTotal.actual)} <span className="text-[var(--color-text-tertiary)]">({pct(yearTotal.actual, yearTotal.goiA)}%)</span>
                     </td>
                   ))}
                 </tr>
               </tfoot>
             </table>
           </div>
-          <p className="text-xs text-neutral-400">Mapping SYSCOHADA : GOI = produits 70-76, OpEx = charges 60-65/68, Financier 66/67 & 77, Tax 69/89 (ajustable). Réalisé issu du GL, budget de la version en vigueur.</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">Mapping SYSCOHADA : GOI = produits 70-76, OpEx = charges 60-65/68, Financier 66/67 & 77, Tax 69/89 (ajustable). Réalisé issu du GL, budget de la version en vigueur.</p>
         </>
       )}
     </div>
@@ -194,8 +194,8 @@ const BudgetCockpitProPage: React.FC = () => {
 
 const Row: React.FC<{ label: string; value: number; tone?: 'danger'; strong?: boolean }> = ({ label, value, tone, strong }) => (
   <div className="flex items-center justify-between text-xs py-0.5">
-    <span className={strong ? 'font-semibold text-neutral-800 dark:text-neutral-100' : 'text-neutral-500'}>{label}</span>
-    <span className={`font-mono ${tone === 'danger' ? 'text-red-600' : strong ? 'font-semibold text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-neutral-200'}`}>{formatCurrency(Math.round(value))}</span>
+    <span className={strong ? 'font-semibold text-neutral-800 dark:text-neutral-100' : 'text-[var(--color-text-secondary)]'}>{label}</span>
+    <span className={`font-mono ${tone === 'danger' ? 'text-red-600' : strong ? 'font-semibold text-[var(--color-text-primary)]' : 'text-neutral-700 dark:text-neutral-200'}`}>{formatCurrency(Math.round(value))}</span>
   </div>
 );
 

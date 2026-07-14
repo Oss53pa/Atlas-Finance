@@ -63,14 +63,14 @@ export const GroupTabs: React.FC<{ tabs: GroupTab[] }> = ({ tabs }) => {
   const navigate = useNavigate();
   const active = (t: GroupTab) => (t.exact ? pathname === t.path : pathname === t.path || pathname.startsWith(t.path + '/'));
   return (
-    <div className="flex items-center gap-1 border-b border-neutral-200 dark:border-neutral-700 -mt-1 mb-1 overflow-x-auto">
+    <div className="flex items-center gap-1 border-b border-[var(--color-border)] -mt-1 mb-1 overflow-x-auto">
       {tabs.map((t) => {
         const Icon = t.icon; const on = active(t);
         return (
           <button key={t.path} onClick={() => navigate(t.path)}
             className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition ${
-              on ? 'border-[#235A6E] text-[#235A6E] dark:text-[#8fc7d6] font-medium'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
+              on ? 'border-[var(--color-primary)] text-[var(--color-primary)] dark:text-[var(--color-primary)] font-medium'
+              : 'border-transparent text-[var(--color-text-secondary)] hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
             <Icon className="w-4 h-4" /> {t.label}
           </button>
         );

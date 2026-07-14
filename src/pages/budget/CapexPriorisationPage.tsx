@@ -79,13 +79,13 @@ const CapexPriorisationPage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Trophy className="w-6 h-6 text-[#235A6E]" /> Priorisation du portefeuille</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">{ranked.length} BC en lice · {passeCount} servi(s) · {formatCurrency(passeMontant)} sous l'enveloppe</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Trophy className="w-6 h-6 text-[var(--color-primary)]" /> Priorisation du portefeuille</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{ranked.length} BC en lice · {passeCount} servi(s) · {formatCurrency(passeMontant)} sous l'enveloppe</p>
         </div>
-        <label className="text-sm text-neutral-600 dark:text-neutral-300 flex items-center gap-2">
+        <label className="text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
           Enveloppe
           <input type="number" value={enveloppe} onChange={(e) => setEnveloppe(e.target.value)}
-            className="w-40 px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm" />
+            className="w-40 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
         </label>
       </header>
 
@@ -93,14 +93,14 @@ const CapexPriorisationPage: React.FC = () => {
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : ranked.length === 0 ? (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 px-6 py-12 text-center text-sm text-neutral-500">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
+        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
       ) : (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
+              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3 text-left">Business Case</th>
                 <th className="px-4 py-3 text-right">Score</th>
@@ -120,22 +120,22 @@ const CapexPriorisationPage: React.FC = () => {
                     {waterlineHere && (
                       <tr><td colSpan={8} className="px-4 py-1 bg-blue-50 dark:bg-blue-950/30 text-[11px] text-blue-600 dark:text-blue-300"><span className="inline-flex items-center gap-1"><Waves className="w-3.5 h-3.5" /> Ligne de flottaison — enveloppe {formatCurrency(Number(enveloppe) || 0)}</span></td></tr>
                     )}
-                    <tr className={`border-b border-neutral-100 dark:border-neutral-700/50 ${!r.passe ? 'opacity-60' : ''}`}>
-                      <td className="px-4 py-3 text-neutral-400">{i + 1}</td>
+                    <tr className={`border-b border-[var(--color-border-light)] ${!r.passe ? 'opacity-60' : ''}`}>
+                      <td className="px-4 py-3 text-[var(--color-text-tertiary)]">{i + 1}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => navigate(`/capex/bc/${r.id}`)} className="font-medium text-neutral-900 dark:text-white hover:text-[#235A6E]">{r.libelle}</button>
+                        <button onClick={() => navigate(`/capex/bc/${r.id}`)} className="font-medium text-[var(--color-text-primary)] hover:text-[var(--color-primary)]">{r.libelle}</button>
                         {r.obligatoire && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">obligatoire</span>}
                       </td>
-                      <td className="px-4 py-3 text-right font-mono font-medium text-[#235A6E] dark:text-[#8fc7d6]">{r.score.toFixed(1)}</td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)]">{r.score.toFixed(1)}</td>
                       <td className="px-4 py-3 text-right font-mono">{formatCurrency(r.montant)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-xs text-neutral-400">{formatCurrency(r.cumul)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{formatCurrency(r.cumul)}</td>
                       <td className="px-4 py-3 text-right font-mono text-xs">{r.van != null ? formatCurrency(r.van) : '—'}</td>
-                      <td className="px-4 py-3 text-xs text-neutral-500">{r.categorie ? r.categorie.replace(/_/g, ' ') : '—'}</td>
+                      <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{r.categorie ? r.categorie.replace(/_/g, ' ') : '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button title="Approuver" disabled={busyId === r.id} onClick={() => decide(r.id, 'approuve')} className="p-1.5 rounded-lg text-neutral-400 hover:text-emerald-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">{busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}</button>
-                          <button title="Ajourner" disabled={busyId === r.id} onClick={() => decide(r.id, 'ajourne')} className="p-1.5 rounded-lg text-neutral-400 hover:text-amber-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><Clock className="w-4 h-4" /></button>
-                          <button title="Rejeter" disabled={busyId === r.id} onClick={() => decide(r.id, 'rejete')} className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><X className="w-4 h-4" /></button>
+                          <button title="Approuver" disabled={busyId === r.id} onClick={() => decide(r.id, 'approuve')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-emerald-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">{busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}</button>
+                          <button title="Ajourner" disabled={busyId === r.id} onClick={() => decide(r.id, 'ajourne')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-amber-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><Clock className="w-4 h-4" /></button>
+                          <button title="Rejeter" disabled={busyId === r.id} onClick={() => decide(r.id, 'rejete')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><X className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>

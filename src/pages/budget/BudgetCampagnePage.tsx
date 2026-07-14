@@ -108,31 +108,31 @@ const BudgetCampagnePage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-[#235A6E]" /> Campagne budgétaire
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+            <Megaphone className="w-6 h-6 text-[var(--color-primary)]" /> Campagne budgétaire
           </h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">Cadrage, saisie, consolidation, arbitrage, vote.</p>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">Cadrage, saisie, consolidation, arbitrage, vote.</p>
         </div>
-        {!current && <button onClick={create} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"><Plus className="w-4 h-4" /> Nouvelle campagne</button>}
+        {!current && <button onClick={create} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50"><Plus className="w-4 h-4" /> Nouvelle campagne</button>}
       </header>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : !current ? (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-700 px-6 py-10 text-center text-sm text-neutral-500">
+        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-10 text-center text-sm text-[var(--color-text-secondary)]">
           Aucune campagne. Lancez-en une pour cadrer l'élaboration budgétaire de l'exercice.
         </div>
       ) : (
         <>
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5">
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-              <div className="text-base font-semibold text-neutral-900 dark:text-white">{current.libelle}</div>
+              <div className="text-base font-semibold text-[var(--color-text-primary)]">{current.libelle}</div>
               {NEXT_LABEL[current.statut] && (
                 <button onClick={advance} disabled={busy}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
                   {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />} {NEXT_LABEL[current.statut]}
                 </button>
               )}
@@ -142,9 +142,9 @@ const BudgetCampagnePage: React.FC = () => {
               {STEPS.map((s, i) => (
                 <React.Fragment key={s}>
                   <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                    i < idx ? 'bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6]'
-                    : i === idx ? 'bg-[#235A6E] text-white'
-                    : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-400'}`}>
+                    i < idx ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]'
+                    : i === idx ? 'bg-[var(--color-primary)] text-white'
+                    : 'bg-[var(--color-surface-hover)] text-[var(--color-text-tertiary)]'}`}>
                     {i < idx ? <CheckCircle2 className="w-3.5 h-3.5" /> : i === idx ? <Clock className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
                     {LABEL[s]}
                   </span>
@@ -154,36 +154,36 @@ const BudgetCampagnePage: React.FC = () => {
             </div>
             {/* Cadrage */}
             <div className="mt-4 flex items-center gap-3 flex-wrap text-sm">
-              <label className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300">
+              <label className="flex items-center gap-2 text-[var(--color-text-secondary)]">
                 Taux d'indexation par défaut
                 <input type="number" step="0.01" defaultValue={current.taux_indexation_defaut ?? ''} onBlur={(e) => setTaux(e.target.value)}
                   disabled={current.statut !== 'preparation'} placeholder="0.03"
-                  className="w-24 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm disabled:opacity-60" />
+                  className="w-24 px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm disabled:opacity-60" />
               </label>
             </div>
           </div>
 
           {/* Complétude par centre de coût */}
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
-            <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between">
-              <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">Complétude de la saisie ({completude.started}/{completude.total} centres · {completude.pct}%)</span>
+          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+            <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+              <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">Complétude de la saisie ({completude.started}/{completude.total} centres · {completude.pct}%)</span>
             </div>
             {sections.length === 0 ? (
-              <div className="py-8 text-center text-sm text-neutral-500">Aucun centre de coût. Initialisez l'organisation depuis le hub.</div>
+              <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">Aucun centre de coût. Initialisez l'organisation depuis le hub.</div>
             ) : (
-              <ul className="divide-y divide-neutral-100 dark:divide-neutral-700/50">
+              <ul className="divide-y divide-[var(--color-border-light)]">
                 {sections.map((s) => {
                   const n = lineCountBySection[s.id] || 0;
                   return (
                     <li key={s.id} className="px-4 py-2.5 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         {n > 0 ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Circle className="w-4 h-4 text-neutral-300" />}
-                        <span className="font-mono text-sm text-neutral-900 dark:text-white">{s.code}</span>
-                        <span className="text-xs text-neutral-400">{s.libelle}</span>
+                        <span className="font-mono text-sm text-[var(--color-text-primary)]">{s.code}</span>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">{s.libelle}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-neutral-400">{n > 0 ? `${n} ligne(s)` : 'non commencé'}</span>
-                        <button onClick={() => navigate(`/budget/saisie/${s.id}`)} className="text-xs text-[#235A6E] dark:text-[#8fc7d6] hover:underline">Saisir</button>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">{n > 0 ? `${n} ligne(s)` : 'non commencé'}</span>
+                        <button onClick={() => navigate(`/budget/saisie/${s.id}`)} className="text-xs text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:underline">Saisir</button>
                       </div>
                     </li>
                   );

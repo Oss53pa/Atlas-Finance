@@ -33,9 +33,9 @@ const SCurve: React.FC<{ exec: ProjetExecution }> = ({ exec }) => {
       <line x1={pad} y1={yApp} x2={W - pad} y2={yApp} stroke="#C94A4A" strokeDasharray="4 3" strokeWidth="1" />
       <text x={W - pad} y={yApp - 4} textAnchor="end" className="fill-[#C94A4A] text-[9px]">approprié</text>
       {/* séries : plan (sarcelle clair), engagé (bleu), réalisé (sarcelle) */}
-      <path d={path('planCumul')} fill="none" stroke="#235A6E" strokeOpacity="0.35" strokeWidth="2" />
+      <path d={path('planCumul')} fill="none" stroke="var(--color-primary)" strokeOpacity="0.35" strokeWidth="2" />
       <path d={path('engageCumul')} fill="none" stroke="#3D6FA8" strokeWidth="2" />
-      <path d={path('realiseCumul')} fill="none" stroke="#235A6E" strokeWidth="2.5" />
+      <path d={path('realiseCumul')} fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
       {MOIS.map((m, i) => <text key={i} x={x(i)} y={H - pad + 14} textAnchor="middle" className="fill-neutral-400 text-[9px]">{m}</text>)}
     </svg>
   );
@@ -85,12 +85,12 @@ const ProjetCockpitPage: React.FC = () => {
     return out;
   }, [exec]);
 
-  if (loading) return <div className="flex items-center gap-2 text-neutral-500 py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
-  if (error || !projet || !exec) return <div className="p-6 text-center text-sm text-neutral-500">{error || 'Projet introuvable.'}</div>;
+  if (loading) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (error || !projet || !exec) return <div className="p-6 text-center text-sm text-[var(--color-text-secondary)]">{error || 'Projet introuvable.'}</div>;
 
-  const Kpi: React.FC<{ label: string; value: number; accent?: string }> = ({ label, value, accent = 'text-neutral-900 dark:text-white' }) => (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3">
-      <div className="text-[11px] uppercase tracking-wide text-neutral-500">{label}</div>
+  const Kpi: React.FC<{ label: string; value: number; accent?: string }> = ({ label, value, accent = 'text-[var(--color-text-primary)]' }) => (
+    <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+      <div className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">{label}</div>
       <div className={`font-mono text-base font-semibold ${accent}`}>{formatCurrency(value)}</div>
     </div>
   );
@@ -98,19 +98,19 @@ const ProjetCockpitPage: React.FC = () => {
   return (
     <div className="p-6 space-y-5">
       <header className="flex items-center gap-3">
-        <button onClick={() => navigate('/capex')} className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
+        <button onClick={() => navigate('/capex')} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
         <div>
-          <h1 className="text-xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2"><Rocket className="w-5 h-5 text-[#235A6E]" /> {projet.code} · {projet.libelle}</h1>
-          <p className="text-xs text-neutral-500">statut {projet.statut}{projet.date_mise_en_service_cible && ` · mise en service cible ${projet.date_mise_en_service_cible}`}</p>
+          <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Rocket className="w-5 h-5 text-[var(--color-primary)]" /> {projet.code} · {projet.libelle}</h1>
+          <p className="text-xs text-[var(--color-text-secondary)]">statut {projet.statut}{projet.date_mise_en_service_cible && ` · mise en service cible ${projet.date_mise_en_service_cible}`}</p>
         </div>
         <div className="flex-1" />
         {projet.statut === 'en_execution' && (
-          <button onClick={commission} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E89A2E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+          <button onClick={commission} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-secondary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
             {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />} Mettre en service
           </button>
         )}
         {projet.statut === 'mis_en_service' && (
-          <button onClick={() => navigate(`/capex/pir/${projet.id}`)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90">
+          <button onClick={() => navigate(`/capex/pir/${projet.id}`)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90">
             <ClipboardCheck className="w-4 h-4" /> PIR
           </button>
         )}
@@ -132,19 +132,19 @@ const ProjetCockpitPage: React.FC = () => {
       ))}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Kpi label="Approprié" value={exec.approprie} accent="text-[#235A6E] dark:text-[#8fc7d6]" />
+        <Kpi label="Approprié" value={exec.approprie} accent="text-[var(--color-primary)] dark:text-[var(--color-primary)]" />
         <Kpi label="Engagé" value={exec.engage} accent="text-[#3D6FA8]" />
         <Kpi label="Réalisé" value={exec.realise} />
         <Kpi label="Reste" value={reste} accent={reste < 0 ? 'text-red-600' : 'text-emerald-600'} />
       </div>
 
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5">
+      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Courbe en S</h2>
-          <div className="flex items-center gap-3 text-[11px] text-neutral-500">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[#235A6E] opacity-40 inline-block" /> Plan</span>
+          <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] opacity-40 inline-block" /> Plan</span>
             <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[#3D6FA8] inline-block" /> Engagé</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[#235A6E] inline-block" /> Réalisé</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] inline-block" /> Réalisé</span>
           </div>
         </div>
         <SCurve exec={exec} />

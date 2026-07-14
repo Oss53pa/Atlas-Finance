@@ -46,7 +46,7 @@ const NAV_TILES = [
 ];
 
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-sm ${className}`}>
+  <div className={`bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-sm ${className}`}>
     {children}
   </div>
 );
@@ -135,14 +135,14 @@ const BudgetHubPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Hub budgétaire</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Hub budgétaire</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
             Contrôle de gestion — OPEX &amp; CAPEX · exercice {annee || '—'}
           </p>
         </div>
         <button
           onClick={() => navigate('/budget/versions')}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition"
         >
           <GitBranch className="w-4 h-4" /> Versions &amp; validation
         </button>
@@ -160,7 +160,7 @@ const BudgetHubPage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center">
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center">
           <Loader2 className="w-5 h-5 animate-spin" /> Chargement…
         </div>
       ) : (
@@ -168,16 +168,16 @@ const BudgetHubPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Version en vigueur */}
             <Card className="p-5">
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500 mb-3">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] mb-3">
                 <Calendar className="w-4 h-4" /> Version en vigueur
               </div>
               {activeFull ? (
                 <>
-                  <div className="text-lg font-semibold text-neutral-900 dark:text-white">{activeFull.libelle}</div>
+                  <div className="text-lg font-semibold text-[var(--color-text-primary)]">{activeFull.libelle}</div>
                   <div className="mt-1 flex items-center gap-2 flex-wrap text-xs">
-                    <span className="px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 capitalize">{activeFull.type}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] capitalize">{activeFull.type}</span>
                     {activeFull.statut === 'verrouille' ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6]">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]">
                         <Lock className="w-3 h-3" /> Verrouillée
                       </span>
                     ) : (
@@ -185,10 +185,10 @@ const BudgetHubPage: React.FC = () => {
                         <Unlock className="w-3 h-3" /> {activeFull.statut}
                       </span>
                     )}
-                    <span className="text-neutral-400">v{activeFull.numero ?? 1} · {activeFull.nb_lignes ?? 0} lignes</span>
+                    <span className="text-[var(--color-text-tertiary)]">v{activeFull.numero ?? 1} · {activeFull.nb_lignes ?? 0} lignes</span>
                   </div>
                   {activeFull.hash_sha256 && (
-                    <div className="mt-3 text-[11px] font-mono text-neutral-400 truncate" title={activeFull.hash_sha256}>
+                    <div className="mt-3 text-[11px] font-mono text-[var(--color-text-tertiary)] truncate" title={activeFull.hash_sha256}>
                       sha256 {activeFull.hash_sha256.slice(0, 16)}…
                     </div>
                   )}
@@ -200,45 +200,45 @@ const BudgetHubPage: React.FC = () => {
                   )}
                 </>
               ) : (
-                <div className="text-sm text-neutral-500">Aucune version en vigueur pour cet exercice.</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">Aucune version en vigueur pour cet exercice.</div>
               )}
             </Card>
 
             {/* Fondation analytique / organisation */}
             <Card className="p-5">
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500 mb-3">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] mb-3">
                 <Layers className="w-4 h-4" /> Organisation analytique
               </div>
               {costCenters.length > 0 ? (
                 <>
-                  <div className="text-lg font-semibold text-neutral-900 dark:text-white">
+                  <div className="text-lg font-semibold text-[var(--color-text-primary)]">
                     {costCenters.length} centre{costCenters.length > 1 ? 's' : ''} de coût
                   </div>
-                  <div className="text-xs text-neutral-500 mt-1 mb-2">Saisir le budget OPEX d'un centre :</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-1 mb-2">Saisir le budget OPEX d'un centre :</div>
                   <div className="flex flex-wrap gap-1.5">
                     {costCenters.slice(0, 8).map((c) => (
                       <button key={c.id} onClick={() => navigate(`/budget/saisie/${c.id}`)}
-                        className="px-2.5 py-1 rounded-lg bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6] text-xs font-medium hover:bg-[#235A6E]/20 transition">
+                        className="px-2.5 py-1 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)] text-xs font-medium hover:bg-[var(--color-primary-light)] transition">
                         {c.code}
                       </button>
                     ))}
                   </div>
                   <button
                     onClick={() => navigate('/analytique')}
-                    className="mt-3 inline-flex items-center gap-1 text-sm text-[#235A6E] dark:text-[#8fc7d6] hover:underline"
+                    className="mt-3 inline-flex items-center gap-1 text-sm text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:underline"
                   >
                     Gérer l'organisation <ArrowRight className="w-4 h-4" />
                   </button>
                 </>
               ) : (
                 <>
-                  <div className="text-sm text-neutral-600 dark:text-neutral-300">
+                  <div className="text-sm text-[var(--color-text-secondary)]">
                     Aucun centre de coût. Le budget a besoin d'une structure analytique pour s'imputer.
                   </div>
                   <button
                     onClick={initOrg}
                     disabled={seeding}
-                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#E89A2E] text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
+                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-secondary)] text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
                   >
                     {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                     Initialiser la structure standard
@@ -251,18 +251,18 @@ const BudgetHubPage: React.FC = () => {
           {/* Campagne budgétaire */}
           <Card className="p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">
                 <Target className="w-4 h-4" /> Campagne budgétaire
               </div>
               {!currentCampagne && (
-                <button onClick={createCampaign} className="text-sm text-[#235A6E] dark:text-[#8fc7d6] hover:underline">
+                <button onClick={createCampaign} className="text-sm text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:underline">
                   + Nouvelle campagne
                 </button>
               )}
             </div>
             {currentCampagne ? (
               <>
-                <div className="text-base font-semibold text-neutral-900 dark:text-white mb-4">{currentCampagne.libelle}</div>
+                <div className="text-base font-semibold text-[var(--color-text-primary)] mb-4">{currentCampagne.libelle}</div>
                 <div className="flex items-center gap-1 flex-wrap">
                   {CAMPAGNE_STEPS.map((step, i) => {
                     const activeIdx = CAMPAGNE_STEPS.indexOf(currentCampagne.statut);
@@ -270,9 +270,9 @@ const BudgetHubPage: React.FC = () => {
                     return (
                       <React.Fragment key={step}>
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          cur ? 'bg-[#235A6E] text-white'
-                          : done ? 'bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6]'
-                          : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-400'
+                          cur ? 'bg-[var(--color-primary)] text-white'
+                          : done ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]'
+                          : 'bg-[var(--color-surface-hover)] text-[var(--color-text-tertiary)]'
                         }`}>{CAMPAGNE_LABEL[step]}</span>
                         {i < CAMPAGNE_STEPS.length - 1 && <span className="text-neutral-300">·</span>}
                       </React.Fragment>
@@ -281,7 +281,7 @@ const BudgetHubPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="text-sm text-neutral-500">Aucune campagne. Lancez une campagne pour cadrer l'élaboration budgétaire.</div>
+              <div className="text-sm text-[var(--color-text-secondary)]">Aucune campagne. Lancez une campagne pour cadrer l'élaboration budgétaire.</div>
             )}
           </Card>
 
@@ -293,16 +293,16 @@ const BudgetHubPage: React.FC = () => {
                 <button
                   key={t.path}
                   onClick={() => navigate(t.path)}
-                  className="group text-left bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5 hover:border-[#235A6E] hover:shadow-md transition"
+                  className="group text-left bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)] hover:shadow-md transition"
                 >
                   <div className="flex items-center justify-between mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#235A6E]/10 flex items-center justify-center text-[#235A6E] dark:text-[#8fc7d6]">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--color-primary-light)] flex items-center justify-center text-[var(--color-primary)] dark:text-[var(--color-primary)]">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[#235A6E] transition" />
+                    <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[var(--color-primary)] transition" />
                   </div>
-                  <div className="font-medium text-neutral-900 dark:text-white">{t.label}</div>
-                  <div className="text-xs text-neutral-500 mt-0.5">{t.desc}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{t.label}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{t.desc}</div>
                 </button>
               );
             })}
