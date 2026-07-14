@@ -59,7 +59,7 @@ const BudgetSnapshotsPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 flex items-end gap-3 flex-wrap">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-4 flex items-end gap-3 flex-wrap">
         <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Exercice</span>
           <input value={annee} onChange={(e) => setAnnee(e.target.value)} className="w-28 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" /></label>
         <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Mois clos</span>
@@ -71,7 +71,7 @@ const BudgetSnapshotsPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">Snapshots figés</div>
         {loading ? (
           <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-8 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>

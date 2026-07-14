@@ -67,10 +67,10 @@ const CapexPortfolioPage: React.FC = () => {
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun business case. Créez-en un pour lancer un investissement.</div>
       ) : (
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+              <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">Intitulé</th>
                 <th className="px-4 py-3 text-left">Compte</th>
                 <th className="px-4 py-3 text-left">Catégorie</th>

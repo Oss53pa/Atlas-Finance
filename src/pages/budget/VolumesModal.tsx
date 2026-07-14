@@ -42,7 +42,7 @@ const VolumesModal: React.FC<{ adapter: any; budgetLineId: string; accountCode: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
           <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-100">Volumes × prix · compte {accountCode}</h2>
           <button onClick={onClose} className="p-1 text-[var(--color-text-tertiary)] hover:text-neutral-700"><X className="w-5 h-5" /></button>

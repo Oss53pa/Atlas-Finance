@@ -121,7 +121,7 @@ const BudgetCockpitProPage: React.FC = () => {
             {selMonths.map((m) => {
               const c = monthCard(m);
               return (
-                <div key={m.period} className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
+                <div key={m.period} className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--color-warning-light)] flex items-center justify-center text-[var(--color-secondary)] shrink-0"><Banknote className="w-5 h-5" /></div>
                     <div className="flex-1">

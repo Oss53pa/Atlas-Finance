@@ -80,7 +80,7 @@ const CapexEnveloppePage: React.FC = () => {
             ))}
           </div>
 
-          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-3">
+          <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-3">
             <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Enveloppes votées</h2>
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
               <select value={dir} onChange={(e) => setDir(e.target.value)} className="px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">

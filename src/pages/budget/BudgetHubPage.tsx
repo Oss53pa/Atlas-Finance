@@ -46,7 +46,7 @@ const NAV_TILES = [
 ];
 
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-sm ${className}`}>
+  <div className={`bg-white rounded-xl border border-[var(--color-border)] shadow-sm shadow-sm ${className}`}>
     {children}
   </div>
 );
@@ -293,7 +293,7 @@ const BudgetHubPage: React.FC = () => {
                 <button
                   key={t.path}
                   onClick={() => navigate(t.path)}
-                  className="group text-left bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 hover:border-[var(--color-primary)] hover:shadow-md transition"
+                  className="group text-left bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 hover:border-[var(--color-primary)] hover:shadow-md transition"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--color-primary-light)] flex items-center justify-center text-[var(--color-primary)] dark:text-[var(--color-primary)]">

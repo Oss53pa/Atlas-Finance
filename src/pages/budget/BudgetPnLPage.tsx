@@ -75,10 +75,10 @@ const BudgetPnLPage: React.FC = () => {
       {loading ? (
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : (
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+              <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">Rubrique</th>
                 <th className="px-4 py-3 text-right">Budget</th>
                 <th className="px-4 py-3 text-right">Réalisé</th>
