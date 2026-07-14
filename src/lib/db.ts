@@ -738,7 +738,9 @@ export interface DBCollabChannel {
   linkedId?: string;
   linkedLabel?: string;
   linkedPath?: string;
-  abandonReason?: string;     // motif obligatoire si statut = abandonne
+  abandonReason?: string;     // motif (optionnel) si statut = abandonne
+  abandonedAt?: string;       // date d'abandon manuel (sans clôture opposable)
+  abandonedBy?: string;       // auteur de l'abandon (id/nom)
   closedAt?: string;
   closureHash?: string;
   isPrivate?: boolean;

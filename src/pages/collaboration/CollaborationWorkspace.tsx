@@ -16,9 +16,10 @@ import {
   Plus, Send, ArrowLeft, Target, ListChecks, Gavel, FileText, Radio, Camera,
   Lock, Unlock, ChevronRight, Circle, CheckCircle2, AlertTriangle, Sparkles,
   Link2, Hash, ShieldCheck, X, Clock, Flag, Layers, PenLine, TrendingUp,
+  Ban, RotateCcw, Archive,
 } from 'lucide-react';
 import {
-  listSpaces, createSpace, getSpace, updateSpace, transitionSpace,
+  listSpaces, createSpace, getSpace, updateSpace, abandonSpace, reactivateSpace,
   computeConvergence, refreshConvergence, evaluateExitCriteria, satisfyCriterion,
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
   postEcriture, postSnapshot, approveDecision, rejectDecision, toggleReaction, buildSnapshotPayload,
@@ -186,7 +187,7 @@ function Portfolio({ spaces, loading, onOpen, onNew }: {
       ) : spaces.length === 0 ? (
         <EmptyPortfolio onNew={onNew} />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(240px, 1fr))`, gap: 12, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(230px, 1fr))`, gap: 12, alignItems: 'start', overflowX: 'auto', paddingBottom: 4 }}>
           {cols.map(st => {
             const items = spaces.filter(s => s.status === st);
             return (
@@ -210,12 +211,15 @@ function Portfolio({ spaces, loading, onOpen, onNew }: {
 function SpaceCard({ space, onOpen }: { space: Space; onOpen: () => void }) {
   const bp = space.convergenceBp ?? 0;
   const late = isLate(space);
+  const isArchived = space.status === 'archive';
+  const isAbandoned = space.status === 'abandonne';
+  const inactive = isArchived || isAbandoned;
   const anchor = space.anchors?.[0] || (space.linkedLabel ? { type: 'reconciliation', label: space.linkedLabel } as any : null);
   return (
     <button onClick={onOpen} style={{
       textAlign: 'left', width: '100%', background: T.surface, border: `1px solid ${late ? T.red + '55' : T.line}`,
       borderRadius: 12, padding: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8,
-      boxShadow: '0 1px 2px rgba(30,90,100,.04)',
+      boxShadow: '0 1px 2px rgba(30,90,100,.04)', opacity: inactive ? 0.86 : 1,
     }}>
       {anchor && (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: T.petrol, background: T.petrol + '12', borderRadius: 7, padding: '2px 7px', width: 'fit-content' }}>
@@ -224,13 +228,27 @@ function SpaceCard({ space, onOpen }: { space: Space; onOpen: () => void }) {
       )}
       <span style={{ fontWeight: 700, fontSize: 13.5, lineHeight: 1.3 }}>{space.title}</span>
       {space.objective && <span style={{ fontSize: 11.5, color: T.sub, lineHeight: 1.35 }}>{space.objective}</span>}
-      <ConvergenceBar bp={bp} compact />
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: late ? T.red : T.sub, fontWeight: late ? 700 : 500 }}>
-          {late ? <AlertTriangle size={12} /> : <Clock size={12} />} {dayFR(space.deadline)}
-        </span>
-        {space.responsibleName && <Avatar name={space.responsibleName} size="xs" />}
-      </div>
+      {isArchived ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: T.green, fontWeight: 600 }}>
+          <Archive size={12} /> Clôturé {dayFR(space.closedAt)}
+          {space.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· #{space.closureHash.slice(0, 8)}</span>}
+        </div>
+      ) : isAbandoned ? (
+        <div style={{ fontSize: 11, color: T.red, fontWeight: 600 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ban size={12} /> Abandonné {dayFR(space.abandonedAt || space.updatedAt)}</span>
+          {space.abandonReason && <div style={{ fontSize: 10.5, color: T.sub, fontWeight: 400, marginTop: 2 }}>Motif : {space.abandonReason}</div>}
+        </div>
+      ) : (
+        <>
+          <ConvergenceBar bp={bp} compact />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: late ? T.red : T.sub, fontWeight: late ? 700 : 500 }}>
+              {late ? <AlertTriangle size={12} /> : <Clock size={12} />} {dayFR(space.deadline)}
+            </span>
+            {space.responsibleName && <Avatar name={space.responsibleName} size="xs" />}
+          </div>
+        </>
+      )}
     </button>
   );
 }
@@ -295,6 +313,20 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
     toast.success(`Espace clôturé · rapport scellé ${hash.slice(0, 10)}…`);
     await reload(); onChanged();
   };
+  const doAbandon = async (reason?: string) => {
+    try {
+      await abandonSpace(adapter, sp, me, reason);
+      toast.success('Espace abandonné · retiré de la vue active (sans rapport)');
+      await reload(); onChanged();
+    } catch (e) { console.error(e); toast.error('Échec de l\'abandon'); }
+  };
+  const doReactivate = async () => {
+    try {
+      const r = await reactivateSpace(adapter, sp, me);
+      toast.success(`Espace réactivé · statut ${r.status}`);
+      await reload(); onChanged();
+    } catch (e) { console.error(e); toast.error('Échec de la réactivation'); }
+  };
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -323,7 +355,8 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
         {/* ── Colonne MÉTHODE ── */}
         <MethodColumn sp={sp} criteria={criteria} conv={conv} readOnly={readOnly} me={me}
           adapter={adapter} tenantId={tenantId} allCriteriaMet={allCriteriaMet}
-          onClose={doClose} onReload={reload} onShowReport={openReport} />
+          onClose={doClose} onAbandon={doAbandon} onReactivate={doReactivate}
+          onReload={reload} onShowReport={openReport} />
 
         {/* ── Colonne FIL TYPÉ ── */}
         <section style={{ display: 'flex', flexDirection: 'column', minWidth: 0, background: T.cream }}>
@@ -365,9 +398,11 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
 }
 
 // ── Colonne Méthode ───────────────────────────────────────────────────────────
-function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onReload, onShowReport }: any) {
+function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onAbandon, onReactivate, onReload, onShowReport }: any) {
   const { toast } = useToast();
   const [solTitle, setSolTitle] = useState('');
+  const [abandoning, setAbandoning] = useState(false);
+  const [abReason, setAbReason] = useState('');
   const kept = (sp.solutions || []).find((s: any) => s.state === 'kept');
 
   const propose = async () => {
@@ -443,27 +478,63 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
         </div>
       </Step>
 
-      {/* ④ Clôture */}
-      <Step n="④" label="Clôture">
+      {/* ④ Clôture ou abandon */}
+      <Step n="④" label="Clôture ou abandon">
         <div style={{ fontSize: 11.5, color: T.sub, marginBottom: 8 }}>
           {criteria.filter((c: ExitCriterion) => c.met).length}/{criteria.length} critères de sortie satisfaits
         </div>
         {readOnly ? (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
-              <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
-              {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
+          sp.status === 'archive' ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
+                <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
+                {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
+              </div>
+              <div style={{ fontSize: 10.5, color: T.sub, marginTop: 4 }}>Clôture opposable · rapport scellé.</div>
+              <button onClick={onShowReport} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><FileText size={15} /> Voir le rapport de clôture</button>
             </div>
-            <button onClick={onShowReport} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><FileText size={15} /> Voir le rapport de clôture</button>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.red, fontWeight: 700 }}>
+                <Ban size={16} /> Abandonné le {dayFR(sp.abandonedAt || sp.updatedAt)}
+              </div>
+              <div style={{ fontSize: 10.5, color: T.sub, marginTop: 4 }}>
+                Arrêt manuel · <b>sans rapport de clôture</b>.{sp.abandonReason ? <> Motif : <i style={{ color: T.ink }}>{sp.abandonReason}</i></> : ' Aucun motif renseigné.'}
+              </div>
+              <button onClick={onReactivate} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><RotateCcw size={15} /> Réactiver l'espace</button>
+            </div>
+          )
+        ) : abandoning ? (
+          <div style={{ border: `1px solid ${T.red}44`, background: T.red + '0a', borderRadius: 9, padding: 10 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: T.red, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+              <Ban size={14} /> Abandonner cet espace ?
+            </div>
+            <div style={{ fontSize: 10.5, color: T.sub, marginBottom: 7 }}>
+              Il quitte la vue active sans clôture opposable ni rapport scellé. Réversible (réactivation possible).
+            </div>
+            <textarea value={abReason} onChange={e => setAbReason(e.target.value)} rows={2}
+              placeholder="Motif (optionnel) — ex. doublon, obsolète, non résoluble…"
+              style={{ ...inp, width: '100%', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 7 }} />
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button onClick={() => { onAbandon(abReason.trim() || undefined); setAbandoning(false); setAbReason(''); }} style={miniBtn(T.red)}>Confirmer l'abandon</button>
+              <button onClick={() => { setAbandoning(false); setAbReason(''); }} style={miniBtn(T.sub)}>Annuler</button>
+            </div>
           </div>
         ) : (
-          <button onClick={onClose} disabled={!allCriteriaMet} style={{
-            ...btn(allCriteriaMet ? T.green : T.line), width: '100%', justifyContent: 'center',
-            cursor: allCriteriaMet ? 'pointer' : 'not-allowed', color: allCriteriaMet ? '#fff' : T.sub,
-          }}>
-            {allCriteriaMet ? <Unlock size={15} /> : <Lock size={15} />}
-            Clôturer & sceller le rapport
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button onClick={onClose} disabled={!allCriteriaMet} style={{
+              ...btn(allCriteriaMet ? T.green : T.line), width: '100%', justifyContent: 'center',
+              cursor: allCriteriaMet ? 'pointer' : 'not-allowed', color: allCriteriaMet ? '#fff' : T.sub,
+            }}>
+              {allCriteriaMet ? <Unlock size={15} /> : <Lock size={15} />}
+              Clôturer & sceller le rapport
+            </button>
+            <button onClick={() => setAbandoning(true)} style={{
+              ...btn('#0000'), width: '100%', justifyContent: 'center', color: T.red, border: `1px solid ${T.red}44`,
+            }}>
+              <Ban size={15} /> Abandonner l'espace
+            </button>
+          </div>
         )}
       </Step>
     </div>
