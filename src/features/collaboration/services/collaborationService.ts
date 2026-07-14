@@ -77,7 +77,7 @@ function toSpace(c: DBCollabChannel): Space {
     exitCriteria: c.exitCriteria || [], solutions: c.solutions || [], milestones: c.milestones || [],
     anchors: c.anchors || [], decisionSeq: c.decisionSeq,
     linkedType: c.linkedType, linkedId: c.linkedId, linkedLabel: c.linkedLabel, linkedPath: c.linkedPath,
-    abandonReason: c.abandonReason,
+    abandonReason: c.abandonReason, abandonedAt: c.abandonedAt, abandonedBy: c.abandonedBy,
     createdBy: c.createdBy, createdAt: c.createdAt, updatedAt: c.updatedAt,
     closedAt: c.closedAt, closureHash: c.closureHash, archived: c.archived,
   };
@@ -143,7 +143,7 @@ export async function updateSpace(adapter: DataAdapter, id: string, patch: Parti
   if (patch.title !== undefined) upd.name = patch.title;
   for (const k of ['problem', 'objective', 'responsibleId', 'responsibleName', 'deadline', 'status',
     'convergence', 'convergenceBp', 'exitCriteria', 'solutions', 'milestones', 'anchors', 'decisionSeq',
-    'abandonReason', 'closedAt', 'closureHash'] as const) {
+    'abandonReason', 'abandonedAt', 'abandonedBy', 'closedAt', 'closureHash'] as const) {
     if ((patch as any)[k] !== undefined) (upd as any)[k] = (patch as any)[k];
   }
   const c = await adapter.update<DBCollabChannel>('collabChannels', id, upd);
@@ -157,6 +157,49 @@ export async function transitionSpace(adapter: DataAdapter, space: Space, to: Sp
   if (to === 'abandonne') patch.abandonReason = opts?.reason;
   const updated = await updateSpace(adapter, space.id, patch);
   await postSystem(adapter, { spaceId: space.id, tenantId: space.tenantId, body: `Statut → ${to}${opts?.reason ? ' · ' + opts.reason : ''}` });
+  return updated;
+}
+
+/**
+ * ABANDON MANUEL (CDC §2.1 · sortie sans résolution). Retire un espace obsolète,
+ * en double ou non résolu de la vue active, SANS clôture opposable ni rapport
+ * scellé (réservés à la résolution via closeSpace). Le motif est optionnel ;
+ * l'auteur et la date sont tracés pour l'audit. Un espace abandonné est en
+ * lecture seule et réactivable (reactivateSpace).
+ */
+export async function abandonSpace(adapter: DataAdapter, space: Space, by: { id: string; name: string }, reason?: string): Promise<Space> {
+  const updated = await updateSpace(adapter, space.id, {
+    status: 'abandonne', abandonedAt: now(), abandonedBy: by.id,
+    abandonReason: reason?.trim() || undefined,
+  });
+  await postSystem(adapter, {
+    spaceId: space.id, tenantId: space.tenantId,
+    body: `Espace abandonné par ${by.name}${reason?.trim() ? ' · motif : ' + reason.trim() : ' · sans motif'} (arrêt manuel, sans rapport de clôture)`,
+  });
+  return updated;
+}
+
+/**
+ * RÉACTIVATION d'un espace abandonné → le remet dans la vue active. Restaure un
+ * statut cohérent avec l'avancement (solution retenue → action, solutions → analyse,
+ * sinon ouvert) et purge les marqueurs d'abandon. Sans effet sur un espace archivé
+ * (clôture opposable — irréversible).
+ */
+export async function reactivateSpace(adapter: DataAdapter, space: Space, by: { id: string; name: string }): Promise<Space> {
+  if (space.status !== 'abandonne') throw new Error('Seul un espace abandonné peut être réactivé.');
+  const solutions = space.solutions || [];
+  const to: SpaceStatus = solutions.some(s => s.state === 'kept') ? 'action'
+    : solutions.length > 0 ? 'analyse' : 'ouvert';
+  // Écriture directe : updateSpace ignore les clés undefined, or il faut VIDER
+  // (null) les marqueurs d'abandon en base pour sortir proprement de l'état.
+  const c = await adapter.update<DBCollabChannel>('collabChannels', space.id, {
+    status: to, abandonedAt: null, abandonedBy: null, abandonReason: null, updatedAt: now(),
+  } as any);
+  const updated = toSpace(c);
+  await postSystem(adapter, {
+    spaceId: space.id, tenantId: space.tenantId,
+    body: `Espace réactivé par ${by.name} · statut → ${to}`,
+  });
   return updated;
 }
 

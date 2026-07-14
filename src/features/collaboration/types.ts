@@ -94,7 +94,9 @@ export interface Space {
   linkedId?: string;
   linkedLabel?: string;            // ex. « Rapprochement 521100 · Atlas FNA »
   linkedPath?: string;             // route pour « ouvrir depuis »
-  abandonReason?: string;          // motif obligatoire si abandonne
+  abandonReason?: string;          // motif (optionnel) si abandonné
+  abandonedAt?: string;            // date d'abandon manuel (sans clôture opposable)
+  abandonedBy?: string;            // id/nom de l'auteur de l'abandon
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -208,8 +210,10 @@ export const SPACE_STATUS_LABELS: Record<SpaceStatus, string> = {
   ouvert: 'Ouvert', analyse: 'Analyse', action: 'Action', resolu: 'Résolu',
   archive: 'Archivé', abandonne: 'Abandonné',
 };
-/** Ordre du kanban de portefeuille (CDC §12.2). */
-export const SPACE_STATUS_ORDER: SpaceStatus[] = ['ouvert', 'analyse', 'action', 'resolu', 'archive'];
+/** Ordre du kanban de portefeuille (CDC §12.2). Les deux dernières colonnes sont
+ *  des sorties de la vue active : « Archivé » (clôturé, rapport opposable + hash)
+ *  et « Abandonné » (arrêté manuellement, sans rapport). */
+export const SPACE_STATUS_ORDER: SpaceStatus[] = ['ouvert', 'analyse', 'action', 'resolu', 'archive', 'abandonne'];
 export const ANCHOR_TYPE_LABELS: Record<AnchorType, string> = {
   account_period: 'Compte × période', reconciliation: 'Rapprochement', partner: 'Tiers',
   journal_entry: 'Écriture', closing_period: 'Clôture de période', budget_line: 'Ligne budgétaire',
