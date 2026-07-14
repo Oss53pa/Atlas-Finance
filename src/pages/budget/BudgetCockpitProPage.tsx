@@ -139,46 +139,46 @@ const BudgetCockpitProPage: React.FC = () => {
           </div>
 
           {/* Tableau P&L par mois (Budgeted / Actual / Balance) */}
-          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
+          <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
-              <thead>
-                <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
-                  <th className="px-4 py-3 text-left">&nbsp;</th>
+              <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+                <tr>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">&nbsp;</th>
                   {selMonths.map((m) => (
-                    <th key={m.period} colSpan={3} className="px-4 py-2 text-center border-l border-[var(--color-border-light)]">{MOIS[m.period - 1]}</th>
+                    <th key={m.period} colSpan={3} className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">{MOIS[m.period - 1]}</th>
                   ))}
                 </tr>
-                <tr className="text-[11px] uppercase text-[var(--color-text-tertiary)] border-b border-[var(--color-border)]">
+                <tr className="border-b border-[var(--color-border)]">
                   <th className="px-4 py-2 text-left" />
                   {selMonths.map((m) => (
                     <React.Fragment key={m.period}>
-                      <th className="px-4 py-2 text-right border-l border-[var(--color-border-light)]">Budgeted</th>
-                      <th className="px-4 py-2 text-right">Actual</th>
-                      <th className="px-4 py-2 text-right">Balance</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">Budgeted</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Actual</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Balance</th>
                     </React.Fragment>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {ROWS.map((r) => (
-                  <tr key={r.key} className={`border-b border-[var(--color-border-light)] ${r.strong ? 'font-medium text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}>
-                    <td className="px-4 py-2">{r.label}</td>
+                  <tr key={r.key} className={r.strong ? 'bg-gray-50/50' : 'hover:bg-gray-50'}>
+                    <td className={`px-4 py-2.5 ${r.strong ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>{r.label}</td>
                     {selMonths.map((m) => (
                       <React.Fragment key={m.period}>
-                        <td className="px-4 py-2 text-right font-mono text-xs border-l border-[var(--color-border-light)]">{cell(m, r, 'budget')}</td>
-                        <td className="px-4 py-2 text-right font-mono text-xs">{cell(m, r, 'actual')}</td>
-                        <td className="px-4 py-2 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{cell(m, r, 'balance')}</td>
+                        <td className="px-4 py-2.5 text-right text-gray-500 border-l border-[var(--color-border)]">{cell(m, r, 'budget')}</td>
+                        <td className={`px-4 py-2.5 text-right ${r.strong ? 'font-semibold text-gray-900' : 'font-medium text-gray-900'}`}>{cell(m, r, 'actual')}</td>
+                        <td className="px-4 py-2.5 text-right text-gray-400">{cell(m, r, 'balance')}</td>
                       </React.Fragment>
                     ))}
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-[var(--color-surface-hover)] font-semibold text-[var(--color-text-primary)]">
+                <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
                   <td className="px-4 py-3">Net Income (year)</td>
                   {selMonths.map((m) => (
-                    <td key={m.period} colSpan={3} className="px-4 py-3 text-right font-mono text-xs border-l border-[var(--color-border-light)]">
-                      {fmt(yearTotal.actual)} <span className="text-[var(--color-text-tertiary)]">({pct(yearTotal.actual, yearTotal.goiA)}%)</span>
+                    <td key={m.period} colSpan={3} className="px-4 py-3 text-right border-l border-[var(--color-border)]">
+                      {fmt(yearTotal.actual)} <span className="text-gray-400 font-normal">({pct(yearTotal.actual, yearTotal.goiA)}%)</span>
                     </td>
                   ))}
                 </tr>
