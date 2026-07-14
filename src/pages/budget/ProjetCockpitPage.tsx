@@ -138,7 +138,7 @@ const ProjetCockpitPage: React.FC = () => {
         <Kpi label="Reste" value={reste} accent={reste < 0 ? 'text-red-600' : 'text-emerald-600'} />
       </div>
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Courbe en S</h2>
           <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">

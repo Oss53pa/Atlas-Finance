@@ -82,7 +82,7 @@ const ProjetPirPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Montant approprié</span><div className="px-3 py-2 rounded-lg bg-[var(--color-surface-hover)] font-mono text-sm">{formatCurrency(approprie)}</div></label>
           <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Investissement final</span><input type="number" value={coutFinal} onChange={(e) => setCoutFinal(e.target.value)} className={`${INP} font-mono`} /></label>

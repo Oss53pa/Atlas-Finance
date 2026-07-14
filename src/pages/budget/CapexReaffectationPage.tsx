@@ -79,7 +79,7 @@ const CapexReaffectationPage: React.FC = () => {
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
       {/* Proposer */}
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-3">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-3">
         <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Proposer une réaffectation</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">CAR source (fonds appropriés)</span>
@@ -106,7 +106,7 @@ const CapexReaffectationPage: React.FC = () => {
       </div>
 
       {/* Registre */}
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">Registre des réaffectations</div>
         {loading ? (
           <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-8 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>

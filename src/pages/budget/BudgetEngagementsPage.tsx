@@ -202,7 +202,7 @@ const BudgetEngagementsPage: React.FC = () => {
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
 
       {showForm && (
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-4">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Field label="Compte (classe 6/2)">
               <input value={form.accountCode} onChange={(e) => setForm({ ...form, accountCode: e.target.value })}
@@ -264,7 +264,7 @@ const BudgetEngagementsPage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
         ) : rows.length === 0 ? (
@@ -275,7 +275,7 @@ const BudgetEngagementsPage: React.FC = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+                <tr className="text-left bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                   <th className="px-4 py-3">Compte</th>
                   <th className="px-4 py-3">Section</th>
                   <th className="px-4 py-3">Période</th>

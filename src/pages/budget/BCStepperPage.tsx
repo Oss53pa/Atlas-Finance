@@ -182,7 +182,7 @@ const BCStepperPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         {step === 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Intitulé"><input defaultValue={bc.libelle} onBlur={(e) => patch({ libelle: e.target.value })} className={INP} /></Field>

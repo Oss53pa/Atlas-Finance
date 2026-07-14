@@ -48,7 +48,7 @@ const RevenusPickerPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {profit.map((s) => (
             <button key={s.id} onClick={() => navigate(`/budget/revenus/${s.id}`)}
-              className="text-left bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-4 hover:border-[var(--color-primary)] hover:shadow-md transition flex items-center justify-between">
+              className="text-left bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-4 hover:border-[var(--color-primary)] hover:shadow-md transition flex items-center justify-between">
               <div>
                 <div className="font-mono text-sm text-[var(--color-text-primary)]">{s.code}</div>
                 <div className="text-xs text-[var(--color-text-secondary)]">{s.libelle}</div>

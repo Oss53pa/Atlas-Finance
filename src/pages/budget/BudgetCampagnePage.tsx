@@ -127,7 +127,7 @@ const BudgetCampagnePage: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5">
+          <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
               <div className="text-base font-semibold text-[var(--color-text-primary)]">{current.libelle}</div>
               {NEXT_LABEL[current.statut] && (
@@ -164,7 +164,7 @@ const BudgetCampagnePage: React.FC = () => {
           </div>
 
           {/* Complétude par centre de coût */}
-          <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+          <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
               <span className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">Complétude de la saisie ({completude.started}/{completude.total} centres · {completude.pct}%)</span>
             </div>

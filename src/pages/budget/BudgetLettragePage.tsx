@@ -97,7 +97,7 @@ const BudgetLettragePage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Engagements ouverts */}
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] flex items-center gap-2">
             <FileSignature className="w-4 h-4" /> Engagements ouverts
           </div>
@@ -130,7 +130,7 @@ const BudgetLettragePage: React.FC = () => {
         </div>
 
         {/* Candidats GL */}
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] flex items-center justify-between">
             <span>Écritures GL candidates</span>
             {suggestedCount > 0 && <span className="inline-flex items-center gap-1 text-[var(--color-secondary)]"><Sparkles className="w-3.5 h-3.5" /> {suggestedCount} suggérée(s)</span>}

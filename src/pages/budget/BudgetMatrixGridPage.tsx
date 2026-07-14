@@ -222,10 +222,10 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
           Aucune version budgétaire en vigueur. Créez-en une depuis <button onClick={() => navigate('/budget/versions')} className="underline">Versions &amp; validation</button>.
         </div>
       ) : (
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="text-sm min-w-[1100px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+              <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                 <th className="px-3 py-3 text-left sticky left-0 bg-[var(--color-surface)] z-10 min-w-[220px]">Compte</th>
                 {MOIS.map((m) => <th key={m} className="px-2 py-3 text-right min-w-[84px]">{m}</th>)}
                 <th className="px-3 py-3 text-right min-w-[110px] bg-[var(--color-primary-light)]">Total</th>

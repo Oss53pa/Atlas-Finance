@@ -97,10 +97,10 @@ const CapexPriorisationPage: React.FC = () => {
       ) : ranked.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
       ) : (
-        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+              <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">#</th>
                 <th className="px-4 py-3 text-left">Business Case</th>
                 <th className="px-4 py-3 text-right">Score</th>
