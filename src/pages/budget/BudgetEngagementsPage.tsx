@@ -29,10 +29,10 @@ import {
 } from 'lucide-react';
 
 const STATUT_STYLE: Record<EngagementStatut, string> = {
-  ouvert: 'bg-[#235A6E]/10 text-[#235A6E] dark:text-[#8fc7d6]',
+  ouvert: 'bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]',
   partiellement_facture: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300',
-  solde: 'bg-neutral-100 text-neutral-500 dark:bg-neutral-700 dark:text-neutral-300',
-  annule: 'bg-neutral-100 text-neutral-400 line-through dark:bg-neutral-800',
+  solde: 'bg-neutral-100 text-[var(--color-text-secondary)] dark:bg-neutral-700 dark:text-neutral-300',
+  annule: 'bg-neutral-100 text-[var(--color-text-tertiary)] line-through dark:bg-neutral-800',
   surfacture: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300',
 };
 const STATUT_LABEL: Record<EngagementStatut, string> = {
@@ -45,7 +45,7 @@ const emptyForm = {
   motif: '', recurrent: false, months: '12',
 };
 
-const INP = 'w-full px-3 py-2 rounded-lg border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-sm text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#235A6E]/30';
+const INP = 'w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]';
 
 const BudgetEngagementsPage: React.FC = () => {
   const { adapter } = useData();
@@ -168,18 +168,18 @@ const BudgetEngagementsPage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-            <FileSignature className="w-6 h-6 text-[#235A6E]" /> Registre des engagements
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+            <FileSignature className="w-6 h-6 text-[var(--color-primary)]" /> Registre des engagements
           </h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
             Externes ingérés + saisis manuellement · pivot de l'équation budgétaire
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowClose((s) => !s)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
+          <button onClick={() => setShowClose((s) => !s)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--color-border)] text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
             <CalendarX className="w-4 h-4" /> Clôture d'exercice
           </button>
-          <button onClick={() => setShowForm((s) => !s)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 transition">
+          <button onClick={() => setShowForm((s) => !s)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition">
             <Plus className="w-4 h-4" /> Engagement manuel
           </button>
         </div>
@@ -191,9 +191,9 @@ const BudgetEngagementsPage: React.FC = () => {
             Dégagement de fin d'exercice — {carryoverSummary(rows).count} engagement(s) ouvert(s), reliquat {carryoverSummary(rows).totalReliquat.toLocaleString('fr-FR')}. Politique :
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <button disabled={closing} onClick={() => runCarryover('report')} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#235A6E] text-white text-xs font-medium disabled:opacity-50">{closing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Reporter sur N+1</button>
+            <button disabled={closing} onClick={() => runCarryover('report')} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium disabled:opacity-50">{closing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Reporter sur N+1</button>
             <button disabled={closing} onClick={() => runCarryover('annulation')} className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs disabled:opacity-50">Annuler les reliquats</button>
-            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-neutral-500">Fermer</button>
+            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-[var(--color-text-secondary)]">Fermer</button>
           </div>
         </div>
       )}
@@ -202,7 +202,7 @@ const BudgetEngagementsPage: React.FC = () => {
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
 
       {showForm && (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 p-5 space-y-4">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Field label="Compte (classe 6/2)">
               <input value={form.accountCode} onChange={(e) => setForm({ ...form, accountCode: e.target.value })}
@@ -232,8 +232,8 @@ const BudgetEngagementsPage: React.FC = () => {
             </Field>
           </div>
           {preview && (
-            <div className="rounded-xl bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-700 p-3">
-              <div className="text-xs font-medium text-neutral-500 mb-2">Disponible de la maille (informatif)</div>
+            <div className="rounded-xl bg-[var(--color-surface-hover)] border border-[var(--color-border)] p-3">
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Disponible de la maille (informatif)</div>
               <BudgetEquationBar
                 budget={preview.maille.budget} engage={preview.maille.engage}
                 realise={preview.maille.realise} disponible={preview.maille.disponible}
@@ -243,39 +243,39 @@ const BudgetEngagementsPage: React.FC = () => {
             </div>
           )}
           <div className="flex items-center gap-4 flex-wrap">
-            <label className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+            <label className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
               <input type="checkbox" checked={form.recurrent} onChange={(e) => setForm({ ...form, recurrent: e.target.checked })} />
               <Repeat className="w-4 h-4" /> Récurrent (contrat)
             </label>
             {form.recurrent && (
-              <label className="inline-flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+              <label className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
                 Mensualités
                 <input type="number" value={form.months} onChange={(e) => setForm({ ...form, months: e.target.value })}
                   className={`${INP} w-20`} min={1} max={60} />
               </label>
             )}
             <div className="flex-1" />
-            <button onClick={() => { setShowForm(false); setForm({ ...emptyForm }); }} className="px-4 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">Annuler</button>
+            <button onClick={() => { setShowForm(false); setForm({ ...emptyForm }); }} className="px-4 py-2 rounded-xl text-sm text-[var(--color-text-secondary)] hover:bg-neutral-100 dark:hover:bg-neutral-700">Annuler</button>
             <button onClick={submitForm} disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Enregistrer
             </button>
           </div>
         </div>
       )}
 
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-hidden">
         {loading ? (
-          <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
         ) : rows.length === 0 ? (
-          <div className="py-12 text-center text-sm text-neutral-500">
+          <div className="py-12 text-center text-sm text-[var(--color-text-secondary)]">
             Aucun engagement. La colonne « Engagé » de l'équation vaut 0 tant qu'aucun engagement (externe ou manuel) n'existe.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
+                <tr className="text-left text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                   <th className="px-4 py-3">Compte</th>
                   <th className="px-4 py-3">Section</th>
                   <th className="px-4 py-3">Période</th>
@@ -292,22 +292,22 @@ const BudgetEngagementsPage: React.FC = () => {
                   const restant = engagementRestant(r);
                   const canAct = r.statut !== 'solde' && r.statut !== 'annule';
                   return (
-                    <tr key={r.id} className="border-b border-neutral-100 dark:border-neutral-700/50 hover:bg-neutral-50 dark:hover:bg-neutral-700/30">
+                    <tr key={r.id} className="border-b border-[var(--color-border-light)] hover:bg-neutral-50 dark:hover:bg-neutral-700/30">
                       <td className="px-4 py-3">
-                        <div className="font-mono text-neutral-900 dark:text-white">{r.account_code}</div>
-                        <div className="text-xs text-neutral-400 truncate max-w-[160px]">{getAccountLabel(r.account_code)}</div>
+                        <div className="font-mono text-[var(--color-text-primary)]">{r.account_code}</div>
+                        <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[160px]">{getAccountLabel(r.account_code)}</div>
                       </td>
-                      <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{sectionLabel(r.section_id)}</td>
-                      <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">{r.periode?.slice(0, 7)}</td>
-                      <td className="px-4 py-3 text-neutral-600 dark:text-neutral-300">
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{sectionLabel(r.section_id)}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">{r.periode?.slice(0, 7)}</td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                         <div className="flex items-center gap-1">
-                          {r.source === 'manuel' && <Building2 className="w-3.5 h-3.5 text-neutral-400" />}
+                          {r.source === 'manuel' && <Building2 className="w-3.5 h-3.5 text-[var(--color-text-tertiary)]" />}
                           {r.fournisseur_libelle || '—'}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right font-mono">{formatCurrency(r.montant_initial)}</td>
-                      <td className="px-4 py-3 text-right font-mono text-neutral-500">{formatCurrency(r.montant_facture)}</td>
-                      <td className="px-4 py-3 text-right font-mono font-medium text-[#235A6E] dark:text-[#8fc7d6]">{formatCurrency(restant)}</td>
+                      <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)]">{formatCurrency(r.montant_facture)}</td>
+                      <td className="px-4 py-3 text-right font-mono font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(restant)}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUT_STYLE[r.statut]}`}>{STATUT_LABEL[r.statut]}</span>
                       </td>
@@ -317,12 +317,12 @@ const BudgetEngagementsPage: React.FC = () => {
                             <>
                               <button title="Dégager le reliquat" disabled={busyId === r.id}
                                 onClick={() => doAction(r.id, 'degage')}
-                                className="p-1.5 rounded-lg text-neutral-400 hover:text-[#235A6E] hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
+                                className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
                                 {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
                               </button>
                               <button title="Annuler l'engagement" disabled={busyId === r.id}
                                 onClick={() => doAction(r.id, 'annule')}
-                                className="p-1.5 rounded-lg text-neutral-400 hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
+                                className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
                                 <XCircle className="w-4 h-4" />
                               </button>
                             </>
@@ -334,11 +334,11 @@ const BudgetEngagementsPage: React.FC = () => {
                 })}
               </tbody>
               <tfoot>
-                <tr className="border-t-2 border-neutral-200 dark:border-neutral-700 font-medium text-neutral-900 dark:text-white">
+                <tr className="border-t-2 border-[var(--color-border)] font-medium text-[var(--color-text-primary)]">
                   <td className="px-4 py-3" colSpan={4}>Total ({rows.length})</td>
                   <td className="px-4 py-3 text-right font-mono">{formatCurrency(totals.initial)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-neutral-500">{formatCurrency(totals.facture)}</td>
-                  <td className="px-4 py-3 text-right font-mono text-[#235A6E] dark:text-[#8fc7d6]">{formatCurrency(totals.restant)}</td>
+                  <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)]">{formatCurrency(totals.facture)}</td>
+                  <td className="px-4 py-3 text-right font-mono text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(totals.restant)}</td>
                   <td colSpan={2} />
                 </tr>
               </tfoot>
@@ -352,7 +352,7 @@ const BudgetEngagementsPage: React.FC = () => {
 
 const Field: React.FC<{ label: string; className?: string; children: React.ReactNode }> = ({ label, className = '', children }) => (
   <label className={`block ${className}`}>
-    <span className="block text-xs font-medium text-neutral-500 mb-1">{label}</span>
+    <span className="block text-xs font-medium text-[var(--color-text-secondary)] mb-1">{label}</span>
     {children}
   </label>
 );

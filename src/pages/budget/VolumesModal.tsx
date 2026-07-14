@@ -42,36 +42,36 @@ const VolumesModal: React.FC<{ adapter: any; budgetLineId: string; accountCode: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-neutral-200 dark:border-neutral-700">
+      <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] w-full max-w-2xl max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--color-border)]">
           <h2 className="text-sm font-medium text-neutral-800 dark:text-neutral-100">Volumes × prix · compte {accountCode}</h2>
-          <button onClick={onClose} className="p-1 text-neutral-400 hover:text-neutral-700"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1 text-[var(--color-text-tertiary)] hover:text-neutral-700"><X className="w-5 h-5" /></button>
         </div>
         {error && <div className="mx-5 mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
         {loading ? (
-          <div className="flex items-center gap-2 text-neutral-500 py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
         ) : (
           <div className="p-5">
             <table className="w-full text-sm">
-              <thead><tr className="text-xs uppercase text-neutral-500"><th className="text-left py-1">Mois</th><th className="text-right">Quantité</th><th className="text-right">Prix unitaire</th><th className="text-right">Montant</th></tr></thead>
+              <thead><tr className="text-xs uppercase text-[var(--color-text-secondary)]"><th className="text-left py-1">Mois</th><th className="text-right">Quantité</th><th className="text-right">Prix unitaire</th><th className="text-right">Montant</th></tr></thead>
               <tbody>
                 {MOIS.map((mois, i) => {
                   const m = i + 1; const q = rows[m]?.quantite || 0; const p = rows[m]?.prix_unitaire || 0;
                   return (
-                    <tr key={mois} className="border-b border-neutral-100 dark:border-neutral-700/50">
-                      <td className="py-1 text-neutral-600 dark:text-neutral-300">{mois}</td>
-                      <td className="py-1"><input type="number" value={q || ''} onChange={(e) => set(m, 'quantite', e.target.value)} className="w-24 px-2 py-1 text-right rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-xs" /></td>
-                      <td className="py-1"><input type="number" value={p || ''} onChange={(e) => set(m, 'prix_unitaire', e.target.value)} className="w-28 px-2 py-1 text-right rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-xs" /></td>
-                      <td className="py-1 text-right font-mono text-xs text-[#235A6E] dark:text-[#8fc7d6]">{formatCurrency(volumeMontant(q, p))}</td>
+                    <tr key={mois} className="border-b border-[var(--color-border-light)]">
+                      <td className="py-1 text-[var(--color-text-secondary)]">{mois}</td>
+                      <td className="py-1"><input type="number" value={q || ''} onChange={(e) => set(m, 'quantite', e.target.value)} className="w-24 px-2 py-1 text-right rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-xs" /></td>
+                      <td className="py-1"><input type="number" value={p || ''} onChange={(e) => set(m, 'prix_unitaire', e.target.value)} className="w-28 px-2 py-1 text-right rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-xs" /></td>
+                      <td className="py-1 text-right font-mono text-xs text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(volumeMontant(q, p))}</td>
                     </tr>
                   );
                 })}
               </tbody>
-              <tfoot><tr className="font-medium"><td colSpan={3} className="py-2 text-right">Total annuel</td><td className="py-2 text-right font-mono text-[#235A6E] dark:text-[#8fc7d6]">{formatCurrency(total)}</td></tr></tfoot>
+              <tfoot><tr className="font-medium"><td colSpan={3} className="py-2 text-right">Total annuel</td><td className="py-2 text-right font-mono text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(total)}</td></tr></tfoot>
             </table>
             <div className="flex justify-end gap-2 mt-4">
-              <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-700">Fermer</button>
-              <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Enregistrer (recalcule le budget)</button>
+              <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-[var(--color-text-secondary)] hover:bg-neutral-100 dark:hover:bg-neutral-700">Fermer</button>
+              <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Enregistrer (recalcule le budget)</button>
             </div>
           </div>
         )}

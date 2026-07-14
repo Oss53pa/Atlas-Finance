@@ -170,27 +170,27 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
     <div className="p-6 space-y-4 max-w-full">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/analytique')} className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-700" title="Sections">
+          <button onClick={() => navigate('/analytique')} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700" title="Sections">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-              <Grid3x3 className="w-6 h-6 text-[#235A6E]" /> {isRevenus ? 'Budget des revenus' : 'Saisie budgétaire OPEX'}
+            <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+              <Grid3x3 className="w-6 h-6 text-[var(--color-primary)]" /> {isRevenus ? 'Budget des revenus' : 'Saisie budgétaire OPEX'}
             </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
               {section ? `${section.code} · ${section.libelle}` : 'Section inconnue'} · exercice {annee}
               {version && <> · version <span className="font-medium">{version.libelle}</span></>}
-              {locked && <span className="ml-2 inline-flex items-center gap-1 text-[#235A6E]"><Lock className="w-3.5 h-3.5" /> verrouillée</span>}
+              {locked && <span className="ml-2 inline-flex items-center gap-1 text-[var(--color-primary)]"><Lock className="w-3.5 h-3.5" /> verrouillée</span>}
             </p>
           </div>
         </div>
         {!locked && (
           <div className="flex items-center gap-2">
-            <button onClick={addRow} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-neutral-200 dark:border-neutral-600 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
+            <button onClick={addRow} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--color-border)] text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
               <Plus className="w-4 h-4" /> Compte
             </button>
             <button onClick={saveAll} disabled={saving || dirtyCount === 0}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#235A6E] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Enregistrer{dirtyCount > 0 ? ` (${dirtyCount})` : ''}
             </button>
           </div>
@@ -201,82 +201,82 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-900 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</div>}
 
       {!loading && version && !locked && (
-        <div className="flex items-center gap-2 flex-wrap text-sm bg-neutral-50 dark:bg-neutral-900/40 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2">
-          <span className="text-xs font-medium text-neutral-500">Pré-remplir :</span>
-          <button onClick={() => applyFromN1(false)} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-[#235A6E]">N-1 (mensuel)</button>
+        <div className="flex items-center gap-2 flex-wrap text-sm bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-xl px-3 py-2">
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Pré-remplir :</span>
+          <button onClick={() => applyFromN1(false)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">N-1 (mensuel)</button>
           <span className="inline-flex items-center gap-1">
-            <button onClick={() => applyFromN1(true)} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-[#235A6E]">N-1 indexé</button>
+            <button onClick={() => applyFromN1(true)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">N-1 indexé</button>
             <input value={taux} onChange={(e) => setTaux(e.target.value)} placeholder="%" type="number"
-              className="w-14 px-1.5 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-xs font-mono" />
-            <span className="text-xs text-neutral-400">%</span>
+              className="w-14 px-1.5 py-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-xs font-mono" />
+            <span className="text-xs text-[var(--color-text-tertiary)]">%</span>
           </span>
-          <button onClick={zbbAll} className="px-2.5 py-1 rounded-lg bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-xs hover:border-red-400">ZBB (vider)</button>
-          <span className="text-xs text-neutral-400">puis Enregistrer</span>
+          <button onClick={zbbAll} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-red-400">ZBB (vider)</button>
+          <span className="text-xs text-[var(--color-text-tertiary)]">puis Enregistrer</span>
         </div>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : !version ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
           Aucune version budgétaire en vigueur. Créez-en une depuis <button onClick={() => navigate('/budget/versions')} className="underline">Versions &amp; validation</button>.
         </div>
       ) : (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
           <table className="text-sm min-w-[1100px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
-                <th className="px-3 py-3 text-left sticky left-0 bg-white dark:bg-neutral-800 z-10 min-w-[220px]">Compte</th>
+              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
+                <th className="px-3 py-3 text-left sticky left-0 bg-[var(--color-surface)] z-10 min-w-[220px]">Compte</th>
                 {MOIS.map((m) => <th key={m} className="px-2 py-3 text-right min-w-[84px]">{m}</th>)}
-                <th className="px-3 py-3 text-right min-w-[110px] bg-[#235A6E]/5">Total</th>
+                <th className="px-3 py-3 text-right min-w-[110px] bg-[var(--color-primary-light)]">Total</th>
                 <th className="px-3 py-3 text-right min-w-[110px]">Réel N-1</th>
                 {!locked && <th className="px-2 py-3" />}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={16} className="px-4 py-10 text-center text-sm text-neutral-500">Aucune ligne. Ajoutez un compte de charge (classe 6).</td></tr>
+                <tr><td colSpan={16} className="px-4 py-10 text-center text-sm text-[var(--color-text-secondary)]">Aucune ligne. Ajoutez un compte de charge (classe 6).</td></tr>
               ) : rows.map((r, idx) => {
                 const total = rowTotal(r);
                 const n1 = refN1[r.account_code] || 0;
                 return (
-                  <tr key={r.id ?? `new-${idx}`} className="border-b border-neutral-100 dark:border-neutral-700/50">
-                    <td className="px-3 py-2 sticky left-0 bg-white dark:bg-neutral-800 z-10">
+                  <tr key={r.id ?? `new-${idx}`} className="border-b border-[var(--color-border-light)]">
+                    <td className="px-3 py-2 sticky left-0 bg-[var(--color-surface)] z-10">
                       {r.id ? (
                         <div>
-                          <div className="font-mono text-neutral-900 dark:text-white">{r.account_code}</div>
-                          <div className="text-xs text-neutral-400 truncate max-w-[190px]">{getAccountLabel(r.account_code)}</div>
+                          <div className="font-mono text-[var(--color-text-primary)]">{r.account_code}</div>
+                          <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[190px]">{getAccountLabel(r.account_code)}</div>
                         </div>
                       ) : (
                         <input value={r.account_code} onChange={(e) => setAccount(idx, e.target.value)} disabled={locked}
-                          placeholder={isRevenus ? '7011' : '6132'} className="w-24 px-2 py-1 rounded border border-neutral-200 dark:border-neutral-600 bg-white dark:bg-neutral-900 font-mono text-sm" />
+                          placeholder={isRevenus ? '7011' : '6132'} className="w-24 px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
                       )}
                       {(r.id || r.account_code) && (
                         <input value={r.commentaire ?? ''} onChange={(e) => setComment(idx, e.target.value)} disabled={locked}
                           placeholder="justification…" title="Justification de la ligne"
-                          className="mt-1 w-full max-w-[200px] px-1.5 py-0.5 rounded border border-transparent hover:border-neutral-200 dark:hover:border-neutral-600 bg-transparent text-[11px] text-neutral-500 focus:border-[#235A6E] focus:outline-none" />
+                          className="mt-1 w-full max-w-[200px] px-1.5 py-0.5 rounded border border-transparent hover:border-neutral-200 dark:hover:border-neutral-600 bg-transparent text-[11px] text-[var(--color-text-secondary)] focus:border-[var(--color-primary)] focus:outline-none" />
                       )}
                     </td>
                     {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                       <td key={m} className="px-1 py-1">
                         <input type="number" value={r.periods[m] || ''} onChange={(e) => setCell(idx, m, e.target.value)} disabled={locked}
-                          className="w-full px-1 py-1 text-right rounded border border-transparent hover:border-neutral-200 focus:border-[#235A6E] dark:bg-neutral-900 dark:hover:border-neutral-600 font-mono text-xs disabled:opacity-60" />
+                          className="w-full px-1 py-1 text-right rounded border border-transparent hover:border-neutral-200 focus:border-[var(--color-primary)] dark:bg-neutral-900 dark:hover:border-neutral-600 font-mono text-xs disabled:opacity-60" />
                       </td>
                     ))}
-                    <td className="px-2 py-1 bg-[#235A6E]/5">
+                    <td className="px-2 py-1 bg-[var(--color-primary-light)]">
                       <input type="number" value={total || ''} onChange={(e) => setTotal(idx, e.target.value)} disabled={locked}
                         title="Éditer le total = répartir en 1/12"
-                        className="w-full px-1 py-1 text-right rounded border border-transparent hover:border-[#235A6E]/40 dark:bg-neutral-900 font-mono text-xs font-medium text-[#235A6E] dark:text-[#8fc7d6] disabled:opacity-60" />
+                        className="w-full px-1 py-1 text-right rounded border border-transparent hover:border-[var(--color-primary-light)] dark:bg-neutral-900 font-mono text-xs font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)] disabled:opacity-60" />
                     </td>
-                    <td className="px-3 py-2 text-right font-mono text-xs text-neutral-400">
-                      <button onClick={() => prefillFromN1(idx)} disabled={locked || !n1} title="Pré-remplir depuis N-1" className="hover:text-[#235A6E] disabled:hover:text-neutral-400">
+                    <td className="px-3 py-2 text-right font-mono text-xs text-[var(--color-text-tertiary)]">
+                      <button onClick={() => prefillFromN1(idx)} disabled={locked || !n1} title="Pré-remplir depuis N-1" className="hover:text-[var(--color-primary)] disabled:hover:text-[var(--color-text-tertiary)]">
                         {n1 ? formatCurrency(n1) : '—'}
                       </button>
                     </td>
                     {!locked && (
                       <td className="px-2 py-1">
                         <div className="flex items-center gap-1">
-                          {isRevenus && r.id && <button onClick={() => setVolumesLine({ id: r.id!, account: r.account_code })} title="Volumes × prix" className="p-1 text-neutral-300 hover:text-[#235A6E]"><Boxes className="w-4 h-4" /></button>}
+                          {isRevenus && r.id && <button onClick={() => setVolumesLine({ id: r.id!, account: r.account_code })} title="Volumes × prix" className="p-1 text-neutral-300 hover:text-[var(--color-primary)]"><Boxes className="w-4 h-4" /></button>}
                           {!r.id && <button onClick={() => removeRow(idx)} className="p-1 text-neutral-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>}
                         </div>
                       </td>
@@ -286,12 +286,12 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
               })}
             </tbody>
             <tfoot>
-              <tr className="border-t-2 border-neutral-200 dark:border-neutral-700 font-medium text-neutral-900 dark:text-white bg-neutral-50 dark:bg-neutral-900/40">
+              <tr className="border-t-2 border-[var(--color-border)] font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-hover)]">
                 <td className="px-3 py-3 sticky left-0 bg-neutral-50 dark:bg-neutral-900 z-10">Total ({rows.length})</td>
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <td key={m} className="px-2 py-3 text-right font-mono text-xs">{formatCurrency(columnTotals[m])}</td>
                 ))}
-                <td className="px-3 py-3 text-right font-mono text-[#235A6E] dark:text-[#8fc7d6] bg-[#235A6E]/10">{formatCurrency(grandTotal)}</td>
+                <td className="px-3 py-3 text-right font-mono text-[var(--color-primary)] dark:text-[var(--color-primary)] bg-[var(--color-primary-light)]">{formatCurrency(grandTotal)}</td>
                 <td className="px-3 py-3" />
                 {!locked && <td />}
               </tr>

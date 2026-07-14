@@ -307,6 +307,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     control: [
       // Entrées-groupes : le détail est en onglets dans chaque page (voir BudgetGroupTabs).
       { id: 'budget-hub', label: 'Hub Budgétaire', path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'budget-cockpit-pro', label: 'Cockpit analytique', path: '/budget/cockpit-analytique', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-elaboration', label: 'Élaboration', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" />,
         matchPrefixes: ['/budget/campagne', '/budget/table', '/budget/revenus', '/budget/saisie', '/budget/import', '/budget/versions'] },
       { id: 'budget-suivi', label: 'Suivi budgétaire', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" />,

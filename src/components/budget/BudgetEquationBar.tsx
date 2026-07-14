@@ -25,10 +25,10 @@ export interface BudgetEquationBarProps {
 }
 
 const Tile: React.FC<{ label: string; value: number; accent?: string; borderClass?: string }> = ({
-  label, value, accent = 'text-neutral-900 dark:text-white', borderClass = 'border-neutral-200 dark:border-neutral-700',
+  label, value, accent = 'text-[var(--color-text-primary)]', borderClass = 'border-[var(--color-border)]',
 }) => (
-  <div className={`flex-1 min-w-[120px] rounded-xl border ${borderClass} bg-white dark:bg-neutral-800 px-4 py-3`}>
-    <div className="text-[11px] font-medium uppercase tracking-wide text-neutral-500">{label}</div>
+  <div className={`flex-1 min-w-[120px] rounded-xl border ${borderClass} bg-[var(--color-surface)] px-4 py-3`}>
+    <div className="text-[11px] font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">{label}</div>
     <div className={`mt-1 font-mono text-sm font-semibold ${accent}`}>{formatCurrency(value)}</div>
   </div>
 );
@@ -59,11 +59,11 @@ const BudgetEquationBar: React.FC<BudgetEquationBarProps> = ({
       <div className={`flex gap-2 ${compact ? 'flex-wrap' : 'flex-wrap sm:flex-nowrap'}`}>
         <Tile label="Budget" value={budget} />
         <Tile label="Engagé" value={engage} accent="text-[#3D6FA8] dark:text-[#8fb4dd]" />
-        <Tile label="Réalisé" value={realise} accent="text-[#235A6E] dark:text-[#8fc7d6]" />
+        <Tile label="Réalisé" value={realise} accent="text-[var(--color-primary)] dark:text-[var(--color-primary)]" />
         <Tile label="Disponible" value={disponible} accent={dispoAccent} borderClass={dispoBorder} />
       </div>
       {apres != null && (
-        <div className="text-xs text-neutral-500">
+        <div className="text-xs text-[var(--color-text-secondary)]">
           Après engagement envisagé :{' '}
           <span className={`font-mono font-medium ${apres < 0 ? 'text-red-600' : 'text-neutral-700 dark:text-neutral-200'}`}>
             {formatCurrency(apres)}

@@ -55,14 +55,14 @@ const BudgetPnLPage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-            <Scale className="w-6 h-6 text-[#235A6E]" /> Compte de résultat budgétaire
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
+            <Scale className="w-6 h-6 text-[var(--color-primary)]" /> Compte de résultat budgétaire
           </h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">P&amp;L de gestion SYSCOHADA · exercice {annee || '—'}</p>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">P&amp;L de gestion SYSCOHADA · exercice {annee || '—'}</p>
         </div>
         {resultat && (
           <div className="text-right">
-            <div className="text-xs text-neutral-500 uppercase tracking-wide">Résultat de gestion (réalisé)</div>
+            <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Résultat de gestion (réalisé)</div>
             <div className={`font-mono text-xl font-semibold ${resultat.realise >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               {formatCurrency(resultat.realise)}
             </div>
@@ -73,12 +73,12 @@ const BudgetPnLPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-neutral-500 py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : (
-        <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-x-auto">
+        <div className="bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead>
-              <tr className="text-xs uppercase tracking-wide text-neutral-500 border-b border-neutral-200 dark:border-neutral-700">
+              <tr className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">Rubrique</th>
                 <th className="px-4 py-3 text-right">Budget</th>
                 <th className="px-4 py-3 text-right">Réalisé</th>
@@ -94,14 +94,14 @@ const BudgetPnLPage: React.FC = () => {
                 const dN1 = Math.round((l.realise - l.n1) * 100) / 100;
                 return (
                   <tr key={l.key}
-                    className={`border-b border-neutral-100 dark:border-neutral-700/50 ${
-                      isTotal ? 'bg-[#235A6E]/10 font-semibold text-neutral-900 dark:text-white'
-                      : isSub ? 'bg-neutral-50 dark:bg-neutral-900/40 font-medium' : ''}`}>
-                    <td className={`px-4 py-2.5 ${isTotal || isSub ? '' : 'pl-6 text-neutral-600 dark:text-neutral-300'}`}>{l.label}</td>
+                    className={`border-b border-[var(--color-border-light)] ${
+                      isTotal ? 'bg-[var(--color-primary-light)] font-semibold text-[var(--color-text-primary)]'
+                      : isSub ? 'bg-[var(--color-surface-hover)] font-medium' : ''}`}>
+                    <td className={`px-4 py-2.5 ${isTotal || isSub ? '' : 'pl-6 text-[var(--color-text-secondary)]'}`}>{l.label}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.budget)}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.realise)}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-xs"><Ecart l={l} /></td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs text-neutral-400">{formatCurrency(l.n1)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{formatCurrency(l.n1)}</td>
                     <td className={`px-4 py-2.5 text-right font-mono text-xs ${dN1 >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(dN1)}</td>
                   </tr>
                 );
@@ -110,7 +110,7 @@ const BudgetPnLPage: React.FC = () => {
           </table>
         </div>
       )}
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-[var(--color-text-tertiary)]">
         Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur.
       </p>
     </div>
