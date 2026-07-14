@@ -7,8 +7,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
-import { getMonthlyPnL, monthCard, getExpenseAnalysis, type PnLMonth, type ExpenseAnalysis } from '../../features/budget/services/cockpitService';
-import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2 } from 'lucide-react';
+import { getMonthlyPnL, monthCard, getExpenseAnalysis, getRevenueAnalysis, type PnLMonth, type ExpenseAnalysis, type RevenueAnalysis } from '../../features/budget/services/cockpitService';
+import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2, Coins, Users } from 'lucide-react';
 
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const MOIS_COURT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -32,6 +32,8 @@ const BudgetCockpitProPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [exp, setExp] = useState<ExpenseAnalysis | null>(null);
   const [expLoading, setExpLoading] = useState(false);
+  const [rev, setRev] = useState<RevenueAnalysis | null>(null);
+  const [revLoading, setRevLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +55,19 @@ const BudgetCockpitProPage: React.FC = () => {
       try { const e = await getExpenseAnalysis(adapter, annee); if (!cancelled) setExp(e); }
       catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
       finally { if (!cancelled) setExpLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter, annee, tab]);
+
+  // Analyse des revenus — chargée à la demande (onglet Revenus), rechargée à l'année.
+  useEffect(() => {
+    if (tab !== 'revenus') return;
+    let cancelled = false;
+    (async () => {
+      setRevLoading(true); setError(null);
+      try { const r = await getRevenueAnalysis(adapter, annee); if (!cancelled) setRev(r); }
+      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      finally { if (!cancelled) setRevLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [adapter, annee, tab]);
@@ -103,6 +118,8 @@ const BudgetCockpitProPage: React.FC = () => {
 
       {tab === 'depenses' ? (
         <DepensesTab exp={exp} loading={expLoading} annee={annee} setAnnee={setAnnee} />
+      ) : tab === 'revenus' ? (
+        <RevenusTab rev={rev} loading={revLoading} annee={annee} setAnnee={setAnnee} />
       ) : tab !== 'overview' ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
           <div className="flex justify-center mb-3 text-neutral-300">
@@ -334,6 +351,101 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
       </div>
 
       <p className="text-xs text-[var(--color-text-tertiary)]">Par nature & par mois : GL classe 6 (écritures validées). Par fournisseur : contrepartie 40x du tiers (vue <span className="font-mono">v_expense_by_supplier</span>). Budget des charges : version en vigueur.</p>
+    </div>
+  );
+};
+
+// --- Onglet Revenus --------------------------------------------------------
+
+const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void }> = ({ rev, loading, annee, setAnnee }) => {
+  if (loading && !rev) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (!rev) return null;
+  const ventes = rev.byNature.find((n) => n.rubrique === '70')?.total || 0;
+  const autres = rev.total - ventes;
+  const maxNat = rev.byNature[0]?.total || 1;
+  const maxCli = rev.byClient[0]?.total || 1;
+  const totalCli = rev.byClient.reduce((a, b) => a + b.total, 0);
+  return (
+    <div className="space-y-5">
+      <header className="flex items-center gap-3 flex-wrap">
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Coins className="w-5 h-5 text-[var(--color-primary)]" /> Revenus</h1>
+        <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
+          {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
+        </select>
+        <span className="text-xs text-[var(--color-text-tertiary)]">Produits réels (classe 7) issus du Grand Livre</span>
+      </header>
+
+      {/* KPI */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <DepKpi label="Produits réalisés" value={fmt(rev.total)} icon={<Coins className="w-5 h-5" />} />
+        <DepKpi label="Ventes (70)" value={fmt(ventes)} icon={<Banknote className="w-5 h-5" />} />
+        <DepKpi label="Autres produits" value={fmt(autres)} icon={<TrendingUp className="w-5 h-5" />} />
+        <DepKpi label="Clients" value={String(rev.byClient.length)} icon={<Users className="w-5 h-5" />} />
+      </div>
+
+      {/* Évolution mensuelle */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-medium text-gray-700">Évolution mensuelle des revenus · {annee}</h2>
+          <span className="text-xs text-[var(--color-text-tertiary)]">Total {fmt(rev.total)}</span>
+        </div>
+        <MonthlyBars values={rev.byMonth} />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {/* Par nature */}
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Revenus par nature</h2></div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Montant</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-40">Part</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rev.byNature.map((n) => (
+                <tr key={n.rubrique} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5"><span className="font-mono font-bold text-[var(--color-primary)]">{n.rubrique}</span> <span className="text-gray-700">{n.label}</span></td>
+                  <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(n.total)}</td>
+                  <td className="px-4 py-2.5"><div className="flex items-center gap-2"><ShareBar ratio={n.total / maxNat} /><span className="text-xs text-gray-400 w-9 text-right">{pct(n.total, rev.total)}%</span></div></td>
+                </tr>
+              ))}
+              {rev.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun produit sur {annee}.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Top clients */}
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+          <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
+            <h2 className="text-sm font-medium text-gray-700">Top clients</h2>
+            <span className="text-xs text-[var(--color-text-tertiary)]">Σ top {rev.byClient.length} : {fmt(totalCli)}</span>
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Client</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Revenu</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">Part</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rev.byClient.map((c) => (
+                <tr key={c.code} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5"><div className="text-gray-900">{c.name}</div><div className="font-mono text-[11px] text-gray-400">{c.code}</div></td>
+                  <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(c.total)}</td>
+                  <td className="px-4 py-2.5"><ShareBar ratio={c.total / maxCli} /></td>
+                </tr>
+              ))}
+              {rev.byClient.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun mouvement client sur {annee}.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p className="text-xs text-[var(--color-text-tertiary)]">Par nature & par mois : GL classe 7 (écritures validées). Par client : contrepartie 41x du tiers (vue <span className="font-mono">v_revenue_by_client</span>).</p>
     </div>
   );
 };
