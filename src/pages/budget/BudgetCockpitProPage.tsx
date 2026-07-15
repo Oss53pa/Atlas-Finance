@@ -96,7 +96,7 @@ const BudgetCockpitProPage: React.FC = () => {
   const cell = (m: PnLMonth, r: typeof ROWS[number], col: 'budget' | 'actual' | 'balance') => {
     if (r.percent) {
       const bm = pct(m.budget.noi, m.budget.goi), am = pct(m.actual.noi, m.actual.goi);
-      if (col === 'budget') return `${bm}`; if (col === 'actual') return `${am}`; return `${bm - am}`;
+      if (col === 'budget') return `${bm}%`; if (col === 'actual') return `${am}%`; return `${bm - am} pt`;
     }
     const b = r.get(m.budget), a = r.get(m.actual);
     if (col === 'budget') return fmt(b); if (col === 'actual') return fmt(a); return fmt(b - a);
@@ -221,7 +221,7 @@ const BudgetCockpitProPage: React.FC = () => {
               </tfoot>
             </table>
           </div>
-          <p className="text-xs text-[var(--color-text-tertiary)]">Mapping SYSCOHADA : GOI = produits 70-76, OpEx = charges 60-65/68, Financier 66/67 & 77, Tax 69/89 (ajustable). Réalisé issu du GL, budget de la version en vigueur.</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">Mapping SYSCOHADA : GOI = produits d'exploitation (70-76, 78-79) · OpEx = charges d'exploitation (60-66, 68, personnel 66 inclus) · Résultat financier = 77 − 67 · Tax = impôt sur le résultat (89). Réalisé issu du GL (écritures validées), budget de la version en vigueur. Les valeurs négatives de janvier sont de vraies extournes de provisions (cut-off de clôture).</p>
         </>
       )}
     </div>

@@ -8,13 +8,13 @@ import type { DataAdapter } from '@atlas/data';
  * — ajustable. Calcul 100 % code.
  */
 
-// Préfixes de comptes par rubrique (ajustable selon le plan du tenant).
+// Préfixes de comptes par rubrique (mapping SYSCOHADA du compte de résultat).
 const RUB = {
-  goi: ['70', '71', '72', '73', '74', '75', '76'],  // produits d'exploitation (hors financier 77)
-  opex: ['60', '61', '62', '63', '64', '65', '68'],  // charges d'exploitation (hors financier 66/67, hors impôt)
-  finInc: ['77'],
-  finExp: ['66', '67'],
-  tax: ['69', '89'],
+  goi: ['70', '71', '72', '73', '74', '75', '76', '78', '79'],  // produits d'exploitation (hors financier 77)
+  opex: ['60', '61', '62', '63', '64', '65', '66', '68'],       // charges d'exploitation — 66 = charges de personnel (exploitation), 68 = dotations d'exploitation
+  finInc: ['77'],                                                // revenus financiers
+  finExp: ['67'],                                                // frais financiers (66 n'en fait PAS partie : c'est le personnel)
+  tax: ['89'],                                                   // impôt sur le résultat (classe 8, réinjecté depuis v_actual_income_tax)
 };
 
 export interface PnLMonthLine { goi: number; opex: number; noi: number; finInc: number; finExp: number; resFin: number; tax: number; netIncome: number; }
@@ -48,10 +48,12 @@ export async function getMonthlyPnL(adapter: DataAdapter, annee: string): Promis
   }));
   if (!client) return months;
 
-  // budget par compte × mois (vue d'équation) ; réalisé par compte × mois (GL live)
-  const [bex, act] = await Promise.all([
+  // budget par compte × mois (vue d'équation) ; réalisé par compte × mois (GL live) ;
+  // impôt sur le résultat (compte 89) par mois — absent de v_actual_exploitation (classes 6-7 seules).
+  const [bex, act, tax] = await Promise.all([
     fetchAll(() => client.from('v_budget_execution').select('account_code,period,budget').eq('annee', annee)),
     fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('annee', annee)),
+    fetchAll(() => client.from('v_actual_income_tax').select('period,montant_impot').eq('annee', annee)),
   ]);
 
   const budByMonth: Record<number, Record<string, number>> = {};
@@ -63,6 +65,11 @@ export async function getMonthlyPnL(adapter: DataAdapter, annee: string): Promis
   for (const r of act) {
     const p = Number(r.period); (actByMonth[p] ??= {});
     actByMonth[p][r.account_code] = (actByMonth[p][r.account_code] || 0) + (Number(r.montant_realise) || 0);
+  }
+  // Réinjecte l'impôt sous une clé de compte « 89 » (captée par RUB.tax).
+  for (const r of tax) {
+    const p = Number(r.period); (actByMonth[p] ??= {});
+    actByMonth[p]['89'] = (actByMonth[p]['89'] || 0) + (Number(r.montant_impot) || 0);
   }
 
   const sumBy = (byAccount: Record<string, number> | undefined) => (prefixes: string[]) => {
