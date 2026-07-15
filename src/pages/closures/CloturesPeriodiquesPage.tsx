@@ -665,6 +665,10 @@ function CycleExecutionSection({
 
   const missingSelection = !selectedFYId || (mode === 'mensuelle' && !selectedPeriodId);
 
+  // Détail des éléments bloquants (écritures non rapprochées, lignes non lettrées...) —
+  // replié par défaut, une seule étape ouverte à la fois.
+  const [expandedStepId, setExpandedStepId] = useState<string | null>(null);
+
   return (
     <div className="mt-6 bg-white border border-gray-200 rounded-lg p-5">
       <div className="flex items-center justify-between mb-4">
@@ -727,86 +731,112 @@ function CycleExecutionSection({
           const isLockStep = /VERROUILLAGE/i.test(step.id);
           const lockBlocked = isLockStep && steps.slice(0, index).some(s => s.status !== 'done');
 
+          const hasDetail = !!step.detail && step.detail.length > 0;
+          const isExpanded = expandedStepId === step.id;
+
           return (
             <div
               key={step.id}
-              className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
+              className={`rounded-lg border transition-colors ${
                 isRunning ? 'border-blue-200 bg-blue-50'
                   : isDone ? 'border-green-200 bg-green-50'
                   : isError ? 'border-red-200 bg-red-50'
                   : 'border-gray-100 bg-gray-50'
               }`}
             >
-              {/* Step number */}
-              <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold flex-shrink-0 ${
-                isDone ? 'bg-green-600 text-white'
-                  : isError ? 'bg-red-600 text-white'
-                  : isRunning ? 'bg-blue-600 text-white'
-                  : 'bg-gray-300 text-white'
-              }`}>
-                {isDone ? (
-                  <CheckCircle className="w-4 h-4" />
-                ) : isError ? (
-                  <XCircle className="w-4 h-4" />
-                ) : isRunning ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  index + 1
-                )}
-              </div>
-
-              {/* Step info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-medium ${
-                    isDone ? 'text-green-800' : isError ? 'text-red-800' : isRunning ? 'text-blue-800' : 'text-gray-700'
-                  }`}>
-                    {mode === 'mensuelle' ? `M${index + 1}` : `A${index + 1}`}. {step.label}
-                  </span>
-                  {step.status !== 'pending' && (
-                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                      isDone ? 'bg-green-100 text-green-700'
-                        : isError ? 'bg-red-100 text-red-700'
-                        : isRunning ? 'bg-blue-100 text-blue-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {isDone ? 'Terminé' : isError ? 'Erreur' : isRunning ? 'En cours...' : step.status}
-                    </span>
+              <div className="flex items-center gap-3 p-3">
+                {/* Step number */}
+                <div className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold flex-shrink-0 ${
+                  isDone ? 'bg-green-600 text-white'
+                    : isError ? 'bg-red-600 text-white'
+                    : isRunning ? 'bg-blue-600 text-white'
+                    : 'bg-gray-300 text-white'
+                }`}>
+                  {isDone ? (
+                    <CheckCircle className="w-4 h-4" />
+                  ) : isError ? (
+                    <XCircle className="w-4 h-4" />
+                  ) : isRunning ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    index + 1
                   )}
                 </div>
-                {step.message && (
-                  <p className={`text-xs mt-0.5 truncate ${
-                    isError ? 'text-red-600' : 'text-gray-500'
-                  }`}>
-                    {step.message}
-                  </p>
-                )}
+
+                {/* Step info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-medium ${
+                      isDone ? 'text-green-800' : isError ? 'text-red-800' : isRunning ? 'text-blue-800' : 'text-gray-700'
+                    }`}>
+                      {mode === 'mensuelle' ? `M${index + 1}` : `A${index + 1}`}. {step.label}
+                    </span>
+                    {step.status !== 'pending' && (
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                        isDone ? 'bg-green-100 text-green-700'
+                          : isError ? 'bg-red-100 text-red-700'
+                          : isRunning ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {isDone ? 'Terminé' : isError ? 'Erreur' : isRunning ? 'En cours...' : step.status}
+                      </span>
+                    )}
+                  </div>
+                  {step.message && (
+                    <p className={`text-xs mt-0.5 truncate ${
+                      isError ? 'text-red-600' : 'text-gray-500'
+                    }`}>
+                      {step.message}
+                    </p>
+                  )}
+                  {hasDetail && (
+                    <button
+                      onClick={() => setExpandedStepId(isExpanded ? null : step.id)}
+                      className="text-xs text-red-700 underline hover:no-underline mt-0.5"
+                    >
+                      {isExpanded ? 'Masquer le détail' : `Voir le détail (${step.detail!.length})`}
+                    </button>
+                  )}
+                </div>
+
+                {/* Execute button */}
+                <button
+                  onClick={() => onExecuteStep(step.id)}
+                  disabled={executing || missingSelection || isDone || lockBlocked}
+                  title={lockBlocked ? 'Terminez les étapes précédentes avant de verrouiller' : undefined}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-shrink-0 ${
+                    isDone
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : isError
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isRunning ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : isError ? (
+                    <RefreshCw className="w-3 h-3" />
+                  ) : isDone ? (
+                    <CheckCircle className="w-3 h-3" />
+                  ) : (
+                    <Play className="w-3 h-3" />
+                  )}
+                  {isDone ? 'OK' : isError ? 'Réessayer' : 'Exécuter'}
+                </button>
               </div>
 
-              {/* Execute button */}
-              <button
-                onClick={() => onExecuteStep(step.id)}
-                disabled={executing || missingSelection || isDone || lockBlocked}
-                title={lockBlocked ? 'Terminez les étapes précédentes avant de verrouiller' : undefined}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-shrink-0 ${
-                  isDone
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : isError
-                    ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isRunning ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : isError ? (
-                  <RefreshCw className="w-3 h-3" />
-                ) : isDone ? (
-                  <CheckCircle className="w-3 h-3" />
-                ) : (
-                  <Play className="w-3 h-3" />
-                )}
-                {isDone ? 'OK' : isError ? 'Réessayer' : 'Exécuter'}
-              </button>
+              {/* Detail panel — liste des éléments bloquants concrets */}
+              {hasDetail && isExpanded && (
+                <div className="mx-3 mb-3 -mt-1 border border-red-200 bg-white rounded-md max-h-64 overflow-y-auto">
+                  <ul className="divide-y divide-gray-100 text-xs">
+                    {step.detail!.map((item, i) => (
+                      <li key={i} className="px-3 py-1.5 text-gray-700 font-mono">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           );
         })}

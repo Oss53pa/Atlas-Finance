@@ -73,9 +73,19 @@ const BudgetCockpitProPage: React.FC = () => {
   }, [adapter, annee, tab]);
 
   const toggleMonth = (m: number) => setSelected((s) => s.includes(m) ? (s.length > 1 ? s.filter((x) => x !== m) : s) : [...s, m].sort((a, b) => a - b).slice(-3));
-  const yearTotal = useMemo(() => months.reduce((acc, m) => ({
-    budget: acc.budget + m.budget.netIncome, actual: acc.actual + m.actual.netIncome, goiA: acc.goiA + m.actual.goi,
-  }), { budget: 0, actual: 0, goiA: 0 }), [months]);
+  // Cumul YTD (year-to-date) par mois — jusqu'au mois inclus, pas la somme des 12 mois
+  // répétée à l'identique sous chaque colonne (sinon Janvier/Février/Mars affichent
+  // tous le même total annuel, ce qui n'a pas de sens en lecture mensuelle).
+  const ytdByPeriod = useMemo(() => {
+    const map = new Map<number, { actual: number; goiA: number }>();
+    let actual = 0, goiA = 0;
+    for (const m of months) {
+      actual += m.actual.netIncome;
+      goiA += m.actual.goi;
+      map.set(m.period, { actual, goiA });
+    }
+    return map;
+  }, [months]);
 
   const selMonths = selected.map((p) => months.find((m) => m.period === p)).filter(Boolean) as PnLMonth[];
 
@@ -211,12 +221,15 @@ const BudgetCockpitProPage: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
-                  <td className="px-4 py-3">Net Income (year)</td>
-                  {selMonths.map((m) => (
-                    <td key={m.period} colSpan={3} className="px-4 py-3 text-right border-l border-[var(--color-border)]">
-                      {fmt(yearTotal.actual)} <span className="text-gray-400 font-normal">({pct(yearTotal.actual, yearTotal.goiA)}%)</span>
-                    </td>
-                  ))}
+                  <td className="px-4 py-3">Net Income (YTD)</td>
+                  {selMonths.map((m) => {
+                    const y = ytdByPeriod.get(m.period) ?? { actual: 0, goiA: 0 };
+                    return (
+                      <td key={m.period} colSpan={3} className="px-4 py-3 text-right border-l border-[var(--color-border)]">
+                        {fmt(y.actual)} <span className="text-gray-400 font-normal">({pct(y.actual, y.goiA)}%)</span>
+                      </td>
+                    );
+                  })}
                 </tr>
               </tfoot>
             </table>
