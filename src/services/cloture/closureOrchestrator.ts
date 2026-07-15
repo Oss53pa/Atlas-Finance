@@ -170,6 +170,9 @@ const MONTHLY_STEPS_DEF: Omit<ClotureStep, 'status'>[] = [
 
 const MONTHLY_BLOCKING_STEPS = new Set<string>([
   'M_VERIFICATION',
+  'M_RAPPROCHEMENTS', // banque non rapprochée = clôture impossible
+  'M_LETTRAGE',       // tiers non lettrés = clôture impossible
+  'M_EXTOURNES',      // extourne en échec = travaux non soldés
   'M_CONTROLES',
   'M_VERROUILLAGE',
 ]);
@@ -912,9 +915,12 @@ export const closureOrchestrator = {
           timestamp: new Date().toISOString(),
           previousHash: '',
         });
-        return unreconciled.length === 0
-          ? `${bankEntries.length} écriture(s) bancaire(s) — toutes rapprochées`
-          : `${bankEntries.length} écriture(s) bancaire(s) — ${unreconciled.length} non rapprochée(s)`;
+        if (unreconciled.length > 0) {
+          // Intégrité SYSCOHADA : une banque non rapprochée BLOQUE la clôture,
+          // elle ne peut pas être rapportée « Terminé ».
+          throw new Error(`${unreconciled.length} écriture(s) bancaire(s) non rapprochée(s) sur ${bankEntries.length} — rapprochement requis avant clôture`);
+        }
+        return `${bankEntries.length} écriture(s) bancaire(s) — toutes rapprochées`;
       }
 
       case 'M_LETTRAGE': {
@@ -942,9 +948,12 @@ export const closureOrchestrator = {
           timestamp: new Date().toISOString(),
           previousHash: '',
         });
-        return unlettered.length === 0
-          ? `${tiersLines.length} ligne(s) de tiers — toutes lettrées`
-          : `${tiersLines.length} ligne(s) de tiers — ${unlettered.length} non lettrée(s)`;
+        if (unlettered.length > 0) {
+          // Intégrité SYSCOHADA : des comptes de tiers non lettrés BLOQUENT la
+          // clôture (pas de faux « Terminé »).
+          throw new Error(`${unlettered.length} ligne(s) de tiers non lettrée(s) sur ${tiersLines.length} — lettrage requis avant clôture`);
+        }
+        return `${tiersLines.length} ligne(s) de tiers — toutes lettrées`;
       }
 
       case 'M_REGULARISATIONS': {
@@ -1002,6 +1011,38 @@ export const closureOrchestrator = {
 
       case 'M_VERROUILLAGE': {
         if (!ctx.periodId) throw new Error('Aucune période sélectionnée');
+
+        // Garde de pré-requis SYSCOHADA : on ne verrouille JAMAIS une période
+        // dont les travaux obligatoires ne sont pas réellement soldés — quelle
+        // que soit la voie d'appel (cycle complet OU bouton « Exécuter » isolé).
+        const allEntries = await ctx.adapter.getAll<any>('journalEntries');
+        const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
+        const reasons: string[] = [];
+
+        const drafts = periodEntries.filter((e: any) => e.status === 'draft');
+        if (drafts.length > 0) reasons.push(`${drafts.length} brouillon(s)`);
+
+        const unreconciled = periodEntries.filter((e: any) =>
+          e.status !== 'draft' && !e.reconciled &&
+          (e.lines || []).some((l: any) => l.accountCode?.startsWith('52')));
+        if (unreconciled.length > 0) reasons.push(`${unreconciled.length} banque(s) non rapprochée(s)`);
+
+        let unlettered = 0;
+        for (const entry of periodEntries) {
+          if (entry.status === 'draft') continue;
+          for (const line of entry.lines || []) {
+            if ((line.accountCode?.startsWith('40') || line.accountCode?.startsWith('41')) && !line.lettrage) unlettered++;
+          }
+        }
+        if (unlettered > 0) reasons.push(`${unlettered} ligne(s) de tiers non lettrée(s)`);
+
+        const check = await canClose(ctx.adapter, ctx.exerciceId);
+        if (!check.canClose) reasons.push(...check.reasons);
+
+        if (reasons.length > 0) {
+          throw new Error(`Verrouillage refusé — travaux non soldés : ${reasons.join(' ; ')}`);
+        }
+
         await ctx.adapter.update('fiscalPeriods', ctx.periodId, {
           status: 'cloturee',
           closedAt: new Date().toISOString(),

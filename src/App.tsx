@@ -239,12 +239,18 @@ const PermissionsPage = lazyRetry(() => import('./pages/security/PermissionsPage
 const AnalyticalAxesPage = lazyRetry(() => import('./pages/analytics/AnalyticalAxesPage'));
 const CostCentersPage = lazyRetry(() => import('./pages/analytics/CostCentersPage'));
 
-// Inventory
-const InventoryDashboard = lazyRetry(() => import('./pages/inventory/InventoryDashboard'));
-const StockManagement = lazyRetry(() => import('./pages/inventory/StockManagement'));
-const InventoryMovements = lazyRetry(() => import('./pages/inventory/InventoryMovements'));
-const PhysicalInventory = lazyRetry(() => import('./pages/inventory/PhysicalInventory'));
-const InventoryValuation = lazyRetry(() => import('./pages/inventory/InventoryValuation'));
+// Stock (module SAP MM — nouveau socle ; remplace l'ancien module /inventory)
+const StockDashboard = lazyRetry(() => import('./pages/stock/StockDashboard'));
+const StockMaterials = lazyRetry(() => import('./pages/stock/MaterialsPage'));
+const StockWarehouses = lazyRetry(() => import('./pages/stock/WarehousesPage'));
+const StockMovements = lazyRetry(() => import('./pages/stock/MovementsPage'));
+const StockValuation = lazyRetry(() => import('./pages/stock/ValuationPage'));
+const StockGlSetup = lazyRetry(() => import('./pages/stock/GlSetupPage'));
+const StockBatches = lazyRetry(() => import('./pages/stock/BatchesPage'));
+const StockPhysical = lazyRetry(() => import('./pages/stock/PhysicalInventoryPage'));
+const StockReorder = lazyRetry(() => import('./pages/stock/ReorderPage'));
+const StockReporting = lazyRetry(() => import('./pages/stock/ReportingPage'));
+const StockPending = lazyRetry(() => import('./pages/stock/PendingApprovalsPage'));
 
 // Treasury extensions (Correction #3)
 const PaymentOrdersPage = lazyRetry(() => import('./pages/treasury/PaymentOrdersPage'));
@@ -579,13 +585,26 @@ function App() {
                           <Route path="/financial-analysis-advanced" element={<FinancialAnalysisDashboard />} />
                         </Route>
 
-                        {/* Inventory */}
+                        {/* Ancien module /inventory (partiel/mock) retiré → redirections vers le module Stock (SAP MM) */}
+                        <Route path="/inventory" element={<Navigate to="/stock" replace />} />
+                        <Route path="/inventory/stock" element={<Navigate to="/stock/materials" replace />} />
+                        <Route path="/inventory/movements" element={<Navigate to="/stock/movements" replace />} />
+                        <Route path="/inventory/physical" element={<Navigate to="/stock/physical" replace />} />
+                        <Route path="/inventory/valuation" element={<Navigate to="/stock/valuation" replace />} />
+
+                        {/* Stock (module SAP MM) */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
-                          <Route path="/inventory" element={<InventoryDashboard />} />
-                          <Route path="/inventory/stock" element={work(<StockManagement />)} />
-                          <Route path="/inventory/movements" element={work(<InventoryMovements />)} />
-                          <Route path="/inventory/physical" element={work(<PhysicalInventory />)} />
-                          <Route path="/inventory/valuation" element={work(<InventoryValuation />)} />
+                          <Route path="/stock" element={work(<StockDashboard />)} />
+                          <Route path="/stock/materials" element={work(<StockMaterials />)} />
+                          <Route path="/stock/warehouses" element={work(<StockWarehouses />)} />
+                          <Route path="/stock/movements" element={work(<StockMovements />)} />
+                          <Route path="/stock/valuation" element={work(<StockValuation />)} />
+                          <Route path="/stock/batches" element={work(<StockBatches />)} />
+                          <Route path="/stock/physical" element={work(<StockPhysical />)} />
+                          <Route path="/stock/reorder" element={work(<StockReorder />)} />
+                          <Route path="/stock/reporting" element={work(<StockReporting />)} />
+                          <Route path="/stock/pending" element={work(<StockPending />)} />
+                          <Route path="/stock/gl-setup" element={work(<StockGlSetup />)} />
                         </Route>
 
                         {/* Fiscalite */}

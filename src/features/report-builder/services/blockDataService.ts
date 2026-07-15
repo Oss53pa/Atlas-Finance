@@ -151,6 +151,11 @@ export async function fetchKPIValue(
       case 'kpi.ca_total':
         return sumByClass(entries, '7', p, 'net');
 
+      case 'kpi.stock_value':
+        // Valeur du stock = solde débiteur de la classe 3 (alimentée par les
+        // postings du module Stock). Cohérent avec la comptabilité.
+        return sumByClass(entries, '3', p, 'debit') - sumByClass(entries, '3', p, 'credit');
+
       case 'kpi.resultat_net': {
         return resultatNetLocal(entries, p);
       }
@@ -1728,27 +1733,99 @@ export async function fetchTableData(
     }
 
     case 'inventory.mouvements': {
-      const moves = await loadAux('stockMovements');
-      if (moves.length === 0) {
+      // Nouveau socle Stock (SAP MM) : documents + lignes de mouvement.
+      const [docs, lines, materials] = await Promise.all([
+        loadAux('stockDocuments'), loadAux('stockDocumentLines'), loadAux('stockMaterials'),
+      ]);
+      if (docs.length === 0) {
         return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Aucun mouvement de stock enregistré.' }] };
       }
-      const rows = moves
-        .filter(m => { const d = (m.date || m.movement_date || ''); return !d || (d >= period.startDate && d <= period.endDate); })
-        .slice(0, 300)
-        .map(m => ({
-          date: m.date || m.movement_date || '',
-          article: m.item_name || m.itemName || m.label || m.item_id || '—',
-          type: m.type || m.movement_type || '—',
-          quantite: Number(m.quantity ?? m.quantite ?? 0),
-          valeur: Number(m.value ?? m.valeur ?? m.amount ?? 0),
-        }));
+      const docById = new Map(docs.map(d => [d.id, d]));
+      const matById = new Map(materials.map(m => [m.id, m]));
+      const rows = lines
+        .map(l => ({ l, d: docById.get(l.documentId) }))
+        .filter((x): x is { l: Record<string, any>; d: Record<string, any> } => {
+          if (!x.d) return false;
+          const dt = x.d.docDate || '';
+          return !dt || (dt >= period.startDate && dt <= period.endDate);
+        })
+        .slice(0, 500)
+        .map(({ l, d }) => {
+          const m = matById.get(l.materialId);
+          return {
+            date: d.docDate || '',
+            document: d.docNumber || '—',
+            article: m ? `${m.code} — ${m.name}` : (l.materialId || '—'),
+            type: d.movementTypeCode || '—',
+            sens: l.direction === 'in' ? 'Entrée' : 'Sortie',
+            quantite: Number(l.quantity ?? 0),
+            valeur: Number(l.amount ?? 0),
+          };
+        });
       return {
         columns: [
           { key: 'date', label: 'Date', align: 'left', format: 'date' },
+          { key: 'document', label: 'Document', align: 'left' },
           { key: 'article', label: 'Article', align: 'left' },
           { key: 'type', label: 'Type', align: 'center' },
+          { key: 'sens', label: 'Sens', align: 'center' },
           { key: 'quantite', label: 'Quantité', align: 'right', format: 'number' },
-          { key: 'valeur', label: 'Valeur (CUMP)', align: 'right', format: 'currency' },
+          { key: 'valeur', label: 'Valeur', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'stock.valorisation': {
+      const [quants, materials] = await Promise.all([loadAux('stockQuants'), loadAux('stockMaterials')]);
+      const matById = new Map(materials.map(m => [m.id, m]));
+      const agg = new Map<string, { qty: number; value: number }>();
+      for (const q of quants) {
+        if ((q.stockStatus ?? 'libre') !== 'libre') continue;
+        const a = agg.get(q.materialId) || { qty: 0, value: 0 };
+        a.qty += Number(q.quantity) || 0; a.value += Number(q.value) || 0;
+        agg.set(q.materialId, a);
+      }
+      const rows = Array.from(agg.entries()).map(([id, a]) => {
+        const m = matById.get(id);
+        return { article: m ? `${m.code} — ${m.name}` : id, methode: m?.valuationMethod || '—', quantite: a.qty, valeur: a.value };
+      }).filter(r => r.valeur !== 0).sort((a, b) => b.valeur - a.valeur);
+      if (rows.length === 0) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Aucun stock valorisé.' }] };
+      return {
+        columns: [
+          { key: 'article', label: 'Article', align: 'left' },
+          { key: 'methode', label: 'Méthode', align: 'center' },
+          { key: 'quantite', label: 'Quantité', align: 'right', format: 'number' },
+          { key: 'valeur', label: 'Valeur', align: 'right', format: 'currency' },
+        ],
+        rows,
+      };
+    }
+
+    case 'stock.abc': {
+      const [quants, materials] = await Promise.all([loadAux('stockQuants'), loadAux('stockMaterials')]);
+      const matById = new Map(materials.map(m => [m.id, m]));
+      const agg = new Map<string, number>();
+      for (const q of quants) {
+        if ((q.stockStatus ?? 'libre') !== 'libre') continue;
+        agg.set(q.materialId, (agg.get(q.materialId) || 0) + (Number(q.value) || 0));
+      }
+      const sorted = Array.from(agg.entries()).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+      const total = sorted.reduce((s, [, v]) => s + v, 0);
+      let cum = 0;
+      const rows = sorted.map(([id, v]) => {
+        const share = total > 0 ? (v / total) * 100 : 0; cum += share;
+        const classe = cum <= 80 ? 'A' : cum <= 95 ? 'B' : 'C';
+        const m = matById.get(id);
+        return { classe, article: m ? `${m.code} — ${m.name}` : id, valeur: v, cumul: Number(cum.toFixed(1)) };
+      });
+      if (rows.length === 0) return { columns: [{ key: 'info', label: 'Information', align: 'left' }], rows: [{ info: 'Aucun stock à analyser.' }] };
+      return {
+        columns: [
+          { key: 'classe', label: 'Classe', align: 'center' },
+          { key: 'article', label: 'Article', align: 'left' },
+          { key: 'valeur', label: 'Valeur', align: 'right', format: 'currency' },
+          { key: 'cumul', label: '% cumulé', align: 'right', format: 'number' },
         ],
         rows,
       };
@@ -2418,9 +2495,11 @@ export async function fetchChartData(
     }
 
     case 'chart.stocks_rotation': {
-      const moves = await (async () => { try { return (await adapter.getAll('stockMovements' as never)) as Record<string, any>[]; } catch { return []; } })();
-      if (moves.length === 0) {
-        // Pas de module stock alimenté → on dérive une rotation par classe 3 (mouvements GL)
+      // Nouveau socle Stock (SAP MM) : sorties valorisées par article sur la période.
+      const load = async (t: string): Promise<Record<string, any>[]> => { try { return (await adapter.getAll(t as never)) as Record<string, any>[]; } catch { return []; } };
+      const [docs, lines, materials] = await Promise.all([load('stockDocuments'), load('stockDocumentLines'), load('stockMaterials')]);
+      if (docs.length === 0) {
+        // Pas de module stock alimenté → rotation dérivée de la classe 3 (mouvements GL)
         const stockClasses = ['31', '32', '33', '34', '35', '37'];
         const data = stockClasses.map(cls => {
           let mvt = 0;
@@ -2434,14 +2513,20 @@ export async function fetchChartData(
         }).filter(d => d.mouvements > 0);
         return { data, xAxisKey: 'compte', series: [{ key: 'mouvements', label: 'Mouvements (classe 3)', color: '#171717' }] };
       }
+      const docDate = new Map(docs.map(d => [d.id, d.docDate as string]));
+      const matById = new Map(materials.map(m => [m.id, m]));
       const byItem = new Map<string, number>();
-      for (const m of moves) {
-        const item = m.item_name || m.itemName || m.label || m.item_id || '—';
-        byItem.set(item, (byItem.get(item) || 0) + Number(m.quantity ?? m.quantite ?? 0));
+      for (const l of lines) {
+        if (l.direction !== 'out') continue;
+        const dt = docDate.get(l.documentId);
+        if (dt && !inPeriod(dt, period)) continue;
+        const m = matById.get(l.materialId);
+        const item = m ? `${m.code} — ${m.name}` : (l.materialId || '—');
+        byItem.set(item, (byItem.get(item) || 0) + Number(l.amount ?? 0));
       }
-      const data = Array.from(byItem.entries()).map(([article, q]) => ({ article: String(article).slice(0, 18), rotation: Math.round(q) }))
+      const data = Array.from(byItem.entries()).map(([article, v]) => ({ article: String(article).slice(0, 18), rotation: Math.round(v) }))
         .sort((a, b) => b.rotation - a.rotation).slice(0, 12);
-      return { data, xAxisKey: 'article', series: [{ key: 'rotation', label: 'Rotation', color: '#171717' }] };
+      return { data, xAxisKey: 'article', series: [{ key: 'rotation', label: 'Sorties valorisées', color: '#235A6E' }] };
     }
 
     case 'chart.top_comptes': {
