@@ -8,13 +8,13 @@ import type { DataAdapter } from '@atlas/data';
  * — ajustable. Calcul 100 % code.
  */
 
-// Préfixes de comptes par rubrique (ajustable selon le plan du tenant).
+// Préfixes de comptes par rubrique (mapping SYSCOHADA du compte de résultat).
 const RUB = {
-  goi: ['70', '71', '72', '73', '74', '75', '76'],  // produits d'exploitation (hors financier 77)
-  opex: ['60', '61', '62', '63', '64', '65', '68'],  // charges d'exploitation (hors financier 66/67, hors impôt)
-  finInc: ['77'],
-  finExp: ['66', '67'],
-  tax: ['69', '89'],
+  goi: ['70', '71', '72', '73', '74', '75', '76', '78', '79'],  // produits d'exploitation (hors financier 77)
+  opex: ['60', '61', '62', '63', '64', '65', '66', '68'],       // charges d'exploitation — 66 = charges de personnel (exploitation), 68 = dotations d'exploitation
+  finInc: ['77'],                                                // revenus financiers
+  finExp: ['67'],                                                // frais financiers (66 n'en fait PAS partie : c'est le personnel)
+  tax: ['89'],                                                   // impôt sur le résultat (classe 8, réinjecté depuis v_actual_income_tax)
 };
 
 export interface PnLMonthLine { goi: number; opex: number; noi: number; finInc: number; finExp: number; resFin: number; tax: number; netIncome: number; }
@@ -48,10 +48,12 @@ export async function getMonthlyPnL(adapter: DataAdapter, annee: string): Promis
   }));
   if (!client) return months;
 
-  // budget par compte × mois (vue d'équation) ; réalisé par compte × mois (GL live)
-  const [bex, act] = await Promise.all([
+  // budget par compte × mois (vue d'équation) ; réalisé par compte × mois (GL live) ;
+  // impôt sur le résultat (compte 89) par mois — absent de v_actual_exploitation (classes 6-7 seules).
+  const [bex, act, tax] = await Promise.all([
     fetchAll(() => client.from('v_budget_execution').select('account_code,period,budget').eq('annee', annee)),
     fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('annee', annee)),
+    fetchAll(() => client.from('v_actual_income_tax').select('period,montant_impot').eq('annee', annee)),
   ]);
 
   const budByMonth: Record<number, Record<string, number>> = {};
@@ -64,6 +66,11 @@ export async function getMonthlyPnL(adapter: DataAdapter, annee: string): Promis
     const p = Number(r.period); (actByMonth[p] ??= {});
     actByMonth[p][r.account_code] = (actByMonth[p][r.account_code] || 0) + (Number(r.montant_realise) || 0);
   }
+  // Réinjecte l'impôt sous une clé de compte « 89 » (captée par RUB.tax).
+  for (const r of tax) {
+    const p = Number(r.period); (actByMonth[p] ??= {});
+    actByMonth[p]['89'] = (actByMonth[p]['89'] || 0) + (Number(r.montant_impot) || 0);
+  }
 
   const sumBy = (byAccount: Record<string, number> | undefined) => (prefixes: string[]) => {
     if (!byAccount) return 0;
@@ -75,6 +82,149 @@ export async function getMonthlyPnL(adapter: DataAdapter, annee: string): Promis
     months[m - 1].actual = line(sumBy(actByMonth[m]));
   }
   return months;
+}
+
+// ---------------------------------------------------------------------------
+// Onglet « Dépenses » — analyse des charges réelles (classe 6) par nature, par
+// mois et par fournisseur. Tout depuis le GL (v_actual_exploitation) + la vue
+// v_expense_by_supplier (contrepartie 40x du tiers). Aucun mock.
+// ---------------------------------------------------------------------------
+
+// Libellés SYSCOHADA des rubriques de charges (préfixe 2 chiffres).
+const RUB6_LABELS: Record<string, string> = {
+  '60': 'Achats et variations de stocks',
+  '61': 'Transports',
+  '62': 'Services extérieurs A',
+  '63': 'Services extérieurs B',
+  '64': 'Impôts et taxes',
+  '65': 'Autres charges',
+  '66': 'Charges de personnel',
+  '67': 'Frais financiers et charges assimilées',
+  '68': 'Dotations aux amortissements et provisions',
+  '69': 'Dotations HAO / Impôts sur le résultat',
+};
+
+export interface ExpenseNature { rubrique: string; label: string; total: number; byMonth: number[]; }
+export interface ExpenseSupplier { code: string; name: string; total: number; }
+export interface ExpenseAnalysis {
+  total: number;          // total charges réalisées (classe 6)
+  budget: number;         // budget des charges (v_budget_execution, comptes classe 6)
+  byMonth: number[];      // 12 mois
+  byNature: ExpenseNature[];  // trié desc
+  bySupplier: ExpenseSupplier[]; // top fournisseurs
+}
+
+/** Analyse des dépenses (charges classe 6) : par nature, par mois, par fournisseur. */
+export async function getExpenseAnalysis(adapter: DataAdapter, annee: string): Promise<ExpenseAnalysis> {
+  const empty: ExpenseAnalysis = { total: 0, budget: 0, byMonth: Array(12).fill(0), byNature: [], bySupplier: [] };
+  const client = getClient(adapter);
+  if (!client) return empty;
+
+  const [act, sup, bex] = await Promise.all([
+    fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('classe', '6').eq('annee', annee)),
+    fetchAll(() => client.from('v_expense_by_supplier').select('code,fournisseur,depense').eq('annee', annee)),
+    fetchAll(() => client.from('v_budget_execution').select('account_code,budget').eq('annee', annee)),
+  ]);
+
+  const byMonth = Array(12).fill(0) as number[];
+  const natMap = new Map<string, ExpenseNature>();
+  let total = 0;
+  for (const r of act) {
+    const rub = String(r.account_code || '').slice(0, 2);
+    const p = Number(r.period);
+    const v = Number(r.montant_realise) || 0;
+    total += v;
+    if (p >= 1 && p <= 12) byMonth[p - 1] += v;
+    let n = natMap.get(rub);
+    if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0) }; natMap.set(rub, n); }
+    n.total += v;
+    if (p >= 1 && p <= 12) n.byMonth[p - 1] += v;
+  }
+  const byNature = [...natMap.values()].sort((a, b) => b.total - a.total);
+
+  const supMap = new Map<string, ExpenseSupplier>();
+  for (const r of sup) {
+    const code = String(r.code || '');
+    let s = supMap.get(code);
+    if (!s) { s = { code, name: r.fournisseur || code, total: 0 }; supMap.set(code, s); }
+    s.total += Number(r.depense) || 0;
+  }
+  const bySupplier = [...supMap.values()].filter((s) => s.total > 0).sort((a, b) => b.total - a.total).slice(0, 12);
+
+  let budget = 0;
+  for (const r of bex) if (String(r.account_code || '').startsWith('6')) budget += Number(r.budget) || 0;
+
+  return { total, budget, byMonth, byNature, bySupplier };
+}
+
+// ---------------------------------------------------------------------------
+// Onglet « Revenus » — analyse des produits réels (classe 7) par nature, par
+// mois et par client (contrepartie 41x). Symétrique de l'analyse des dépenses.
+// ---------------------------------------------------------------------------
+
+// Libellés SYSCOHADA des rubriques de produits (préfixe 2 chiffres).
+const RUB7_LABELS: Record<string, string> = {
+  '70': 'Ventes',
+  '71': 'Subventions d’exploitation',
+  '72': 'Production immobilisée',
+  '73': 'Variations de stocks de produits',
+  '75': 'Autres produits',
+  '77': 'Revenus financiers et assimilés',
+  '78': 'Transferts de charges',
+  '79': 'Reprises de provisions',
+};
+
+export interface RevenueNature { rubrique: string; label: string; total: number; byMonth: number[]; }
+export interface RevenueClient { code: string; name: string; total: number; }
+export interface RevenueAnalysis {
+  total: number;          // total produits réalisés (classe 7)
+  budget: number;         // budget des produits (v_budget_execution, comptes classe 7)
+  byMonth: number[];      // 12 mois
+  byNature: RevenueNature[];  // trié desc
+  byClient: RevenueClient[];  // top clients
+}
+
+/** Analyse des revenus (produits classe 7) : par nature, par mois, par client. */
+export async function getRevenueAnalysis(adapter: DataAdapter, annee: string): Promise<RevenueAnalysis> {
+  const empty: RevenueAnalysis = { total: 0, budget: 0, byMonth: Array(12).fill(0), byNature: [], byClient: [] };
+  const client = getClient(adapter);
+  if (!client) return empty;
+
+  const [act, cli, bex] = await Promise.all([
+    fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('classe', '7').eq('annee', annee)),
+    fetchAll(() => client.from('v_revenue_by_client').select('code,client,revenu').eq('annee', annee)),
+    fetchAll(() => client.from('v_budget_execution').select('account_code,budget').eq('annee', annee)),
+  ]);
+
+  const byMonth = Array(12).fill(0) as number[];
+  const natMap = new Map<string, RevenueNature>();
+  let total = 0;
+  for (const r of act) {
+    const rub = String(r.account_code || '').slice(0, 2);
+    const p = Number(r.period);
+    const v = Number(r.montant_realise) || 0;
+    total += v;
+    if (p >= 1 && p <= 12) byMonth[p - 1] += v;
+    let n = natMap.get(rub);
+    if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0) }; natMap.set(rub, n); }
+    n.total += v;
+    if (p >= 1 && p <= 12) n.byMonth[p - 1] += v;
+  }
+  const byNature = [...natMap.values()].sort((a, b) => b.total - a.total);
+
+  const cliMap = new Map<string, RevenueClient>();
+  for (const r of cli) {
+    const code = String(r.code || '');
+    let c = cliMap.get(code);
+    if (!c) { c = { code, name: r.client || code, total: 0 }; cliMap.set(code, c); }
+    c.total += Number(r.revenu) || 0;
+  }
+  const byClient = [...cliMap.values()].filter((c) => c.total > 0).sort((a, b) => b.total - a.total).slice(0, 12);
+
+  let budget = 0;
+  for (const r of bex) if (String(r.account_code || '').startsWith('7')) budget += Number(r.budget) || 0;
+
+  return { total, budget, byMonth, byNature, byClient };
 }
 
 export interface MonthCard { period: number; budgeted: number; overspent: number; incoming: number; noBudget: number; available: number; }

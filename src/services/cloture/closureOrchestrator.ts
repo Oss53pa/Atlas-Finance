@@ -96,6 +96,17 @@ export interface ClotureStep {
   status: 'pending' | 'running' | 'done' | 'error' | 'skipped';
   message?: string;
   timestamp?: string;
+  /** Liste des éléments concrets bloquants (écritures, lignes...) — pour le drill-down UI. */
+  detail?: string[];
+}
+
+/** Erreur de clôture porteuse du détail des éléments bloquants (pour affichage UI). */
+class ClotureBlockingError extends Error {
+  detail: string[];
+  constructor(message: string, detail: string[]) {
+    super(message);
+    this.detail = detail;
+  }
 }
 
 /**
@@ -113,6 +124,17 @@ function entryInClosurePeriod(e: any, ctx: ClotureContext, fy: DBFiscalYear): bo
  *  un UUID valide (ctx.userId peut être un libellé comme « comptable »). */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isUuid = (v?: string): v is string => !!v && UUID_RE.test(v);
+
+/**
+ * `journalEntries` n'a pas de champ `reconciled` propre — le rapprochement est
+ * porté par `bankStatementLines.matchedEntryId` (cf. bankStatementService).
+ * Sans cette jointure, `!entry.reconciled` est toujours vrai (champ inexistant
+ * sur journalEntries) et bloque la clôture même quand tout est rapproché.
+ */
+async function getReconciledEntryIds(adapter: DataAdapter): Promise<Set<string>> {
+  const lines = await adapter.getAll<{ matchedEntryId?: string; reconciled?: boolean }>('bankStatementLines');
+  return new Set(lines.filter(l => l.reconciled && l.matchedEntryId).map(l => l.matchedEntryId as string));
+}
 
 // ============================================================================
 // STEPS DEFINITION — 15 étapes SYSCOHADA révisé
@@ -209,6 +231,7 @@ export const closureOrchestrator = {
         const err = error instanceof Error ? error : new Error(String(error));
         step.status = 'error';
         step.message = err.message;
+        if (err instanceof ClotureBlockingError) step.detail = err.detail;
         ctx.onError?.(step, err);
 
         // Info-only / non-blocking steps (e.g. LIASSE_FISCALE delegated to
@@ -255,6 +278,7 @@ export const closureOrchestrator = {
       const err = error instanceof Error ? error : new Error(String(error));
       step.status = 'error';
       step.message = err.message;
+      if (err instanceof ClotureBlockingError) step.detail = err.detail;
     }
 
     await this._logAudit(ctx, [step]);
@@ -319,10 +343,8 @@ export const closureOrchestrator = {
           e.date >= fy.startDate && e.date <= fy.endDate &&
           (e.lines || []).some((l: any) => l.accountCode?.startsWith('52'))
         );
-        const unreconciled = bankEntries.filter((e: any) => !e.reconciled && e.status !== 'draft');
-        if (unreconciled.length > 0) {
-          /* ignored */
-        }
+        const reconciledIds = await getReconciledEntryIds(ctx.adapter);
+        const unreconciled = bankEntries.filter((e: any) => e.status !== 'draft' && !reconciledIds.has(e.id));
         await ctx.adapter.logAudit({
           action: 'CLOSURE_STEP_RAPPROCHEMENTS',
           entityType: 'fiscalYear',
@@ -355,7 +377,7 @@ export const closureOrchestrator = {
             }
           }
         }
-        const unlettered = tiersLines.filter((l: any) => !l.lettrage);
+        const unlettered = tiersLines.filter((l: any) => !l.lettrageCode);
         await ctx.adapter.logAudit({
           action: 'CLOSURE_STEP_LETTRAGE',
           entityType: 'fiscalYear',
@@ -368,9 +390,6 @@ export const closureOrchestrator = {
           timestamp: new Date().toISOString(),
           previousHash: '',
         });
-        if (unlettered.length > 0) {
-          /* ignored */
-        }
         return unlettered.length === 0
           ? `${tiersLines.length} ligne(s) de tiers — toutes lettrées`
           : `${tiersLines.length} ligne(s) de tiers — ${unlettered.length} non lettrée(s) (avertissement)`;
@@ -851,6 +870,7 @@ export const closureOrchestrator = {
         const err = error instanceof Error ? error : new Error(String(error));
         step.status = 'error';
         step.message = err.message;
+        if (err instanceof ClotureBlockingError) step.detail = err.detail;
         ctx.onError?.(step, err);
 
         if (MONTHLY_BLOCKING_STEPS.has(step.id)) break;
@@ -902,7 +922,8 @@ export const closureOrchestrator = {
         const bankEntries = periodEntries.filter((e: any) =>
           (e.lines || []).some((l: any) => l.accountCode?.startsWith('52'))
         );
-        const unreconciled = bankEntries.filter((e: any) => !e.reconciled && e.status !== 'draft');
+        const reconciledIds = await getReconciledEntryIds(ctx.adapter);
+        const unreconciled = bankEntries.filter((e: any) => e.status !== 'draft' && !reconciledIds.has(e.id));
         await ctx.adapter.logAudit({
           action: 'MONTHLY_STEP_RAPPROCHEMENTS',
           entityType: 'fiscalPeriod',
@@ -918,7 +939,14 @@ export const closureOrchestrator = {
         if (unreconciled.length > 0) {
           // Intégrité SYSCOHADA : une banque non rapprochée BLOQUE la clôture,
           // elle ne peut pas être rapportée « Terminé ».
-          throw new Error(`${unreconciled.length} écriture(s) bancaire(s) non rapprochée(s) sur ${bankEntries.length} — rapprochement requis avant clôture`);
+          const detail = unreconciled
+            .slice(0, 50)
+            .map((e: any) => `${e.entryNumber || e.reference || e.id} — ${e.date} — ${e.label || ''}`.trim());
+          if (unreconciled.length > 50) detail.push(`… et ${unreconciled.length - 50} de plus`);
+          throw new ClotureBlockingError(
+            `${unreconciled.length} écriture(s) bancaire(s) non rapprochée(s) sur ${bankEntries.length} — rapprochement requis avant clôture`,
+            detail
+          );
         }
         return `${bankEntries.length} écriture(s) bancaire(s) — toutes rapprochées`;
       }
@@ -927,15 +955,15 @@ export const closureOrchestrator = {
         // Lettrage des comptes de tiers pour la période
         const allEntries = await ctx.adapter.getAll<any>('journalEntries');
         const periodEntries = allEntries.filter((e: any) => entryInClosurePeriod(e, ctx, fy));
-        const tiersLines: any[] = [];
+        const tiersLines: Array<{ entry: any; line: any }> = [];
         for (const entry of periodEntries) {
           for (const line of entry.lines || []) {
             if (line.accountCode?.startsWith('40') || line.accountCode?.startsWith('41')) {
-              tiersLines.push(line);
+              tiersLines.push({ entry, line });
             }
           }
         }
-        const unlettered = tiersLines.filter((l: any) => !l.lettrage);
+        const unlettered = tiersLines.filter(({ line }) => !line.lettrageCode);
         await ctx.adapter.logAudit({
           action: 'MONTHLY_STEP_LETTRAGE',
           entityType: 'fiscalPeriod',
@@ -951,7 +979,14 @@ export const closureOrchestrator = {
         if (unlettered.length > 0) {
           // Intégrité SYSCOHADA : des comptes de tiers non lettrés BLOQUENT la
           // clôture (pas de faux « Terminé »).
-          throw new Error(`${unlettered.length} ligne(s) de tiers non lettrée(s) sur ${tiersLines.length} — lettrage requis avant clôture`);
+          const detail = unlettered
+            .slice(0, 50)
+            .map(({ entry, line }) => `${entry.entryNumber || entry.reference || entry.id} — ${line.accountCode} ${line.thirdPartyName || line.thirdPartyCode || ''} — ${line.label || ''}`.trim());
+          if (unlettered.length > 50) detail.push(`… et ${unlettered.length - 50} de plus`);
+          throw new ClotureBlockingError(
+            `${unlettered.length} ligne(s) de tiers non lettrée(s) sur ${tiersLines.length} — lettrage requis avant clôture`,
+            detail
+          );
         }
         return `${tiersLines.length} ligne(s) de tiers — toutes lettrées`;
       }
@@ -1022,8 +1057,9 @@ export const closureOrchestrator = {
         const drafts = periodEntries.filter((e: any) => e.status === 'draft');
         if (drafts.length > 0) reasons.push(`${drafts.length} brouillon(s)`);
 
+        const reconciledIds = await getReconciledEntryIds(ctx.adapter);
         const unreconciled = periodEntries.filter((e: any) =>
-          e.status !== 'draft' && !e.reconciled &&
+          e.status !== 'draft' && !reconciledIds.has(e.id) &&
           (e.lines || []).some((l: any) => l.accountCode?.startsWith('52')));
         if (unreconciled.length > 0) reasons.push(`${unreconciled.length} banque(s) non rapprochée(s)`);
 
@@ -1031,7 +1067,7 @@ export const closureOrchestrator = {
         for (const entry of periodEntries) {
           if (entry.status === 'draft') continue;
           for (const line of entry.lines || []) {
-            if ((line.accountCode?.startsWith('40') || line.accountCode?.startsWith('41')) && !line.lettrage) unlettered++;
+            if ((line.accountCode?.startsWith('40') || line.accountCode?.startsWith('41')) && !line.lettrageCode) unlettered++;
           }
         }
         if (unlettered > 0) reasons.push(`${unlettered} ligne(s) de tiers non lettrée(s)`);
