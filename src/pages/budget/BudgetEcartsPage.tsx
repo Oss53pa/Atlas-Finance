@@ -27,6 +27,51 @@ const RUB_LABELS: Record<string, string> = {
 };
 const rubLabel = (code: string) => RUB_LABELS[code] || '';
 
+// Vrai graphique waterfall : Budget (départ) → écarts par rubrique (montées orange /
+// descentes rouges) → Réalisé (arrivée). Reconcilie car Budget + Σécarts = Réalisé.
+const WF_COLOR = { total: 'var(--color-primary)', inc: 'var(--color-secondary)', dec: 'var(--color-error)' } as const;
+
+const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: string; ecart: number }[] }> = ({ budget, realise, steps }) => {
+  type Bar = { label: string; lo: number; hi: number; run: number; delta: number; kind: 'total' | 'inc' | 'dec' };
+  const bars: Bar[] = [];
+  bars.push({ label: 'Budget', lo: 0, hi: budget, run: budget, delta: budget, kind: 'total' });
+  let cum = budget;
+  for (const s of steps) {
+    const after = cum + s.ecart;
+    bars.push({ label: s.code, lo: Math.min(cum, after), hi: Math.max(cum, after), run: after, delta: s.ecart, kind: s.ecart >= 0 ? 'inc' : 'dec' });
+    cum = after;
+  }
+  bars.push({ label: 'Réalisé', lo: 0, hi: realise, run: realise, delta: realise, kind: 'total' });
+
+  const W = 920, H = 300, padL = 10, padR = 10, padT = 16, padB = 42;
+  const yMax = Math.max(1, ...bars.map(b => b.hi));
+  const yMin = Math.min(0, ...bars.map(b => b.lo));
+  const plotH = H - padT - padB, plotW = W - padL - padR, n = bars.length, slot = plotW / n;
+  const bw = Math.min(48, slot * 0.6);
+  const y = (v: number) => padT + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
+  const cx = (i: number) => padL + slot * i + slot / 2;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Cascade budget vers réalisé">
+      {/* lignes de repère */}
+      {[0.25, 0.5, 0.75, 1].map((t) => { const v = yMin + (yMax - yMin) * t; return <line key={t} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="var(--color-border)" strokeOpacity="0.5" strokeDasharray="2 3" />; })}
+      <line x1={padL} x2={W - padR} y1={y(0)} y2={y(0)} stroke="var(--color-border)" />
+      {bars.map((b, i) => {
+        const yh = y(b.hi), h = Math.max(2, y(b.lo) - yh), x = cx(i) - bw / 2;
+        return (
+          <g key={i}>
+            {i > 0 && <line x1={cx(i - 1) + bw / 2} x2={cx(i) - bw / 2} y1={y(bars[i - 1].run)} y2={y(bars[i - 1].run)} stroke="var(--color-text-tertiary)" strokeOpacity="0.4" strokeDasharray="3 3" />}
+            <rect x={x} y={yh} width={bw} height={h} rx={2} fill={WF_COLOR[b.kind]} opacity={0.92}>
+              <title>{b.label} · {b.delta >= 0 ? '+' : ''}{formatCurrency(b.delta)}</title>
+            </rect>
+            <text x={cx(i)} y={H - padB + 14} textAnchor="middle" className="fill-gray-500 text-[9px]">{b.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
   const { format: fmtAccount } = useAccountNames();
@@ -73,6 +118,17 @@ const BudgetEcartsPage: React.FC = () => {
     const realise = rows.reduce((s, r) => s + r.realise, 0);
     return { budget, realise, ecart: realise - budget };
   }, [rows]);
+
+  // Étapes du waterfall : top rubriques par |écart| + « Autres » pour reconcilier
+  // exactement Budget + Σécarts = Réalisé.
+  const wfSteps = useMemo(() => {
+    const nz = parNature.filter(n => n.ecart !== 0);
+    const top = nz.slice(0, 9);
+    const restE = nz.slice(9).reduce((s, n) => s + n.ecart, 0);
+    const steps = top.map(n => ({ code: n.code, ecart: n.ecart }));
+    if (Math.abs(restE) > 0.5) steps.push({ code: 'Autres', ecart: restE });
+    return steps;
+  }, [parNature]);
 
   // Alertes de dépassement (substitut @atlas/insights) : charges en sur-réalisation
   // (>10% du budget) = défavorable ; produits en sous-réalisation = défavorable.
@@ -184,6 +240,20 @@ const BudgetEcartsPage: React.FC = () => {
           <p className="text-[10px] text-gray-400 mt-2">Analyse indicative — PROPH3T ne produit jamais les chiffres comptables.</p>
         </div>
       )}
+
+      {/* Waterfall : cascade Budget → écarts → Réalisé */}
+      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <h2 className="font-semibold text-[var(--color-primary)]">Cascade budget → réalisé</h2>
+          <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.total }} /> Total</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.inc }} /> Augmentation</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.dec }} /> Diminution</span>
+          </div>
+        </div>
+        <Waterfall budget={totals.budget} realise={totals.realise} steps={wfSteps} />
+        <p className="text-[10px] text-gray-400 mt-1">Départ = budget total ; chaque barre = écart d'une rubrique (réalisé − budget) ; arrivée = réalisé total.</p>
+      </div>
 
       {/* Du budget au réalisé — table Budget / Réalisé / Écart, dépliable par compte */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
