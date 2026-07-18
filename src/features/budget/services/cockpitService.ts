@@ -295,6 +295,69 @@ export async function getCapexExecution(adapter: DataAdapter, annee: string): Pr
   return { parcBrut, parcAmort, parcVnc, flowGross, flowNet, byMonth, byNature };
 }
 
+// ---------------------------------------------------------------------------
+// Onglets « Budget » & « Variance » — exécution budgétaire depuis la vue
+// d'équation v_budget_execution (budget / engagé / réalisé / disponible par
+// compte × mois). Le budget vient de la version en vigueur, le réalisé du GL.
+// ---------------------------------------------------------------------------
+
+export interface BudgetLineAgg { rubrique: string; label: string; budget: number; engage: number; realise: number; disponible: number; }
+export interface BudgetVsActualMonth { period: number; budgetCharges: number; realiseCharges: number; budgetProduits: number; realiseProduits: number; }
+export interface BudgetAnalysis {
+  charges: { budget: number; engage: number; realise: number; disponible: number };
+  produits: { budget: number; realise: number };
+  byRubriqueCharges: BudgetLineAgg[];   // consommation du budget de charges (classe 6)
+  byRubriqueProduits: BudgetLineAgg[];  // réalisation du budget de produits (classe 7)
+  byMonth: BudgetVsActualMonth[];       // budget vs réalisé par mois (charges & produits)
+}
+
+/** Exécution budgétaire (Budget/Engagé/Réalisé/Disponible) par rubrique et par mois. */
+export async function getBudgetAnalysis(adapter: DataAdapter, annee: string): Promise<BudgetAnalysis> {
+  const empty: BudgetAnalysis = {
+    charges: { budget: 0, engage: 0, realise: 0, disponible: 0 }, produits: { budget: 0, realise: 0 },
+    byRubriqueCharges: [], byRubriqueProduits: [],
+    byMonth: Array.from({ length: 12 }, (_, i) => ({ period: i + 1, budgetCharges: 0, realiseCharges: 0, budgetProduits: 0, realiseProduits: 0 })),
+  };
+  const client = getClient(adapter);
+  if (!client) return empty;
+
+  const rows = await fetchAll(() => client.from('v_budget_execution').select('account_code,period,budget,engage,realise,disponible').eq('annee', annee));
+
+  const charges = { budget: 0, engage: 0, realise: 0, disponible: 0 };
+  const produits = { budget: 0, realise: 0 };
+  const cMap = new Map<string, BudgetLineAgg>();
+  const pMap = new Map<string, BudgetLineAgg>();
+  const byMonth = empty.byMonth.map((m) => ({ ...m }));
+
+  for (const r of rows) {
+    const code = String(r.account_code || '');
+    const rub = code.slice(0, 2);
+    const classe = code.slice(0, 1);
+    const p = Number(r.period);
+    const budget = Number(r.budget) || 0, engage = Number(r.engage) || 0, realise = Number(r.realise) || 0, dispo = Number(r.disponible) || 0;
+    if (classe === '6') {
+      charges.budget += budget; charges.engage += engage; charges.realise += realise; charges.disponible += dispo;
+      let n = cMap.get(rub);
+      if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0 }; cMap.set(rub, n); }
+      n.budget += budget; n.engage += engage; n.realise += realise; n.disponible += dispo;
+      if (p >= 1 && p <= 12) { byMonth[p - 1].budgetCharges += budget; byMonth[p - 1].realiseCharges += realise; }
+    } else if (classe === '7') {
+      produits.budget += budget; produits.realise += realise;
+      let n = pMap.get(rub);
+      if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0 }; pMap.set(rub, n); }
+      n.budget += budget; n.realise += realise; n.disponible += (budget - realise);
+      if (p >= 1 && p <= 12) { byMonth[p - 1].budgetProduits += budget; byMonth[p - 1].realiseProduits += realise; }
+    }
+  }
+
+  return {
+    charges, produits,
+    byRubriqueCharges: [...cMap.values()].sort((a, b) => b.budget - a.budget),
+    byRubriqueProduits: [...pMap.values()].sort((a, b) => b.budget - a.budget),
+    byMonth,
+  };
+}
+
 export interface MonthCard { period: number; budgeted: number; overspent: number; incoming: number; noBudget: number; available: number; }
 
 /** Cartes de synthèse mensuelle (style REWISE : Budgeted / Overspent / Incoming / No budgeted / Available). */
