@@ -120,3 +120,6 @@ SOURCE_DUMP_PARTS/
 *.sh
 .claude/worktrees/
 .vercel
+
+# Local Claude Code settings (never commit)
+.claude/settings.local.json
