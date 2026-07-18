@@ -1,14 +1,15 @@
 /**
  * BudgetCockpitProPage — /budget/cockpit-analytique (dashboards style REWISE).
- * Onglets : Overview (P&L mensuel + cartes) · Budget · Variance · Revenus.
- * Construit une vue à la fois (validation itérative). Overview = données réelles
- * (getMonthlyPnL depuis v_budget_execution + v_actual_exploitation).
+ * 5 onglets, tous branchés aux données réelles du GL :
+ *   Overview (P&L mensuel budget vs réalisé) · Budget (consommation) · Dépenses
+ *   (charges + fournisseurs) · Variance (écarts) · Revenus (produits + clients).
+ * Budget/Variance = v_budget_execution ; Dépenses/Revenus = GL + vues tiers.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
-import { getMonthlyPnL, monthCard, getExpenseAnalysis, getRevenueAnalysis, type PnLMonth, type ExpenseAnalysis, type RevenueAnalysis } from '../../features/budget/services/cockpitService';
-import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2, Coins, Users } from 'lucide-react';
+import { getMonthlyPnL, monthCard, getExpenseAnalysis, getRevenueAnalysis, getBudgetAnalysis, type PnLMonth, type ExpenseAnalysis, type RevenueAnalysis, type BudgetAnalysis } from '../../features/budget/services/cockpitService';
+import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2, Coins, Users, Scale, GitCompareArrows } from 'lucide-react';
 
 const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
 const MOIS_COURT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -34,6 +35,8 @@ const BudgetCockpitProPage: React.FC = () => {
   const [expLoading, setExpLoading] = useState(false);
   const [rev, setRev] = useState<RevenueAnalysis | null>(null);
   const [revLoading, setRevLoading] = useState(false);
+  const [bud, setBud] = useState<BudgetAnalysis | null>(null);
+  const [budLoading, setBudLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +71,19 @@ const BudgetCockpitProPage: React.FC = () => {
       try { const r = await getRevenueAnalysis(adapter, annee); if (!cancelled) setRev(r); }
       catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
       finally { if (!cancelled) setRevLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter, annee, tab]);
+
+  // Exécution budgétaire — chargée à la demande (onglets Budget & Variance), rechargée à l'année.
+  useEffect(() => {
+    if (tab !== 'budget' && tab !== 'variance') return;
+    let cancelled = false;
+    (async () => {
+      setBudLoading(true); setError(null);
+      try { const b = await getBudgetAnalysis(adapter, annee); if (!cancelled) setBud(b); }
+      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      finally { if (!cancelled) setBudLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [adapter, annee, tab]);
@@ -130,13 +146,10 @@ const BudgetCockpitProPage: React.FC = () => {
         <DepensesTab exp={exp} loading={expLoading} annee={annee} setAnnee={setAnnee} />
       ) : tab === 'revenus' ? (
         <RevenusTab rev={rev} loading={revLoading} annee={annee} setAnnee={setAnnee} />
-      ) : tab !== 'overview' ? (
-        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
-          <div className="flex justify-center mb-3 text-neutral-300">
-            {tab === 'budget' ? <Wallet className="w-8 h-8" /> : tab === 'variance' ? <PieChart className="w-8 h-8" /> : <TrendingUp className="w-8 h-8" />}
-          </div>
-          Onglet « {TABS.find((x) => x.id === tab)?.label} » — à construire après validation de l'Overview.
-        </div>
+      ) : tab === 'budget' ? (
+        <BudgetTab bud={bud} loading={budLoading} annee={annee} setAnnee={setAnnee} />
+      ) : tab === 'variance' ? (
+        <VarianceTab bud={bud} loading={budLoading} annee={annee} setAnnee={setAnnee} />
       ) : loading ? (
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : (
@@ -459,6 +472,223 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
       </div>
 
       <p className="text-xs text-[var(--color-text-tertiary)]">Par nature & par mois : GL classe 7 (écritures validées). Par client : contrepartie 41x du tiers (vue <span className="font-mono">v_revenue_by_client</span>).</p>
+    </div>
+  );
+};
+
+// --- Onglets Budget & Variance ---------------------------------------------
+
+const GroupBars: React.FC<{ data: { b: number; r: number }[] }> = ({ data }) => {
+  const max = Math.max(1, ...data.flatMap((d) => [d.b, d.r]));
+  return (
+    <div className="flex items-end gap-2 h-40 pt-2">
+      {data.map((d, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center justify-end gap-1 min-w-0">
+          <div className="w-full flex items-end justify-center gap-0.5 h-full">
+            <div className="w-1/2 rounded-t bg-[var(--color-border)]" style={{ height: `${Math.max(2, (d.b / max) * 100)}%` }} title={`${MOIS[i]} · Budget ${fmt(d.b)}`} />
+            <div className="w-1/2 rounded-t bg-[var(--color-primary)]" style={{ height: `${Math.max(2, (d.r / max) * 100)}%` }} title={`${MOIS[i]} · Réalisé ${fmt(d.r)}`} />
+          </div>
+          <span className="text-[10px] text-[var(--color-text-tertiary)]">{MOIS_COURT[i]}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const TauxBar: React.FC<{ ratio: number }> = ({ ratio }) => {
+  const p = Math.max(0, ratio);
+  const color = p > 1 ? 'bg-red-500' : p >= 0.9 ? 'bg-amber-500' : 'bg-emerald-500';
+  return (
+    <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+      <div className={`h-full rounded-full ${color}`} style={{ width: `${Math.min(100, p * 100)}%` }} />
+    </div>
+  );
+};
+
+// Écart coloré. goodWhenNegative : pour les charges (dépenser moins = favorable).
+const Ecart: React.FC<{ value: number; goodWhenNegative?: boolean }> = ({ value, goodWhenNegative }) => {
+  const favorable = goodWhenNegative ? value <= 0 : value >= 0;
+  return <span className={favorable ? 'text-emerald-600' : 'text-red-600'}>{value > 0 ? '+' : ''}{fmt(value)}</span>;
+};
+
+const BudgetTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void }> = ({ bud, loading, annee, setAnnee }) => {
+  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (!bud) return null;
+  const c = bud.charges;
+  if (c.budget === 0) return (
+    <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
+      <div className="flex justify-center mb-3 text-neutral-300"><Wallet className="w-8 h-8" /></div>
+      Aucune ligne budgétaire sur {annee}. Élaborez ou importez un budget (écran Élaboration) pour activer cet onglet.
+    </div>
+  );
+  const taux = c.budget ? c.realise / c.budget : 0;
+  return (
+    <div className="space-y-5">
+      <header className="flex items-center gap-3 flex-wrap">
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Scale className="w-5 h-5 text-[var(--color-primary)]" /> Budget</h1>
+        <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
+          {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
+        </select>
+        <span className="text-xs text-[var(--color-text-tertiary)]">Consommation du budget de charges (classe 6) · version en vigueur</span>
+      </header>
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <DepKpi label="Budget charges" value={fmt(c.budget)} icon={<Scale className="w-5 h-5" />} />
+        <DepKpi label="Engagé" value={fmt(c.engage)} icon={<Receipt className="w-5 h-5" />} />
+        <DepKpi label="Réalisé" value={fmt(c.realise)} icon={<Wallet className="w-5 h-5" />} accent="text-[var(--color-primary)]" />
+        <DepKpi label="Disponible" value={fmt(c.disponible)} icon={<TrendingUp className="w-5 h-5" />} accent={c.disponible < 0 ? 'text-red-600' : 'text-emerald-600'} />
+        <DepKpi label="Taux de consommation" value={`${pct(c.realise, c.budget)}%`} icon={<PieChart className="w-5 h-5" />} accent={taux > 1 ? 'text-red-600' : taux >= 0.9 ? 'text-amber-600' : 'text-gray-900'} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-sm font-medium text-gray-700">Budget vs réalisé par mois · charges · {annee}</h2>
+          <span className="inline-flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-border)] inline-block" /> Budget</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-primary)] inline-block" /> Réalisé</span>
+          </span>
+        </div>
+        <GroupBars data={bud.byMonth.map((m) => ({ b: m.budgetCharges, r: m.realiseCharges }))} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Consommation par rubrique</h2></div>
+        <table className="w-full text-sm min-w-[640px]">
+          <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+            <tr>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Disponible</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-44">Taux consommé</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {bud.byRubriqueCharges.map((n) => {
+              const t = n.budget ? n.realise / n.budget : 0;
+              return (
+                <tr key={n.rubrique} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5"><span className="font-mono font-bold text-[var(--color-primary)]">{n.rubrique}</span> <span className="text-gray-700">{n.label}</span></td>
+                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(n.budget)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(n.realise)}</td>
+                  <td className={`px-4 py-2.5 text-right ${n.disponible < 0 ? 'text-red-600' : 'text-gray-400'}`}>{fmt(n.disponible)}</td>
+                  <td className="px-4 py-2.5"><div className="flex items-center gap-2"><TauxBar ratio={t} /><span className="text-xs text-gray-500 w-10 text-right">{pct(n.realise, n.budget)}%</span></div></td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-[var(--color-text-tertiary)]">Budget = version en vigueur (<span className="font-mono">v_budget_execution</span>) · Engagé = registre des engagements · Réalisé = GL · Disponible = Budget − Engagé − Réalisé.</p>
+    </div>
+  );
+};
+
+const VarianceTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void }> = ({ bud, loading, annee, setAnnee }) => {
+  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (!bud) return null;
+  if (bud.charges.budget === 0 && bud.produits.budget === 0) return (
+    <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
+      <div className="flex justify-center mb-3 text-neutral-300"><GitCompareArrows className="w-8 h-8" /></div>
+      Aucun budget sur {annee}. Élaborez ou importez un budget pour l'analyse d'écart.
+    </div>
+  );
+  const ecartCharges = bud.charges.realise - bud.charges.budget;   // >0 = dépassement (défavorable)
+  const ecartProduits = bud.produits.realise - bud.produits.budget; // >0 = surperformance (favorable)
+  return (
+    <div className="space-y-5">
+      <header className="flex items-center gap-3 flex-wrap">
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><GitCompareArrows className="w-5 h-5 text-[var(--color-primary)]" /> Analyse d'écart</h1>
+        <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
+          {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
+        </select>
+        <span className="text-xs text-[var(--color-text-tertiary)]">Écart budget vs réalisé (favorable en vert)</span>
+      </header>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <DepKpi label="Écart charges" value={fmt(ecartCharges)} icon={<Receipt className="w-5 h-5" />} accent={ecartCharges <= 0 ? 'text-emerald-600' : 'text-red-600'} />
+        <DepKpi label="Écart produits" value={fmt(ecartProduits)} icon={<Coins className="w-5 h-5" />} accent={ecartProduits >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+        <DepKpi label="Budget charges" value={fmt(bud.charges.budget)} icon={<Scale className="w-5 h-5" />} />
+        <DepKpi label="Budget produits" value={fmt(bud.produits.budget)} icon={<Scale className="w-5 h-5" />} />
+      </div>
+
+      {/* Écart par mois (charges) */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Écart par mois · charges</h2></div>
+        <table className="w-full text-sm min-w-[560px]">
+          <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+            <tr>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Mois</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {bud.byMonth.map((m) => (
+              <tr key={m.period} className="hover:bg-gray-50">
+                <td className="px-4 py-2.5 text-gray-700">{MOIS[m.period - 1]}</td>
+                <td className="px-4 py-2.5 text-right text-gray-500">{fmt(m.budgetCharges)}</td>
+                <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(m.realiseCharges)}</td>
+                <td className="px-4 py-2.5 text-right font-medium"><Ecart value={m.realiseCharges - m.budgetCharges} goodWhenNegative /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Écart par rubrique */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Écart par rubrique · charges</h2></div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {bud.byRubriqueCharges.map((n) => (
+                <tr key={n.rubrique} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5"><span className="font-mono font-bold text-[var(--color-primary)]">{n.rubrique}</span> <span className="text-gray-700">{n.label}</span></td>
+                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(n.budget)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(n.realise)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium"><Ecart value={n.realise - n.budget} goodWhenNegative /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Écart par rubrique · produits</h2></div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+              <tr>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {bud.byRubriqueProduits.map((n) => (
+                <tr key={n.rubrique} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5"><span className="font-mono font-bold text-[var(--color-primary)]">{n.rubrique}</span> <span className="text-gray-700">{n.label}</span></td>
+                  <td className="px-4 py-2.5 text-right text-gray-500">{fmt(n.budget)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(n.realise)}</td>
+                  <td className="px-4 py-2.5 text-right font-medium"><Ecart value={n.realise - n.budget} /></td>
+                </tr>
+              ))}
+              {bud.byRubriqueProduits.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun budget de produits sur {annee}.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="text-xs text-[var(--color-text-tertiary)]">Écart = Réalisé − Budget. Charges : favorable (vert) si réalisé ≤ budget. Produits : favorable si réalisé ≥ budget. Source : <span className="font-mono">v_budget_execution</span>.</p>
     </div>
   );
 };
