@@ -104,7 +104,8 @@ const RUB6_LABELS: Record<string, string> = {
   '69': 'Dotations HAO / Impôts sur le résultat',
 };
 
-export interface ExpenseNature { rubrique: string; label: string; total: number; byMonth: number[]; }
+export interface NatureAccount { code: string; total: number; }
+export interface ExpenseNature { rubrique: string; label: string; total: number; byMonth: number[]; accounts: NatureAccount[]; }
 export interface ExpenseSupplier { code: string; name: string; total: number; }
 export interface ExpenseAnalysis {
   total: number;          // total charges réalisées (classe 6)
@@ -128,17 +129,25 @@ export async function getExpenseAnalysis(adapter: DataAdapter, annee: string): P
 
   const byMonth = Array(12).fill(0) as number[];
   const natMap = new Map<string, ExpenseNature>();
+  const acctMap = new Map<string, Map<string, number>>(); // rubrique -> (compte -> total)
   let total = 0;
   for (const r of act) {
-    const rub = String(r.account_code || '').slice(0, 2);
+    const code = String(r.account_code || '');
+    const rub = code.slice(0, 2);
     const p = Number(r.period);
     const v = Number(r.montant_realise) || 0;
     total += v;
     if (p >= 1 && p <= 12) byMonth[p - 1] += v;
     let n = natMap.get(rub);
-    if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0) }; natMap.set(rub, n); }
+    if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0), accounts: [] }; natMap.set(rub, n); }
     n.total += v;
     if (p >= 1 && p <= 12) n.byMonth[p - 1] += v;
+    let am = acctMap.get(rub); if (!am) { am = new Map(); acctMap.set(rub, am); }
+    am.set(code, (am.get(code) || 0) + v);
+  }
+  for (const [rub, am] of acctMap) {
+    const n = natMap.get(rub); if (!n) continue;
+    n.accounts = [...am.entries()].map(([code, t]) => ({ code, total: t })).sort((a, b) => b.total - a.total);
   }
   const byNature = [...natMap.values()].sort((a, b) => b.total - a.total);
 
@@ -174,7 +183,7 @@ const RUB7_LABELS: Record<string, string> = {
   '79': 'Reprises de provisions',
 };
 
-export interface RevenueNature { rubrique: string; label: string; total: number; byMonth: number[]; }
+export interface RevenueNature { rubrique: string; label: string; total: number; byMonth: number[]; accounts: NatureAccount[]; }
 export interface RevenueClient { code: string; name: string; total: number; }
 export interface RevenueAnalysis {
   total: number;          // total produits réalisés (classe 7)
@@ -198,17 +207,25 @@ export async function getRevenueAnalysis(adapter: DataAdapter, annee: string): P
 
   const byMonth = Array(12).fill(0) as number[];
   const natMap = new Map<string, RevenueNature>();
+  const acctMap = new Map<string, Map<string, number>>();
   let total = 0;
   for (const r of act) {
-    const rub = String(r.account_code || '').slice(0, 2);
+    const code = String(r.account_code || '');
+    const rub = code.slice(0, 2);
     const p = Number(r.period);
     const v = Number(r.montant_realise) || 0;
     total += v;
     if (p >= 1 && p <= 12) byMonth[p - 1] += v;
     let n = natMap.get(rub);
-    if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0) }; natMap.set(rub, n); }
+    if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0), accounts: [] }; natMap.set(rub, n); }
     n.total += v;
     if (p >= 1 && p <= 12) n.byMonth[p - 1] += v;
+    let am = acctMap.get(rub); if (!am) { am = new Map(); acctMap.set(rub, am); }
+    am.set(code, (am.get(code) || 0) + v);
+  }
+  for (const [rub, am] of acctMap) {
+    const n = natMap.get(rub); if (!n) continue;
+    n.accounts = [...am.entries()].map(([code, t]) => ({ code, total: t })).sort((a, b) => b.total - a.total);
   }
   const byNature = [...natMap.values()].sort((a, b) => b.total - a.total);
 
@@ -301,7 +318,8 @@ export async function getCapexExecution(adapter: DataAdapter, annee: string): Pr
 // compte × mois). Le budget vient de la version en vigueur, le réalisé du GL.
 // ---------------------------------------------------------------------------
 
-export interface BudgetLineAgg { rubrique: string; label: string; budget: number; engage: number; realise: number; disponible: number; }
+export interface BudgetAccount { code: string; budget: number; realise: number; }
+export interface BudgetLineAgg { rubrique: string; label: string; budget: number; engage: number; realise: number; disponible: number; accounts: BudgetAccount[]; }
 export interface BudgetVsActualMonth { period: number; budgetCharges: number; realiseCharges: number; budgetProduits: number; realiseProduits: number; }
 export interface BudgetAnalysis {
   charges: { budget: number; engage: number; realise: number; disponible: number };
@@ -327,7 +345,15 @@ export async function getBudgetAnalysis(adapter: DataAdapter, annee: string): Pr
   const produits = { budget: 0, realise: 0 };
   const cMap = new Map<string, BudgetLineAgg>();
   const pMap = new Map<string, BudgetLineAgg>();
+  const cAcct = new Map<string, Map<string, BudgetAccount>>(); // rubrique -> compte -> {budget,realise}
+  const pAcct = new Map<string, Map<string, BudgetAccount>>();
   const byMonth = empty.byMonth.map((m) => ({ ...m }));
+
+  const bumpAcct = (store: Map<string, Map<string, BudgetAccount>>, rub: string, code: string, budget: number, realise: number) => {
+    let am = store.get(rub); if (!am) { am = new Map(); store.set(rub, am); }
+    let a = am.get(code); if (!a) { a = { code, budget: 0, realise: 0 }; am.set(code, a); }
+    a.budget += budget; a.realise += realise;
+  };
 
   for (const r of rows) {
     const code = String(r.account_code || '');
@@ -338,17 +364,25 @@ export async function getBudgetAnalysis(adapter: DataAdapter, annee: string): Pr
     if (classe === '6') {
       charges.budget += budget; charges.engage += engage; charges.realise += realise; charges.disponible += dispo;
       let n = cMap.get(rub);
-      if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0 }; cMap.set(rub, n); }
+      if (!n) { n = { rubrique: rub, label: RUB6_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0, accounts: [] }; cMap.set(rub, n); }
       n.budget += budget; n.engage += engage; n.realise += realise; n.disponible += dispo;
+      bumpAcct(cAcct, rub, code, budget, realise);
       if (p >= 1 && p <= 12) { byMonth[p - 1].budgetCharges += budget; byMonth[p - 1].realiseCharges += realise; }
     } else if (classe === '7') {
       produits.budget += budget; produits.realise += realise;
       let n = pMap.get(rub);
-      if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0 }; pMap.set(rub, n); }
+      if (!n) { n = { rubrique: rub, label: RUB7_LABELS[rub] || `Comptes ${rub}`, budget: 0, engage: 0, realise: 0, disponible: 0, accounts: [] }; pMap.set(rub, n); }
       n.budget += budget; n.realise += realise; n.disponible += (budget - realise);
+      bumpAcct(pAcct, rub, code, budget, realise);
       if (p >= 1 && p <= 12) { byMonth[p - 1].budgetProduits += budget; byMonth[p - 1].realiseProduits += realise; }
     }
   }
+
+  const attachAccounts = (map: Map<string, BudgetLineAgg>, store: Map<string, Map<string, BudgetAccount>>) => {
+    for (const [rub, am] of store) { const n = map.get(rub); if (n) n.accounts = [...am.values()].sort((a, b) => b.budget - a.budget); }
+  };
+  attachAccounts(cMap, cAcct);
+  attachAccounts(pMap, pAcct);
 
   return {
     charges, produits,
