@@ -15,6 +15,18 @@ import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search } from 'lucide-react'
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
+// Libellés SYSCOHADA des rubriques (préfixe 2 chiffres) — charges & produits.
+const RUB_LABELS: Record<string, string> = {
+  '60': 'Achats et variations de stocks', '61': 'Transports', '62': 'Services extérieurs A',
+  '63': 'Services extérieurs B', '64': 'Impôts et taxes', '65': 'Autres charges',
+  '66': 'Charges de personnel', '67': 'Frais financiers', '68': 'Dotations aux amort. & provisions',
+  '69': 'Dotations HAO / Impôts sur le résultat',
+  '70': 'Ventes', '71': 'Subventions d’exploitation', '72': 'Production immobilisée',
+  '73': 'Variations de stocks de produits', '75': 'Autres produits', '77': 'Revenus financiers',
+  '78': 'Transferts de charges', '79': 'Reprises de provisions',
+};
+const rubLabel = (code: string) => RUB_LABELS[code] || '';
+
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
   const { format: fmtAccount } = useAccountNames();
@@ -173,47 +185,58 @@ const BudgetEcartsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Waterfall simplifié budget → réalisé */}
-      <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-        <h2 className="font-semibold text-[var(--color-primary)] mb-4">Du budget au réalisé</h2>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm"><span className="text-gray-600">Budget total</span><span className="font-semibold">{formatCurrency(totals.budget)}</span></div>
-          {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q)).slice(0, 10).map(n => (
-            <React.Fragment key={n.code}>
-              <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => toggleExpand(n.code)} title="Voir le détail par compte">
-                <span className="text-xs font-mono text-gray-500 w-8">{expanded.has(n.code) ? '▾' : '▸'} {n.code}</span>
-                <div className="flex-1 h-5 bg-gray-100 rounded relative overflow-hidden">
-                  <div className="absolute top-0 bottom-0" style={{
-                    left: n.ecart >= 0 ? '50%' : undefined, right: n.ecart < 0 ? '50%' : undefined,
-                    width: `${Math.min(50, (Math.abs(n.ecart) / (totals.budget || 1)) * 100 * 3)}%`,
-                    background: n.ecart >= 0 ? 'rgba(21,128,61,.6)' : 'rgba(192,50,43,.6)',
-                  }} />
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300" />
-                </div>
-                <span className={`text-xs font-medium w-28 text-right ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</span>
-              </div>
-              {expanded.has(n.code) && (
-                <div className="ml-8 mb-1 border-l-2 border-gray-100 pl-3">
-                  {detailForNature(n.code).map(d => (
-                    <div key={d.account_code} className="flex items-center justify-between text-[11px] py-0.5">
-                      <span className="font-mono text-gray-500">{fmtAccount(d.account_code)}</span>
-                      <span className="text-gray-400">B {formatCurrency(d.budget)} · R {formatCurrency(d.realise)}</span>
-                      <span className={`font-medium w-24 text-right ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
-          <div className="flex items-center justify-between text-sm border-t border-[var(--color-border)] pt-2 mt-2">
-            <span className="text-gray-700 font-semibold">Réalisé total</span>
-            <span className="font-bold">{formatCurrency(totals.realise)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Écart global</span>
-            <span className={`font-bold ${totals.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</span>
-          </div>
+      {/* Du budget au réalisé — table Budget / Réalisé / Écart, dépliable par compte */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <h2 className="font-semibold text-[var(--color-primary)]">Du budget au réalisé <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic sur une rubrique pour déplier les comptes</span></h2>
         </div>
+        <table className="w-full text-sm min-w-[680px]">
+          <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+            <tr>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q) || rubLabel(n.code).toLowerCase().includes(q)).map(n => {
+              const isOpen = expanded.has(n.code);
+              return (
+                <React.Fragment key={n.code}>
+                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(n.code)}>
+                    <td className="px-4 py-2.5">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="text-gray-400 w-3 inline-block">{isOpen ? '▾' : '▸'}</span>
+                        <span className="font-mono font-bold text-[var(--color-primary)]">{n.code}</span>
+                        <span className="text-gray-700">{rubLabel(n.code)}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-500">{formatCurrency(n.budget)}</td>
+                    <td className="px-4 py-2.5 text-right font-medium text-gray-900">{formatCurrency(n.realise)}</td>
+                    <td className={`px-4 py-2.5 text-right font-medium ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</td>
+                  </tr>
+                  {isOpen && detailForNature(n.code).map(d => (
+                    <tr key={d.account_code} className="bg-gray-50/40 text-xs">
+                      <td className="px-4 py-1.5 pl-11 text-gray-600">{fmtAccount(d.account_code)}</td>
+                      <td className="px-4 py-1.5 text-right text-gray-500">{formatCurrency(d.budget)}</td>
+                      <td className="px-4 py-1.5 text-right text-gray-700">{formatCurrency(d.realise)}</td>
+                      <td className={`px-4 py-1.5 text-right font-medium ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
+              <td className="px-4 py-3">Total</td>
+              <td className="px-4 py-3 text-right">{formatCurrency(totals.budget)}</td>
+              <td className="px-4 py-3 text-right">{formatCurrency(totals.realise)}</td>
+              <td className={`px-4 py-3 text-right ${totals.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
 
       {/* Heatmap mois × nature */}
@@ -222,14 +245,14 @@ const BudgetEcartsPage: React.FC = () => {
         <table className="text-xs border-collapse">
           <thead>
             <tr>
-              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white">Nature</th>
+              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white min-w-[190px]">Nature</th>
               {MOIS.map(m => <th key={m} className="px-2 py-1 text-center text-gray-500 w-14">{m}</th>)}
             </tr>
           </thead>
           <tbody>
-            {heatmap.grid.filter(g => !q || g.code.toLowerCase().includes(q)).map(g => (
+            {heatmap.grid.filter(g => !q || g.code.toLowerCase().includes(q) || rubLabel(g.code).toLowerCase().includes(q)).map(g => (
               <tr key={g.code}>
-                <td className="px-2 py-1 font-mono text-gray-600 sticky left-0 bg-white">{g.code}</td>
+                <td className="px-2 py-1 text-gray-600 sticky left-0 bg-white min-w-[190px]"><span className="font-mono font-bold text-[var(--color-primary)]">{g.code}</span> <span className="text-gray-500">{rubLabel(g.code)}</span></td>
                 {g.cells.map((v, i) => (
                   <td key={i} className="px-1 py-1 text-center" style={{ background: cellColor(v) }} title={`${MOIS[i]} : ${formatCurrency(v)}`}>
                     {v !== 0 ? Math.round(v / 1000).toLocaleString('fr-FR') : ''}
