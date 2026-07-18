@@ -227,6 +227,74 @@ export async function getRevenueAnalysis(adapter: DataAdapter, annee: string): P
   return { total, budget, byMonth, byNature, byClient };
 }
 
+// ---------------------------------------------------------------------------
+// Page « Investissement (CAPEX) » — exécution réelle de l'investissement depuis
+// le GL (classe 2, vue v_capex_investment). Distingue le PARC (stock, AN inclus)
+// du FLUX d'investissement de l'année (hors à-nouveaux). Aucun mock.
+// ---------------------------------------------------------------------------
+
+// Libellés SYSCOHADA des rubriques d'immobilisation (préfixe 2 chiffres).
+const CLASS2_LABELS: Record<string, string> = {
+  '20': 'Charges immobilisées',
+  '21': 'Immobilisations incorporelles',
+  '22': 'Terrains',
+  '23': 'Bâtiments, installations & agencements',
+  '24': 'Matériel, mobilier & actifs biologiques',
+  '25': 'Avances & acomptes sur immobilisations',
+  '26': 'Titres de participation',
+  '27': 'Autres immobilisations financières',
+  '28': 'Amortissements',
+  '29': 'Dépréciations',
+};
+
+export interface CapexNature { rubrique: string; label: string; total: number; byMonth: number[]; }
+export interface CapexExecution {
+  parcBrut: number;    // immobilisations brutes (20-27), position courante (AN inclus)
+  parcAmort: number;   // amortissements cumulés (28)
+  parcVnc: number;     // valeur nette comptable
+  flowGross: number;   // acquisitions brutes de l'exercice (20-27, hors AN)
+  flowNet: number;     // flux net classe 2 de l'exercice (hors AN)
+  byMonth: number[];   // acquisitions brutes hors AN, par mois
+  byNature: CapexNature[]; // acquisitions brutes hors AN, par rubrique
+}
+
+/** Exécution CAPEX : parc immobilisé (stock) + flux d'investissement de l'année (hors AN). */
+export async function getCapexExecution(adapter: DataAdapter, annee: string): Promise<CapexExecution> {
+  const empty: CapexExecution = { parcBrut: 0, parcAmort: 0, parcVnc: 0, flowGross: 0, flowNet: 0, byMonth: Array(12).fill(0), byNature: [] };
+  const client = getClient(adapter);
+  if (!client) return empty;
+
+  const rows = await fetchAll(() => client.from('v_capex_investment').select('rubrique,period,is_an,montant').eq('annee', annee));
+
+  let parcBrut = 0, parcAmort = 0, parcVnc = 0, flowGross = 0, flowNet = 0;
+  const byMonth = Array(12).fill(0) as number[];
+  const natMap = new Map<string, CapexNature>();
+  for (const r of rows) {
+    const rub = String(r.rubrique || '');
+    const rubN = parseInt(rub, 10);
+    const p = Number(r.period);
+    const m = Number(r.montant) || 0;
+    // Parc (stock) — AN inclus (position courante).
+    if (rubN >= 20 && rubN <= 27) parcBrut += m;
+    if (rubN === 28) parcAmort += -m;   // 28 est créditeur => amort positif
+    parcVnc += m;                       // net (brut + 28 négatif + 29)
+    // Flux de l'exercice — hors à-nouveaux.
+    if (!r.is_an) {
+      flowNet += m;
+      if (rubN >= 20 && rubN <= 27) {
+        flowGross += m;
+        if (p >= 1 && p <= 12) byMonth[p - 1] += m;
+        let n = natMap.get(rub);
+        if (!n) { n = { rubrique: rub, label: CLASS2_LABELS[rub] || `Comptes ${rub}`, total: 0, byMonth: Array(12).fill(0) }; natMap.set(rub, n); }
+        n.total += m;
+        if (p >= 1 && p <= 12) n.byMonth[p - 1] += m;
+      }
+    }
+  }
+  const byNature = [...natMap.values()].sort((a, b) => b.total - a.total);
+  return { parcBrut, parcAmort, parcVnc, flowGross, flowNet, byMonth, byNature };
+}
+
 export interface MonthCard { period: number; budgeted: number; overspent: number; incoming: number; noBudget: number; available: number; }
 
 /** Cartes de synthèse mensuelle (style REWISE : Budgeted / Overspent / Incoming / No budgeted / Available). */
