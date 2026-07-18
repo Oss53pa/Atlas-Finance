@@ -121,11 +121,14 @@ export async function getExpenseAnalysis(adapter: DataAdapter, annee: string): P
   const client = getClient(adapter);
   if (!client) return empty;
 
-  const [act, sup, bex] = await Promise.all([
+  const [act, bex] = await Promise.all([
     fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('classe', '6').eq('annee', annee)),
-    fetchAll(() => client.from('v_expense_by_supplier').select('code,fournisseur,depense').eq('annee', annee)),
     fetchAll(() => client.from('v_budget_execution').select('account_code,budget').eq('annee', annee)),
   ]);
+  // Vue fournisseurs isolée : joint third_parties (RLS auth_tenant_ids) — un échec
+  // (droits insuffisants) ne doit pas casser tout l'onglet, on dégrade en liste vide.
+  let sup: any[] = [];
+  try { sup = await fetchAll(() => client.from('v_expense_by_supplier').select('code,fournisseur,depense').eq('annee', annee)); } catch { sup = []; }
 
   const byMonth = Array(12).fill(0) as number[];
   const natMap = new Map<string, ExpenseNature>();
@@ -199,11 +202,13 @@ export async function getRevenueAnalysis(adapter: DataAdapter, annee: string): P
   const client = getClient(adapter);
   if (!client) return empty;
 
-  const [act, cli, bex] = await Promise.all([
+  const [act, bex] = await Promise.all([
     fetchAll(() => client.from('v_actual_exploitation').select('account_code,period,montant_realise').eq('classe', '7').eq('annee', annee)),
-    fetchAll(() => client.from('v_revenue_by_client').select('code,client,revenu').eq('annee', annee)),
     fetchAll(() => client.from('v_budget_execution').select('account_code,budget').eq('annee', annee)),
   ]);
+  // Vue clients isolée (joint third_parties) : un échec de droits ne casse pas l'onglet.
+  let cli: any[] = [];
+  try { cli = await fetchAll(() => client.from('v_revenue_by_client').select('code,client,revenu').eq('annee', annee)); } catch { cli = []; }
 
   const byMonth = Array(12).fill(0) as number[];
   const natMap = new Map<string, RevenueNature>();

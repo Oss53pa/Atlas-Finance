@@ -90,6 +90,9 @@ const BudgetCockpitProPage: React.FC = () => {
     return () => { cancelled = true; };
   }, [adapter, annee, tab]);
 
+  // Efface une éventuelle erreur en changeant d'onglet (sinon elle reste affichée).
+  useEffect(() => { setError(null); }, [tab]);
+
   const toggleMonth = (m: number) => setSelected((s) => s.includes(m) ? (s.length > 1 ? s.filter((x) => x !== m) : s) : [...s, m].sort((a, b) => a - b).slice(-3));
   // Cumul YTD (year-to-date) par mois — jusqu'au mois inclus, pas la somme des 12 mois
   // répétée à l'identique sous chaque colonne (sinon Janvier/Février/Mars affichent
