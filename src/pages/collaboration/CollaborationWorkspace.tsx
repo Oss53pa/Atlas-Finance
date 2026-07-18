@@ -19,7 +19,7 @@ import {
   Ban, RotateCcw, Archive,
 } from 'lucide-react';
 import {
-  listSpaces, createSpace, getSpace, updateSpace, abandonSpace, reactivateSpace,
+  listSpaces, createSpace, getSpace, updateSpace, abandonSpace, reactivateSpace, transitionSpace,
   computeConvergence, refreshConvergence, evaluateExitCriteria, satisfyCriterion,
   closeSpace, addSolution, decideSolution, listEvents, postMessage, postDecision,
   postEcriture, postSnapshot, approveDecision, rejectDecision, toggleReaction, buildSnapshotPayload,
@@ -114,7 +114,7 @@ export default function CollaborationWorkspace() {
         <SpaceView key={selected.id} space={selected} me={me} tenantId={tenantId}
           onBack={() => { setSelId(null); load(); }} onChanged={load} />
       ) : (
-        <Portfolio spaces={spaces} loading={loading} onOpen={setSelId} onNew={() => setShowCreate(true)} />
+        <Portfolio spaces={spaces} loading={loading} onOpen={setSelId} onNew={() => setShowCreate(true)} onReload={load} />
       )}
       {showCreate && (
         <CreateSpaceModal me={me} tenantId={tenantId} prefill={prefill}
@@ -126,15 +126,33 @@ export default function CollaborationWorkspace() {
 }
 
 // ════════════════════════════════════════════════ PORTEFEUILLE (kanban) ══════
-function Portfolio({ spaces, loading, onOpen, onNew }: {
-  spaces: Space[]; loading: boolean; onOpen: (id: string) => void; onNew: () => void;
+function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
+  spaces: Space[]; loading: boolean; onOpen: (id: string) => void; onNew: () => void; onReload: () => void | Promise<void>;
 }) {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { toast } = useToast();
   const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
   const [kbQuery, setKbQuery] = useState('');
   const [kbResults, setKbResults] = useState<any[] | null>(null);
   const runKb = async () => { if (!kbQuery.trim()) { setKbResults(null); return; } try { setKbResults(await searchReports(adapter, tenantId, kbQuery)); } catch { setKbResults([]); } };
+
+  // Drag-and-drop : déplacer une carte d'espace d'une colonne de statut à une autre.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<SpaceStatus | null>(null);
+  const dropOn = async (to: SpaceStatus) => {
+    const id = dragId;
+    setOverCol(null); setDragId(null);
+    if (!id) return;
+    const sp = spaces.find(s => s.id === id);
+    if (!sp || sp.status === to) return;
+    if (to === 'abandonne') { toast.warning('Abandon impossible par glisser-déposer (motif requis).'); return; }
+    try {
+      await transitionSpace(adapter, sp, to);
+      toast.success(`« ${sp.title} » → ${SPACE_STATUS_LABELS[to]}`);
+      await onReload();
+    } catch (e: any) { toast.error(e?.message || 'Transition impossible'); }
+  };
 
   const active = spaces.filter(s => s.status !== 'archive' && s.status !== 'abandonne');
   const late = active.filter(isLate);
@@ -190,14 +208,31 @@ function Portfolio({ spaces, loading, onOpen, onNew }: {
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${cols.length}, minmax(230px, 1fr))`, gap: 12, alignItems: 'start', overflowX: 'auto', paddingBottom: 4 }}>
           {cols.map(st => {
             const items = spaces.filter(s => s.status === st);
+            const isOver = overCol === st && dragId != null && spaces.find(s => s.id === dragId)?.status !== st;
             return (
-              <div key={st} style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: 10, minHeight: 120 }}>
+              <div key={st}
+                onDragOver={e => { if (dragId) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (overCol !== st) setOverCol(st); } }}
+                onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverCol(c => (c === st ? null : c)); }}
+                onDrop={e => { e.preventDefault(); dropOn(st); }}
+                style={{
+                  background: isOver ? T.petrol + '0C' : T.surface,
+                  border: `1px ${isOver ? 'dashed' : 'solid'} ${isOver ? T.petrol : T.line}`,
+                  borderRadius: 14, padding: 10, minHeight: 120, transition: 'background .12s, border-color .12s',
+                }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 6px 10px' }}>
                   <span style={{ fontWeight: 700, fontSize: 12.5, color: T.ink }}>{SPACE_STATUS_LABELS[st]}</span>
                   <span style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 8, padding: '1px 7px' }}>{items.length}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                  {items.map(s => <SpaceCard key={s.id} space={s} onOpen={() => onOpen(s.id)} />)}
+                  {items.map(s => (
+                    <SpaceCard key={s.id} space={s} onOpen={() => onOpen(s.id)}
+                      dragging={dragId === s.id}
+                      onDragStart={() => setDragId(s.id)}
+                      onDragEnd={() => { setDragId(null); setOverCol(null); }} />
+                  ))}
+                  {isOver && items.length === 0 && (
+                    <div style={{ border: `1px dashed ${T.petrol}66`, borderRadius: 10, padding: '14px 8px', textAlign: 'center', fontSize: 11.5, color: T.petrol }}>Déposer ici</div>
+                  )}
                 </div>
               </div>
             );
@@ -208,7 +243,9 @@ function Portfolio({ spaces, loading, onOpen, onNew }: {
   );
 }
 
-function SpaceCard({ space, onOpen }: { space: Space; onOpen: () => void }) {
+function SpaceCard({ space, onOpen, dragging, onDragStart, onDragEnd }: {
+  space: Space; onOpen: () => void; dragging?: boolean; onDragStart?: () => void; onDragEnd?: () => void;
+}) {
   const bp = space.convergenceBp ?? 0;
   const late = isLate(space);
   const isArchived = space.status === 'archive';
@@ -216,10 +253,14 @@ function SpaceCard({ space, onOpen }: { space: Space; onOpen: () => void }) {
   const inactive = isArchived || isAbandoned;
   const anchor = space.anchors?.[0] || (space.linkedLabel ? { type: 'reconciliation', label: space.linkedLabel } as any : null);
   return (
-    <button onClick={onOpen} style={{
+    <button onClick={onOpen}
+      draggable
+      onDragStart={e => { e.dataTransfer.setData('text/plain', space.id); e.dataTransfer.effectAllowed = 'move'; onDragStart?.(); }}
+      onDragEnd={() => onDragEnd?.()}
+      style={{
       textAlign: 'left', width: '100%', background: T.surface, border: `1px solid ${late ? T.red + '55' : T.line}`,
-      borderRadius: 12, padding: 12, cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 8,
-      boxShadow: '0 1px 2px rgba(30,90,100,.04)', opacity: inactive ? 0.86 : 1,
+      borderRadius: 12, padding: 12, cursor: dragging ? 'grabbing' : 'grab', display: 'flex', flexDirection: 'column', gap: 8,
+      boxShadow: '0 1px 2px rgba(30,90,100,.04)', opacity: dragging ? 0.4 : inactive ? 0.86 : 1, transition: 'opacity .12s',
     }}>
       {anchor && (
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: T.petrol, background: T.petrol + '12', borderRadius: 7, padding: '2px 7px', width: 'fit-content' }}>
