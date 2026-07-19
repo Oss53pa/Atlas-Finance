@@ -9,6 +9,7 @@
 .atlas-brand {
   font-family: 'Grand Hotel', cursive !important;
   letter-spacing: 0.5px;
+  text-transform: none !important; /* marque jamais en capitales (voir globals.css) */
 }
 
 /* ══════════════════════════════════════════════════════════════════════

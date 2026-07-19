@@ -226,6 +226,10 @@ h1.brand-script, h2.brand-script, h3.brand-script {
   font-family: 'Grand Hotel', cursive !important;
   letter-spacing: 0.5px !important;
   font-feature-settings: normal !important;
+  /* La marque en Grand Hotel n'est JAMAIS en capitales — seules les initiales
+     sont majuscules (« Atlas Studio », pas « ATLAS STUDIO »). Neutralise tout
+     text-transform: uppercase hérité d'un conteneur parent (nav, header…). */
+  text-transform: none !important;
 }
 
 /* Italic éditorial pour citations & sous-titres élégants */
