@@ -16,6 +16,7 @@ import { getActualExploitation, getBudgetVsActual } from './budgetService';
 
 export type PnLLevel = 'rubric' | 'subtotal' | 'total';
 
+export interface PnLAccount { code: string; budget: number; realise: number; n1: number; }
 export interface PnLLine {
   key: string;
   label: string;
@@ -23,6 +24,7 @@ export interface PnLLine {
   budget: number;    // signé (contribution au résultat)
   realise: number;   // signé
   n1: number;        // signé
+  accounts?: PnLAccount[]; // détail par compte (rubriques uniquement)
 }
 
 interface RubricDef { key: string; label: string; prefixes: string[]; sign: 1 | -1; }
@@ -88,8 +90,22 @@ export async function computePnLBudget(adapter: DataAdapter, annee: string): Pro
                      realise: ebe.realise + R.dotations.realise + R.charges_fin.realise,
                      n1: ebe.n1 + R.dotations.n1 + R.charges_fin.n1 };
 
-  const L = (key: string, label: string, level: PnLLevel, v: { budget: number; realise: number; n1: number }): PnLLine =>
-    ({ key, label, level, budget: round2(v.budget), realise: round2(v.realise), n1: round2(v.n1) });
+  // Détail par compte d'une rubrique (valeurs signées), trié par |réalisé| décroissant.
+  const accountsFor = (r: RubricDef): PnLAccount[] => {
+    const codes = new Set<string>();
+    for (const m of [budgetByAccount, realiseByAccount, n1ByAccount])
+      for (const c of m.keys()) if (r.prefixes.some((p) => c.startsWith(p))) codes.add(c);
+    return [...codes]
+      .map((code) => ({ code, budget: round2(r.sign * (budgetByAccount.get(code) || 0)), realise: round2(r.sign * (realiseByAccount.get(code) || 0)), n1: round2(r.sign * (n1ByAccount.get(code) || 0)) }))
+      .filter((a) => a.budget || a.realise || a.n1)
+      .sort((a, b) => Math.abs(b.realise) - Math.abs(a.realise));
+  };
+  const rubricByKey = new Map(RUBRICS.map((r) => [r.key, r]));
+
+  const L = (key: string, label: string, level: PnLLevel, v: { budget: number; realise: number; n1: number }): PnLLine => {
+    const r = rubricByKey.get(key);
+    return { key, label, level, budget: round2(v.budget), realise: round2(v.realise), n1: round2(v.n1), ...(r ? { accounts: accountsFor(r) } : {}) };
+  };
 
   const lines: PnLLine[] = [
     L('produits', RUBRICS[0].label, 'rubric', R.produits),

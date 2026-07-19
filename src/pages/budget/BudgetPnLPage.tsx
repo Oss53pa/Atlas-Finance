@@ -10,14 +10,18 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { computePnLBudget, type PnLLine } from '../../features/budget/services/pnlBudgetService';
-import { Scale, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { useAccountNames } from '../../hooks/useAccountNames';
+import { Scale, Loader2, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 
 const BudgetPnLPage: React.FC = () => {
   const { adapter } = useData();
+  const { label: acctLabel } = useAccountNames();
   const [annee, setAnnee] = useState('');
   const [lines, setLines] = useState<PnLLine[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState<Set<string>>(new Set());
+  const toggle = (k: string) => setOpen((s) => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n; });
 
   useEffect(() => {
     let cancelled = false;
@@ -39,9 +43,9 @@ const BudgetPnLPage: React.FC = () => {
 
   const resultat = useMemo(() => lines.find((l) => l.key === 'resultat') ?? null, [lines]);
 
-  const Ecart: React.FC<{ l: PnLLine }> = ({ l }) => {
-    const e = Math.round((l.realise - l.budget) * 100) / 100;
-    if (l.budget === 0 && l.realise === 0) return <span className="text-neutral-300">—</span>;
+  const Ecart: React.FC<{ budget: number; realise: number }> = ({ budget, realise }) => {
+    const e = Math.round((realise - budget) * 100) / 100;
+    if (budget === 0 && realise === 0) return <span className="text-neutral-300">—</span>;
     const fav = e >= 0;
     return (
       <span className={`inline-flex items-center gap-1 ${fav ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
@@ -92,18 +96,39 @@ const BudgetPnLPage: React.FC = () => {
                 const isTotal = l.level === 'total';
                 const isSub = l.level === 'subtotal';
                 const dN1 = Math.round((l.realise - l.n1) * 100) / 100;
+                const hasDetail = !!l.accounts && l.accounts.length > 0;
+                const isOpen = open.has(l.key);
                 return (
-                  <tr key={l.key}
-                    className={`border-b border-[var(--color-border-light)] ${
-                      isTotal ? 'bg-[var(--color-primary-light)] font-semibold text-[var(--color-text-primary)]'
-                      : isSub ? 'bg-[var(--color-surface-hover)] font-medium' : ''}`}>
-                    <td className={`px-4 py-2.5 ${isTotal || isSub ? '' : 'pl-6 text-[var(--color-text-secondary)]'}`}>{l.label}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.budget)}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.realise)}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs"><Ecart l={l} /></td>
-                    <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{formatCurrency(l.n1)}</td>
-                    <td className={`px-4 py-2.5 text-right font-mono text-xs ${dN1 >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(dN1)}</td>
-                  </tr>
+                  <React.Fragment key={l.key}>
+                    <tr
+                      onClick={hasDetail ? () => toggle(l.key) : undefined}
+                      className={`border-b border-[var(--color-border-light)] ${hasDetail ? 'cursor-pointer hover:bg-gray-50' : ''} ${
+                        isTotal ? 'bg-[var(--color-primary-light)] font-semibold text-[var(--color-text-primary)]'
+                        : isSub ? 'bg-[var(--color-surface-hover)] font-medium' : ''}`}>
+                      <td className={`px-4 py-2.5 ${isTotal || isSub ? '' : 'pl-6 text-[var(--color-text-secondary)]'}`}>
+                        {hasDetail && <ChevronRight className={`w-3.5 h-3.5 inline-block mr-1 -ml-4 text-gray-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />}
+                        {l.label}
+                      </td>
+                      <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.budget)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono text-xs">{formatCurrency(l.realise)}</td>
+                      <td className="px-4 py-2.5 text-right font-mono text-xs"><Ecart budget={l.budget} realise={l.realise} /></td>
+                      <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-tertiary)]">{formatCurrency(l.n1)}</td>
+                      <td className={`px-4 py-2.5 text-right font-mono text-xs ${dN1 >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>{formatCurrency(dN1)}</td>
+                    </tr>
+                    {isOpen && l.accounts!.map((a) => {
+                      const adN1 = Math.round((a.realise - a.n1) * 100) / 100;
+                      return (
+                        <tr key={a.code} className="bg-gray-50/40 border-b border-[var(--color-border-light)] text-xs">
+                          <td className="px-4 py-1.5 pl-11"><span className="font-mono text-gray-500">{a.code}</span> <span className="text-gray-600">{acctLabel(a.code)}</span></td>
+                          <td className="px-4 py-1.5 text-right font-mono text-gray-500">{formatCurrency(a.budget)}</td>
+                          <td className="px-4 py-1.5 text-right font-mono text-gray-700">{formatCurrency(a.realise)}</td>
+                          <td className="px-4 py-1.5 text-right font-mono"><Ecart budget={a.budget} realise={a.realise} /></td>
+                          <td className="px-4 py-1.5 text-right font-mono text-[var(--color-text-tertiary)]">{formatCurrency(a.n1)}</td>
+                          <td className={`px-4 py-1.5 text-right font-mono ${adN1 >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(adN1)}</td>
+                        </tr>
+                      );
+                    })}
+                  </React.Fragment>
                 );
               })}
             </tbody>
@@ -111,7 +136,7 @@ const BudgetPnLPage: React.FC = () => {
         </div>
       )}
       <p className="text-xs text-[var(--color-text-tertiary)]">
-        Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur.
+        Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur. <strong>N-1</strong> = réalisé de l'exercice précédent depuis la comptabilité (0 si aucune écriture N-1). Cliquez une rubrique pour déplier le détail par compte.
       </p>
     </div>
   );
