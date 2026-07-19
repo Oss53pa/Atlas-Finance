@@ -52,8 +52,8 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5178,
-    strictPort: true,
+    port: Number(process.env.PORT) || 5178,
+    strictPort: false,
     host: true,
     watch: {
       usePolling: false,

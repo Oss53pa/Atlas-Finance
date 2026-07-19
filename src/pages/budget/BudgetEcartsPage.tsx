@@ -15,6 +15,63 @@ import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search } from 'lucide-react'
 
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
+// Libellés SYSCOHADA des rubriques (préfixe 2 chiffres) — charges & produits.
+const RUB_LABELS: Record<string, string> = {
+  '60': 'Achats et variations de stocks', '61': 'Transports', '62': 'Services extérieurs A',
+  '63': 'Services extérieurs B', '64': 'Impôts et taxes', '65': 'Autres charges',
+  '66': 'Charges de personnel', '67': 'Frais financiers', '68': 'Dotations aux amort. & provisions',
+  '69': 'Dotations HAO / Impôts sur le résultat',
+  '70': 'Ventes', '71': 'Subventions d’exploitation', '72': 'Production immobilisée',
+  '73': 'Variations de stocks de produits', '75': 'Autres produits', '77': 'Revenus financiers',
+  '78': 'Transferts de charges', '79': 'Reprises de provisions',
+};
+const rubLabel = (code: string) => RUB_LABELS[code] || '';
+
+// Vrai graphique waterfall : Budget (départ) → écarts par rubrique (montées orange /
+// descentes rouges) → Réalisé (arrivée). Reconcilie car Budget + Σécarts = Réalisé.
+const WF_COLOR = { total: 'var(--color-primary)', inc: 'var(--color-secondary)', dec: 'var(--color-error)' } as const;
+
+const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: string; ecart: number }[] }> = ({ budget, realise, steps }) => {
+  type Bar = { label: string; lo: number; hi: number; run: number; delta: number; kind: 'total' | 'inc' | 'dec' };
+  const bars: Bar[] = [];
+  bars.push({ label: 'Budget', lo: 0, hi: budget, run: budget, delta: budget, kind: 'total' });
+  let cum = budget;
+  for (const s of steps) {
+    const after = cum + s.ecart;
+    bars.push({ label: s.code, lo: Math.min(cum, after), hi: Math.max(cum, after), run: after, delta: s.ecart, kind: s.ecart >= 0 ? 'inc' : 'dec' });
+    cum = after;
+  }
+  bars.push({ label: 'Réalisé', lo: 0, hi: realise, run: realise, delta: realise, kind: 'total' });
+
+  const W = 920, H = 300, padL = 10, padR = 10, padT = 16, padB = 42;
+  const yMax = Math.max(1, ...bars.map(b => b.hi));
+  const yMin = Math.min(0, ...bars.map(b => b.lo));
+  const plotH = H - padT - padB, plotW = W - padL - padR, n = bars.length, slot = plotW / n;
+  const bw = Math.min(48, slot * 0.6);
+  const y = (v: number) => padT + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
+  const cx = (i: number) => padL + slot * i + slot / 2;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Cascade budget vers réalisé">
+      {/* lignes de repère */}
+      {[0.25, 0.5, 0.75, 1].map((t) => { const v = yMin + (yMax - yMin) * t; return <line key={t} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="var(--color-border)" strokeOpacity="0.5" strokeDasharray="2 3" />; })}
+      <line x1={padL} x2={W - padR} y1={y(0)} y2={y(0)} stroke="var(--color-border)" />
+      {bars.map((b, i) => {
+        const yh = y(b.hi), h = Math.max(2, y(b.lo) - yh), x = cx(i) - bw / 2;
+        return (
+          <g key={i}>
+            {i > 0 && <line x1={cx(i - 1) + bw / 2} x2={cx(i) - bw / 2} y1={y(bars[i - 1].run)} y2={y(bars[i - 1].run)} stroke="var(--color-text-tertiary)" strokeOpacity="0.4" strokeDasharray="3 3" />}
+            <rect x={x} y={yh} width={bw} height={h} rx={2} fill={WF_COLOR[b.kind]} opacity={0.92}>
+              <title>{b.label} · {b.delta >= 0 ? '+' : ''}{formatCurrency(b.delta)}</title>
+            </rect>
+            <text x={cx(i)} y={H - padB + 14} textAnchor="middle" className="fill-gray-500 text-[9px]">{b.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
+
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
   const { format: fmtAccount } = useAccountNames();
@@ -61,6 +118,17 @@ const BudgetEcartsPage: React.FC = () => {
     const realise = rows.reduce((s, r) => s + r.realise, 0);
     return { budget, realise, ecart: realise - budget };
   }, [rows]);
+
+  // Étapes du waterfall : top rubriques par |écart| + « Autres » pour reconcilier
+  // exactement Budget + Σécarts = Réalisé.
+  const wfSteps = useMemo(() => {
+    const nz = parNature.filter(n => n.ecart !== 0);
+    const top = nz.slice(0, 9);
+    const restE = nz.slice(9).reduce((s, n) => s + n.ecart, 0);
+    const steps = top.map(n => ({ code: n.code, ecart: n.ecart }));
+    if (Math.abs(restE) > 0.5) steps.push({ code: 'Autres', ecart: restE });
+    return steps;
+  }, [parNature]);
 
   // Alertes de dépassement (substitut @atlas/insights) : charges en sur-réalisation
   // (>10% du budget) = défavorable ; produits en sous-réalisation = défavorable.
@@ -173,47 +241,72 @@ const BudgetEcartsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Waterfall simplifié budget → réalisé */}
+      {/* Waterfall : cascade Budget → écarts → Réalisé */}
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-        <h2 className="font-semibold text-[var(--color-primary)] mb-4">Du budget au réalisé</h2>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm"><span className="text-gray-600">Budget total</span><span className="font-semibold">{formatCurrency(totals.budget)}</span></div>
-          {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q)).slice(0, 10).map(n => (
-            <React.Fragment key={n.code}>
-              <div className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded px-1" onClick={() => toggleExpand(n.code)} title="Voir le détail par compte">
-                <span className="text-xs font-mono text-gray-500 w-8">{expanded.has(n.code) ? '▾' : '▸'} {n.code}</span>
-                <div className="flex-1 h-5 bg-gray-100 rounded relative overflow-hidden">
-                  <div className="absolute top-0 bottom-0" style={{
-                    left: n.ecart >= 0 ? '50%' : undefined, right: n.ecart < 0 ? '50%' : undefined,
-                    width: `${Math.min(50, (Math.abs(n.ecart) / (totals.budget || 1)) * 100 * 3)}%`,
-                    background: n.ecart >= 0 ? 'rgba(21,128,61,.6)' : 'rgba(192,50,43,.6)',
-                  }} />
-                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300" />
-                </div>
-                <span className={`text-xs font-medium w-28 text-right ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</span>
-              </div>
-              {expanded.has(n.code) && (
-                <div className="ml-8 mb-1 border-l-2 border-gray-100 pl-3">
-                  {detailForNature(n.code).map(d => (
-                    <div key={d.account_code} className="flex items-center justify-between text-[11px] py-0.5">
-                      <span className="font-mono text-gray-500">{fmtAccount(d.account_code)}</span>
-                      <span className="text-gray-400">B {formatCurrency(d.budget)} · R {formatCurrency(d.realise)}</span>
-                      <span className={`font-medium w-24 text-right ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
-          <div className="flex items-center justify-between text-sm border-t border-[var(--color-border)] pt-2 mt-2">
-            <span className="text-gray-700 font-semibold">Réalisé total</span>
-            <span className="font-bold">{formatCurrency(totals.realise)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Écart global</span>
-            <span className={`font-bold ${totals.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</span>
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+          <h2 className="font-semibold text-[var(--color-primary)]">Cascade budget → réalisé</h2>
+          <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.total }} /> Total</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.inc }} /> Augmentation</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.dec }} /> Diminution</span>
           </div>
         </div>
+        <Waterfall budget={totals.budget} realise={totals.realise} steps={wfSteps} />
+        <p className="text-[10px] text-gray-400 mt-1">Départ = budget total ; chaque barre = écart d'une rubrique (réalisé − budget) ; arrivée = réalisé total.</p>
+      </div>
+
+      {/* Du budget au réalisé — table Budget / Réalisé / Écart, dépliable par compte */}
+      <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
+        <div className="px-4 py-3 border-b border-[var(--color-border)]">
+          <h2 className="font-semibold text-[var(--color-primary)]">Du budget au réalisé <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic sur une rubrique pour déplier les comptes</span></h2>
+        </div>
+        <table className="w-full text-sm min-w-[680px]">
+          <thead className="bg-gray-50 border-b border-[var(--color-border)]">
+            <tr>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {parNature.filter(n => n.ecart !== 0).filter(n => !q || n.code.toLowerCase().includes(q) || rubLabel(n.code).toLowerCase().includes(q)).map(n => {
+              const isOpen = expanded.has(n.code);
+              return (
+                <React.Fragment key={n.code}>
+                  <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(n.code)}>
+                    <td className="px-4 py-2.5">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="text-gray-400 w-3 inline-block">{isOpen ? '▾' : '▸'}</span>
+                        <span className="font-mono font-bold text-[var(--color-primary)]">{n.code}</span>
+                        <span className="text-gray-700">{rubLabel(n.code)}</span>
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-500">{formatCurrency(n.budget)}</td>
+                    <td className="px-4 py-2.5 text-right font-medium text-gray-900">{formatCurrency(n.realise)}</td>
+                    <td className={`px-4 py-2.5 text-right font-medium ${n.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{n.ecart >= 0 ? '+' : ''}{formatCurrency(n.ecart)}</td>
+                  </tr>
+                  {isOpen && detailForNature(n.code).map(d => (
+                    <tr key={d.account_code} className="bg-gray-50/40 text-xs">
+                      <td className="px-4 py-1.5 pl-11 text-gray-600">{fmtAccount(d.account_code)}</td>
+                      <td className="px-4 py-1.5 text-right text-gray-500">{formatCurrency(d.budget)}</td>
+                      <td className="px-4 py-1.5 text-right text-gray-700">{formatCurrency(d.realise)}</td>
+                      <td className={`px-4 py-1.5 text-right font-medium ${d.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{d.ecart >= 0 ? '+' : ''}{formatCurrency(d.ecart)}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
+              <td className="px-4 py-3">Total</td>
+              <td className="px-4 py-3 text-right">{formatCurrency(totals.budget)}</td>
+              <td className="px-4 py-3 text-right">{formatCurrency(totals.realise)}</td>
+              <td className={`px-4 py-3 text-right ${totals.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
 
       {/* Heatmap mois × nature */}
@@ -222,14 +315,14 @@ const BudgetEcartsPage: React.FC = () => {
         <table className="text-xs border-collapse">
           <thead>
             <tr>
-              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white">Nature</th>
+              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white min-w-[190px]">Nature</th>
               {MOIS.map(m => <th key={m} className="px-2 py-1 text-center text-gray-500 w-14">{m}</th>)}
             </tr>
           </thead>
           <tbody>
-            {heatmap.grid.filter(g => !q || g.code.toLowerCase().includes(q)).map(g => (
+            {heatmap.grid.filter(g => !q || g.code.toLowerCase().includes(q) || rubLabel(g.code).toLowerCase().includes(q)).map(g => (
               <tr key={g.code}>
-                <td className="px-2 py-1 font-mono text-gray-600 sticky left-0 bg-white">{g.code}</td>
+                <td className="px-2 py-1 text-gray-600 sticky left-0 bg-white min-w-[190px]"><span className="font-mono font-bold text-[var(--color-primary)]">{g.code}</span> <span className="text-gray-500">{rubLabel(g.code)}</span></td>
                 {g.cells.map((v, i) => (
                   <td key={i} className="px-1 py-1 text-center" style={{ background: cellColor(v) }} title={`${MOIS[i]} : ${formatCurrency(v)}`}>
                     {v !== 0 ? Math.round(v / 1000).toLocaleString('fr-FR') : ''}
