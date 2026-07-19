@@ -9,7 +9,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
-import { computePnLBudget, type PnLLine } from '../../features/budget/services/pnlBudgetService';
+import { computePnLBudget, type PnLLine, type N1Source } from '../../features/budget/services/pnlBudgetService';
 import { useAccountNames } from '../../hooks/useAccountNames';
 import { Scale, Loader2, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 
@@ -18,6 +18,7 @@ const BudgetPnLPage: React.FC = () => {
   const { label: acctLabel } = useAccountNames();
   const [annee, setAnnee] = useState('');
   const [lines, setLines] = useState<PnLLine[]>([]);
+  const [n1Source, setN1Source] = useState<N1Source>('none');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<Set<string>>(new Set());
@@ -31,7 +32,7 @@ const BudgetPnLPage: React.FC = () => {
         const a = await getDefaultAnnee(adapter);
         const res = await computePnLBudget(adapter, a);
         if (cancelled) return;
-        setAnnee(a); setLines(res.lines);
+        setAnnee(a); setLines(res.lines); setN1Source(res.n1Source);
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Erreur de chargement');
       } finally {
@@ -87,7 +88,12 @@ const BudgetPnLPage: React.FC = () => {
                 <th className="px-4 py-3 text-right">Budget</th>
                 <th className="px-4 py-3 text-right">Réalisé</th>
                 <th className="px-4 py-3 text-right">Écart</th>
-                <th className="px-4 py-3 text-right">N-1</th>
+                <th className="px-4 py-3 text-right">
+                  N-1
+                  <span className={`ml-1 inline-block px-1.5 py-0.5 rounded-full text-[9px] font-medium align-middle ${n1Source === 'import' ? 'bg-[var(--color-warning-light)] text-[var(--color-secondary)]' : n1Source === 'gl' ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]' : 'bg-gray-100 text-gray-400'}`}>
+                    {n1Source === 'import' ? 'importé' : n1Source === 'gl' ? 'réalisé N-1' : 'n/a'}
+                  </span>
+                </th>
                 <th className="px-4 py-3 text-right">Δ N-1</th>
               </tr>
             </thead>
@@ -136,7 +142,7 @@ const BudgetPnLPage: React.FC = () => {
         </div>
       )}
       <p className="text-xs text-[var(--color-text-tertiary)]">
-        Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur. <strong>N-1</strong> = réalisé de l'exercice précédent depuis la comptabilité (0 si aucune écriture N-1). Cliquez une rubrique pour déplier le détail par compte.
+        Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur. <strong>N-1</strong> : priorité à un N-1 <em>importé</em> (version budgétaire de l'exercice {annee ? Number(annee) - 1 : 'N-1'} — via l'écran Import), sinon repli sur le <em>réalisé N-1</em> du grand livre (0 si aucune écriture N-1). Cliquez une rubrique pour déplier le détail par compte.
       </p>
     </div>
   );

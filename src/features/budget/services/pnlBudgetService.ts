@@ -45,9 +45,12 @@ const sumByPrefixes = (byAccount: Map<string, number>, prefixes: string[]): numb
   return s;
 };
 
+export type N1Source = 'import' | 'gl' | 'none';
 export interface PnLBudgetResult {
   annee: string;
   lines: PnLLine[];
+  /** Provenance de la colonne N-1 : 'import' (version budgétaire N-1), 'gl' (réalisé N-1), 'none'. */
+  n1Source: N1Source;
 }
 
 /**
@@ -64,10 +67,18 @@ export async function computePnLBudget(adapter: DataAdapter, annee: string): Pro
 
   const realiseByAccount = new Map<string, number>();
   for (const r of actual) realiseByAccount.set(r.account_code, (realiseByAccount.get(r.account_code) || 0) + r.montant_realise);
-  const n1ByAccount = new Map<string, number>();
-  for (const r of actualN1) n1ByAccount.set(r.account_code, (n1ByAccount.get(r.account_code) || 0) + r.montant_realise);
   const budgetByAccount = new Map<string, number>();
   for (const b of bva) if (b.annee === annee && b.budget_type === 'exploitation') budgetByAccount.set(b.account_code, (budgetByAccount.get(b.account_code) || 0) + b.budget);
+
+  // N-1 : priorité à un N-1 IMPORTÉ (version budgétaire active de l'exercice N-1),
+  // sinon repli sur le RÉALISÉ N-1 du grand livre. Toggle global (source homogène).
+  const annN1 = String(Number(annee) - 1);
+  const n1ImportByAccount = new Map<string, number>();
+  for (const b of bva) if (b.annee === annN1 && b.budget_type === 'exploitation') n1ImportByAccount.set(b.account_code, (n1ImportByAccount.get(b.account_code) || 0) + b.budget);
+  const n1GlByAccount = new Map<string, number>();
+  for (const r of actualN1) n1GlByAccount.set(r.account_code, (n1GlByAccount.get(r.account_code) || 0) + r.montant_realise);
+  const n1Source: N1Source = n1ImportByAccount.size > 0 ? 'import' : (n1GlByAccount.size > 0 ? 'gl' : 'none');
+  const n1ByAccount = n1Source === 'import' ? n1ImportByAccount : n1GlByAccount;
 
   // valeurs signées par rubrique
   const val = (r: RubricDef) => ({
@@ -119,7 +130,7 @@ export async function computePnLBudget(adapter: DataAdapter, annee: string): Pro
     L('charges_fin', RUBRICS[6].label, 'rubric', R.charges_fin),
     L('resultat', 'Résultat de gestion', 'total', resultat),
   ];
-  return { annee, lines };
+  return { annee, lines, n1Source };
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
