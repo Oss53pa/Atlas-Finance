@@ -17,6 +17,7 @@ import React from 'react';
 import { Filter, Printer } from 'lucide-react';
 import PrintButton from './PrintButton';
 import { collectTablesHtml, getReportTitle } from '../../utils/printReport';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface PageHeaderActionsProps {
   /** Ouvre/replie le panneau de filtres de l'écran. Omis ⇒ pas de bouton filtre. */
@@ -50,6 +51,7 @@ export const PageHeaderActions: React.FC<PageHeaderActionsProps> = ({
   children,
   className = '',
 }) => {
+  const { t } = useLanguage();
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {onToggleFilters && (
@@ -57,8 +59,12 @@ export const PageHeaderActions: React.FC<PageHeaderActionsProps> = ({
           type="button"
           onClick={onToggleFilters}
           aria-pressed={filtersOpen}
-          aria-label={`Filtres${activeFilters > 0 ? ` (${activeFilters} actifs)` : ''}`}
-          title="Filtres"
+          aria-label={
+            activeFilters > 0
+              ? t('pageActions.filtersWithCount', { count: String(activeFilters) })
+              : t('pageActions.filters')
+          }
+          title={t('pageActions.filters')}
           className={
             btnCls +
             (filtersOpen
@@ -79,8 +85,8 @@ export const PageHeaderActions: React.FC<PageHeaderActionsProps> = ({
         <button
           type="button"
           onClick={onPrint}
-          aria-label="Imprimer"
-          title="Imprimer"
+          aria-label={t('pageActions.print')}
+          title={t('pageActions.print')}
           className={btnCls}
         >
           <Printer className="w-4 h-4" />

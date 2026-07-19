@@ -85,7 +85,7 @@ function DataTable<T extends Record<string, unknown>>({
   selectable = false,
   onSelectionChange,
   actions,
-  emptyMessage = 'Aucune donnée disponible',
+  emptyMessage,
   className = '',
 }: DataTableProps<T>) {
   const { t } = useLanguage();
@@ -249,7 +249,7 @@ function DataTable<T extends Record<string, unknown>>({
             options={column.filterOptions || []}
             value={(filters[column.key as string] as string) || ''}
             onChange={(value) => handleFilterChange(column.key as string, value)}
-            placeholder="Sélectionner"
+            placeholder={t('dataTable.select')}
             clearable
             className="w-full"
           />
@@ -269,7 +269,7 @@ function DataTable<T extends Record<string, unknown>>({
             type="number"
             value={(filters[column.key as string] as string) || ''}
             onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
-            placeholder="Valeur"
+            placeholder={t('dataTable.value')}
             className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
           />
         );
@@ -279,7 +279,7 @@ function DataTable<T extends Record<string, unknown>>({
             type="text"
             value={(filters[column.key as string] as string) || ''}
             onChange={(e) => handleFilterChange(column.key as string, e.target.value)}
-            placeholder="Filtrer..."
+            placeholder={t('dataTable.filterPlaceholder')}
             className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
           />
         );
@@ -298,7 +298,7 @@ function DataTable<T extends Record<string, unknown>>({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="Rechercher..."
+                placeholder={t('dataTable.searchPlaceholder')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-700" />
@@ -311,7 +311,7 @@ function DataTable<T extends Record<string, unknown>>({
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-3 py-2 rounded-lg border ${showFilters ? 'bg-blue-50 border-blue-300 text-blue-600' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                aria-label="Filtres par colonne"
+                aria-label={t('dataTable.columnFilters')}
               >
                 <Filter className="w-4 h-4" />
               </button>
@@ -321,7 +321,7 @@ function DataTable<T extends Record<string, unknown>>({
               <button
                 onClick={onPrint}
                 className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 print-hide"
-                title={t('common.print')} aria-label="Imprimer">
+                title={t('common.print')} aria-label={t('dataTable.print')}>
                 <Printer className="w-4 h-4" />
               </button>
             )}
@@ -333,7 +333,7 @@ function DataTable<T extends Record<string, unknown>>({
               <button
                 onClick={onRefresh}
                 disabled={loading}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50" aria-label="Actualiser">
+                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50" aria-label={t('dataTable.refresh')}>
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </button>
             )}
@@ -341,7 +341,7 @@ function DataTable<T extends Record<string, unknown>>({
             {exportable && onExport && (
               <button
                 onClick={onExport}
-                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" aria-label="Télécharger">
+                className="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50" aria-label={t('dataTable.download')}>
                 <Download className="w-4 h-4" />
               </button>
             )}
@@ -371,7 +371,7 @@ function DataTable<T extends Record<string, unknown>>({
                 }}
                 className="text-sm text-gray-600 hover:text-gray-800"
               >
-                Réinitialiser les filtres
+                {t('dataTable.resetFilters')}
               </button>
             </div>
           </div>
@@ -424,7 +424,7 @@ function DataTable<T extends Record<string, unknown>>({
               ))}
               {actions && (
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider" style={{ width: '100px' }}>
-                  Actions
+                  {t('dataTable.actions')}
                 </th>
               )}
             </tr>
@@ -447,7 +447,7 @@ function DataTable<T extends Record<string, unknown>>({
                   colSpan={columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}
                   className="px-4 py-8 text-center text-gray-700"
                 >
-                  {emptyMessage}
+                  {emptyMessage ?? t('dataTable.emptyMessage')}
                 </td>
               </tr>
             ) : (
@@ -506,7 +506,7 @@ function DataTable<T extends Record<string, unknown>>({
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-700">
-              Afficher
+              {t('dataTable.show')}
             </span>
             <select
               value={localPageSize}
@@ -519,7 +519,7 @@ function DataTable<T extends Record<string, unknown>>({
               <option value="100">100</option>
             </select>
             <span className="text-sm text-gray-700">
-              entrées
+              {t('dataTable.entries')}
             </span>
           </div>
 
@@ -540,7 +540,7 @@ function DataTable<T extends Record<string, unknown>>({
             </button>
 
             <span className="px-4 py-1 text-sm text-gray-700">
-              Page {localCurrentPage} sur {totalPages}
+              {t('dataTable.pageOf', { current: String(localCurrentPage), total: String(totalPages) })}
             </span>
 
             <button
@@ -560,9 +560,11 @@ function DataTable<T extends Record<string, unknown>>({
           </div>
 
           <div className="text-sm text-gray-700">
-            {`${(localCurrentPage - 1) * localPageSize + 1} - ${
-              Math.min(localCurrentPage * localPageSize, totalCount || data.length)
-            } sur ${totalCount || data.length} entrées`}
+            {t('dataTable.rangeSummary', {
+              from: String((localCurrentPage - 1) * localPageSize + 1),
+              to: String(Math.min(localCurrentPage * localPageSize, totalCount || data.length)),
+              total: String(totalCount || data.length),
+            })}
           </div>
         </div>
       </div>

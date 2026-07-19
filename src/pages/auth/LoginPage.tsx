@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Sparkles, Lock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function getRoleRedirectPath(_role: string): string {
   return '/home';
@@ -11,6 +12,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, user: authUser, isAuthenticated } = useAuth();
+  const { t } = useLanguage();
   const { selectedRole, targetPath } = (location.state as { selectedRole?: string; targetPath?: string } | null) || { targetPath: '/dashboard' };
 
   React.useEffect(() => {
@@ -28,9 +30,9 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setErrors({});
     const newErrors: Record<string, string> = {};
-    if (!formData.email) newErrors.email = 'L\'email est requis';
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Format d\'email invalide';
-    if (!formData.password) newErrors.password = 'Le mot de passe est requis';
+    if (!formData.email) newErrors.email = t('login.errorEmailRequired');
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('login.errorEmailInvalid');
+    if (!formData.password) newErrors.password = t('login.errorPasswordRequired');
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
 
     setIsLoggingIn(true);
@@ -41,7 +43,7 @@ const LoginPage: React.FC = () => {
         navigate(getRoleRedirectPath(role), { replace: true });
       }, 400);
     } catch (error: unknown) {
-      setErrors({ password: error instanceof Error ? error.message : 'Identifiants incorrects.' });
+      setErrors({ password: error instanceof Error ? error.message : t('login.errorInvalidCredentials') });
       setIsLoggingIn(false);
     }
   };
@@ -66,15 +68,15 @@ const LoginPage: React.FC = () => {
       await login(creds.email, creds.password);
       setTimeout(() => navigate(getRoleRedirectPath(role), { replace: true }), 400);
     } catch (error: unknown) {
-      setErrors({ password: error instanceof Error ? error.message : 'Identifiants incorrects.' });
+      setErrors({ password: error instanceof Error ? error.message : t('login.errorInvalidCredentials') });
       setIsLoggingIn(false);
     }
   };
 
   const TRUST_SIGNALS = [
-    { icon: ShieldCheck, label: 'Chiffrement AES-256 · Conformité OHADA' },
-    { icon: Sparkles,    label: 'IA Proph3t · Audit Benford & analyse prédictive' },
-    { icon: Lock,        label: 'Piste d\'audit SHA-256 inaltérable' },
+    { icon: ShieldCheck, label: t('login.trustEncryption') },
+    { icon: Sparkles,    label: t('login.trustAi') },
+    { icon: Lock,        label: t('login.trustAudit') },
   ];
 
   return (
@@ -132,7 +134,7 @@ const LoginPage: React.FC = () => {
             className="text-xs"
             style={{ color: 'rgba(247,244,237,0.50)', letterSpacing: '0.06em', textTransform: 'uppercase' }}
           >
-            ← Accueil
+            ← {t('login.home')}
           </Link>
         </header>
 
@@ -143,7 +145,7 @@ const LoginPage: React.FC = () => {
             style={{ color: 'rgba(232,154,46,0.80)', marginBottom: '1.25rem' }}
           >
             <span className="gold-dot" style={{ width: 5, height: 5, marginRight: 8 }} />
-            Plateforme institutionnelle · OHADA · SYSCOHADA
+            {t('login.platformEyebrow')}
           </div>
 
           <h1
@@ -156,13 +158,13 @@ const LoginPage: React.FC = () => {
               fontWeight: 700,
             }}
           >
-            La comptabilité<br />
+            {t('login.heroTitleLine1')}<br />
             <span className="serif-italic" style={{
               background: 'linear-gradient(135deg, #F2A93B 0%, #E89A2E 60%, #C77E2C 100%)',
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
               fontWeight: 400,
             }}>
-              à hauteur d'expert.
+              {t('login.heroTitleLine2')}
             </span>
           </h1>
 
@@ -175,7 +177,7 @@ const LoginPage: React.FC = () => {
               letterSpacing: '-0.005em',
             }}
           >
-            Pilotage intégral de votre comptabilité, conformité OHADA · SYSCOHADA et IA <span className="brand-script" style={{ color: '#E89A2E', fontSize: '1.15em' }}>Proph3t</span> intégrée — pour les cabinets et directions financières exigeants.
+            {t('login.heroDescBefore')} <span className="brand-script" style={{ color: '#E89A2E', fontSize: '1.15em' }}>Proph3t</span> {t('login.heroDescAfter')}
           </p>
         </div>
 
@@ -200,7 +202,7 @@ const LoginPage: React.FC = () => {
           </ul>
           <div className="mt-8 pt-6" style={{ borderTop: '1px solid rgba(232,154,46,0.10)' }}>
             <p style={{ color: 'rgba(247,244,237,0.30)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              © {new Date().getFullYear()} Atlas Studio · 17 pays OHADA
+              © {new Date().getFullYear()} Atlas Studio · {t('login.footerCountries')}
             </p>
           </div>
         </div>
@@ -221,18 +223,18 @@ const LoginPage: React.FC = () => {
         <div style={{ width: '100%', maxWidth: 420 }} className="anim-rise" >
           {/* Header */}
           <header className="mb-10">
-            <div className="eyebrow-gold mb-3">Connexion · Sécurisé</div>
+            <div className="eyebrow-gold mb-3">{t('login.formEyebrow')}</div>
             <h2 className="display-md mb-2" style={{ color: 'var(--color-text-primary)' }}>
-              Bon retour
+              {t('login.welcomeBack')}
             </h2>
             <p className="text-sm" style={{ color: 'var(--color-text-tertiary)', lineHeight: 1.55 }}>
-              Connectez-vous à votre espace <span className="brand-script" style={{ color: 'var(--color-accent-deep)', fontSize: '1.05em' }}>Atlas FnA</span> pour reprendre votre activité.
+              {t('login.formSubtitleBefore')} <span className="brand-script" style={{ color: 'var(--color-accent-deep)', fontSize: '1.05em' }}>Atlas FnA</span> {t('login.formSubtitleAfter')}
             </p>
             {selectedRole && (
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'var(--color-accent-light)', border: '1px solid rgba(35,90,110,0.25)' }}>
                 <ShieldCheck className="w-3.5 h-3.5" style={{ color: 'var(--color-accent-deep)' }} strokeWidth={1.5} />
                 <span className="text-xs font-medium capitalize" style={{ color: 'var(--color-accent-deep)' }}>
-                  Rôle : {selectedRole}
+                  {t('login.role')} : {selectedRole}
                 </span>
               </div>
             )}
@@ -247,13 +249,13 @@ const LoginPage: React.FC = () => {
                 className="block mb-1.5"
                 style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-secondary)', letterSpacing: '-0.005em' }}
               >
-                Adresse email
+                {t('login.emailLabel')}
               </label>
               <input
                 id="login-email"
                 type="email"
                 name="email"
-                placeholder="vous@entreprise.com"
+                placeholder={t('login.emailPlaceholder')}
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
@@ -283,12 +285,12 @@ const LoginPage: React.FC = () => {
                   htmlFor="login-pwd"
                   style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text-secondary)', letterSpacing: '-0.005em' }}
                 >
-                  Mot de passe
+                  {t('login.passwordLabel')}
                 </label>
                 <Link to="/forgot-password" className="text-xs transition-colors" style={{ color: 'var(--color-text-tertiary)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-accent-deep)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}>
-                  Oublié ?
+                  {t('login.forgotPassword')}
                 </Link>
               </div>
               <div className="relative">
@@ -318,7 +320,7 @@ const LoginPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(s => !s)}
-                  aria-label={showPassword ? 'Masquer' : 'Afficher'}
+                  aria-label={showPassword ? t('login.hide') : t('login.show')}
                   className="absolute right-2 top-1/2 transition-colors"
                   style={{ transform: 'translateY(-50%)', padding: 8, color: 'var(--color-text-tertiary)' }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text-primary)'; }}
@@ -356,7 +358,7 @@ const LoginPage: React.FC = () => {
               onMouseEnter={(e) => { if (!isLoggingIn) e.currentTarget.style.background = 'var(--color-primary-hover)'; }}
               onMouseLeave={(e) => { if (!isLoggingIn) e.currentTarget.style.background = 'var(--color-primary)'; }}
             >
-              <span>{isLoggingIn ? 'Connexion en cours…' : 'Se connecter'}</span>
+              <span>{isLoggingIn ? t('login.signingIn') : t('login.signIn')}</span>
               {!isLoggingIn && <ArrowRight className="w-4 h-4" strokeWidth={1.75} />}
             </button>
           </form>
@@ -364,7 +366,7 @@ const LoginPage: React.FC = () => {
           {/* Divider */}
           <div className="my-7 flex items-center gap-3">
             <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
-            <span className="eyebrow" style={{ color: 'var(--color-text-quaternary)', letterSpacing: '0.14em' }}>Première fois</span>
+            <span className="eyebrow" style={{ color: 'var(--color-text-quaternary)', letterSpacing: '0.14em' }}>{t('login.firstTime')}</span>
             <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
           </div>
 
@@ -388,14 +390,14 @@ const LoginPage: React.FC = () => {
               letterSpacing: '-0.005em',
             }}
           >
-            Créer un compte Atlas Studio
+            {t('login.createAccount')}
             <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.5} style={{ color: 'var(--color-text-tertiary)' }} />
           </button>
 
           {/* Dev quick access */}
           {import.meta.env.DEV && (
             <div className="mt-6 pt-6" style={{ borderTop: '1px dashed var(--color-border)' }}>
-              <p className="eyebrow mb-3" style={{ color: 'var(--color-text-quaternary)' }}>Accès rapide · Dev</p>
+              <p className="eyebrow mb-3" style={{ color: 'var(--color-text-quaternary)' }}>{t('login.devQuickAccess')}</p>
               <div className="grid grid-cols-3 gap-2">
                 {(['admin', 'manager', 'comptable'] as const).map(role => (
                   <button

@@ -163,91 +163,91 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const primaryMenuItems: MenuItem[] = useMemo(() => [
     {
       id: 'home',
-      label: 'Accueil',
+      label: t('nav.home'),
       icon: <Home className="w-5 h-5" />,
       path: '/home',
-      ariaLabel: "Retour à la page d'accueil"
+      ariaLabel: t('nav.homeAria')
     },
     {
       id: 'workspace',
-      label: 'Mon Espace',
+      label: t('nav.myWorkspace'),
       icon: <Layers className="w-5 h-5" />,
       path: user?.role === 'admin' ? '/workspace/admin'
            : user?.role === 'manager' ? '/workspace/manager'
            : '/workspace/comptable',
-      ariaLabel: 'Accéder à mon espace de travail'
+      ariaLabel: t('nav.myWorkspaceAria')
     },
     {
       id: 'dashboard',
-      label: 'Tableau de Bord',
+      label: t('nav.dashboard'),
       icon: <LayoutDashboard className="w-5 h-5" />,
       path: '/dashboard',
-      ariaLabel: 'Accéder au tableau de bord principal'
+      ariaLabel: t('nav.dashboardAria')
     },
     {
       id: 'accounting',
       label: t('accounting.title'),
       icon: <Calculator className="w-5 h-5" />,
       badge: badgeCounts.draftEntries > 0 ? badgeCounts.draftEntries : undefined,
-      ariaLabel: 'Accéder à la comptabilité générale'
+      ariaLabel: t('nav.accountingAria')
     },
     {
       id: 'tiers',
-      label: 'Gestion des Tiers',
+      label: t('nav.thirdParties'),
       icon: <Users className="w-5 h-5" />,
-      ariaLabel: 'Gérer les clients, fournisseurs et tiers'
+      ariaLabel: t('nav.thirdPartiesAria')
     },
     {
       id: 'treasury',
       label: t('navigation.treasury'),
       icon: <PiggyBank className="w-5 h-5" />,
-      ariaLabel: 'Gérer la trésorerie et les flux financiers'
+      ariaLabel: t('nav.treasuryAria')
     },
     {
       id: 'control',
-      label: 'Contrôle de Gestion',
+      label: t('nav.managementControl'),
       icon: <Target className="w-5 h-5" />,
-      ariaLabel: 'Contrôle de gestion et analyse'
+      ariaLabel: t('nav.managementControlAria')
     },
     {
       id: 'assets',
       label: t('navigation.assets'),
       icon: <Package className="w-5 h-5" />,
-      ariaLabel: 'Gérer les immobilisations'
+      ariaLabel: t('nav.assetsAria')
     },
     {
       id: 'stock',
-      label: 'Stocks',
+      label: t('nav.stock'),
       icon: <Boxes className="w-5 h-5" />,
-      ariaLabel: 'Gestion des stocks et magasins'
+      ariaLabel: t('nav.stockAria')
     },
     {
       id: 'closures',
-      label: 'Clôtures',
+      label: t('nav.closings'),
       icon: <Lock className="w-5 h-5" />,
-      ariaLabel: 'Gérer les clôtures comptables'
+      ariaLabel: t('nav.closingsAria')
     },
     {
       id: 'reporting',
-      label: 'États & Reporting',
+      label: t('nav.reporting'),
       icon: <FileBarChart className="w-5 h-5" />,
-      ariaLabel: 'Accéder aux états et rapports'
+      ariaLabel: t('nav.reportingAria')
     },
     {
       id: 'collaboration',
-      label: 'Espace Collaboratif',
+      label: t('nav.collaborativeSpace'),
       icon: <MessageSquare className="w-5 h-5" />,
       badge: collabUnread.total > 0 ? collabUnread.total : undefined,
-      ariaLabel: "Discussions, tâches et activité de l'équipe"
+      ariaLabel: t('nav.collaborativeSpaceAria')
     },
     {
       // La bannette (parapheur « à valider ») vit dans les ESPACES DE TRAVAIL
       // (workspaces Manager/Admin/Comptable), pas dans le logiciel principal.
       // Ce module principal ne garde que la console de gouvernance (lecture CAC).
       id: 'validation',
-      label: 'Gouvernance',
+      label: t('nav.governance'),
       icon: <Shield className="w-5 h-5" />,
-      ariaLabel: 'États de gouvernance (console lecture)'
+      ariaLabel: t('nav.governanceAria')
     }
     // Gating plan désactivé : aucune colonne `plan` n'existe en base (tenants/
     // societes) → `tenant.plan` est toujours undefined → tout le monde retombait
@@ -268,103 +268,103 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   // Sous-menus restructurés et enrichis
   const secondaryMenuItems: Record<string, MenuItem[]> = useMemo(() => ({
     dashboard: [
-      { id: 'global-view', label: 'Vue Globale', path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
-      { id: 'executive-view', label: 'Vue Executive', path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'kpis', label: 'KPIs Temps Réel', path: '/dashboard/kpis', icon: <Activity className="w-4 h-4" /> },
-      { id: 'alerts', label: 'Alertes', path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: badgeCounts.alerts > 0 ? badgeCounts.alerts : undefined },
-      { id: 'ai-insights', label: 'IA Insights', path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> },
-      { id: 'workflows', label: 'Workflows', path: '/dashboard/workflows', icon: <Workflow className="w-4 h-4" /> }
+      { id: 'global-view', label: t('nav.globalView'), path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
+      { id: 'executive-view', label: t('nav.executiveView'), path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'kpis', label: t('nav.realtimeKpis'), path: '/dashboard/kpis', icon: <Activity className="w-4 h-4" /> },
+      { id: 'alerts', label: t('nav.alerts'), path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: badgeCounts.alerts > 0 ? badgeCounts.alerts : undefined },
+      { id: 'ai-insights', label: t('nav.aiInsights'), path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> },
+      { id: 'workflows', label: t('nav.workflows'), path: '/dashboard/workflows', icon: <Workflow className="w-4 h-4" /> }
     ],
     accounting: [
-      { id: 'entries', label: 'Écritures & Saisie', path: '/accounting/entries', icon: <FileText className="w-4 h-4" />, badge: badgeCounts.draftEntries > 0 ? badgeCounts.draftEntries : undefined },
+      { id: 'entries', label: t('nav.entriesAndInput'), path: '/accounting/entries', icon: <FileText className="w-4 h-4" />, badge: badgeCounts.draftEntries > 0 ? badgeCounts.draftEntries : undefined },
       { id: 'journals', label: t('navigation.journals'), path: '/accounting/journals', icon: <BookOpen className="w-4 h-4" /> },
-      { id: 'general-ledger', label: 'Grand Livre', path: '/accounting/general-ledger', icon: <Database className="w-4 h-4" /> },
+      { id: 'general-ledger', label: t('nav.generalLedger'), path: '/accounting/general-ledger', icon: <Database className="w-4 h-4" /> },
       { id: 'lettrage', label: t('thirdParty.reconciliation'), path: '/accounting/lettrage', icon: <Link className="w-4 h-4" /> },
       { id: 'balance', label: t('accounting.balance'), path: '/accounting/balance', icon: <CheckCircle className="w-4 h-4" /> },
-      { id: 'chart-accounts', label: 'Plan Comptable', path: '/accounting/chart-of-accounts', icon: <FolderOpen className="w-4 h-4" /> },
-      { id: 'ocr-scanning', label: 'OCR Factures', path: '/accounting/ocr', icon: <ScanLine className="w-4 h-4" /> },
-      { id: 'electronic-signature', label: 'Signature Électronique', path: '/accounting/signature', icon: <Signature className="w-4 h-4" /> }
+      { id: 'chart-accounts', label: t('nav.chartOfAccounts'), path: '/accounting/chart-of-accounts', icon: <FolderOpen className="w-4 h-4" /> },
+      { id: 'ocr-scanning', label: t('nav.ocrInvoices'), path: '/accounting/ocr', icon: <ScanLine className="w-4 h-4" /> },
+      { id: 'electronic-signature', label: t('nav.electronicSignature'), path: '/accounting/signature', icon: <Signature className="w-4 h-4" /> }
     ],
     tiers: [
       { id: 'crm-clients', label: t('navigation.clients'), path: '/tiers/clients', icon: <UserCheck className="w-4 h-4" /> },
       { id: 'suppliers', label: t('navigation.suppliers'), path: '/tiers/fournisseurs', icon: <Briefcase className="w-4 h-4" /> },
-      { id: 'personnel', label: 'Personnel', path: '/tiers/personnel', icon: <Users className="w-4 h-4" /> },
-      { id: 'autres-tiers', label: 'Autres tiers', path: '/tiers/autres', icon: <UserCheck className="w-4 h-4" /> },
+      { id: 'personnel', label: t('nav.personnel'), path: '/tiers/personnel', icon: <Users className="w-4 h-4" /> },
+      { id: 'autres-tiers', label: t('nav.otherThirdParties'), path: '/tiers/autres', icon: <UserCheck className="w-4 h-4" /> },
       { id: 'recouvrement', label: t('thirdParty.collection'), path: '/tiers/recouvrement', icon: <Receipt className="w-4 h-4" /> },
-      { id: 'global-lettrage', label: 'Lettrage Global', path: '/tiers/lettrage', icon: <RefreshCw className="w-4 h-4" /> },
-      { id: 'contacts', label: 'Contacts', path: '/tiers/contacts', icon: <Users className="w-4 h-4" /> }
+      { id: 'global-lettrage', label: t('nav.globalMatching'), path: '/tiers/lettrage', icon: <RefreshCw className="w-4 h-4" /> },
+      { id: 'contacts', label: t('nav.contacts'), path: '/tiers/contacts', icon: <Users className="w-4 h-4" /> }
     ],
     treasury: [
-      { id: 'bank-positions', label: 'Positions Bancaires', path: '/treasury/positions', icon: <Building2 className="w-4 h-4" /> },
-      { id: 'forecast', label: 'Prévisions Cash-Flow', path: '/treasury/forecast', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'forecast-lft', label: 'Prévision LFT', path: '/tresorerie/prevision-lft', icon: <Activity className="w-4 h-4" /> },
-      { id: 'reconciliation', label: 'Rapprochements', path: '/treasury/reconciliation', icon: <CheckCircle className="w-4 h-4" /> },
-      { id: 'financing', label: 'Financements', path: '/treasury/financing', icon: <CreditCard className="w-4 h-4" /> },
-      { id: 'fund-calls', label: 'Appels de Fonds', path: '/treasury/fund-calls', icon: <DollarSign className="w-4 h-4" /> },
-      { id: 'multi-currency', label: 'Multi-devises', path: '/treasury/multi-currency', icon: <Globe className="w-4 h-4" /> },
-      { id: 'effets-commerce', label: 'Effets de Commerce', path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
+      { id: 'bank-positions', label: t('nav.bankPositions'), path: '/treasury/positions', icon: <Building2 className="w-4 h-4" /> },
+      { id: 'forecast', label: t('nav.cashFlowForecast'), path: '/treasury/forecast', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'forecast-lft', label: t('nav.lftForecast'), path: '/tresorerie/prevision-lft', icon: <Activity className="w-4 h-4" /> },
+      { id: 'reconciliation', label: t('nav.bankReconciliations'), path: '/treasury/reconciliation', icon: <CheckCircle className="w-4 h-4" /> },
+      { id: 'financing', label: t('nav.financing'), path: '/treasury/financing', icon: <CreditCard className="w-4 h-4" /> },
+      { id: 'fund-calls', label: t('nav.fundCalls'), path: '/treasury/fund-calls', icon: <DollarSign className="w-4 h-4" /> },
+      { id: 'multi-currency', label: t('nav.multiCurrency'), path: '/treasury/multi-currency', icon: <Globe className="w-4 h-4" /> },
+      { id: 'effets-commerce', label: t('nav.commercialPaper'), path: '/treasury/effets-commerce', icon: <FileText className="w-4 h-4" /> }
     ],
     control: [
       // Entrées-groupes : le détail est en onglets dans chaque page (voir BudgetGroupTabs).
-      { id: 'budget-hub', label: 'Hub Budgétaire', path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
-      { id: 'budget-cockpit-pro', label: 'Cockpit analytique', path: '/budget/cockpit-analytique', icon: <Activity className="w-4 h-4" /> },
-      { id: 'budget-elaboration', label: 'Élaboration', path: '/budget/campagne', icon: <Calendar className="w-4 h-4" />,
+      { id: 'budget-hub', label: t('nav.budgetHub'), path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'budget-cockpit-pro', label: t('nav.analyticalCockpit'), path: '/budget/cockpit-analytique', icon: <Activity className="w-4 h-4" /> },
+      { id: 'budget-elaboration', label: t('nav.budgetElaboration'), path: '/budget/campagne', icon: <Calendar className="w-4 h-4" />,
         matchPrefixes: ['/budget/campagne', '/budget/table', '/budget/revenus', '/budget/saisie', '/budget/import', '/budget/versions'] },
-      { id: 'budget-suivi', label: 'Suivi budgétaire', path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" />,
+      { id: 'budget-suivi', label: t('nav.budgetMonitoring'), path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" />,
         matchPrefixes: ['/budget/cockpit', '/budget/exploitation', '/budget/ecarts', '/budget/pnl', '/budget/alertes', '/budget/snapshots'] },
-      { id: 'budget-engagements', label: 'Engagements', path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" />,
+      { id: 'budget-engagements', label: t('nav.commitments'), path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" />,
         matchPrefixes: ['/budget/engagements', '/budget/lettrage'] },
-      { id: 'capex', label: 'Investissement (CAPEX)', path: '/capex', icon: <Package className="w-4 h-4" />,
+      { id: 'capex', label: t('nav.capex'), path: '/capex', icon: <Package className="w-4 h-4" />,
         matchPrefixes: ['/capex'] },
-      { id: 'analytique', label: 'Analytique', path: '/analytique', icon: <PieChart className="w-4 h-4" />,
+      { id: 'analytique', label: t('nav.analytics'), path: '/analytique', icon: <PieChart className="w-4 h-4" />,
         matchPrefixes: ['/analytique', '/budget/ventilation'] },
-      { id: 'variance', label: 'Analyse Financière Avancée', path: '/financial-analysis-advanced', icon: <ChartBar className="w-4 h-4" /> },
+      { id: 'variance', label: t('nav.advancedFinancialAnalysis'), path: '/financial-analysis-advanced', icon: <ChartBar className="w-4 h-4" /> },
     ],
     assets: [
-      { id: 'summary', label: 'Synthèse', path: '/assets/summary', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'registry', label: 'Registre des Biens', path: '/assets/registry', icon: <Package className="w-4 h-4" /> },
-      { id: 'depreciation', label: 'Amortissements', path: '/assets/depreciation', icon: <Clock className="w-4 h-4" /> },
-      { id: 'transactions', label: 'Transactions', path: '/assets/transactions', icon: <ArrowLeftRight className="w-4 h-4" /> },
-      { id: 'categories', label: 'Catégories', path: '/assets/categories', icon: <Tag className="w-4 h-4" /> },
-      { id: 'classes', label: 'Classes', path: '/assets/classes', icon: <Layers className="w-4 h-4" /> },
+      { id: 'summary', label: t('nav.summary'), path: '/assets/summary', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'registry', label: t('nav.assetRegistry'), path: '/assets/registry', icon: <Package className="w-4 h-4" /> },
+      { id: 'depreciation', label: t('nav.depreciation'), path: '/assets/depreciation', icon: <Clock className="w-4 h-4" /> },
+      { id: 'transactions', label: t('nav.transactions'), path: '/assets/transactions', icon: <ArrowLeftRight className="w-4 h-4" /> },
+      { id: 'categories', label: t('nav.categories'), path: '/assets/categories', icon: <Tag className="w-4 h-4" /> },
+      { id: 'classes', label: t('nav.classes'), path: '/assets/classes', icon: <Layers className="w-4 h-4" /> },
       { id: 'journal', label: t('accounting.journal'), path: '/assets/journal', icon: <Book className="w-4 h-4" /> },
-      { id: 'disposals', label: 'Cessions', path: '/assets/disposals', icon: <FileCheck className="w-4 h-4" /> },
-      { id: 'inventory', label: 'Inventaire', path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> },
-      { id: 'reevaluation', label: 'Réévaluation', path: '/assets/reevaluation', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'composants', label: 'Composants', path: '/assets/composants', icon: <Layers className="w-4 h-4" /> }
+      { id: 'disposals', label: t('nav.disposals'), path: '/assets/disposals', icon: <FileCheck className="w-4 h-4" /> },
+      { id: 'inventory', label: t('nav.inventory'), path: '/assets/inventory', icon: <Archive className="w-4 h-4" /> },
+      { id: 'reevaluation', label: t('nav.revaluation'), path: '/assets/reevaluation', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'composants', label: t('nav.components'), path: '/assets/composants', icon: <Layers className="w-4 h-4" /> }
     ],
     stock: [
-      { id: 'stock-dashboard', label: 'Tableau de bord', path: '/stock', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'stock-materials', label: 'Articles', path: '/stock/materials', icon: <Boxes className="w-4 h-4" /> },
-      { id: 'stock-warehouses', label: 'Magasins & emplacements', path: '/stock/warehouses', icon: <Warehouse className="w-4 h-4" /> },
-      { id: 'stock-movements', label: 'Mouvements', path: '/stock/movements', icon: <ArrowRightLeft className="w-4 h-4" /> },
-      { id: 'stock-pending', label: 'Mouvements en attente', path: '/stock/pending', icon: <ShieldCheck className="w-4 h-4" /> },
-      { id: 'stock-valuation', label: 'Valorisation', path: '/stock/valuation', icon: <Calculator className="w-4 h-4" /> },
-      { id: 'stock-batches', label: 'Lots & séries', path: '/stock/batches', icon: <Layers className="w-4 h-4" /> },
-      { id: 'stock-physical', label: 'Inventaire physique', path: '/stock/physical', icon: <ClipboardList className="w-4 h-4" /> },
-      { id: 'stock-reorder', label: 'Réappro & alertes', path: '/stock/reorder', icon: <PackageX className="w-4 h-4" /> },
-      { id: 'stock-reporting', label: 'Analyses (ABC, rotation)', path: '/stock/reporting', icon: <PieChart className="w-4 h-4" /> },
-      { id: 'stock-gl-setup', label: 'Détermination comptable', path: '/stock/gl-setup', icon: <Settings className="w-4 h-4" /> },
+      { id: 'stock-dashboard', label: t('nav.stockDashboard'), path: '/stock', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'stock-materials', label: t('nav.items'), path: '/stock/materials', icon: <Boxes className="w-4 h-4" /> },
+      { id: 'stock-warehouses', label: t('nav.warehousesAndLocations'), path: '/stock/warehouses', icon: <Warehouse className="w-4 h-4" /> },
+      { id: 'stock-movements', label: t('nav.movements'), path: '/stock/movements', icon: <ArrowRightLeft className="w-4 h-4" /> },
+      { id: 'stock-pending', label: t('nav.pendingMovements'), path: '/stock/pending', icon: <ShieldCheck className="w-4 h-4" /> },
+      { id: 'stock-valuation', label: t('nav.valuation'), path: '/stock/valuation', icon: <Calculator className="w-4 h-4" /> },
+      { id: 'stock-batches', label: t('nav.batchesAndSerials'), path: '/stock/batches', icon: <Layers className="w-4 h-4" /> },
+      { id: 'stock-physical', label: t('nav.physicalInventory'), path: '/stock/physical', icon: <ClipboardList className="w-4 h-4" /> },
+      { id: 'stock-reorder', label: t('nav.reorderAndAlerts'), path: '/stock/reorder', icon: <PackageX className="w-4 h-4" /> },
+      { id: 'stock-reporting', label: t('nav.stockAnalyses'), path: '/stock/reporting', icon: <PieChart className="w-4 h-4" /> },
+      { id: 'stock-gl-setup', label: t('nav.accountDetermination'), path: '/stock/gl-setup', icon: <Settings className="w-4 h-4" /> },
     ],
     closures: [
-      { id: 'periodic', label: 'Clôture Périodique', path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
-      { id: 'revisions', label: 'Révisions', path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
-      { id: 'carry-forward', label: 'Reports à Nouveau', path: '/closures/carry-forward', icon: <RefreshCw className="w-4 h-4" /> },
-      { id: 'audit-trail', label: 'Piste d\'Audit', path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> },
-      { id: 'ecarts-conversion', label: 'Écarts de Conversion', path: '/closures/ecarts-conversion', icon: <ArrowLeftRight className="w-4 h-4" /> }
+      { id: 'periodic', label: t('nav.periodicClosing'), path: '/closures/periodic', icon: <Calendar className="w-4 h-4" /> },
+      { id: 'revisions', label: t('nav.revisions'), path: '/closures/revisions', icon: <CheckCircle className="w-4 h-4" /> },
+      { id: 'carry-forward', label: t('nav.carryForward'), path: '/closures/carry-forward', icon: <RefreshCw className="w-4 h-4" /> },
+      { id: 'audit-trail', label: t('nav.auditTrail'), path: '/closures/audit-trail', icon: <Shield className="w-4 h-4" /> },
+      { id: 'ecarts-conversion', label: t('nav.conversionDifferences'), path: '/closures/ecarts-conversion', icon: <ArrowLeftRight className="w-4 h-4" /> }
     ],
     reporting: [
-      { id: 'bilan', label: 'États Financiers', path: '/financial-statements/balance', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'compte-resultat', label: 'États Financiers Mensuel', path: '/financial-statements/income', icon: <TrendingUp className="w-4 h-4" /> },
-      { id: 'tax-declarations', label: 'Déclarations Fiscales', path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
-      { id: 'report-builder', label: 'Report Builder', path: '/reporting/builder', icon: <Palette className="w-4 h-4" /> }
+      { id: 'bilan', label: t('nav.financialStatements'), path: '/financial-statements/balance', icon: <BarChart3 className="w-4 h-4" /> },
+      { id: 'compte-resultat', label: t('nav.monthlyFinancialStatements'), path: '/financial-statements/income', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'tax-declarations', label: t('nav.taxDeclarations'), path: '/reporting/tax', icon: <Shield className="w-4 h-4" /> },
+      { id: 'report-builder', label: t('nav.reportBuilder'), path: '/reporting/builder', icon: <Palette className="w-4 h-4" /> }
     ],
     collaboration: [
-      { id: 'collab-space', label: 'Espace Collaboratif', path: '/collaboration', icon: <MessageSquare className="w-4 h-4" /> },
+      { id: 'collab-space', label: t('nav.collaborativeSpace'), path: '/collaboration', icon: <MessageSquare className="w-4 h-4" /> },
     ],
     validation: [
       // Bannette déplacée dans les workspaces (voir /workspace/*).
-      { id: 'gouvernance', label: 'États de gouvernance', path: '/gouvernance', icon: <Shield className="w-4 h-4" /> },
+      { id: 'gouvernance', label: t('nav.governanceStates'), path: '/gouvernance', icon: <Shield className="w-4 h-4" /> },
     ],
   }), [t, user?.role]);
 
@@ -441,7 +441,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
   const getBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(Boolean);
     // Rediriger vers le workspace approprié (comptable par défaut)
-    const breadcrumbs = [{ label: 'Accueil', path: '/home' }];
+    const breadcrumbs = [{ label: t('nav.home'), path: '/home' }];
 
     paths.forEach((path, index) => {
       const fullPath = '/' + paths.slice(0, index + 1).join('/');
@@ -461,7 +461,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-[var(--color-primary)] text-[var(--color-background)] px-4 py-2 rounded"
       >
-        Aller au contenu principal
+        {t('nav.skipToMainContent')}
       </a>
       <MobileConsultationBanner />
       <KeyboardShortcutsHelp />
@@ -473,7 +473,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           primaryCollapsed ? 'w-20' : 'w-64'
         )}
         role="navigation"
-        aria-label="Navigation principale"
+        aria-label={t('nav.mainNavigation')}
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
@@ -482,7 +482,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             primaryCollapsed && 'justify-center'
           )}>
             <div className="flex flex-col">
-              <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas FnA">
+              <a href="/home" className="hover:opacity-80 transition-opacity" title={t('nav.backToAtlasHome')}>
                 <span
                   className="text-[var(--color-sidebar-text)] font-bold atlas-brand whitespace-nowrap"
                   style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
@@ -499,7 +499,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             type="button"
             onClick={() => setPrimaryCollapsed(!primaryCollapsed)}
             className="text-[var(--color-sidebar-text-secondary)] hover:text-[var(--color-sidebar-text)] transition-colors"
-            aria-label={primaryCollapsed ? 'Développer le menu' : 'Réduire le menu'}
+            aria-label={primaryCollapsed ? t('nav.expandMenu') : t('nav.collapseMenu')}
             aria-expanded={!primaryCollapsed}
           >
             <ChevronLeft className={cn(
@@ -513,7 +513,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
         <nav
           className="flex-1 py-4 overflow-y-auto"
           role="menubar"
-          aria-label="Modules principaux"
+          aria-label={t('nav.mainModules')}
         >
           {primaryMenuItems.map((item) => (
             <button
@@ -579,7 +579,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <p className="text-sm font-medium text-[var(--color-sidebar-text)] truncate">
                   {user?.first_name || user?.last_name
                     ? `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
-                    : (user?.email?.split('@')[0] ?? 'Utilisateur')}
+                    : (user?.email?.split('@')[0] ?? t('nav.user'))}
                 </p>
                 <p className="text-xs text-[var(--color-sidebar-text-secondary)] truncate">{user?.email ?? ''}</p>
               </div>
@@ -597,7 +597,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               type="button"
               onClick={() => setSecondaryCollapsed(false)}
               className="hidden lg:flex items-center justify-center w-6 h-16 bg-[var(--color-surface)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors rounded-r-md shadow-sm"
-              aria-label="Ouvrir le sous-menu"
+              aria-label={t('nav.openSubmenu')}
               style={{ marginTop: '1rem' }}
             >
               <ChevronRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -610,7 +610,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               secondaryCollapsed ? 'w-0 overflow-hidden' : 'w-64'
             )}
             role="navigation"
-            aria-label="Navigation secondaire"
+            aria-label={t('nav.secondaryNavigation')}
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-border)]">
               <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider whitespace-nowrap">
@@ -620,7 +620,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 onClick={() => setSecondaryCollapsed(!secondaryCollapsed)}
                 className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] flex-shrink-0"
-                aria-label={secondaryCollapsed ? 'Développer le sous-menu' : 'Réduire le sous-menu'}
+                aria-label={secondaryCollapsed ? t('nav.expandSubmenu') : t('nav.collapseSubmenu')}
               >
                 <ChevronLeft className={cn(
                   "w-4 h-4 transition-transform",
@@ -632,7 +632,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
           <nav
             className="flex-1 py-4 overflow-y-auto"
             role="menu"
-            aria-label="Sous-navigation"
+            aria-label={t('nav.subNavigation')}
           >
             {secondaryMenuItems[selectedModule]?.map((item) => (
               <button
@@ -684,11 +684,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             className="w-80 h-full bg-[var(--color-sidebar-bg)]"
             onClick={(e) => e.stopPropagation()}
             role="navigation"
-            aria-label="Navigation mobile"
+            aria-label={t('nav.mobileNavigation')}
           >
             <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--color-sidebar-border)]">
               <div className="flex flex-col">
-                <a href="/home" className="hover:opacity-80 transition-opacity" title="Retour à l'accueil Atlas FnA">
+                <a href="/home" className="hover:opacity-80 transition-opacity" title={t('nav.backToAtlasHome')}>
                   <span
                     className="text-white font-bold atlas-brand"
                     style={{ fontSize: 'calc(1.25rem + 0.5pt)' }}
@@ -702,7 +702,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-[var(--color-sidebar-text-secondary)]"
-                aria-label="Fermer le menu"
+                aria-label={t('nav.closeMenu')}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -791,7 +791,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden text-[var(--color-text-primary)]"
-              aria-label="Ouvrir le menu mobile"
+              aria-label={t('nav.openMobileMenu')}
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -799,7 +799,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
             {/* Breadcrumbs */}
             <nav
               className="hidden sm:flex items-center gap-2 text-sm"
-              aria-label="Fil d'Ariane"
+              aria-label={t('nav.breadcrumb')}
             >
               {getBreadcrumbs().map((crumb, index) => (
                 <React.Fragment key={crumb.path}>
@@ -826,12 +826,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
               <input
                 id="global-search"
                 type="text"
-                placeholder="Rechercher... (Alt+S)"
+                placeholder={t('nav.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
                 data-search-input
-                aria-label="Recherche globale"
+                aria-label={t('nav.globalSearch')}
               />
             </div>
           </div>
@@ -843,8 +843,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
                 className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
-                title="Changer le thème"
-                aria-label="Sélecteur de thème"
+                title={t('nav.changeTheme')}
+                aria-label={t('nav.themeSelector')}
                 aria-expanded={showThemeMenu}
               >
                 <Palette className="w-5 h-5 text-[var(--color-text-secondary)]" />
@@ -853,11 +853,11 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <div
                   className="absolute right-0 mt-2 w-72 bg-[var(--color-background)] rounded-lg shadow-xl border border-[var(--color-border)] z-50 max-h-[70vh] overflow-y-auto"
                   role="menu"
-                  aria-label="Sélection du thème"
+                  aria-label={t('nav.themeSelection')}
                 >
                   <div className="p-2">
                     <p className="px-3 py-2 text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">
-                      Palettes disponibles
+                      {t('nav.availablePalettes')}
                     </p>
                     {(Object.entries(themes) as Array<[string, typeof theme]>).map(([key, t]) => (
                       <button
@@ -891,7 +891,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                         }}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors text-sm font-medium text-[var(--color-accent)]"
                       >
-                        <span>Voir toutes les palettes</span>
+                        <span>{t('nav.viewAllPalettes')}</span>
                         <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
@@ -909,8 +909,8 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 if (openDrawer) openDrawer(); else navigate('/help');
               }}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface)] rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)] transition-colors"
-              title={hasDedicatedSupport ? 'Support dédié (chat prioritaire)' : 'Support standard (email / centre d\'aide)'}
-              aria-label={hasDedicatedSupport ? 'Support dédié' : 'Support standard'}
+              title={hasDedicatedSupport ? t('nav.dedicatedSupportTitle') : t('nav.standardSupportTitle')}
+              aria-label={hasDedicatedSupport ? t('nav.dedicatedSupport') : t('nav.standardSupport')}
             >
               {hasDedicatedSupport ? (
                 <MessageSquare className="w-4 h-4 text-[var(--color-primary)]" />
@@ -918,7 +918,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <HelpCircle className="w-4 h-4 text-[var(--color-text-secondary)]" />
               )}
               <span className="text-xs font-medium text-[var(--color-text-primary)]">
-                {hasDedicatedSupport ? 'Support dédié' : 'Support standard'}
+                {hasDedicatedSupport ? t('nav.dedicatedSupport') : t('nav.standardSupport')}
               </span>
             </button>
 
@@ -940,7 +940,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 className="relative p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
                 onClick={() => setShowNotifications(!showNotifications)}
-                aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} non lues)` : ''}`}
+                aria-label={`${t('nav.notifications')} ${unreadCount > 0 ? t('nav.notificationsUnread', { count: String(unreadCount) }) : ''}`}
                 aria-expanded={showNotifications}
               >
                 <Bell className="w-5 h-5 text-[var(--color-text-secondary)]" />
@@ -955,25 +955,25 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <div
                   className="absolute right-0 mt-2 w-80 bg-[var(--color-background)] rounded-lg shadow-xl border border-[var(--color-border)] z-50 max-h-96 overflow-y-auto"
                   role="region"
-                  aria-label="Centre de notifications"
+                  aria-label={t('nav.notificationCenter')}
                 >
                   <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">Notifications</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{t('nav.notifications')}</h3>
                     {unreadCount > 0 && (
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); markAllAsRead(); }}
                         className="text-xs text-[var(--color-primary)] hover:underline"
                       >
-                        Tout marquer lu
+                        {t('nav.markAllRead')}
                       </button>
                     )}
                   </div>
                   <div className="divide-y divide-[var(--color-border)]">
                     {notifications.length === 0 && (
                       <div className="p-6 text-center">
-                        <p className="text-sm text-[var(--color-text-secondary)]">Aucune notification</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Tout est à jour ✓</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('nav.noNotifications')}</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('nav.allUpToDate')}</p>
                       </div>
                     )}
                     {notifications.map((notif) => (
@@ -1017,7 +1017,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 type="button"
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className="flex items-center gap-2 p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
-                aria-label="Menu utilisateur"
+                aria-label={t('nav.userMenu')}
                 aria-expanded={showUserMenu}
               >
                 <div className="w-8 h-8 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
@@ -1028,7 +1028,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                 <div
                   className="absolute right-0 mt-2 w-56 bg-[var(--color-background)] rounded-lg shadow-xl border border-[var(--color-border)] z-50"
                   role="menu"
-                  aria-label="Menu utilisateur"
+                  aria-label={t('nav.userMenu')}
                 >
                   <div className="p-2">
                     <button
@@ -1037,7 +1037,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       role="menuitem"
                     >
                       <User className="w-4 h-4" />
-                      <span className="text-sm">Mon profil</span>
+                      <span className="text-sm">{t('nav.myProfile')}</span>
                     </button>
                     {user?.role === 'admin' && (
                       <button
@@ -1049,7 +1049,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                         role="menuitem"
                       >
                         <Settings className="w-4 h-4" />
-                        <span className="text-sm">Paramètres &amp; Administration</span>
+                        <span className="text-sm">{t('nav.settingsAndAdministration')}</span>
                       </button>
                     )}
                     <button
@@ -1064,7 +1064,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       role="menuitem"
                     >
                       <HelpCircle className="w-4 h-4" />
-                      <span className="text-sm">Aide</span>
+                      <span className="text-sm">{t('nav.help')}</span>
                     </button>
                     <hr className="my-2 border-[var(--color-border)]" />
                     <button
@@ -1077,7 +1077,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
                       role="menuitem"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span className="text-sm">Déconnexion</span>
+                      <span className="text-sm">{t('nav.signOut')}</span>
                     </button>
                   </div>
                 </div>

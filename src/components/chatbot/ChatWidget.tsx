@@ -83,8 +83,8 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         ref={dragRef as unknown as React.RefObject<HTMLButtonElement>}
         className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
-        aria-label="Ouvrir Proph3t, votre assistante Atlas Studio"
-        title="Besoin d'aide ? Cliquez pour discuter avec Proph3t, votre assistante Atlas Studio"
+        aria-label={t('chat.toggleAriaLabel')}
+        title={t('chat.toggleTitle')}
         style={{
           position: 'fixed',
           left: `${position.x}px`,
@@ -103,7 +103,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       ref={dragRef}
       className={`chat-widget ${className} ${isDragging ? 'dragging' : ''} ${isMinimized ? 'minimized' : ''}`}
       role="dialog"
-      aria-label="Assistant Atlas Studio"
+      aria-label={t('chat.dialogAriaLabel')}
       style={{
         position: 'fixed',
         left: `${position.x}px`,
@@ -114,7 +114,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
       {/* Header */}
       <div className="chat-widget__header">
         <div className="chat-widget__header-info">
-          <div className="chat-widget__drag-handle" title="Déplacer Proph3t">
+          <div className="chat-widget__drag-handle" title={t('chat.dragHandleTitle')}>
             <Move size={16} className="drag-icon" />
           </div>
           <div className="chat-widget__avatar">
@@ -123,7 +123,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <div className="chat-widget__header-text">
             <h3 className="chat-widget__title proph3t-font">Proph3t</h3>
             <p className="chat-widget__subtitle">
-              {isTyping ? 'Proph3t en train d\'écrire...' : 'Assistant Atlas Studio • En ligne'}
+              {isTyping ? t('chat.typing') : t('chat.subtitleOnline')}
             </p>
           </div>
         </div>
@@ -131,15 +131,15 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           <button
             className="chat-widget__minimize"
             onClick={() => setIsMinimized(!isMinimized)}
-            aria-label={isMinimized ? "Agrandir" : "Réduire"}
-            title={isMinimized ? "Agrandir" : "Réduire"}
+            aria-label={isMinimized ? t('chat.maximize') : t('chat.minimize')}
+            title={isMinimized ? t('chat.maximize') : t('chat.minimize')}
           >
             {isMinimized ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
           </button>
           <button
             className="chat-widget__close"
             onClick={onToggle}
-            aria-label="Fermer le chat"
+            aria-label={t('chat.closeAriaLabel')}
             title={t('common.close')}
           >
             ×
@@ -167,7 +167,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
         {suggestions.length > 0 && messages.length === 1 && (
           <div className="chat-widget__suggestions">
             <h4 className="chat-widget__suggestions-title">
-              Questions fréquentes :
+              {t('chat.frequentQuestions')}
             </h4>
             <div className="chat-widget__suggestions-list">
               {suggestions.map((suggestion, index) => (
@@ -194,11 +194,11 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           onChange={setInputValue}
           onSend={handleSendMessage}
           disabled={isLoading}
-          placeholder="Tapez votre question..."
+          placeholder={t('chat.inputPlaceholder')}
         />
         <div className="chat-widget__footer-info">
           <span className="chat-widget__powered-by">
-            Propulsé par l'IA Atlas Studio
+            {t('chat.poweredBy')}
           </span>
         </div>
       </div>
