@@ -8,7 +8,7 @@ import {
   CheckCircle, X, ArrowRight, Zap, Crown, Calculator,
   BarChart3, Shield, Globe, Wallet, Brain,
   Building2, Lock, Play, Star, Users, ChevronDown,
-  TrendingUp, Award, Layers,
+  TrendingUp, Award, Layers, PieChart, Landmark,
   MousePointerClick, Phone, Mail,
   Sparkles, Sun, Moon,
 } from 'lucide-react';
@@ -69,6 +69,10 @@ const MODULES = [
   { icon: BarChart3, label: 'États financiers', desc: 'Bilan, résultat, TAFIRE, SIG & ratios — générés automatiquement en un clic.' },
   { icon: Shield, label: 'Fiscalité automatique', desc: 'TVA, IS, IMF, patente. Calendrier fiscal, alertes. Liasse DSF 22 annexes.' },
   { icon: Wallet, label: 'Trésorerie & banque', desc: 'Rapprochement bancaire intelligent, caisse, effets de commerce, prévisions.' },
+  { icon: PieChart, label: 'Contrôle de gestion', desc: 'Budget OPEX & CAPEX, cockpit analytique, écarts budget/réalisé, waterfall, P&L de gestion.' },
+  { icon: Landmark, label: 'Immobilisations', desc: 'Registre, amortissements SYSCOHADA, acquisitions, cessions, inventaire, ventilation TAFIRE.' },
+  { icon: Users, label: 'Gestion des tiers', desc: 'Clients, fournisseurs, balance âgée, lettrage, recouvrement, provisions.' },
+  { icon: CheckCircle, label: 'Clôture & report à nouveau', desc: 'Clôtures périodiques, régularisations, extournes, report à nouveau, verrou de période.' },
   { icon: Brain, label: <>IA <span className="atlas-brand">Proph3t</span></>, desc: 'Anomalies, suggestions, audit Benford, analyse prédictive LLM intégrée.' },
   { icon: Globe, label: 'Multi-devises', desc: 'XAF, XOF, EUR, USD. Écarts de conversion automatiques (476/477).' },
   { icon: Building2, label: 'Multi-sociétés', desc: 'Consolidation inter-company, multi-sites, multi-pays OHADA.' },
@@ -319,7 +323,7 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-5`} style={c.sGold}>
-              <Layers className="w-3.5 h-3.5" /> 8 modules intégrés
+              <Layers className="w-3.5 h-3.5" /> 12 modules intégrés
             </div>
             <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Tout ce dont vous avez besoin.</h2>
             <p className="max-w-xl mx-auto text-lg" style={c.sSec}>Une suite complète pour couvrir l'ensemble de vos besoins comptables et financiers.</p>
