@@ -493,13 +493,14 @@ const LandingPage: React.FC = () => {
                 <span className="text-5xl font-bold" style={c.s}>{formatXOF(premiumPrice)}</span>
                 <span className="ml-2 text-sm" style={c.sTer}>FCFA / mois</span>
               </div>
-              <p className="text-xs mb-6" style={c.sMuted}>~380 EUR · Utilisateurs illimités · 5+ sociétés : sur devis</p>
+              <p className="text-xs mb-6" style={c.sMuted}>~380 EUR · 20 utilisateurs inclus · +7 000 FCFA/user · 50+ users ou 5+ sociétés : Entreprise sur devis</p>
               <button onClick={handleGetStarted} className={`w-full py-3.5 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2`} style={c.sBtnP}>
                 <Zap className="w-4 h-4" /> Souscrire maintenant
               </button>
               <ul className="mt-7 space-y-3">
                 {[
                   'Tout le plan PME/TPE, plus :',
+                  '20 utilisateurs inclus (+7 000 FCFA/user)',
                   'Multi-sociétés illimité',
                   'Multi-devises & multi-pays',
                   <>IA <span className="atlas-brand">Proph3t</span> avancé (LLM)</>,
