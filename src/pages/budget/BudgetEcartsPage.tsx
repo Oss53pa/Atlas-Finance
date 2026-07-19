@@ -119,8 +119,8 @@ const BudgetEcartsPage: React.FC = () => {
     return { budget, realise, ecart: realise - budget };
   }, [rows]);
 
-  // Étapes du waterfall : top rubriques par |écart| + « Autres » pour reconcilier
-  // exactement Budget + Σécarts = Réalisé.
+  // Étapes du waterfall PAR RUBRIQUE : top rubriques par |écart| + « Autres » pour
+  // reconcilier exactement Budget + Σécarts = Réalisé.
   const wfSteps = useMemo(() => {
     const nz = parNature.filter(n => n.ecart !== 0);
     const top = nz.slice(0, 9);
@@ -129,6 +129,13 @@ const BudgetEcartsPage: React.FC = () => {
     if (Math.abs(restE) > 0.5) steps.push({ code: 'Autres', ecart: restE });
     return steps;
   }, [parNature]);
+
+  // Étapes du waterfall PAR MOIS : écart cumulé de chaque période (12 mois).
+  const wfMonthly = useMemo(() =>
+    MOIS.map((m, i) => ({ code: m, ecart: rows.filter(r => r.period === i + 1).reduce((s, r) => s + r.ecart, 0) })),
+  [rows]);
+
+  const [wfMode, setWfMode] = useState<'rubrique' | 'mois'>('rubrique');
 
   // Alertes de dépassement (substitut @atlas/insights) : charges en sur-réalisation
   // (>10% du budget) = défavorable ; produits en sous-réalisation = défavorable.
@@ -241,18 +248,28 @@ const BudgetEcartsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Waterfall : cascade Budget → écarts → Réalisé */}
+      {/* Waterfall : cascade Budget → écarts → Réalisé (par rubrique ou par mois) */}
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-          <h2 className="font-semibold text-[var(--color-primary)]">Cascade budget → réalisé</h2>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="font-semibold text-[var(--color-primary)]">Cascade budget → réalisé</h2>
+            <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-[var(--color-surface-hover)]">
+              {(['rubrique', 'mois'] as const).map(m => (
+                <button key={m} onClick={() => setWfMode(m)}
+                  className={`px-2.5 py-1 rounded-md text-xs transition ${wfMode === m ? 'bg-white shadow-sm text-[var(--color-primary)] font-medium' : 'text-[var(--color-text-secondary)] hover:text-neutral-800'}`}>
+                  {m === 'rubrique' ? 'Par rubrique' : 'Par mois'}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
             <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.total }} /> Total</span>
             <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.inc }} /> Augmentation</span>
             <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.dec }} /> Diminution</span>
           </div>
         </div>
-        <Waterfall budget={totals.budget} realise={totals.realise} steps={wfSteps} />
-        <p className="text-[10px] text-gray-400 mt-1">Départ = budget total ; chaque barre = écart d'une rubrique (réalisé − budget) ; arrivée = réalisé total.</p>
+        <Waterfall budget={totals.budget} realise={totals.realise} steps={wfMode === 'mois' ? wfMonthly : wfSteps} />
+        <p className="text-[10px] text-gray-400 mt-1">Départ = budget total ; chaque barre = écart {wfMode === 'mois' ? "d'un mois" : "d'une rubrique"} (réalisé − budget) ; arrivée = réalisé total.</p>
       </div>
 
       {/* Du budget au réalisé — table Budget / Réalisé / Écart, dépliable par compte */}
