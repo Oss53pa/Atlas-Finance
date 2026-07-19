@@ -141,7 +141,7 @@ export const FEATURE_MATRIX: PlanFeatureCategory[] = [
     items: [
       { label: 'Cloud sécurisé & backup quotidien', featureKey: 'cloud_backup', pme: true, premium: true },
       { label: '1 à 5 utilisateurs', featureKey: 'users_5', pme: true, premium: true },
-      { label: 'Utilisateurs illimités', featureKey: 'utilisateurs_illimites', pme: false, premium: true },
+      { label: '20 utilisateurs inclus, +7 000 XOF/user (au-delà de 50 : Entreprise)', featureKey: 'utilisateurs_illimites', pme: false, premium: true },
       { label: 'Workflow de validation & rôles (RBAC)', featureKey: 'workflow_validation_rbac', pme: false, premium: true },
       { label: 'Audit trail complet (conformité OHADA)', featureKey: 'audit_trail_complet', pme: false, premium: true },
       { label: 'API REST & intégrations', featureKey: 'api_rest', pme: false, premium: true },
@@ -183,14 +183,18 @@ export const PLANS: Record<PlanTier, PlanDefinition> = {
     pricing: {
       monthly_xof: 250000,
       monthly_eur: 380,
+      extra_user_xof: 7000,
     },
     seats: {
-      included: 999,
-      unlimited: true,
+      included: 20,
+      unlimited: false,
     },
     features: FEATURE_MATRIX,
   },
 };
+
+/** Seuil au-delà duquel on bascule vers l'offre « Entreprise » (sur devis). */
+export const ENTERPRISE_SEAT_THRESHOLD = 50;
 
 /**
  * Check if a feature is available for a given plan tier.
