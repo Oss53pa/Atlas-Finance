@@ -89,7 +89,7 @@ const AdvancedGeneralLedger: React.FC = () => {
   const [selectedEntry, setSelectedEntry] = useState<LedgerEntry | null>(null);
   const [exportFormat, setExportFormat] = useState<'excel' | 'pdf' | 'csv'>('excel');
   const [emailTo, setEmailTo] = useState('');
-  const [emailSubject, setEmailSubject] = useState('Grand Livre - Export');
+  const [emailSubject, setEmailSubject] = useState(t('gl.emailSubjectDefault'));
   const [emailMessage, setEmailMessage] = useState('');
   const [annotation, setAnnotation] = useState('');
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -454,15 +454,15 @@ const AdvancedGeneralLedger: React.FC = () => {
 
   // Vue hiérarchique — comptes groupés par classe
   const CLASS_META: Record<string, { label: string; color: string }> = {
-    '1': { label: 'Classe 1 — Capitaux Propres et Assimilés', color: 'gray' },
-    '2': { label: 'Classe 2 — Actif Immobilisé', color: 'green' },
-    '3': { label: 'Classe 3 — Stocks', color: 'yellow' },
-    '4': { label: 'Classe 4 — Comptes de Tiers', color: 'primary' },
-    '5': { label: 'Classe 5 — Comptes Financiers', color: 'blue' },
-    '6': { label: 'Classe 6 — Comptes de Charges', color: 'red' },
-    '7': { label: 'Classe 7 — Comptes de Produits', color: 'green' },
-    '8': { label: 'Classe 8 — Comptes Spéciaux', color: 'gray' },
-    '9': { label: 'Classe 9 — Analytique', color: 'gray' },
+    '1': { label: t('gl.class1Label'), color: 'gray' },
+    '2': { label: t('gl.class2Label'), color: 'green' },
+    '3': { label: t('gl.class3Label'), color: 'yellow' },
+    '4': { label: t('gl.class4Label'), color: 'primary' },
+    '5': { label: t('gl.class5Label'), color: 'blue' },
+    '6': { label: t('gl.class6Label'), color: 'red' },
+    '7': { label: t('gl.class7Label'), color: 'green' },
+    '8': { label: t('gl.class8Label'), color: 'gray' },
+    '9': { label: t('gl.class9Label'), color: 'gray' },
   };
   const hierarchyData = useMemo(() => {
     const classMap = new Map<string, AccountData[]>();
@@ -475,7 +475,7 @@ const AdvancedGeneralLedger: React.FC = () => {
     return Array.from(classMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, comptes]) => ({
-        classe: CLASS_META[key]?.label ?? `Classe ${key}`,
+        classe: CLASS_META[key]?.label ?? t('gl.classN', { n: key }),
         color: CLASS_META[key]?.color ?? 'gray',
         comptes: comptes.map(acc => ({
           numero: acc.compte,
@@ -490,7 +490,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
   return (
     <PrintableArea
-      documentTitle="Grand Livre Général"
+      documentTitle={t('gl.documentTitle')}
       orientation="landscape"
       showPrintButton={false}
     >
@@ -501,8 +501,8 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="flex items-center space-x-4">
             <BookOpen className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-primary)]">Grand Livre Avancé</h1>
-              <p className="text-sm text-[var(--color-primary)]/70">Consultation détaillée - Conforme SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('gl.title')}</h1>
+              <p className="text-sm text-[var(--color-primary)]/70">{t('gl.subtitle')}</p>
             </div>
           </div>
           
@@ -516,7 +516,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <span className="text-sm">
                 {dateRange.start && dateRange.end
                   ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
-                  : 'Période'
+                  : t('gl.period')
                 }
               </span>
             </button>
@@ -526,7 +526,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)] border-[var(--color-primary)]' : 'bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border-[var(--color-border)] hover:bg-[var(--color-border)]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
-              Filtres
+              {t('gl.filters')}
             </button>
             
             <button 
@@ -534,22 +534,22 @@ const AdvancedGeneralLedger: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
-              Aperçu
+              {t('gl.previewBtn')}
             </button>
             
             <ExportMenu
               data={accountsData as unknown as Record<string, unknown>[]}
               filename="grand-livre-general"
               columns={{
-                compte: 'Compte',
-                libelle: 'Libellé',
-                soldeOuverture: 'Solde Ouverture',
-                totalDebit: 'Total Débit',
-                totalCredit: 'Total Crédit',
-                soldeFermeture: 'Solde Fermeture',
-                nombreEcritures: 'Nombre Écritures'
+                compte: t('gl.colAccount'),
+                libelle: t('gl.colLabel'),
+                soldeOuverture: t('gl.colOpeningBalance'),
+                totalDebit: t('gl.colTotalDebit'),
+                totalCredit: t('gl.colTotalCredit'),
+                soldeFermeture: t('gl.colClosingBalance'),
+                nombreEcritures: t('gl.colEntryCount')
               }}
-              buttonText="Exporter"
+              buttonText={t('gl.export')}
             />
           </div>
         </div>
@@ -557,12 +557,12 @@ const AdvancedGeneralLedger: React.FC = () => {
         {/* Navigation des vues - Version nouvelle génération */}
         <div className="flex space-x-1 mt-4 pt-3 overflow-x-auto overflow-y-visible">
           {[
-            { id: 'intelligent', label: 'Recherche Intelligente', icon: Sparkles, badge: 'Nouveau', color: 'bg-primary-600' },
-            { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3, color: 'bg-[var(--color-primary)]' },
-            { id: 'accounts', label: 'Comptes Détaillés', icon: Hash, color: 'bg-blue-600' },
+            { id: 'intelligent', label: t('gl.viewIntelligent'), icon: Sparkles, badge: 'Nouveau', color: 'bg-primary-600' },
+            { id: 'dashboard', label: t('gl.viewDashboard'), icon: BarChart3, color: 'bg-[var(--color-primary)]' },
+            { id: 'accounts', label: t('gl.viewAccounts'), icon: Hash, color: 'bg-blue-600' },
             { id: 'general-ledger', label: t('accounting.generalLedger'), icon: BookOpen, color: 'bg-green-600' },
-            { id: 'analysis', label: 'Analyse IA', icon: Brain, badge: 'IA', color: 'bg-primary' },
-            { id: 'collaboration', label: 'Collaboration', icon: Users, badge: 'Beta', color: 'bg-orange-600' }
+            { id: 'analysis', label: t('gl.viewAiAnalysis'), icon: Brain, badge: 'IA', color: 'bg-primary' },
+            { id: 'collaboration', label: t('gl.viewCollaboration'), icon: Users, badge: 'Beta', color: 'bg-orange-600' }
           ].map((view) => (
             <button
               key={view.id}
@@ -579,7 +579,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <span className={`inline-flex items-center px-1.5 py-0.5 text-xs font-bold text-white rounded-full ${
                   view.badge === 'Nouveau' ? 'bg-red-500' : view.badge === 'IA' ? 'bg-primary-500' : 'bg-orange-500'
                 } animate-pulse`}>
-                  {view.badge}
+                  {view.badge === 'Nouveau' ? t('gl.badgeNew') : view.badge === 'IA' ? t('gl.badgeAi') : t('gl.badgeBeta')}
                 </span>
               )}
             </button>
@@ -592,7 +592,7 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] px-4 py-3">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('gl.startDate')}</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
@@ -601,7 +601,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('gl.endDate')}</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
@@ -616,7 +616,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onChange={(e) => setSelectedAccount(e.target.value)}
                 className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               >
-                <option value="">Tous les comptes</option>
+                <option value="">{t('gl.allAccounts')}</option>
                 {accountsData.map((acc) => (
                   <option key={acc.compte} value={acc.compte}>
                     {acc.compte} - {acc.libelle}
@@ -625,20 +625,20 @@ const AdvancedGeneralLedger: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">N° Pièce</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('gl.documentNo')}</label>
               <input 
                 type="text" 
-                placeholder="AC-001, VE-002..."
+                placeholder={t('gl.documentNoPlaceholder')}
                 value={filters.piece}
                 onChange={(e) => setFilters({...filters, piece: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-mono"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tiers</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('gl.thirdParty')}</label>
               <input 
                 type="text" 
-                placeholder="Client, Fournisseur..."
+                placeholder={t('gl.thirdPartyPlaceholder')}
                 value={filters.tiers}
                 onChange={(e) => setFilters({...filters, tiers: e.target.value})}
                 className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
@@ -647,7 +647,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="flex items-end">
               <button className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] transition-colors">
                 <Search className="w-4 h-4 mr-2 inline" />
-                Rechercher
+                {t('gl.search')}
               </button>
             </div>
           </div>
@@ -663,11 +663,11 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Sparkles className="w-5 h-5 mr-2 text-primary-600" />
-                Recherche Intelligente Nouvelle Génération
+                {t('gl.smartSearchTitle')}
               </h3>
               <div className="flex items-center space-x-2 text-sm text-gray-700">
                 <Zap className="w-4 h-4 text-green-500" />
-                <span>Performance: &lt; 1s pour 10M+ écritures</span>
+                <span>{t('gl.performanceHint')}</span>
               </div>
             </div>
 
@@ -686,14 +686,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-20 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-0 transition-colors"
-                placeholder="Recherche intelligente: compte, montant, date, libellé... (ex: 512000, virement plus de 100000, janvier 2024)"
+                placeholder={t('gl.searchPlaceholder')}
                 autoComplete="off"
               />
 
               <div className="absolute inset-y-0 right-0 flex items-center pr-4 space-x-2">
                 <button
                   className="p-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                  title="Recherche vocale"
+                  title={t('gl.voiceSearch')}
                 >
                   <Mic className="h-5 w-5" />
                 </button>
@@ -702,7 +702,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   className={`p-2 rounded-lg transition-colors ${
                     showAIAnalysis ? 'bg-primary-100 text-primary-600' : 'text-gray-700 hover:text-primary-600 hover:bg-primary-50'
                   }`}
-                  title="Analyse IA"
+                  title={t('gl.aiAnalysis')}
                 >
                   <Brain className="h-5 w-5" />
                 </button>
@@ -711,7 +711,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             {/* Suggestions et raccourcis */}
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="text-sm text-gray-700 mr-2">Recherches rapides:</span>
+              <span className="text-sm text-gray-700 mr-2">{t('gl.quickSearches')}</span>
               {['512000 banque', 'virement > 500000', 'janvier 2024', 'client important'].map((suggestion, index) => (
                 <button
                   key={index}
@@ -728,7 +728,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-green-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-green-600">Temps de réponse</p>
+                    <p className="text-xs text-green-600">{t('gl.responseTime')}</p>
                     <p className="text-lg font-bold text-green-900">{responseTime}ms</p>
                   </div>
                   <Target className="h-6 w-6 text-green-500" />
@@ -738,7 +738,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-blue-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-blue-600">Écritures totales</p>
+                    <p className="text-xs text-blue-600">{t('gl.totalEntries')}</p>
                     <p className="text-lg font-bold text-blue-900">{indicators.totalEcritures.toLocaleString('fr-FR')}</p>
                   </div>
                   <Database className="h-6 w-6 text-blue-500" />
@@ -748,7 +748,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-primary-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-primary-600">Comptes actifs</p>
+                    <p className="text-xs text-primary-600">{t('gl.activeAccounts')}</p>
                     <p className="text-lg font-bold text-primary-900">{indicators.comptesActifs}</p>
                   </div>
                   <Brain className="h-6 w-6 text-primary-500" />
@@ -758,7 +758,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="bg-orange-50 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-orange-600">Comptes total</p>
+                    <p className="text-xs text-orange-600">{t('gl.totalAccounts')}</p>
                     <p className="text-lg font-bold text-orange-900">{indicators.totalComptes}</p>
                   </div>
                   <Activity className="h-6 w-6 text-orange-500" />
@@ -770,12 +770,12 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Modes de vue */}
           <div className="bg-white border-b border-gray-200 p-4">
             <div className="flex items-center justify-between">
-              <h4 className="text-md font-semibold text-gray-900">Mode de Navigation</h4>
+              <h4 className="text-md font-semibold text-gray-900">{t('gl.navigationMode')}</h4>
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
                 {[
-                  { mode: 'table', icon: Grid3X3, label: 'Tableau' },
-                  { mode: 'timeline', icon: Clock, label: 'Chronologique' },
-                  { mode: 'hierarchy', icon: GitBranch, label: 'Hiérarchique' }
+                  { mode: 'table', icon: Grid3X3, label: t('gl.modeTable') },
+                  { mode: 'timeline', icon: Clock, label: t('gl.modeTimeline') },
+                  { mode: 'hierarchy', icon: GitBranch, label: t('gl.modeHierarchy') }
                 ].map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
@@ -799,10 +799,10 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <h4 className="text-lg font-semibold text-gray-900">Résultats Intelligents</h4>
+                  <h4 className="text-lg font-semibold text-gray-900">{t('gl.smartResults')}</h4>
                   {searchQuery && (
                     <div className="flex items-center space-x-2 text-sm text-gray-700">
-                      <span>Recherche:</span>
+                      <span>{t('gl.searchLabel')}</span>
                       <code className="bg-gray-100 px-2 py-1 rounded font-mono">{searchQuery}</code>
                     </div>
                   )}
@@ -819,21 +819,21 @@ const AdvancedGeneralLedger: React.FC = () => {
                     className={`p-2 rounded-lg border transition-colors ${
                       showCollaboration ? 'bg-orange-50 border-orange-300 text-orange-600' : 'border-gray-300 hover:bg-gray-50'
                     }`}
-                    title="Fonctionnalités collaboratives"
+                    title={t('gl.collaborationFeatures')}
                   >
                     <MessageSquare className="h-4 w-4" />
                   </button>
 
                   {/* ExportMenu rend son propre <button> → ne pas l'imbriquer dans un
                       <button> (validateDOMNesting). Un <span> porteur du title suffit. */}
-                  <span title="Exporter les résultats" className="inline-flex">
+                  <span title={t('gl.exportResults')} className="inline-flex">
                     <ExportMenu
                       data={accountsData as unknown as Record<string, unknown>[]}
                       filename="compte-detail"
                       columns={{
-                        compte: 'Compte',
-                        libelle: 'Libellé',
-                        soldeFermeture: 'Solde'
+                        compte: t('gl.colAccount'),
+                        libelle: t('gl.colLabel'),
+                        soldeFermeture: t('gl.colBalance')
                       }}
                       buttonText=""
                       buttonVariant="ghost"
@@ -842,7 +842,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
                   <button
                     className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                    title="Partager" aria-label="Partager">
+                    title={t('gl.share')} aria-label={t('gl.share')}>
                     <Share className="h-4 w-4" />
                   </button>
                 </div>
@@ -851,15 +851,15 @@ const AdvancedGeneralLedger: React.FC = () => {
               {/* Statistiques de recherche */}
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="bg-blue-50 p-3 rounded">
-                  <div className="text-xs text-blue-600">Écritures trouvées</div>
+                  <div className="text-xs text-blue-600">{t('gl.entriesFound')}</div>
                   <div className="font-semibold text-blue-900">{searchedEntries.length.toLocaleString('fr-FR')}</div>
                 </div>
                 <div className="bg-green-50 p-3 rounded">
-                  <div className="text-xs text-green-600">Comptes concernés</div>
+                  <div className="text-xs text-green-600">{t('gl.accountsConcerned')}</div>
                   <div className="font-semibold text-green-900">{searchComptesConcernes.toLocaleString('fr-FR')}</div>
                 </div>
                 <div className="bg-primary-50 p-3 rounded">
-                  <div className="text-xs text-primary-600">Comptes actifs</div>
+                  <div className="text-xs text-primary-600">{t('gl.activeAccounts')}</div>
                   <div className="font-semibold text-primary-900">{indicators.comptesActifs.toLocaleString('fr-FR')}</div>
                 </div>
               </div>
@@ -887,15 +887,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.debit')}</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.credit')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.journal')}</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">IA</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">{t('gl.ai')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">{t('gl.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {searchedEntries.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="px-6 py-10 text-center text-sm text-gray-500">
-                        {searchQuery.trim() ? `Aucun résultat pour « ${searchQuery.trim()} ».` : 'Aucune écriture pour la période sélectionnée.'}
+                        {searchQuery.trim() ? t('gl.noResultsFor', { query: searchQuery.trim() }) : t('gl.noEntriesPeriod')}
                       </td>
                     </tr>
                   ) : null}
@@ -945,9 +945,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className={`w-3 h-3 rounded-full ${
                             entry.confidence >= 95 ? 'bg-green-500' :
                             entry.confidence >= 85 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`} title={`Confiance IA: ${entry.confidence}%`}></div>
+                          }`} title={t('gl.aiConfidence', { value: String(entry.confidence) })}></div>
                           {entry.aiFlags.includes('anomaly_detected') && (
-                            <span title="Anomalie détectée"><AlertTriangle className="h-3 w-3 text-orange-500" /></span>
+                            <span title={t('gl.anomalyDetected')}><AlertTriangle className="h-3 w-3 text-orange-500" /></span>
                           )}
                           {entry.annotations > 0 && (
                             <div className="relative">
@@ -975,7 +975,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                               setShowDetailModal(true);
                             }}
                             className="p-1 text-gray-700 hover:text-blue-600"
-                            title="Voir détails"
+                            title={t('gl.viewDetails')}
                           >
                             <Eye className="h-4 w-4" />
                           </button>
@@ -993,7 +993,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                               setShowAnnotationModal(true);
                             }}
                             className="p-1 text-gray-700 hover:text-orange-600"
-                            title="Annoter"
+                            title={t('gl.annotate')}
                           >
                             <MessageSquare className="h-4 w-4" />
                           </button>
@@ -1008,7 +1008,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                               setFavorites(newFavorites);
                             }}
                             className={`p-1 ${favorites.has(entry.id) ? 'text-yellow-500' : 'text-gray-700'} hover:text-yellow-600`}
-                            title="Marquer favoris"
+                            title={t('gl.markFavorite')}
                           >
                             <Star className="h-4 w-4" fill={favorites.has(entry.id) ? 'currentColor' : 'none'} />
                           </button>
@@ -1018,7 +1018,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                               setShowShareModal(true);
                             }}
                             className="p-1 text-gray-700 hover:text-green-600"
-                            title="Partager"
+                            title={t('gl.share')}
                           >
                             <Share className="h-4 w-4" />
                           </button>
@@ -1033,7 +1033,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="px-6 py-4 border-t bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-700">
-                      Affichage de 1 à {Math.min(50, flatEntries.length)} sur {flatEntries.length.toLocaleString('fr-FR')} résultats
+                      {t('gl.paginationShowing', { to: String(Math.min(50, flatEntries.length)), total: flatEntries.length.toLocaleString('fr-FR') })}
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
@@ -1041,7 +1041,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         disabled
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        ← Précédent
+                        {t('gl.previous')}
                       </button>
                       <span className="px-3 py-1 text-sm bg-primary-100 text-primary-800 rounded font-medium">1</span>
                       <span className="px-2 py-1 text-sm text-gray-700">...</span>
@@ -1050,7 +1050,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         onClick={() => {}}
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
                       >
-                        Suivant →
+                        {t('gl.next')}
                       </button>
                     </div>
                   </div>
@@ -1064,17 +1064,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <Clock className="h-5 w-5 mr-2 text-blue-600" />
-                    Vue Chronologique - Janvier 2025
+                    {t('gl.timelineTitle')}
                   </h3>
                   <div className="flex space-x-2">
                     <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                      Mois
+                      {t('gl.month')}
                     </button>
                     <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                      Semaine
+                      {t('gl.week')}
                     </button>
                     <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded">
-                      Jour
+                      {t('gl.day')}
                     </button>
                   </div>
                 </div>
@@ -1083,7 +1083,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="space-y-6">
                   {timelineData.length === 0 && (
                     <div className="text-center py-10 text-sm text-gray-500">
-                      Aucune écriture pour la période sélectionnée.
+                      {t('gl.noEntriesPeriod')}
                     </div>
                   )}
                   {timelineData.map((day, dayIndex) => (
@@ -1094,7 +1094,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-semibold text-gray-900">{day.date}</h4>
                           <div className="flex items-center space-x-4 text-sm">
-                            <span className="text-gray-600">{day.entries} écritures</span>
+                            <span className="text-gray-600">{t('gl.entriesCount', { count: String(day.entries) })}</span>
                             <span className="font-medium text-gray-900">{fmt(day.total)}</span>
                           </div>
                         </div>
@@ -1113,7 +1113,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           ))}
                           {day.entries > 2 && (
                             <p className="text-sm text-blue-600">
-                              + {day.entries - 2} autre(s) écriture(s)
+                              {t('gl.moreEntries', { count: String(day.entries - 2) })}
                             </p>
                           )}
                         </div>
@@ -1124,7 +1124,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
                 <div className="flex justify-center pt-4">
                   <button className="px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50">
-                    Charger plus de dates
+                    {t('gl.loadMoreDates')}
                   </button>
                 </div>
               </div>
@@ -1136,14 +1136,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <GitBranch className="h-5 w-5 mr-2 text-primary-600" />
-                    Vue Hiérarchique - Plan Comptable
+                    {t('gl.hierarchyTitle')}
                   </h3>
                   <div className="flex space-x-2">
                     <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                      Tout réduire
+                      {t('gl.collapseAll')}
                     </button>
                     <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                      Tout développer
+                      {t('gl.expandAll')}
                     </button>
                   </div>
                 </div>
@@ -1152,7 +1152,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="space-y-2">
                   {hierarchyData.length === 0 && (
                     <div className="text-center py-10 text-sm text-gray-500">
-                      Aucun compte avec mouvement pour la période sélectionnée.
+                      {t('gl.noMovedAccounts')}
                     </div>
                   )}
                   {hierarchyData.map((classe, classeIndex) => (
@@ -1178,7 +1178,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             )}
                             <span className="font-semibold text-gray-900">{classe.classe}</span>
                           </div>
-                          <span className="text-sm text-gray-600">{classe.comptes.length} comptes</span>
+                          <span className="text-sm text-gray-600">{t('gl.accountsCount', { count: String(classe.comptes.length) })}</span>
                         </div>
                       </div>
 
@@ -1251,39 +1251,39 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-semibold text-primary-900 flex items-center">
                   <Brain className="w-5 h-5 mr-2" />
-                  Analyse IA Temps Réel
+                  {t('gl.realtimeAiAnalysis')}
                 </h4>
                 <div className="flex items-center space-x-2 text-sm text-primary-700">
                   <Sparkles className="w-4 h-4" />
-                  <span>Algorithmes avancés activés</span>
+                  <span>{t('gl.advancedAlgorithms')}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">Détection d'Anomalies</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">{t('gl.anomalyDetection')}</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
-                    <li>• 1 montant inhabituel détecté</li>
-                    <li>• Pattern temporel normal</li>
-                    <li>• Aucune fraude suspectée</li>
+                    <li>{t('gl.aiAnomaly1')}</li>
+                    <li>{t('gl.aiAnomaly2')}</li>
+                    <li>{t('gl.aiAnomaly3')}</li>
                   </ul>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">Insights Automatiques</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">{t('gl.autoInsights')}</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
-                    <li>• Pic d'activité en janvier</li>
-                    <li>• Corrélation banque-fournisseurs</li>
-                    <li>• Tendance positive +12%</li>
+                    <li>{t('gl.aiInsight1')}</li>
+                    <li>{t('gl.aiInsight2')}</li>
+                    <li>{t('gl.aiInsight3')}</li>
                   </ul>
                 </div>
 
                 <div className="bg-white p-4 rounded-lg border border-primary-200">
-                  <h5 className="font-medium text-primary-900 mb-2">Recommandations</h5>
+                  <h5 className="font-medium text-primary-900 mb-2">{t('gl.recommendations')}</h5>
                   <ul className="space-y-1 text-sm text-primary-800">
-                    <li>• Vérifier écriture 607000</li>
-                    <li>• Optimiser délais paiement</li>
-                    <li>• Archive anciens comptes</li>
+                    <li>{t('gl.aiReco1')}</li>
+                    <li>{t('gl.aiReco2')}</li>
+                    <li>{t('gl.aiReco3')}</li>
                   </ul>
                 </div>
               </div>
@@ -1296,11 +1296,11 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-semibold text-orange-900 flex items-center">
                   <Users className="w-5 h-5 mr-2" />
-                  Espace Collaboratif
+                  {t('gl.collaborativeSpace')}
                 </h4>
                 <div className="flex items-center space-x-2">
                   <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
-                    3 membres actifs
+                    {t('gl.activeMembers3')}
                   </span>
                 </div>
               </div>
@@ -1309,7 +1309,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="bg-white p-4 rounded-lg">
                   <h5 className="font-medium text-orange-900 mb-3 flex items-center">
                     <MessageSquare className="w-4 h-4 mr-2" />
-                    Annotations Récentes
+                    {t('gl.recentAnnotations')}
                   </h5>
                   <div className="space-y-3">
                     <div className="flex items-start space-x-3">
@@ -1318,12 +1318,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <div className="text-sm text-gray-900">
-                          <span className="font-medium">—</span> a commenté l'écriture 512000
+                          <span className="font-medium">—</span> {t('gl.commentedEntry')}
                         </div>
                         <div className="text-xs text-gray-700 mt-1">
-                          "Virement important à vérifier avec la direction"
+                          {t('gl.sampleComment')}
                         </div>
-                        <div className="text-xs text-gray-700 mt-1">Il y a 5 minutes</div>
+                        <div className="text-xs text-gray-700 mt-1">{t('gl.min5Ago')}</div>
                       </div>
                     </div>
 
@@ -1333,9 +1333,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <div className="text-sm text-gray-900">
-                          <span className="font-medium">Marie Leblanc</span> a validé l'écriture 401100
+                          <span className="font-medium">Marie Leblanc</span> {t('gl.validatedEntry')}
                         </div>
-                        <div className="text-xs text-gray-700 mt-1">Il y a 12 minutes</div>
+                        <div className="text-xs text-gray-700 mt-1">{t('gl.min12Ago')}</div>
                       </div>
                     </div>
                   </div>
@@ -1344,17 +1344,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="bg-white p-4 rounded-lg">
                   <h5 className="font-medium text-orange-900 mb-3 flex items-center">
                     <Star className="w-4 h-4 mr-2" />
-                    Recherches Favorites d'Équipe
+                    {t('gl.teamFavoriteSearches')}
                   </h5>
                   <div className="space-y-2">
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      Virements importants plus de 500K
+                      {t('gl.favSearch1')}
                     </button>
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      "Mouvements banque janvier"
+                      {t('gl.favSearch2')}
                     </button>
                     <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
-                      "Écritures nécessitant révision"
+                      {t('gl.favSearch3')}
                     </button>
                   </div>
                 </div>
@@ -1373,7 +1373,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Comptes</p>
+                  <p className="text-sm font-medium text-gray-600">{t('gl.totalAccountsLabel')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{indicators.totalComptes}</p>
                   <p className="text-xs text-gray-700">{t('accounting.chartOfAccounts')}</p>
                 </div>
@@ -1386,9 +1386,9 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Comptes Actifs</p>
+                  <p className="text-sm font-medium text-gray-600">{t('gl.activeAccountsLabel')}</p>
                   <p className="text-lg font-bold text-blue-600">{indicators.comptesActifs}</p>
-                  <p className="text-xs text-gray-700">Avec mouvements</p>
+                  <p className="text-xs text-gray-700">{t('gl.withMovements')}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -1399,9 +1399,9 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Écritures</p>
+                  <p className="text-sm font-medium text-gray-600">{t('gl.totalEntriesLabel')}</p>
                   <p className="text-lg font-bold text-green-600">{indicators.totalEcritures}</p>
-                  <p className="text-xs text-gray-700">Période actuelle</p>
+                  <p className="text-xs text-gray-700">{t('gl.currentPeriod')}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-green-600" />
@@ -1412,9 +1412,9 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Moy. Écritures</p>
+                  <p className="text-sm font-medium text-gray-600">{t('gl.avgEntries')}</p>
                   <p className="text-lg font-bold text-orange-600">{indicators.moyenneEcritures.toFixed(0)}</p>
-                  <p className="text-xs text-gray-700">Par compte actif</p>
+                  <p className="text-xs text-gray-700">{t('gl.perActiveAccount')}</p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                   <BarChart3 className="w-6 h-6 text-orange-600" />
@@ -1429,12 +1429,12 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Évolution des soldes */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Évolution des Soldes</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('gl.balanceEvolution')}</h3>
                 <div className="flex items-center space-x-2">
                   <select className="px-3 py-1 border border-gray-300 rounded text-sm">
-                    <option>6 derniers mois</option>
-                    <option>12 derniers mois</option>
-                    <option>Année complète</option>
+                    <option>{t('gl.last6Months')}</option>
+                    <option>{t('gl.last12Months')}</option>
+                    <option>{t('gl.fullYear')}</option>
                   </select>
                   <button className="p-2 text-gray-700 hover:text-gray-600">
                     <ZoomIn className="w-4 h-4" />
@@ -1448,8 +1448,8 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name="Actif" />
-                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name="Passif" />
+                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name={t('gl.assets')} />
+                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name={t('gl.liabilities')} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -1457,12 +1457,12 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Top comptes par activité */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Top Comptes Actifs</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('gl.topActiveAccounts')}</h3>
                 <button
                   onClick={() => { setSelectedAccount(''); setActiveView('accounts'); }}
                   className="p-2 text-gray-700 hover:text-[var(--color-primary)]"
-                  aria-label="Voir les comptes détaillés"
-                  title="Voir les comptes détaillés"
+                  aria-label={t('gl.viewDetailedAccounts')}
+                  title={t('gl.viewDetailedAccounts')}
                 >
                   <Eye className="w-4 h-4" />
                 </button>
@@ -1478,7 +1478,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       tabIndex={0}
                       onClick={() => { setSelectedAccount(account.compte); setActiveView('accounts'); }}
                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedAccount(account.compte); setActiveView('accounts'); } }}
-                      title={`Voir le détail du compte ${account.compte}`}
+                      title={t('gl.viewAccountDetail', { account: account.compte })}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-[var(--color-primary)]/5 hover:ring-1 hover:ring-[var(--color-primary)]/30 transition-all"
                     >
                       <div className="flex items-center space-x-3">
@@ -1494,7 +1494,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-gray-900">{account.nombreEcritures}</div>
-                        <div className="text-xs text-gray-700">écritures</div>
+                        <div className="text-xs text-gray-700">{t('gl.entriesWord')}</div>
                       </div>
                     </div>
                   ))}
@@ -1508,21 +1508,21 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Comptes sans mouvement — réel (plan comptable vs comptes mouvementés) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Comptes Inactifs</h4>
+                <h4 className="text-md font-semibold text-gray-900">{t('gl.inactiveAccounts')}</h4>
                 <AlertTriangle className="w-5 h-5 text-orange-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Sans mouvement (période)</span>
-                  <span className="text-sm font-medium text-orange-600">{dashboardStats.sansMouvement} comptes</span>
+                  <span className="text-sm text-gray-600">{t('gl.noMovementPeriod')}</span>
+                  <span className="text-sm font-medium text-orange-600">{t('gl.accountsCount', { count: String(dashboardStats.sansMouvement) })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Comptes mouvementés</span>
-                  <span className="text-sm font-medium text-green-600">{indicators.comptesActifs} comptes</span>
+                  <span className="text-sm text-gray-600">{t('gl.movedAccounts')}</span>
+                  <span className="text-sm font-medium text-green-600">{t('gl.accountsCount', { count: String(indicators.comptesActifs) })}</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-900">Plan comptable</span>
+                    <span className="text-sm font-medium text-gray-900">{t('gl.chartOfAccounts')}</span>
                     <span className="text-sm font-bold text-orange-600">{dashboardStats.totalComptes}</span>
                   </div>
                 </div>
@@ -1532,12 +1532,12 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Mouvements importants — réel (top comptes par nombre d'écritures) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Mouvements Majeurs</h4>
+                <h4 className="text-md font-semibold text-gray-900">{t('gl.majorMovements')}</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
                 {dashboardStats.topMouvements.length === 0 && (
-                  <p className="text-sm text-gray-500">Aucun mouvement sur la période.</p>
+                  <p className="text-sm text-gray-500">{t('gl.noMovementInPeriod')}</p>
                 )}
                 {dashboardStats.topMouvements.map((acc) => (
                   <div key={acc.compte} className="flex justify-between items-center">
@@ -1545,7 +1545,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <span className="text-sm font-medium text-gray-900">{acc.compte}</span>
                       <p className="text-xs text-gray-700">{(acc.libelle || '').substring(0, 28)}</p>
                     </div>
-                    <span className="text-sm font-medium text-blue-600">{acc.nombreEcritures} mvts</span>
+                    <span className="text-sm font-medium text-blue-600">{t('gl.movementsCount', { count: String(acc.nombreEcritures) })}</span>
                   </div>
                 ))}
               </div>
@@ -1554,21 +1554,21 @@ const AdvancedGeneralLedger: React.FC = () => {
             {/* Soldes significatifs — réel (buckets sur soldes de clôture) */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-gray-900">Soldes Importants</h4>
+                <h4 className="text-md font-semibold text-gray-900">{t('gl.significantBalances')}</h4>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Plus de 10M</span>
-                  <span className="text-sm font-medium text-green-600">{dashboardStats.plus10M} comptes</span>
+                  <span className="text-sm text-gray-600">{t('gl.over10M')}</span>
+                  <span className="text-sm font-medium text-green-600">{t('gl.accountsCount', { count: String(dashboardStats.plus10M) })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Plus de 5M</span>
-                  <span className="text-sm font-medium text-blue-600">{dashboardStats.plus5M} comptes</span>
+                  <span className="text-sm text-gray-600">{t('gl.over5M')}</span>
+                  <span className="text-sm font-medium text-blue-600">{t('gl.accountsCount', { count: String(dashboardStats.plus5M) })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Plus de 1M</span>
-                  <span className="text-sm font-medium text-gray-600">{dashboardStats.plus1M} comptes</span>
+                  <span className="text-sm text-gray-600">{t('gl.over1M')}</span>
+                  <span className="text-sm font-medium text-gray-600">{t('gl.accountsCount', { count: String(dashboardStats.plus1M) })}</span>
                 </div>
               </div>
             </div>
@@ -1583,16 +1583,16 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Sélecteur de compte */}
           <div className="bg-white p-4 border-b border-gray-200">
             <div className="flex items-center space-x-4">
-              <h3 className="text-lg font-semibold text-gray-900">Sélection du Compte</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('gl.accountSelection')}</h3>
               <select 
                 value={selectedAccount}
                 onChange={(e) => setSelectedAccount(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg font-mono"
               >
-                <option value="">-- Sélectionner un compte --</option>
+                <option value="">{t('gl.selectAnAccount')}</option>
                 {accountsData.map((acc) => (
                   <option key={acc.compte} value={acc.compte}>
-                    {acc.compte} - {acc.libelle} ({acc.nombreEcritures} écritures)
+                    {acc.compte} - {acc.libelle} ({t('gl.entriesCount', { count: String(acc.nombreEcritures) })})
                   </option>
                 ))}
               </select>
@@ -1612,18 +1612,18 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">
-                            Compte {account.compte}
+                            {t('gl.accountNo', { account: account.compte })}
                           </h3>
                           <p className="text-gray-600">{account.libelle}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <SpaceLinkBadge
                             context={{
-                              anchorType: 'account_period', anchorLabel: `Compte ${account.compte} · ${account.libelle}`,
+                              anchorType: 'account_period', anchorLabel: t('gl.anchorLabel', { account: account.compte, label: account.libelle }),
                               accountCode: account.compte, initialGap: Math.abs(account.soldeFermeture),
-                              title: `Anomalie compte ${account.compte}`,
-                              problem: `À instruire sur le compte ${account.compte} — ${account.libelle} (solde ${fmt(account.soldeFermeture)}).`,
-                              objective: `Résoudre l'anomalie du compte ${account.compte}.`,
+                              title: t('gl.anomalyTitle', { account: account.compte }),
+                              problem: t('gl.anomalyProblem', { account: account.compte, label: account.libelle, balance: fmt(account.soldeFermeture) }),
+                              objective: t('gl.anomalyObjective', { account: account.compte }),
                             }}
                             match={{ accountCode: account.compte }}
                           />
@@ -1631,7 +1631,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             <div className="text-lg font-bold text-[var(--color-primary)]">
                               {fmt(account.soldeFermeture)}
                             </div>
-                            <div className="text-sm text-gray-700">Solde actuel</div>
+                            <div className="text-sm text-gray-700">{t('gl.currentBalance')}</div>
                           </div>
                         </div>
                       </div>
@@ -1642,23 +1642,23 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <div className="text-lg font-bold text-blue-600">
                             {fmt(account.soldeOuverture)}
                           </div>
-                          <div className="text-xs text-gray-600">Solde ouverture</div>
+                          <div className="text-xs text-gray-600">{t('gl.openingBalance')}</div>
                         </div>
                         <div className="text-center p-3 bg-green-50 rounded-lg">
                           <div className="text-lg font-bold text-green-600">
                             {fmt(account.totalDebit)}
                           </div>
-                          <div className="text-xs text-gray-600">Total débit</div>
+                          <div className="text-xs text-gray-600">{t('gl.totalDebit')}</div>
                         </div>
                         <div className="text-center p-3 bg-orange-50 rounded-lg">
                           <div className="text-lg font-bold text-orange-600">
                             {fmt(account.totalCredit)}
                           </div>
-                          <div className="text-xs text-gray-600">Total crédit</div>
+                          <div className="text-xs text-gray-600">{t('gl.totalCredit')}</div>
                         </div>
                         <div className="text-center p-3 bg-primary-50 rounded-lg">
                           <div className="text-lg font-bold text-primary-600">{account.nombreEcritures}</div>
-                          <div className="text-xs text-gray-600">Nb écritures</div>
+                          <div className="text-xs text-gray-600">{t('gl.entryCount')}</div>
                         </div>
                       </div>
                     </div>
@@ -1669,13 +1669,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('common.date')}</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">N° Pièce</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('gl.documentNo')}</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.label')}</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.debit')}</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.credit')}</th>
                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('accounting.balance')}</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Centre</th>
-                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">{t('gl.center')}</th>
+                            <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">{t('gl.actions')}</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -1701,7 +1701,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                 {entry.centreCout || '-'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-center">
-                                <button className="text-blue-600 hover:text-blue-900" title="Voir détail" aria-label="Voir les détails">
+                                <button className="text-blue-600 hover:text-blue-900" title={t('gl.viewDetail')} aria-label={t('gl.viewDetails')}>
                                   <Eye className="w-4 h-4" />
                                 </button>
                               </td>
@@ -1725,7 +1725,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Grand Livre des Comptes</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('gl.accountsLedger')}</h3>
 
                   {/* Dropdown Type de Grand Livre */}
                   <select
@@ -1733,11 +1733,11 @@ const AdvancedGeneralLedger: React.FC = () => {
                     onChange={(e) => setLedgerType(e.target.value as typeof ledgerType)}
                     className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                   >
-                    <option value="general">Général - Tous comptes/écritures</option>
-                    <option value="account">Par compte - Compte spécifique</option>
-                    <option value="journal">Par journal - Regroupé par journal</option>
-                    <option value="auxiliary">Auxiliaire - Tiers détaillés</option>
-                    <option value="summary">Cumulé/Récapitulatif - Totaux</option>
+                    <option value="general">{t('gl.ledgerTypeGeneral')}</option>
+                    <option value="account">{t('gl.ledgerTypeAccount')}</option>
+                    <option value="journal">{t('gl.ledgerTypeJournal')}</option>
+                    <option value="auxiliary">{t('gl.ledgerTypeAuxiliary')}</option>
+                    <option value="summary">{t('gl.ledgerTypeSummary')}</option>
                   </select>
 
                   {/* Boutons de mode d'affichage */}
@@ -1749,10 +1749,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                           ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
-                      title="Vue détaillée"
+                      title={t('gl.detailedViewTitle')}
                     >
                       <FileText className="w-4 h-4 mr-1.5 inline" />
-                      Détaillé
+                      {t('gl.detailed')}
                     </button>
                     <button
                       onClick={() => setLedgerViewMode('tree')}
@@ -1761,10 +1761,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                           ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
-                      title="Vue arborescence"
+                      title={t('gl.treeViewTitle')}
                     >
                       <Layers className="w-4 h-4 mr-1.5 inline" />
-                      Arborescence
+                      {t('gl.tree')}
                     </button>
                     <button
                       onClick={() => setLedgerViewMode('list')}
@@ -1773,10 +1773,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                           ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium'
                           : 'text-gray-600 hover:bg-white/50'
                       }`}
-                      title="Vue liste"
+                      title={t('gl.listViewTitle')}
                     >
                       <List className="w-4 h-4 mr-1.5 inline" />
-                      Liste
+                      {t('gl.list')}
                     </button>
                   </div>
 
@@ -1790,18 +1790,18 @@ const AdvancedGeneralLedger: React.FC = () => {
                           setExpandedAccounts(allCodes);
                         }}
                         className="px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-all"
-                        title="Étendre tout"
+                        title={t('gl.expandAll')}
                       >
                         <ChevronDown className="w-4 h-4 mr-1 inline" />
-                        Tout étendre
+                        {t('gl.expandAll')}
                       </button>
                       <button
                         onClick={() => setExpandedAccounts(new Set())}
                         className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-all"
-                        title="Rétracter tout"
+                        title={t('gl.collapseAll')}
                       >
                         <ChevronRight className="w-4 h-4 mr-1 inline" />
-                        Tout rétracter
+                        {t('gl.collapseAll')}
                       </button>
                     </div>
                   )}
@@ -1813,27 +1813,27 @@ const AdvancedGeneralLedger: React.FC = () => {
                     onChange={(e) => setSelectedClasse(e.target.value)}
                     className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                   >
-                    <option value="all">Tous les comptes</option>
-                    <option value="1">Classe 1 - Comptes de ressources durables</option>
-                    <option value="2">Classe 2 - Comptes d'actif immobilisé</option>
-                    <option value="3">Classe 3 - Comptes de stocks</option>
-                    <option value="4">Classe 4 - Comptes de tiers</option>
-                    <option value="5">Classe 5 - Comptes de trésorerie</option>
-                    <option value="6">Classe 6 - Comptes de charges</option>
-                    <option value="7">Classe 7 - Comptes de produits</option>
+                    <option value="all">{t('gl.allAccounts')}</option>
+                    <option value="1">{t('gl.classFilter1')}</option>
+                    <option value="2">{t('gl.classFilter2')}</option>
+                    <option value="3">{t('gl.classFilter3')}</option>
+                    <option value="4">{t('gl.classFilter4')}</option>
+                    <option value="5">{t('gl.classFilter5')}</option>
+                    <option value="6">{t('gl.classFilter6')}</option>
+                    <option value="7">{t('gl.classFilter7')}</option>
                   </select>
                   <select
                     value={soldeMode}
                     onChange={(e) => setSoldeMode(e.target.value as 'progressif' | 'dc')}
                     className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                    title="Affichage du solde"
+                    title={t('gl.balanceDisplay')}
                   >
-                    <option value="progressif">Solde progressif</option>
-                    <option value="dc">Solde Débiteur / Créditeur</option>
+                    <option value="progressif">{t('gl.runningBalance')}</option>
+                    <option value="dc">{t('gl.debitCreditBalance')}</option>
                   </select>
                   <button className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
                     <Calendar className="w-4 h-4 mr-1 inline" />
-                    Période
+                    {t('gl.period')}
                   </button>
                 </div>
               </div>
@@ -1849,17 +1849,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                   const getClasseLabel = (code: string): string => {
                     const c = code.charAt(0);
                     const labels: Record<string, string> = {
-                      '1': 'Comptes de ressources durables',
-                      '2': "Comptes d'actif immobilise",
-                      '3': 'Comptes de stocks',
-                      '4': 'Comptes de tiers',
-                      '5': 'Comptes de tresorerie',
-                      '6': 'Comptes de charges',
-                      '7': 'Comptes de produits',
-                      '8': 'Comptes speciaux',
-                      '9': 'Comptes analytiques',
+                      '1': t('gl.classShort1'),
+                      '2': t('gl.classShort2'),
+                      '3': t('gl.classShort3'),
+                      '4': t('gl.classShort4'),
+                      '5': t('gl.classShort5'),
+                      '6': t('gl.classShort6'),
+                      '7': t('gl.classShort7'),
+                      '8': t('gl.classShort8'),
+                      '9': t('gl.classShort9'),
                     };
-                    return labels[c] || 'Autres';
+                    return labels[c] || t('gl.other');
                   };
 
                   const baseData = accountsData.map(acc => {
@@ -1930,9 +1930,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                               <tr>
                                 <th className="px-4 py-3 text-left font-semibold text-gray-700">{t('accounting.account')}</th>
                                 <th className="px-4 py-3 text-left font-semibold text-gray-700">{t('accounting.label')}</th>
-                                <th className="px-4 py-3 text-left font-semibold text-gray-700">Classe</th>
-                                <th className="px-4 py-3 text-right font-semibold text-gray-700">Total Débit</th>
-                                <th className="px-4 py-3 text-right font-semibold text-gray-700">Total Crédit</th>
+                                <th className="px-4 py-3 text-left font-semibold text-gray-700">{t('gl.class')}</th>
+                                <th className="px-4 py-3 text-right font-semibold text-gray-700">{t('gl.totalDebit')}</th>
+                                <th className="px-4 py-3 text-right font-semibold text-gray-700">{t('gl.totalCredit')}</th>
                                 <th className="px-4 py-3 text-right font-semibold text-gray-700">{t('accounting.balance')}</th>
                               </tr>
                             </thead>
@@ -1980,7 +1980,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <button
                                     onClick={toggleExpand}
                                     className="p-1 hover:bg-white/20 rounded transition-colors"
-                                    title={isExpanded ? "Rétracter" : "Étendre"} aria-label="Ouvrir le menu">
+                                    title={isExpanded ? t('gl.collapse') : t('gl.expand')} aria-label={t('gl.openMenu')}>
                                     {isExpanded ? (
                                       <ChevronDown className="w-5 h-5" />
                                     ) : (
@@ -1993,21 +1993,21 @@ const AdvancedGeneralLedger: React.FC = () => {
                                     <div className="text-sm text-white/80">{compte.classe}</div>
                                     {ledgerType !== 'general' && (
                                       <div className="text-xs text-white/60 mt-1">
-                                        {ledgerType === 'account' && 'Vue par compte spécifique'}
-                                        {ledgerType === 'journal' && 'Vue par journal'}
-                                        {ledgerType === 'auxiliary' && 'Vue auxiliaire des tiers'}
+                                        {ledgerType === 'account' && t('gl.viewByAccount')}
+                                        {ledgerType === 'journal' && t('gl.viewByJournal')}
+                                        {ledgerType === 'auxiliary' && t('gl.viewAuxiliary')}
                                       </div>
                                     )}
                                   </div>
                                 </div>
                                 <div className="flex items-center space-x-4">
                                   <div className="text-right">
-                                    <div className="text-sm text-white/80">Solde actuel</div>
+                                    <div className="text-sm text-white/80">{t('gl.currentBalance')}</div>
                                     <div className="text-lg font-bold">
                                       {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                                     </div>
                                     <div className="text-sm text-white/80">
-                                      {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
+                                      {compte.solde.debit > compte.solde.credit ? t('gl.debitor') : t('gl.creditor')}
                                     </div>
                                   </div>
                                 </div>
@@ -2021,19 +2021,19 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <thead className="bg-gray-50">
                                     <tr>
                                       <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('common.date')}</th>
-                                      <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">N° Pièce</th>
+                                      <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('gl.documentNo')}</th>
                                       <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
                                       <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('accounting.journal')}</th>
-                                      <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Contrepartie</th>
+                                      <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">{t('gl.counterpart')}</th>
                                       <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('thirdParty.reconciliation')}</th>
                                       <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.debit')}</th>
                                       <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.credit')}</th>
                                       {soldeMode === 'progressif' ? (
-                                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde progressif</th>
+                                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('gl.runningBalance')}</th>
                                       ) : (
                                         <>
-                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde Débiteur</th>
-                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Solde Créditeur</th>
+                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('gl.debitBalanceCol')}</th>
+                                          <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('gl.creditBalanceCol')}</th>
                                         </>
                                       )}
                                     </tr>
@@ -2086,7 +2086,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   </tbody>
                                   <tfoot className="bg-gray-50">
                                     <tr>
-                                      <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">Totaux</td>
+                                      <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">{t('gl.totals')}</td>
                                       <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
                                         {fmt(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                                       </td>
@@ -2152,12 +2152,12 @@ const AdvancedGeneralLedger: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm text-white/80">Solde actuel</div>
+                            <div className="text-sm text-white/80">{t('gl.currentBalance')}</div>
                             <div className="text-lg font-bold">
                               {fmt(money(compte.solde.debit).subtract(money(compte.solde.credit)).toNumber())}
                             </div>
                             <div className="text-sm text-white/80">
-                              {compte.solde.debit > compte.solde.credit ? 'Débiteur' : 'Créditeur'}
+                              {compte.solde.debit > compte.solde.credit ? t('gl.debitor') : t('gl.creditor')}
                             </div>
                           </div>
                         </div>
@@ -2169,10 +2169,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <thead className="bg-gray-50">
                             <tr>
                               <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('common.date')}</th>
-                              <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">N° Pièce</th>
+                              <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('gl.documentNo')}</th>
                               <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
                               <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('accounting.journal')}</th>
-                              <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Contrepartie</th>
+                              <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">{t('gl.counterpart')}</th>
                               <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('thirdParty.reconciliation')}</th>
                               <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.debit')}</th>
                               <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.credit')}</th>
@@ -2216,7 +2216,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           </tbody>
                           <tfoot className="bg-gray-50">
                             <tr>
-                              <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">Totaux</td>
+                              <td colSpan={6} className="px-3 py-3 font-semibold text-gray-700 text-xs">{t('gl.totals')}</td>
                               <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
                                 {fmt(compte.mouvements.reduce((sum, m) => sum + m.debit, 0))}
                               </td>
@@ -2254,15 +2254,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                           '9': { bg: 'bg-amber-100', text: 'text-amber-700' },
                         };
                         const classeLabels: Record<string, string> = {
-                          '1': 'Comptes de ressources durables',
-                          '2': "Comptes d'actif immobilise",
-                          '3': 'Comptes de stocks',
-                          '4': 'Comptes de tiers',
-                          '5': 'Comptes de tresorerie',
-                          '6': 'Comptes de charges',
-                          '7': 'Comptes de produits',
-                          '8': 'Comptes speciaux',
-                          '9': 'Comptes analytiques',
+                          '1': t('gl.classShort1'),
+                          '2': t('gl.classShort2'),
+                          '3': t('gl.classShort3'),
+                          '4': t('gl.classShort4'),
+                          '5': t('gl.classShort5'),
+                          '6': t('gl.classShort6'),
+                          '7': t('gl.classShort7'),
+                          '8': t('gl.classShort8'),
+                          '9': t('gl.classShort9'),
                         };
                         const grouped = new Map<string, typeof accountsData>();
                         accountsData.forEach(acc => {
@@ -2274,7 +2274,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         if (grouped.size === 0) {
                           return (
                             <div className="p-8 text-center text-sm text-gray-500">
-                              Aucun compte a afficher
+                              {t('gl.noAccountsToShow')}
                             </div>
                           );
                         }
@@ -2289,13 +2289,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                                   <ChevronRight className="w-4 h-4 text-gray-700" />
                                   <div className={`w-8 h-8 ${colors.bg} ${colors.text} rounded-full flex items-center justify-center text-sm font-bold`}>{cls}</div>
                                   <div>
-                                    <div className="font-semibold text-gray-900">{classeLabels[cls] || `Classe ${cls}`}</div>
-                                    <div className="text-sm text-gray-700">{accs.length} compte{accs.length > 1 ? 's' : ''}</div>
+                                    <div className="font-semibold text-gray-900">{classeLabels[cls] || t('gl.classN', { n: cls })}</div>
+                                    <div className="text-sm text-gray-700">{t('gl.accountsCount', { count: String(accs.length) })}</div>
                                   </div>
                                 </div>
                                 <div className="text-right">
                                   <div className="text-lg font-bold text-gray-900">{fmt(Math.abs(totalSolde))}</div>
-                                  <div className="text-sm text-gray-700">{totalSolde >= 0 ? 'Debiteur' : 'Crediteur'}</div>
+                                  <div className="text-sm text-gray-700">{totalSolde >= 0 ? t('gl.debitor') : t('gl.creditor')}</div>
                                 </div>
                               </div>
                               <div className="pl-10 bg-gray-50/50">
@@ -2311,7 +2311,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                                         <div className="text-right">
                                           <div className="text-sm font-medium">{fmt(Math.abs(solde))}</div>
                                           <div className={`text-xs ${solde >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                            {solde >= 0 ? 'Debiteur' : 'Crediteur'}
+                                            {solde >= 0 ? t('gl.debitor') : t('gl.creditor')}
                                           </div>
                                         </div>
                                       </div>
@@ -2337,18 +2337,18 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <tr>
                         <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.account')}</th>
                         <th className="px-4 py-3 text-left font-semibold text-gray-700 text-xs">{t('accounting.label')}</th>
-                        <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">Classe</th>
-                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Debit</th>
-                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">Total Credit</th>
+                        <th className="px-3 py-3 text-left font-semibold text-gray-700 text-xs">{t('gl.class')}</th>
+                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('gl.totalDebit')}</th>
+                        <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('gl.totalCredit')}</th>
                         <th className="px-3 py-3 text-right font-semibold text-gray-700 text-xs">{t('accounting.balance')}</th>
-                        <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">Mvts</th>
-                        <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">Actions</th>
+                        <th className="px-2 py-3 text-center font-semibold text-gray-700 text-xs">{t('gl.movementsAbbr')}</th>
+                        <th className="px-3 py-3 text-center font-semibold text-gray-700 text-xs">{t('gl.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {accountsData.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500">Aucun compte a afficher</td>
+                          <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500">{t('gl.noAccountsToShow')}</td>
                         </tr>
                       ) : accountsData.map((acc) => {
                         const solde = acc.totalDebit - acc.totalCredit;
@@ -2357,7 +2357,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           <tr key={acc.compte} className="hover:bg-gray-50 border-b">
                             <td className="px-3 py-2 font-mono text-[var(--color-primary)] font-bold text-xs">{acc.compte}</td>
                             <td className="px-4 py-2 text-gray-900 text-xs">{acc.libelle}</td>
-                            <td className="px-3 py-2 text-gray-600 text-xs">Classe {classeNum}</td>
+                            <td className="px-3 py-2 text-gray-600 text-xs">{t('gl.classN', { n: classeNum })}</td>
                             <td className="px-3 py-2 text-right text-red-600 font-medium text-xs">{fmt(acc.totalDebit)}</td>
                             <td className="px-3 py-2 text-right text-green-600 font-medium text-xs">{fmt(acc.totalCredit)}</td>
                             <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">{fmt(solde)}</td>
@@ -2366,7 +2366,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                             </td>
                             <td className="px-3 py-2 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button className="p-1 text-blue-600 hover:text-blue-900" title="Voir details" aria-label="Voir les details">
+                                <button className="p-1 text-blue-600 hover:text-blue-900" title={t('gl.viewDetail')} aria-label={t('gl.viewDetails')}>
                                   <Eye className="w-3 h-3" />
                                 </button>
                               </div>
@@ -2377,7 +2377,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                     </tbody>
                     <tfoot className="bg-gray-50">
                       <tr>
-                        <td colSpan={3} className="px-3 py-3 font-bold text-gray-900 text-xs">TOTAUX GENERAUX</td>
+                        <td colSpan={3} className="px-3 py-3 font-bold text-gray-900 text-xs">{t('gl.grandTotals')}</td>
                         <td className="px-3 py-3 text-right font-bold text-red-600 text-xs">
                           {fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))}
                         </td>
@@ -2404,28 +2404,28 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border-2 border-[var(--color-primary)] mt-6">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3 flex items-center">
               <Calculator className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-              Contrôle d'équilibre
+              {t('gl.balanceCheck')}
             </h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-[var(--color-text-tertiary)]">Balance A Nouveau</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('gl.openingBalanceCheck')}</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debit: <span className="font-bold">{fmt(accountsData.reduce((s, a) => s + a.soldeOuverture, 0))}</span></p>
-                  <p className="text-sm">Credit: <span className="font-bold">0</span></p>
+                  <p className="text-sm">{t('gl.debitLabel')} <span className="font-bold">{fmt(accountsData.reduce((s, a) => s + a.soldeOuverture, 0))}</span></p>
+                  <p className="text-sm">{t('gl.creditLabel')} <span className="font-bold">0</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-orange-50 rounded-lg">
-                <p className="text-sm text-[var(--color-text-tertiary)]">Mouvements Periode</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('gl.periodMovements')}</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debit: <span className="font-bold text-red-600">{fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))}</span></p>
-                  <p className="text-sm">Credit: <span className="font-bold text-green-600">{fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}</span></p>
+                  <p className="text-sm">{t('gl.debitLabel')} <span className="font-bold text-red-600">{fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))}</span></p>
+                  <p className="text-sm">{t('gl.creditLabel')} <span className="font-bold text-green-600">{fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}</span></p>
                 </div>
               </div>
               <div className="text-center p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-[var(--color-text-tertiary)]">Soldes Fin Periode</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('gl.periodEndBalances')}</p>
                 <div className="mt-2">
-                  <p className="text-sm">Debiteur: <span className="font-bold text-red-600">{fmt(accountsData.filter(a => a.soldeFermeture > 0).reduce((s, a) => s + a.soldeFermeture, 0))}</span></p>
-                  <p className="text-sm">Crediteur: <span className="font-bold text-green-600">{fmt(Math.abs(accountsData.filter(a => a.soldeFermeture < 0).reduce((s, a) => s + a.soldeFermeture, 0)))}</span></p>
+                  <p className="text-sm">{t('gl.debitorLabel')} <span className="font-bold text-red-600">{fmt(accountsData.filter(a => a.soldeFermeture > 0).reduce((s, a) => s + a.soldeFermeture, 0))}</span></p>
+                  <p className="text-sm">{t('gl.creditorLabel')} <span className="font-bold text-green-600">{fmt(Math.abs(accountsData.filter(a => a.soldeFermeture < 0).reduce((s, a) => s + a.soldeFermeture, 0)))}</span></p>
                 </div>
               </div>
             </div>
@@ -2442,16 +2442,16 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-primary-900 flex items-center">
                 <Brain className="w-6 h-6 mr-3" />
-                Intelligence Artificielle Comptable
+                {t('gl.accountingAi')}
               </h3>
               <div className="flex items-center space-x-2">
                 <span className="px-3 py-1 bg-primary-200 text-primary-800 text-sm rounded-full font-medium">
-                  Analyse heuristique
+                  {t('gl.heuristicAnalysis')}
                 </span>
                 <button
                   onClick={() => setShowAISettingsModal(true)}
                   className="p-2 bg-white border border-primary-300 rounded-lg hover:bg-primary-50"
-                  title="Paramètres IA"
+                  title={t('gl.aiSettings')}
                 >
                   <Settings className="h-4 w-4 text-primary-600" />
                 </button>
@@ -2461,43 +2461,43 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-primary-900">Détection Anomalies</h4>
+                  <h4 className="text-sm font-medium text-primary-900">{t('gl.anomalyDetectionShort')}</h4>
                   <AlertTriangle className="h-5 w-5 text-orange-500" />
                 </div>
                 <div className="text-lg font-bold text-primary-900">{aiMetrics?.anomalies.length ?? 0}</div>
-                <div className="text-xs text-primary-600">sur {(aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR')} écritures</div>
-                <div className="mt-2 text-xs text-orange-600">montants inhabituels (≥5× la moyenne du compte)</div>
+                <div className="text-xs text-primary-600">{t('gl.outOfEntries', { count: (aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR') })}</div>
+                <div className="mt-2 text-xs text-orange-600">{t('gl.unusualAmountsHint')}</div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-primary-900">Patterns Identifiés</h4>
+                  <h4 className="text-sm font-medium text-primary-900">{t('gl.identifiedPatterns')}</h4>
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 </div>
                 <div className="text-lg font-bold text-primary-900">{aiMetrics?.patterns ?? 0}</div>
-                <div className="text-xs text-primary-600">libellés récurrents (≥3 occurrences)</div>
+                <div className="text-xs text-primary-600">{t('gl.recurringLabels')}</div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-primary-900">Score Conformité</h4>
+                  <h4 className="text-sm font-medium text-primary-900">{t('gl.complianceScore')}</h4>
                   <Award className="h-5 w-5 text-green-500" />
                 </div>
                 <div className="text-lg font-bold text-primary-900">{(aiMetrics?.conformite ?? 100).toFixed(1)}%</div>
-                <div className="text-xs text-primary-600">écritures équilibrées</div>
+                <div className="text-xs text-primary-600">{t('gl.balancedEntries')}</div>
                 <div className={`mt-2 text-xs ${(aiMetrics?.conformite ?? 100) >= 99 ? 'text-green-600' : 'text-orange-600'}`}>
-                  {(aiMetrics?.conformite ?? 100) >= 99 ? 'Excellent niveau' : `${aiMetrics?.unbalanced ?? 0} à corriger`}
+                  {(aiMetrics?.conformite ?? 100) >= 99 ? t('gl.excellentLevel') : t('gl.toFixCount', { count: String(aiMetrics?.unbalanced ?? 0) })}
                 </div>
               </div>
 
               <div className="bg-white p-4 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-primary-900">Écritures à équilibrer</h4>
+                  <h4 className="text-sm font-medium text-primary-900">{t('gl.entriesToBalance')}</h4>
                   <Target className="h-5 w-5 text-blue-500" />
                 </div>
                 <div className="text-lg font-bold text-primary-900">{aiMetrics?.unbalanced ?? 0}</div>
-                <div className="text-xs text-primary-600">débit ≠ crédit</div>
-                <div className="mt-2 text-xs text-blue-600">{(aiMetrics?.unbalanced ?? 0) === 0 ? 'Toutes équilibrées' : 'À vérifier'}</div>
+                <div className="text-xs text-primary-600">{t('gl.debitNotEqualCredit')}</div>
+                <div className="mt-2 text-xs text-blue-600">{(aiMetrics?.unbalanced ?? 0) === 0 ? t('gl.allBalanced') : t('gl.toCheck')}</div>
               </div>
             </div>
           </div>
@@ -2507,13 +2507,13 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <AlertTriangle className="w-5 h-5 mr-2 text-orange-500" />
-                Anomalies Détectées
+                {t('gl.detectedAnomalies')}
               </h4>
 
               <div className="space-y-4">
                 {(!aiMetrics || aiMetrics.anomalies.length === 0) ? (
                   <div className="border border-green-200 rounded-lg p-4 bg-green-50 text-sm text-green-800">
-                    Aucun montant inhabituel détecté (seuil : montant ≥ 5× la moyenne du compte).
+                    {t('gl.noUnusualAmount')}
                   </div>
                 ) : (
                   aiMetrics.anomalies.slice(0, 5).map((a, i) => (
@@ -2521,13 +2521,13 @@ const AdvancedGeneralLedger: React.FC = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-2">
-                            <span className="text-sm font-medium text-orange-900">Montant inhabituel</span>
+                            <span className="text-sm font-medium text-orange-900">{t('gl.unusualAmount')}</span>
                             <span className="px-2 py-1 bg-orange-200 text-orange-800 text-xs rounded-full">
-                              {a.factor >= 10 ? 'CRITIQUE' : 'ATTENTION'}
+                              {a.factor >= 10 ? t('gl.critical') : t('gl.warning')}
                             </span>
                           </div>
                           <div className="text-sm text-orange-800">
-                            Compte {a.compte} — {fmt(a.montant)} ({a.factor.toFixed(1)}× la moyenne du compte)
+                            {t('gl.anomalyLine', { account: a.compte, amount: fmt(a.montant), factor: a.factor.toFixed(1) })}
                           </div>
                           <div className="text-xs text-orange-600 mt-1">
                             {a.libelle ? `${a.libelle} • ` : ''}{new Date(a.date).toLocaleDateString('fr-FR')}
@@ -2536,7 +2536,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                         <button
                           onClick={() => { setSelectedAccount(a.compte); setActiveView('accounts'); }}
                           className="text-orange-600 hover:text-orange-800"
-                          title="Voir le compte"
+                          title={t('gl.viewAccount')}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -2549,14 +2549,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium text-green-900">Conformité (équilibre)</span>
-                        <span className="px-2 py-1 bg-green-200 text-green-800 text-xs rounded-full">RÉEL</span>
+                        <span className="text-sm font-medium text-green-900">{t('gl.complianceBalance')}</span>
+                        <span className="px-2 py-1 bg-green-200 text-green-800 text-xs rounded-full">{t('gl.real')}</span>
                       </div>
                       <div className="text-sm text-green-800">
-                        {(aiMetrics?.conformite ?? 100).toFixed(1)}% des écritures équilibrées ({(aiMetrics?.balanced ?? 0).toLocaleString('fr-FR')}/{(aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR')})
+                        {t('gl.balancedRatio', { pct: (aiMetrics?.conformite ?? 100).toFixed(1), balanced: (aiMetrics?.balanced ?? 0).toLocaleString('fr-FR'), total: (aiMetrics?.totalEntries ?? 0).toLocaleString('fr-FR') })}
                       </div>
                       <div className="text-xs text-green-600 mt-1">
-                        {aiMetrics?.unbalanced ?? 0} écriture(s) à corriger
+                        {t('gl.entriesToFix', { count: String(aiMetrics?.unbalanced ?? 0) })}
                       </div>
                     </div>
                     <CheckCircle className="h-5 w-5 text-green-500" />
@@ -2569,14 +2569,14 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Sparkles className="w-5 h-5 mr-2 text-primary-500" />
-                Synthèse comptable (réel)
+                {t('gl.accountingSummary')}
               </h4>
 
               <div className="space-y-4">
                 <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                   <div className="flex items-center space-x-2 mb-2">
                     <TrendingUp className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-900">Compte le plus actif</span>
+                    <span className="text-sm font-medium text-blue-900">{t('gl.mostActiveAccount')}</span>
                   </div>
                   <div className="text-sm text-blue-800">
                     {dashboardStats.topMouvements[0]
@@ -2585,7 +2585,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
                     {dashboardStats.topMouvements[0]
-                      ? `${dashboardStats.topMouvements[0].nombreEcritures.toLocaleString('fr-FR')} écritures`
+                      ? t('gl.entriesCount', { count: dashboardStats.topMouvements[0].nombreEcritures.toLocaleString('fr-FR') })
                       : ''}
                   </div>
                 </div>
@@ -2593,26 +2593,26 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
                   <div className="flex items-center space-x-2 mb-2">
                     <BarChart3 className="w-4 h-4 text-primary-600" />
-                    <span className="text-sm font-medium text-primary-900">Mouvements de la période</span>
+                    <span className="text-sm font-medium text-primary-900">{t('gl.periodMovementsLabel')}</span>
                   </div>
                   <div className="text-sm text-primary-800">
-                    Débit {fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0))} · Crédit {fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0))}
+                    {t('gl.debitCreditSummary', { debit: fmt(accountsData.reduce((s, a) => s + a.totalDebit, 0)), credit: fmt(accountsData.reduce((s, a) => s + a.totalCredit, 0)) })}
                   </div>
                   <div className="text-xs text-primary-600 mt-1">
-                    {indicators.totalEcritures.toLocaleString('fr-FR')} écritures sur la période
+                    {t('gl.entriesInPeriod', { count: indicators.totalEcritures.toLocaleString('fr-FR') })}
                   </div>
                 </div>
 
                 <div className="border border-green-200 rounded-lg p-4 bg-green-50">
                   <div className="flex items-center space-x-2 mb-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-green-900">Qualité des données</span>
+                    <span className="text-sm font-medium text-green-900">{t('gl.dataQuality')}</span>
                   </div>
                   <div className="text-sm text-green-800">
-                    {(aiMetrics?.conformite ?? 100).toFixed(1)}% d'écritures équilibrées
+                    {t('gl.balancedPct', { pct: (aiMetrics?.conformite ?? 100).toFixed(1) })}
                   </div>
                   <div className="text-xs text-green-600 mt-1">
-                    {dashboardStats.sansMouvement.toLocaleString('fr-FR')} compte(s) du plan sans mouvement
+                    {t('gl.accountsWithoutMovement', { count: dashboardStats.sansMouvement.toLocaleString('fr-FR') })}
                   </div>
                 </div>
               </div>
@@ -2623,12 +2623,12 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <BarChart3 className="w-5 h-5 mr-2 text-primary-500" />
-              Analyse Comparative Intelligente
+              {t('gl.comparativeAnalysis')}
             </h4>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h5 className="font-medium text-gray-900 mb-3">Évolution des soldes (Actif / Passif)</h5>
+                <h5 className="font-medium text-gray-900 mb-3">{t('gl.balanceEvolutionAL')}</h5>
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={evolutionData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -2636,14 +2636,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                     <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value) => [fmt(value as number), '']} />
                     <Legend />
-                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={3} name="Actif (Réel)" />
-                    <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={3} name="Passif (Réel)" />
+                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={3} name={t('gl.assetsReal')} />
+                    <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={3} name={t('gl.liabilitiesReal')} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
 
               <div>
-                <h5 className="font-medium text-gray-900 mb-3">Comptes les plus actifs</h5>
+                <h5 className="font-medium text-gray-900 mb-3">{t('gl.mostActiveAccounts')}</h5>
                 <div className="space-y-3">
                   {[...accountsData]
                     .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
@@ -2681,14 +2681,14 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Users className="w-6 h-6 mr-3 text-orange-500" />
-                Espaces de Travail Collaboratifs
+                {t('gl.collaborativeWorkspaces')}
               </h3>
               <button
                 onClick={() => navigate('/collaboration')}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center space-x-2"
               >
                 <Building className="w-4 h-4" />
-                <span>Ouvrir l'espace</span>
+                <span>{t('gl.openSpace')}</span>
               </button>
             </div>
 
@@ -2699,9 +2699,9 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <Users className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h4 className="font-semibold text-gray-900">Espace Collaboratif de l'équipe</h4>
+                <h4 className="font-semibold text-gray-900">{t('gl.teamCollaborativeSpace')}</h4>
                 <p className="text-sm text-gray-600 mt-0.5">
-                  Discussions par canaux avec @mentions, tâches partagées (Kanban) et fil d'activité — sur vos données réelles.
+                  {t('gl.collaborationDesc')}
                 </p>
               </div>
               <button
@@ -2709,7 +2709,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 className="px-5 py-2.5 text-sm font-medium rounded-lg text-white shrink-0"
                 style={{ background: 'var(--color-primary)' }}
               >
-                Ouvrir l'espace collaboratif →
+                {t('gl.openCollaborativeSpace')}
               </button>
             </div>
           </div>
@@ -2718,15 +2718,15 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Layers className="w-5 h-5 mr-2 text-blue-500" />
-              Workflow de Validation
+              {t('gl.validationWorkflow')}
             </h4>
 
             <div className="grid grid-cols-4 gap-4">
               {[
-                { status: "À réviser", count: aiMetrics?.workflow.aReviser ?? 0, color: "bg-yellow-100 text-yellow-800", entries: aiMetrics?.workflow.aReviserSample ?? [], hint: "brouillons" },
-                { status: "En cours", count: aiMetrics?.workflow.enCours ?? 0, color: "bg-blue-100 text-blue-800", entries: [] as string[], hint: "en validation" },
-                { status: "Validé", count: aiMetrics?.workflow.valide ?? 0, color: "bg-green-100 text-green-800", entries: aiMetrics?.workflow.valideSample ?? [], hint: "période en cours" },
-                { status: "Archivé", count: aiMetrics?.workflow.archive ?? 0, color: "bg-gray-100 text-gray-800", entries: [] as string[], hint: "exercices antérieurs" }
+                { status: t('gl.wfToReview'), count: aiMetrics?.workflow.aReviser ?? 0, color: "bg-yellow-100 text-yellow-800", entries: aiMetrics?.workflow.aReviserSample ?? [], hint: t('gl.wfToReviewHint') },
+                { status: t('gl.wfInProgress'), count: aiMetrics?.workflow.enCours ?? 0, color: "bg-blue-100 text-blue-800", entries: [] as string[], hint: t('gl.wfInProgressHint') },
+                { status: t('gl.wfValidated'), count: aiMetrics?.workflow.valide ?? 0, color: "bg-green-100 text-green-800", entries: aiMetrics?.workflow.valideSample ?? [], hint: t('gl.wfValidatedHint') },
+                { status: t('gl.wfArchived'), count: aiMetrics?.workflow.archive ?? 0, color: "bg-gray-100 text-gray-800", entries: [] as string[], hint: t('gl.wfArchivedHint') }
               ].map((column, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -2749,7 +2749,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
                   {column.count > column.entries.length && (
                     <div className="text-xs text-gray-700 mt-2 text-center">
-                      +{column.count - column.entries.length} autres...
+                      {t('gl.othersCount', { count: String(column.count - column.entries.length) })}
                     </div>
                   )}
                 </div>
@@ -2765,7 +2765,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
           {/* Analyse par période */}
           <div className="bg-white p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Analyse par Période</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('gl.periodAnalysis')}</h3>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={evolutionData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -2773,10 +2773,10 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <YAxis tickFormatter={(value) => fmt(value)} />
                 <Tooltip formatter={(value) => [fmt(value as number), '']} />
                 <Legend />
-                <Line type="monotone" dataKey="produits" stroke="#15803D" strokeWidth={3} name="Produits" />
-                <Line type="monotone" dataKey="charges" stroke="#C0322B" strokeWidth={3} name="Charges" />
-                <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={2} name="Actif" />
-                <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={2} name="Passif" />
+                <Line type="monotone" dataKey="produits" stroke="#15803D" strokeWidth={3} name={t('gl.revenue')} />
+                <Line type="monotone" dataKey="charges" stroke="#C0322B" strokeWidth={3} name={t('gl.expenses')} />
+                <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={2} name={t('gl.assets')} />
+                <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={2} name={t('gl.liabilities')} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -2786,7 +2786,7 @@ const AdvancedGeneralLedger: React.FC = () => {
             
             {/* Comptes les plus mouvementés */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h4 className="text-md font-semibold text-gray-900 mb-4">Comptes les Plus Actifs</h4>
+              <h4 className="text-md font-semibold text-gray-900 mb-4">{t('gl.mostActiveAccounts')}</h4>
               <div className="space-y-3">
                 {accountsData
                   .sort((a, b) => b.nombreEcritures - a.nombreEcritures)
@@ -2804,7 +2804,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-gray-900">{account.nombreEcritures}</div>
-                        <div className="text-xs text-gray-700">écritures</div>
+                        <div className="text-xs text-gray-700">{t('gl.entriesWord')}</div>
                       </div>
                     </div>
                   ))}
@@ -2813,7 +2813,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             {/* Soldes significatifs */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h4 className="text-md font-semibold text-gray-900 mb-4">Soldes les Plus Importants</h4>
+              <h4 className="text-md font-semibold text-gray-900 mb-4">{t('gl.largestBalances')}</h4>
               <div className="space-y-3">
                 {accountsData
                   .sort((a, b) => Math.abs(b.soldeFermeture) - Math.abs(a.soldeFermeture))
@@ -2834,7 +2834,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                           {fmt(Math.abs(account.soldeFermeture))}
                         </div>
                         <div className="text-xs text-gray-700">
-                          {account.soldeFermeture >= 0 ? 'Débiteur' : 'Créditeur'}
+                          {account.soldeFermeture >= 0 ? t('gl.debitor') : t('gl.creditor')}
                         </div>
                       </div>
                     </div>
@@ -2851,10 +2851,10 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-3 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Aperçu Grand Livre</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('gl.ledgerPreview')}</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-gray-600">Format:</label>
+                    <label className="text-sm text-gray-600">{t('gl.formatLabel')}</label>
                     <select 
                       value={printConfig.format}
                       onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as 'A4' | 'A3'})}
@@ -2865,14 +2865,14 @@ const AdvancedGeneralLedger: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-gray-600">Orientation:</label>
+                    <label className="text-sm text-gray-600">{t('gl.orientationLabel')}</label>
                     <select
                       value={printConfig.orientation}
                       onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as 'portrait' | 'landscape'})}
                       className="px-2 py-1 border border-gray-300 rounded text-sm"
                     >
-                      <option value="portrait">Portrait</option>
-                      <option value="landscape">Paysage</option>
+                      <option value="portrait">{t('gl.portrait')}</option>
+                      <option value="landscape">{t('gl.landscape')}</option>
                     </select>
                   </div>
                   <button 
@@ -3146,7 +3146,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowPrintPreview(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Fermer
+                {t('gl.close')}
               </button>
               <div className="flex space-x-3">
                 <button
@@ -3156,7 +3156,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                   <Mail className="w-4 h-4 mr-2 inline" />
-                  Envoyer par email
+                  {t('gl.sendByEmail')}
                 </button>
                 <button
                   onClick={() => {
@@ -3166,7 +3166,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                   <FileSpreadsheet className="w-4 h-4 mr-2 inline" />
-                  Exporter Excel
+                  {t('gl.exportExcel')}
                 </button>
                 <button
                   onClick={() => {
@@ -3179,7 +3179,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
-                  Imprimer
+                  {t('gl.print')}
                 </button>
               </div>
             </div>
@@ -3192,13 +3192,13 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Exporter le Grand Livre
+              {t('gl.exportLedger')}
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Format d'export
+                  {t('gl.exportFormat')}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center">
@@ -3240,15 +3240,15 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div>
                 <label className="flex items-center">
                   <input type="checkbox" className="mr-2" defaultChecked />
-                  Inclure les totaux
+                  {t('gl.includeTotals')}
                 </label>
                 <label className="flex items-center">
                   <input type="checkbox" className="mr-2" defaultChecked />
-                  Inclure les sous-totaux
+                  {t('gl.includeSubtotals')}
                 </label>
                 <label className="flex items-center">
                   <input type="checkbox" className="mr-2" />
-                  Inclure les graphiques
+                  {t('gl.includeCharts')}
                 </label>
               </div>
             </div>
@@ -3258,20 +3258,20 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowExportModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <ExportMenu
                 data={accountsData as unknown as Record<string, unknown>[]}
                 filename="grand-livre-export"
                 columns={{
-                  compte: 'Compte',
-                  libelle: 'Libellé',
-                  soldeOuverture: 'Solde Ouverture',
-                  totalDebit: 'Total Débit',
-                  totalCredit: 'Total Crédit',
-                  soldeFermeture: 'Solde Fermeture'
+                  compte: t('gl.colAccount'),
+                  libelle: t('gl.colLabel'),
+                  soldeOuverture: t('gl.colOpeningBalance'),
+                  totalDebit: t('gl.colTotalDebit'),
+                  totalCredit: t('gl.colTotalCredit'),
+                  soldeFermeture: t('gl.colClosingBalance')
                 }}
-                buttonText="Exporter"
+                buttonText={t('gl.export')}
               />
             </div>
           </div>
@@ -3283,13 +3283,13 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Envoyer par Email
+              {t('gl.sendByEmailTitle')}
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Destinataire(s)
+                  {t('gl.recipients')}
                 </label>
                 <input
                   type="email"
@@ -3302,7 +3302,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Objet
+                  {t('gl.subject')}
                 </label>
                 <input
                   type="text"
@@ -3314,20 +3314,20 @@ const AdvancedGeneralLedger: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
+                  {t('gl.message')}
                 </label>
                 <textarea
                   value={emailMessage}
                   onChange={(e) => setEmailMessage(e.target.value)}
                   rows={4}
-                  placeholder="Message optionnel..."
+                  placeholder={t('gl.optionalMessage')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Format de pièce jointe
+                  {t('gl.attachmentFormat')}
                 </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
                   <option value="pdf">PDF</option>
@@ -3342,17 +3342,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowEmailModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <button
                 onClick={() => {
                   setShowEmailModal(false);
-                  toast.success('Email envoyé avec succès!');
+                  toast.success(t('gl.emailSent'));
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 <Mail className="w-4 h-4 mr-2 inline" />
-                Envoyer
+                {t('gl.send')}
               </button>
             </div>
           </div>
@@ -3364,7 +3364,7 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Détails de l'écriture
+              {t('gl.entryDetails')}
             </h3>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -3373,7 +3373,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <p className="text-gray-900">{selectedEntry.date}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">N° Pièce</label>
+                <label className="block text-sm font-medium text-gray-700">{t('gl.documentNo')}</label>
                 <p className="text-gray-900 font-mono">{selectedEntry.piece}</p>
               </div>
               <div>
@@ -3381,7 +3381,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <p className="text-gray-900">{selectedEntry.libelle}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Centre de coût</label>
+                <label className="block text-sm font-medium text-gray-700">{t('gl.costCenter')}</label>
                 <p className="text-gray-900">{selectedEntry.centreCout || '-'}</p>
               </div>
               <div>
@@ -3397,17 +3397,17 @@ const AdvancedGeneralLedger: React.FC = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Tiers</label>
+                <label className="block text-sm font-medium text-gray-700">{t('gl.thirdParty')}</label>
                 <p className="text-gray-900">{selectedEntry.tiers || '-'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Référence externe</label>
+                <label className="block text-sm font-medium text-gray-700">{t('gl.externalRef')}</label>
                 <p className="text-gray-900">{selectedEntry.referenceExterne || '-'}</p>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Solde après écriture</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('gl.balanceAfterEntry')}</label>
               <p className="text-lg font-bold text-gray-900">
                 {fmt(selectedEntry.solde)}
               </p>
@@ -3418,7 +3418,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowDetailModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Fermer
+                {t('gl.close')}
               </button>
               <button
                 onClick={() => {
@@ -3431,7 +3431,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 <Printer className="w-4 h-4 mr-2 inline" />
-                Imprimer
+                {t('gl.print')}
               </button>
             </div>
           </div>
@@ -3443,12 +3443,12 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Ajouter une annotation
+              {t('gl.addAnnotation')}
             </h3>
 
             <div className="mb-4">
               <p className="text-sm text-gray-600">
-                Écriture: <span className="font-medium">{selectedEntry.piece}</span>
+                {t('gl.entryLabel')} <span className="font-medium">{selectedEntry.piece}</span>
               </p>
               <p className="text-sm text-gray-600">
                 {selectedEntry.libelle}
@@ -3457,13 +3457,13 @@ const AdvancedGeneralLedger: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Votre annotation
+                {t('gl.yourAnnotation')}
               </label>
               <textarea
                 value={annotation}
                 onChange={(e) => setAnnotation(e.target.value)}
                 rows={4}
-                placeholder="Ajouter une note ou un commentaire..."
+                placeholder={t('gl.annotationPlaceholder')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
               />
             </div>
@@ -3476,7 +3476,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 }}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <button
                 onClick={async () => {
@@ -3491,15 +3491,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                     const payload = { key: 'gl_annotations', value: JSON.stringify(map), updatedAt: new Date().toISOString() };
                     if (cur) await adapter.update('settings' as any, 'gl_annotations', payload as any);
                     else await adapter.create('settings' as any, payload as any);
-                    toast.success('Annotation enregistrée');
-                  } catch { toast.error('Échec de l\'enregistrement de l\'annotation'); }
+                    toast.success(t('gl.annotationSaved'));
+                  } catch { toast.error(t('gl.annotationSaveFailed')); }
                   setShowAnnotationModal(false);
                   setAnnotation('');
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
                 <MessageSquare className="w-4 h-4 mr-2 inline" />
-                Ajouter
+                {t('gl.add')}
               </button>
             </div>
           </div>
@@ -3511,12 +3511,12 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Partager l'écriture
+              {t('gl.shareEntry')}
             </h3>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Lien de partage
+                {t('gl.shareLink')}
               </label>
               <div className="flex">
                 <input
@@ -3528,25 +3528,25 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(shareLink);
-                    toast.success('Lien copié!');
+                    toast.success(t('gl.linkCopied'));
                   }}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-r-md hover:bg-[var(--color-primary-hover)]"
                 >
-                  Copier
+                  {t('gl.copy')}
                 </button>
               </div>
             </div>
 
             <div className="border-t pt-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Partager avec</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">{t('gl.shareWith')}</p>
               <div className="space-y-2">
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                   <Mail className="w-4 h-4" />
-                  Email
+                  {t('gl.email')}
                 </button>
                 <button className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                   <Users className="w-4 h-4" />
-                  Équipe
+                  {t('gl.team')}
                 </button>
               </div>
             </div>
@@ -3556,7 +3556,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowShareModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Fermer
+                {t('gl.close')}
               </button>
             </div>
           </div>
@@ -3569,31 +3569,31 @@ const AdvancedGeneralLedger: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Settings className="w-5 h-5 mr-2 text-primary-600" />
-              Paramètres Intelligence Artificielle
+              {t('gl.aiSettingsTitle')}
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Détection d'anomalies automatique</span>
+                  <span className="text-sm font-medium text-gray-700">{t('gl.autoAnomalyDetection')}</span>
                   <input type="checkbox" defaultChecked className="rounded" />
                 </label>
               </div>
               <div>
                 <label className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Analyse prédictive</span>
+                  <span className="text-sm font-medium text-gray-700">{t('gl.predictiveAnalysis')}</span>
                   <input type="checkbox" defaultChecked className="rounded" />
                 </label>
               </div>
               <div>
                 <label className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Suggestions automatiques</span>
+                  <span className="text-sm font-medium text-gray-700">{t('gl.autoSuggestions')}</span>
                   <input type="checkbox" defaultChecked className="rounded" />
                 </label>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Seuil de confiance minimum
+                  {t('gl.minConfidenceThreshold')}
                 </label>
                 <input
                   type="range"
@@ -3615,16 +3615,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowAISettingsModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <button
                 onClick={() => {
                   setShowAISettingsModal(false);
-                  toast.success('Paramètres IA enregistrés');
+                  toast.success(t('gl.aiSettingsSaved'));
                 }}
                 className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700"
               >
-                Enregistrer
+                {t('gl.save')}
               </button>
             </div>
           </div>
@@ -3636,33 +3636,33 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Créer un Nouvel Espace de Travail
+              {t('gl.createWorkspace')}
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom de l'espace
+                  {t('gl.workspaceName')}
                 </label>
                 <input
                   type="text"
-                  placeholder="Ex: Équipe Audit"
+                  placeholder={t('gl.workspaceNamePlaceholder')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  {t('gl.description')}
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="Description de l'espace..."
+                  placeholder={t('gl.workspaceDescPlaceholder')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Membres (emails séparés par des virgules)
+                  {t('gl.workspaceMembers')}
                 </label>
                 <input
                   type="text"
@@ -3677,16 +3677,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowNewWorkspaceModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <button
                 onClick={() => {
                   setShowNewWorkspaceModal(false);
-                  toast.success('Espace de travail créé avec succès!');
+                  toast.success(t('gl.workspaceCreated'));
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
-                Créer l'espace
+                {t('gl.createSpace')}
               </button>
             </div>
           </div>
@@ -3698,34 +3698,34 @@ const AdvancedGeneralLedger: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Rejoindre l'espace: {selectedWorkspace}
+              {t('gl.joinSpaceTitle', { name: selectedWorkspace })}
             </h3>
 
             <div className="space-y-4">
               <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <p className="text-sm text-gray-700">
-                  Vous êtes sur le point de rejoindre l'espace <strong>{selectedWorkspace}</strong>.
+                  {t('gl.aboutToJoin')} <strong>{selectedWorkspace}</strong>.
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
-                  Vous aurez accès aux recherches partagées, annotations et analyses collaboratives de cet espace.
+                  {t('gl.joinAccessNote')}
                 </p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rôle dans l'espace
+                  {t('gl.roleInSpace')}
                 </label>
                 <select className="w-full px-3 py-2 border border-gray-300 rounded-md">
-                  <option>Membre</option>
-                  <option>Contributeur</option>
-                  <option>Administrateur</option>
+                  <option>{t('gl.roleMember')}</option>
+                  <option>{t('gl.roleContributor')}</option>
+                  <option>{t('gl.roleAdmin')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="flex items-center">
                   <input type="checkbox" defaultChecked className="rounded mr-2" />
-                  <span className="text-sm text-gray-700">Recevoir les notifications de cet espace</span>
+                  <span className="text-sm text-gray-700">{t('gl.receiveNotifications')}</span>
                 </label>
               </div>
             </div>
@@ -3735,16 +3735,16 @@ const AdvancedGeneralLedger: React.FC = () => {
                 onClick={() => setShowJoinWorkspaceModal(false)}
                 className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('gl.cancel')}
               </button>
               <button
                 onClick={() => {
                   setShowJoinWorkspaceModal(false);
-                  toast(`Vous avez rejoint l'espace: ${selectedWorkspace}`);
+                  toast(t('gl.joinedSpace', { name: selectedWorkspace }));
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
-                Rejoindre
+                {t('gl.join')}
               </button>
             </div>
           </div>
