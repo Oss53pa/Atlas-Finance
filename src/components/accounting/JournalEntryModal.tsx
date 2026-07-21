@@ -515,50 +515,50 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
     // Vérifications onglet Détails
     if (!details.dateEcriture) {
-      errors.push("Date d'écriture manquante");
+      errors.push(t('journalEntry.errMissingDate'));
     }
     if (!details.description.trim()) {
-      errors.push("Description de l'opération manquante");
+      errors.push(t('journalEntry.errMissingDescription'));
     }
     if (transactionType === 'other' && !sousJournalOD) {
-      errors.push("Sous-journal OD non sélectionné");
+      errors.push(t('journalEntry.errMissingSubJournal'));
     }
 
     // Vérifications onglet Ventilation
     if (Math.abs(totalDebit - totalCredit) >= 0.01 || totalDebit === 0) {
-      errors.push(`Écriture non équilibrée (Débit: ${formatCurrency(totalDebit)} ≠ Crédit: ${formatCurrency(totalCredit)})`);
+      errors.push(t('journalEntry.errUnbalanced', { debit: formatCurrency(totalDebit), credit: formatCurrency(totalCredit) }));
     }
 
     const emptyAccounts = lignesEcriture.filter(l => !l.compte);
     if (emptyAccounts.length > 0) {
-      errors.push(`${emptyAccounts.length} ligne(s) sans compte comptable`);
+      errors.push(t('journalEntry.errLinesWithoutAccount', { count: String(emptyAccounts.length) }));
     }
 
     // Vérifications spécifiques par type
     if (transactionType === 'purchase') {
-      if (!factureInfo.fournisseur) errors.push("Fournisseur non sélectionné");
-      if (!factureInfo.dateFacture) errors.push("Date de facture fournisseur manquante");
-      if (!factureInfo.numeroFacture) errors.push("Numéro de facture fournisseur manquant");
+      if (!factureInfo.fournisseur) errors.push(t('journalEntry.errNoSupplier'));
+      if (!factureInfo.dateFacture) errors.push(t('journalEntry.errNoSupplierInvoiceDate'));
+      if (!factureInfo.numeroFacture) errors.push(t('journalEntry.errNoSupplierInvoiceNumber'));
     }
     if (transactionType === 'sale') {
-      if (!venteInfo.client) errors.push("Client non sélectionné");
-      if (!venteInfo.dateFacture) errors.push("Date de facture client manquante");
-      if (!venteInfo.numeroFacture) errors.push("Numéro de facture client manquant");
+      if (!venteInfo.client) errors.push(t('journalEntry.errNoCustomer'));
+      if (!venteInfo.dateFacture) errors.push(t('journalEntry.errNoCustomerInvoiceDate'));
+      if (!venteInfo.numeroFacture) errors.push(t('journalEntry.errNoCustomerInvoiceNumber'));
     }
     if (transactionType === 'payment') {
-      if (!reglementInfo.tiers) errors.push("Tiers non sélectionné");
-      if (!reglementInfo.modeReglement) errors.push("Mode de règlement non sélectionné");
-      if (reglementInfo.montant <= 0) errors.push("Montant du règlement invalide");
+      if (!reglementInfo.tiers) errors.push(t('journalEntry.errNoThirdParty'));
+      if (!reglementInfo.modeReglement) errors.push(t('journalEntry.errNoPaymentMethod'));
+      if (reglementInfo.montant <= 0) errors.push(t('journalEntry.errInvalidPaymentAmount'));
     }
     if (transactionType === 'transfer') {
-      if (!virementInfo.compteDebit) errors.push("Compte à débiter non sélectionné");
-      if (!virementInfo.compteCredit) errors.push("Compte à créditer non sélectionné");
-      if (!virementInfo.motif) errors.push("Motif du virement manquant");
+      if (!virementInfo.compteDebit) errors.push(t('journalEntry.errNoDebitAccount'));
+      if (!virementInfo.compteCredit) errors.push(t('journalEntry.errNoCreditAccount'));
+      if (!virementInfo.motif) errors.push(t('journalEntry.errNoTransferPurpose'));
     }
 
     // Vérification TVA
     if (tvaValidation && !tvaValidation.isValid) {
-      errors.push("Validation TVA échouée");
+      errors.push(t('journalEntry.errVatValidationFailed'));
     }
 
     return errors;
@@ -570,19 +570,19 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
   }, [getValidationErrors]);
 
   const transactionTypes = [
-    { value: 'purchase', label: "Facture d'Achat (Fournisseur)", icon: ShoppingCart },
-    { value: 'sale', label: "Facture de Vente (Client)", icon: CreditCard },
-    { value: 'payment', label: "Règlement", icon: ArrowRightLeft },
-    { value: 'transfer', label: "Virement Interne", icon: ArrowRightLeft },
-    { value: 'other', label: "Opération Diverse", icon: Settings }
+    { value: 'purchase', label: t('journalEntry.typePurchase'), icon: ShoppingCart },
+    { value: 'sale', label: t('journalEntry.typeSale'), icon: CreditCard },
+    { value: 'payment', label: t('journalEntry.typePayment'), icon: ArrowRightLeft },
+    { value: 'transfer', label: t('journalEntry.typeTransfer'), icon: ArrowRightLeft },
+    { value: 'other', label: t('journalEntry.typeOther'), icon: Settings }
   ];
 
   const tabs = [
-    { id: 'details', label: t('common.details'), sublabel: 'Infos générales', icon: FileText },
-    { id: 'ventilation', label: 'Ventilation', sublabel: 'Comptes & Lignes', icon: FileText },
-    { id: 'attachements', label: 'Attachements', sublabel: 'Fichiers joints', icon: Paperclip },
-    { id: 'notes', label: 'Notes', sublabel: 'Commentaires', icon: MessageSquare },
-    { id: 'validation', label: 'Validation', sublabel: 'Contrôles', icon: CheckCircle }
+    { id: 'details', label: t('common.details'), sublabel: t('journalEntry.tabDetailsSub'), icon: FileText },
+    { id: 'ventilation', label: t('journalEntry.tabAllocation'), sublabel: t('journalEntry.tabAllocationSub'), icon: FileText },
+    { id: 'attachements', label: t('journalEntry.tabAttachments'), sublabel: t('journalEntry.tabAttachmentsSub'), icon: Paperclip },
+    { id: 'notes', label: t('journalEntry.tabNotes'), sublabel: t('journalEntry.tabNotesSub'), icon: MessageSquare },
+    { id: 'validation', label: t('journalEntry.tabValidation'), sublabel: t('journalEntry.tabValidationSub'), icon: CheckCircle }
   ];
 
   // Fonctions de validation par onglet
@@ -740,7 +740,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
       resetForm();
       onClose();
     } catch (error) {
-      setValidationErrors([`Erreur de sauvegarde : ${error instanceof Error ? error.message : String(error)}`]);
+      setValidationErrors([t('journalEntry.saveError', { message: error instanceof Error ? error.message : String(error) })]);
     } finally {
       setIsSaving(false);
     }
@@ -929,16 +929,16 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <FileText className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-800">Nouvelle écriture</h2>
+              <h2 className="text-lg font-semibold text-gray-800">{t('journalEntry.title')}</h2>
             </div>
             <div className="flex items-center space-x-3">
               <span className="px-3 py-1 bg-green-50 text-green-700 text-sm font-medium rounded-full flex items-center space-x-1">
                 <Check className="w-4 h-4" />
-                <span>SYSCOHADA Conforme</span>
+                <span>{t('journalEntry.syscohadaCompliant')}</span>
               </span>
               <button
                 onClick={handleClose}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors" aria-label={t('journalEntry.close')}>
                 <X className="w-5 h-5 text-gray-700" />
               </button>
             </div>
@@ -960,11 +960,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 <span className="font-medium text-sm">
                   {entryStatus === 'posted'
                     ? initialData?.reversed
-                      ? `Contrepassée le ${String(initialData.reversedAt ?? '').split('T')[0] || ''}`
-                      : 'Comptabilisée — Immutable (SYSCOHADA Art. 19)'
+                      ? t('journalEntry.statusReversedOn', { date: String(initialData.reversedAt ?? '').split('T')[0] || '' })
+                      : t('journalEntry.statusPosted')
                     : entryStatus === 'validated'
-                    ? 'Validée — En attente de comptabilisation'
-                    : 'Brouillon — Modifiable'}
+                    ? t('journalEntry.statusValidated')
+                    : t('journalEntry.statusDraft')}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -979,7 +979,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       if (res.success) {
                         onClose();
                       } else {
-                        setValidationErrors([res.error || 'Erreur']);
+                        setValidationErrors([res.error || t('journalEntry.genericError')]);
                       }
                     }}
                     className={`px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
@@ -996,7 +996,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     onClick={() => setShowReversalDialog(true)}
                     className="px-4 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors"
                   >
-                    Contrepassation
+                    {t('journalEntry.reversal')}
                   </button>
                 )}
               </div>
@@ -1007,7 +1007,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
           <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <label className="text-sm font-medium text-gray-700">Type de Transaction *</label>
+                <label className="text-sm font-medium text-gray-700">{t('journalEntry.transactionType')} *</label>
                 <div className="max-w-md">
                   <SearchableDropdown
                     options={transactionTypes.map(type => ({
@@ -1016,7 +1016,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     }))}
                     value={transactionType}
                     onChange={(value) => setTransactionType(value as TransactionType)}
-                    placeholder="Sélectionner un type"
+                    placeholder={t('journalEntry.selectType')}
                     showSearch={false}
                   />
                 </div>
@@ -1026,7 +1026,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center space-x-1"
                   >
                     <FileText className="w-3.5 h-3.5" />
-                    <span>Modele</span>
+                    <span>{t('journalEntry.template')}</span>
                   </button>
                 )}
               </div>
@@ -1034,7 +1034,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               {/* Numéro d'écriture à droite */}
               <div className="flex items-center space-x-3">
                 <Hash className="w-5 h-5 text-gray-600" />
-                <span className="text-base font-medium text-gray-700">N° Écriture:</span>
+                <span className="text-base font-medium text-gray-700">{t('journalEntry.entryNumber')}</span>
                 <span className="px-4 py-2 bg-white border-2 border-blue-300 rounded-lg text-lg font-mono font-bold text-blue-900 shadow-sm">
                   {details.numeroEcriture || 'EC-2025-00001'}
                 </span>
@@ -1144,11 +1144,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
             {activeTab === 'details' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Informations Générales</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">{t('journalEntry.generalInformation')}</h3>
 
                   <div className={`grid ${transactionType === 'other' ? 'grid-cols-4' : 'grid-cols-3'} gap-4`}>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date d'écriture *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.entryDate')} *</label>
                       <div className="relative">
                         <input
                           type="date"
@@ -1164,7 +1164,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         {t('accounting.journal')}
                         <span className="ml-1 align-middle">
-                          <Tooltip asIcon content="Code journal SYSCOHADA (AC, VE, BQ, CA, OD, AN, CL). Détermine la nature de l'opération et son cadre comptable." />
+                          <Tooltip asIcon content={t('journalEntry.journalTooltip')} />
                         </span>
                       </label>
                       <input
@@ -1185,23 +1185,23 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     {/* Sous-journal pour Opérations Diverses */}
                     {transactionType === 'other' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Sous-journal OD *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.odSubJournal')} *</label>
                         <SearchableDropdown
                           options={[
-                            { value: 'OD-PAIE', label: 'OD-PAIE - Écritures de paie' },
-                            { value: 'OD-AMORT', label: 'OD-AMORT - Dotations aux amortissements' },
-                            { value: 'OD-PROV', label: 'OD-PROV - Provisions' },
-                            { value: 'OD-REGUL', label: 'OD-REGUL - Régularisations' },
-                            { value: 'OD-CLOT', label: 'OD-CLOT - Écritures de clôture' },
-                            { value: 'OD-OUVERT', label: 'OD-OUVERT - Écritures d\'ouverture' },
-                            { value: 'OD-TVA', label: 'OD-TVA - Déclarations TVA' },
-                            { value: 'OD-STOCK', label: 'OD-STOCK - Variation de stocks' },
-                            { value: 'OD-AUTRES', label: 'OD-AUTRES - Autres opérations' }
+                            { value: 'OD-PAIE', label: `OD-PAIE - ${t('journalEntry.odPayroll')}` },
+                            { value: 'OD-AMORT', label: `OD-AMORT - ${t('journalEntry.odDepreciation')}` },
+                            { value: 'OD-PROV', label: `OD-PROV - ${t('journalEntry.odProvisions')}` },
+                            { value: 'OD-REGUL', label: `OD-REGUL - ${t('journalEntry.odAdjustments')}` },
+                            { value: 'OD-CLOT', label: `OD-CLOT - ${t('journalEntry.odClosing')}` },
+                            { value: 'OD-OUVERT', label: `OD-OUVERT - ${t('journalEntry.odOpening')}` },
+                            { value: 'OD-TVA', label: `OD-TVA - ${t('journalEntry.odVatReturns')}` },
+                            { value: 'OD-STOCK', label: `OD-STOCK - ${t('journalEntry.odInventoryChange')}` },
+                            { value: 'OD-AUTRES', label: `OD-AUTRES - ${t('journalEntry.odOther')}` }
                           ]}
                           value={sousJournalOD}
                           onChange={(value) => setSousJournalOD(value)}
-                          placeholder="Sélectionner un sous-journal"
-                          searchPlaceholder="Rechercher un sous-journal..."
+                          placeholder={t('journalEntry.selectSubJournal')}
+                          searchPlaceholder={t('journalEntry.searchSubJournal')}
                           clearable
                           usePortal
                         />
@@ -1209,23 +1209,23 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Référence externe</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.externalReference')}</label>
                       <input
                         type="text"
                         value={details.reference}
                         onChange={(e) => setDetails({...details, reference: e.target.value})}
-                        placeholder="N° facture, chèque..."
+                        placeholder={t('journalEntry.externalReferencePlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.description')} *</label>
                     <textarea
                       value={details.description}
                       onChange={(e) => setDetails({...details, description: e.target.value})}
-                      placeholder="Description de l'opération..."
+                      placeholder={t('journalEntry.descriptionPlaceholder')}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
@@ -1233,7 +1233,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Préparé par</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.preparedBy')}</label>
                       <input
                         type="text"
                         value={details.preparePar}
@@ -1243,16 +1243,16 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Approuvé par</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.approvedBy')}</label>
                       <SearchableDropdown
                         options={[
-                          { value: 'manager', label: 'Manager' },
-                          { value: 'directeur', label: 'Directeur' }
+                          { value: 'manager', label: t('journalEntry.roleManager') },
+                          { value: 'directeur', label: t('journalEntry.roleDirector') }
                         ]}
                         value={details.approuvePar}
                         onChange={(value) => setDetails({...details, approuvePar: value})}
-                        placeholder="-- Sélectionner --"
-                        searchPlaceholder="Rechercher un utilisateur..."
+                        placeholder={t('journalEntry.selectPlaceholder')}
+                        searchPlaceholder={t('journalEntry.searchUser')}
                         clearable
                       />
                     </div>
@@ -1267,7 +1267,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
                     <FileText className="w-5 h-5 text-blue-600" />
-                    <span>Ventilation des Comptes</span>
+                    <span>{t('journalEntry.accountAllocation')}</span>
                   </h3>
                 </div>
 
@@ -1276,28 +1276,28 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-blue-50 p-4 rounded-lg mb-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <ShoppingCart className="w-4 h-4" />
-                      <span>Facture d'Achat</span>
+                      <span>{t('journalEntry.purchaseInvoice')}</span>
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Fournisseur *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.supplier')} *</label>
                         <SearchableDropdown
                           options={fournisseurOptions}
                           value={factureInfo.fournisseur}
                           onChange={(value) => setFactureInfo({...factureInfo, fournisseur: value})}
-                          placeholder="-- Sélectionner fournisseur --"
-                          searchPlaceholder="Rechercher un fournisseur..."
+                          placeholder={t('journalEntry.selectSupplier')}
+                          searchPlaceholder={t('journalEntry.searchSupplier')}
                           clearable
                           usePortal
                         />
                         {factureInfo.fournisseur && (
                           <p className="mt-1 text-xs text-gray-500">
-                            Compte tiers : <span className="font-mono font-medium">{compteTiersFor(factureInfo.fournisseur, '401100')}</span>
+                            {t('journalEntry.thirdPartyAccount')} <span className="font-mono font-medium">{compteTiersFor(factureInfo.fournisseur, '401100')}</span>
                           </p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date facture *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.invoiceDate')} *</label>
                         <input
                           type="date"
                           value={factureInfo.dateFacture}
@@ -1306,7 +1306,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">N° facture fournisseur *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.supplierInvoiceNumber')} *</label>
                         <input
                           type="text"
                           value={factureInfo.numeroFacture}
@@ -1323,28 +1323,28 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-green-50 p-4 rounded-lg mb-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <CreditCard className="w-4 h-4" />
-                      <span>Facture de Vente</span>
+                      <span>{t('journalEntry.salesInvoice')}</span>
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Client *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.customer')} *</label>
                         <SearchableDropdown
                           options={clientOptions}
                           value={venteInfo.client}
                           onChange={(value) => setVenteInfo({...venteInfo, client: value})}
-                          placeholder="-- Sélectionner client --"
-                          searchPlaceholder="Rechercher un client..."
+                          placeholder={t('journalEntry.selectCustomer')}
+                          searchPlaceholder={t('journalEntry.searchCustomer')}
                           clearable
                           usePortal
                         />
                         {venteInfo.client && (
                           <p className="mt-1 text-xs text-gray-500">
-                            Compte tiers : <span className="font-mono font-medium">{compteTiersFor(venteInfo.client, '411100')}</span>
+                            {t('journalEntry.thirdPartyAccount')} <span className="font-mono font-medium">{compteTiersFor(venteInfo.client, '411100')}</span>
                           </p>
                         )}
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Date facture *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.invoiceDate')} *</label>
                         <input
                           type="date"
                           value={venteInfo.dateFacture}
@@ -1353,7 +1353,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">N° facture client *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.customerInvoiceNumber')} *</label>
                         <input
                           type="text"
                           value={venteInfo.numeroFacture}
@@ -1372,11 +1372,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <div className="bg-primary-50 p-4 rounded-lg">
                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                         <CreditCard className="w-4 h-4" />
-                        <span>Règlement (Banque/Caisse)</span>
+                        <span>{t('journalEntry.paymentBankCash')}</span>
                       </h4>
 
                       <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Type de règlement *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('journalEntry.paymentType')} *</label>
                         <div className="flex space-x-6">
                           <label className="flex items-center space-x-2">
                             <input
@@ -1389,7 +1389,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             />
                             <span className="flex items-center space-x-1">
                               <span>💰</span>
-                              <span>Réception (Encaissement)</span>
+                              <span>{t('journalEntry.paymentIn')}</span>
                             </span>
                           </label>
                           <label className="flex items-center space-x-2">
@@ -1403,7 +1403,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             />
                             <span className="flex items-center space-x-1">
                               <span>💸</span>
-                              <span>Paiement (Décaissement)</span>
+                              <span>{t('journalEntry.paymentOut')}</span>
                             </span>
                           </label>
                         </div>
@@ -1411,24 +1411,24 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                       <div className="grid grid-cols-4 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Mode *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.paymentMethod')} *</label>
                           <SearchableDropdown
                             options={[
-                              { value: 'virement', label: 'Virement' },
-                              { value: 'cheque', label: 'Chèque' },
-                              { value: 'especes', label: 'Espèces' },
-                              { value: 'carte', label: 'Carte bancaire' },
-                              { value: 'prelevement', label: 'Prélèvement' }
+                              { value: 'virement', label: t('journalEntry.methodTransfer') },
+                              { value: 'cheque', label: t('journalEntry.methodCheque') },
+                              { value: 'especes', label: t('journalEntry.methodCash') },
+                              { value: 'carte', label: t('journalEntry.methodCard') },
+                              { value: 'prelevement', label: t('journalEntry.methodDirectDebit') }
                             ]}
                             value={reglementInfo.modeReglement}
                             onChange={(value) => setReglementInfo({...reglementInfo, modeReglement: value})}
-                            placeholder="Sélectionner un mode"
+                            placeholder={t('journalEntry.selectMethod')}
                             showSearch={false}
                             usePortal
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Banque/Compte *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.bankAccount')} *</label>
                           <SearchableDropdown
                             options={
                               planComptable
@@ -1437,13 +1437,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             }
                             value={reglementInfo.compteBank}
                             onChange={(value) => setReglementInfo({...reglementInfo, compteBank: value})}
-                            placeholder="Sélectionner un compte"
-                            searchPlaceholder="Rechercher un compte..."
+                            placeholder={t('journalEntry.selectAccount')}
+                            searchPlaceholder={t('journalEntry.searchAccount')}
                             usePortal
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Montant *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.amount')} *</label>
                           <input
                             type="number"
                             value={reglementInfo.montant}
@@ -1453,7 +1453,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Référence</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.reference')}</label>
                           <input
                             type="text"
                             value={reglementInfo.reference}
@@ -1469,26 +1469,26 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                         <User className="w-4 h-4 text-primary-600" />
-                        <span>Tiers {reglementInfo.typeReglement === 'encaissement' ? 'débiteur' : 'créditeur'}</span>
+                        <span>{reglementInfo.typeReglement === 'encaissement' ? t('journalEntry.debtorThirdParty') : t('journalEntry.creditorThirdParty')}</span>
                       </h4>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tiers {reglementInfo.typeReglement === 'encaissement' ? 'débiteur' : 'créditeur'} *
+                            {reglementInfo.typeReglement === 'encaissement' ? t('journalEntry.debtorThirdParty') : t('journalEntry.creditorThirdParty')} *
                           </label>
                           <SearchableDropdown
                             options={reglementInfo.typeReglement === 'encaissement' ? clientOptions : fournisseurOptions}
                             value={reglementInfo.tiers}
                             onChange={(value) => setReglementInfo({...reglementInfo, tiers: value})}
-                            placeholder="-- Sélectionner --"
-                            searchPlaceholder={`Rechercher un ${reglementInfo.typeReglement === 'encaissement' ? 'client' : 'fournisseur'}...`}
+                            placeholder={t('journalEntry.selectPlaceholder')}
+                            searchPlaceholder={reglementInfo.typeReglement === 'encaissement' ? t('journalEntry.searchCustomer') : t('journalEntry.searchSupplier')}
                             clearable
                             usePortal
                           />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Document à {reglementInfo.typeReglement === 'encaissement' ? 'encaisser' : 'décaisser'} *
+                            {reglementInfo.typeReglement === 'encaissement' ? t('journalEntry.documentToCollect') : t('journalEntry.documentToPay')} *
                           </label>
                           <input
                             type="text"
@@ -1505,7 +1505,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <div className="bg-white p-4 rounded-lg border border-gray-200">
                       <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                         <FileText className="w-4 h-4 text-blue-600" />
-                        <span>Ventilation par comptes</span>
+                        <span>{t('journalEntry.allocationByAccount')}</span>
                       </h4>
                     </div>
                   </div>
@@ -1516,54 +1516,54 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-orange-50 p-4 rounded-lg mb-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <ArrowRightLeft className="w-4 h-4" />
-                      <span>Virement Interne</span>
+                      <span>{t('journalEntry.typeTransfer')}</span>
                     </h4>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Compte à débiter *
+                          {t('journalEntry.accountToDebit')} *
                           <span className="ml-1 align-middle">
-                            <Tooltip asIcon content="Numéro de compte du plan comptable OHADA (ex. 411 pour Clients). Une ligne ne peut avoir que débit OU crédit, jamais les deux. La somme des débits doit égaler la somme des crédits." />
+                            <Tooltip asIcon content={t('journalEntry.accountTooltip')} />
                           </span>
                         </label>
                         <SearchableDropdown
                           options={[
-                            { value: '512000', label: '512000 - Banque principale' },
-                            { value: '531000', label: '531000 - Caisse' }
+                            { value: '512000', label: `512000 - ${t('journalEntry.mainBank')}` },
+                            { value: '531000', label: `531000 - ${t('journalEntry.cashDesk')}` }
                           ]}
                           value={virementInfo.compteDebit}
                           onChange={(value) => setVirementInfo({...virementInfo, compteDebit: value})}
-                          placeholder="-- Sélectionner compte --"
-                          searchPlaceholder="Rechercher un compte..."
+                          placeholder={t('journalEntry.selectAccountPlaceholder')}
+                          searchPlaceholder={t('journalEntry.searchAccount')}
                           clearable
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Compte à créditer *
+                          {t('journalEntry.accountToCredit')} *
                           <span className="ml-1 align-middle">
-                            <Tooltip asIcon content="Numéro de compte du plan comptable OHADA (ex. 411 pour Clients). Une ligne ne peut avoir que débit OU crédit, jamais les deux. La somme des débits doit égaler la somme des crédits." />
+                            <Tooltip asIcon content={t('journalEntry.accountTooltip')} />
                           </span>
                         </label>
                         <SearchableDropdown
                           options={[
-                            { value: '512001', label: '512001 - Banque secondaire' },
-                            { value: '531000', label: '531000 - Caisse' }
+                            { value: '512001', label: `512001 - ${t('journalEntry.secondaryBank')}` },
+                            { value: '531000', label: `531000 - ${t('journalEntry.cashDesk')}` }
                           ]}
                           value={virementInfo.compteCredit}
                           onChange={(value) => setVirementInfo({...virementInfo, compteCredit: value})}
-                          placeholder="-- Sélectionner compte --"
-                          searchPlaceholder="Rechercher un compte..."
+                          placeholder={t('journalEntry.selectAccountPlaceholder')}
+                          searchPlaceholder={t('journalEntry.searchAccount')}
                           clearable
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Motif *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('journalEntry.purpose')} *</label>
                         <input
                           type="text"
                           value={virementInfo.motif}
                           onChange={(e) => setVirementInfo({...virementInfo, motif: e.target.value})}
-                          placeholder="Motif du virement..."
+                          placeholder={t('journalEntry.transferPurposePlaceholder')}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                         />
                       </div>
@@ -1576,11 +1576,11 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-gray-50 p-4 rounded-lg mb-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <Settings className="w-4 h-4" />
-                      <span>Opération Diverse</span>
+                      <span>{t('journalEntry.typeOther')}</span>
                     </h4>
                     <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <p className="text-sm text-yellow-800">
-                        Saisie libre pour les opérations diverses. Veillez à respecter l'équilibre débit/crédit.
+                        {t('journalEntry.otherOperationHint')}
                       </p>
                     </div>
                   </div>
@@ -1594,9 +1594,9 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                         <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('accounting.label')}</th>
                         <th className="text-right px-3 py-2 text-sm font-medium text-gray-700">{t('accounting.debit')}</th>
                         <th className="text-right px-3 py-2 text-sm font-medium text-gray-700">{t('accounting.credit')}</th>
-                        <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Code Analytique</th>
-                        <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">Note</th>
-                        <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">Action</th>
+                        <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.analyticalCode')}</th>
+                        <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.note')}</th>
+                        <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.action')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1623,7 +1623,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   }
                                   setShowCompteDropdown(index);
                                 }}
-                                placeholder="Rechercher..."
+                                placeholder={t('journalEntry.searchPlaceholder')}
                                 className="w-full px-2 py-1 pr-8 border border-gray-300 rounded"
                               />
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
@@ -1654,7 +1654,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               value={ligne.libelle}
                               onChange={(e) => modifierLigne(index, 'libelle', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 rounded bg-gray-50"
-                              placeholder="Auto-rempli"
+                              placeholder={t('journalEntry.autoFilled')}
                             />
                           </td>
                           <td className="px-3 py-2">
@@ -1694,7 +1694,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   }
                                   setShowAnalytiqueDropdown(index);
                                 }}
-                                placeholder="Optionnel..."
+                                placeholder={t('journalEntry.optionalPlaceholder')}
                                 className="w-full px-2 py-1 pr-8 border border-gray-300 rounded"
                               />
                               <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-700" />
@@ -1709,7 +1709,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   onMouseDown={(e) => { e.preventDefault(); modifierLigne(index, 'codeAnalytique', ''); setShowAnalytiqueDropdown(null); }}
                                   className="w-full px-3 py-2 text-left hover:bg-gray-50 text-gray-700 italic"
                                 >
-                                  -- Aucun --
+                                  {t('journalEntry.none')}
                                 </button>
                                 {getFilteredAnalytiques(index).map((code) => (
                                   <button
@@ -1737,7 +1737,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   ? 'bg-green-100 hover:bg-green-200 text-green-700 border border-green-300'
                                   : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300'
                               }`}
-                              title={ligne.noteLigne ? 'Note existante' : 'Ajouter une note'}
+                              title={ligne.noteLigne ? t('journalEntry.existingNote') : t('journalEntry.addNote')}
                             >
                               <MessageSquare className="w-4 h-4 inline" />
                               {ligne.noteLigne && (
@@ -1749,6 +1749,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             <button
                               onClick={() => supprimerLigne(index)}
                               className="p-1 text-red-600 hover:bg-red-50 rounded"
+                              aria-label={t('journalEntry.deleteLine')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -1761,39 +1762,39 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                 <button
                   onClick={ajouterLigne}
-                  className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" aria-label="Ajouter">
+                  className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" aria-label={t('journalEntry.add')}>
                   <Plus className="w-4 h-4" />
                   <span>
-                    {transactionType === 'purchase' && "Ajouter ligne d'achat"}
-                    {transactionType === 'sale' && "Ajouter ligne de vente"}
-                    {transactionType === 'payment' && "Ajouter ligne de règlement"}
-                    {transactionType === 'transfer' && "Ajouter ligne de virement"}
-                    {transactionType === 'other' && "Ajouter ligne d'écriture"}
+                    {transactionType === 'purchase' && t('journalEntry.addPurchaseLine')}
+                    {transactionType === 'sale' && t('journalEntry.addSaleLine')}
+                    {transactionType === 'payment' && t('journalEntry.addPaymentLine')}
+                    {transactionType === 'transfer' && t('journalEntry.addTransferLine')}
+                    {transactionType === 'other' && t('journalEntry.addEntryLine')}
                   </span>
                 </button>
 
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                   <div className="flex items-center space-x-8">
                     <div>
-                      <span className="text-sm text-gray-600">Total Débit</span>
+                      <span className="text-sm text-gray-600">{t('journalEntry.totalDebit')}</span>
                       <p className="text-lg font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
                     </div>
                     <div>
-                      <span className="text-sm text-gray-600">Total Crédit</span>
+                      <span className="text-sm text-gray-600">{t('journalEntry.totalCredit')}</span>
                       <p className="text-lg font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">Équilibre</span>
+                    <span className="text-sm text-gray-600">{t('journalEntry.balanceCheck')}</span>
                     {isEquilibree ? (
                       <div className="flex items-center space-x-1 text-green-600">
                         <CheckCircle className="w-5 h-5" />
-                        <span className="font-semibold">Équilibré ✓</span>
+                        <span className="font-semibold">{t('journalEntry.balanced')} ✓</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-1 text-red-600">
                         <AlertCircle className="w-5 h-5" />
-                        <span className="font-semibold">Non équilibré</span>
+                        <span className="font-semibold">{t('journalEntry.unbalanced')}</span>
                       </div>
                     )}
                   </div>
@@ -1806,16 +1807,16 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
                   <Paperclip className="w-5 h-5 text-gray-600" />
-                  <span>Attachements de Fichiers</span>
+                  <span>{t('journalEntry.fileAttachments')}</span>
                 </h3>
 
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <File className="w-12 h-12 text-gray-700 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">Glissez-déposez vos fichiers ici</p>
-                  <p className="text-sm text-gray-700 mb-4">ou cliquez pour sélectionner</p>
+                  <p className="text-gray-600 mb-2">{t('journalEntry.dragDropFiles')}</p>
+                  <p className="text-sm text-gray-700 mb-4">{t('journalEntry.orClickToSelect')}</p>
                   <label className="inline-flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg cursor-pointer hover:bg-[var(--color-primary-hover)] transition-colors">
                     <Plus className="w-4 h-4" />
-                    <span>Sélectionner fichiers</span>
+                    <span>{t('journalEntry.selectFiles')}</span>
                     <input
                       type="file"
                       multiple
@@ -1824,7 +1825,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
                     />
                   </label>
-                  <p className="text-xs text-gray-700 mt-2">PDF, Images, Excel, Word - Max 10 MB par fichier</p>
+                  <p className="text-xs text-gray-700 mt-2">{t('journalEntry.fileFormatsHint')}</p>
                 </div>
 
                 {attachements.length > 0 && (
@@ -1832,13 +1833,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50 border-y border-gray-200">
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Fichier</th>
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Type</th>
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Taille</th>
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Référence doc</th>
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Ligne associée</th>
-                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">Commentaire</th>
-                          <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">Actions</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.file')}</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.type')}</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.size')}</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.documentReference')}</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.linkedLine')}</th>
+                          <th className="text-left px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.comment')}</th>
+                          <th className="text-center px-3 py-2 text-sm font-medium text-gray-700">{t('journalEntry.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1851,10 +1852,10 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             <td className="px-3 py-2">
                               <SearchableDropdown
                                 options={[
-                                  { value: 'facture', label: 'Facture' },
-                                  { value: 'bon_commande', label: 'Bon de commande' },
-                                  { value: 'bon_livraison', label: 'Bon de livraison' },
-                                  { value: 'autre', label: 'Autre' }
+                                  { value: 'facture', label: t('journalEntry.docInvoice') },
+                                  { value: 'bon_commande', label: t('journalEntry.docPurchaseOrder') },
+                                  { value: 'bon_livraison', label: t('journalEntry.docDeliveryNote') },
+                                  { value: 'autre', label: t('journalEntry.docOther') }
                                 ]}
                                 value={fichier.type}
                                 onChange={(value) => {
@@ -1862,7 +1863,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   newAttachements[index].type = value;
                                   setAttachements(newAttachements);
                                 }}
-                                placeholder="Type de fichier"
+                                placeholder={t('journalEntry.fileType')}
                                 showSearch={false}
                               />
                             </td>
@@ -1878,10 +1879,10 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                             <td className="px-3 py-2">
                               <SearchableDropdown
                                 options={[
-                                  { value: '', label: '-- Ligne --' },
+                                  { value: '', label: t('journalEntry.linePlaceholder') },
                                   ...lignesEcriture.map((ligne, idx) => ({
                                     value: `ligne_${idx}`,
-                                    label: `Ligne ${idx + 1} - ${ligne.libelle || ligne.compte}`
+                                    label: `${t('journalEntry.line')} ${idx + 1} - ${ligne.libelle || ligne.compte}`
                                   }))
                                 ]}
                                 value={fichier.ligneAssociee}
@@ -1890,8 +1891,8 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                   newAttachements[index].ligneAssociee = value;
                                   setAttachements(newAttachements);
                                 }}
-                                placeholder="-- Ligne --"
-                                searchPlaceholder="Rechercher une ligne..."
+                                placeholder={t('journalEntry.linePlaceholder')}
+                                searchPlaceholder={t('journalEntry.searchLine')}
                                 clearable
                               />
                             </td>
@@ -1900,15 +1901,15 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 type="text"
                                 value={fichier.commentaire}
                                 className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                placeholder="Facture originale"
+                                placeholder={t('journalEntry.originalInvoice')}
                               />
                             </td>
                             <td className="px-3 py-2">
                               <div className="flex items-center justify-center space-x-1">
-                                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded" aria-label="Voir les détails">
+                                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded" aria-label={t('journalEntry.viewDetails')}>
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button className="p-1 text-red-600 hover:bg-red-50 rounded" aria-label="Supprimer">
+                                <button className="p-1 text-red-600 hover:bg-red-50 rounded" aria-label={t('journalEntry.delete')}>
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
@@ -1920,18 +1921,18 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                     <div className="flex items-center justify-between mt-4 p-4 bg-gray-50 rounded-lg">
                       <div>
-                        <span className="text-sm text-gray-600">Fichiers attachés</span>
+                        <span className="text-sm text-gray-600">{t('journalEntry.attachedFiles')}</span>
                         <p className="text-lg font-semibold">{attachements.length}</p>
                       </div>
                       <div>
-                        <span className="text-sm text-gray-600">Taille totale</span>
+                        <span className="text-sm text-gray-600">{t('journalEntry.totalSize')}</span>
                         <p className="text-lg font-semibold text-orange-600">2.3 MB</p>
                       </div>
                       <div>
-                        <span className="text-sm text-gray-600">Statut</span>
+                        <span className="text-sm text-gray-600">{t('journalEntry.status')}</span>
                         <div className="flex items-center space-x-1 mt-1">
                           <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm font-semibold text-green-600">Conforme</span>
+                          <span className="text-sm font-semibold text-green-600">{t('journalEntry.compliant')}</span>
                         </div>
                       </div>
                     </div>
@@ -1945,34 +1946,34 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
                   <MessageSquare className="w-5 h-5 text-gray-600" />
-                  <span>Notes et Commentaires</span>
+                  <span>{t('journalEntry.notesAndComments')}</span>
                 </h3>
 
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-gray-800 mb-2">
-                      Notes spécifiques - {
-                        transactionType === 'purchase' ? "Facture d'Achat" :
-                        transactionType === 'sale' ? "Facture de Vente" :
-                        transactionType === 'payment' ? "Règlement" :
-                        transactionType === 'transfer' ? "Virement Interne" :
-                        "Opération Diverse"
+                      {t('journalEntry.specificNotes')} - {
+                        transactionType === 'purchase' ? t('journalEntry.purchaseInvoice') :
+                        transactionType === 'sale' ? t('journalEntry.salesInvoice') :
+                        transactionType === 'payment' ? t('journalEntry.typePayment') :
+                        transactionType === 'transfer' ? t('journalEntry.typeTransfer') :
+                        t('journalEntry.typeOther')
                       }
                     </h4>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         <FileText className="w-4 h-4 inline mr-1" />
-                        Notes obligatoires sur l'opération *
+                        {t('journalEntry.mandatoryNotes')} *
                       </label>
                       <textarea
                         value={notes.notesObligatoires}
                         onChange={(e) => setNotes({...notes, notesObligatoires: e.target.value})}
                         placeholder={
-                          transactionType === 'purchase' ? "Notes obligatoires sur la facture d'achat..." :
-                          transactionType === 'sale' ? "Notes obligatoires sur la facture de vente..." :
-                          transactionType === 'payment' ? "Notes obligatoires sur le règlement..." :
-                          transactionType === 'transfer' ? "Notes obligatoires sur le virement..." :
-                          "Notes obligatoires sur l'opération..."
+                          transactionType === 'purchase' ? t('journalEntry.mandatoryNotesPurchasePlaceholder') :
+                          transactionType === 'sale' ? t('journalEntry.mandatoryNotesSalePlaceholder') :
+                          transactionType === 'payment' ? t('journalEntry.mandatoryNotesPaymentPlaceholder') :
+                          transactionType === 'transfer' ? t('journalEntry.mandatoryNotesTransferPlaceholder') :
+                          t('journalEntry.mandatoryNotesOtherPlaceholder')
                         }
                         rows={4}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1981,16 +1982,16 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   </div>
 
                   <div>
-                    <h4 className="font-semibold text-gray-800 mb-2">Commentaires généraux</h4>
+                    <h4 className="font-semibold text-gray-800 mb-2">{t('journalEntry.generalComments')}</h4>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
-                        Commentaires libres
+                        {t('journalEntry.freeComments')}
                       </label>
                       <textarea
                         value={notes.commentairesGeneraux}
                         onChange={(e) => setNotes({...notes, commentairesGeneraux: e.target.value})}
-                        placeholder="Commentaires, observations, contexte particulier..."
+                        placeholder={t('journalEntry.generalCommentsPlaceholder')}
                         rows={6}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
@@ -2009,10 +2010,10 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   ) : (
                     <AlertCircle className="w-5 h-5 text-red-600" />
                   )}
-                  <span>Validation et Contrôles</span>
+                  <span>{t('journalEntry.validationAndChecks')}</span>
                   {validationErrors.length > 0 && (
                     <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-700 rounded-full">
-                      {validationErrors.length} élément(s) à corriger
+                      {t('journalEntry.itemsToFix', { count: String(validationErrors.length) })}
                     </span>
                   )}
                 </h3>
@@ -2022,7 +2023,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <h4 className="font-semibold text-red-800 mb-3 flex items-center space-x-2">
                       <AlertCircle className="w-5 h-5" />
-                      <span>Éléments manquants ou incorrects</span>
+                      <span>{t('journalEntry.missingOrIncorrectItems')}</span>
                     </h4>
                     <ul className="space-y-2">
                       {validationErrors.map((error, index) => (
@@ -2033,7 +2034,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       ))}
                     </ul>
                     <p className="mt-4 text-sm text-red-600 italic">
-                      Veuillez corriger ces éléments avant de pouvoir valider l'écriture.
+                      {t('journalEntry.fixBeforeValidating')}
                     </p>
                   </div>
                 )}
@@ -2043,10 +2044,10 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-semibold text-green-800 mb-2 flex items-center space-x-2">
                       <CheckCircle className="w-5 h-5" />
-                      <span>Écriture prête à être validée</span>
+                      <span>{t('journalEntry.entryReadyToValidate')}</span>
                     </h4>
                     <p className="text-sm text-green-700">
-                      Tous les contrôles sont passés avec succès. Vous pouvez valider et comptabiliser cette écriture.
+                      {t('journalEntry.allChecksPassed')}
                     </p>
                   </div>
                 )}
@@ -2056,12 +2057,12 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="bg-white p-4 rounded-lg border border-gray-200">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <AlertCircle className="w-4 h-4 text-blue-600" />
-                      <span>Validation TVA</span>
+                      <span>{t('journalEntry.vatValidation')}</span>
                     </h4>
 
                     {tvaValidation.errors.length > 0 && (
                       <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="font-semibold text-red-700 mb-2">Erreurs TVA:</p>
+                        <p className="font-semibold text-red-700 mb-2">{t('journalEntry.vatErrors')}</p>
                         <ul className="list-disc list-inside space-y-1">
                           {tvaValidation.errors.map((error, i) => (
                             <li key={i} className="text-sm text-red-600">{error}</li>
@@ -2072,7 +2073,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
 
                     {tvaValidation.warnings.length > 0 && (
                       <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="font-semibold text-yellow-700 mb-2">Avertissements:</p>
+                        <p className="font-semibold text-yellow-700 mb-2">{t('journalEntry.warnings')}</p>
                         <ul className="list-disc list-inside space-y-1">
                           {tvaValidation.warnings.map((warning, i) => (
                             <li key={i} className="text-sm text-yellow-600">{warning}</li>
@@ -2084,7 +2085,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     {tvaValidation.isValid && tvaValidation.errors.length === 0 && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
-                        <span className="text-green-700 font-medium">Validation TVA: Conforme</span>
+                        <span className="text-green-700 font-medium">{t('journalEntry.vatValidationCompliant')}</span>
                       </div>
                     )}
                   </div>
@@ -2093,24 +2094,24 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <div className="flex items-center justify-around mb-6">
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-1">Total Débit</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('journalEntry.totalDebit')}</p>
                       <p className="text-lg font-bold text-blue-600">{formatMontant(totalDebit)} XAF</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-1">Total Crédit</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('journalEntry.totalCredit')}</p>
                       <p className="text-lg font-bold text-blue-600">{formatMontant(totalCredit)} XAF</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm text-gray-600 mb-1">Équilibre</p>
+                      <p className="text-sm text-gray-600 mb-1">{t('journalEntry.balanceCheck')}</p>
                       {isEquilibree ? (
                         <div className="flex items-center justify-center space-x-2 text-green-600">
                           <CheckCircle className="w-6 h-6" />
-                          <span className="text-lg font-bold">Équilibré</span>
+                          <span className="text-lg font-bold">{t('journalEntry.balanced')}</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center space-x-2 text-red-600">
                           <AlertCircle className="w-6 h-6" />
-                          <span className="text-lg font-bold">Non équilibré</span>
+                          <span className="text-lg font-bold">{t('journalEntry.unbalanced')}</span>
                         </div>
                       )}
                     </div>
@@ -2119,7 +2120,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <div className="border-t border-gray-200 pt-4">
                     <h4 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
                       <FileText className="w-4 h-4 text-blue-600" />
-                      <span>Aperçu des écritures comptables</span>
+                      <span>{t('journalEntry.accountingEntriesPreview')}</span>
                     </h4>
                     <div className="space-y-2">
                       {lignesEcriture.map((ligne, index) => (
@@ -2133,7 +2134,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               {ligne.debit > 0 ? 'DT' : 'CT'}
                             </span>
                             <span className={`font-mono text-sm ${!ligne.compte ? 'text-red-500 italic' : ''}`}>
-                              {ligne.compte ? fmtAccount(ligne.compte) : '(compte manquant)'}
+                              {ligne.compte ? fmtAccount(ligne.compte) : t('journalEntry.missingAccount')}
                             </span>
                             <span className="text-sm text-gray-600">{ligne.libelle}</span>
                           </div>
@@ -2148,7 +2149,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center space-x-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />
                         <span className="text-green-700 font-medium">
-                          Équilibre comptable respecté: {formatMontant(totalDebit)} XAF
+                          {t('journalEntry.accountingBalanceRespected')} {formatMontant(totalDebit)} XAF
                         </span>
                       </div>
                     )}
@@ -2166,17 +2167,17 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                 onClick={handleClose}
                 className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Annuler
+                {t('journalEntry.cancel')}
               </button>
               <button className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                Brouillon
+                {t('journalEntry.draft')}
               </button>
             </div>
 
             {/* Indicateur de progression et raccourcis */}
             <div className="flex flex-col items-center space-y-1">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>Étape {tabOrder.indexOf(activeTab) + 1} sur {tabOrder.length}</span>
+                <span>{t('journalEntry.stepOf', { current: String(tabOrder.indexOf(activeTab) + 1), total: String(tabOrder.length) })}</span>
                 {tabValidation[activeTab] && activeTab !== 'validation' && (
                   <motion.span
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -2184,7 +2185,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                     className="flex items-center space-x-1 text-green-600"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Complété</span>
+                    <span>{t('journalEntry.completed')}</span>
                   </motion.span>
                 )}
               </div>
@@ -2193,7 +2194,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Ctrl</kbd>
                   <span>+</span>
                   <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Tab</kbd>
-                  <span>Suivant</span>
+                  <span>{t('journalEntry.next')}</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Ctrl</kbd>
@@ -2201,7 +2202,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Shift</kbd>
                   <span>+</span>
                   <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-300 rounded text-[10px] font-mono">Tab</kbd>
-                  <span>Précédent</span>
+                  <span>{t('journalEntry.previous')}</span>
                 </span>
               </div>
             </div>
@@ -2215,7 +2216,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2"
                 >
                   <ChevronRight className="w-4 h-4 rotate-180" />
-                  <span>Précédent</span>
+                  <span>{t('journalEntry.previous')}</span>
                 </button>
               )}
 
@@ -2223,14 +2224,14 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               {isLocked ? (
                 <span className="px-6 py-2 rounded-lg font-medium bg-gray-200 text-gray-500 flex items-center space-x-2 cursor-not-allowed">
                   <CheckCircle className="w-5 h-5" />
-                  <span>Écriture verrouillée</span>
+                  <span>{t('journalEntry.entryLocked')}</span>
                 </span>
               ) : activeTab !== 'validation' ? (
                 <button
                   onClick={goToNextTab}
                   className="px-6 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  <span>Suivant</span>
+                  <span>{t('journalEntry.next')}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               ) : (
@@ -2244,10 +2245,10 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                       : 'bg-gray-300 text-gray-700 cursor-not-allowed'
                     }
                   `}
-                  title={validationErrors.length > 0 ? `${validationErrors.length} élément(s) à corriger` : 'Valider et comptabiliser cette écriture'}
+                  title={validationErrors.length > 0 ? t('journalEntry.itemsToFix', { count: String(validationErrors.length) }) : t('journalEntry.validateAndPostTooltip')}
                 >
                   <CheckCircle className="w-5 h-5" />
-                  <span>{isSaving ? 'Enregistrement...' : 'Valider et Comptabiliser'}</span>
+                  <span>{isSaving ? t('journalEntry.saving') : t('journalEntry.validateAndPost')}</span>
                 </button>
               )}
             </div>
@@ -2271,28 +2272,28 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-800 flex items-center space-x-2">
                   <MessageSquare className="w-5 h-5 text-blue-600" />
-                  <span>Note de ligne</span>
+                  <span>{t('journalEntry.lineNote')}</span>
                 </h3>
                 <button
                   onClick={cancelNote}
-                  className="p-1 hover:bg-gray-100 rounded" aria-label="Fermer">
+                  className="p-1 hover:bg-gray-100 rounded" aria-label={t('journalEntry.close')}>
                   <X className="w-5 h-5 text-gray-700" />
                 </button>
               </div>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Note pour la ligne {currentNoteIndex !== null ? currentNoteIndex + 1 : ''}
+                  {t('journalEntry.noteForLine', { line: currentNoteIndex !== null ? String(currentNoteIndex + 1) : '' })}
                 </label>
                 <textarea
                   value={tempNote}
                   onChange={(e) => setTempNote(e.target.value)}
-                  placeholder="Entrez votre note ici..."
+                  placeholder={t('journalEntry.notePlaceholder')}
                   rows={5}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   autoFocus
                 />
-                <p className="text-xs text-gray-700 mt-1">Cette note est optionnelle</p>
+                <p className="text-xs text-gray-700 mt-1">{t('journalEntry.noteOptional')}</p>
               </div>
 
               <div className="flex justify-end space-x-3">
@@ -2300,13 +2301,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                   onClick={cancelNote}
                   className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('journalEntry.cancel')}
                 </button>
                 <button
                   onClick={saveNote}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Enregistrer
+                  {t('journalEntry.save')}
                 </button>
               </div>
             </motion.div>

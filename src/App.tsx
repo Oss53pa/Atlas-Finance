@@ -454,7 +454,10 @@ function App() {
                           <Route path="/budget/snapshots" element={work(<BudgetSnapshotsPage />)} />
                           <Route path="/budget/cockpit-analytique" element={work(<BudgetCockpitProPage />)} />
                           <Route path="/capex" element={work(<CapexPortfolioPage />)} />
-                          <Route path="/capex/bc/new" element={work(<BCStepperPage />)} />
+                          {/* Pas de route littérale « /capex/bc/new » : elle ne capture aucun
+                              param `id` (useParams().id = undefined → '' par défaut), donc
+                              isNew = id === 'new' était FAUX → « Business Case introuvable ».
+                              :id capture nativement le littéral "new" que le composant gère déjà. */}
                           <Route path="/capex/bc/:id" element={work(<BCStepperPage />)} />
                           <Route path="/capex/priorisation" element={work(<CapexPriorisationPage />)} />
                           <Route path="/capex/projet/:id" element={work(<ProjetCockpitPage />)} />

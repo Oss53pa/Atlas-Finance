@@ -144,7 +144,7 @@ const JournalsPage: React.FC = () => {
       setDbEntries(enriched);
     } catch (err) {
       console.error('[JournalsPage] Erreur chargement des journaux :', err);
-      toast.error('Impossible de charger les données des journaux. Vérifiez votre connexion.');
+      toast.error(t('journals.loadError'));
     } finally {
       setIsLoadingEntries(false);
     }
@@ -327,8 +327,8 @@ const JournalsPage: React.FC = () => {
       AC: t('accounting.purchaseJournal'), ACHAT: t('accounting.purchaseJournal'),
       BQ: t('accounting.bankJournal'), CA: t('accounting.cashJournal'),
       OD: t('accounting.miscJournal'),
-      AN: 'Journal A-Nouveau', RAN: 'Journal A-Nouveau (RAN)',
-      IPE: 'Instruments de paiement électronique', SAL: 'Journal de paie',
+      AN: t('journals.openingJournal'), RAN: t('journals.openingJournalRan'),
+      IPE: t('journals.epaymentJournal'), SAL: t('journals.payrollJournal'),
     };
     const palette = ['var(--color-primary)', 'var(--color-primary-hover)', 'var(--color-text-secondary)', '#8B6DAF', '#2E8B7F', '#C77D3A'];
 
@@ -530,7 +530,7 @@ const JournalsPage: React.FC = () => {
     // Trouver l'ID de l'entrée de journal depuis dbEntries
     const entryId = selectedEntry.id;
     if (!entryId) {
-      toast.error('Impossible de trouver l\'écriture en base (id manquant)');
+      toast.error(t('journals.entryNotFoundInDb'));
       return;
     }
 
@@ -589,7 +589,7 @@ const JournalsPage: React.FC = () => {
       setShowConfirmationModal(true);
       toast.success(t('messages.saveSuccess'));
     } catch (err) {
-      toast.error('Erreur lors de la sauvegarde : ' + ((err instanceof Error) ? err.message : String(err)));
+      toast.error(t('journals.saveErrorPrefix') + ((err instanceof Error) ? err.message : String(err)));
     } finally {
       setIsSaving(false);
     }
@@ -647,20 +647,20 @@ const JournalsPage: React.FC = () => {
                 <BookOpen className="w-5 h-5 text-[var(--color-text-secondary)]" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Journaux Comptables</h1>
-                <p className="text-sm text-[var(--color-text-tertiary)]">Gestion des journaux SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('journals.pageTitle')}</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('journals.pageSubtitle')}</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
-            <PageHeaderActions printTitle="Journaux Comptables" />
+            <PageHeaderActions printTitle={t('journals.pageTitle')} />
             <button
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm">Nouveau sous-journal</span>
+              <span className="text-sm">{t('journals.newSubJournal')}</span>
             </button>
           </div>
         </div>
@@ -703,7 +703,7 @@ const JournalsPage: React.FC = () => {
               {/* Header avec switch */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-[var(--color-primary)]">Gestion des Journaux</h2>
+                  <h2 className="font-semibold text-[var(--color-primary)]">{t('journals.management')}</h2>
                   <div className="flex items-center space-x-3">
                     {/* Switch vue */}
                     <div className="flex items-center bg-[var(--color-surface-hover)] rounded-lg p-1">
@@ -716,7 +716,7 @@ const JournalsPage: React.FC = () => {
                         }`}
                       >
                         <BookOpen className="w-4 h-4" />
-                        <span>Cartes</span>
+                        <span>{t('journals.cardsView')}</span>
                       </button>
                       <button
                         onClick={() => setViewMode('table')}
@@ -727,7 +727,7 @@ const JournalsPage: React.FC = () => {
                         }`}
                       >
                         <FileText className="w-4 h-4" />
-                        <span>Table</span>
+                        <span>{t('journals.tableView')}</span>
                       </button>
                     </div>
                   </div>
@@ -738,7 +738,7 @@ const JournalsPage: React.FC = () => {
               {isLoadingEntries && (
                 <div className="flex items-center justify-center py-10 space-x-2 text-[var(--color-text-tertiary)]">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary)]"></div>
-                  <span className="text-sm">Chargement des journaux…</span>
+                  <span className="text-sm">{t('journals.loadingJournals')}</span>
                 </div>
               )}
 
@@ -753,8 +753,8 @@ const JournalsPage: React.FC = () => {
                           <Archive className="w-5 h-5 text-[var(--color-text-secondary)]" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-[var(--color-text-primary)] text-sm">Journal tous mouvements</h3>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">Vue consolidée</p>
+                          <h3 className="font-semibold text-[var(--color-text-primary)] text-sm">{t('journals.allMovements')}</h3>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">{t('journals.consolidatedView')}</p>
                         </div>
                       </div>
                     </div>
@@ -765,7 +765,7 @@ const JournalsPage: React.FC = () => {
                           <p className="text-sm font-bold text-[var(--color-text-primary)]">
                             {journaux.reduce((sum, j) => sum + j.entries, 0)}
                           </p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">Total écritures</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)]">{t('journals.totalEntries')}</p>
                         </div>
                         <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
                           <p className="text-sm font-bold text-[var(--color-text-primary)]">
@@ -774,13 +774,13 @@ const JournalsPage: React.FC = () => {
                           <p className="text-xs text-[var(--color-text-tertiary)]">
                             {/* tolérance 1 FCFA : l'égalité stricte sur des sommes flottantes affichait
                                 « Déséquilibré » pour un écart d'arrondi de quelques centimes */}
-                            {Math.abs(journaux.reduce((sum, j) => sum + j.totalDebit, 0) - journaux.reduce((sum, j) => sum + j.totalCredit, 0)) < 1 ? 'Équilibré' : 'Déséquilibré'}
+                            {Math.abs(journaux.reduce((sum, j) => sum + j.totalDebit, 0) - journaux.reduce((sum, j) => sum + j.totalCredit, 0)) < 1 ? t('journals.balanced') : t('journals.unbalanced')}
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)]">
-                        <span className="text-xs text-[var(--color-text-tertiary)]">Consolidation en temps réel</span>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">{t('journals.realtimeConsolidation')}</span>
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => {
@@ -788,14 +788,14 @@ const JournalsPage: React.FC = () => {
                               const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
                               const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
                               setSelectedJournal({
-                                id: 'tous', code: 'TOUS', libelle: 'Journal tous mouvements', type: 'OD' as const,
+                                id: 'tous', code: 'TOUS', libelle: t('journals.allMovements'), type: 'OD' as const,
                                 entries: journaux.reduce((sum, j) => sum + j.entries, 0),
                                 totalDebit, totalCredit, lastEntry, color: '#737373'
                               });
                               setActiveTab('journal-view');
                             }}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Voir le journal consolidé"
+                            title={t('journals.viewConsolidated')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -805,14 +805,14 @@ const JournalsPage: React.FC = () => {
                               const totalCredit = journaux.reduce((sum, j) => sum + j.totalCredit, 0);
                               const lastEntry = journaux.reduce((latest, j) => j.lastEntry > latest ? j.lastEntry : latest, '');
                               setSelectedJournal({
-                                id: 'tous', code: 'TOUS', libelle: 'Journal tous mouvements', type: 'OD' as const,
+                                id: 'tous', code: 'TOUS', libelle: t('journals.allMovements'), type: 'OD' as const,
                                 entries: journaux.reduce((sum, j) => sum + j.entries, 0),
                                 totalDebit, totalCredit, lastEntry, color: '#737373'
                               });
                               setActiveTab('journal-view');
                             }}
                             className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                            title="Modifier les écritures"
+                            title={t('journals.editEntries')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -834,7 +834,7 @@ const JournalsPage: React.FC = () => {
                           </div>
                           <div>
                             <h3 className="font-semibold text-[var(--color-text-primary)] text-sm">{journal.libelle}</h3>
-                            <p className="text-xs text-[var(--color-text-tertiary)]">Type: {journal.type}</p>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">{t('journals.type')}: {journal.type}</p>
                           </div>
                         </div>
                       </div>
@@ -843,7 +843,7 @@ const JournalsPage: React.FC = () => {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
                             <p className="text-sm font-bold text-[var(--color-text-primary)]">{journal.entries}</p>
-                            <p className="text-xs text-[var(--color-text-tertiary)]">Écritures</p>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">{t('journals.entries')}</p>
                           </div>
                           <div className="text-center p-2.5 rounded-lg bg-[var(--color-surface-hover)]">
                             <p className="text-sm font-bold text-[var(--color-text-primary)]">
@@ -854,7 +854,7 @@ const JournalsPage: React.FC = () => {
                         </div>
 
                         <div className="flex items-center justify-between pt-2 border-t border-[var(--color-border-light)]">
-                          <span className="text-xs text-[var(--color-text-tertiary)]">Dernière écriture: {journal.lastEntry}</span>
+                          <span className="text-xs text-[var(--color-text-tertiary)]">{t('journals.lastEntry')}: {journal.lastEntry}</span>
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => {
@@ -862,7 +862,7 @@ const JournalsPage: React.FC = () => {
                                 setActiveTab('journal-view');
                               }}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Voir le journal"
+                              title={t('journals.viewJournal')}
                             >
                               <Eye className="w-4 h-4" />
                             </button>
@@ -872,7 +872,7 @@ const JournalsPage: React.FC = () => {
                                 setActiveTab('journal-view');
                               }}
                               className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)] transition-colors"
-                              title="Modifier les écritures"
+                              title={t('journals.editEntries')}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
@@ -891,20 +891,20 @@ const JournalsPage: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-[var(--color-surface-hover)]">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Code</th>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">{t('journals.code')}</th>
                           <th className="px-4 py-3 text-left text-xs font-semibold text-[var(--color-text-secondary)] uppercase">{t('accounting.label')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Écritures</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">{t('journals.entries')}</th>
                           <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">{t('accounting.debit')}</th>
                           <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">{t('accounting.credit')}</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Dernière écriture</th>
-                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">Actions</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">{t('journals.lastEntry')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">{t('journals.actions')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {journaux.every(j => j.entries === 0) && (
                           <tr>
                             <td colSpan={7} className="px-4 py-10 text-center text-sm text-[var(--color-text-tertiary)]">
-                              Aucun journal avec des écritures pour la période sélectionnée
+                              {t('journals.noJournalsForPeriod')}
                             </td>
                           </tr>
                         )}
@@ -966,7 +966,7 @@ const JournalsPage: React.FC = () => {
                                       setActiveTab('journal-view');
                                     }}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Voir le journal"
+                                    title={t('journals.viewJournal')}
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
@@ -976,7 +976,7 @@ const JournalsPage: React.FC = () => {
                                       setActiveTab('journal-view');
                                     }}
                                     className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                    title="Modifier les écritures"
+                                    title={t('journals.editEntries')}
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
@@ -1028,7 +1028,7 @@ const JournalsPage: React.FC = () => {
                                         setActiveTab('journal-view');
                                       }}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Voir le sous-journal"
+                                      title={t('journals.viewSubJournal')}
                                     >
                                       <Eye className="w-3 h-3" />
                                     </button>
@@ -1045,7 +1045,7 @@ const JournalsPage: React.FC = () => {
                                         setActiveTab('journal-view');
                                       }}
                                       className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors"
-                                      title="Modifier le sous-journal"
+                                      title={t('journals.editSubJournal')}
                                     >
                                       <Edit className="w-3 h-3" />
                                     </button>
@@ -1076,10 +1076,10 @@ const JournalsPage: React.FC = () => {
                     <div className="flex items-center space-x-4">
                       <h3 className="text-lg font-bold text-[var(--color-primary)]">
                         <Archive className="w-5 h-5 mr-2" />
-                        {selectedJournal?.code === 'TOUS' ? 'Journal tous mouvements' : `Journal ${selectedJournal?.code} - ${selectedJournal?.libelle}`}
+                        {selectedJournal?.code === 'TOUS' ? t('journals.allMovements') : `${t('journals.journalPrefix')} ${selectedJournal?.code} - ${selectedJournal?.libelle}`}
                       </h3>
                       <div className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg text-sm font-medium">
-                        Devise: {companyCurrency}
+                        {t('journals.currency')}: {companyCurrency}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -1087,10 +1087,10 @@ const JournalsPage: React.FC = () => {
                         onClick={() => setActiveTab('journaux')}
                         className="px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                       >
-                        ← Retour
+                        ← {t('journals.back')}
                       </button>
                       <button
-                        onClick={() => toast('Export en cours de développement — utilisez le bouton export intégré au tableau ci-dessous')}
+                        onClick={() => toast(t('journals.exportInDevelopment'))}
                         className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg text-sm hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2"
                       >
                         <FileSpreadsheet className="w-4 h-4" />
@@ -1104,15 +1104,15 @@ const JournalsPage: React.FC = () => {
                     {/* Totaux à droite */}
                     <div className="flex items-center space-x-6">
                       <div className="flex items-center space-x-2 bg-[var(--color-error-light)] px-3 py-2 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700">Débit:</span>
+                        <span className="text-sm font-medium text-gray-700">{t('journals.debitLabel')}</span>
                         <span className="text-lg font-bold text-[var(--color-error)]">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</span>
                       </div>
                       <div className="flex items-center space-x-2 bg-[var(--color-success-light)] px-3 py-2 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700">Crédit:</span>
+                        <span className="text-sm font-medium text-gray-700">{t('journals.creditLabel')}</span>
                         <span className="text-lg font-bold text-[var(--color-success)]">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</span>
                       </div>
                       <div className="flex items-center space-x-2 bg-[var(--color-info-light)] px-3 py-2 rounded-lg">
-                        <span className="text-sm font-medium text-gray-700">Équilibre:</span>
+                        <span className="text-sm font-medium text-gray-700">{t('journals.balanceLabel')}</span>
                         <span className={`text-lg font-bold ${selectedJournalTotals.balanced ? 'text-[var(--color-info)]' : 'text-[var(--color-error)]'}`}>
                           {selectedJournalTotals.balanced ? '✓' : '⚠'}
                         </span>
@@ -1129,15 +1129,15 @@ const JournalsPage: React.FC = () => {
                   showPrintButton={false}
                   headerContent={
                     <div className="text-center mb-4">
-                      <h1 className="text-lg font-bold">Journal {selectedJournal?.code || 'TOUS'}</h1>
+                      <h1 className="text-lg font-bold">{t('journals.journalPrefix')} {selectedJournal?.code || 'TOUS'}</h1>
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        Généré le {new Date().toLocaleDateString('fr-FR')} à {new Date().toLocaleTimeString('fr-FR')}
+                        {t('journals.generatedOn', { date: new Date().toLocaleDateString('fr-FR'), time: new Date().toLocaleTimeString('fr-FR') })}
                       </p>
                     </div>
                   }
                   footerContent={
                     <div className="text-center text-xs text-[var(--color-text-tertiary)]">
-                      Atlas FnA - Logiciel de Comptabilité
+                      {t('journals.printFooter')}
                     </div>
                   }
                 >
@@ -1145,15 +1145,15 @@ const JournalsPage: React.FC = () => {
                       n'existait pas en CSS → le bloc doublonnait les pastilles à l'écran). */}
                   <div className="hidden print:flex mb-4 justify-center space-x-6">
                     <div className="text-center">
-                      <span className="text-sm font-medium">Total Débit:</span>
+                      <span className="text-sm font-medium">{t('journals.printTotalDebit')}</span>
                       <span className="ml-2 font-bold">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div className="text-center">
-                      <span className="text-sm font-medium">Total Crédit:</span>
+                      <span className="text-sm font-medium">{t('journals.printTotalCredit')}</span>
                       <span className="ml-2 font-bold">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</span>
                     </div>
                     <div className="text-center">
-                      <span className="text-sm font-medium">Équilibre:</span>
+                      <span className="text-sm font-medium">{t('journals.balanceLabel')}</span>
                       <span className={`ml-2 font-bold ${selectedJournalTotals.balanced ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                         {selectedJournalTotals.balanced ? '✓' : '⚠'}
                       </span>
@@ -1178,13 +1178,13 @@ const JournalsPage: React.FC = () => {
                         <button
                           onClick={() => handleDoubleClickEntry(item)}
                           className="p-1.5 hover:bg-[var(--color-info-light)] rounded transition-colors"
-                          title="Modifier cette écriture"
+                          title={t('journals.editThisEntry')}
                         >
                           <Edit className="w-3.5 h-3.5 text-[var(--color-info)]" />
                         </button>
                       </div>
                     )}
-                    emptyMessage="Aucune écriture trouvée pour ce journal"
+                    emptyMessage={t('journals.noEntriesFound')}
                     className="border border-[var(--color-border)] rounded-lg data-table"
                   />
                 </PrintableArea>
@@ -1194,13 +1194,13 @@ const JournalsPage: React.FC = () => {
                   <div className="flex items-center justify-between p-3 bg-[var(--color-surface-hover)]">
                     <h4 className="text-sm font-medium text-[var(--color-text-secondary)] flex items-center space-x-2">
                       <BarChart3 className="w-4 h-4" />
-                      <span>Récapitulatif par compte</span>
+                      <span>{t('journals.recapByAccount')}</span>
                     </h4>
                     <button
                       onClick={() => setShowRecapTable(!showRecapTable)}
                       className="px-3 py-1 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded text-xs hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-1"
                     >
-                      <span>{showRecapTable ? 'Masquer' : 'Afficher'}</span>
+                      <span>{showRecapTable ? t('journals.hide') : t('journals.show')}</span>
                       {showRecapTable ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                     </button>
                   </div>
@@ -1212,18 +1212,18 @@ const JournalsPage: React.FC = () => {
                           <thead className="bg-[var(--color-surface-hover)] sticky top-0 z-10">
                             <tr className="text-xs">
                               <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] w-[80px]">{t('accounting.account')}</th>
-                              <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] min-w-[250px]">Libellé du compte</th>
+                              <th className="px-2 py-2 text-left font-semibold border-r border-[var(--color-border)] min-w-[250px]">{t('journals.accountLabel')}</th>
                               <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">{t('accounting.debit')}</th>
                               <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">{t('accounting.credit')}</th>
-                              <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">Solde débit</th>
-                              <th className="px-2 py-2 text-right font-semibold w-[100px]">Solde crédit</th>
+                              <th className="px-2 py-2 text-right font-semibold border-r border-[var(--color-border)] w-[100px]">{t('journals.debitBalance')}</th>
+                              <th className="px-2 py-2 text-right font-semibold w-[100px]">{t('journals.creditBalance')}</th>
                             </tr>
                           </thead>
                           <tbody>
                             {recapParCompte.length === 0 ? (
                               <tr>
                                 <td colSpan={6} className="px-4 py-6 text-center text-sm text-[var(--color-text-secondary)]">
-                                  Aucune écriture pour ce journal
+                                  {t('journals.noEntriesForJournal')}
                                 </td>
                               </tr>
                             ) : recapParCompte.map((compte, index) => (
@@ -1238,7 +1238,7 @@ const JournalsPage: React.FC = () => {
                             ))}
                             {recapParCompte.length > 0 && (
                               <tr className="bg-[var(--color-surface-hover)] font-bold border-t-2 border-[var(--color-border)]">
-                                <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">TOTAL</td>
+                                <td colSpan={2} className="px-2 py-2 text-sm font-bold text-[var(--color-text-secondary)] border-r border-[var(--color-border)]">{t('journals.total')}</td>
                                 <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">{selectedJournalTotals.totalDebit.toFixed(2).replace('.', ',')}</td>
                                 <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-success)] border-r border-[var(--color-border)]">{selectedJournalTotals.totalCredit.toFixed(2).replace('.', ',')}</td>
                                 <td className="px-2 py-2 text-right text-sm font-bold text-[var(--color-error)] border-r border-[var(--color-border)]">
@@ -1264,7 +1264,7 @@ const JournalsPage: React.FC = () => {
 
                 {/* Footer avec clôture comptable (fixe, sous la zone défilante) */}
                 <div className="p-2 bg-[var(--color-surface-hover)] border-t border-[var(--color-border)] text-right flex-shrink-0">
-                  <span className="text-xs text-[var(--color-text-secondary)]">Clôture comptable au 31/12</span>
+                  <span className="text-xs text-[var(--color-text-secondary)]">{t('journals.accountingClosing')}</span>
                 </div>
               </div>
             </div>
@@ -1289,9 +1289,9 @@ const JournalsPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                   <Plus className="w-5 h-5" />
-                  <span>Création d'un Sous-journal</span>
+                  <span>{t('journals.createSubJournalTitle')}</span>
                 </h3>
-                <p className="text-sm text-[var(--color-text-secondary)] mt-1">Les 5 journaux principaux SYSCOHADA sont déjà créés</p>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('journals.mainJournalsAlreadyCreated')}</p>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
@@ -1304,7 +1304,7 @@ const JournalsPage: React.FC = () => {
             <form onSubmit={async (e) => {
               e.preventDefault();
               if (!newSubJournal.parentCode || !newSubJournal.code || !newSubJournal.libelle) {
-                toast.error('Veuillez remplir tous les champs obligatoires');
+                toast.error(t('journals.fillRequiredFields'));
                 return;
               }
               setIsCreatingSubJournal(true);
@@ -1317,40 +1317,40 @@ const JournalsPage: React.FC = () => {
                   libelle: newSubJournal.libelle,
                   createdAt: new Date().toISOString(),
                 });
-                toast.success(`Sous-journal ${newSubJournal.code.toUpperCase()} créé avec succès !`);
+                toast.success(t('journals.subJournalCreated', { code: newSubJournal.code.toUpperCase() }));
                 setNewSubJournal({ parentCode: '', code: '', libelle: '' });
                 setShowCreateModal(false);
               } catch (err) {
-                toast.error('Erreur lors de la création : ' + ((err instanceof Error) ? err.message : String(err)));
+                toast.error(t('journals.createErrorPrefix') + ((err instanceof Error) ? err.message : String(err)));
               } finally {
                 setIsCreatingSubJournal(false);
               }
             }}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Journal parent *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.parentJournal')} *</label>
                   <select
                     value={newSubJournal.parentCode}
                     onChange={e => setNewSubJournal(prev => ({ ...prev, parentCode: e.target.value }))}
                     className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     required
                   >
-                    <option value="">Choisir le journal principal</option>
-                    <option value="VE">VE - Journal des Ventes</option>
-                    <option value="AC">AC - Journal des Achats</option>
-                    <option value="BQ">BQ - Journal de Banque</option>
-                    <option value="CA">CA - Journal de Caisse</option>
-                    <option value="OD">OD - Opérations Diverses</option>
-                    <option value="AN">AN - A-Nouveau</option>
+                    <option value="">{t('journals.chooseMainJournal')}</option>
+                    <option value="VE">VE - {t('journals.salesJournal')}</option>
+                    <option value="AC">AC - {t('journals.purchaseJournal')}</option>
+                    <option value="BQ">BQ - {t('journals.bankJournal')}</option>
+                    <option value="CA">CA - {t('journals.cashJournal')}</option>
+                    <option value="OD">OD - {t('journals.miscJournal')}</option>
+                    <option value="AN">AN - {t('journals.openingEntries')}</option>
                   </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Code journal *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.journalCode')} *</label>
                     <input
                       type="text"
-                      placeholder="ex. VT01, AC01"
+                      placeholder={t('journals.codePlaceholder')}
                       maxLength={5}
                       value={newSubJournal.code}
                       onChange={e => setNewSubJournal(prev => ({ ...prev, code: e.target.value }))}
@@ -1359,10 +1359,10 @@ const JournalsPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Nom du journal *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.journalName')} *</label>
                     <input
                       type="text"
-                      placeholder="ex. Ventes Export"
+                      placeholder={t('journals.namePlaceholder')}
                       value={newSubJournal.libelle}
                       onChange={e => setNewSubJournal(prev => ({ ...prev, libelle: e.target.value }))}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -1378,14 +1378,14 @@ const JournalsPage: React.FC = () => {
                   onClick={() => setShowCreateModal(false)}
                   className="px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                 >
-                  Annuler
+                  {t('journals.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isCreatingSubJournal}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-60"
                 >
-                  {isCreatingSubJournal ? 'Création...' : 'Créer le sous-journal'}
+                  {isCreatingSubJournal ? t('journals.creating') : t('journals.createSubJournal')}
                 </button>
               </div>
             </form>
@@ -1412,7 +1412,7 @@ const JournalsPage: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center space-x-2">
                 {entryReadOnly ? <Eye className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
-                <span>{entryReadOnly ? "Détail de l'écriture" : "Modifier l'écriture"} {selectedEntry.piece}</span>
+                <span>{entryReadOnly ? t('journals.entryDetail') : t('journals.editEntry')} {selectedEntry.piece}</span>
               </h3>
               <button
                 onClick={() => setShowEditEntryModal(false)}
@@ -1424,7 +1424,7 @@ const JournalsPage: React.FC = () => {
 
             {entryReadOnly && (
               <div className="mb-4 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 flex items-center gap-2">
-                <Eye className="w-4 h-4" /> Écriture validée — consultation en lecture seule (intangible, SYSCOHADA Art.19).
+                <Eye className="w-4 h-4" /> {t('journals.readOnlyNotice')}
               </div>
             )}
 
@@ -1432,7 +1432,7 @@ const JournalsPage: React.FC = () => {
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">N° Mouvement</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.movementNumber')}</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.mvt}
@@ -1461,7 +1461,7 @@ const JournalsPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">N° Pièce</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.documentNumber')}</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.piece}
@@ -1469,7 +1469,7 @@ const JournalsPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Échéance</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('journals.dueDate')}</label>
                   <input
                     type="text"
                     defaultValue={selectedEntry.echeance}
@@ -1483,7 +1483,7 @@ const JournalsPage: React.FC = () => {
             <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg p-4 mb-6">
               <div className="flex justify-between items-center mb-4">
                 <h4 className="font-medium text-[var(--color-text-primary)]">
-                  Lignes de l'écriture ({selectedEntryLines.length})
+                  {t('journals.entryLines', { count: String(selectedEntryLines.length) })}
                 </h4>
                 <button
                   onClick={() => {
@@ -1504,7 +1504,7 @@ const JournalsPage: React.FC = () => {
                   className="px-3 py-1 bg-[var(--color-primary)] text-white text-sm rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-1"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Ajouter une ligne</span>
+                  <span>{t('journals.addLine')}</span>
                 </button>
               </div>
 
@@ -1514,13 +1514,13 @@ const JournalsPage: React.FC = () => {
                   <thead className="bg-[var(--color-surface-hover)] border-b">
                     <tr>
                       <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('accounting.account')}</th>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">Libellé compte</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('journals.accountLabelShort')}</th>
                       <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('accounting.label')}</th>
-                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">Code Analytique</th>
+                      <th className="px-2 py-2 text-left text-xs font-medium text-[var(--color-text-secondary)]">{t('journals.analyticCode')}</th>
                       <th className="px-2 py-2 text-right text-xs font-medium text-gray-700">{t('accounting.debit')}</th>
                       <th className="px-2 py-2 text-right text-xs font-medium text-gray-700">{t('accounting.credit')}</th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">Note</th>
-                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">Actions</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">{t('journals.note')}</th>
+                      <th className="px-2 py-2 text-center text-xs font-medium text-gray-700">{t('journals.actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -1528,7 +1528,7 @@ const JournalsPage: React.FC = () => {
                     {selectedEntryLines.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="px-4 py-8 text-center text-[var(--color-text-secondary)]">
-                          Aucune ligne trouvée pour cette écriture
+                          {t('journals.noLinesFound')}
                         </td>
                       </tr>
                     ) : entryReadOnly ? (
@@ -1569,7 +1569,7 @@ const JournalsPage: React.FC = () => {
                             value={line.compteLib}
                             onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, compteLib: e.target.value } : l))}
                             className="w-full px-2 py-1 border border-[var(--color-border)] rounded text-sm"
-                            placeholder="Libellé compte"
+                            placeholder={t('journals.accountLabelShort')}
                           />
                         </td>
                         <td className="px-2 py-2">
@@ -1587,7 +1587,7 @@ const JournalsPage: React.FC = () => {
                             value={(line as any).centreAnalytique ?? ''}
                             onChange={e => setSelectedEntryLines(ls => ls.map((l, i) => i === index ? { ...l, centreAnalytique: e.target.value } : l))}
                           >
-                            <option value="">Aucun</option>
+                            <option value="">{t('journals.none')}</option>
                             {costCenters.length > 0
                               ? costCenters.map(c => (
                                   <option key={c.code} value={c.code}>{c.code}{c.libelle ? ` - ${c.libelle}` : ''}</option>
@@ -1595,9 +1595,9 @@ const JournalsPage: React.FC = () => {
                               : (
                                 /* Fallback par défaut si la table costCenters est absente */
                                 <>
-                                  <option value="AX001">AX001 - Centre 1</option>
-                                  <option value="AX002">AX002 - Centre 2</option>
-                                  <option value="AX003">AX003 - Centre 3</option>
+                                  <option value="AX001">AX001 - {t('journals.center')} 1</option>
+                                  <option value="AX002">AX002 - {t('journals.center')} 2</option>
+                                  <option value="AX003">AX003 - {t('journals.center')} 3</option>
                                 </>
                               )
                             }
@@ -1623,15 +1623,15 @@ const JournalsPage: React.FC = () => {
                         </td>
                         <td className="px-2 py-2 text-center">
                           <button
-                            onClick={() => toast('Fonctionnalité de note en cours de développement')}
+                            onClick={() => toast(t('journals.noteFeatureInDevelopment'))}
                             className="p-1 text-[var(--color-info)] hover:text-[var(--color-info)] hover:bg-[var(--color-info-light)] rounded"
-                            title="Ajouter une note"
+                            title={t('journals.addNote')}
                           >
                             <FileText className="w-4 h-4" />
                           </button>
                         </td>
                         <td className="px-2 py-2 text-center">
-                          <button className="text-[var(--color-error)] hover:text-[var(--color-error)]" aria-label="Fermer">
+                          <button className="text-[var(--color-error)] hover:text-[var(--color-error)]" aria-label={t('journals.close')}>
                             <X className="w-4 h-4" />
                           </button>
                         </td>
@@ -1641,7 +1641,7 @@ const JournalsPage: React.FC = () => {
                   </tbody>
                   <tfoot className="bg-[var(--color-surface-hover)] border-t-2">
                     <tr>
-                      <td colSpan={4} className="px-2 py-2 text-right font-medium text-sm">Totaux :</td>
+                      <td colSpan={4} className="px-2 py-2 text-right font-medium text-sm">{t('journals.totals')}</td>
                       <td className="px-2 py-2 text-right font-mono font-bold text-sm text-[var(--color-error)]">
                         {formatCurrency(selectedEntryLines.reduce((sum, line) => {
                           const debit = parseFloat(line.debit?.replace(/\s/g, '').replace('-', '') || '0');
@@ -1670,12 +1670,12 @@ const JournalsPage: React.FC = () => {
                           return Math.abs(totalDebit - totalCredit) < 0.01 ? (
                             <span className="text-[var(--color-success)] font-medium flex items-center justify-center">
                               <CheckCircle className="w-4 h-4 mr-1" />
-                              Écriture équilibrée
+                              {t('journals.entryBalanced')}
                             </span>
                           ) : (
                             <span className="text-[var(--color-error)] font-medium flex items-center justify-center">
                               <AlertTriangle className="w-4 h-4 mr-1" />
-                              Écriture déséquilibrée (Débit: {formatCurrency(totalDebit)} - Crédit: {formatCurrency(totalCredit)})
+                              {t('journals.entryUnbalanced', { debit: formatCurrency(totalDebit), credit: formatCurrency(totalCredit) })}
                             </span>
                           );
                         })()}
@@ -1699,7 +1699,7 @@ const JournalsPage: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-warning)] text-white rounded-lg hover:bg-[var(--color-warning)] transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RotateCcw className="w-4 h-4" />
-                <span>{reverseEntryMutation.isPending ? 'Reversement en cours...' : 'Reverser l\'écriture'}</span>
+                <span>{reverseEntryMutation.isPending ? t('journals.reversing') : t('journals.reverseEntry')}</span>
               </button>
 
               {/* Actions à droite */}
@@ -1708,7 +1708,7 @@ const JournalsPage: React.FC = () => {
                   onClick={() => setShowEditEntryModal(false)}
                   className="px-4 py-2 text-[var(--color-text-secondary)] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors"
                 >
-                  {entryReadOnly ? 'Fermer' : 'Annuler'}
+                  {entryReadOnly ? t('journals.close') : t('journals.cancel')}
                 </button>
                 {!entryReadOnly && (
                 <button
@@ -1716,7 +1716,7 @@ const JournalsPage: React.FC = () => {
                   disabled={isSaving}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-60"
                 >
-                  {isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'}
+                  {isSaving ? t('journals.saving') : t('journals.saveChanges')}
                 </button>
                 )}
                 <button
@@ -1728,15 +1728,15 @@ const JournalsPage: React.FC = () => {
                     try {
                       const res = await validerEcriture(adapter, String(selectedEntry.id));
                       if (res.success) {
-                        toast.success(`Écriture ${String(selectedEntry.piece ?? '')} validée`);
+                        toast.success(t('journals.entryValidated', { piece: String(selectedEntry.piece ?? '') }));
                         setShowEditEntryModal(false);
                         await reloadData();
                       } else {
-                        toast.error(res.error || 'Validation impossible');
+                        toast.error(res.error || t('journals.validationFailed'));
                       }
                     } catch (err) {
                       console.error('[JournalsPage] Erreur validation depuis modal :', err);
-                      toast.error('Erreur lors de la validation');
+                      toast.error(t('journals.validationError'));
                     } finally {
                       setIsValidatingFromModal(false);
                     }
@@ -1744,7 +1744,7 @@ const JournalsPage: React.FC = () => {
                   className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success)] transition-colors flex items-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  <span>Valider et transférer au journal</span>
+                  <span>{t('journals.validateAndTransfer')}</span>
                 </button>
               </div>
             </div>
@@ -1764,10 +1764,10 @@ const JournalsPage: React.FC = () => {
                 </div>
               </div>
               <h2 className="text-lg font-bold text-white text-center">
-                Écriture enregistrée avec succès !
+                {t('journals.entrySavedSuccess')}
               </h2>
               <p className="text-white/90 text-center mt-2">
-                Votre écriture a été sauvegardée dans le journal {savedEntry.jnl}
+                {t('journals.entrySavedInJournal', { journal: savedEntry.jnl })}
               </p>
             </div>
 
@@ -1777,11 +1777,11 @@ const JournalsPage: React.FC = () => {
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 uppercase">N° Pièce</label>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">{t('journals.documentNumber')}</label>
                     <div className="text-lg font-bold mt-1" style={{ color: 'var(--color-secondary)' }}>{savedEntry.piece}</div>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 uppercase">N° Écriture</label>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">{t('journals.entryNumber')}</label>
                     <div className="text-lg font-bold text-gray-800 mt-1">{savedEntry.mvt}</div>
                   </div>
                 </div>
@@ -1796,7 +1796,7 @@ const JournalsPage: React.FC = () => {
                     <div className="text-lg font-semibold text-gray-800 mt-1">{savedEntry.date}</div>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-gray-700 uppercase">Échéance</label>
+                    <label className="text-xs font-semibold text-gray-700 uppercase">{t('journals.dueDate')}</label>
                     <div className="text-lg font-semibold text-gray-800 mt-1">{savedEntry.echeance}</div>
                   </div>
                 </div>
@@ -1806,9 +1806,9 @@ const JournalsPage: React.FC = () => {
               <div className="mb-4">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center">
-                    <label className="text-sm font-semibold text-gray-600 w-24">Tiers :</label>
+                    <label className="text-sm font-semibold text-gray-600 w-24">{t('journals.thirdParty')}</label>
                     <span className="text-base font-semibold text-gray-800">
-                      {savedEntry.tiers || 'Non renseigné'}
+                      {savedEntry.tiers || t('journals.notProvided')}
                     </span>
                   </div>
                 </div>
@@ -1823,9 +1823,9 @@ const JournalsPage: React.FC = () => {
               }}>
                 <div className="flex items-center justify-center" style={{ color: 'var(--color-success)' }}>
                   <CheckCircle className="w-5 h-5 mr-2" />
-                  <span className="font-semibold">Écriture équilibrée</span>
+                  <span className="font-semibold">{t('journals.entryBalanced')}</span>
                   <span className="ml-2 text-sm">
-                    (Débit = Crédit = {formatCurrency(savedEntry.totalDebit ?? 0)})
+                    {t('journals.debitEqualsCredit', { amount: formatCurrency(savedEntry.totalDebit ?? 0) })}
                   </span>
                 </div>
               </div>
@@ -1844,7 +1844,7 @@ const JournalsPage: React.FC = () => {
                   onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
                   onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
                 >
-                  Fermer
+                  {t('journals.close')}
                 </button>
                 <button
                   onClick={() => {
@@ -1869,7 +1869,7 @@ const JournalsPage: React.FC = () => {
                   }}
                 >
                   <Printer className="w-4 h-4" />
-                  Imprimer
+                  {t('journals.print')}
                 </button>
               </div>
             </div>
