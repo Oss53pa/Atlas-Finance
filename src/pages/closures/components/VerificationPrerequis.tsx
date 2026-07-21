@@ -1,8 +1,8 @@
 /**
  * VerificationPrerequis — Section « Vérification » reconstruite sur des données RÉELLES.
  *
- * L'écran précédent (`sections/ControlePeriodes`) affichait des pré-requis
- * FABRIQUÉS : `validations {comptable, fiscal, audit, direction}` valait
+ * L'écran précédent (`sections/ControlePeriodes`, supprimé) affichait des
+ * pré-requis FABRIQUÉS : `validations {comptable, fiscal, audit, direction}` valait
  * simplement `isClosed`, `etapesObligatoires` (« Rapprochement bancaire :
  * complété ») était dérivé du même booléen, `progression` valait 0/50/100 selon
  * le statut, et les 7 « règles de clôture » n'étaient JAMAIS évaluées — leurs
