@@ -36,7 +36,7 @@ const CompteResultatPage: React.FC = () => {
   const { printRef, handlePrint } = usePrintReport({
     orientation: 'landscape',
     fileName: 'etats-financiers-mensuels.pdf',
-    title: 'États Financiers Mensuels SYSCOHADA',
+    title: t('incomeStatement.pageTitle'),
   });
 
   // Données mensuelles calculées depuis Dexie — drafts exclus des calculs financiers
@@ -57,7 +57,12 @@ const CompteResultatPage: React.FC = () => {
     return sorted[0]?.[0] || String(new Date().getFullYear());
   }, [allEntries]);
 
-  const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  const MONTH_NAMES = [
+    t('incomeStatement.monthJanuary'), t('incomeStatement.monthFebruary'), t('incomeStatement.monthMarch'),
+    t('incomeStatement.monthApril'), t('incomeStatement.monthMay'), t('incomeStatement.monthJune'),
+    t('incomeStatement.monthJuly'), t('incomeStatement.monthAugust'), t('incomeStatement.monthSeptember'),
+    t('incomeStatement.monthOctober'), t('incomeStatement.monthNovember'), t('incomeStatement.monthDecember'),
+  ];
 
   const monthlyData = useMemo(() => {
     const result: Record<string, { name: string; ca: number; charges: number; resultat: number; evolution: number }> = {};
@@ -184,12 +189,12 @@ const CompteResultatPage: React.FC = () => {
 
   // Structure des données SIG SYSCOHADA
   const sigStructure = [
-    { code: 'SIG1', libelle: 'Marge commerciale' },
-    { code: 'SIG2', libelle: 'Production de l\'exercice' },
-    { code: 'SIG3', libelle: 'Valeur ajoutée' },
-    { code: 'SIG4', libelle: 'Excédent brut d\'exploitation' },
-    { code: 'SIG5', libelle: 'Résultat d\'exploitation' },
-    { code: 'SIG6', libelle: 'Résultat net' }
+    { code: 'SIG1', libelle: t('incomeStatement.sigGrossMargin') },
+    { code: 'SIG2', libelle: t('incomeStatement.sigProductionOfPeriod') },
+    { code: 'SIG3', libelle: t('incomeStatement.sigValueAdded') },
+    { code: 'SIG4', libelle: t('incomeStatement.sigEbitda') },
+    { code: 'SIG5', libelle: t('incomeStatement.sigOperatingIncome') },
+    { code: 'SIG6', libelle: t('incomeStatement.sigNetIncome') }
   ];
 
   // Génération des SIG mensuels depuis écritures réelles
@@ -292,7 +297,7 @@ const CompteResultatPage: React.FC = () => {
       setSelectedDetail({
         accountCode,
         libelle,
-        month: 'Sous-comptes',
+        month: t('incomeStatement.subAccounts'),
         amount,
         subAccounts,
         type: 'sous-comptes'
@@ -300,7 +305,7 @@ const CompteResultatPage: React.FC = () => {
     } else {
       // Affichage des transactions
       const transactions = generateTransactionDetails(accountCode, month, amount);
-      const monthName = month === 'toutes-periodes' ? 'Toutes périodes' :
+      const monthName = month === 'toutes-periodes' ? t('incomeStatement.allPeriods') :
                       month ? monthlyData[month as keyof typeof monthlyData]?.name || month : '';
       setSelectedDetail({
         accountCode,
@@ -323,14 +328,14 @@ const CompteResultatPage: React.FC = () => {
 
   // Onglets des états financiers SYSCOHADA mensuels
   const tabs = [
-    { id: 'bilan', label: 'Bilan SYSCOHADA', icon: BarChart3 },
-    { id: 'bilan-fonctionnel', label: 'Bilan Fonctionnel', icon: Building2 },
-    { id: 'compte-resultat', label: 'Compte de Résultat', icon: DollarSign },
-    { id: 'tableau-financement', label: 'Tableau de Financement', icon: PieChart },
-    { id: 'flux-tresorerie', label: 'Tableau Flux Trésorerie', icon: TrendingUp },
-    { id: 'sig', label: 'SIG (Soldes Intermédiaires)', icon: Target },
-    { id: 'ratios', label: 'Ratios Financiers', icon: Calculator },
-    { id: 'export', label: 'Export', icon: Download },
+    { id: 'bilan', label: t('incomeStatement.tabBalanceSheet'), icon: BarChart3 },
+    { id: 'bilan-fonctionnel', label: t('incomeStatement.tabFunctionalBalanceSheet'), icon: Building2 },
+    { id: 'compte-resultat', label: t('incomeStatement.tabIncomeStatement'), icon: DollarSign },
+    { id: 'tableau-financement', label: t('incomeStatement.tabFinancingTable'), icon: PieChart },
+    { id: 'flux-tresorerie', label: t('incomeStatement.tabCashFlow'), icon: TrendingUp },
+    { id: 'sig', label: t('incomeStatement.tabSig'), icon: Target },
+    { id: 'ratios', label: t('incomeStatement.tabRatios'), icon: Calculator },
+    { id: 'export', label: t('incomeStatement.tabExport'), icon: Download },
   ];
 
   return (
@@ -342,8 +347,8 @@ const CompteResultatPage: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-lg font-bold">États Financiers Mensuels SYSCOHADA</h2>
-            <p className="text-sm text-gray-600">{tabs.find(t => t.id === activeTab)?.label || 'Compte de Résultat'}</p>
+            <h2 className="text-lg font-bold">{t('incomeStatement.pageTitle')}</h2>
+            <p className="text-sm text-gray-600">{tabs.find(tb => tb.id === activeTab)?.label || t('incomeStatement.tabIncomeStatement')}</p>
           </div>
         }
       >
@@ -356,22 +361,22 @@ const CompteResultatPage: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">Retour</span>
+              <span className="text-sm">{t('incomeStatement.back')}</span>
             </button>
             <div className="h-6 w-px bg-[var(--color-border)]" />
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-primary)]">États Financiers Mensuels SYSCOHADA</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">Tableaux financiers mensualisés de janvier à décembre {fiscalYear}</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('incomeStatement.pageTitle')}</h1>
+              <p className="text-sm text-[var(--color-text-tertiary)]">{t('incomeStatement.subtitle', { year: fiscalYear })}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <PageHeaderActions printTitle="États Financiers Mensuels SYSCOHADA" />
+            <PageHeaderActions printTitle={t('incomeStatement.pageTitle')} />
             <div className="text-sm text-[var(--color-text-tertiary)]">
-              Exercice {fiscalYear} • Données mensualisées
+              {t('incomeStatement.fiscalYearMonthly', { year: fiscalYear })}
             </div>
             <button
               className="p-2 border border-[var(--color-border)] rounded-lg hover:bg-gray-50"
-              aria-label="Actualiser"
+              aria-label={t('incomeStatement.refresh')}
               onClick={() => window.location.reload()}
             >
               <RefreshCw className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -412,27 +417,27 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Données mensualisées de janvier à décembre</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.balanceSheetTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.monthlyJanToDec')}</p>
               </div>
 
               {/* ACTIF */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-text-secondary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">ACTIF</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.assets')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -447,9 +452,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
+                                  onClick={() => openDetailModal(item.code, t('incomeStatement.subAccountsOf', { label: item.libelle }), 'sous-comptes', total)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -461,7 +466,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {formatCurrency(value)}
                               </td>
@@ -483,7 +488,7 @@ const CompteResultatPage: React.FC = () => {
                         return (
                           <tr className="bg-[var(--color-text-secondary)]/10 font-bold border-t-2 border-[var(--color-text-secondary)]">
                             <td className="p-3">TA</td>
-                            <td className="p-3">TOTAL ACTIF</td>
+                            <td className="p-3">{t('incomeStatement.totalAssets')}</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm">
                                 {formatCurrency(total)}
@@ -503,20 +508,20 @@ const CompteResultatPage: React.FC = () => {
               {/* PASSIF */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-primary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">PASSIF</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.liabilities')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-primary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-primary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -531,9 +536,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
+                                  onClick={() => openDetailModal(item.code, t('incomeStatement.subAccountsOf', { label: item.libelle }), 'sous-comptes', total)}
                                   className="p-1 hover:bg-[var(--color-primary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -545,7 +550,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {formatCurrency(value)}
                               </td>
@@ -567,7 +572,7 @@ const CompteResultatPage: React.FC = () => {
                         return (
                           <tr className="bg-[var(--color-primary)]/10 font-bold border-t-2 border-[var(--color-primary)]">
                             <td className="p-3">TP</td>
-                            <td className="p-3">TOTAL PASSIF</td>
+                            <td className="p-3">{t('incomeStatement.totalLiabilities')}</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm">
                                 {formatCurrency(total)}
@@ -591,39 +596,39 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN FONCTIONNEL - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse fonctionnelle des emplois et ressources mensualisée</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.functionalBalanceSheetTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.functionalSubtitle')}</p>
               </div>
 
               {/* EMPLOIS ET RESSOURCES MENSUALISÉS */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-text-tertiary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">BILAN FONCTIONNEL</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.functionalBalanceSheet')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">Analyse fonctionnelle</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('incomeStatement.functionalAnalysis')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-tertiary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-tertiary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {/* EMPLOIS */}
                       <tr className="bg-blue-50">
                         <td colSpan={1 + months.length + 1} className="p-2 font-bold text-blue-700 text-center">
-                          EMPLOIS
+                          {t('incomeStatement.uses')}
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Emplois stables (immobilisations cl.2)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('2', m)); } },
-                        { libelle: 'Actif circulant d\'exploitation (cl.3+41)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('3', m) + soldeCumulByPrefix('41', m)); } },
-                        { libelle: 'Actif de trésorerie (cl.5)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('5', m)); } }
+                        { libelle: t('incomeStatement.stableUses'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('2', m)); } },
+                        { libelle: t('incomeStatement.operatingCurrentAssets'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('3', m) + soldeCumulByPrefix('41', m)); } },
+                        { libelle: t('incomeStatement.treasuryAssets'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCumulByPrefix('5', m)); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -646,13 +651,13 @@ const CompteResultatPage: React.FC = () => {
                       {/* RESSOURCES */}
                       <tr className="bg-green-50">
                         <td colSpan={1 + months.length + 1} className="p-2 font-bold text-green-700 text-center">
-                          RESSOURCES
+                          {t('incomeStatement.resources')}
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Ressources stables (cp+dettes LT)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('10', m) + soldeCreditCumulByPrefix('11', m) + soldeCreditCumulByPrefix('12', m) + soldeCreditCumulByPrefix('16', m)); } },
-                        { libelle: 'Passif circulant d\'exploitation (cl.40)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('40', m)); } },
-                        { libelle: 'Passif circulant hors exploit. (42+43+44)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('42', m) + soldeCreditCumulByPrefix('43', m) + soldeCreditCumulByPrefix('44', m)); } }
+                        { libelle: t('incomeStatement.stableResources'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('10', m) + soldeCreditCumulByPrefix('11', m) + soldeCreditCumulByPrefix('12', m) + soldeCreditCumulByPrefix('16', m)); } },
+                        { libelle: t('incomeStatement.operatingCurrentLiabilities'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('40', m)); } },
+                        { libelle: t('incomeStatement.nonOperatingCurrentLiabilities'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditCumulByPrefix('42', m) + soldeCreditCumulByPrefix('43', m) + soldeCreditCumulByPrefix('44', m)); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -682,34 +687,34 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Produits et charges mensualisés</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.incomeStatementTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.incomeStatementSubtitle')}</p>
               </div>
 
               {/* PRODUITS ET CHARGES SUPERPOSÉS */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-text-secondary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">COMPTE DE RÉSULTAT SYSCOHADA</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.incomeStatementSyscohada')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('accounting.label')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {/* PRODUITS */}
                       <tr className="bg-green-50">
                         <td colSpan={2 + months.length + 1} className="p-2 font-bold text-green-700 text-center">
-                          PRODUITS (Classe 7)
+                          {t('incomeStatement.revenueClass7')}
                         </td>
                       </tr>
                       {compteResultatStructure.produits.map((item, index) => {
@@ -722,9 +727,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
+                                  onClick={() => openDetailModal(item.code, t('incomeStatement.subAccountsOf', { label: item.libelle }), 'sous-comptes', total)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -736,7 +741,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs text-green-700 hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {formatCurrency(value)}
                               </td>
@@ -744,7 +749,7 @@ const CompteResultatPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono font-bold bg-green-100 text-green-700 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
-                              title="Cliquer pour voir le détail du total annuel"
+                              title={t('incomeStatement.clickToSeeAnnualTotal')}
                             >
                               {formatCurrency(total)}
                             </td>
@@ -762,7 +767,7 @@ const CompteResultatPage: React.FC = () => {
                         return (
                           <tr className="bg-green-100 font-bold border-b-2 border-green-500">
                             <td className="p-3">TP</td>
-                            <td className="p-3">TOTAL PRODUITS</td>
+                            <td className="p-3">{t('incomeStatement.totalRevenue')}</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-green-700">
                                 {formatCurrency(total)}
@@ -778,7 +783,7 @@ const CompteResultatPage: React.FC = () => {
                       {/* CHARGES */}
                       <tr className="bg-red-50">
                         <td colSpan={2 + months.length + 1} className="p-2 font-bold text-red-700 text-center">
-                          CHARGES (Classe 6)
+                          {t('incomeStatement.expensesClass6')}
                         </td>
                       </tr>
                       {compteResultatStructure.charges.map((item, index) => {
@@ -791,9 +796,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
+                                  onClick={() => openDetailModal(item.code, t('incomeStatement.subAccountsOf', { label: item.libelle }), 'sous-comptes', total)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -805,7 +810,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs text-red-700 hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {formatCurrency(value)}
                               </td>
@@ -813,7 +818,7 @@ const CompteResultatPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono font-bold bg-red-100 text-red-700 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
-                              title="Cliquer pour voir le détail du total annuel"
+                              title={t('incomeStatement.clickToSeeAnnualTotal')}
                             >
                               {formatCurrency(total)}
                             </td>
@@ -831,7 +836,7 @@ const CompteResultatPage: React.FC = () => {
                         return (
                           <tr className="bg-red-100 font-bold border-b-2 border-red-500">
                             <td className="p-3">TC</td>
-                            <td className="p-3">TOTAL CHARGES</td>
+                            <td className="p-3">{t('incomeStatement.totalExpenses')}</td>
                             {monthlyTotals.map((total, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-red-700">
                                 {formatCurrency(total)}
@@ -855,7 +860,7 @@ const CompteResultatPage: React.FC = () => {
                         return (
                           <tr className="bg-[var(--color-text-secondary)]/10 font-bold border-t-4 border-[var(--color-text-secondary)]">
                             <td className="p-3">RN</td>
-                            <td className="p-3">RÉSULTAT NET</td>
+                            <td className="p-3">{t('incomeStatement.netIncome')}</td>
                             {monthlyResultats.map((resultat, index) => (
                               <td key={index} className="p-2 text-right font-mono text-sm text-[var(--color-text-secondary)]">
                                 {formatCurrency(resultat)}
@@ -878,38 +883,38 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FINANCEMENT - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse des flux financiers mensualisée</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.financingTableTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.financingSubtitle')}</p>
               </div>
 
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-text-tertiary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">TABLEAU DE FINANCEMENT</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.financingTable')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">Flux financiers</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('incomeStatement.financialFlows')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-tertiary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-tertiary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {/* EMPLOIS */}
                       <tr className="bg-blue-50">
                         <td colSpan={1 + months.length + 1} className="p-2 font-bold text-blue-700 text-center">
-                          EMPLOIS
+                          {t('incomeStatement.uses')}
                         </td>
                       </tr>
                       {[
-                        { libelle: 'Acquisitions immobilisations (débit cl.2)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('2', m))); } },
-                        { libelle: 'Remboursements d\'emprunts (débit cl.16)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('16', m))); } },
-                        { libelle: 'Distributions (débit cl.465)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('465', m))); } }
+                        { libelle: t('incomeStatement.fixedAssetAcquisitions'), calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('2', m))); } },
+                        { libelle: t('incomeStatement.loanRepaymentsUse'), calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('16', m))); } },
+                        { libelle: t('incomeStatement.distributions'), calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeByPrefix('465', m))); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -932,13 +937,13 @@ const CompteResultatPage: React.FC = () => {
                       {/* RESSOURCES */}
                       <tr className="bg-green-50">
                         <td colSpan={1 + months.length + 1} className="p-2 font-bold text-green-700 text-center">
-                          RESSOURCES
+                          {t('incomeStatement.resources')}
                         </td>
                       </tr>
                       {[
-                        { libelle: 'CAF (résultat + dotations)', calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditByPrefix('7', m) - soldeByPrefix('6', m) + soldeByPrefix('68', m)); } },
-                        { libelle: 'Nouveaux emprunts (crédit cl.16)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('16', m))); } },
-                        { libelle: 'Augmentations de capital (crédit cl.10)', calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('10', m))); } }
+                        { libelle: t('incomeStatement.cafResource'), calcul: (month: string) => { const m = parseInt(month); return Math.round(soldeCreditByPrefix('7', m) - soldeByPrefix('6', m) + soldeByPrefix('68', m)); } },
+                        { libelle: t('incomeStatement.newLoans'), calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('16', m))); } },
+                        { libelle: t('incomeStatement.capitalIncreases'), calcul: (month: string) => { const m = parseInt(month); return Math.max(0, Math.round(soldeCreditByPrefix('10', m))); } }
                       ].map((item, index) => {
                         const monthlyValues = months.map(month => item.calcul(month));
                         const total = monthlyValues.reduce((sum, value) => sum + value, 0);
@@ -1100,12 +1105,12 @@ const CompteResultatPage: React.FC = () => {
             // mois, flux/variation=cumul de l'exercice).
             type CfKind = 'open' | 'flux' | 'var' | 'close';
             const cfRows: Array<{ label: string; vals: number[]; kind: CfKind }> = [
-              { label: "Trésorerie d'ouverture", vals: cfOuverture, kind: 'open' },
-              { label: "Flux net lié à l'activité (A)", vals: cf.map(d => d.activite), kind: 'flux' },
-              { label: 'Flux net lié aux investissements (B)', vals: cf.map(d => d.inv), kind: 'flux' },
-              { label: 'Flux net lié au financement (C)', vals: cf.map(d => d.fin), kind: 'flux' },
-              { label: 'Variation de trésorerie (A+B+C)', vals: cf.map(d => d.varTreso), kind: 'var' },
-              { label: 'Trésorerie de clôture', vals: cfTreso, kind: 'close' },
+              { label: t('incomeStatement.openingTreasury'), vals: cfOuverture, kind: 'open' },
+              { label: t('incomeStatement.netFlowOperating'), vals: cf.map(d => d.activite), kind: 'flux' },
+              { label: t('incomeStatement.netFlowInvesting'), vals: cf.map(d => d.inv), kind: 'flux' },
+              { label: t('incomeStatement.netFlowFinancing'), vals: cf.map(d => d.fin), kind: 'flux' },
+              { label: t('incomeStatement.treasuryVariation'), vals: cf.map(d => d.varTreso), kind: 'var' },
+              { label: t('incomeStatement.closingTreasury'), vals: cfTreso, kind: 'close' },
             ];
             const ytdTotal = (ln: { vals: number[]; kind: CfKind }) =>
               ln.kind === 'open' ? (ln.vals[0] || 0)
@@ -1122,8 +1127,8 @@ const CompteResultatPage: React.FC = () => {
             return (
             <div className="space-y-6">
               <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">FLUX DE TRÉSORERIE MENSUELS — Exercice {fiscalYear}</h2>
-                <p className="text-sm text-[var(--color-text-tertiary)]">Trésorerie d'ouverture → flux du mois (activité, investissement, financement) → trésorerie de clôture (SYSCOHADA)</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.monthlyCashFlowTitle', { year: fiscalYear })}</h2>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('incomeStatement.monthlyCashFlowSubtitle')}</p>
               </div>
 
               {/* TABLE CASH-FLOW MENSUEL — 1re colonne FIGÉE (sticky), ouverture en HAUT
@@ -1133,9 +1138,9 @@ const CompteResultatPage: React.FC = () => {
                 <table className="text-sm border-collapse min-w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[220px] sticky left-0 bg-gray-50 z-10 text-[var(--color-primary)] font-semibold">Trésorerie / Flux</th>
+                      <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[220px] sticky left-0 bg-gray-50 z-10 text-[var(--color-primary)] font-semibold">{t('incomeStatement.treasuryFlows')}</th>
                       {months.map(ms => (<th key={ms} className="text-right p-2 border-b border-[var(--color-border)] text-xs min-w-[84px] text-[var(--color-primary)]">{monthlyData[ms as keyof typeof monthlyData].name.substring(0, 3)}</th>))}
-                      <th className="text-right p-3 border-b border-l-2 border-[var(--color-border)] bg-gray-100 font-bold min-w-[110px] text-[var(--color-primary)]">TOTAL (YTD)</th>
+                      <th className="text-right p-3 border-b border-l-2 border-[var(--color-border)] bg-gray-100 font-bold min-w-[110px] text-[var(--color-primary)]">{t('incomeStatement.totalYtd')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1157,9 +1162,9 @@ const CompteResultatPage: React.FC = () => {
                   dupliqué ici : il vit dans le module États Financiers. Cet onglet
                   ne montre QUE le cash-flow mensuel ci-dessus. */}
               <p className="text-xs text-[var(--color-text-tertiary)] text-center mt-1">
-                Le tableau des flux de trésorerie <span className="font-semibold">annuel</span> détaillé
-                (méthodes indirecte et directe) est disponible dans le module{' '}
-                <span className="font-semibold">États Financiers</span>.
+                {t('incomeStatement.annualCashFlowNotePart1')} <span className="font-semibold">{t('incomeStatement.annualCashFlowNoteAnnual')}</span>{' '}
+                {t('incomeStatement.annualCashFlowNotePart2')}{' '}
+                <span className="font-semibold">{t('incomeStatement.annualCashFlowNoteModule')}</span>.
               </p>
             </div>
             );
@@ -1169,26 +1174,26 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">SIG (SOLDES INTERMÉDIAIRES) - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Formation du résultat mensualisée</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.sigTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.sigSubtitle')}</p>
               </div>
 
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-[var(--color-text-secondary)] text-white p-4">
-                  <h3 className="text-lg font-bold text-left">SOLDES INTERMÉDIAIRES DE GESTION</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.sigHeading')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
-                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">Soldes intermédiaires</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[200px]">{t('incomeStatement.intermediateBalances')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[90px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">TOTAL</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-[var(--color-text-secondary)]/10 font-bold">{t('incomeStatement.total')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1202,9 +1207,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', total)}
+                                  onClick={() => openDetailModal(item.code, t('incomeStatement.subAccountsOf', { label: item.libelle }), 'sous-comptes', total)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -1216,7 +1221,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(item.code, item.libelle, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {formatCurrency(value)}
                               </td>
@@ -1224,7 +1229,7 @@ const CompteResultatPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono font-bold bg-[var(--color-text-secondary)]/5 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'total', total)}
-                              title="Cliquer pour voir le détail du total annuel"
+                              title={t('incomeStatement.clickToSeeAnnualTotal')}
                             >
                               {formatCurrency(total)}
                             </td>
@@ -1242,34 +1247,34 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">RATIOS FINANCIERS - Exercice {fiscalYear}</h2>
-                <p className="text-[var(--color-text-tertiary)]">Indicateurs de performance mensualisés</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.ratiosTitle', { year: fiscalYear })}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.ratiosSubtitle')}</p>
               </div>
 
               {/* RATIOS DE RENTABILITÉ */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-green-600 text-white p-4">
-                  <h3 className="text-lg font-bold text-left">RATIOS DE RENTABILITÉ</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.profitabilityRatios')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
-                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[150px]">Ratios</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[150px]">{t('incomeStatement.ratios')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[80px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-green-100 font-bold">MOYENNE</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-green-100 font-bold">{t('incomeStatement.average')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { code: 'R1', nom: 'Marge nette (RN/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } },
-                        { code: 'R2', nom: 'Taux de charges (Charges/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; } },
-                        { code: 'R3', nom: 'Taux de résultat (RN/CA)', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } }
+                        { code: 'R1', nom: t('incomeStatement.ratioNetMargin'), calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } },
+                        { code: 'R2', nom: t('incomeStatement.ratioExpenseRate'), calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; } },
+                        { code: 'R3', nom: t('incomeStatement.ratioIncomeRate'), calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.resultat / d.ca) * 100; } }
                       ].map((ratio, index) => {
                         const monthlyValues = months.map(month => ratio.calcul(month));
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;
@@ -1280,9 +1285,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{ratio.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(ratio.code, `Sous-comptes de ${ratio.nom}`, 'sous-comptes', moyenne)}
+                                  onClick={() => openDetailModal(ratio.code, t('incomeStatement.subAccountsOf', { label: ratio.nom }), 'sous-comptes', moyenne)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${ratio.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: ratio.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -1294,7 +1299,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(ratio.code, ratio.nom, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {value.toFixed(1)}%
                               </td>
@@ -1302,7 +1307,7 @@ const CompteResultatPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono font-bold bg-green-50 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(ratio.code, ratio.nom, 'moyenne', moyenne)}
-                              title="Cliquer pour voir le détail de la moyenne annuelle"
+                              title={t('incomeStatement.clickToSeeAnnualAverage')}
                             >
                               {moyenne.toFixed(1)}%
                             </td>
@@ -1317,27 +1322,27 @@ const CompteResultatPage: React.FC = () => {
               {/* RATIOS D'ACTIVITÉ */}
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <div className="bg-blue-600 text-white p-4">
-                  <h3 className="text-lg font-bold text-left">RATIOS D'ACTIVITÉ</h3>
+                  <h3 className="text-lg font-bold text-left">{t('incomeStatement.activityRatios')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Réf</th>
-                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[150px]">Ratios</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.ref')}</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)] min-w-[150px]">{t('incomeStatement.ratios')}</th>
                         {months.map(month => (
                           <th key={month} className="text-right p-2 border-b border-[var(--color-border)] min-w-[80px] text-xs">
                             {monthlyData[month as keyof typeof monthlyData].name}
                           </th>
                         ))}
-                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-blue-100 font-bold">MOYENNE</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)] min-w-[100px] bg-blue-100 font-bold">{t('incomeStatement.average')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { code: 'A1', nom: 'Charges/CA', calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; }, format: '%' },
-                        { code: 'A2', nom: 'Croissance', calcul: (month: string) => monthlyData[month as keyof typeof monthlyData].evolution, format: '%' },
-                        { code: 'A3', nom: 'CA/jour', calcul: (month: string) => (monthlyData[month as keyof typeof monthlyData].ca / 30), format: 'FCFA' }
+                        { code: 'A1', nom: t('incomeStatement.ratioExpensesOverRevenue'), calcul: (month: string) => { const d = monthlyData[month as keyof typeof monthlyData]; return d.ca === 0 ? 0 : (d.charges / d.ca) * 100; }, format: '%' },
+                        { code: 'A2', nom: t('incomeStatement.ratioGrowth'), calcul: (month: string) => monthlyData[month as keyof typeof monthlyData].evolution, format: '%' },
+                        { code: 'A3', nom: t('incomeStatement.ratioRevenuePerDay'), calcul: (month: string) => (monthlyData[month as keyof typeof monthlyData].ca / 30), format: 'FCFA' }
                       ].map((ratio, index) => {
                         const monthlyValues = months.map(month => ratio.calcul(month));
                         const moyenne = monthlyValues.reduce((sum, value) => sum + value, 0) / monthlyValues.length;
@@ -1348,9 +1353,9 @@ const CompteResultatPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{ratio.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(ratio.code, `Sous-comptes de ${ratio.nom}`, 'sous-comptes', moyenne)}
+                                  onClick={() => openDetailModal(ratio.code, t('incomeStatement.subAccountsOf', { label: ratio.nom }), 'sous-comptes', moyenne)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${ratio.code}`}
+                                  title={t('incomeStatement.viewSubAccountsOf', { code: ratio.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -1362,7 +1367,7 @@ const CompteResultatPage: React.FC = () => {
                                 key={monthIndex}
                                 className="p-2 text-right font-mono text-xs hover:bg-blue-50 cursor-pointer"
                                 onClick={() => openDetailModal(ratio.code, ratio.nom, months[monthIndex], value)}
-                                title={`Cliquer pour voir les transactions de ${monthlyData[months[monthIndex] as keyof typeof monthlyData].name}`}
+                                title={t('incomeStatement.clickToSeeTransactions', { month: monthlyData[months[monthIndex] as keyof typeof monthlyData].name })}
                               >
                                 {ratio.format === '%' ? `${value.toFixed(1)}%` : `${formatCurrency(Math.round(value))}`}
                               </td>
@@ -1370,7 +1375,7 @@ const CompteResultatPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono font-bold bg-blue-50 hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(ratio.code, ratio.nom, 'moyenne', moyenne)}
-                              title="Cliquer pour voir le détail de la moyenne annuelle"
+                              title={t('incomeStatement.clickToSeeAnnualAverage')}
                             >
                               {ratio.format === '%' ? `${moyenne.toFixed(1)}%` : `${formatCurrency(Math.round(moyenne))}`}
                             </td>
@@ -1388,8 +1393,8 @@ const CompteResultatPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">Export États Financiers Mensuels</h2>
-                <p className="text-[var(--color-text-tertiary)]">Téléchargement des tableaux pour l'exercice {fiscalYear}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('incomeStatement.exportTitle')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('incomeStatement.exportSubtitle', { year: fiscalYear })}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1402,7 +1407,7 @@ const CompteResultatPage: React.FC = () => {
                           <IconComponent className="w-5 h-5 text-[var(--color-text-secondary)]" />
                         </div>
                         <h3 className="font-semibold text-[var(--color-primary)] mb-2">{tab.label}</h3>
-                        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">Exercice {fiscalYear} - Mensualisé</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)] mb-4">{t('incomeStatement.exportCardSubtitle', { year: fiscalYear })}</p>
                         <div className="space-y-2">
                           <button
                             onClick={() => { setActiveTab(tab.id); setTimeout(handlePrint, 150); }}
@@ -1412,7 +1417,7 @@ const CompteResultatPage: React.FC = () => {
                             <span>PDF</span>
                           </button>
                           <button
-                            onClick={() => toast('Export Excel : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                            onClick={() => toast(t('incomeStatement.excelExportToast'), { icon: 'ℹ️' })}
                             className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
                           >
                             <FileText className="w-4 h-4" />
@@ -1437,7 +1442,7 @@ const CompteResultatPage: React.FC = () => {
             <div className="bg-[var(--color-text-secondary)] text-white p-6 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold">
-                  {selectedDetail.type === 'sous-comptes' ? 'Sous-comptes' : 'Détail des transactions'}
+                  {selectedDetail.type === 'sous-comptes' ? t('incomeStatement.subAccounts') : t('incomeStatement.transactionDetails')}
                 </h2>
                 <p className="text-sm opacity-90">
                   {selectedDetail.accountCode} - {selectedDetail.libelle} | {selectedDetail.month} {fiscalYear}
@@ -1445,7 +1450,7 @@ const CompteResultatPage: React.FC = () => {
               </div>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors" aria-label="Fermer">
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors" aria-label={t('incomeStatement.close')}>
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -1460,11 +1465,11 @@ const CompteResultatPage: React.FC = () => {
                     <p className="font-bold text-[var(--color-primary)]">{selectedDetail.accountCode}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Période</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('incomeStatement.period')}</p>
                     <p className="font-bold text-[var(--color-primary)]">{selectedDetail.month} {fiscalYear}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Montant total</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('incomeStatement.totalAmount')}</p>
                     <p className="font-bold text-[var(--color-text-secondary)] text-lg">{formatCurrency(selectedDetail.amount ?? 0)}</p>
                   </div>
                 </div>
@@ -1477,18 +1482,18 @@ const CompteResultatPage: React.FC = () => {
                   <table className="w-full text-sm border-collapse">
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Code</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.code')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
-                        <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)]">{t('incomeStatement.amount')}</th>
                         <th className="text-right p-3 border-b border-[var(--color-border)]">%</th>
-                        <th className="text-center p-3 border-b border-[var(--color-border)]">Actions</th>
+                        <th className="text-center p-3 border-b border-[var(--color-border)]">{t('incomeStatement.actions')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(!selectedDetail.subAccounts || selectedDetail.subAccounts.length === 0) ? (
                         <tr>
                           <td colSpan={5} className="p-8 text-center text-gray-400 italic">
-                            Aucun sous-compte trouvé — ce code ({selectedDetail.accountCode}) n'a pas d'écritures détaillées dans la période.
+                            {t('incomeStatement.noSubAccounts', { code: selectedDetail.accountCode ?? '' })}
                           </td>
                         </tr>
                       ) : (
@@ -1507,7 +1512,7 @@ const CompteResultatPage: React.FC = () => {
                                 onClick={() => openDetailModal(subAccount.code, subAccount.libelle, selectedPeriod, subAccount.montant)}
                                 className="px-2 py-1 text-xs bg-[var(--color-text-secondary)] text-white rounded hover:bg-[#404040] transition-colors"
                               >
-                                Transactions
+                                {t('incomeStatement.transactions')}
                               </button>
                             </td>
                           </tr>
@@ -1521,18 +1526,18 @@ const CompteResultatPage: React.FC = () => {
                     <thead className="bg-gray-100 sticky top-0">
                       <tr>
                         <th className="text-left p-3 border-b border-[var(--color-border)]">{t('common.date')}</th>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Référence</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.reference')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
-                        <th className="text-left p-3 border-b border-[var(--color-border)]">Tiers</th>
+                        <th className="text-left p-3 border-b border-[var(--color-border)]">{t('incomeStatement.thirdParty')}</th>
                         <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.piece')}</th>
-                        <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
+                        <th className="text-right p-3 border-b border-[var(--color-border)]">{t('incomeStatement.amount')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(!selectedDetail.transactions || selectedDetail.transactions.length === 0) ? (
                         <tr>
                           <td colSpan={6} className="p-8 text-center text-gray-400 italic">
-                            Aucune transaction trouvée pour ce compte sur cette période.
+                            {t('incomeStatement.noTransactions')}
                           </td>
                         </tr>
                       ) : (
@@ -1559,8 +1564,8 @@ const CompteResultatPage: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-[var(--color-primary)]">
                     {selectedDetail.type === 'sous-comptes'
-                      ? `TOTAL (${selectedDetail.subAccounts?.length || 0} sous-comptes)`
-                      : `TOTAL (${selectedDetail.transactions?.length || 0} transactions)`
+                      ? t('incomeStatement.totalSubAccounts', { count: String(selectedDetail.subAccounts?.length || 0) })
+                      : t('incomeStatement.totalTransactions', { count: String(selectedDetail.transactions?.length || 0) })
                     }
                   </span>
                   <span className="font-bold text-[var(--color-text-secondary)] text-lg">
@@ -1575,9 +1580,9 @@ const CompteResultatPage: React.FC = () => {
                   onClick={closeModal}
                   className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[#404040] hover:bg-gray-50 transition-colors"
                 >
-                  Fermer
+                  {t('incomeStatement.close')}
                 </button>
-                <button className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2" aria-label="Télécharger">
+                <button className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2" aria-label={t('incomeStatement.download')}>
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>
                 </button>

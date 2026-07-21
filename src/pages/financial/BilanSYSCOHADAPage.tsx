@@ -31,7 +31,7 @@ const DirectSection: React.FC<DirectSectionProps> = ({ title, rows, total, total
   <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
     <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{title}</h3>
     <table className="w-full text-sm">
-      <thead><tr className="border-b border-[var(--color-border)]"><th className="text-left p-3 font-semibold text-[var(--color-primary)]">{t('accounting.label')}</th><th className="text-right p-3 font-semibold text-[var(--color-primary)]">Montant</th></tr></thead>
+      <thead><tr className="border-b border-[var(--color-border)]"><th className="text-left p-3 font-semibold text-[var(--color-primary)]">{t('accounting.label')}</th><th className="text-right p-3 font-semibold text-[var(--color-primary)]">{t('bilan.amount')}</th></tr></thead>
       <tbody>
         {rows.map((r) => {
           const rowKey = `d-${r.key}`;
@@ -55,7 +55,7 @@ const DirectSection: React.FC<DirectSectionProps> = ({ title, rows, total, total
               <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
             </tr>
           ))}
-          {isExp && dets.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+          {isExp && dets.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">{t('bilan.noEntries')}</td></tr>}
           </React.Fragment>
           );
         })}
@@ -89,14 +89,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
   // Onglets des états financiers SYSCOHADA
   const tabs = [
-    { id: 'bilan', label: 'Bilan SYSCOHADA', icon: BarChart3 },
-    { id: 'bilan-fonctionnel', label: 'Bilan Fonctionnel', icon: Building2 },
-    { id: 'compte-resultat', label: 'Compte de Résultat', icon: DollarSign },
-    { id: 'tableau-financement', label: 'Tableau de Financement', icon: PieChart },
-    { id: 'flux-tresorerie', label: 'Tableau Flux Trésorerie', icon: TrendingUp },
-    { id: 'sig', label: 'SIG (Soldes Intermédiaires)', icon: Target },
-    { id: 'ratios', label: 'Ratios Financiers', icon: Calculator },
-    { id: 'export', label: 'Export', icon: Download },
+    { id: 'bilan', label: t('bilan.tabBilan'), icon: BarChart3 },
+    { id: 'bilan-fonctionnel', label: t('bilan.tabBilanFonctionnel'), icon: Building2 },
+    { id: 'compte-resultat', label: t('bilan.tabCompteResultat'), icon: DollarSign },
+    { id: 'tableau-financement', label: t('bilan.tabTableauFinancement'), icon: PieChart },
+    { id: 'flux-tresorerie', label: t('bilan.tabFluxTresorerie'), icon: TrendingUp },
+    { id: 'sig', label: t('bilan.tabSig'), icon: Target },
+    { id: 'ratios', label: t('bilan.tabRatios'), icon: Calculator },
+    { id: 'export', label: t('bilan.tabExport'), icon: Download },
   ];
 
   // ========== DONNÉES RÉELLES DEPUIS DEXIE ==========
@@ -270,19 +270,19 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
     return {
       emplois: [
-        { code: 'ES', libelle: 'Emplois stables', valeur: emploisStables, pourcentage: totalEmplois ? (emploisStables / totalEmplois) * 100 : 0 },
-        { code: 'ACE', libelle: 'Actif circulant d\'exploitation', valeur: aceVal, pourcentage: totalEmplois ? (aceVal / totalEmplois) * 100 : 0 },
-        { code: 'ACHE', libelle: 'Actif circulant hors exploitation', valeur: acheVal, pourcentage: totalEmplois ? (acheVal / totalEmplois) * 100 : 0 },
-        { code: 'AT', libelle: 'Actif de trésorerie', valeur: atVal, pourcentage: totalEmplois ? (atVal / totalEmplois) * 100 : 0 },
+        { code: 'ES', libelle: t('bilan.bfStableUses'), valeur: emploisStables, pourcentage: totalEmplois ? (emploisStables / totalEmplois) * 100 : 0 },
+        { code: 'ACE', libelle: t('bilan.bfOperatingCurrentAssets'), valeur: aceVal, pourcentage: totalEmplois ? (aceVal / totalEmplois) * 100 : 0 },
+        { code: 'ACHE', libelle: t('bilan.bfNonOperatingCurrentAssets'), valeur: acheVal, pourcentage: totalEmplois ? (acheVal / totalEmplois) * 100 : 0 },
+        { code: 'AT', libelle: t('bilan.bfTreasuryAssets'), valeur: atVal, pourcentage: totalEmplois ? (atVal / totalEmplois) * 100 : 0 },
       ],
       ressources: [
-        { code: 'RS', libelle: 'Ressources stables', valeur: rs, pourcentage: totalRessources ? (rs / totalRessources) * 100 : 0 },
-        { code: 'PCE', libelle: 'Passif circulant d\'exploitation', valeur: pce, pourcentage: totalRessources ? (pce / totalRessources) * 100 : 0 },
-        { code: 'PCHE', libelle: 'Passif circulant hors exploitation', valeur: pche, pourcentage: totalRessources ? (pche / totalRessources) * 100 : 0 },
-        { code: 'PT', libelle: 'Passif de trésorerie', valeur: 0, pourcentage: 0 },
+        { code: 'RS', libelle: t('bilan.bfStableResources'), valeur: rs, pourcentage: totalRessources ? (rs / totalRessources) * 100 : 0 },
+        { code: 'PCE', libelle: t('bilan.bfOperatingCurrentLiabilities'), valeur: pce, pourcentage: totalRessources ? (pce / totalRessources) * 100 : 0 },
+        { code: 'PCHE', libelle: t('bilan.bfNonOperatingCurrentLiabilities'), valeur: pche, pourcentage: totalRessources ? (pche / totalRessources) * 100 : 0 },
+        { code: 'PT', libelle: t('bilan.bfTreasuryLiabilities'), valeur: 0, pourcentage: 0 },
       ],
     };
-  }, [rawEntries]);
+  }, [rawEntries, t]);
 
   // SIG
   const sigData = useMemo(() => {
@@ -316,53 +316,53 @@ const BilanSYSCOHADAPage: React.FC = () => {
     const dotAmort = netP(['68']);
     return {
       activitesOperationnelles: [
-        { code: 'FO1', libelle: 'Résultat net de l\'exercice', montant: rn },
-        { code: 'FO2', libelle: 'Dotations aux amortissements', montant: dotAmort },
-        { code: 'FO3', libelle: 'Dotations aux provisions', montant: netP(['69']) },
-        { code: 'FO4', libelle: 'Plus/moins-values de cessions', montant: 0 },
-        { code: 'FO5', libelle: 'Variation des créances clients', montant: -netP(['41']) },
-        { code: 'FO6', libelle: 'Variation des stocks', montant: -netP(['3']) },
-        { code: 'FO7', libelle: 'Variation des dettes fournisseurs', montant: creditNetP(['40']) },
-        { code: 'FO8', libelle: 'Variation autres créances et dettes', montant: 0 },
+        { code: 'FO1', libelle: t('bilan.foNetIncome'), montant: rn },
+        { code: 'FO2', libelle: t('bilan.foDepreciationCharges'), montant: dotAmort },
+        { code: 'FO3', libelle: t('bilan.foProvisionCharges'), montant: netP(['69']) },
+        { code: 'FO4', libelle: t('bilan.foGainsLossesOnDisposals'), montant: 0 },
+        { code: 'FO5', libelle: t('bilan.foChangeInReceivables'), montant: -netP(['41']) },
+        { code: 'FO6', libelle: t('bilan.foChangeInInventories'), montant: -netP(['3']) },
+        { code: 'FO7', libelle: t('bilan.foChangeInPayables'), montant: creditNetP(['40']) },
+        { code: 'FO8', libelle: t('bilan.foChangeInOtherReceivablesPayables'), montant: 0 },
       ],
       activitesInvestissement: [
-        { code: 'FI1', libelle: 'Acquisitions d\'immobilisations corporelles', montant: -Math.max(0, netP(['22', '23', '24', '25'])) },
-        { code: 'FI2', libelle: 'Acquisitions d\'immobilisations incorporelles', montant: -Math.max(0, netP(['20', '21'])) },
-        { code: 'FI3', libelle: 'Cessions d\'immobilisations', montant: Math.max(0, creditNetP(['82'])) },
-        { code: 'FI4', libelle: 'Acquisitions de participations', montant: -Math.max(0, netP(['26', '27'])) },
+        { code: 'FI1', libelle: t('bilan.fiTangibleAcquisitions'), montant: -Math.max(0, netP(['22', '23', '24', '25'])) },
+        { code: 'FI2', libelle: t('bilan.fiIntangibleAcquisitions'), montant: -Math.max(0, netP(['20', '21'])) },
+        { code: 'FI3', libelle: t('bilan.fiDisposals'), montant: Math.max(0, creditNetP(['82'])) },
+        { code: 'FI4', libelle: t('bilan.fiEquityInvestments'), montant: -Math.max(0, netP(['26', '27'])) },
       ],
       activitesFinancement: [
-        { code: 'FF1', libelle: 'Augmentation de capital', montant: Math.max(0, creditNetP(['10', '11', '12', '13'])) },
-        { code: 'FF2', libelle: 'Nouveaux emprunts contractés', montant: Math.max(0, creditNetP(['16', '17'])) },
-        { code: 'FF3', libelle: 'Remboursements d\'emprunts', montant: -Math.max(0, netP(['16', '17'])) },
-        { code: 'FF4', libelle: 'Dividendes versés', montant: -Math.max(0, netP(['465'])) },
-        { code: 'FF5', libelle: 'Intérêts versés (déjà en résultat — non recompté)', montant: 0 },
+        { code: 'FF1', libelle: t('bilan.ffCapitalIncrease'), montant: Math.max(0, creditNetP(['10', '11', '12', '13'])) },
+        { code: 'FF2', libelle: t('bilan.ffNewBorrowings'), montant: Math.max(0, creditNetP(['16', '17'])) },
+        { code: 'FF3', libelle: t('bilan.ffLoanRepayments'), montant: -Math.max(0, netP(['16', '17'])) },
+        { code: 'FF4', libelle: t('bilan.ffDividendsPaid'), montant: -Math.max(0, netP(['465'])) },
+        { code: 'FF5', libelle: t('bilan.ffInterestPaid'), montant: 0 },
       ],
     };
-  }, [rawEntries]);
+  }, [rawEntries, t]);
 
   // Tableau de Financement
   const tableauFinancementData = useMemo(() => {
     const caf = (creditNet(['7']) - net(['6'])) + net(['68']);
     return {
       emplois: [
-        { code: 'TF1', libelle: 'Distributions mises en paiement', montant: net(['465']) },
-        { code: 'TF2', libelle: 'Acquisitions d\'éléments de l\'actif immobilisé', montant: Math.max(0, net(['2']) + net(['28'])) },
-        { code: 'TF3', libelle: 'Charges à répartir sur plusieurs exercices', montant: net(['20']) },
-        { code: 'TF4', libelle: 'Réduction des capitaux propres', montant: 0 },
-        { code: 'TF5', libelle: 'Remboursements de dettes financières', montant: net(['16']) > 0 ? net(['16']) : 0 },
+        { code: 'TF1', libelle: t('bilan.tfDistributionsPaid'), montant: net(['465']) },
+        { code: 'TF2', libelle: t('bilan.tfFixedAssetAcquisitions'), montant: Math.max(0, net(['2']) + net(['28'])) },
+        { code: 'TF3', libelle: t('bilan.tfDeferredCharges'), montant: net(['20']) },
+        { code: 'TF4', libelle: t('bilan.tfEquityReduction'), montant: 0 },
+        { code: 'TF5', libelle: t('bilan.tfFinancialDebtRepayments'), montant: net(['16']) > 0 ? net(['16']) : 0 },
       ],
       ressources: [
-        { code: 'TF6', libelle: 'Capacité d\'autofinancement de l\'exercice', montant: caf },
-        { code: 'TF7', libelle: 'Cessions ou réductions d\'éléments de l\'actif immobilisé', montant: 0 },
-        { code: 'TF8', libelle: 'Augmentation des capitaux propres', montant: creditNet(['10']) },
-        { code: 'TF9', libelle: 'Augmentation des dettes financières', montant: creditNet(['16']) },
+        { code: 'TF6', libelle: t('bilan.tfSelfFinancingCapacity'), montant: caf },
+        { code: 'TF7', libelle: t('bilan.tfFixedAssetDisposals'), montant: 0 },
+        { code: 'TF8', libelle: t('bilan.tfEquityIncrease'), montant: creditNet(['10']) },
+        { code: 'TF9', libelle: t('bilan.tfFinancialDebtIncrease'), montant: creditNet(['16']) },
       ],
       variationFdr: [
-        { code: 'TF10', libelle: 'Variation du fonds de roulement net global', montant: caf - Math.max(0, net(['2']) + net(['28'])) },
+        { code: 'TF10', libelle: t('bilan.tfWorkingCapitalChange'), montant: caf - Math.max(0, net(['2']) + net(['28'])) },
       ],
     };
-  }, [rawEntries]);
+  }, [rawEntries, t]);
 
   // Ratios — computed from bilan/CR data
   const ratiosData = useMemo(() => {
@@ -380,31 +380,31 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
     return [
       {
-        categorie: 'Ratios de Structure',
+        categorie: t('bilan.ratioCatStructure'),
         ratios: [
-          { nom: 'Ratio d\'autonomie financière', calcul: 'Capitaux propres / Total passif', valeur: safe(cp, totalActif), norme: '> 0.5', status: safe(cp, totalActif) > 0.5 ? 'bon' : 'moyen' },
-          { nom: 'Ratio de financement des immobilisations', calcul: 'Capitaux permanents / Immobilisations', valeur: safe(cp + emprunts, bilanData.actif.filter(r => r.code < '30').reduce((s, r) => s + r.exerciceN, 0) || 1), norme: '> 1', status: 'moyen' },
-          { nom: 'Ratio d\'endettement', calcul: 'Dettes / Capitaux propres', valeur: safe(emprunts, cp), norme: '< 1', status: safe(emprunts, cp) < 1 ? 'bon' : 'moyen' },
+          { nom: t('bilan.ratioFinancialAutonomy'), calcul: t('bilan.ratioFinancialAutonomyCalc'), valeur: safe(cp, totalActif), norme: '> 0.5', status: safe(cp, totalActif) > 0.5 ? 'bon' : 'moyen' },
+          { nom: t('bilan.ratioFixedAssetFunding'), calcul: t('bilan.ratioFixedAssetFundingCalc'), valeur: safe(cp + emprunts, bilanData.actif.filter(r => r.code < '30').reduce((s, r) => s + r.exerciceN, 0) || 1), norme: '> 1', status: 'moyen' },
+          { nom: t('bilan.ratioDebt'), calcul: t('bilan.ratioDebtCalc'), valeur: safe(emprunts, cp), norme: '< 1', status: safe(emprunts, cp) < 1 ? 'bon' : 'moyen' },
         ],
       },
       {
-        categorie: 'Ratios de Liquidité',
+        categorie: t('bilan.ratioCatLiquidity'),
         ratios: [
-          { nom: 'Ratio de liquidité générale', calcul: 'Actif circulant / Dettes CT', valeur: safe(actifCirculant, detteCT), norme: '> 1.5', status: safe(actifCirculant, detteCT) > 1.5 ? 'bon' : 'moyen' },
-          { nom: 'Ratio de liquidité réduite', calcul: '(Créances + Disponibilités) / Dettes CT', valeur: safe(creancesTreso, detteCT), norme: '> 1', status: safe(creancesTreso, detteCT) > 1 ? 'bon' : 'moyen' },
-          { nom: 'Ratio de liquidité immédiate', calcul: 'Disponibilités / Dettes CT', valeur: safe(treso, detteCT), norme: '> 0.3', status: safe(treso, detteCT) > 0.3 ? 'excellent' : 'moyen' },
+          { nom: t('bilan.ratioCurrentLiquidity'), calcul: t('bilan.ratioCurrentLiquidityCalc'), valeur: safe(actifCirculant, detteCT), norme: '> 1.5', status: safe(actifCirculant, detteCT) > 1.5 ? 'bon' : 'moyen' },
+          { nom: t('bilan.ratioQuickLiquidity'), calcul: t('bilan.ratioQuickLiquidityCalc'), valeur: safe(creancesTreso, detteCT), norme: '> 1', status: safe(creancesTreso, detteCT) > 1 ? 'bon' : 'moyen' },
+          { nom: t('bilan.ratioCashLiquidity'), calcul: t('bilan.ratioCashLiquidityCalc'), valeur: safe(treso, detteCT), norme: '> 0.3', status: safe(treso, detteCT) > 0.3 ? 'excellent' : 'moyen' },
         ],
       },
       {
-        categorie: 'Ratios de Rentabilité',
+        categorie: t('bilan.ratioCatProfitability'),
         ratios: [
-          { nom: 'Rentabilité économique', calcul: 'Résultat net / Total actif', valeur: safe(rn, totalActif), norme: '> 0.05', status: safe(rn, totalActif) > 0.05 ? 'excellent' : 'moyen' },
-          { nom: 'Rentabilité financière', calcul: 'Résultat net / Capitaux propres', valeur: safe(rn, cp), norme: '> 0.10', status: safe(rn, cp) > 0.10 ? 'excellent' : 'moyen' },
-          { nom: 'Taux de marge nette', calcul: 'Résultat net / CA', valeur: safe(rn, ca), norme: '> 0.05', status: safe(rn, ca) > 0.05 ? 'excellent' : 'moyen' },
+          { nom: t('bilan.ratioReturnOnAssets'), calcul: t('bilan.ratioReturnOnAssetsCalc'), valeur: safe(rn, totalActif), norme: '> 0.05', status: safe(rn, totalActif) > 0.05 ? 'excellent' : 'moyen' },
+          { nom: t('bilan.ratioReturnOnEquity'), calcul: t('bilan.ratioReturnOnEquityCalc'), valeur: safe(rn, cp), norme: '> 0.10', status: safe(rn, cp) > 0.10 ? 'excellent' : 'moyen' },
+          { nom: t('bilan.ratioNetMargin'), calcul: t('bilan.ratioNetMarginCalc'), valeur: safe(rn, ca), norme: '> 0.05', status: safe(rn, ca) > 0.05 ? 'excellent' : 'moyen' },
         ],
       },
     ];
-  }, [bilanData, compteResultatData, sigData]);
+  }, [bilanData, compteResultatData, sigData, t]);
 
   // Real transaction details from rawEntries for a given account prefix
   const generateTransactionDetails = (accountCode: string, _period: string, _amount: number) => {
@@ -461,14 +461,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
       const subAccounts = generateSubAccounts(accountCode, amount);
       setSelectedDetail({
         type: 'sous-comptes',
-        title: `Sous-comptes de ${accountCode} - ${accountName}`,
+        title: t('bilan.modalSubAccountsTitle', { code: accountCode, name: accountName }),
         data: subAccounts
       });
     } else {
       const transactions = generateTransactionDetails(accountCode, period, amount);
       setSelectedDetail({
         type: 'transactions',
-        title: `Transactions ${accountCode} - ${accountName} (${period})`,
+        title: t('bilan.modalTransactionsTitle', { code: accountCode, name: accountName, period }),
         data: transactions,
         total: amount
       });
@@ -493,8 +493,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-lg font-bold">États Financiers SYSCOHADA</h2>
-            <p className="text-sm text-gray-600">{tabs.find(t => t.id === activeTab)?.label || 'Bilan'}</p>
+            <h2 className="text-lg font-bold">{t('bilan.title')}</h2>
+            <p className="text-sm text-gray-600">{tabs.find(tb => tb.id === activeTab)?.label || t('bilan.tabBilan')}</p>
           </div>
         }
       >
@@ -507,24 +507,24 @@ const BilanSYSCOHADAPage: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-text-secondary)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">Retour à l'analyse financière</span>
+              <span className="text-sm">{t('bilan.backToFinancialAnalysis')}</span>
             </button>
             <div className="h-6 w-px bg-[var(--color-border)]" />
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-primary)]">États Financiers SYSCOHADA</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">Présentation normalisée selon le référentiel SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('bilan.title')}</h1>
+              <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <PageHeaderActions printTitle="États Financiers SYSCOHADA" />
+            <PageHeaderActions printTitle={t('bilan.title')} />
             <select
               value={periode}
               onChange={(e) => setPeriode(e.target.value)}
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-sm focus:ring-2 focus:ring-[var(--color-text-secondary)]/20"
             >
-              <option value="current">Exercice {fiscalYear}</option>
-              <option value="previous">Exercice {prevFiscalYear}</option>
-              <option value="comparison">Comparaison</option>
+              <option value="current">{t('bilan.fiscalYearOption', { year: fiscalYear })}</option>
+              <option value="previous">{t('bilan.fiscalYearOption', { year: prevFiscalYear })}</option>
+              <option value="comparison">{t('bilan.comparison')}</option>
             </select>
           </div>
         </div>
@@ -562,19 +562,19 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN SYSCOHADA</h2>
-                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/{fiscalYear} au 31/12/{fiscalYear}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.balanceSheetHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.fiscalPeriod', { year: fiscalYear })}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* ACTIF */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">ACTIF</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.assets')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-2 text-[var(--color-primary)]">Réf</th>
+                          <th className="text-left p-2 text-[var(--color-primary)]">{t('bilan.ref')}</th>
                           <th className="text-left p-2 text-[var(--color-primary)]">{t('accounting.label')}</th>
                           <th className="text-right p-2 text-[var(--color-primary)]">N</th>
                           <th className="text-right p-2 text-[var(--color-primary)]">N-1</th>
@@ -583,7 +583,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <tbody>
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AD</td>
-                          <td className="p-2 font-bold">ACTIF IMMOBILISE</td>
+                          <td className="p-2 font-bold">{t('bilan.fixedAssets')}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code < '30').reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code < '30').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -593,9 +593,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.exerciceN)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -605,14 +605,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
-                              title="Cliquer pour voir les transactions de l'exercice N"
+                              title={t('bilan.clickToViewTransactionsN')}
                             >
                               {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
-                              title="Cliquer pour voir les transactions de l'exercice N-1"
+                              title={t('bilan.clickToViewTransactionsN1')}
                             >
                               {formatCurrency(item.exerciceN1)}
                             </td>
@@ -621,7 +621,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">AE</td>
-                          <td className="p-2 font-bold">ACTIF CIRCULANT</td>
+                          <td className="p-2 font-bold">{t('bilan.currentAssets')}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code >= '30').reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.actif.filter(r => r.code >= '30').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -631,9 +631,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.exerciceN)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -643,14 +643,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
-                              title="Cliquer pour voir les transactions de l'exercice N"
+                              title={t('bilan.clickToViewTransactionsN')}
                             >
                               {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
-                              title="Cliquer pour voir les transactions de l'exercice N-1"
+                              title={t('bilan.clickToViewTransactionsN1')}
                             >
                               {formatCurrency(item.exerciceN1)}
                             </td>
@@ -659,7 +659,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                         <tr className="bg-gray-100 font-bold">
                           <td className="p-3">TA</td>
-                          <td className="p-3">TOTAL ACTIF</td>
+                          <td className="p-3">{t('bilan.totalAssets')}</td>
                           <td className="p-3 text-right text-lg">{formatCurrency(bilanData.actif.reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-3 text-right text-lg">{formatCurrency(bilanData.actif.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -670,12 +670,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* PASSIF */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">PASSIF</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.liabilities')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-2 text-[var(--color-primary)]">Réf</th>
+                          <th className="text-left p-2 text-[var(--color-primary)]">{t('bilan.ref')}</th>
                           <th className="text-left p-2 text-[var(--color-primary)]">{t('accounting.label')}</th>
                           <th className="text-right p-2 text-[var(--color-primary)]">N</th>
                           <th className="text-right p-2 text-[var(--color-primary)]">N-1</th>
@@ -684,7 +684,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <tbody>
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">CP</td>
-                          <td className="p-2 font-bold">CAPITAUX PROPRES</td>
+                          <td className="p-2 font-bold">{t('bilan.equity')}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code < '20').reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code < '20').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -694,9 +694,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.exerciceN)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -706,14 +706,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
-                              title="Cliquer pour voir les transactions de l'exercice N"
+                              title={t('bilan.clickToViewTransactionsN')}
                             >
                               {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
-                              title="Cliquer pour voir les transactions de l'exercice N-1"
+                              title={t('bilan.clickToViewTransactionsN1')}
                             >
                               {formatCurrency(item.exerciceN1)}
                             </td>
@@ -722,7 +722,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                         <tr className="bg-gray-50">
                           <td className="p-2 font-bold">DT</td>
-                          <td className="p-2 font-bold">DETTES</td>
+                          <td className="p-2 font-bold">{t('bilan.liabilitiesDebts')}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code >= '20').reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-2 text-right font-bold">{formatCurrency(bilanData.passif.filter(r => r.code >= '20').reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -732,9 +732,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.exerciceN)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.exerciceN)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -744,14 +744,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.exerciceN)}
-                              title="Cliquer pour voir les transactions de l'exercice N"
+                              title={t('bilan.clickToViewTransactionsN')}
                             >
                               {formatCurrency(item.exerciceN)}
                             </td>
                             <td
                               className="p-2 text-right font-mono hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN1', item.exerciceN1)}
-                              title="Cliquer pour voir les transactions de l'exercice N-1"
+                              title={t('bilan.clickToViewTransactionsN1')}
                             >
                               {formatCurrency(item.exerciceN1)}
                             </td>
@@ -760,7 +760,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                         <tr className="bg-gray-100 font-bold">
                           <td className="p-3">TP</td>
-                          <td className="p-3">TOTAL PASSIF</td>
+                          <td className="p-3">{t('bilan.totalLiabilities')}</td>
                           <td className="p-3 text-right text-lg">{formatCurrency(bilanData.passif.reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-3 text-right text-lg">{formatCurrency(bilanData.passif.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -776,22 +776,22 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'compte-resultat' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">COMPTE DE RÉSULTAT SYSCOHADA</h2>
-                <p className="text-[var(--color-text-tertiary)]">Exercice du 01/01/{fiscalYear} au 31/12/{fiscalYear}</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.incomeStatementHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.fiscalPeriod', { year: fiscalYear })}</p>
               </div>
 
               <div className="space-y-8">
                 {/* PRODUITS EN HAUT */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">PRODUITS</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.revenues')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b-2 border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N-1</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.exerciseN')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.exerciseN1')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -805,7 +805,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         ))}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3 font-bold text-[var(--color-primary)]">TP</td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL PRODUITS</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.totalRevenues')}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -816,15 +816,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* CHARGES EN BAS */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">CHARGES</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.expenses')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b-2 border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Exercice N-1</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.exerciseN')}</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.exerciseN1')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -838,7 +838,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         ))}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3 font-bold text-[var(--color-primary)]">TC</td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL CHARGES</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.totalExpenses')}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0))}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0))}</td>
                         </tr>
@@ -849,21 +849,21 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* RÉSULTAT NET */}
                 <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)] text-center">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">RÉSULTAT NET DE L'EXERCICE</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.netIncomeHeading')}</h3>
                   <div className="grid grid-cols-2 gap-6">
                     {(() => {
                       const rnN = compteResultatData.produits.reduce((s, i) => s + i.exerciceN, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN, 0);
                       const rnN1 = compteResultatData.produits.reduce((s, i) => s + i.exerciceN1, 0) - compteResultatData.charges.reduce((s, i) => s + i.exerciceN1, 0);
                       return (<>
                         <div className="p-4 border border-[var(--color-border)] rounded">
-                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Exercice N</p>
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.exerciseN')}</p>
                           <p className={`text-lg font-bold ${rnN >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN)}</p>
-                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN >= 0 ? t('bilan.profit') : t('bilan.loss')})</p>
                         </div>
                         <div className="p-4 border border-[var(--color-border)] rounded">
-                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Exercice N-1</p>
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.exerciseN1')}</p>
                           <p className={`text-lg font-bold ${rnN1 >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(rnN1)}</p>
-                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN1 >= 0 ? 'Bénéfice' : 'Perte'})</p>
+                          <p className="text-sm text-[var(--color-text-tertiary)] mt-1">({rnN1 >= 0 ? t('bilan.profit') : t('bilan.loss')})</p>
                         </div>
                       </>);
                     })()}
@@ -877,14 +877,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'bilan-fonctionnel' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">BILAN FONCTIONNEL</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse par fonction économique</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.functionalHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.functionalSubtitle')}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* EMPLOIS */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">EMPLOIS</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.uses')}</h3>
                   <div className="space-y-3">
                     {bilanFonctionnelData.emplois.map((item, index) => (
                       <div key={index} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded hover:bg-gray-50">
@@ -892,9 +892,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <span className="text-[var(--color-text-secondary)] font-medium text-sm">{item.code}</span>
                             <button
-                              onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.valeur)}
+                              onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.valeur)}
                               className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                              title={`Voir les sous-comptes de ${item.code}`}
+                              title={t('bilan.viewSubAccountsOf', { code: item.code })}
                             >
                               <ChevronRight className="w-3 h-3" />
                             </button>
@@ -905,7 +905,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <div
                             className="font-mono font-bold hover:bg-blue-50 cursor-pointer px-2 py-1 rounded"
                             onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.valeur)}
-                            title="Cliquer pour voir les transactions"
+                            title={t('bilan.clickToViewTransactions')}
                           >
                             {formatCurrency(item.valeur)}
                           </div>
@@ -918,7 +918,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* RESSOURCES */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">RESSOURCES</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.resources')}</h3>
                   <div className="space-y-3">
                     {bilanFonctionnelData.ressources.map((item, index) => (
                       <div key={index} className="flex justify-between items-center p-3 border border-[var(--color-border)] rounded hover:bg-gray-50">
@@ -926,9 +926,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <div className="flex items-center space-x-2">
                             <span className="text-[var(--color-text-secondary)] font-medium text-sm">{item.code}</span>
                             <button
-                              onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.valeur)}
+                              onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.valeur)}
                               className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                              title={`Voir les sous-comptes de ${item.code}`}
+                              title={t('bilan.viewSubAccountsOf', { code: item.code })}
                             >
                               <ChevronRight className="w-3 h-3" />
                             </button>
@@ -939,7 +939,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <div
                             className="font-mono font-bold hover:bg-blue-50 cursor-pointer px-2 py-1 rounded"
                             onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.valeur)}
-                            title="Cliquer pour voir les transactions"
+                            title={t('bilan.clickToViewTransactions')}
                           >
                             {formatCurrency(item.valeur)}
                           </div>
@@ -953,7 +953,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
               {/* Indicateurs de l'équilibre financier */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">Indicateurs de l'Équilibre Financier</h3>
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.financialBalanceIndicators')}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {(() => {
                     const rs = bilanFonctionnelData.ressources.find(r => r.code === 'RS')?.valeur || 0;
@@ -965,17 +965,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     const tn = frng - bfr;
                     return (<>
                       <div className="p-4 border border-[var(--color-border)] rounded text-center">
-                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Fonds de Roulement Net Global</h4>
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('bilan.workingCapital')}</h4>
                         <p className={`text-lg font-bold ${frng >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{formatCurrency(frng)}</p>
-                        <p className="text-sm text-[var(--color-text-tertiary)]">Ressources stables - Emplois stables</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.workingCapitalFormula')}</p>
                       </div>
                       <div className="p-4 border border-[var(--color-border)] rounded text-center">
-                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Besoin en Fonds de Roulement</h4>
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('bilan.workingCapitalRequirement')}</h4>
                         <p className={`text-lg font-bold ${bfr >= 0 ? 'text-[var(--color-primary)]' : 'text-green-600'}`}>{formatCurrency(bfr)}</p>
-                        <p className="text-sm text-[var(--color-text-tertiary)]">AC exploitation - PC exploitation</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.workingCapitalRequirementFormula')}</p>
                       </div>
                       <div className="p-4 border border-[var(--color-border)] rounded text-center">
-                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">Trésorerie Nette</h4>
+                        <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('bilan.netTreasury')}</h4>
                         <p className={`text-lg font-bold ${tn >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(tn)}</p>
                         <p className="text-sm text-[var(--color-text-tertiary)]">FRNG - BFR</p>
                       </div>
@@ -990,18 +990,18 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'sig' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">SOLDES INTERMÉDIAIRES DE GESTION</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse de la formation du résultat</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.sigHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.sigSubtitle')}</p>
               </div>
 
               <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left p-4">Soldes intermédiaires</th>
-                      <th className="text-right p-4">Exercice N</th>
-                      <th className="text-right p-4">Exercice N-1</th>
-                      <th className="text-right p-4">Variation</th>
+                      <th className="text-left p-4">{t('bilan.sigColumn')}</th>
+                      <th className="text-right p-4">{t('bilan.exerciseN')}</th>
+                      <th className="text-right p-4">{t('bilan.exerciseN1')}</th>
+                      <th className="text-right p-4">{t('bilan.variation')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1029,19 +1029,19 @@ const BilanSYSCOHADAPage: React.FC = () => {
                   const ventesMarc = creditNet(['701']);
                   return (<>
                     <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
-                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de marge commerciale</h4>
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">{t('bilan.grossMarginRate')}</h4>
                       <p className="text-lg font-bold text-[var(--color-primary)]">{ventesMarc > 0 ? (mc / ventesMarc * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Marge / CA marchandises</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.grossMarginRateFormula')}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
-                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de valeur ajoutée</h4>
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">{t('bilan.valueAddedRate')}</h4>
                       <p className="text-lg font-bold text-[var(--color-primary)]">{prodEx > 0 ? (va / prodEx * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">VA / Production</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.valueAddedRateFormula')}</p>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
-                      <h4 className="font-bold text-[var(--color-primary)] mb-2">Taux de rentabilité</h4>
+                      <h4 className="font-bold text-[var(--color-primary)] mb-2">{t('bilan.profitabilityRate')}</h4>
                       <p className="text-lg font-bold text-[var(--color-primary)]">{ca > 0 ? (rn / ca * 100).toFixed(1) : '0.0'}%</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Résultat / CA total</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('bilan.profitabilityRateFormula')}</p>
                     </div>
                   </>);
                 })()}
@@ -1053,8 +1053,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'ratios' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">RATIOS FINANCIERS</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse de la situation financière</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.ratiosHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.ratiosSubtitle')}</p>
               </div>
 
               {ratiosData.map((categorie, catIndex) => (
@@ -1066,11 +1066,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left p-4">Ratio</th>
-                          <th className="text-left p-4">Mode de calcul</th>
-                          <th className="text-right p-4">Valeur</th>
-                          <th className="text-center p-4">Norme</th>
-                          <th className="text-center p-4">Appréciation</th>
+                          <th className="text-left p-4">{t('bilan.ratio')}</th>
+                          <th className="text-left p-4">{t('bilan.calculationMethod')}</th>
+                          <th className="text-right p-4">{t('bilan.value')}</th>
+                          <th className="text-center p-4">{t('bilan.benchmark')}</th>
+                          <th className="text-center p-4">{t('bilan.assessment')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1088,8 +1088,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
                                 ratio.status === 'bon' ? 'bg-blue-100 text-blue-800' :
                                 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {ratio.status === 'excellent' ? 'Excellent' :
-                                 ratio.status === 'bon' ? 'Bon' : 'Moyen'}
+                                {ratio.status === 'excellent' ? t('bilan.statusExcellent') :
+                                 ratio.status === 'bon' ? t('bilan.statusGood') : t('bilan.statusAverage')}
                               </span>
                             </td>
                           </tr>
@@ -1106,21 +1106,21 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'tableau-financement' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FINANCEMENT SYSCOHADA</h2>
-                <p className="text-[var(--color-text-tertiary)]">Analyse des ressources et emplois de fonds</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.fundsFlowHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.fundsFlowSubtitle')}</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* EMPLOIS */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">EMPLOIS</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.uses')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1130,9 +1130,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.montant)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.montant)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -1142,7 +1142,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono text-[var(--color-primary)] hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
-                              title="Cliquer pour voir les transactions"
+                              title={t('bilan.clickToViewTransactions')}
                             >
                               {formatCurrency(item.montant)}
                             </td>
@@ -1150,7 +1150,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         ))}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL EMPLOIS</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.totalUses')}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
@@ -1160,14 +1160,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* RESSOURCES */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">RESSOURCES</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.resources')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1177,9 +1177,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <span>{item.code}</span>
                                 <button
-                                  onClick={() => openDetailModal(item.code, `Sous-comptes de ${item.libelle}`, 'sous-comptes', item.montant)}
+                                  onClick={() => openDetailModal(item.code, t('bilan.subAccountsOfLabel', { name: item.libelle }), 'sous-comptes', item.montant)}
                                   className="p-1 hover:bg-[var(--color-text-secondary)] hover:text-white rounded transition-colors"
-                                  title={`Voir les sous-comptes de ${item.code}`}
+                                  title={t('bilan.viewSubAccountsOf', { code: item.code })}
                                 >
                                   <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -1189,7 +1189,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                             <td
                               className="p-3 text-right font-mono text-[var(--color-primary)] hover:bg-blue-50 cursor-pointer"
                               onClick={() => openDetailModal(item.code, item.libelle, 'exerciceN', item.montant)}
-                              title="Cliquer pour voir les transactions"
+                              title={t('bilan.clickToViewTransactions')}
                             >
                               {formatCurrency(item.montant)}
                             </td>
@@ -1197,7 +1197,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         ))}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">TOTAL RESSOURCES</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.totalResources')}</td>
                           <td className="p-3 text-right text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tableauFinancementData.ressources.reduce((s, i) => s + i.montant, 0))}</td>
                         </tr>
                       </tbody>
@@ -1208,7 +1208,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
               {/* Variation du Fonds de Roulement */}
               <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)] text-center">
-                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">VARIATION DU FONDS DE ROULEMENT NET GLOBAL</h3>
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.workingCapitalChangeHeading')}</h3>
                 <div className="flex justify-center">
                   <div className="p-6 border border-[var(--color-border)] rounded-lg">
                     {(() => {
@@ -1216,9 +1216,9 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       const totalEmplois = tableauFinancementData.emplois.reduce((s, i) => s + i.montant, 0);
                       const variation = totalRessources - totalEmplois;
                       return (<>
-                        <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Ressources - Emplois</p>
+                        <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.resourcesMinusUses')}</p>
                         <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
-                        <p className="text-sm text-[var(--color-text-tertiary)] mt-2">{variation >= 0 ? 'Augmentation' : 'Diminution'} du fonds de roulement</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)] mt-2">{variation >= 0 ? t('bilan.workingCapitalIncrease') : t('bilan.workingCapitalDecrease')}</p>
                       </>);
                     })()}
                   </div>
@@ -1231,15 +1231,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'flux-tresorerie' && (
             <div className="space-y-6">
               <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">TABLEAU DE FLUX DE TRÉSORERIE</h2>
-                <p className="text-[var(--color-text-tertiary)]">Flux de trésorerie par activité selon SYSCOHADA</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.cashFlowHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.cashFlowSubtitle')}</p>
               </div>
 
               {/* Sous-onglets Méthode Indirecte / Directe */}
               <div className="flex justify-center">
                 <div className="inline-flex bg-gray-100 rounded-lg p-1">
-                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Indirecte</button>
-                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Méthode Directe</button>
+                  <button onClick={() => setTftMethod('indirect')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'indirect' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{t('bilan.indirectMethod')}</button>
+                  <button onClick={() => setTftMethod('direct')} className={`px-5 py-2.5 text-sm font-semibold rounded-md transition-all ${tftMethod === 'direct' ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{t('bilan.directMethod')}</button>
                 </div>
               </div>
 
@@ -1248,14 +1248,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <div className="space-y-6">
                 {/* ACTIVITÉS OPÉRATIONNELLES */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.cashFlowOperating')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1286,13 +1286,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
                             </tr>
                           ))}
-                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">{t('bilan.noEntries')}</td></tr>}
                           </React.Fragment>
                           );
                         })}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS OPÉRATIONNELLES</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.netCashFlowOperating')}</td>
                           {(() => { const total = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
@@ -1302,14 +1302,14 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* ACTIVITÉS D'INVESTISSEMENT */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.cashFlowInvesting')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
-                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">Réf</th>
+                          <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('bilan.ref')}</th>
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1340,13 +1340,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
                             </tr>
                           ))}
-                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td></td><td colSpan={2} className="p-2 pl-8 text-xs text-gray-400 italic">{t('bilan.noEntries')}</td></tr>}
                           </React.Fragment>
                           );
                         })}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
                           <td className="p-3"></td>
-                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS D'INVESTISSEMENT</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.netCashFlowInvesting')}</td>
                           {(() => { const total = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
@@ -1356,13 +1356,13 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* ACTIVITÉS DE FINANCEMENT */}
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">FLUX DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.cashFlowFinancing')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead>
                         <tr className="border-b border-[var(--color-border)]">
                           <th className="text-left p-3 text-[var(--color-primary)] font-semibold">{t('accounting.label')}</th>
-                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">Montant</th>
+                          <th className="text-right p-3 text-[var(--color-primary)] font-semibold">{t('bilan.amount')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1391,12 +1391,12 @@ const BilanSYSCOHADAPage: React.FC = () => {
                               <td className={`p-2 text-right font-mono text-xs ${d.amount < 0 ? 'text-red-500' : 'text-gray-700'}`}>{formatCurrency(d.amount)}</td>
                             </tr>
                           ))}
-                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">Aucune écriture</td></tr>}
+                          {isExpanded && details.length === 0 && <tr className="bg-gray-50"><td colSpan={2} className="p-2 pl-10 text-xs text-gray-400 italic">{t('bilan.noEntries')}</td></tr>}
                           </React.Fragment>
                           );
                         })}
                         <tr className="border-t-2 border-[var(--color-border)] bg-gray-50">
-                          <td className="p-3 font-bold text-[var(--color-primary)]">FLUX NET DE TRÉSORERIE DES ACTIVITÉS DE FINANCEMENT</td>
+                          <td className="p-3 font-bold text-[var(--color-primary)]">{t('bilan.netCashFlowFinancing')}</td>
                           {(() => { const total = fluxTresorerieData.activitesFinancement.reduce((s, i) => s + i.montant, 0); return <td className={`p-3 text-right text-lg font-bold ${total >= 0 ? 'text-[var(--color-primary)]' : 'text-red-600'}`}>{total >= 0 ? '' : '('}{formatCurrency(Math.abs(total))}{total >= 0 ? '' : ')'}</td>; })()}
                         </tr>
                       </tbody>
@@ -1406,7 +1406,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
                 {/* VARIATION NETTE DE TRÉSORERIE */}
                 <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)]">
-                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.netCashChangeHeading')}</h3>
                   {(() => {
                     const fluxOp = fluxTresorerieData.activitesOperationnelles.reduce((s, i) => s + i.montant, 0);
                     const fluxInv = fluxTresorerieData.activitesInvestissement.reduce((s, i) => s + i.montant, 0);
@@ -1418,15 +1418,15 @@ const BilanSYSCOHADAPage: React.FC = () => {
                     return (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div className="p-4 border border-[var(--color-border)] rounded">
-                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie début d'exercice</p>
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.openingCash')}</p>
                           <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoDebut)}</p>
                         </div>
                         <div className="p-4 border border-[var(--color-border)] rounded">
-                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Variation nette</p>
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.netChange')}</p>
                           <p className={`text-lg font-bold ${variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{variation >= 0 ? '+' : ''}{formatCurrency(variation)}</p>
                         </div>
                         <div className="p-4 border border-[var(--color-border)] rounded">
-                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie fin d'exercice</p>
+                          <p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.closingCash')}</p>
                           <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoFin)}</p>
                         </div>
                       </div>
@@ -1492,31 +1492,31 @@ const BilanSYSCOHADAPage: React.FC = () => {
                 };
                 return (
                   <div className="space-y-6">
-                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS À L'ACTIVITÉ" totalLabel="FLUX NET LIÉ À L'ACTIVITÉ" total={dFluxExploit} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
-                      { key: 'enc-clients', label: '+ Encaissements reçus des clients', value: encClients },
-                      { key: 'autres-enc', label: '+ Autres encaissements d\'exploitation', value: autresEnc },
-                      { key: 'dec-fournisseurs', label: '- Décaissements versés aux fournisseurs', value: -decFournisseurs },
-                      { key: 'dec-personnel', label: '- Décaissements versés au personnel', value: -decPersonnel },
-                      { key: 'dec-impots', label: '- Impôts sur le résultat payés', value: -decImpots },
-                      { key: 'autres-dec', label: '- Autres décaissements d\'exploitation', value: -autresDec },
+                    <DirectSection title={t('bilan.directOperatingTitle')} totalLabel={t('bilan.directOperatingTotal')} total={dFluxExploit} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
+                      { key: 'enc-clients', label: t('bilan.dirCustomerReceipts'), value: encClients },
+                      { key: 'autres-enc', label: t('bilan.dirOtherOperatingReceipts'), value: autresEnc },
+                      { key: 'dec-fournisseurs', label: t('bilan.dirSupplierPayments'), value: -decFournisseurs },
+                      { key: 'dec-personnel', label: t('bilan.dirPayrollPayments'), value: -decPersonnel },
+                      { key: 'dec-impots', label: t('bilan.dirIncomeTaxPaid'), value: -decImpots },
+                      { key: 'autres-dec', label: t('bilan.dirOtherOperatingPayments'), value: -autresDec },
                     ]} />
-                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS AUX INVESTISSEMENTS" totalLabel="FLUX NET LIÉ AUX INVESTISSEMENTS" total={dFluxInvest} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
-                      { key: 'dec-acq-immos', label: '- Décaissements sur acquisitions d\'immobilisations', value: -decAcqImmos },
-                      { key: 'dec-acq-financ', label: '- Décaissements sur acquisitions financières', value: -decAcqFinanc },
-                      { key: 'enc-cessions', label: '+ Encaissements sur cessions d\'immobilisations', value: encCessions },
+                    <DirectSection title={t('bilan.directInvestingTitle')} totalLabel={t('bilan.directInvestingTotal')} total={dFluxInvest} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
+                      { key: 'dec-acq-immos', label: t('bilan.dirFixedAssetPurchases'), value: -decAcqImmos },
+                      { key: 'dec-acq-financ', label: t('bilan.dirFinancialAssetPurchases'), value: -decAcqFinanc },
+                      { key: 'enc-cessions', label: t('bilan.dirFixedAssetDisposals'), value: encCessions },
                     ]} />
-                    <DirectSection title="ENCAISSEMENTS ET DÉCAISSEMENTS LIÉS AU FINANCEMENT" totalLabel="FLUX NET LIÉ AU FINANCEMENT" total={dFluxFinanc} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
-                      { key: 'enc-capital', label: '+ Encaissements augmentation de capital', value: encCapital },
-                      { key: 'enc-emprunts', label: '+ Encaissements provenant d\'emprunts', value: encEmprunts },
-                      { key: 'remb-emprunts', label: '- Remboursements d\'emprunts', value: -decRembEmprunts },
-                      { key: 'div-verses', label: '- Dividendes et distributions versés', value: -decDividendes },
+                    <DirectSection title={t('bilan.directFinancingTitle')} totalLabel={t('bilan.directFinancingTotal')} total={dFluxFinanc} tftExpandedRows={tftExpandedRows} setTftExpandedRows={setTftExpandedRows} rawEntries={rawEntries} directPrefixMap={directPrefixMap} t={t} rows={[
+                      { key: 'enc-capital', label: t('bilan.dirCapitalIncrease'), value: encCapital },
+                      { key: 'enc-emprunts', label: t('bilan.dirBorrowingProceeds'), value: encEmprunts },
+                      { key: 'remb-emprunts', label: t('bilan.dirLoanRepayments'), value: -decRembEmprunts },
+                      { key: 'div-verses', label: t('bilan.dirDividendsPaid'), value: -decDividendes },
                     ]} />
                     <div className="bg-white rounded-lg p-6 border-2 border-[var(--color-border)]">
-                      <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">VARIATION NETTE DE LA TRÉSORERIE</h3>
+                      <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4 text-center">{t('bilan.netCashChangeHeading')}</h3>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie début</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoDebut)}</p></div>
-                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Variation nette</p><p className={`text-lg font-bold ${dVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{dVariation >= 0 ? '+' : ''}{formatCurrency(dVariation)}</p></div>
-                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">Trésorerie fin</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoFin)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.openingCashShort')}</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoDebut)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.netChange')}</p><p className={`text-lg font-bold ${dVariation >= 0 ? 'text-green-600' : 'text-red-600'}`}>{dVariation >= 0 ? '+' : ''}{formatCurrency(dVariation)}</p></div>
+                        <div className="p-4 border border-[var(--color-border)] rounded"><p className="text-[var(--color-text-tertiary)] font-medium mb-2">{t('bilan.closingCashShort')}</p><p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(tresoFin)}</p></div>
                       </div>
                     </div>
                   </div>
@@ -1529,8 +1529,8 @@ const BilanSYSCOHADAPage: React.FC = () => {
           {activeTab === 'export' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">EXPORT DES ÉTATS FINANCIERS</h2>
-                <p className="text-[var(--color-text-tertiary)]">Téléchargement et impression des documents</p>
+                <h2 className="text-lg font-bold text-[var(--color-primary)] mb-2">{t('bilan.exportHeading')}</h2>
+                <p className="text-[var(--color-text-tertiary)]">{t('bilan.exportSubtitle')}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1553,7 +1553,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                           <span>PDF</span>
                         </button>
                         <button
-                          onClick={() => toast('Export Excel : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                          onClick={() => toast(t('bilan.excelExportUnavailable'), { icon: 'ℹ️' })}
                           className="w-full flex items-center justify-center space-x-2 px-4 py-2 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <FileText className="w-4 h-4" />
@@ -1566,21 +1566,21 @@ const BilanSYSCOHADAPage: React.FC = () => {
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)]">
-                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">Export Complet</h3>
+                <h3 className="text-lg font-bold text-[var(--color-primary)] mb-4">{t('bilan.fullExport')}</h3>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={handlePrint}
                     className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
                   >
                     <Download className="w-5 h-5" />
-                    <span>Télécharger tous les états (PDF)</span>
+                    <span>{t('bilan.downloadAllPdf')}</span>
                   </button>
                   <button
-                    onClick={() => toast('Export Excel global : fonctionnalité disponible via l\'onglet « Écriture »', { icon: 'ℹ️' })}
+                    onClick={() => toast(t('bilan.excelGlobalExportUnavailable'), { icon: 'ℹ️' })}
                     className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 border border-[var(--color-border)] text-[#404040] rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     <FileText className="w-5 h-5" />
-                    <span>Télécharger tous les états (Excel)</span>
+                    <span>{t('bilan.downloadAllExcel')}</span>
                   </button>
                 </div>
               </div>
@@ -1597,7 +1597,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
               <h2 className="text-lg font-bold text-[var(--color-primary)]">{selectedDetail.title}</h2>
               <button
                 onClick={closeModal}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label="Fermer">
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors" aria-label={t('bilan.close')}>
                 <X className="w-5 h-5 text-[var(--color-text-tertiary)]" />
               </button>
             </div>
@@ -1606,25 +1606,25 @@ const BilanSYSCOHADAPage: React.FC = () => {
               {selectedDetail.type === 'sous-comptes' ? (
                 <div>
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Détail des sous-comptes</h3>
-                    <p className="text-[var(--color-text-tertiary)] text-sm">Répartition par sous-compte selon le plan SYSCOHADA</p>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('bilan.subAccountDetail')}</h3>
+                    <p className="text-[var(--color-text-tertiary)] text-sm">{t('bilan.subAccountBreakdown')}</p>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm border-collapse">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left p-3 border-b border-[var(--color-border)]">Code</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('bilan.code')}</th>
                           <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
-                          <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
-                          <th className="text-center p-3 border-b border-[var(--color-border)]">Actions</th>
+                          <th className="text-right p-3 border-b border-[var(--color-border)]">{t('bilan.amount')}</th>
+                          <th className="text-center p-3 border-b border-[var(--color-border)]">{t('bilan.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
                         {selectedDetail.data.length === 0 ? (
                           <tr>
                             <td colSpan={4} className="p-8 text-center text-gray-400 italic">
-                              Aucun sous-compte trouvé — ce code ({selectedDetail.title}) n'a pas d'écritures détaillées.
+                              {t('bilan.noSubAccountFound', { title: selectedDetail.title })}
                             </td>
                           </tr>
                         ) : (
@@ -1637,7 +1637,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                                 <button
                                   onClick={() => openDetailModal(String(subAccount.code), String(subAccount.libelle), selectedPeriod, Number(subAccount.montant))}
                                   className="text-[var(--color-text-secondary)] hover:text-[#404040] p-1 rounded"
-                                  title="Voir les transactions"
+                                  title={t('bilan.viewTransactions')}
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
@@ -1652,11 +1652,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
               ) : (
                 <div>
                   <div className="mb-4">
-                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Détail des transactions</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('bilan.transactionDetail')}</h3>
                     <div className="flex justify-between items-center">
-                      <p className="text-[var(--color-text-tertiary)] text-sm">Liste des écritures comptables</p>
+                      <p className="text-[var(--color-text-tertiary)] text-sm">{t('bilan.journalEntryList')}</p>
                       <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
-                        Total: {formatCurrency(selectedDetail.total ?? 0)}
+                        {t('bilan.total')}: {formatCurrency(selectedDetail.total ?? 0)}
                       </p>
                     </div>
                   </div>
@@ -1666,10 +1666,10 @@ const BilanSYSCOHADAPage: React.FC = () => {
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="text-left p-3 border-b border-[var(--color-border)]">{t('common.date')}</th>
-                          <th className="text-left p-3 border-b border-[var(--color-border)]">Référence</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('bilan.reference')}</th>
                           <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.label')}</th>
-                          <th className="text-left p-3 border-b border-[var(--color-border)]">Tiers</th>
-                          <th className="text-right p-3 border-b border-[var(--color-border)]">Montant</th>
+                          <th className="text-left p-3 border-b border-[var(--color-border)]">{t('bilan.thirdParty')}</th>
+                          <th className="text-right p-3 border-b border-[var(--color-border)]">{t('bilan.amount')}</th>
                           <th className="text-left p-3 border-b border-[var(--color-border)]">{t('accounting.piece')}</th>
                         </tr>
                       </thead>
@@ -1677,7 +1677,7 @@ const BilanSYSCOHADAPage: React.FC = () => {
                         {selectedDetail.data.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="p-8 text-center text-gray-400 italic">
-                              Aucune transaction trouvée pour ce compte sur cette période.
+                              {t('bilan.noTransactionFound')}
                             </td>
                           </tr>
                         ) : (
