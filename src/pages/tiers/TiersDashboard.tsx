@@ -17,6 +17,7 @@ import {
   AreaChart, Area
 } from 'recharts';
 import { TiersKPI, ClientAnalytics, SupplierAnalytics, ThirdParty, Client, Supplier } from '../../types/tiers';
+import { getThirdPartyCoverage, type ThirdPartyCoverage } from '../../services/tiers/thirdPartyCoverage';
 
 const TiersDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -48,6 +49,10 @@ const TiersDashboard: React.FC = () => {
     croissanceCA: 0, tauxRecouvrement: 0,
     totalProspects: 0, totalPartenaires: 0,
   });
+  // Part des lignes 40x/41x SANS code tiers : ces montants n'apparaissent dans
+  // AUCUNE vue « par tiers ». On l'affiche pour ne pas présenter un encours
+  // partiel comme s'il était complet.
+  const [coverage, setCoverage] = useState<ThirdPartyCoverage | null>(null);
 
   const loadData = useCallback(async () => {
     const tps = (await adapter.getAll('thirdParties')) as Record<string, any>[];
@@ -70,7 +75,7 @@ const TiersDashboard: React.FC = () => {
     const entries = (await adapter.getAll('journalEntries')) as {
       date?: string;
       status?: string;
-      lines: Array<{ accountCode: string; debit: number; credit: number; lettrageCode?: string }>;
+      lines: Array<{ accountCode: string; debit: number; credit: number; lettrageCode?: string; thirdPartyCode?: string | null }>;
     }[];
 
     // Les écritures comptabilisées sont 'validated' (ou 'posted') — surtout PAS filtrer
@@ -123,6 +128,10 @@ const TiersDashboard: React.FC = () => {
       totalProspects: prospects.length,
       totalPartenaires: partenaires.length,
     });
+
+    // Part des lignes collectives sans code tiers (même périmètre que les KPI
+    // ci-dessus) : réutilise les écritures déjà chargées, pas de second getAll.
+    setCoverage(await getThirdPartyCoverage(adapter, entries));
   }, [adapter]);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -286,6 +295,35 @@ const TiersDashboard: React.FC = () => {
       {/* Overview Tab Content */}
       {activeTab === 'overview' && (
         <div className="space-y-6">
+          {/* Avertissement : part des collectifs 40x/41x sans code tiers. Ces
+              montants n'apparaissent dans AUCUNE vue par tiers — le dire plutôt
+              que d'afficher un encours partiel comme s'il était complet. */}
+          {coverage && (coverage.clients.lignesSansCode > 0 || coverage.fournisseurs.lignesSansCode > 0) && (
+            <div className="flex items-start gap-2 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold">Sous-registre tiers incomplet.</span>{' '}
+                Une partie des comptes collectifs ne porte aucun code tiers : ces montants
+                sont <span className="font-semibold">absents des vues par tiers</span> (encours par client,
+                balance âgée, relances, lettrage).
+                <ul className="mt-1 space-y-0.5 text-[12.5px]">
+                  {coverage.clients.lignesSansCode > 0 && (
+                    <li>
+                      • <span className="font-medium">Clients (41x)</span> : {formatCurrency(Math.abs(coverage.clients.montantNonAffecte))} non affectés
+                      {' '}— {coverage.clients.lignesSansCode}/{coverage.clients.lignes} lignes ({coverage.clients.pctLignesSansCode}%)
+                    </li>
+                  )}
+                  {coverage.fournisseurs.lignesSansCode > 0 && (
+                    <li>
+                      • <span className="font-medium">Fournisseurs (40x)</span> : {formatCurrency(Math.abs(coverage.fournisseurs.montantNonAffecte))} non affectés
+                      {' '}— {coverage.fournisseurs.lignesSansCode}/{coverage.fournisseurs.lignes} lignes ({coverage.fournisseurs.pctLignesSansCode}%)
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* KPIs Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
@@ -335,6 +373,15 @@ const TiersDashboard: React.FC = () => {
                   <p className="text-sm text-[var(--color-text-secondary)]">Encours Clients</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(kpis.encoursClients)}</p>
                   <p className="text-xs text-[var(--color-warning)]">DSO: {kpis.dsoMoyen} jours</p>
+                  {coverage && coverage.clients.lignesSansCode > 0 && (
+                    <p
+                      className="text-[11px] text-[var(--color-error)] mt-1 leading-tight"
+                      title={`${coverage.clients.lignesSansCode} ligne(s) sur ${coverage.clients.lignes} du compte collectif 41x ne portent aucun code tiers : ces montants n'apparaissent dans aucune vue par client (encours, balance âgée, relances, lettrage).`}
+                    >
+                      ⚠ dont {formatCurrency(Math.abs(coverage.clients.montantNonAffecte))} non affecté à un client
+                      {' '}({coverage.clients.pctLignesSansCode}% des lignes)
+                    </p>
+                  )}
                 </div>
                 <div className="w-10 h-10 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
                   <Clock className="w-5 h-5 text-[var(--color-warning)]" />
