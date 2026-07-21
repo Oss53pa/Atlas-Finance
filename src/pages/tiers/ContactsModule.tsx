@@ -50,7 +50,7 @@ const ContactsModule: React.FC = () => {
 
   // Création RÉELLE (les contacts sont dérivés des tiers → on crée un tiers persistant).
   const handleCreateContact = async () => {
-    const nom = window.prompt('Nom du tiers / contact :')?.trim();
+    const nom = window.prompt(t('contacts.promptContactName'))?.trim();
     if (!nom) return;
     try {
       await adapter.create('thirdParties', {
@@ -83,24 +83,41 @@ const ContactsModule: React.FC = () => {
     updatedAt: new Date().toISOString().split('T')[0],
   }));
 
+  // Libellés d'affichage (la donnée interne reste en français : elle sert de clé de regroupement).
+  const roleLabel = (f?: string) =>
+    f === 'Client' ? t('contacts.roleCustomer')
+      : f === 'Fournisseur' ? t('contacts.roleSupplier')
+      : f === 'Client/Fournisseur' ? t('contacts.roleCustomerSupplier')
+      : (f || '');
+  const deptLabel = (d?: string) =>
+    d === 'Commercial' ? t('contacts.deptSales')
+      : d === 'Achats' ? t('contacts.deptPurchasing')
+      : d === 'Direction' ? t('contacts.deptManagement')
+      : (d || '');
+  const langLabel = (l?: string) =>
+    l === 'Français' ? t('contacts.langFrench')
+      : l === 'Anglais' ? t('contacts.langEnglish')
+      : l === 'Lingala' ? t('contacts.langLingala')
+      : (l || '');
+
   const tabs = [
-    { id: 'liste', label: 'Liste Contacts', icon: UserCheck },
-    { id: 'interactions', label: 'Interactions', icon: MessageSquare },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'organigramme', label: 'Organigramme', icon: Users }
+    { id: 'liste', label: t('contacts.tabList'), icon: UserCheck },
+    { id: 'interactions', label: t('contacts.tabInteractions'), icon: MessageSquare },
+    { id: 'analytics', label: t('contacts.tabAnalytics'), icon: BarChart3 },
+    { id: 'organigramme', label: t('contacts.tabOrgChart'), icon: Users }
   ];
 
   const tiersOptions = [
-    { value: 'tous', label: 'Tous les tiers' },
+    { value: 'tous', label: t('contacts.allTiers') },
     { value: 'clients', label: t('navigation.clients') },
     { value: 'fournisseurs', label: t('navigation.suppliers') },
-    { value: 'prospects', label: 'Prospects' }
+    { value: 'prospects', label: t('contacts.prospects') }
   ];
 
   const statutOptions = [
-    { value: 'tous', label: 'Tous les statuts' },
-    { value: 'actif', label: 'Actif' },
-    { value: 'inactif', label: 'Inactif' }
+    { value: 'tous', label: t('contacts.allStatuses') },
+    { value: 'actif', label: t('contacts.statusActive') },
+    { value: 'inactif', label: t('contacts.statusInactive') }
   ];
 
   const getCiviliteColor = (civilite: string) => {
@@ -163,13 +180,19 @@ const ContactsModule: React.FC = () => {
     }
     const repartitionTiers = Object.entries(types)
       .filter(([, n]) => n > 0)
-      .map(([type, count]) => ({ type, count, pourcentage: total ? Math.round((count / total) * 100) : 0 }));
+      .map(([type, count]) => ({
+        type: type === 'Clients' ? t('contacts.typeCustomers')
+          : type === 'Fournisseurs' ? t('contacts.typeSuppliers')
+          : t('contacts.roleCustomerSupplier'),
+        count,
+        pourcentage: total ? Math.round((count / total) * 100) : 0,
+      }));
     const byDept = new Map<string, number>();
     for (const c of list) {
       const dept = c.departement || '—';
       byDept.set(dept, (byDept.get(dept) || 0) + 1);
     }
-    const repartitionFonctions = Array.from(byDept.entries()).map(([fonction, count]) => ({ fonction, count }));
+    const repartitionFonctions = Array.from(byDept.entries()).map(([fonction, count]) => ({ fonction: deptLabel(fonction), count }));
     return {
       repartitionTiers,
       interactionsParMois: [] as { mois: string; appels: number; emails: number; rencontres: number }[],
@@ -201,7 +224,7 @@ const ContactsModule: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#404040]" />
-              <span className="text-sm font-semibold text-[#404040]">Tiers</span>
+              <span className="text-sm font-semibold text-[#404040]">{t('contacts.backToTiers')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -209,8 +232,8 @@ const ContactsModule: React.FC = () => {
                 <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Communications</h1>
-                <p className="text-sm text-[var(--color-text-secondary)]">Centralisation et suivi des communications avec les tiers</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('contacts.title')}</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -226,10 +249,10 @@ const ContactsModule: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-semibold">Nouveau Contact</span>
+              <span className="text-sm font-semibold">{t('contacts.newContactBtn')}</span>
             </button>
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors" aria-label={t('contacts.downloadAria')}>
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -265,7 +288,7 @@ const ContactsModule: React.FC = () => {
                 <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
-                  placeholder="Rechercher par nom, prénom, email ou entreprise..."
+                  placeholder={t('contacts.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)] focus:border-transparent"
@@ -296,7 +319,7 @@ const ContactsModule: React.FC = () => {
               </>
               )}
 
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label={t('contacts.filterAria')}>
                 <Filter className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -308,13 +331,13 @@ const ContactsModule: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Contact</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Entreprise</th>
-                    <th className="hidden xl:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fonction</th>
-                    <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Communications</th>
-                    <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Interactions</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                    <th className="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colContact')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colCompany')}</th>
+                    <th className="hidden xl:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colRole')}</th>
+                    <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colCommunications')}</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colInteractions')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colStatus')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('contacts.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -337,7 +360,7 @@ const ContactsModule: React.FC = () => {
                                 <Star className="w-4 h-4 text-yellow-500" />
                               )}
                             </div>
-                            <div className="text-sm text-gray-700">{contact.departement}</div>
+                            <div className="text-sm text-gray-700">{deptLabel(contact.departement)}</div>
                           </div>
                         </div>
                       </td>
@@ -348,7 +371,7 @@ const ContactsModule: React.FC = () => {
                         </div>
                       </td>
                       <td className="hidden xl:table-cell px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {contact.fonction}
+                        {roleLabel(contact.fonction)}
                       </td>
                       <td className="hidden lg:table-cell px-4 py-4 whitespace-nowrap">
                         <div className="space-y-1">
@@ -384,7 +407,7 @@ const ContactsModule: React.FC = () => {
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           contact.isActif ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                         }`}>
-                          {contact.isActif ? 'Actif' : 'Inactif'}
+                          {contact.isActif ? t('contacts.statusActive') : t('contacts.statusInactive')}
                         </span>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -392,7 +415,7 @@ const ContactsModule: React.FC = () => {
                           <button
                             onClick={() => setSelectedContact(contact)}
                             className="p-1 text-[var(--color-primary)] hover:text-[var(--color-primary)]/80"
-                            title="Voir les détails"
+                            title={t('contacts.viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -402,7 +425,7 @@ const ContactsModule: React.FC = () => {
                               setShowInteractionModal(true);
                             }}
                             className="p-1 text-[var(--color-text-secondary)] hover:text-[var(--color-text-secondary)]/80"
-                            title="Nouvelle interaction"
+                            title={t('contacts.newInteraction')}
                           >
                             <MessageSquare className="w-4 h-4" />
                           </button>
@@ -412,7 +435,7 @@ const ContactsModule: React.FC = () => {
                               setShowEditModal(true);
                             }}
                             className="p-1 text-green-600 hover:text-green-900"
-                            title="Modifier"
+                            title={t('contacts.edit')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -422,8 +445,8 @@ const ContactsModule: React.FC = () => {
                               setShowDeleteModal(true);
                             }}
                             className="p-1 text-red-600 hover:text-red-900"
-                            aria-label="Supprimer"
-                            title="Supprimer"
+                            aria-label={t('contacts.delete')}
+                            title={t('contacts.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -446,7 +469,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Total Interactions</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.totalInteractions')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{allInteractions.length}</p>
                 </div>
                 <MessageSquare className="w-8 h-8 text-[var(--color-primary)]" />
@@ -455,7 +478,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Cette Semaine</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.thisWeek')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">15</p>
                 </div>
                 <Calendar className="w-8 h-8 text-green-600" />
@@ -464,7 +487,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">En Attente</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.pending')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">3</p>
                 </div>
                 <Clock className="w-8 h-8 text-orange-600" />
@@ -473,7 +496,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Réponse</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.responseRate')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">94%</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-[var(--color-text-secondary)]" />
@@ -483,7 +506,7 @@ const ContactsModule: React.FC = () => {
 
           {/* Recent Interactions */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Interactions Récentes</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.recentInteractions')}</h3>
             <div className="space-y-4">
               {allInteractions.slice(0, 10).map((interaction) => {
                 const IconComponent = getInteractionIcon(interaction.type);
@@ -503,7 +526,7 @@ const ContactsModule: React.FC = () => {
                               setShowInteractionDetailModal(true);
                             }}
                             className="p-1.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors"
-                            title="Voir les détails"
+                            title={t('contacts.viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -516,13 +539,13 @@ const ContactsModule: React.FC = () => {
                           <span className="text-sm text-[var(--color-text-secondary)]">•</span>
                           <span className="text-sm text-[var(--color-text-secondary)]">{interaction.contactEntreprise}</span>
                         </div>
-                        <span className="text-sm text-[var(--color-text-secondary)]">par {interaction.responsable}</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('contacts.byResponsible', { name: String(interaction.responsable ?? '') })}</span>
                       </div>
                       {interaction.prochaineSuivi && (
                         <div className="flex items-center mt-2">
                           <Clock className="w-4 h-4 text-orange-500 mr-1" />
                           <span className="text-sm text-orange-600">
-                            Suivi prévu le {formatDate(interaction.prochaineSuivi)}
+                            {t('contacts.followUpScheduled', { date: formatDate(interaction.prochaineSuivi) })}
                           </span>
                         </div>
                       )}
@@ -542,7 +565,7 @@ const ContactsModule: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Répartition par type de tiers */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Type de Tiers</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.distributionByTierType')}</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <RechartsPieChart>
                   <Pie
@@ -565,7 +588,7 @@ const ContactsModule: React.FC = () => {
 
             {/* Évolution des interactions */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Interactions</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.interactionsTrend')}</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={analyticsData.interactionsParMois}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -585,7 +608,7 @@ const ContactsModule: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Top interacteurs */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Top Interacteurs</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.topInteractors')}</h3>
               <div className="space-y-3">
                 {analyticsData.topInteracteurs.map((contact, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -599,8 +622,8 @@ const ContactsModule: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-[var(--color-primary)]">{contact.interactions} interactions</p>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Dernière: {formatDate(contact.derniere)}</p>
+                      <p className="font-medium text-[var(--color-primary)]">{t('contacts.interactionsCount', { count: String(contact.interactions) })}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.lastLabel', { date: formatDate(contact.derniere) })}</p>
                     </div>
                   </div>
                 ))}
@@ -609,7 +632,7 @@ const ContactsModule: React.FC = () => {
 
             {/* Répartition par fonction */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Fonction</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.distributionByDepartment')}</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analyticsData.repartitionFonctions}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -630,7 +653,7 @@ const ContactsModule: React.FC = () => {
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-[var(--color-primary)]">Détails Contact</h2>
+                <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('contacts.contactDetails')}</h2>
                 <button
                   onClick={() => setSelectedContact(null)}
                   className="text-gray-700 hover:text-gray-600"
@@ -642,7 +665,7 @@ const ContactsModule: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Informations personnelles */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Informations Personnelles</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('contacts.personalInfo')}</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getCiviliteColor(selectedContact.civilite)}`}>
@@ -656,27 +679,27 @@ const ContactsModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Fonction</label>
-                      <p className="text-[var(--color-primary)]">{selectedContact.fonction}</p>
+                      <label className="text-sm font-medium text-gray-700">{t('contacts.fieldRole')}</label>
+                      <p className="text-[var(--color-primary)]">{roleLabel(selectedContact.fonction)}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Département</label>
-                      <p className="text-[var(--color-primary)]">{selectedContact.departement}</p>
+                      <label className="text-sm font-medium text-gray-700">{t('contacts.fieldDepartment')}</label>
+                      <p className="text-[var(--color-primary)]">{deptLabel(selectedContact.departement)}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Entreprise</label>
+                      <label className="text-sm font-medium text-gray-700">{t('contacts.fieldCompany')}</label>
                       <p className="text-[var(--color-primary)]">{selectedContact.tiersId}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Langue préférée</label>
-                      <p className="text-[var(--color-primary)]">{selectedContact.languePrefere}</p>
+                      <label className="text-sm font-medium text-gray-700">{t('contacts.fieldPreferredLanguage')}</label>
+                      <p className="text-[var(--color-primary)]">{langLabel(selectedContact.languePrefere)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Informations de contact */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Informations de Contact</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('contacts.contactInfo')}</h3>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                     {selectedContact.telephone && (
                       <div className="flex items-center space-x-2">
@@ -687,7 +710,7 @@ const ContactsModule: React.FC = () => {
                     {selectedContact.mobile && (
                       <div className="flex items-center space-x-2">
                         <Phone className="w-4 h-4 text-gray-700" />
-                        <span className="text-[var(--color-primary)]">{selectedContact.mobile} (Mobile)</span>
+                        <span className="text-[var(--color-primary)]">{selectedContact.mobile} {t('contacts.mobileSuffix')}</span>
                       </div>
                     )}
                     {selectedContact.email && (
@@ -707,15 +730,15 @@ const ContactsModule: React.FC = () => {
 
                 {/* Notes */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Notes</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('contacts.notes')}</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-[var(--color-primary)]">{selectedContact.notes || 'Aucune note'}</p>
+                    <p className="text-[var(--color-primary)]">{selectedContact.notes || t('contacts.noNote')}</p>
                   </div>
                 </div>
 
                 {/* Interactions récentes */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Interactions Récentes</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('contacts.recentInteractions')}</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
                     {selectedContact.interactions.length > 0 ? (
                       <div className="space-y-3">
@@ -735,7 +758,7 @@ const ContactsModule: React.FC = () => {
                         })}
                       </div>
                     ) : (
-                      <p className="text-[var(--color-text-secondary)] text-center">Aucune interaction</p>
+                      <p className="text-[var(--color-text-secondary)] text-center">{t('contacts.noInteraction')}</p>
                     )}
                   </div>
                 </div>
@@ -746,10 +769,10 @@ const ContactsModule: React.FC = () => {
                   onClick={() => setSelectedContact(null)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
-                  Fermer
+                  {t('contacts.close')}
                 </button>
                 <button className="px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)]">
-                  Modifier
+                  {t('contacts.edit')}
                 </button>
               </div>
             </div>
@@ -765,7 +788,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Entreprises</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.companies')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {[...new Set(mockContacts.map(c => c.tiers))].length}
                   </p>
@@ -776,7 +799,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Total Contacts</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.totalContacts')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{mockContacts.length}</p>
                 </div>
                 <Users className="w-8 h-8 text-green-600" />
@@ -785,7 +808,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Contacts Principaux</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.mainContacts')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {mockContacts.filter(c => c.isPrincipal).length}
                   </p>
@@ -796,7 +819,7 @@ const ContactsModule: React.FC = () => {
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Départements</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.departments')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {[...new Set(mockContacts.map(c => c.departement).filter(Boolean))].length}
                   </p>
@@ -814,8 +837,8 @@ const ContactsModule: React.FC = () => {
                   <Users className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">Organigramme par Entreprise</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Visualisation hiérarchique des contacts</p>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('contacts.orgChartByCompany')}</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('contacts.orgChartSubtitle')}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -826,13 +849,13 @@ const ContactsModule: React.FC = () => {
                   }}
                   className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Tout déplier
+                  {t('contacts.expandAll')}
                 </button>
                 <button
                   onClick={() => setExpandedCompanies(new Set())}
                   className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Tout replier
+                  {t('contacts.collapseAll')}
                 </button>
               </div>
             </div>
@@ -870,11 +893,15 @@ const ContactsModule: React.FC = () => {
                             <div className="flex items-center space-x-3 mt-1">
                               <span className="text-sm text-[var(--color-text-secondary)] flex items-center">
                                 <Users className="w-3 h-3 mr-1" />
-                                {contactsEntreprise.length} contact{contactsEntreprise.length > 1 ? 's' : ''}
+                                {contactsEntreprise.length > 1
+                                  ? t('contacts.contactCountMany', { count: String(contactsEntreprise.length) })
+                                  : t('contacts.contactCountOne', { count: String(contactsEntreprise.length) })}
                               </span>
                               <span className="text-sm text-[var(--color-text-secondary)] flex items-center">
                                 <Activity className="w-3 h-3 mr-1" />
-                                {departements.length} département{departements.length > 1 ? 's' : ''}
+                                {departements.length > 1
+                                  ? t('contacts.departmentCountMany', { count: String(departements.length) })
+                                  : t('contacts.departmentCountOne', { count: String(departements.length) })}
                               </span>
                               {contactPrincipal && (
                                 <span className="text-sm text-yellow-600 flex items-center">
@@ -934,8 +961,8 @@ const ContactsModule: React.FC = () => {
                             </div>
                             <div className="mt-3 text-center">
                               <p className="font-bold text-[var(--color-primary)]">{contactPrincipal.prenom} {contactPrincipal.nom}</p>
-                              <p className="text-sm text-[var(--color-primary)] font-medium">{contactPrincipal.fonction}</p>
-                              <p className="text-xs text-[var(--color-text-secondary)]">{contactPrincipal.departement}</p>
+                              <p className="text-sm text-[var(--color-primary)] font-medium">{roleLabel(contactPrincipal.fonction)}</p>
+                              <p className="text-xs text-[var(--color-text-secondary)]">{deptLabel(contactPrincipal.departement)}</p>
                             </div>
                             <div className="flex items-center space-x-2 mt-2">
                               {contactPrincipal.telephone && (
@@ -982,10 +1009,10 @@ const ContactsModule: React.FC = () => {
                                   <p className="font-semibold text-[var(--color-primary)] truncate">
                                     {contact.prenom} {contact.nom}
                                   </p>
-                                  <p className="text-sm text-[var(--color-primary)] truncate">{contact.fonction}</p>
+                                  <p className="text-sm text-[var(--color-primary)] truncate">{roleLabel(contact.fonction)}</p>
                                   {contact.departement && (
                                     <span className="inline-flex items-center px-2 py-0.5 mt-1 text-xs bg-gray-200 text-gray-700 rounded-full">
-                                      {contact.departement}
+                                      {deptLabel(contact.departement)}
                                     </span>
                                   )}
                                 </div>
@@ -1025,7 +1052,7 @@ const ContactsModule: React.FC = () => {
                                 <button
                                   onClick={() => setSelectedContact(contact)}
                                   className="p-1.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/20 transition-colors"
-                                  title="Voir les détails"
+                                  title={t('contacts.viewDetails')}
                                 >
                                   <Eye className="w-3.5 h-3.5" />
                                 </button>
@@ -1044,7 +1071,7 @@ const ContactsModule: React.FC = () => {
                         {/* Message si aucun autre contact */}
                         {contactsEntreprise.filter(c => !c.isPrincipal).length === 0 && contactPrincipal && (
                           <div className="text-center py-4 text-gray-500">
-                            <p className="text-sm">Seul le contact principal est enregistré pour cette entreprise</p>
+                            <p className="text-sm">{t('contacts.onlyMainContact')}</p>
                           </div>
                         )}
                       </div>
@@ -1057,23 +1084,23 @@ const ContactsModule: React.FC = () => {
 
           {/* Légende */}
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-            <h4 className="text-sm font-semibold text-[var(--color-primary)] mb-3">Légende</h4>
+            <h4 className="text-sm font-semibold text-[var(--color-primary)] mb-3">{t('contacts.legend')}</h4>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center">
                   <Star className="w-3 h-3 text-white" />
                 </div>
-                <span className="text-sm text-[var(--color-text-secondary)]">Contact principal</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">{t('contacts.legendMain')}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
                   <User className="w-3 h-3 text-green-700" />
                 </div>
-                <span className="text-sm text-[var(--color-text-secondary)]">Contact secondaire</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">{t('contacts.legendSecondary')}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-5 h-5 bg-[var(--color-text-secondary)] rounded-full flex items-center justify-center text-[10px] font-bold text-white">3</div>
-                <span className="text-sm text-[var(--color-text-secondary)]">Nombre d'interactions</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">{t('contacts.legendInteractionsCount')}</span>
               </div>
             </div>
           </div>
@@ -1091,8 +1118,8 @@ const ContactsModule: React.FC = () => {
                     <UserCheck className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Nouveau contact</h3>
-                    <p className="text-sm text-gray-700">Ajouter un contact à un tiers</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('contacts.newContactTitle')}</h3>
+                    <p className="text-sm text-gray-700">{t('contacts.newContactSubtitle')}</p>
                   </div>
                 </div>
                 <button
@@ -1110,10 +1137,10 @@ const ContactsModule: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tiers associé <span className="text-red-500">*</span>
+                    {t('contacts.linkedTier')} <span className="text-red-500">*</span>
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Sélectionner un tiers</option>
+                    <option value="">{t('contacts.selectTier')}</option>
                     <option value="1">SARL CONGO BUSINESS</option>
                     <option value="2">SA CENTRAL AFRICA</option>
                     <option value="3">ETS DIGITAL SOLUTIONS</option>
@@ -1123,58 +1150,34 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Civilité <span className="text-red-500">*</span>
+                      {t('contacts.civility')} <span className="text-red-500">*</span>
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="M">M.</option>
-                      <option value="Mme">Mme</option>
-                      <option value="Mlle">Mlle</option>
+                      <option value="M">{t('contacts.civilityMr')}</option>
+                      <option value="Mme">{t('contacts.civilityMrs')}</option>
+                      <option value="Mlle">{t('contacts.civilityMiss')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Prénom <span className="text-red-500">*</span>
+                      {t('contacts.firstName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Jean"
+                      placeholder={t('contacts.phFirstName')}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom <span className="text-red-500">*</span>
+                      {t('contacts.lastName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="MAMBOU"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fonction <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Directeur Commercial"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Département
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Commercial"
+                      placeholder={t('contacts.phLastName')}
                     />
                   </div>
                 </div>
@@ -1182,7 +1185,31 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Téléphone fixe <span className="text-red-500">*</span>
+                      {t('contacts.fieldRole')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={t('contacts.phRole')}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('contacts.fieldDepartment')}
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder={t('contacts.phDepartment')}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t('contacts.landline')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -1193,7 +1220,7 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile
+                      {t('contacts.mobile')}
                     </label>
                     <input
                       type="tel"
@@ -1206,7 +1233,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email <span className="text-red-500">*</span>
+                      {t('contacts.email')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -1217,12 +1244,12 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      LinkedIn
+                      {t('contacts.linkedin')}
                     </label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="profil-linkedin"
+                      placeholder={t('contacts.phLinkedin')}
                     />
                   </div>
                 </div>
@@ -1230,7 +1257,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de naissance
+                      {t('contacts.birthDate')}
                     </label>
                     <input
                       type="date"
@@ -1240,12 +1267,12 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Langue préférée
+                      {t('contacts.fieldPreferredLanguage')}
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="Français">Français</option>
-                      <option value="Anglais">Anglais</option>
-                      <option value="Lingala">Lingala</option>
+                      <option value="Français">{t('contacts.langFrench')}</option>
+                      <option value="Anglais">{t('contacts.langEnglish')}</option>
+                      <option value="Lingala">{t('contacts.langLingala')}</option>
                     </select>
                   </div>
                 </div>
@@ -1253,22 +1280,22 @@ const ContactsModule: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                    <span className="text-sm text-gray-700">Contact principal</span>
+                    <span className="text-sm text-gray-700">{t('contacts.mainContact')}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" defaultChecked />
-                    <span className="text-sm text-gray-700">Actif</span>
+                    <span className="text-sm text-gray-700">{t('contacts.statusActive')}</span>
                   </label>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
+                    {t('contacts.notes')}
                   </label>
                   <textarea
                     rows={3}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Informations complémentaires sur le contact..."
+                    placeholder={t('contacts.phNotes')}
                   />
                 </div>
               </div>
@@ -1279,11 +1306,11 @@ const ContactsModule: React.FC = () => {
                 onClick={() => setShowContactModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('contacts.cancel')}
               </button>
               <button onClick={handleCreateContact} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
                 <UserCheck className="w-4 h-4" />
-                Créer le contact
+                {t('contacts.createContact')}
               </button>
             </div>
           </div>
@@ -1301,11 +1328,11 @@ const ContactsModule: React.FC = () => {
                     <MessageSquare className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Nouvelle interaction</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('contacts.newInteraction')}</h3>
                     <p className="text-sm text-gray-700">
                       {contactForInteraction
-                        ? `Communication avec ${contactForInteraction.prenom} ${contactForInteraction.nom}`
-                        : 'Enregistrer une interaction avec un contact'}
+                        ? t('contacts.interactionWith', { name: `${contactForInteraction.prenom} ${contactForInteraction.nom}` })
+                        : t('contacts.recordInteraction')}
                     </p>
                   </div>
                 </div>
@@ -1337,7 +1364,7 @@ const ContactsModule: React.FC = () => {
                           {contactForInteraction.prenom} {contactForInteraction.nom}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {contactForInteraction.fonction} - {contactForInteraction.tiers}
+                          {roleLabel(contactForInteraction.fonction)} - {contactForInteraction.tiers}
                         </p>
                       </div>
                     </div>
@@ -1347,10 +1374,10 @@ const ContactsModule: React.FC = () => {
                 {!contactForInteraction && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Contact <span className="text-red-500">*</span>
+                      {t('contacts.colContact')} <span className="text-red-500">*</span>
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                      <option value="">Sélectionner un contact</option>
+                      <option value="">{t('contacts.selectContact')}</option>
                       {mockContacts.map(c => (
                         <option key={c.id} value={c.id}>
                           {c.prenom} {c.nom} - {c.tiers}
@@ -1363,21 +1390,21 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type d'interaction <span className="text-red-500">*</span>
+                      {t('contacts.interactionType')} <span className="text-red-500">*</span>
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
-                      <option value="APPEL">Appel téléphonique</option>
-                      <option value="EMAIL">Email</option>
-                      <option value="REUNION">Réunion</option>
-                      <option value="VISITE">Visite</option>
-                      <option value="AUTRE">Autre</option>
+                      <option value="">{t('contacts.select')}</option>
+                      <option value="APPEL">{t('contacts.typePhoneCall')}</option>
+                      <option value="EMAIL">{t('contacts.typeEmail')}</option>
+                      <option value="REUNION">{t('contacts.typeMeeting')}</option>
+                      <option value="VISITE">{t('contacts.typeVisit')}</option>
+                      <option value="AUTRE">{t('contacts.typeOther')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date <span className="text-red-500">*</span>
+                      {t('contacts.date')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="datetime-local"
@@ -1388,41 +1415,41 @@ const ContactsModule: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Objet de l'interaction <span className="text-red-500">*</span>
+                    {t('contacts.interactionSubject')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Ex: Suivi commande, Négociation contrat..."
+                    placeholder={t('contacts.phSubject')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Compte-rendu <span className="text-red-500">*</span>
+                    {t('contacts.report')} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={5}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Détails de l'interaction, points discutés, décisions prises..."
+                    placeholder={t('contacts.phReport')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prochaine action
+                    {t('contacts.nextAction')}
                   </label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Action de suivi à planifier"
+                    placeholder={t('contacts.phNextAction')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de suivi
+                      {t('contacts.followUpDate')}
                     </label>
                     <input
                       type="date"
@@ -1432,10 +1459,10 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Responsable
+                      {t('contacts.responsible')}
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
+                      <option value="">{t('contacts.select')}</option>
                       <option value="">—</option>
                       <option value="">—</option>
                       <option value="">—</option>
@@ -1447,9 +1474,9 @@ const ContactsModule: React.FC = () => {
                   <div className="flex gap-3">
                     <Clock className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">Historique des interactions</p>
+                      <p className="text-sm font-medium text-blue-900">{t('contacts.interactionHistory')}</p>
                       <p className="text-sm text-blue-700 mt-1">
-                        Toutes les interactions sont tracées et disponibles dans l'historique du contact
+                        {t('contacts.interactionHistoryHint')}
                       </p>
                     </div>
                   </div>
@@ -1465,11 +1492,11 @@ const ContactsModule: React.FC = () => {
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('contacts.cancel')}
               </button>
               <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                Enregistrer l'interaction
+                {t('contacts.saveInteraction')}
               </button>
             </div>
           </div>
@@ -1487,7 +1514,7 @@ const ContactsModule: React.FC = () => {
                     <Edit className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Modifier le contact</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('contacts.editContactTitle')}</h3>
                     <p className="text-sm text-gray-700">
                       {contactToEdit.prenom} {contactToEdit.nom} - {contactToEdit.tiers}
                     </p>
@@ -1511,13 +1538,13 @@ const ContactsModule: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tiers associé <span className="text-red-500">*</span>
+                    {t('contacts.linkedTier')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     defaultValue={contactToEdit.tiersId}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">Sélectionner un tiers</option>
+                    <option value="">{t('contacts.selectTier')}</option>
                     <option value="1">SARL CONGO BUSINESS</option>
                     <option value="2">STE AFRICAINE TECH</option>
                     <option value="3">CEMAC SUPPLIES</option>
@@ -1527,21 +1554,21 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Civilité <span className="text-red-500">*</span>
+                      {t('contacts.civility')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       defaultValue={contactToEdit.civilite}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                      <option value="M">M.</option>
-                      <option value="MME">Mme</option>
-                      <option value="MLLE">Mlle</option>
+                      <option value="M">{t('contacts.civilityMr')}</option>
+                      <option value="MME">{t('contacts.civilityMrs')}</option>
+                      <option value="MLLE">{t('contacts.civilityMiss')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Prénom <span className="text-red-500">*</span>
+                      {t('contacts.firstName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1552,7 +1579,7 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom <span className="text-red-500">*</span>
+                      {t('contacts.lastName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1565,7 +1592,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Fonction <span className="text-red-500">*</span>
+                      {t('contacts.fieldRole')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -1576,7 +1603,7 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Département
+                      {t('contacts.fieldDepartment')}
                     </label>
                     <input
                       type="text"
@@ -1589,7 +1616,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Téléphone fixe
+                      {t('contacts.landline')}
                     </label>
                     <input
                       type="tel"
@@ -1600,7 +1627,7 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Mobile
+                      {t('contacts.mobile')}
                     </label>
                     <input
                       type="tel"
@@ -1613,7 +1640,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Email <span className="text-red-500">*</span>
+                      {t('contacts.email')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -1624,7 +1651,7 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      LinkedIn
+                      {t('contacts.linkedin')}
                     </label>
                     <input
                       type="text"
@@ -1637,7 +1664,7 @@ const ContactsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de naissance
+                      {t('contacts.birthDate')}
                     </label>
                     <input
                       type="date"
@@ -1648,15 +1675,15 @@ const ContactsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Langue préférée
+                      {t('contacts.fieldPreferredLanguage')}
                     </label>
                     <select
                       defaultValue={contactToEdit.languePrefere || 'Français'}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                      <option value="Français">Français</option>
-                      <option value="Anglais">Anglais</option>
-                      <option value="Lingala">Lingala</option>
+                      <option value="Français">{t('contacts.langFrench')}</option>
+                      <option value="Anglais">{t('contacts.langEnglish')}</option>
+                      <option value="Lingala">{t('contacts.langLingala')}</option>
                     </select>
                   </div>
                 </div>
@@ -1668,7 +1695,7 @@ const ContactsModule: React.FC = () => {
                       defaultChecked={contactToEdit.isPrincipal}
                       className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                     />
-                    <span className="text-sm text-gray-700">Contact principal</span>
+                    <span className="text-sm text-gray-700">{t('contacts.mainContact')}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -1676,19 +1703,19 @@ const ContactsModule: React.FC = () => {
                       defaultChecked={contactToEdit.isActif}
                       className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
                     />
-                    <span className="text-sm text-gray-700">Actif</span>
+                    <span className="text-sm text-gray-700">{t('contacts.statusActive')}</span>
                   </label>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
+                    {t('contacts.notes')}
                   </label>
                   <textarea
                     rows={3}
                     defaultValue={contactToEdit.notes || ''}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Informations complémentaires sur le contact..."
+                    placeholder={t('contacts.phNotes')}
                   />
                 </div>
               </div>
@@ -1702,11 +1729,11 @@ const ContactsModule: React.FC = () => {
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('contacts.cancel')}
               </button>
               <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
                 <Edit className="w-4 h-4" />
-                Enregistrer les modifications
+                {t('contacts.saveChanges')}
               </button>
             </div>
           </div>
@@ -1723,25 +1750,25 @@ const ContactsModule: React.FC = () => {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Supprimer le contact</h3>
-                  <p className="text-sm text-gray-600">Cette action est irréversible</p>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('contacts.deleteContactTitle')}</h3>
+                  <p className="text-sm text-gray-600">{t('contacts.irreversible')}</p>
                 </div>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
                 <p className="text-sm text-gray-700">
-                  Vous êtes sur le point de supprimer le contact :
+                  {t('contacts.aboutToDelete')}
                 </p>
                 <p className="font-medium text-gray-900 mt-2">
                   {contactToDelete.civilite} {contactToDelete.prenom} {contactToDelete.nom}
                 </p>
                 <p className="text-sm text-gray-600">
-                  {contactToDelete.fonction} - {contactToDelete.tiers}
+                  {roleLabel(contactToDelete.fonction)} - {contactToDelete.tiers}
                 </p>
                 {contactToDelete.interactions.length > 0 && (
                   <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded">
                     <p className="text-sm text-orange-800">
-                      Ce contact a {contactToDelete.interactions.length} interaction(s) enregistrée(s).
+                      {t('contacts.hasInteractionsWarning', { count: String(contactToDelete.interactions.length) })}
                     </p>
                   </div>
                 )}
@@ -1755,7 +1782,7 @@ const ContactsModule: React.FC = () => {
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  Annuler
+                  {t('contacts.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -1767,7 +1794,7 @@ const ContactsModule: React.FC = () => {
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
-                  Confirmer la suppression
+                  {t('contacts.confirmDelete')}
                 </button>
               </div>
             </div>
@@ -1789,7 +1816,7 @@ const ContactsModule: React.FC = () => {
                     })()}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Détails de l'interaction</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('contacts.interactionDetails')}</h3>
                     <p className="text-sm text-gray-700">{selectedInteraction.sujet}</p>
                   </div>
                 </div>
@@ -1812,19 +1839,19 @@ const ContactsModule: React.FC = () => {
                 {/* Informations principales */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <label className="text-xs font-medium text-gray-500 uppercase">Type</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.type')}</label>
                     <div className="mt-1 flex items-center gap-2">
                       <span className={`px-2 py-1 text-sm font-medium rounded-full ${getInteractionTypeColor(selectedInteraction.type)}`}>
-                        {selectedInteraction.type === 'APPEL' ? 'Appel téléphonique' :
-                         selectedInteraction.type === 'EMAIL' ? 'Email' :
-                         selectedInteraction.type === 'RENCONTRE' ? 'Réunion/Rencontre' :
-                         selectedInteraction.type === 'VISITE' ? 'Visite' :
+                        {selectedInteraction.type === 'APPEL' ? t('contacts.typePhoneCall') :
+                         selectedInteraction.type === 'EMAIL' ? t('contacts.typeEmail') :
+                         selectedInteraction.type === 'RENCONTRE' ? t('contacts.typeMeetingEncounter') :
+                         selectedInteraction.type === 'VISITE' ? t('contacts.typeVisit') :
                          selectedInteraction.type}
                       </span>
                     </div>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <label className="text-xs font-medium text-gray-500 uppercase">Date</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.date')}</label>
                     <p className="mt-1 text-gray-900 font-medium flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-600" />
                       {formatDate(selectedInteraction.date)}
@@ -1834,7 +1861,7 @@ const ContactsModule: React.FC = () => {
 
                 {/* Contact concerné */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <label className="text-xs font-medium text-green-600 uppercase">Contact concerné</label>
+                  <label className="text-xs font-medium text-green-600 uppercase">{t('contacts.contactConcerned')}</label>
                   <div className="mt-2 flex items-center gap-3">
                     <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                       <User className="w-5 h-5 text-green-600" />
@@ -1848,13 +1875,13 @@ const ContactsModule: React.FC = () => {
 
                 {/* Objet */}
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Objet de l'interaction</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.interactionSubject')}</label>
                   <p className="mt-1 text-gray-900 font-medium text-lg">{selectedInteraction.sujet}</p>
                 </div>
 
                 {/* Description / Compte-rendu */}
                 <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase">Compte-rendu</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.report')}</label>
                   <div className="mt-2 bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <p className="text-gray-700 whitespace-pre-wrap">{selectedInteraction.description}</p>
                   </div>
@@ -1863,7 +1890,7 @@ const ContactsModule: React.FC = () => {
                 {/* Résultats si disponible */}
                 {selectedInteraction.resultats && (
                   <div>
-                    <label className="text-xs font-medium text-gray-500 uppercase">Résultats / Décisions</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.resultsDecisions')}</label>
                     <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <p className="text-blue-800">{selectedInteraction.resultats}</p>
                     </div>
@@ -1873,22 +1900,22 @@ const ContactsModule: React.FC = () => {
                 {/* Informations complémentaires */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <label className="text-xs font-medium text-gray-500 uppercase">Responsable</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.responsible')}</label>
                     <p className="mt-1 text-gray-900 font-medium flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-600" />
                       {selectedInteraction.responsable}
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <label className="text-xs font-medium text-gray-500 uppercase">Statut</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase">{t('contacts.colStatus')}</label>
                     <p className="mt-1">
                       <span className={`px-2 py-1 text-sm font-medium rounded-full ${
                         selectedInteraction.statut === 'TERMINE' ? 'bg-green-100 text-green-800' :
                         selectedInteraction.statut === 'EN_COURS' ? 'bg-blue-100 text-blue-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
-                        {selectedInteraction.statut === 'TERMINE' ? 'Terminé' :
-                         selectedInteraction.statut === 'EN_COURS' ? 'En cours' :
+                        {selectedInteraction.statut === 'TERMINE' ? t('contacts.statusDone') :
+                         selectedInteraction.statut === 'EN_COURS' ? t('contacts.statusInProgress') :
                          selectedInteraction.statut}
                       </span>
                     </p>
@@ -1900,7 +1927,7 @@ const ContactsModule: React.FC = () => {
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                     <label className="text-xs font-medium text-orange-600 uppercase flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      Prochaine action / Suivi
+                      {t('contacts.nextActionFollowUp')}
                     </label>
                     <p className="mt-1 text-orange-800 font-medium">
                       {formatDate(selectedInteraction.prochaineSuivi)}
@@ -1911,7 +1938,7 @@ const ContactsModule: React.FC = () => {
                 {/* Metadata */}
                 <div className="border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Créé le {selectedInteraction.createdAt ? new Date(selectedInteraction.createdAt).toLocaleString('fr-FR') : 'N/A'}</span>
+                    <span>{t('contacts.createdOn', { date: selectedInteraction.createdAt ? new Date(selectedInteraction.createdAt).toLocaleString('fr-FR') : 'N/A' })}</span>
                     <span>ID: {selectedInteraction.id}</span>
                   </div>
                 </div>
@@ -1927,12 +1954,12 @@ const ContactsModule: React.FC = () => {
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Fermer
+                {t('contacts.close')}
               </button>
               <div className="flex gap-2">
                 <button className="px-4 py-2 text-sm font-medium text-[var(--color-primary)] bg-[var(--color-primary)]/10 hover:bg-[var(--color-primary)]/20 rounded-lg transition-colors flex items-center gap-2">
                   <Edit className="w-4 h-4" />
-                  Modifier
+                  {t('contacts.edit')}
                 </button>
                 <button
                   onClick={() => {
@@ -1944,7 +1971,7 @@ const ContactsModule: React.FC = () => {
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  Nouvelle interaction
+                  {t('contacts.newInteraction')}
                 </button>
               </div>
             </div>

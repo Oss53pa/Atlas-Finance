@@ -149,14 +149,14 @@ const PartenairesModule: React.FC = () => {
       } as any);
     },
     onSuccess: () => {
-      toast.success('Partenaire créé avec succès');
+      toast.success(t('partners.createdSuccess'));
       queryClient.invalidateQueries({ queryKey: ['partenaires'] });
       loadData();
       setShowPartenaireModal(false);
       resetForm();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création');
+      toast.error(error.message || t('partners.createError'));
     },
   });
 
@@ -198,13 +198,13 @@ const PartenairesModule: React.FC = () => {
       setErrors({});
       // Validation inline (le schéma Zod REST était incompatible avec ce formulaire).
       if (!formData.raison_sociale.trim()) {
-        setErrors({ raison_sociale: 'La raison sociale est obligatoire' });
-        toast.error('La raison sociale est obligatoire');
+        setErrors({ raison_sociale: t('partners.legalNameRequired') });
+        toast.error(t('partners.legalNameRequired'));
         return;
       }
       await createMutation.mutateAsync(formData);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Erreur lors de la création');
+      toast.error(error instanceof Error ? error.message : t('partners.createError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -262,7 +262,7 @@ const PartenairesModule: React.FC = () => {
         : Math.abs(tp.balance) > 100000 ? 'SILVER' as const
         : 'BRONZE' as const,
       secteurActivite: 'Général',
-      zoneCouverture: ['National'],
+      zoneCouverture: [t('partners.zoneNational')],
       dateDebut: new Date().toISOString().split('T')[0],
       chiffreAffairesAnnuel: Math.abs(tp.balance),
       commissionRate: 10,
@@ -343,29 +343,29 @@ const PartenairesModule: React.FC = () => {
   })();
 
   const tabs = [
-    { id: 'reseau', label: 'Réseau Partenaires', icon: Handshake },
-    { id: 'performance', label: 'Performance', icon: BarChart3 },
-    { id: 'collaboration', label: 'Collaboration', icon: Share2 },
-    { id: 'certification', label: 'Certifications', icon: Award },
-    { id: 'analytics', label: 'Analytics', icon: PieChart }
+    { id: 'reseau', label: t('partners.tabNetwork'), icon: Handshake },
+    { id: 'performance', label: t('partners.tabPerformance'), icon: BarChart3 },
+    { id: 'collaboration', label: t('partners.tabCollaboration'), icon: Share2 },
+    { id: 'certification', label: t('partners.tabCertification'), icon: Award },
+    { id: 'analytics', label: t('partners.tabAnalytics'), icon: PieChart }
   ];
 
   const types = [
-    { value: 'tous', label: 'Tous types' },
-    { value: 'DISTRIBUTEUR', label: 'Distributeur' },
-    { value: 'REVENDEUR', label: 'Revendeur' },
-    { value: 'INTEGRATEUR', label: 'Intégrateur' },
-    { value: 'CONSULTANT', label: 'Consultant' },
-    { value: 'TECHNOLOGIQUE', label: 'Technologique' },
-    { value: 'STRATEGIQUE', label: 'Stratégique' }
+    { value: 'tous', label: t('partners.typeAll') },
+    { value: 'DISTRIBUTEUR', label: t('partners.typeDistributor') },
+    { value: 'REVENDEUR', label: t('partners.typeReseller') },
+    { value: 'INTEGRATEUR', label: t('partners.typeIntegrator') },
+    { value: 'CONSULTANT', label: t('partners.typeConsultant') },
+    { value: 'TECHNOLOGIQUE', label: t('partners.typeTechnology') },
+    { value: 'STRATEGIQUE', label: t('partners.typeStrategic') }
   ];
 
   const niveaux = [
-    { value: 'tous', label: 'Tous niveaux' },
-    { value: 'PLATINUM', label: 'Platinum' },
-    { value: 'GOLD', label: 'Gold' },
-    { value: 'SILVER', label: 'Silver' },
-    { value: 'BRONZE', label: 'Bronze' }
+    { value: 'tous', label: t('partners.levelAll') },
+    { value: 'PLATINUM', label: t('partners.levelPlatinum') },
+    { value: 'GOLD', label: t('partners.levelGold') },
+    { value: 'SILVER', label: t('partners.levelSilver') },
+    { value: 'BRONZE', label: t('partners.levelBronze') }
   ];
 
   const filteredPartenaires = mockPartenaires.filter(partenaire => {
@@ -422,7 +422,7 @@ const PartenairesModule: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#404040]" />
-              <span className="text-sm font-semibold text-[#404040]">Retour</span>
+              <span className="text-sm font-semibold text-[#404040]">{t('partners.back')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -430,8 +430,8 @@ const PartenairesModule: React.FC = () => {
                 <Handshake className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Partenaires</h1>
-                <p className="text-sm text-[var(--color-text-secondary)]">Écosystème et réseau de partenaires stratégiques</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('partners.title')}</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -441,7 +441,7 @@ const PartenairesModule: React.FC = () => {
               <Search className="w-4 h-4 text-gray-700" />
               <input
                 type="text"
-                placeholder="Rechercher un partenaire..."
+                placeholder={t('partners.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-48"
@@ -478,7 +478,7 @@ const PartenairesModule: React.FC = () => {
               activeFilters={[searchTerm !== '', filterType !== 'tous', filterNiveau !== 'tous'].filter(Boolean).length}
             />
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label={t('partners.download')}>
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -488,7 +488,7 @@ const PartenairesModule: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-semibold">Nouveau Partenaire</span>
+              <span className="text-sm font-semibold">{t('partners.newPartner')}</span>
             </button>
           </div>
         </div>
@@ -517,9 +517,9 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Partenaires Actifs</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.kpiActivePartners')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{mockPartenaires.length}</p>
-              <p className="text-xs text-[var(--color-primary)]">Écosystème global</p>
+              <p className="text-xs text-[var(--color-primary)]">{t('partners.kpiGlobalEcosystem')}</p>
             </div>
             <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
               <Handshake className="w-5 h-5 text-[var(--color-primary)]" />
@@ -530,9 +530,9 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Performance Globale</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.kpiOverallPerformance')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.performanceGlobale}%</p>
-              <p className="text-xs text-green-600">+5.2% vs trimestre</p>
+              <p className="text-xs text-green-600">{t('partners.kpiVsQuarter')}</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-green-600" />
@@ -543,7 +543,7 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">CA Partenaires</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.kpiPartnerRevenue')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(14700000)}</p>
               <p className="text-xs text-[var(--color-text-secondary)]">+{analytics.croissanceChiffre}% YoY</p>
             </div>
@@ -556,9 +556,9 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Satisfaction</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.kpiSatisfaction')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.satisfactionMoyenne}/5</p>
-              <p className="text-xs text-orange-600">{analytics.tauxRenouvellement}% renouvellement</p>
+              <p className="text-xs text-orange-600">{t('partners.renewalRate', { count: String(analytics.tauxRenouvellement) })}</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Star className="w-5 h-5 text-orange-600" />
@@ -574,14 +574,14 @@ const PartenairesModule: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-[var(--color-border)]">
                 <tr>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Partenaire</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Type</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Niveau</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Zone</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">CA Annuel</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Performance</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colPartner')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colType')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colLevel')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colZone')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colAnnualRevenue')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colPerformance')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colStatus')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('partners.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -612,7 +612,7 @@ const PartenairesModule: React.FC = () => {
                       </td>
                       <td className="p-4">
                         <p className="font-medium text-[var(--color-primary)]">{formatCurrency(partenaire.chiffreAffairesAnnuel)}</p>
-                        <p className="text-sm text-[var(--color-text-secondary)]">{partenaire.commissionRate}% commission</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('partners.commissionRate', { count: String(partenaire.commissionRate) })}</p>
                       </td>
                       <td className="p-4">
                         <div className="flex items-center space-x-2">
@@ -660,7 +660,7 @@ const PartenairesModule: React.FC = () => {
         <div className="space-y-6">
           {/* Top Performers */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Top Performers</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.topPerformers')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {analytics.topPartenaires.map((partenaire, index) => (
                 <div key={partenaire.nom} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg">
@@ -690,7 +690,7 @@ const PartenairesModule: React.FC = () => {
 
           {/* Performance Evolution */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution Performance</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.performanceEvolution')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.evolutionPerformance}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -699,8 +699,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} name="Ventes (FCFA)" />
-                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#4E7E8D" name="Satisfaction" />
+                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} name={t('partners.chartSales')} />
+                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#4E7E8D" name={t('partners.chartSatisfaction')} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -712,7 +712,7 @@ const PartenairesModule: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Répartition par Type */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Type</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.distributionByType')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <RechartsPieChart>
                 <Pie
@@ -735,7 +735,7 @@ const PartenairesModule: React.FC = () => {
 
           {/* Couverture Géographique */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Couverture Géographique</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.geoCoverage')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.zonesCouverte}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -743,8 +743,8 @@ const PartenairesModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="partenaires" fill="url(#gradPetrol)" name="Nombre de partenaires" />
-                <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrolLight)" name="CA (en milliers)" />
+                <Bar radius={[6,6,0,0]} dataKey="partenaires" fill="url(#gradPetrol)" name={t('partners.chartPartnerCount')} />
+                <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrolLight)" name={t('partners.chartRevenueThousands')} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -756,10 +756,10 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Share2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Espace Collaboration</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Projets communs, formations et événements partenaires</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('partners.collaborationSpace')}</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">{t('partners.collaborationDesc')}</p>
             <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
-              Gérer la collaboration
+              {t('partners.manageCollaboration')}
             </button>
           </div>
         </div>
@@ -769,10 +769,10 @@ const PartenairesModule: React.FC = () => {
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <Award className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Programme Certification</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Certifications et formations pour les partenaires</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('partners.certificationProgram')}</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">{t('partners.certificationDesc')}</p>
             <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
-              Voir les certifications
+              {t('partners.viewCertifications')}
             </button>
           </div>
         </div>
@@ -788,7 +788,7 @@ const PartenairesModule: React.FC = () => {
                 <div className="bg-green-100 text-green-600 p-2 rounded-lg">
                   <Handshake className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Nouveau Partenaire</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('partners.newPartner')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -810,22 +810,22 @@ const PartenairesModule: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <AlertTriangle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-green-900 mb-1">Ajout d&apos;un Partenaire</h4>
-                      <p className="text-sm text-green-800">Enregistrez un nouveau partenaire dans votre écosystème de distribution et collaboration.</p>
+                      <h4 className="text-sm font-medium text-green-900 mb-1">{t('partners.addPartnerTitle')}</h4>
+                      <p className="text-sm text-green-800">{t('partners.addPartnerDesc')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Basic Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations de Base</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('partners.basicInfo')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Raison sociale *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.legalName')} *</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Ex: CEMAC TECH SOLUTIONS"
+                        placeholder={t('partners.legalNamePlaceholder')}
                         value={formData.raison_sociale}
                         onChange={(e) => handleInputChange('raison_sociale', e.target.value)}
                         disabled={isSubmitting}
@@ -835,27 +835,27 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.colType')} *</label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                         value={formData.type}
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="client">Client</option>
-                        <option value="fournisseur">Fournisseur</option>
-                        <option value="client_fournisseur">Client & Fournisseur</option>
+                        <option value="client">{t('partners.optCustomer')}</option>
+                        <option value="fournisseur">{t('partners.optSupplier')}</option>
+                        <option value="client_fournisseur">{t('partners.optCustomerSupplier')}</option>
                       </select>
                       {errors.type && (
                         <p className="mt-1 text-sm text-red-600">{errors.type}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Forme juridique</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.legalForm')}</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Ex: SARL, SA, SAS..."
+                        placeholder={t('partners.legalFormPlaceholder')}
                         value={formData.forme_juridique}
                         onChange={(e) => handleInputChange('forme_juridique', e.target.value)}
                         disabled={isSubmitting}
@@ -865,7 +865,7 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">SIREN (9 chiffres)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.sirenLabel')}</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -880,7 +880,7 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">SIRET (14 chiffres)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.siretLabel')}</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -895,7 +895,7 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">TVA intracommunautaire</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.vatNumber')}</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -913,14 +913,14 @@ const PartenairesModule: React.FC = () => {
 
                 {/* Adresse */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Adresse</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('partners.addressSection')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.addressSection')} *</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Adresse complète"
+                        placeholder={t('partners.addressPlaceholder')}
                         value={formData.adresse}
                         onChange={(e) => handleInputChange('adresse', e.target.value)}
                         disabled={isSubmitting}
@@ -930,11 +930,11 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ville *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.city')} *</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Ville"
+                        placeholder={t('partners.city')}
                         value={formData.ville}
                         onChange={(e) => handleInputChange('ville', e.target.value)}
                         disabled={isSubmitting}
@@ -944,11 +944,11 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Code postal *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.postalCode')} *</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Code postal"
+                        placeholder={t('partners.postalCode')}
                         value={formData.code_postal}
                         onChange={(e) => handleInputChange('code_postal', e.target.value)}
                         disabled={isSubmitting}
@@ -958,11 +958,11 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Pays *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.country')} *</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Pays"
+                        placeholder={t('partners.country')}
                         value={formData.pays}
                         onChange={(e) => handleInputChange('pays', e.target.value)}
                         disabled={isSubmitting}
@@ -972,7 +972,7 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.phone')}</label>
                       <input
                         type="tel"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -986,7 +986,7 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.email')}</label>
                       <input
                         type="email"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -1004,14 +1004,14 @@ const PartenairesModule: React.FC = () => {
 
                 {/* Contact et Conditions */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Contact et Conditions</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('partners.contactAndTerms')}</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact principal</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.mainContact')}</label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Nom du contact principal"
+                        placeholder={t('partners.mainContactPlaceholder')}
                         value={formData.contact_principal}
                         onChange={(e) => handleInputChange('contact_principal', e.target.value)}
                         disabled={isSubmitting}
@@ -1021,11 +1021,11 @@ const PartenairesModule: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Conditions de paiement</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('partners.paymentTerms')}</label>
                       <textarea
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                         rows={3}
-                        placeholder="Conditions de paiement..."
+                        placeholder={t('partners.paymentTermsPlaceholder')}
                         value={formData.conditions_paiement}
                         onChange={(e) => handleInputChange('conditions_paiement', e.target.value)}
                         disabled={isSubmitting}
@@ -1049,16 +1049,16 @@ const PartenairesModule: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('partners.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={t('partners.validate')}>
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    <span>Création...</span>
+                    <span>{t('partners.creating')}</span>
                   </>
                 ) : (
                   <>
@@ -1085,21 +1085,21 @@ const PartenairesModule: React.FC = () => {
             </div>
             <div className="p-5 space-y-4 overflow-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div><span className="text-gray-500">Statut</span><p className="font-medium">{selectedPartenaire.statut}</p></div>
-                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{selectedPartenaire.contact?.telephone || '—'}</p></div>
-                <div><span className="text-gray-500">Email</span><p className="font-medium">{selectedPartenaire.contact?.email || '—'}</p></div>
-                <div><span className="text-gray-500">CA annuel</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(selectedPartenaire.chiffreAffairesAnnuel)}</p></div>
+                <div><span className="text-gray-500">{t('partners.status')}</span><p className="font-medium">{selectedPartenaire.statut}</p></div>
+                <div><span className="text-gray-500">{t('partners.phone')}</span><p className="font-medium">{selectedPartenaire.contact?.telephone || '—'}</p></div>
+                <div><span className="text-gray-500">{t('partners.email')}</span><p className="font-medium">{selectedPartenaire.contact?.email || '—'}</p></div>
+                <div><span className="text-gray-500">{t('partners.annualRevenue')}</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(selectedPartenaire.chiffreAffairesAnnuel)}</p></div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(partnerLinesMap[selectedPartenaire.code] || []).length})</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('partners.entriesCount', { count: String((partnerLinesMap[selectedPartenaire.code] || []).length) })}</h4>
                 <div className="border rounded-lg overflow-auto max-h-[40vh]">
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 text-gray-600 sticky top-0">
-                      <tr><th className="text-left px-3 py-2">Date</th><th className="text-left px-3 py-2">Pièce</th><th className="text-left px-3 py-2">Libellé</th><th className="text-right px-3 py-2">Débit</th><th className="text-right px-3 py-2">Crédit</th></tr>
+                      <tr><th className="text-left px-3 py-2">{t('partners.colDate')}</th><th className="text-left px-3 py-2">{t('partners.colDocument')}</th><th className="text-left px-3 py-2">{t('partners.colLabel')}</th><th className="text-right px-3 py-2">{t('partners.colDebit')}</th><th className="text-right px-3 py-2">{t('partners.colCredit')}</th></tr>
                     </thead>
                     <tbody>
                       {(partnerLinesMap[selectedPartenaire.code] || []).length === 0 && (
-                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce partenaire.</td></tr>
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">{t('partners.noEntries')}</td></tr>
                       )}
                       {(partnerLinesMap[selectedPartenaire.code] || []).slice(0, 300).map((l, i) => (
                         <tr key={i} className="border-t hover:bg-gray-50">
@@ -1116,7 +1116,7 @@ const PartenairesModule: React.FC = () => {
               </div>
             </div>
             <div className="p-4 border-t flex justify-end">
-              <button onClick={() => setSelectedPartenaire(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
+              <button onClick={() => setSelectedPartenaire(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">{t('partners.close')}</button>
             </div>
           </div>
         </div>

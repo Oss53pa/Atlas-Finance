@@ -110,7 +110,7 @@ const ProspectsModule: React.FC = () => {
 
   // Création RÉELLE d'un prospect = tiers client (thirdParties), au lieu d'un bouton mort.
   const handleCreateProspect = async () => {
-    const nom = window.prompt('Nom du prospect :')?.trim();
+    const nom = window.prompt(t('prospects.promptProspectName'))?.trim();
     if (!nom) return;
     try {
       await adapter.create('thirdParties', {
@@ -132,18 +132,18 @@ const ProspectsModule: React.FC = () => {
       type: 'PROSPECT' as const,
       statut: tp.balance === 0 ? 'NOUVEAU' as const : 'QUALIFIE' as const,
       source: 'SITE_WEB' as const,
-      secteurActivite: 'Général',
+      secteurActivite: t('prospects.sectorGeneral'),
       scoreProspection: tp.balance === 0 ? 50 : 75,
       probabiliteConversion: tp.balance === 0 ? 30 : 60,
       valeurPotentielle: Math.abs(tp.balance) || 100000,
       dateCreation: new Date().toISOString().split('T')[0],
       dateContact: new Date().toISOString().split('T')[0],
       prochaineSuivi: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-      responsableCommercial: 'Non assigné',
+      responsableCommercial: t('prospects.unassigned'),
       contact: {
         nom: tp.name.split(' ').slice(1).join(' ') || tp.name,
         prenom: tp.name.split(' ')[0] || '',
-        fonction: 'Contact principal',
+        fonction: t('prospects.mainContactRole'),
         telephone: tp.phone || '',
         email: tp.email || '',
       },
@@ -192,31 +192,31 @@ const ProspectsModule: React.FC = () => {
   })();
 
   const tabs = [
-    { id: 'pipeline', label: 'Pipeline Commercial', icon: TrendingUp },
-    { id: 'prospects', label: 'Liste Prospects', icon: Target },
-    { id: 'opportunites', label: 'Opportunités', icon: DollarSign },
-    { id: 'analytics', label: 'Analytics & KPIs', icon: BarChart3 },
-    { id: 'actions', label: 'Actions Marketing', icon: MessageSquare }
+    { id: 'pipeline', label: t('prospects.tabPipeline'), icon: TrendingUp },
+    { id: 'prospects', label: t('prospects.tabProspects'), icon: Target },
+    { id: 'opportunites', label: t('prospects.tabOpportunities'), icon: DollarSign },
+    { id: 'analytics', label: t('prospects.tabAnalytics'), icon: BarChart3 },
+    { id: 'actions', label: t('prospects.tabMarketing'), icon: MessageSquare }
   ];
 
   const sources = [
-    { value: 'tous', label: 'Toutes sources' },
-    { value: 'SITE_WEB', label: 'Site Web' },
-    { value: 'REFERRAL', label: 'Référencement' },
-    { value: 'SALON', label: 'Salon/Événement' },
-    { value: 'COLD_CALLING', label: 'Prospection directe' },
-    { value: 'RESEAUX_SOCIAUX', label: 'Réseaux sociaux' },
-    { value: 'PUBLICITE', label: 'Publicité' }
+    { value: 'tous', label: t('prospects.allSources') },
+    { value: 'SITE_WEB', label: t('prospects.sourceWebsite') },
+    { value: 'REFERRAL', label: t('prospects.sourceReferral') },
+    { value: 'SALON', label: t('prospects.sourceTradeShow') },
+    { value: 'COLD_CALLING', label: t('prospects.sourceColdCalling') },
+    { value: 'RESEAUX_SOCIAUX', label: t('prospects.sourceSocial') },
+    { value: 'PUBLICITE', label: t('prospects.sourceAds') }
   ];
 
   const statuts = [
-    { value: 'tous', label: 'Tous statuts' },
+    { value: 'tous', label: t('prospects.allStatuses') },
     { value: 'NOUVEAU', label: t('actions.new') },
-    { value: 'QUALIFIE', label: 'Qualifié' },
-    { value: 'INTERESSE', label: 'Intéressé' },
-    { value: 'NEGOCIATION', label: 'Négociation' },
-    { value: 'PERDU', label: 'Perdu' },
-    { value: 'GAGNE', label: 'Gagné' }
+    { value: 'QUALIFIE', label: t('prospects.statusQualified') },
+    { value: 'INTERESSE', label: t('prospects.statusInterested') },
+    { value: 'NEGOCIATION', label: t('prospects.statusNegotiation') },
+    { value: 'PERDU', label: t('prospects.statusLost') },
+    { value: 'GAGNE', label: t('prospects.statusWon') }
   ];
 
   const filteredProspects = mockProspects.filter(prospect => {
@@ -265,7 +265,7 @@ const ProspectsModule: React.FC = () => {
               className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 text-[#404040]" />
-              <span className="text-sm font-semibold text-[#404040]">Retour</span>
+              <span className="text-sm font-semibold text-[#404040]">{t('prospects.back')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -273,8 +273,8 @@ const ProspectsModule: React.FC = () => {
                 <Target className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Gestion des Prospects</h1>
-                <p className="text-sm text-[var(--color-text-secondary)]">Pipeline commercial et suivi des opportunités</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('prospects.title')}</h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('prospects.subtitle')}</p>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ const ProspectsModule: React.FC = () => {
               <Search className="w-4 h-4 text-gray-700" />
               <input
                 type="text"
-                placeholder="Rechercher un prospect..."
+                placeholder={t('prospects.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-transparent border-none outline-none text-sm w-48"
@@ -321,7 +321,7 @@ const ProspectsModule: React.FC = () => {
               activeFilters={[searchTerm !== '', filterSource !== 'tous', filterStatut !== 'tous'].filter(Boolean).length}
             />
 
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors" aria-label={t('prospects.downloadAria')}>
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -331,7 +331,7 @@ const ProspectsModule: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-semibold">Nouveau Prospect</span>
+              <span className="text-sm font-semibold">{t('prospects.newProspectBtn')}</span>
             </button>
           </div>
         </div>
@@ -360,9 +360,9 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Prospects Actifs</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('prospects.kpiActive')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{mockProspects.length}</p>
-              <p className="text-xs text-[var(--color-primary)]">+12 ce mois</p>
+              <p className="text-xs text-[var(--color-primary)]">{t('prospects.kpiActiveDelta')}</p>
             </div>
             <div className="w-10 h-10 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-[var(--color-primary)]" />
@@ -373,9 +373,9 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Taux Conversion</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('prospects.kpiConversionRate')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.conversionRate}%</p>
-              <p className="text-xs text-green-600">+2.3% vs mois dernier</p>
+              <p className="text-xs text-green-600">{t('prospects.kpiConversionDelta')}</p>
             </div>
             <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-green-600" />
@@ -386,9 +386,9 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Pipeline Valeur</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('prospects.kpiPipelineValue')}</p>
               <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(22500000)}</p>
-              <p className="text-xs text-[var(--color-text-secondary)]">68 opportunités</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">{t('prospects.kpiPipelineOpportunities')}</p>
             </div>
             <div className="w-10 h-10 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-[var(--color-text-secondary)]" />
@@ -399,9 +399,9 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Cycle de Vente</p>
-              <p className="text-lg font-bold text-[var(--color-primary)]">{analytics.tempsConversionMoyen}j</p>
-              <p className="text-xs text-orange-600">-5j vs moyenne</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('prospects.kpiSalesCycle')}</p>
+              <p className="text-lg font-bold text-[var(--color-primary)]">{t('prospects.daysValue', { count: String(analytics.tempsConversionMoyen) })}</p>
+              <p className="text-xs text-orange-600">{t('prospects.kpiSalesCycleDelta')}</p>
             </div>
             <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
               <Clock className="w-5 h-5 text-orange-600" />
@@ -415,7 +415,7 @@ const ProspectsModule: React.FC = () => {
         <div className="space-y-6">
           {/* Entonnoir de Vente */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Entonnoir de Vente</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.salesFunnel')}</h3>
             <div className="grid grid-cols-5 gap-4">
               {analytics.repartitionParStade.map((stade, index) => (
                 <div key={stade.stade} className="text-center">
@@ -435,7 +435,7 @@ const ProspectsModule: React.FC = () => {
 
           {/* Évolution Pipeline */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Pipeline</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.pipelineEvolution')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={analytics.evolutionPipeline}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -443,9 +443,9 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Area type="monotone" dataKey="nouveaux" stackId="1" stroke="#235A6E" fill="#235A6E" name="Nouveaux" />
-                <Area type="monotone" dataKey="convertis" stackId="1" stroke="#15803D" fill="#15803D" name="Convertis" />
-                <Area type="monotone" dataKey="perdus" stackId="1" stroke="#C0322B" fill="#C0322B" name="Perdus" />
+                <Area type="monotone" dataKey="nouveaux" stackId="1" stroke="#235A6E" fill="#235A6E" name={t('prospects.chartNew')} />
+                <Area type="monotone" dataKey="convertis" stackId="1" stroke="#15803D" fill="#15803D" name={t('prospects.chartConverted')} />
+                <Area type="monotone" dataKey="perdus" stackId="1" stroke="#C0322B" fill="#C0322B" name={t('prospects.chartLost')} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -459,14 +459,14 @@ const ProspectsModule: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-[var(--color-border)]">
                 <tr>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Prospect</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Contact</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Source</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Valeur Pot.</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Probabilité</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Suivi</th>
-                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colProspect')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colContact')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colSource')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colStatus')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colPotentialValue')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colProbability')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colFollowUp')}</th>
+                  <th className="text-left p-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('prospects.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -552,7 +552,7 @@ const ProspectsModule: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sources Performance */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Source</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.sourcePerformance')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={analytics.sourcesMeilleurTaux}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -560,15 +560,15 @@ const ProspectsModule: React.FC = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="taux" fill="url(#gradPetrol)" name="Taux de conversion %" />
-                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="url(#gradPetrolLight)" name="Nombre de prospects" />
+                <Bar radius={[6,6,0,0]} dataKey="taux" fill="url(#gradPetrol)" name={t('prospects.chartConversionRate')} />
+                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="url(#gradPetrolLight)" name={t('prospects.chartProspectCount')} />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
           {/* Répartition par Stade */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Stade</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.stageBreakdown')}</h3>
             <ResponsiveContainer width="100%" height={300}>
               <RechartsPieChart>
                 <Pie
@@ -596,10 +596,10 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <DollarSign className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Gestion des Opportunités</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Suivi détaillé de toutes les opportunités commerciales</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('prospects.opportunitiesTitle')}</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">{t('prospects.opportunitiesDesc')}</p>
             <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
-              Voir les opportunités
+              {t('prospects.opportunitiesBtn')}
             </button>
           </div>
         </div>
@@ -609,10 +609,10 @@ const ProspectsModule: React.FC = () => {
         <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
           <div className="text-center py-12">
             <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">Actions Marketing</h3>
-            <p className="text-[var(--color-text-secondary)] mb-4">Campagnes marketing et actions de prospection</p>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-2">{t('prospects.marketingTitle')}</h3>
+            <p className="text-[var(--color-text-secondary)] mb-4">{t('prospects.marketingDesc')}</p>
             <button className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 transition-colors">
-              Créer une campagne
+              {t('prospects.marketingBtn')}
             </button>
           </div>
         </div>
@@ -629,8 +629,8 @@ const ProspectsModule: React.FC = () => {
                     <Target className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Nouveau prospect</h3>
-                    <p className="text-sm text-gray-700">Créer une fiche prospect</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('prospects.modalNewProspect')}</h3>
+                    <p className="text-sm text-gray-700">{t('prospects.modalNewProspectSub')}</p>
                   </div>
                 </div>
                 <button
@@ -650,9 +650,9 @@ const ProspectsModule: React.FC = () => {
                   <div className="flex gap-3">
                     <Lightbulb className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-green-900">Nouveau prospect</p>
+                      <p className="text-sm font-medium text-green-900">{t('prospects.modalNewProspect')}</p>
                       <p className="text-sm text-green-700 mt-1">
-                        Enregistrez un prospect pour suivre son évolution vers la conversion
+                        {t('prospects.modalTipText')}
                       </p>
                     </div>
                   </div>
@@ -661,7 +661,7 @@ const ProspectsModule: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Code prospect <span className="text-red-500">*</span>
+                      {t('prospects.fieldCode')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -672,12 +672,12 @@ const ProspectsModule: React.FC = () => {
 
                   <div className="col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom / Raison sociale <span className="text-red-500">*</span>
+                      {t('prospects.fieldName')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Nom du prospect"
+                      placeholder={t('prospects.phName')}
                     />
                   </div>
                 </div>
@@ -685,33 +685,33 @@ const ProspectsModule: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Source <span className="text-red-500">*</span>
+                      {t('prospects.fieldSource')} <span className="text-red-500">*</span>
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
-                      <option value="SITE_WEB">Site web</option>
-                      <option value="REFERRAL">Recommandation</option>
-                      <option value="SALON">Salon</option>
-                      <option value="COLD_CALLING">Appel à froid</option>
-                      <option value="RESEAUX_SOCIAUX">Réseaux sociaux</option>
-                      <option value="PUBLICITE">Publicité</option>
+                      <option value="">{t('prospects.selectPlaceholder')}</option>
+                      <option value="SITE_WEB">{t('prospects.optWebsite')}</option>
+                      <option value="REFERRAL">{t('prospects.optReferral')}</option>
+                      <option value="SALON">{t('prospects.optTradeShow')}</option>
+                      <option value="COLD_CALLING">{t('prospects.optColdCall')}</option>
+                      <option value="RESEAUX_SOCIAUX">{t('prospects.optSocial')}</option>
+                      <option value="PUBLICITE">{t('prospects.optAds')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Secteur d'activité
+                      {t('prospects.fieldSector')}
                     </label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      placeholder="Commerce, IT..."
+                      placeholder={t('prospects.phSector')}
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Valeur potentielle (XAF)
+                      {t('prospects.fieldPotentialValue')}
                     </label>
                     <input
                       type="number"
@@ -725,42 +725,42 @@ const ProspectsModule: React.FC = () => {
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    Contact principal
+                    {t('prospects.sectionMainContact')}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Nom <span className="text-red-500">*</span>
+                        {t('prospects.fieldLastName')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Nom"
+                        placeholder={t('prospects.phLastName')}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Prénom
+                        {t('prospects.fieldFirstName')}
                       </label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Prénom"
+                        placeholder={t('prospects.phFirstName')}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Fonction
+                        {t('prospects.fieldRole')}
                       </label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Directeur"
+                        placeholder={t('prospects.phRole')}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Téléphone <span className="text-red-500">*</span>
+                        {t('prospects.fieldPhone')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
@@ -770,7 +770,7 @@ const ProspectsModule: React.FC = () => {
                     </div>
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email <span className="text-red-500">*</span>
+                        {t('prospects.fieldEmail')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
@@ -784,22 +784,22 @@ const ProspectsModule: React.FC = () => {
                 <div className="border-t pt-4">
                   <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
-                    Adresse
+                    {t('prospects.sectionAddress')}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Rue
+                        {t('prospects.fieldStreet')}
                       </label>
                       <input
                         type="text"
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                        placeholder="Adresse complète"
+                        placeholder={t('prospects.phStreet')}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ville
+                        {t('prospects.fieldCity')}
                       </label>
                       <input
                         type="text"
@@ -809,12 +809,12 @@ const ProspectsModule: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Pays
+                        {t('prospects.fieldCountry')}
                       </label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <option value="Congo">Congo</option>
                         <option value="France">France</option>
-                        <option value="Autre">Autre</option>
+                        <option value="Autre">{t('prospects.optOther')}</option>
                       </select>
                     </div>
                   </div>
@@ -823,7 +823,7 @@ const ProspectsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Probabilité de conversion (%)
+                      {t('prospects.fieldConversionProbability')}
                     </label>
                     <input
                       type="number"
@@ -835,10 +835,10 @@ const ProspectsModule: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Responsable commercial
+                      {t('prospects.fieldSalesRep')}
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
+                      <option value="">{t('prospects.selectPlaceholder')}</option>
                       <option value="">—</option>
                       <option value="">—</option>
                       <option value="">—</option>
@@ -848,12 +848,12 @@ const ProspectsModule: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
+                    {t('prospects.fieldNotes')}
                   </label>
                   <textarea
                     rows={3}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Informations complémentaires..."
+                    placeholder={t('prospects.phNotes')}
                   />
                 </div>
               </div>
@@ -864,11 +864,11 @@ const ProspectsModule: React.FC = () => {
                 onClick={() => setShowProspectModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('prospects.cancel')}
               </button>
               <button onClick={handleCreateProspect} className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                Créer le prospect
+                {t('prospects.createProspect')}
               </button>
             </div>
           </div>
@@ -886,8 +886,8 @@ const ProspectsModule: React.FC = () => {
                     <MessageSquare className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">Nouvelle interaction</h3>
-                    <p className="text-sm text-gray-700">Enregistrer une interaction avec le prospect</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('prospects.modalNewInteraction')}</h3>
+                    <p className="text-sm text-gray-700">{t('prospects.modalNewInteractionSub')}</p>
                   </div>
                 </div>
                 <button
@@ -905,10 +905,10 @@ const ProspectsModule: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prospect <span className="text-red-500">*</span>
+                    {t('prospects.fieldProspect')} <span className="text-red-500">*</span>
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Sélectionner un prospect</option>
+                    <option value="">{t('prospects.selectProspect')}</option>
                     <option value="1">Prospect PRO001</option>
                     <option value="2">Prospect PRO002</option>
                     <option value="3">Prospect PRO003</option>
@@ -918,22 +918,22 @@ const ProspectsModule: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type d'interaction <span className="text-red-500">*</span>
+                      {t('prospects.fieldInteractionType')} <span className="text-red-500">*</span>
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
-                      <option value="APPEL">Appel téléphonique</option>
-                      <option value="EMAIL">Email</option>
-                      <option value="REUNION">Réunion</option>
-                      <option value="VISITE">Visite</option>
-                      <option value="DEMONSTRATION">Démonstration</option>
-                      <option value="AUTRE">Autre</option>
+                      <option value="">{t('prospects.selectPlaceholder')}</option>
+                      <option value="APPEL">{t('prospects.optCall')}</option>
+                      <option value="EMAIL">{t('prospects.optEmail')}</option>
+                      <option value="REUNION">{t('prospects.optMeeting')}</option>
+                      <option value="VISITE">{t('prospects.optVisit')}</option>
+                      <option value="DEMONSTRATION">{t('prospects.optDemo')}</option>
+                      <option value="AUTRE">{t('prospects.optOther')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date <span className="text-red-500">*</span>
+                      {t('prospects.fieldDate')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="datetime-local"
@@ -944,54 +944,54 @@ const ProspectsModule: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Objet <span className="text-red-500">*</span>
+                    {t('prospects.fieldSubject')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: Présentation offre, Suivi devis..."
+                    placeholder={t('prospects.phSubject')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Compte-rendu <span className="text-red-500">*</span>
+                    {t('prospects.fieldReport')} <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={5}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Détails de l'échange, besoins identifiés, objections..."
+                    placeholder={t('prospects.phReport')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Niveau d'intérêt
+                    {t('prospects.fieldInterestLevel')}
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Évaluer</option>
-                    <option value="FAIBLE">Faible</option>
-                    <option value="MOYEN">⭐Moyen</option>
-                    <option value="ELEVE">⭐⭐Élevé</option>
-                    <option value="TRES_ELEVE">⭐⭐⭐Très élevé</option>
+                    <option value="">{t('prospects.optEvaluate')}</option>
+                    <option value="FAIBLE">{t('prospects.optLow')}</option>
+                    <option value="MOYEN">{t('prospects.optMedium')}</option>
+                    <option value="ELEVE">{t('prospects.optHigh')}</option>
+                    <option value="TRES_ELEVE">{t('prospects.optVeryHigh')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prochaine action
+                    {t('prospects.fieldNextAction')}
                   </label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Action de suivi prévue"
+                    placeholder={t('prospects.phNextAction')}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date de suivi
+                      {t('prospects.fieldFollowUpDate')}
                     </label>
                     <input
                       type="date"
@@ -1001,10 +1001,10 @@ const ProspectsModule: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Responsable
+                      {t('prospects.fieldOwner')}
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
+                      <option value="">{t('prospects.selectPlaceholder')}</option>
                       <option value="">—</option>
                       <option value="">—</option>
                       <option value="">—</option>
@@ -1016,9 +1016,9 @@ const ProspectsModule: React.FC = () => {
                   <div className="flex gap-3">
                     <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-yellow-900">Suivi régulier</p>
+                      <p className="text-sm font-medium text-yellow-900">{t('prospects.warnRegularFollowUp')}</p>
                       <p className="text-sm text-yellow-700 mt-1">
-                        Maintenez un contact régulier pour maximiser les chances de conversion
+                        {t('prospects.warnRegularFollowUpText')}
                       </p>
                     </div>
                   </div>
@@ -1031,11 +1031,11 @@ const ProspectsModule: React.FC = () => {
                 onClick={() => setShowInteractionModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                Annuler
+                {t('prospects.cancel')}
               </button>
               <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
-                Enregistrer
+                {t('prospects.save')}
               </button>
             </div>
           </div>
