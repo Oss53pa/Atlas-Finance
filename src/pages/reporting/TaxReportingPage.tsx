@@ -3,6 +3,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { toast } from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useData, useAdapterQuery } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { TaxDetectionEngine } from '../../services/fiscal/TaxDetectionEngine';
 import type { TaxDetectionResult } from '../../services/fiscal/TaxDetectionEngine';
 import { seedTaxRegistryCI, seedIRPPBracketsCI } from '../../services/fiscal/taxRegistrySeeds';
@@ -65,8 +66,17 @@ import { motion } from 'framer-motion';
 // CALENDRIER FISCAL VISUEL — grille mensuelle avec échéances code couleur
 // ═══════════════════════════════════════════════════════════════════════════
 
-const DAYS_OF_WEEK = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-const MONTH_NAMES = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+// Clés i18n (résolues au rendu via t(...) — les hooks ne sont pas accessibles ici).
+const DAYS_OF_WEEK_KEYS = [
+  'taxReporting.dayMon', 'taxReporting.dayTue', 'taxReporting.dayWed', 'taxReporting.dayThu',
+  'taxReporting.dayFri', 'taxReporting.daySat', 'taxReporting.daySun',
+];
+const MONTH_NAME_KEYS = [
+  'taxReporting.monthJanuary', 'taxReporting.monthFebruary', 'taxReporting.monthMarch',
+  'taxReporting.monthApril', 'taxReporting.monthMay', 'taxReporting.monthJune',
+  'taxReporting.monthJuly', 'taxReporting.monthAugust', 'taxReporting.monthSeptember',
+  'taxReporting.monthOctober', 'taxReporting.monthNovember', 'taxReporting.monthDecember',
+];
 
 interface FiscalCalendarProps {
   triggeredTaxes: TaxDetectionResult[];
@@ -76,6 +86,8 @@ interface FiscalCalendarProps {
 
 const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDeclarations, hasRegistry }) => {
   const { adapter } = useData();
+  const { t } = useLanguage();
+  const monthName = (m: number) => t(MONTH_NAME_KEYS[m]);
   const queryClient = useQueryClient();
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
@@ -155,15 +167,15 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
             <Calendar className="mr-2 h-5 w-5" />
-            Calendrier Fiscal
+            {t('taxReporting.fiscalCalendar')}
           </CardTitle>
           <div className="flex items-center space-x-2">
             <Button size="sm" onClick={() => setShowProgrammer(true)} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="mr-1 h-4 w-4" /> Programmer
+              <Plus className="mr-1 h-4 w-4" /> {t('taxReporting.schedule')}
             </Button>
             <Button variant="ghost" size="sm" onClick={prevMonth}>&lsaquo;</Button>
             <span className="text-sm font-semibold min-w-[140px] text-center">
-              {MONTH_NAMES[calMonth]} {calYear}
+              {monthName(calMonth)} {calYear}
             </span>
             <Button variant="ghost" size="sm" onClick={nextMonth}>&rsaquo;</Button>
           </div>
@@ -172,8 +184,8 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
       <CardContent>
         {/* Day headers */}
         <div className="grid grid-cols-7 gap-1 mb-1">
-          {DAYS_OF_WEEK.map(d => (
-            <div key={d} className="text-center text-xs font-medium text-gray-500 py-1">{d}</div>
+          {DAYS_OF_WEEK_KEYS.map(dk => (
+            <div key={dk} className="text-center text-xs font-medium text-gray-500 py-1">{t(dk)}</div>
           ))}
         </div>
 
@@ -217,14 +229,14 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                   else if (dl.status === 'calculated') dotColor = 'bg-yellow-500';
 
                   return (
-                    <div key={i} className="flex items-center gap-1 mb-0.5" title={`${dl.name} — ${dl.amount != null ? formatCurrency(dl.amount) : 'Manuel'} — ${dl.status}`}>
+                    <div key={i} className="flex items-center gap-1 mb-0.5" title={`${dl.name} — ${dl.amount != null ? formatCurrency(dl.amount) : t('taxReporting.manual')} — ${dl.status}`}>
                       <span className={`w-2 h-2 rounded-full ${dotColor} flex-shrink-0`} />
                       <span className="text-[10px] text-gray-700 truncate">{dl.name}</span>
                     </div>
                   );
                 })}
                 {deadlines.length > 3 && (
-                  <div className="text-[10px] text-gray-400">+{deadlines.length - 3} autres</div>
+                  <div className="text-[10px] text-gray-400">{t('taxReporting.moreOthers', { count: String(deadlines.length - 3) })}</div>
                 )}
               </div>
             );
@@ -236,7 +248,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
           <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold text-sm text-gray-900">
-                {selectedDay} {MONTH_NAMES[calMonth]} {calYear} — {(deadlineMap[selectedDay] || []).length} échéance(s)
+                {selectedDay} {monthName(calMonth)} {calYear} — {t('taxReporting.deadlinesCount', { count: String((deadlineMap[selectedDay] || []).length) })}
               </h4>
               <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600">
                 <X className="h-4 w-4" />
@@ -244,12 +256,12 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
             </div>
             <div className="space-y-2">
               {(deadlineMap[selectedDay] || []).map((dl, i) => {
-                let statusLabel = 'À déclarer';
+                let statusLabel = t('taxReporting.statusToDeclare');
                 let statusColor = 'bg-orange-100 text-orange-700';
-                if (dl.isOverdue) { statusLabel = 'En retard'; statusColor = 'bg-red-100 text-red-700'; }
-                else if (dl.status === 'paid') { statusLabel = 'Payée'; statusColor = 'bg-green-100 text-green-700'; }
-                else if (dl.status === 'declared' || dl.status === 'validated') { statusLabel = 'Déclarée'; statusColor = 'bg-blue-100 text-blue-700'; }
-                else if (dl.status === 'calculated') { statusLabel = 'Calculée'; statusColor = 'bg-yellow-100 text-yellow-700'; }
+                if (dl.isOverdue) { statusLabel = t('taxReporting.statusOverdue'); statusColor = 'bg-red-100 text-red-700'; }
+                else if (dl.status === 'paid') { statusLabel = t('taxReporting.statusPaid'); statusColor = 'bg-green-100 text-green-700'; }
+                else if (dl.status === 'declared' || dl.status === 'validated') { statusLabel = t('taxReporting.statusDeclared'); statusColor = 'bg-blue-100 text-blue-700'; }
+                else if (dl.status === 'calculated') { statusLabel = t('taxReporting.statusCalculated'); statusColor = 'bg-yellow-100 text-yellow-700'; }
 
                 return (
                   <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3 border">
@@ -257,7 +269,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                       <div>
                         <div className="font-medium text-sm text-gray-900">{dl.name}</div>
                         <div className="text-xs text-gray-500">
-                          Échéance : {selectedDay} {MONTH_NAMES[calMonth]} {calYear}
+                          {t('taxReporting.dueDateColon')} {selectedDay} {monthName(calMonth)} {calYear}
                         </div>
                       </div>
                     </div>
@@ -281,7 +293,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                           });
                         }}
                         className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700"
-                        title="Modifier"
+                        title={t('taxReporting.edit')}
                       >
                         <Edit className="h-4 w-4" />
                       </button>
@@ -296,7 +308,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
         {selectedDay !== null && (deadlineMap[selectedDay] || []).length === 0 && (
           <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
             <span className="text-sm text-gray-500">
-              Aucune échéance le {selectedDay} {MONTH_NAMES[calMonth]} {calYear}
+              {t('taxReporting.noDeadlineOn', { date: `${selectedDay} ${monthName(calMonth)} ${calYear}` })}
             </span>
             <button onClick={() => setSelectedDay(null)} className="text-gray-400 hover:text-gray-600">
               <X className="h-4 w-4" />
@@ -307,19 +319,19 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 mt-3 pt-3 border-t border-gray-100">
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> En retard
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500" /> {t('taxReporting.statusOverdue')}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" /> À déclarer
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-400" /> {t('taxReporting.statusToDeclare')}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" /> Calculée
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500" /> {t('taxReporting.statusCalculated')}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> Déclarée
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500" /> {t('taxReporting.statusDeclared')}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> Payée
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500" /> {t('taxReporting.statusPaid')}
           </div>
         </div>
         {/* Modal Modifier une échéance */}
@@ -329,30 +341,30 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Edit className="h-5 w-5 text-blue-600" />
-                  Modifier — {editDl.name}
+                  {t('taxReporting.edit')} — {editDl.name}
                 </h3>
                 <button onClick={() => setEditDl(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.status')}</label>
                   <select
                     value={editForm.status}
                     onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 text-sm"
                   >
-                    <option value="draft">Brouillon (À déclarer)</option>
-                    <option value="calculated">Calculée</option>
-                    <option value="validated">Validée</option>
-                    <option value="declared">Déclarée</option>
-                    <option value="paid">Payée</option>
-                    <option value="overdue">En retard</option>
+                    <option value="draft">{t('taxReporting.statusDraftToDeclare')}</option>
+                    <option value="calculated">{t('taxReporting.statusCalculated')}</option>
+                    <option value="validated">{t('taxReporting.statusValidated')}</option>
+                    <option value="declared">{t('taxReporting.statusDeclared')}</option>
+                    <option value="paid">{t('taxReporting.statusPaid')}</option>
+                    <option value="overdue">{t('taxReporting.statusOverdue')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date limite</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.deadline')}</label>
                   <input
                     type="date"
                     value={editForm.deadline}
@@ -362,7 +374,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Montant</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.amount')}</label>
                   <input
                     type="number"
                     value={editForm.montant}
@@ -373,11 +385,11 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.notes')}</label>
                   <textarea
                     value={editForm.notes}
                     onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                    placeholder="Remarques, référence de paiement..."
+                    placeholder={t('taxReporting.notesPlaceholder')}
                     rows={2}
                     className="w-full border rounded-lg px-3 py-2 text-sm resize-none"
                   />
@@ -385,7 +397,7 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
               </div>
 
               <div className="flex gap-3 justify-end pt-2">
-                <Button variant="outline" onClick={() => setEditDl(null)}>Annuler</Button>
+                <Button variant="outline" onClick={() => setEditDl(null)}>{t('taxReporting.cancel')}</Button>
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={async () => {
@@ -408,12 +420,12 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                           ...(editForm.notes ? { paymentReference: editForm.notes } : {}),
                           updatedAt: new Date().toISOString(),
                         });
-                        toast.success(`${editDl.name} mis à jour`);
+                        toast.success(t('taxReporting.itemUpdated', { name: editDl.name }));
                       } else {
                         // Create if not found
                         await adapter.create('taxDeclarations', {
                           taxCode: editDl.name,
-                          periodLabel: `${MONTH_NAMES[calMonth]} ${calYear}`,
+                          periodLabel: `${monthName(calMonth)} ${calYear}`,
                           periodStart: editForm.deadline,
                           periodEnd: editForm.deadline,
                           declarationDeadline: editForm.deadline,
@@ -426,17 +438,17 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                           createdAt: new Date().toISOString(),
                           updatedAt: new Date().toISOString(),
                         });
-                        toast.success(`${editDl.name} créé avec statut ${editForm.status}`);
+                        toast.success(t('taxReporting.itemCreatedWithStatus', { name: editDl.name, status: editForm.status }));
                       }
 
                       setEditDl(null);
                       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
                     } catch (err) {
-                      toast.error('Erreur lors de la mise à jour');
+                      toast.error(t('taxReporting.errorUpdate'));
                     }
                   }}
                 >
-                  <CheckCircle className="mr-1 h-4 w-4" /> Enregistrer
+                  <CheckCircle className="mr-1 h-4 w-4" /> {t('taxReporting.save')}
                 </Button>
               </div>
             </div>
@@ -450,62 +462,62 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-blue-600" />
-                  Programmer une échéance
+                  {t('taxReporting.scheduleDeadline')}
                 </h3>
                 <button onClick={() => setShowProgrammer(false)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Code taxe *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.taxCodeRequired')}</label>
                   <input type="text" value={form.taxCode} onChange={e => setForm(f => ({ ...f, taxCode: e.target.value }))}
-                    placeholder="TVA, IS, IRPP..." className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    placeholder={t('taxReporting.taxCodePlaceholder')} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.name')}</label>
                   <input type="text" value={form.taxName} onChange={e => setForm(f => ({ ...f, taxName: e.target.value }))}
-                    placeholder="Taxe sur la Valeur Ajoutée" className="w-full border rounded-lg px-3 py-2 text-sm" />
+                    placeholder={t('taxReporting.taxNamePlaceholder')} className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date limite *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.deadlineRequired')}</label>
                   <input type="date" value={form.deadline} onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.periodicity')}</label>
                   <select value={form.periodicite} onChange={e => setForm(f => ({ ...f, periodicite: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="MONTHLY">Mensuelle</option>
-                    <option value="QUARTERLY">Trimestrielle</option>
-                    <option value="ANNUAL">Annuelle</option>
-                    <option value="PUNCTUAL">Ponctuelle</option>
+                    <option value="MONTHLY">{t('taxReporting.periodicityMonthly')}</option>
+                    <option value="QUARTERLY">{t('taxReporting.periodicityQuarterly')}</option>
+                    <option value="ANNUAL">{t('taxReporting.periodicityAnnual')}</option>
+                    <option value="PUNCTUAL">{t('taxReporting.periodicityPunctual')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.category')}</label>
                   <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="INDIRECT">TVA / Indirect</option>
-                    <option value="DIRECT">IS / Direct</option>
-                    <option value="SOCIAL">Social</option>
-                    <option value="RETENUE">Retenue à la source</option>
-                    <option value="AUTRE">Autre</option>
+                    <option value="INDIRECT">{t('taxReporting.catIndirectOption')}</option>
+                    <option value="DIRECT">{t('taxReporting.catDirectOption')}</option>
+                    <option value="SOCIAL">{t('taxReporting.catSocialOption')}</option>
+                    <option value="RETENUE">{t('taxReporting.catWithholdingOption')}</option>
+                    <option value="AUTRE">{t('taxReporting.catOtherOption')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Montant estimé</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.estimatedAmount')}</label>
                   <input type="number" value={form.montant} onChange={e => setForm(f => ({ ...f, montant: e.target.value }))}
                     placeholder="0" className="w-full border rounded-lg px-3 py-2 text-sm" />
                 </div>
               </div>
               <div className="bg-blue-50 rounded-lg p-3 text-xs text-blue-700">
-                <strong>Astuce :</strong> Les taxes du registre fiscal (Admin &gt; Registre Fiscal) génèrent automatiquement les échéances. Ce formulaire sert pour les échéances exceptionnelles.
+                <strong>{t('taxReporting.tipLabel')}</strong> {t('taxReporting.schedulerTip')}
               </div>
               <div className="flex gap-3 justify-end">
-                <Button variant="outline" onClick={() => setShowProgrammer(false)}>Annuler</Button>
+                <Button variant="outline" onClick={() => setShowProgrammer(false)}>{t('taxReporting.cancel')}</Button>
                 <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={async () => {
-                    if (!form.taxCode || !form.deadline) { toast.error('Code taxe et date limite obligatoires'); return; }
+                    if (!form.taxCode || !form.deadline) { toast.error(t('taxReporting.errorTaxCodeDeadlineRequired')); return; }
                     try {
                       await adapter.create('taxDeclarations', {
                         taxCode: form.taxCode,
@@ -521,16 +533,16 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString(),
                       });
-                      toast.success(`Échéance ${form.taxCode} programmée au ${form.deadline}`);
+                      toast.success(t('taxReporting.deadlineScheduled', { code: form.taxCode, date: form.deadline }));
                       setShowProgrammer(false);
                       setForm({ taxCode: '', taxName: '', deadline: '', periodicite: 'MONTHLY', montant: '', category: 'INDIRECT' });
                       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
                     } catch (err) {
-                      toast.error('Erreur lors de la programmation');
+                      toast.error(t('taxReporting.errorScheduling'));
                     }
                   }}
                 >
-                  <Plus className="mr-1 h-4 w-4" /> Programmer
+                  <Plus className="mr-1 h-4 w-4" /> {t('taxReporting.schedule')}
                 </Button>
               </div>
             </div>
@@ -545,12 +557,12 @@ const FiscalCalendar: React.FC<FiscalCalendarProps> = ({ triggeredTaxes, dbDecla
 // WRAPPER — Calendrier + Kanban + Grille
 // ═══════════════════════════════════════════════════════════════════════════
 
-const STATUS_COLUMNS: Array<{ key: string; label: string; color: string; dot: string }> = [
-  { key: 'overdue',     label: 'En retard',  color: 'border-red-300 bg-red-50',      dot: 'bg-red-500' },
-  { key: 'pending',     label: 'À déclarer', color: 'border-orange-300 bg-orange-50', dot: 'bg-orange-400' },
-  { key: 'calculated',  label: 'Calculée',   color: 'border-yellow-300 bg-yellow-50', dot: 'bg-yellow-500' },
-  { key: 'declared',    label: 'Déclarée',   color: 'border-blue-300 bg-blue-50',     dot: 'bg-blue-500' },
-  { key: 'paid',        label: 'Payée',      color: 'border-green-300 bg-green-50',   dot: 'bg-green-500' },
+const STATUS_COLUMNS: Array<{ key: string; labelKey: string; color: string; dot: string }> = [
+  { key: 'overdue',     labelKey: 'taxReporting.statusOverdue',    color: 'border-red-300 bg-red-50',      dot: 'bg-red-500' },
+  { key: 'pending',     labelKey: 'taxReporting.statusToDeclare',  color: 'border-orange-300 bg-orange-50', dot: 'bg-orange-400' },
+  { key: 'calculated',  labelKey: 'taxReporting.statusCalculated', color: 'border-yellow-300 bg-yellow-50', dot: 'bg-yellow-500' },
+  { key: 'declared',    labelKey: 'taxReporting.statusDeclared',   color: 'border-blue-300 bg-blue-50',     dot: 'bg-blue-500' },
+  { key: 'paid',        labelKey: 'taxReporting.statusPaid',       color: 'border-green-300 bg-green-50',   dot: 'bg-green-500' },
 ];
 
 function classifyStatus(dl: { status: string; isOverdue: boolean }): string {
@@ -563,6 +575,7 @@ function classifyStatus(dl: { status: string; isOverdue: boolean }): string {
 
 const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [calView, setCalView] = useState<'calendar' | 'kanban' | 'grid'>('calendar');
   const [editItem, setEditItem] = useState<{ name: string; status: string; amount: number | null; deadline: string; isOverdue: boolean } | null>(null);
@@ -608,11 +621,11 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
           createdAt: new Date().toISOString(),
         });
       }
-      toast.success(`${editItem.name} mis à jour`);
+      toast.success(t('taxReporting.itemUpdated', { name: editItem.name }));
       setEditItem(null);
       queryClient.invalidateQueries({ queryKey: ['tax-reporting'] });
     } catch (err) {
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(t('taxReporting.errorUpdate'));
     }
   };
 
@@ -654,9 +667,9 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
       {/* View Switcher */}
       <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 w-fit">
         {[
-          { key: 'calendar' as const, label: 'Calendrier', icon: Calendar },
-          { key: 'kanban' as const,   label: 'Kanban',     icon: Activity },
-          { key: 'grid' as const,     label: 'Grille',     icon: BarChart3 },
+          { key: 'calendar' as const, labelKey: 'taxReporting.viewCalendar', icon: Calendar },
+          { key: 'kanban' as const,   labelKey: 'taxReporting.viewKanban',   icon: Activity },
+          { key: 'grid' as const,     labelKey: 'taxReporting.viewGrid',     icon: BarChart3 },
         ].map(v => (
           <button
             key={v.key}
@@ -666,7 +679,7 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
             }`}
           >
             <v.icon className="h-4 w-4" />
-            {v.label}
+            {t(v.labelKey)}
           </button>
         ))}
       </div>
@@ -686,7 +699,7 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                 <div className="px-3 py-2 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${col.dot}`} />
-                    <span className="text-sm font-semibold">{col.label}</span>
+                    <span className="text-sm font-semibold">{t(col.labelKey)}</span>
                   </div>
                   <span className="text-xs font-bold bg-white rounded-full px-2 py-0.5">{colItems.length}</span>
                 </div>
@@ -695,7 +708,7 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                     <div key={i} className="bg-white rounded-lg p-3 border shadow-sm hover:shadow-md transition-shadow">
                       <div className="flex items-center justify-between">
                         <div className="font-medium text-sm text-gray-900">{item.name}</div>
-                        <button onClick={() => openEditModal(item)} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-700" title="Modifier">
+                        <button onClick={() => openEditModal(item)} className="p-1 hover:bg-gray-100 rounded text-gray-400 hover:text-gray-700" title={t('taxReporting.edit')}>
                           <Edit className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -709,7 +722,7 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                     </div>
                   ))}
                   {colItems.length === 0 && (
-                    <div className="text-center text-xs text-gray-400 py-6">Aucune</div>
+                    <div className="text-center text-xs text-gray-400 py-6">{t('taxReporting.none')}</div>
                   )}
                 </div>
               </div>
@@ -725,14 +738,14 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  {['Taxe', 'Catégorie', 'Échéance', 'Montant', 'Statut', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>
+                  {['taxReporting.tax', 'taxReporting.category', 'taxReporting.dueDate', 'taxReporting.amount', 'taxReporting.status', 'taxReporting.actions'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{t(h)}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {allDeadlines.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Aucune échéance</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">{t('taxReporting.noDeadlines')}</td></tr>
                 ) : allDeadlines.map((dl, i) => {
                   const col = STATUS_COLUMNS.find(c => c.key === classifyStatus(dl))!;
                   return (
@@ -748,11 +761,11 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${col.color.replace('border-', 'bg-').split(' ')[1]} ${col.dot.replace('bg-', 'text-')}`}>
                           <span className={`w-2 h-2 rounded-full ${col.dot}`} />
-                          {col.label}
+                          {t(col.labelKey)}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button onClick={() => openEditModal(dl)} className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700" title="Modifier">
+                        <button onClick={() => openEditModal(dl)} className="p-1.5 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-700" title={t('taxReporting.edit')}>
                           <Edit className="h-4 w-4" />
                         </button>
                       </td>
@@ -772,43 +785,43 @@ const FiscalCalendarWithViews: React.FC<FiscalCalendarProps> = (props) => {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Edit className="h-5 w-5 text-blue-600" />
-                Modifier — {editItem.name}
+                {t('taxReporting.edit')} — {editItem.name}
               </h3>
               <button onClick={() => setEditItem(null)} className="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.status')}</label>
                 <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
                   className="w-full border rounded-lg px-3 py-2 text-sm">
-                  <option value="draft">Brouillon (À déclarer)</option>
-                  <option value="calculated">Calculée</option>
-                  <option value="validated">Validée</option>
-                  <option value="declared">Déclarée</option>
-                  <option value="paid">Payée</option>
-                  <option value="overdue">En retard</option>
+                  <option value="draft">{t('taxReporting.statusDraftToDeclare')}</option>
+                  <option value="calculated">{t('taxReporting.statusCalculated')}</option>
+                  <option value="validated">{t('taxReporting.statusValidated')}</option>
+                  <option value="declared">{t('taxReporting.statusDeclared')}</option>
+                  <option value="paid">{t('taxReporting.statusPaid')}</option>
+                  <option value="overdue">{t('taxReporting.statusOverdue')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date limite</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.deadline')}</label>
                 <input type="date" value={editForm.deadline} onChange={e => setEditForm(f => ({ ...f, deadline: e.target.value }))}
                   className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Montant</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.amount')}</label>
                 <input type="number" value={editForm.montant} onChange={e => setEditForm(f => ({ ...f, montant: e.target.value }))}
                   placeholder="0" className="w-full border rounded-lg px-3 py-2 text-sm" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Référence paiement</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('taxReporting.notesPaymentRef')}</label>
                 <textarea value={editForm.notes} onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
-                  placeholder="Remarques, n° de quittance..." rows={2} className="w-full border rounded-lg px-3 py-2 text-sm resize-none" />
+                  placeholder={t('taxReporting.notesReceiptPlaceholder')} rows={2} className="w-full border rounded-lg px-3 py-2 text-sm resize-none" />
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <Button variant="outline" onClick={() => setEditItem(null)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setEditItem(null)}>{t('taxReporting.cancel')}</Button>
               <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={handleSaveEdit}>
-                <CheckCircle className="mr-1 h-4 w-4" /> Enregistrer
+                <CheckCircle className="mr-1 h-4 w-4" /> {t('taxReporting.save')}
               </Button>
             </div>
           </div>
@@ -884,6 +897,7 @@ function getPeriodBounds(selectedPeriod: string): { start: string; end: string }
 
 const TaxReportingPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedPeriod, setSelectedPeriod] = useState('current-month');
   const [selectedTaxType, setSelectedTaxType] = useState('all');
@@ -1028,8 +1042,8 @@ const TaxReportingPage: React.FC = () => {
         .filter(x => Math.abs(x.montant) > 0.5)
         .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant));
 
-    const collectee = linesFor(c => c.startsWith('443'), 'credit', 'TVA collectée (443)');
-    const deductible = linesFor(c => c.startsWith('445'), 'debit', 'TVA déductible (445)').map(l => ({ ...l, montant: -l.montant }));
+    const collectee = linesFor(c => c.startsWith('443'), 'credit', t('taxReporting.groupTvaCollected'));
+    const deductible = linesFor(c => c.startsWith('445'), 'debit', t('taxReporting.groupTvaDeductible')).map(l => ({ ...l, montant: -l.montant }));
     const cnps = linesFor(c => /^43/.test(c), 'credit');
     const autres = linesFor(c => /^44/.test(c) && !/^44[235]/.test(c), 'credit');
     const resAvantImpot = produits - charges;
@@ -1038,11 +1052,11 @@ const TaxReportingPage: React.FC = () => {
       TVA: { kind: 'accounts', lines: [...collectee, ...deductible], total: collectee.reduce((s, l) => s + l.montant, 0) + deductible.reduce((s, l) => s + l.montant, 0) },
       CNPS: { kind: 'accounts', lines: cnps, total: cnps.reduce((s, l) => s + l.montant, 0) },
       AUTRES: { kind: 'accounts', lines: autres, total: autres.reduce((s, l) => s + l.montant, 0) },
-      IRPP: { kind: 'estimate', baseLabel: 'Masse salariale imposable (compte 661)', base: Math.round(masseSalariale), taux: 0.15, montant: Math.round(masseSalariale * 0.15) },
-      IS: { kind: 'estimate', baseLabel: 'Résultat avant impôt (produits cl.7 − charges cl.6)', base: Math.round(resAvantImpot), taux: 0.25, montant: Math.round(Math.max(0, resAvantImpot) * 0.25) },
+      IRPP: { kind: 'estimate', baseLabel: t('taxReporting.irppBaseLabel'), base: Math.round(masseSalariale), taux: 0.15, montant: Math.round(masseSalariale * 0.15) },
+      IS: { kind: 'estimate', baseLabel: t('taxReporting.isBaseLabel'), base: Math.round(resAvantImpot), taux: 0.25, montant: Math.round(Math.max(0, resAvantImpot) * 0.25) },
     };
     return details;
-  }, [allEntries]);
+  }, [allEntries, t]);
 
   // ─── KPI values: prefer detection engine, fallback to manual ───────────────
 
@@ -1208,11 +1222,11 @@ const TaxReportingPage: React.FC = () => {
     } else {
       // 2. Sinon, dérivation du Grand Livre — natures étendues.
       items = [
-        { key: 'TVA', label: 'TVA à payer', montant: taxStats.tvaAPayer, periode: moisLabel, echeance: ech(2, 15) },
-        { key: 'IRPP', label: 'IRPP (retenues salaires)', montant: taxStats.irpp, periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`, echeance: ech(2, 20) },
-        { key: 'IS', label: 'Impôt sur les sociétés', montant: taxStats.is, periode: `${now.getFullYear()}`, echeance: `${now.getFullYear()}-03-15` },
-        { key: 'CNPS', label: 'CNPS / Organismes sociaux', montant: taxStats.cnps, periode: moisLabel, echeance: ech(2, 15) },
-        { key: 'AUTRES', label: 'Autres impôts & taxes (État)', montant: taxStats.autresImpots, periode: moisLabel, echeance: ech(2, 15) },
+        { key: 'TVA', label: t('taxReporting.natureTva'), montant: taxStats.tvaAPayer, periode: moisLabel, echeance: ech(2, 15) },
+        { key: 'IRPP', label: t('taxReporting.natureIrpp'), montant: taxStats.irpp, periode: `T${Math.ceil((now.getMonth() + 1) / 3)} ${now.getFullYear()}`, echeance: ech(2, 20) },
+        { key: 'IS', label: t('taxReporting.natureIs'), montant: taxStats.is, periode: `${now.getFullYear()}`, echeance: `${now.getFullYear()}-03-15` },
+        { key: 'CNPS', label: t('taxReporting.natureCnps'), montant: taxStats.cnps, periode: moisLabel, echeance: ech(2, 15) },
+        { key: 'AUTRES', label: t('taxReporting.natureOther'), montant: taxStats.autresImpots, periode: moisLabel, echeance: ech(2, 15) },
       ].filter(t => t.montant > 0);
     }
 
@@ -1223,7 +1237,7 @@ const TaxReportingPage: React.FC = () => {
       // Réversible tant que non payée (on peut annuler une déclaration, pas un paiement).
       return { ...t, declared, declaredAt: mark?.declaredAt || null, canRevert: declared && !paid };
     });
-  }, [taxStats, declMarks, declarations, hasRegistry, triggeredTaxes]);
+  }, [taxStats, declMarks, declarations, hasRegistry, triggeredTaxes, t]);
 
   const aDeclarer = taxesParNature.filter(t => !t.declared);
   const dejaDeclarees = taxesParNature.filter(t => t.declared);
@@ -1237,7 +1251,7 @@ const TaxReportingPage: React.FC = () => {
   // le tableau du bas, et la nature bascule à droite via dbDeclaredTypes) — au lieu d'un
   // simple drapeau dans settings déconnecté du reste. Idempotent : pas de doublon type+période.
   const declarerSelection = async () => {
-    if (selectedTaxKeys.size === 0) { toast.error('Sélectionnez au moins une taxe à déclarer'); return; }
+    if (selectedTaxKeys.size === 0) { toast.error(t('taxReporting.errorSelectAtLeastOneTax')); return; }
     const nowIso = new Date().toISOString();
     const fy = new Date(periodBounds.start).getFullYear();
     let created = 0, skipped = 0;
@@ -1261,10 +1275,10 @@ const TaxReportingPage: React.FC = () => {
       setSelectedTaxKeys(new Set());
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
       toast.success(created > 0
-        ? `${created} déclaration(s) créée(s)${skipped ? ` · ${skipped} déjà existante(s)` : ''}`
-        : 'Ces taxes sont déjà déclarées');
+        ? `${t('taxReporting.declarationsCreated', { count: String(created) })}${skipped ? t('taxReporting.alreadyExisting', { count: String(skipped) }) : ''}`
+        : t('taxReporting.taxesAlreadyDeclared'));
     } catch {
-      toast.error('Erreur lors de la création de la déclaration');
+      toast.error(t('taxReporting.errorCreateDeclaration'));
     }
   };
 
@@ -1278,9 +1292,9 @@ const TaxReportingPage: React.FC = () => {
       for (const d of toRevert) await adapter.delete('taxDeclarations', d.id);
       if (declMarks[key]) { const next = { ...declMarks }; delete next[key]; await saveDeclMarks(next); }
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-      toast.success('Déclaration annulée');
+      toast.success(t('taxReporting.declarationCancelled'));
     } catch {
-      toast.error("Erreur lors de l'annulation");
+      toast.error(t('taxReporting.errorCancel'));
     }
   };
 
@@ -1303,7 +1317,7 @@ const TaxReportingPage: React.FC = () => {
         { label: 'TVA', amount: taxStats.tvaAPayer, color: 'text-var(--color-blue-primary)' },
         { label: 'IRPP', amount: taxStats.irpp, color: 'text-primary-600' },
         { label: 'IS', amount: taxStats.is, color: 'text-var(--color-green-primary)' },
-        { label: 'Autres', amount: 0, color: 'text-var(--color-orange-primary)' },
+        { label: t('taxReporting.otherLabel'), amount: 0, color: 'text-var(--color-orange-primary)' },
       ];
     }
     // Group by taxCategory
@@ -1316,11 +1330,11 @@ const TaxReportingPage: React.FC = () => {
       AUTRE: 'text-gray-600',
     };
     const categoryLabels: Record<string, string> = {
-      INDIRECT: 'Taxes indirectes',
-      DIRECT: 'Impôts directs',
-      SOCIAL: 'Charges sociales',
-      RETENUE: 'Retenues',
-      AUTRE: 'Autres',
+      INDIRECT: t('taxReporting.catIndirectLabel'),
+      DIRECT: t('taxReporting.catDirectLabel'),
+      SOCIAL: t('taxReporting.catSocialLabel'),
+      RETENUE: t('taxReporting.catWithholdingLabel'),
+      AUTRE: t('taxReporting.otherLabel'),
     };
     for (const r of triggeredTaxes) {
       const cat = r.tax.taxCategory || 'AUTRE';
@@ -1330,7 +1344,7 @@ const TaxReportingPage: React.FC = () => {
       catMap[cat].amount += r.amounts?.net || 0;
     }
     return Object.values(catMap);
-  }, [hasRegistry, triggeredTaxes, taxStats]);
+  }, [hasRegistry, triggeredTaxes, taxStats, t]);
 
   const repartitionTotal = useMemo(() => repartitionData.reduce((s, d) => s + d.amount, 0), [repartitionData]);
 
@@ -1365,21 +1379,21 @@ const TaxReportingPage: React.FC = () => {
 
   const handleExport = () => {
     const rows: (string | number)[][] = [
-      ['Synthèse fiscale', periodBounds.start, periodBounds.end],
+      [t('taxReporting.csvTaxSummary'), periodBounds.start, periodBounds.end],
       [],
-      ['Poste', 'Montant (FCFA)'],
-      ['TVA collectée', taxStats.tvaCollectee],
-      ['TVA déductible', taxStats.tvaDeductible],
-      ['TVA nette à payer', taxStats.tvaAPayer],
-      ['Crédit de TVA', taxStats.creditTVA],
-      ['IRPP/ITS (estimé)', taxStats.irpp],
-      ['IS (estimé)', taxStats.is],
-      ['CNPS / social à payer', taxStats.cnps],
-      ['Autres impôts & taxes', taxStats.autresImpots],
-      ['Total charges fiscales', taxStats.totalTaxes],
+      [t('taxReporting.csvItem'), t('taxReporting.csvAmountFcfa')],
+      [t('taxReporting.tvaCollected'), taxStats.tvaCollectee],
+      [t('taxReporting.tvaDeductible'), taxStats.tvaDeductible],
+      [t('taxReporting.tvaNetPayable'), taxStats.tvaAPayer],
+      [t('taxReporting.tvaCredit'), taxStats.creditTVA],
+      [t('taxReporting.irppEstimated'), taxStats.irpp],
+      [t('taxReporting.isEstimated'), taxStats.is],
+      [t('taxReporting.cnpsPayable'), taxStats.cnps],
+      [t('taxReporting.otherTaxes'), taxStats.autresImpots],
+      [t('taxReporting.totalTaxCharges'), taxStats.totalTaxes],
     ];
     downloadCsv(`synthese-fiscale-${periodBounds.start}_${periodBounds.end}.csv`, rows);
-    toast.success('Export CSV généré');
+    toast.success(t('taxReporting.csvExported'));
   };
 
   const handleNewDeclaration = () => {
@@ -1398,14 +1412,14 @@ const TaxReportingPage: React.FC = () => {
 
   const handleDownloadDeclaration = (declaration: TaxDeclaration) => {
     downloadCsv(`declaration-${declaration.type}-${declaration.periode}.csv`.replace(/\s+/g, '_'), [
-      ['Déclaration fiscale'],
-      ['Type', declaration.type],
-      ['Période', declaration.periode],
-      ['Montant', declaration.montant ?? 0],
-      ['Statut', declaration.statut ?? ''],
-      ['Échéance', declaration.dateEcheance ?? ''],
+      [t('taxReporting.taxDeclaration')],
+      [t('taxReporting.type'), declaration.type],
+      [t('taxReporting.period'), declaration.periode],
+      [t('taxReporting.amount'), declaration.montant ?? 0],
+      [t('taxReporting.status'), declaration.statut ?? ''],
+      [t('taxReporting.dueDate'), declaration.dateEcheance ?? ''],
     ]);
-    toast.success('Déclaration exportée (CSV)');
+    toast.success(t('taxReporting.declarationExportedCsv'));
   };
 
   const handleGenerateReport = () => {
@@ -1419,18 +1433,18 @@ const TaxReportingPage: React.FC = () => {
 
   const handleDownloadReport = (report: TaxReport) => {
     downloadCsv(`${report.name}.csv`.replace(/\s+/g, '_'), [
-      ['Rapport fiscal'],
-      ['Nom', report.name],
-      ['Type', report.type],
-      ['Format', report.format],
-      ['Généré le', report.lastGenerated],
+      [t('taxReporting.taxReport')],
+      [t('taxReporting.name'), report.name],
+      [t('taxReporting.type'), report.type],
+      [t('taxReporting.format'), report.format],
+      [t('taxReporting.generatedOn'), report.lastGenerated],
     ]);
-    toast.success('Rapport exporté (CSV)');
+    toast.success(t('taxReporting.reportExportedCsv'));
   };
 
   const handleSubmitDeclaration = async () => {
     if (!newDeclaration.type || !newDeclaration.periode || !newDeclaration.montant) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+      toast.error(t('taxReporting.errorRequiredFields'));
       return;
     }
     try {
@@ -1455,12 +1469,12 @@ const TaxReportingPage: React.FC = () => {
         createdAt: now,
         updatedAt: now,
       });
-      toast.success('Déclaration créée avec succès');
+      toast.success(t('taxReporting.declarationCreated'));
       setShowNewDeclarationModal(false);
       setNewDeclaration({ type: 'TVA', periode: '', montant: '', dateEcheance: '' });
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
     } catch (err) {
-      toast.error('Erreur lors de la création de la déclaration');
+      toast.error(t('taxReporting.errorCreateDeclaration'));
     }
   };
 
@@ -1483,17 +1497,17 @@ const TaxReportingPage: React.FC = () => {
           balanceDue: 0, credit: 0, status: 'paid', paidAt: now, createdAt: now, updatedAt: now,
         });
       }
-      toast.success(`Paiement de ${formatCurrency(d.montant || 0)} enregistré`);
+      toast.success(t('taxReporting.paymentRecordedAmount', { amount: formatCurrency(d.montant || 0) }));
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
     } catch {
-      toast.error('Erreur lors de l\'enregistrement du paiement');
+      toast.error(t('taxReporting.errorPaymentSave'));
     }
     setShowPaymentModal(false);
     setSelectedDeclaration(null);
   };
 
   const handleConfirmImport = () => {
-    toast.success('Import des données fiscales effectué');
+    toast.success(t('taxReporting.importDone'));
     setShowImportModal(false);
   };
 
@@ -1502,18 +1516,18 @@ const TaxReportingPage: React.FC = () => {
     try {
       await seedTaxRegistryCI(adapter);
       await seedIRPPBracketsCI(adapter);
-      toast.success('Registre fiscal CI initialisé avec succès');
+      toast.success(t('taxReporting.registrySeeded'));
       queryClient.invalidateQueries({ queryKey: ['tax-registry'] });
       queryClient.invalidateQueries({ queryKey: ['tax-detection'] });
     } catch (err) {
-      toast.error('Erreur lors de l\'initialisation du registre fiscal');
+      toast.error(t('taxReporting.errorSeedRegistry'));
     }
-  }, [adapter, queryClient]);
+  }, [adapter, queryClient, t]);
 
   // Auto-calculate all triggered taxes
   const handleAutoCalculate = useCallback(async () => {
     if (!hasRegistry) {
-      toast.error('Veuillez d\'abord initialiser le registre fiscal');
+      toast.error(t('taxReporting.errorInitRegistryFirst'));
       return;
     }
     setIsAutoCalculating(true);
@@ -1526,40 +1540,40 @@ const TaxReportingPage: React.FC = () => {
           count++;
         }
       }
-      toast.success(`${count} déclaration(s) calculée(s) automatiquement`);
+      toast.success(t('taxReporting.declarationsCalculated', { count: String(count) }));
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
       queryClient.invalidateQueries({ queryKey: ['tax-detection'] });
     } catch (err) {
-      toast.error('Erreur lors du calcul automatique');
+      toast.error(t('taxReporting.errorAutoCalc'));
     } finally {
       setIsAutoCalculating(false);
     }
-  }, [adapter, hasRegistry, triggeredTaxes, periodBounds, queryClient]);
+  }, [adapter, hasRegistry, triggeredTaxes, periodBounds, queryClient, t]);
 
   // Status workflow handlers for DB declarations
   const handleValidateDecl = useCallback(async (declId: string) => {
     try {
       await adapter.update('taxDeclarations', declId, { status: 'validated', updatedAt: new Date().toISOString() });
-      toast.success('Déclaration validée');
+      toast.success(t('taxReporting.declarationValidated'));
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch (err) { /* silent */ toast.error('Erreur de validation'); }
-  }, [adapter, queryClient]);
+    } catch (err) { /* silent */ toast.error(t('taxReporting.errorValidation')); }
+  }, [adapter, queryClient, t]);
 
   const handleDeclareDecl = useCallback(async (declId: string) => {
     try {
       await adapter.update('taxDeclarations', declId, { status: 'declared', declaredAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-      toast.success('Déclaration transmise');
+      toast.success(t('taxReporting.declarationSubmitted'));
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch (err) { /* silent */ toast.error('Erreur de transmission'); }
-  }, [adapter, queryClient]);
+    } catch (err) { /* silent */ toast.error(t('taxReporting.errorSubmission')); }
+  }, [adapter, queryClient, t]);
 
   const handlePayDecl = useCallback(async (declId: string) => {
     try {
       await adapter.update('taxDeclarations', declId, { status: 'paid', paidAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
-      toast.success('Paiement enregistré');
+      toast.success(t('taxReporting.paymentRecorded'));
       queryClient.invalidateQueries({ queryKey: ['tax-declarations-db'] });
-    } catch (err) { /* silent */ toast.error('Erreur de paiement'); }
-  }, [adapter, queryClient]);
+    } catch (err) { /* silent */ toast.error(t('taxReporting.errorPayment')); }
+  }, [adapter, queryClient, t]);
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -1581,13 +1595,13 @@ const TaxReportingPage: React.FC = () => {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'payee':
-        return 'Payée';
+        return t('taxReporting.statusPaid');
       case 'en_cours':
-        return 'En cours';
+        return t('taxReporting.statusInProgress');
       case 'planifiee':
-        return 'Planifiée';
+        return t('taxReporting.statusPlanned');
       case 'en_retard':
-        return 'En retard';
+        return t('taxReporting.statusOverdue');
       default:
         return status;
     }
@@ -1617,17 +1631,17 @@ const TaxReportingPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-var(--color-text-primary) flex items-center">
               <Receipt className="mr-3 h-7 w-7 text-var(--color-blue-primary)" />
-              Reporting Fiscal
+              {t('taxReporting.title')}
             </h1>
             <p className="mt-1 text-sm text-var(--color-text-secondary)">
-              Tableaux de bord et rapports fiscaux - TVA, IRPP, IS et autres taxes
+              {t('taxReporting.subtitle')}
             </p>
           </div>
           <div className="flex space-x-2">
             {!hasRegistry && (
               <Button variant="outline" onClick={handleSeedRegistry} className="border-orange-300 text-orange-700 hover:bg-orange-50">
                 <Settings className="mr-2 h-4 w-4" />
-                Initialiser taxes CI
+                {t('taxReporting.initCiTaxes')}
               </Button>
             )}
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
@@ -1635,19 +1649,19 @@ const TaxReportingPage: React.FC = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="current-month">Mois en cours</SelectItem>
-                <SelectItem value="last-month">Mois dernier</SelectItem>
-                <SelectItem value="current-quarter">Trimestre en cours</SelectItem>
-                <SelectItem value="current-year">Année en cours</SelectItem>
+                <SelectItem value="current-month">{t('taxReporting.periodCurrentMonth')}</SelectItem>
+                <SelectItem value="last-month">{t('taxReporting.periodLastMonth')}</SelectItem>
+                <SelectItem value="current-quarter">{t('taxReporting.periodCurrentQuarter')}</SelectItem>
+                <SelectItem value="current-year">{t('taxReporting.periodCurrentYear')}</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="outline" onClick={handleImport}>
               <Upload className="mr-2 h-4 w-4" />
-              Importer
+              {t('taxReporting.import')}
             </Button>
             <Button className="bg-var(--color-blue-primary) hover:bg-var(--color-blue-dark)" onClick={handleExport}>
               <Download className="mr-2 h-4 w-4" />
-              Exporter
+              {t('taxReporting.export')}
             </Button>
           </div>
         </div>
@@ -1673,8 +1687,8 @@ const TaxReportingPage: React.FC = () => {
                     </span>
                     <span className="text-gray-600">
                       {isOverdue
-                        ? ` — En retard (échéance: ${r.declarationDeadline})`
-                        : ` — Échéance dans ${r.daysUntilDeadline} jour(s) (${r.declarationDeadline})`
+                        ? t('taxReporting.alertOverdue', { date: String(r.declarationDeadline) })
+                        : t('taxReporting.alertDueIn', { days: String(r.daysUntilDeadline), date: String(r.declarationDeadline) })
                       }
                     </span>
                     {r.amounts?.net != null && (
@@ -1701,15 +1715,15 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-var(--color-text-secondary)">TVA à Payer</p>
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">{t('taxReporting.kpiTvaPayable')}</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(kpiValues.tva)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
-                    Collectée: {formatCurrency(kpiValues.tvaCollectee)}
+                    {t('taxReporting.kpiCollected')} {formatCurrency(kpiValues.tvaCollectee)}
                   </p>
                   <p className="text-xs text-gray-700">
-                    Déductible: {formatCurrency(kpiValues.tvaDeductible)}
+                    {t('taxReporting.kpiDeductible')} {formatCurrency(kpiValues.tvaDeductible)}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1744,7 +1758,7 @@ const TaxReportingPage: React.FC = () => {
                     {formatCurrency(kpiValues.irpp)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
-                    Impôt sur le revenu
+                    {t('taxReporting.incomeTax')}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1779,7 +1793,7 @@ const TaxReportingPage: React.FC = () => {
                     {formatCurrency(kpiValues.is)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
-                    Impôt sur les sociétés
+                    {t('taxReporting.corporateTax')}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1809,12 +1823,12 @@ const TaxReportingPage: React.FC = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-var(--color-text-secondary)">Total Taxes</p>
+                  <p className="text-sm font-medium text-var(--color-text-secondary)">{t('taxReporting.kpiTotalTaxes')}</p>
                   <p className="text-lg font-bold text-var(--color-text-primary)">
                     {formatCurrency(kpiValues.total)}
                   </p>
                   <p className="text-xs text-gray-700 mt-1">
-                    Toutes taxes confondues
+                    {t('taxReporting.allTaxesCombined')}
                   </p>
                 </div>
                 <div className="text-right">
@@ -1844,11 +1858,11 @@ const TaxReportingPage: React.FC = () => {
       >
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
-            <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-            <TabsTrigger value="declarations">Déclarations</TabsTrigger>
-            <TabsTrigger value="reports">Rapports</TabsTrigger>
-            <TabsTrigger value="analytics">Analyses</TabsTrigger>
-            <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+            <TabsTrigger value="overview">{t('taxReporting.tabOverview')}</TabsTrigger>
+            <TabsTrigger value="declarations">{t('taxReporting.tabDeclarations')}</TabsTrigger>
+            <TabsTrigger value="reports">{t('taxReporting.tabReports')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('taxReporting.tabAnalytics')}</TabsTrigger>
+            <TabsTrigger value="calendar">{t('taxReporting.tabCalendar')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
@@ -1858,7 +1872,7 @@ const TaxReportingPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <BarChart3 className="mr-2 h-5 w-5" />
-                    Évolution TVA
+                    {t('taxReporting.tvaEvolution')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1872,21 +1886,21 @@ const TaxReportingPage: React.FC = () => {
                         <>
                           <div>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-var(--color-text-secondary)">TVA Collectée</span>
+                              <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.tvaCollectedTitle')}</span>
                               <span className="text-sm font-medium">{formatCurrency(taxStats.tvaCollectee)}</span>
                             </div>
                             <Progress value={pctCollectee} className="h-2" />
                           </div>
                           <div>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-var(--color-text-secondary)">TVA Déductible</span>
+                              <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.tvaDeductibleTitle')}</span>
                               <span className="text-sm font-medium">{formatCurrency(taxStats.tvaDeductible)}</span>
                             </div>
                             <Progress value={pctDeductible} className="h-2" />
                           </div>
                           <div>
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium">TVA à Payer</span>
+                              <span className="text-sm font-medium">{t('taxReporting.kpiTvaPayable')}</span>
                               <span className="text-sm font-bold text-var(--color-blue-primary)">{formatCurrency(taxStats.tvaAPayer)}</span>
                             </div>
                             <Progress value={pctAPayer} className="h-2 bg-var(--color-blue-light)" />
@@ -1903,7 +1917,7 @@ const TaxReportingPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Calendar className="mr-2 h-5 w-5" />
-                    Prochaines Échéances
+                    {t('taxReporting.upcomingDeadlines')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1926,8 +1940,8 @@ const TaxReportingPage: React.FC = () => {
                               ? 'bg-var(--color-orange-light) text-orange-800'
                               : 'bg-var(--color-blue-light) text-var(--color-blue-dark)';
                           const daysLabel = isOverdue
-                            ? `${Math.abs(r.daysUntilDeadline || 0)}j retard`
-                            : `${r.daysUntilDeadline}j`;
+                            ? t('taxReporting.daysOverdueShort', { days: String(Math.abs(r.daysUntilDeadline || 0)) })
+                            : t('taxReporting.daysShort', { days: String(r.daysUntilDeadline) });
                           return (
                             <div key={idx} className={`flex items-center justify-between p-2 ${bgColor} rounded-lg`}>
                               <div className="flex items-center">
@@ -1955,8 +1969,8 @@ const TaxReportingPage: React.FC = () => {
                       <div className="flex items-center justify-center p-6 text-gray-400">
                         <div className="text-center">
                           <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">Aucune échéance fiscale</p>
-                          <p className="text-xs mt-1">Initialisez le registre fiscal pour activer la détection automatique</p>
+                          <p className="text-sm">{t('taxReporting.noTaxDeadlines')}</p>
+                          <p className="text-xs mt-1">{t('taxReporting.initRegistryHint')}</p>
                         </div>
                       </div>
                     )}
@@ -1970,7 +1984,7 @@ const TaxReportingPage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <PieChart className="mr-2 h-5 w-5" />
-                  Répartition des Taxes par Type
+                  {t('taxReporting.taxBreakdownByType')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1996,13 +2010,13 @@ const TaxReportingPage: React.FC = () => {
               <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 flex items-center space-x-3">
                 <AlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-orange-800">Registre fiscal non configuré</p>
+                  <p className="text-sm font-medium text-orange-800">{t('taxReporting.registryNotConfigured')}</p>
                   <p className="text-xs text-orange-600">
-                    Configurez les taxes dans Admin &rarr; Registre Fiscal ou cliquez sur "Initialiser taxes CI" pour charger les taxes ivoiriennes.
+                    {t('taxReporting.registryNotConfiguredHint')}
                   </p>
                 </div>
                 <Button size="sm" variant="outline" onClick={handleSeedRegistry} className="border-orange-300 text-orange-700">
-                  Initialiser
+                  {t('taxReporting.initialize')}
                 </Button>
               </div>
             )}
@@ -2012,26 +2026,26 @@ const TaxReportingPage: React.FC = () => {
               <Card className="flex-1 min-w-0">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-base">Taxes à déclarer</CardTitle>
+                    <CardTitle className="text-base">{t('taxReporting.taxesToDeclare')}</CardTitle>
                     <span className="text-sm font-semibold text-[var(--color-primary)]">{formatCurrency(aDeclarer.reduce((s, t) => s + t.montant, 0))}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Par nature — cochez celles à déclarer →</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('taxReporting.byNatureHint')}</p>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-[var(--color-border)]">
                     {aDeclarer.length === 0 ? (
-                      <div className="p-6 text-center text-sm text-gray-500">Toutes les taxes dues sont déclarées.</div>
-                    ) : aDeclarer.map(t => (
-                      <label key={t.key} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                        <input type="checkbox" checked={selectedTaxKeys.has(t.key)} onChange={() => toggleTaxKey(t.key)} className="h-4 w-4" />
+                      <div className="p-6 text-center text-sm text-gray-500">{t('taxReporting.allTaxesDeclared')}</div>
+                    ) : aDeclarer.map(item => (
+                      <label key={item.key} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer">
+                        <input type="checkbox" checked={selectedTaxKeys.has(item.key)} onChange={() => toggleTaxKey(item.key)} className="h-4 w-4" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{t.label}</div>
-                          <div className="text-xs text-gray-500">{t.periode} · échéance {t.echeance}</div>
+                          <div className="text-sm font-medium">{item.label}</div>
+                          <div className="text-xs text-gray-500">{item.periode} · {t('taxReporting.dueDateLower')} {item.echeance}</div>
                         </div>
-                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
-                        {natureDetails[t.key] && (
-                          <button type="button" title="Voir le détail" className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDetailKey(t.key); }}>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(item.montant)}</span>
+                        {natureDetails[item.key] && (
+                          <button type="button" title={t('taxReporting.viewDetail')} className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDetailKey(item.key); }}>
                             <Eye className="h-4 w-4" />
                           </button>
                         )}
@@ -2040,9 +2054,9 @@ const TaxReportingPage: React.FC = () => {
                   </div>
                   {aDeclarer.length > 0 && (
                     <div className="p-3 border-t border-[var(--color-border)] flex items-center justify-between gap-2">
-                      <span className="text-xs text-gray-500">{selectedTaxKeys.size} sélectionnée(s) · {formatCurrency(selectedTaxAmount)}</span>
+                      <span className="text-xs text-gray-500">{t('taxReporting.selectedCount', { count: String(selectedTaxKeys.size) })} · {formatCurrency(selectedTaxAmount)}</span>
                       <Button size="sm" onClick={declarerSelection} disabled={selectedTaxKeys.size === 0}>
-                        <CheckCircle className="h-4 w-4 mr-1" /> Déclarer la sélection
+                        <CheckCircle className="h-4 w-4 mr-1" /> {t('taxReporting.declareSelection')}
                       </Button>
                     </div>
                   )}
@@ -2052,37 +2066,37 @@ const TaxReportingPage: React.FC = () => {
               <div className="flex-none w-14 relative flex flex-col items-center justify-center">
                 <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
                 <div className="z-10 w-8 h-8 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center text-sm font-bold">→</div>
-                <span className="z-10 mt-1 text-[10px] text-gray-500 bg-[var(--color-background,#fff)] px-1">déclarer</span>
+                <span className="z-10 mt-1 text-[10px] text-gray-500 bg-[var(--color-background,#fff)] px-1">{t('taxReporting.declareVerb')}</span>
               </div>
 
               <Card className="flex-1 min-w-0 border-2 border-green-200">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-base">Déjà déclarées</CardTitle>
+                    <CardTitle className="text-base">{t('taxReporting.alreadyDeclared')}</CardTitle>
                     <span className="text-sm font-semibold text-green-700">{formatCurrency(dejaDeclarees.reduce((s, t) => s + t.montant, 0))}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-0.5">Déclaration créée dans le registre</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('taxReporting.declarationCreatedInRegistry')}</p>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="divide-y divide-[var(--color-border)]">
                     {dejaDeclarees.length === 0 ? (
-                      <div className="p-6 text-center text-sm text-gray-500">Aucune taxe déclarée pour l'instant.</div>
-                    ) : dejaDeclarees.map(t => (
-                      <div key={t.key} className="flex items-center gap-3 px-4 py-3 bg-green-50/40">
+                      <div className="p-6 text-center text-sm text-gray-500">{t('taxReporting.noTaxDeclaredYet')}</div>
+                    ) : dejaDeclarees.map(item => (
+                      <div key={item.key} className="flex items-center gap-3 px-4 py-3 bg-green-50/40">
                         <CheckCircle className="h-4 w-4 text-green-600 shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">{t.label}</div>
-                          <div className="text-xs text-gray-500">{t.periode}{t.declaredAt ? ` · déclarée le ${new Date(t.declaredAt).toLocaleDateString('fr-FR')}` : ''}</div>
+                          <div className="text-sm font-medium">{item.label}</div>
+                          <div className="text-xs text-gray-500">{item.periode}{item.declaredAt ? t('taxReporting.declaredOn', { date: new Date(item.declaredAt).toLocaleDateString('fr-FR') }) : ''}</div>
                         </div>
-                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(t.montant)}</span>
-                        {natureDetails[t.key] && (
-                          <button type="button" title="Voir le détail" className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
-                            onClick={() => setDetailKey(t.key)}>
+                        <span className="text-sm font-mono font-semibold whitespace-nowrap">{formatCurrency(item.montant)}</span>
+                        {natureDetails[item.key] && (
+                          <button type="button" title={t('taxReporting.viewDetail')} className="p-1 text-gray-400 hover:text-[var(--color-primary)] shrink-0"
+                            onClick={() => setDetailKey(item.key)}>
                             <Eye className="h-4 w-4" />
                           </button>
                         )}
-                        {t.canRevert && (
-                          <button type="button" onClick={() => annulerDeclaration(t.key)} title="Annuler la déclaration" className="p-1 text-gray-400 hover:text-red-600 text-sm shrink-0"><X className="h-4 w-4" /></button>
+                        {item.canRevert && (
+                          <button type="button" onClick={() => annulerDeclaration(item.key)} title={t('taxReporting.cancelDeclaration')} className="p-1 text-gray-400 hover:text-red-600 text-sm shrink-0"><X className="h-4 w-4" /></button>
                         )}
                       </div>
                     ))}
@@ -2094,14 +2108,14 @@ const TaxReportingPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Déclarations Fiscales</CardTitle>
+                  <CardTitle>{t('taxReporting.taxDeclarationsTitle')}</CardTitle>
                   <div className="flex space-x-2">
                     <Select value={selectedTaxType} onValueChange={setSelectedTaxType}>
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes</SelectItem>
+                        <SelectItem value="all">{t('taxReporting.allFem')}</SelectItem>
                         <SelectItem value="tva">TVA</SelectItem>
                         <SelectItem value="irpp">IRPP</SelectItem>
                         <SelectItem value="is">IS</SelectItem>
@@ -2114,12 +2128,12 @@ const TaxReportingPage: React.FC = () => {
                         ) : (
                           <Zap className="mr-1 h-4 w-4" />
                         )}
-                        Calculer automatiquement
+                        {t('taxReporting.autoCalculate')}
                       </Button>
                     )}
                     <Button size="sm" onClick={handleNewDeclaration}>
                       <Plus className="mr-1 h-4 w-4" />
-                      Nouvelle
+                      {t('taxReporting.newFem')}
                     </Button>
                   </div>
                 </div>
@@ -2128,13 +2142,13 @@ const TaxReportingPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Période</TableHead>
-                      <TableHead>Montant</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Échéance</TableHead>
-                      <TableHead>Paiement</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('taxReporting.type')}</TableHead>
+                      <TableHead>{t('taxReporting.period')}</TableHead>
+                      <TableHead>{t('taxReporting.amount')}</TableHead>
+                      <TableHead>{t('taxReporting.status')}</TableHead>
+                      <TableHead>{t('taxReporting.dueDate')}</TableHead>
+                      <TableHead>{t('taxReporting.payment')}</TableHead>
+                      <TableHead>{t('taxReporting.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -2157,7 +2171,7 @@ const TaxReportingPage: React.FC = () => {
                             <TableCell>
                               {declaration.datePaiement || (
                                 declaration.statut === 'en_retard' ? (
-                                  <span className="text-var(--color-red-primary) text-sm">En retard</span>
+                                  <span className="text-var(--color-red-primary) text-sm">{t('taxReporting.statusOverdue')}</span>
                                 ) : (
                                   <span className="text-var(--color-text-muted) text-sm">-</span>
                                 )
@@ -2170,17 +2184,17 @@ const TaxReportingPage: React.FC = () => {
                                 </Button>
                                 {/* Workflow buttons for DB declarations */}
                                 {dbId && dbStatus === 'calculated' && (
-                                  <Button variant="ghost" size="sm" onClick={() => handleValidateDecl(dbId)} title="Valider">
+                                  <Button variant="ghost" size="sm" onClick={() => handleValidateDecl(dbId)} title={t('taxReporting.validate')}>
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                   </Button>
                                 )}
                                 {dbId && dbStatus === 'validated' && (
-                                  <Button variant="ghost" size="sm" onClick={() => handleDeclareDecl(dbId)} title="Déclarer">
+                                  <Button variant="ghost" size="sm" onClick={() => handleDeclareDecl(dbId)} title={t('taxReporting.declare')}>
                                     <FileText className="h-4 w-4 text-blue-600" />
                                   </Button>
                                 )}
                                 {dbId && (dbStatus === 'declared' || dbStatus === 'overdue') && (
-                                  <Button variant="ghost" size="sm" onClick={() => handlePayDecl(dbId)} title="Payer">
+                                  <Button variant="ghost" size="sm" onClick={() => handlePayDecl(dbId)} title={t('taxReporting.pay')}>
                                     <CreditCard className="h-4 w-4 text-green-600" />
                                   </Button>
                                 )}
@@ -2208,16 +2222,16 @@ const TaxReportingPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Rapports Fiscaux Disponibles</CardTitle>
+                  <CardTitle>{t('taxReporting.availableTaxReports')}</CardTitle>
                   <Button onClick={handleGenerateReport}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Générer Rapport
+                    {t('taxReporting.generateReport')}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {availableReports.length === 0 ? (
-                  <p className="text-sm text-center text-gray-400 py-6">Aucun rapport disponible</p>
+                  <p className="text-sm text-center text-gray-400 py-6">{t('taxReporting.noReportAvailable')}</p>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
                     {availableReports.map((report) => (
@@ -2237,11 +2251,11 @@ const TaxReportingPage: React.FC = () => {
                         <div className="flex justify-end space-x-2">
                           <Button variant="outline" size="sm" onClick={() => handlePreviewReport(report)}>
                             <Eye className="mr-1 h-3 w-3" />
-                            Aperçu
+                            {t('taxReporting.preview')}
                           </Button>
                           <Button size="sm" onClick={() => handleDownloadReport(report)}>
                             <Download className="mr-1 h-3 w-3" />
-                            Télécharger
+                            {t('taxReporting.download')}
                           </Button>
                         </div>
                       </div>
@@ -2258,13 +2272,13 @@ const TaxReportingPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Activity className="mr-2 h-5 w-5" />
-                    Tendances Fiscales
+                    {t('taxReporting.taxTrends')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-var(--color-text-secondary)">Charge fiscale moyenne</span>
+                      <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.avgTaxBurden')}</span>
                       <span className="font-semibold">
                         {(() => {
                           // Dénominateur = produits (chiffre d'affaires, classe 7) : base économique
@@ -2278,7 +2292,7 @@ const TaxReportingPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-var(--color-text-secondary)">Taux effectif d'imposition</span>
+                      <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.effectiveTaxRate')}</span>
                       <span className="font-semibold">
                         {(() => {
                           if (hasRegistry && triggeredTaxes.length > 0) {
@@ -2292,7 +2306,7 @@ const TaxReportingPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-var(--color-text-secondary)">Crédit de TVA</span>
+                      <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.tvaCredit')}</span>
                       <span className="font-semibold text-var(--color-green-primary)">
                         {(() => {
                           if (hasRegistry && triggeredTaxes.length > 0) {
@@ -2304,7 +2318,7 @@ const TaxReportingPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-var(--color-text-secondary)">Économies fiscales</span>
+                      <span className="text-sm text-var(--color-text-secondary)">{t('taxReporting.taxSavings')}</span>
                       <span className="font-semibold text-var(--color-green-primary)">
                         {(() => {
                           if (hasRegistry && triggeredTaxes.length > 0) {
@@ -2323,7 +2337,7 @@ const TaxReportingPage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Calculator className="mr-2 h-5 w-5" />
-                    Optimisation Fiscale
+                    {t('taxReporting.taxOptimization')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -2332,18 +2346,18 @@ const TaxReportingPage: React.FC = () => {
                       <div className="flex items-center">
                         <CheckCircle className="h-4 w-4 text-var(--color-green-primary) mr-2" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium">Déductions maximisées</p>
+                          <p className="text-sm font-medium">{t('taxReporting.deductionsMaximized')}</p>
                           <p className="text-xs text-var(--color-text-secondary)">
                             {(() => {
                               if (hasRegistry && triggeredTaxes.length > 0) {
                                 const tvaResult = triggeredTaxes.find(r => r.tax.taxCode === 'TVA');
                                 const ded = tvaResult?.amounts?.deductible || 0;
                                 const col = tvaResult?.amounts?.base || 0;
-                                if (col > 0) return `${(ded / col * 100).toFixed(0)}% du potentiel récupéré`;
+                                if (col > 0) return t('taxReporting.potentialRecovered', { pct: (ded / col * 100).toFixed(0) });
                               }
                               // Fallback réel : ratio TVA déductible / collectée issu du GL
                               if (taxStats.tvaCollectee > 0) {
-                                return `${(taxStats.tvaDeductible / taxStats.tvaCollectee * 100).toFixed(0)}% du potentiel récupéré`;
+                                return t('taxReporting.potentialRecovered', { pct: (taxStats.tvaDeductible / taxStats.tvaCollectee * 100).toFixed(0) });
                               }
                               return '—';
                             })()}
@@ -2356,18 +2370,18 @@ const TaxReportingPage: React.FC = () => {
                       <div className="flex items-center">
                         <Activity className="h-4 w-4 text-var(--color-blue-primary) mr-2" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium">Crédits d'impôt utilisés</p>
+                          <p className="text-sm font-medium">{t('taxReporting.taxCreditsUsed')}</p>
                           <p className="text-xs text-var(--color-text-secondary)">
                             {(() => {
                               if (hasRegistry && triggeredTaxes.length > 0) {
                                 const totalCredits = triggeredTaxes.reduce((s, r) => s + (r.amounts?.credit || 0), 0);
-                                if (totalCredits > 0) return `${formatCurrency(totalCredits)} de crédits disponibles`;
+                                if (totalCredits > 0) return t('taxReporting.creditsAvailable', { amount: formatCurrency(totalCredits) });
                               }
                               // Fallback réel : crédit de TVA (déductible − collectée) calculé sur le GL
                               if (taxStats.creditTVA > 0) {
-                                return `${formatCurrency(taxStats.creditTVA)} de crédit de TVA`;
+                                return t('taxReporting.tvaCreditAmount', { amount: formatCurrency(taxStats.creditTVA) });
                               }
-                              return 'Aucun crédit d\'impôt disponible';
+                              return t('taxReporting.noTaxCredit');
                             })()}
                           </p>
                         </div>
@@ -2378,15 +2392,15 @@ const TaxReportingPage: React.FC = () => {
                       <div className="flex items-center">
                         <AlertCircle className="h-4 w-4 text-var(--color-orange-primary) mr-2" />
                         <div className="flex-1">
-                          <p className="text-sm font-medium">Opportunités identifiées</p>
+                          <p className="text-sm font-medium">{t('taxReporting.opportunitiesIdentified')}</p>
                           <p className="text-xs text-var(--color-text-secondary)">
                             {(() => {
                               if (hasRegistry && triggeredTaxes.length > 0) {
                                 const manualCount = triggeredTaxes.filter(r => r.amounts?.requiresManualInput).length;
-                                if (manualCount > 0) return `${manualCount} taxe(s) nécessitent une saisie manuelle`;
-                                return `${triggeredTaxes.length} taxe(s) détectée(s) automatiquement`;
+                                if (manualCount > 0) return t('taxReporting.taxesNeedManual', { count: String(manualCount) });
+                                return t('taxReporting.taxesAutoDetected', { count: String(triggeredTaxes.length) });
                               }
-                              return 'Registre fiscal non initialisé';
+                              return t('taxReporting.registryNotInitialized');
                             })()}
                           </p>
                         </div>
@@ -2414,7 +2428,7 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Importer des données fiscales</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.importTaxData')}</h3>
               <button onClick={() => setShowImportModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
@@ -2422,15 +2436,15 @@ const TaxReportingPage: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-2">Glissez-déposez vos fichiers ici</p>
-                <p className="text-sm text-gray-500">ou</p>
-                <Button variant="outline" className="mt-2">Parcourir</Button>
+                <p className="text-gray-600 mb-2">{t('taxReporting.dragDropFiles')}</p>
+                <p className="text-sm text-gray-500">{t('taxReporting.or')}</p>
+                <Button variant="outline" className="mt-2">{t('taxReporting.browse')}</Button>
               </div>
-              <p className="text-sm text-gray-500">Formats acceptés: CSV, Excel, XML</p>
+              <p className="text-sm text-gray-500">{t('taxReporting.acceptedFormats')}</p>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowImportModal(false)}>Annuler</Button>
-              <Button onClick={handleConfirmImport}>Importer</Button>
+              <Button variant="outline" onClick={() => setShowImportModal(false)}>{t('taxReporting.cancel')}</Button>
+              <Button onClick={handleConfirmImport}>{t('taxReporting.import')}</Button>
             </div>
           </div>
         </div>
@@ -2441,14 +2455,14 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
             <div className="p-6 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Nouvelle Déclaration Fiscale</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.newTaxDeclaration')}</h3>
               <button onClick={() => setShowNewDeclarationModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type de déclaration *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.declarationType')}</label>
                 <select
                   value={newDeclaration.type}
                   onChange={(e) => setNewDeclaration({ ...newDeclaration, type: e.target.value })}
@@ -2465,23 +2479,23 @@ const TaxReportingPage: React.FC = () => {
                       <option value="TVA">TVA</option>
                       <option value="IRPP">IRPP</option>
                       <option value="IS">IS</option>
-                      <option value="Taxe professionnelle">Taxe professionnelle</option>
+                      <option value="Taxe professionnelle">{t('taxReporting.businessTax')}</option>
                     </>
                   )}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Période *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.periodRequired')}</label>
                 <input
                   type="text"
                   value={newDeclaration.periode}
                   onChange={(e) => setNewDeclaration({ ...newDeclaration, periode: e.target.value })}
-                  placeholder="Ex: Janvier 2024"
+                  placeholder={t('taxReporting.periodPlaceholder')}
                   className="w-full border rounded-lg p-2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Montant (XOF) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.amountXof')}</label>
                 <input
                   type="number"
                   value={newDeclaration.montant}
@@ -2491,7 +2505,7 @@ const TaxReportingPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date d'échéance</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.dueDateLabel')}</label>
                 <input
                   type="date"
                   value={newDeclaration.dateEcheance}
@@ -2501,8 +2515,8 @@ const TaxReportingPage: React.FC = () => {
               </div>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowNewDeclarationModal(false)}>Annuler</Button>
-              <Button onClick={handleSubmitDeclaration}>Créer la déclaration</Button>
+              <Button variant="outline" onClick={() => setShowNewDeclarationModal(false)}>{t('taxReporting.cancel')}</Button>
+              <Button onClick={handleSubmitDeclaration}>{t('taxReporting.createDeclaration')}</Button>
             </div>
           </div>
         </div>
@@ -2513,7 +2527,7 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
             <div className="p-6 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Détails de la Déclaration</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.declarationDetails')}</h3>
               <button onClick={() => setShowDeclarationDetailModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
@@ -2521,38 +2535,38 @@ const TaxReportingPage: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-500">Type</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.type')}</p>
                   <p className="font-medium">{selectedDeclaration.type}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Période</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.period')}</p>
                   <p className="font-medium">{selectedDeclaration.periode}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Montant</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.amount')}</p>
                   <p className="font-medium text-lg">{formatCurrency(selectedDeclaration.montant)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Statut</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.status')}</p>
                   <Badge className={getStatusColor(selectedDeclaration.statut)}>
                     {getStatusLabel(selectedDeclaration.statut)}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Échéance</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.dueDate')}</p>
                   <p className="font-medium">{selectedDeclaration.dateEcheance}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Date de paiement</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.paymentDate')}</p>
                   <p className="font-medium">{selectedDeclaration.datePaiement || '-'}</p>
                 </div>
               </div>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowDeclarationDetailModal(false)}>Fermer</Button>
+              <Button variant="outline" onClick={() => setShowDeclarationDetailModal(false)}>{t('taxReporting.close')}</Button>
               <Button onClick={() => handleDownloadDeclaration(selectedDeclaration)}>
                 <Download className="mr-2 h-4 w-4" />
-                Télécharger
+                {t('taxReporting.download')}
               </Button>
             </div>
           </div>
@@ -2564,37 +2578,37 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Enregistrer le Paiement</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.recordPayment')}</h3>
               <button onClick={() => setShowPaymentModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-600">Déclaration</p>
+                <p className="text-sm text-blue-600">{t('taxReporting.declaration')}</p>
                 <p className="font-semibold">{selectedDeclaration.type} - {selectedDeclaration.periode}</p>
                 <p className="text-lg font-bold text-blue-700 mt-2">{formatCurrency(selectedDeclaration.montant)}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mode de paiement</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.paymentMethod')}</label>
                 <select className="w-full border rounded-lg p-2">
-                  <option>Virement bancaire</option>
-                  <option>Chèque</option>
-                  <option>Télépaiement</option>
+                  <option>{t('taxReporting.bankTransfer')}</option>
+                  <option>{t('taxReporting.check')}</option>
+                  <option>{t('taxReporting.onlinePayment')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Référence de paiement</label>
-                <input type="text" placeholder="N° de référence" className="w-full border rounded-lg p-2" />
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.paymentReference')}</label>
+                <input type="text" placeholder={t('taxReporting.referencePlaceholder')} className="w-full border rounded-lg p-2" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date de paiement</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.paymentDate')}</label>
                 <input type="date" defaultValue={new Date().toISOString().split('T')[0]} className="w-full border rounded-lg p-2" />
               </div>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowPaymentModal(false)}>Annuler</Button>
-              <Button onClick={handleConfirmPayment}>Confirmer le paiement</Button>
+              <Button variant="outline" onClick={() => setShowPaymentModal(false)}>{t('taxReporting.cancel')}</Button>
+              <Button onClick={handleConfirmPayment}>{t('taxReporting.confirmPayment')}</Button>
             </div>
           </div>
         </div>
@@ -2605,34 +2619,34 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6 border-b flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Générer un Rapport Fiscal</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.generateTaxReport')}</h3>
               <button onClick={() => setShowGenerateReportModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type de rapport</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.reportType')}</label>
                 <select className="w-full border rounded-lg p-2">
-                  <option>État de TVA Mensuel</option>
-                  <option>Synthèse Fiscale Annuelle</option>
-                  <option>Déclaration IRPP</option>
-                  <option>Liasse Fiscale</option>
-                  <option>Rapport personnalisé</option>
+                  <option>{t('taxReporting.reportMonthlyVat')}</option>
+                  <option>{t('taxReporting.reportAnnualSummary')}</option>
+                  <option>{t('taxReporting.reportIrpp')}</option>
+                  <option>{t('taxReporting.reportTaxPackage')}</option>
+                  <option>{t('taxReporting.reportCustom')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.period')}</label>
                 <select className="w-full border rounded-lg p-2">
-                  <option>Mois en cours</option>
-                  <option>Mois précédent</option>
-                  <option>Trimestre en cours</option>
-                  <option>Année en cours</option>
-                  <option>Personnalisé</option>
+                  <option>{t('taxReporting.periodCurrentMonth')}</option>
+                  <option>{t('taxReporting.periodPreviousMonth')}</option>
+                  <option>{t('taxReporting.periodCurrentQuarter')}</option>
+                  <option>{t('taxReporting.periodCurrentYear')}</option>
+                  <option>{t('taxReporting.periodCustom')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Format</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('taxReporting.format')}</label>
                 <select className="w-full border rounded-lg p-2">
                   <option>PDF</option>
                   <option>Excel</option>
@@ -2641,13 +2655,13 @@ const TaxReportingPage: React.FC = () => {
               </div>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowGenerateReportModal(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setShowGenerateReportModal(false)}>{t('taxReporting.cancel')}</Button>
               <Button onClick={() => {
                 // Génère un vrai fichier (synthèse fiscale CSV) au lieu d'un setTimeout factice.
                 handleExport();
                 setShowGenerateReportModal(false);
               }}>
-                Générer
+                {t('taxReporting.generate')}
               </Button>
             </div>
           </div>
@@ -2657,14 +2671,14 @@ const TaxReportingPage: React.FC = () => {
       {/* Modal Détail d'une nature de taxe (drill-down) */}
       {detailKey && natureDetails[detailKey] && (() => {
         const detail = natureDetails[detailKey];
-        const label = taxesParNature.find(t => t.key === detailKey)?.label || detailKey;
+        const label = taxesParNature.find(item => item.key === detailKey)?.label || detailKey;
         return (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setDetailKey(null)}>
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
                 <div>
-                  <h3 className="text-lg font-semibold">Détail — {label}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">Composition du montant à déclarer</p>
+                  <h3 className="text-lg font-semibold">{t('taxReporting.detail')} — {label}</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{t('taxReporting.detailSubtitle')}</p>
                 </div>
                 <button onClick={() => setDetailKey(null)} className="text-gray-500 hover:text-gray-700"><X className="h-5 w-5" /></button>
               </div>
@@ -2676,24 +2690,24 @@ const TaxReportingPage: React.FC = () => {
                       <span className="text-sm font-mono font-semibold">{formatCurrency(detail.base)}</span>
                     </div>
                     <div className="flex items-center justify-between py-2 border-b">
-                      <span className="text-sm text-gray-600">Taux appliqué</span>
+                      <span className="text-sm text-gray-600">{t('taxReporting.appliedRate')}</span>
                       <span className="text-sm font-mono font-semibold">{(detail.taux * 100).toFixed(0)} %</span>
                     </div>
                     <div className="flex items-center justify-between py-2">
-                      <span className="text-sm font-semibold">Montant estimé</span>
+                      <span className="text-sm font-semibold">{t('taxReporting.estimatedAmount')}</span>
                       <span className="text-base font-mono font-bold text-[var(--color-primary)]">{formatCurrency(detail.montant)}</span>
                     </div>
-                    <p className="text-xs text-gray-400 pt-2">Estimation indicative (barème simplifié). Le montant définitif dépend du barème progressif / des réintégrations fiscales.</p>
+                    <p className="text-xs text-gray-400 pt-2">{t('taxReporting.estimateNote')}</p>
                   </div>
                 ) : detail.lines.length === 0 ? (
-                  <div className="text-center py-8 text-sm text-gray-500">Aucun compte mouvementé pour cette nature sur la période.</div>
+                  <div className="text-center py-8 text-sm text-gray-500">{t('taxReporting.noAccountMoved')}</div>
                 ) : (
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b text-left text-xs text-gray-500">
-                        <th className="py-2">Compte</th>
-                        <th className="py-2">Libellé</th>
-                        <th className="py-2 text-right">Montant</th>
+                        <th className="py-2">{t('taxReporting.account')}</th>
+                        <th className="py-2">{t('taxReporting.label')}</th>
+                        <th className="py-2 text-right">{t('taxReporting.amount')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2710,7 +2724,7 @@ const TaxReportingPage: React.FC = () => {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 font-semibold">
-                        <td className="py-2" colSpan={2}>Total</td>
+                        <td className="py-2" colSpan={2}>{t('taxReporting.total')}</td>
                         <td className="py-2 text-right font-mono">{formatCurrency(detail.total)}</td>
                       </tr>
                     </tfoot>
@@ -2727,7 +2741,7 @@ const TaxReportingPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] overflow-y-auto">
             <div className="p-6 border-b flex justify-between items-center sticky top-0 bg-white">
-              <h3 className="text-lg font-semibold">Aperçu: {selectedReport.name}</h3>
+              <h3 className="text-lg font-semibold">{t('taxReporting.preview')}: {selectedReport.name}</h3>
               <button onClick={() => setShowReportPreviewModal(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="h-5 w-5" />
               </button>
@@ -2738,20 +2752,20 @@ const TaxReportingPage: React.FC = () => {
                   <FileText className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 font-medium">{selectedReport.name}</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Type: {selectedReport.type} | Format: {selectedReport.format} | Taille: {selectedReport.size}
+                    {t('taxReporting.type')}: {selectedReport.type} | {t('taxReporting.format')}: {selectedReport.format} | {t('taxReporting.size')}: {selectedReport.size}
                   </p>
-                  <p className="text-sm text-gray-500">Dernière génération: {selectedReport.lastGenerated}</p>
+                  <p className="text-sm text-gray-500">{t('taxReporting.lastGeneration')}: {selectedReport.lastGenerated}</p>
                 </div>
               </div>
             </div>
             <div className="p-6 border-t flex justify-end space-x-3 sticky bottom-0 bg-white">
-              <Button variant="outline" onClick={() => setShowReportPreviewModal(false)}>Fermer</Button>
+              <Button variant="outline" onClick={() => setShowReportPreviewModal(false)}>{t('taxReporting.close')}</Button>
               <Button onClick={() => {
                 handleDownloadReport(selectedReport);
                 setShowReportPreviewModal(false);
               }}>
                 <Download className="mr-2 h-4 w-4" />
-                Télécharger
+                {t('taxReporting.download')}
               </Button>
             </div>
           </div>

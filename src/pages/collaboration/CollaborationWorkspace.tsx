@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '../../hooks/useToast';
 import { Avatar } from '../../components/ui';
 import {
@@ -47,22 +48,25 @@ const T = {
 };
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 
-const EVENT_META: Record<EventType, { label: string; color: string; icon: React.ComponentType<any> }> = {
-  ecriture: { label: 'Écriture', color: T.green, icon: PenLine },
-  decision: { label: 'Décision', color: T.orange, icon: Gavel },
-  snapshot: { label: 'Snapshot', color: T.purple, icon: Camera },
-  message: { label: 'Message', color: T.blue, icon: Send },
-  system: { label: 'Vigie PROPH3T', color: T.petrol, icon: Sparkles },
+/** Signature du traducteur (hooks indisponibles hors composant → passé en param). */
+type Tr = (key: string, params?: Record<string, string>) => string;
+
+const EVENT_META: Record<EventType, { labelKey: string; color: string; icon: React.ComponentType<any> }> = {
+  ecriture: { labelKey: 'collab.evtEcriture', color: T.green, icon: PenLine },
+  decision: { labelKey: 'collab.evtDecision', color: T.orange, icon: Gavel },
+  snapshot: { labelKey: 'collab.evtSnapshot', color: T.purple, icon: Camera },
+  message: { labelKey: 'collab.evtMessage', color: T.blue, icon: Send },
+  system: { labelKey: 'collab.evtSystem', color: T.petrol, icon: Sparkles },
 };
 
 const fmtXof = (n?: number) => (n == null ? '—' : Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
 const dayFR = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }) : '—');
 const timeHM = (iso: string) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, tr: Tr): string {
   const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return "à l'instant";
-  if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
-  if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
+  if (s < 60) return tr('collab.justNow');
+  if (s < 3600) return tr('collab.minAgo', { count: String(Math.floor(s / 60)) });
+  if (s < 86400) return tr('collab.hoursAgo', { count: String(Math.floor(s / 3600)) });
   return new Date(iso).toLocaleDateString('fr-FR');
 }
 
@@ -70,13 +74,14 @@ function timeAgo(iso: string): string {
 export default function CollaborationWorkspace() {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
   const me = useMemo(() => ({
     id: user?.id || 'me',
-    name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email || 'Moi',
+    name: user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email || tr('collab.me'),
     role: (user?.role || 'comptable') as string,
-  }), [user]);
+  }), [user, tr]);
 
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [selId, setSelId] = useState<string | null>(null);
@@ -131,6 +136,7 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
 }) {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const tenantId = user?.company_id || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id')) || 'default';
   const [kbQuery, setKbQuery] = useState('');
@@ -146,12 +152,12 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
     if (!id) return;
     const sp = spaces.find(s => s.id === id);
     if (!sp || sp.status === to) return;
-    if (to === 'abandonne') { toast.warning('Abandon impossible par glisser-déposer (motif requis).'); return; }
+    if (to === 'abandonne') { toast.warning(tr('collab.dragAbandonBlocked')); return; }
     try {
       await transitionSpace(adapter, sp, to);
       toast.success(`« ${sp.title} » → ${SPACE_STATUS_LABELS[to]}`);
       await onReload();
-    } catch (e: any) { toast.error(e?.message || 'Transition impossible'); }
+    } catch (e: any) { toast.error(e?.message || tr('collab.transitionFailed')); }
   };
 
   const active = spaces.filter(s => s.status !== 'archive' && s.status !== 'abandonne');
@@ -163,37 +169,37 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
     <div style={{ padding: '24px 28px', maxWidth: 1500, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 18 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: T.petrol }}>Espaces de résolution</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, color: T.petrol }}>{tr('collab.portfolioTitle')}</h1>
           <p style={{ margin: '4px 0 0', color: T.sub, fontSize: 13.5, maxWidth: 640 }}>
-            Chaque espace naît d'un problème comptable ancré au grand livre et meurt résolu. La méthode fait converger l'écart vers zéro.
+            {tr('collab.portfolioSubtitle')}
           </p>
         </div>
         <button onClick={onNew} style={btn(T.petrol)}>
-          <Plus size={16} /> Nouvel espace
+          <Plus size={16} /> {tr('collab.newSpace')}
         </button>
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-        <Stat label="En cours" value={active.length} color={T.petrol} icon={Layers} />
-        <Stat label="En retard" value={late.length} color={T.red} icon={AlertTriangle} />
-        <Stat label="Résolus / 90 j" value={resolved90.length} color={T.green} icon={CheckCircle2} />
+        <Stat label={tr('collab.statActive')} value={active.length} color={T.petrol} icon={Layers} />
+        <Stat label={tr('collab.statLate')} value={late.length} color={T.red} icon={AlertTriangle} />
+        <Stat label={tr('collab.statResolved90')} value={resolved90.length} color={T.green} icon={CheckCircle2} />
       </div>
 
       {/* Base de connaissance : recherche dans les rapports de clôture archivés */}
       <div style={{ marginBottom: 18 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={kbQuery} onChange={e => setKbQuery(e.target.value)} onKeyDown={e => e.key === 'Enter' && runKb()}
-            placeholder="Base de connaissance — rechercher dans les rapports clôturés (ex. « écart SGCI »)…"
+            placeholder={tr('collab.kbPlaceholder')}
             style={{ flex: 1, border: `1px solid ${T.line}`, borderRadius: 10, padding: '9px 13px', fontSize: 13, outline: 'none', color: T.ink, background: T.surface }} />
-          <button onClick={runKb} style={btn(T.petrol)}>Rechercher</button>
+          <button onClick={runKb} style={btn(T.petrol)}>{tr('collab.search')}</button>
         </div>
         {kbResults && (
           <div style={{ marginTop: 8, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 12, padding: kbResults.length ? 8 : 14 }}>
-            {kbResults.length === 0 ? <span style={{ fontSize: 12.5, color: T.sub }}>Aucun rapport ne correspond.</span> :
+            {kbResults.length === 0 ? <span style={{ fontSize: 12.5, color: T.sub }}>{tr('collab.kbNoMatch')}</span> :
               kbResults.map(r => (
                 <button key={r.id} onClick={() => onOpen(r.space_id)} style={{ display: 'block', width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', padding: '8px 8px', borderBottom: `1px solid ${T.softLine}` }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.ink }}>{r.title}</div>
-                  <div style={{ fontSize: 11, color: T.sub }}>{r.content?.space?.problem?.slice(0, 120)}… · clôturé {r.generated_at ? new Date(r.generated_at).toLocaleDateString('fr-FR') : ''} · <span style={{ fontFamily: MONO }}>#{String(r.hash).slice(0, 10)}</span></div>
+                  <div style={{ fontSize: 11, color: T.sub }}>{r.content?.space?.problem?.slice(0, 120)}… · {tr('collab.kbClosedOn')} {r.generated_at ? new Date(r.generated_at).toLocaleDateString('fr-FR') : ''} · <span style={{ fontFamily: MONO }}>#{String(r.hash).slice(0, 10)}</span></div>
                 </button>
               ))}
           </div>
@@ -201,7 +207,7 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
       </div>
 
       {loading ? (
-        <div style={{ color: T.sub, padding: 40, textAlign: 'center' }}>Chargement…</div>
+        <div style={{ color: T.sub, padding: 40, textAlign: 'center' }}>{tr('collab.loading')}</div>
       ) : spaces.length === 0 ? (
         <EmptyPortfolio onNew={onNew} />
       ) : (
@@ -231,7 +237,7 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
                       onDragEnd={() => { setDragId(null); setOverCol(null); }} />
                   ))}
                   {isOver && items.length === 0 && (
-                    <div style={{ border: `1px dashed ${T.petrol}66`, borderRadius: 10, padding: '14px 8px', textAlign: 'center', fontSize: 11.5, color: T.petrol }}>Déposer ici</div>
+                    <div style={{ border: `1px dashed ${T.petrol}66`, borderRadius: 10, padding: '14px 8px', textAlign: 'center', fontSize: 11.5, color: T.petrol }}>{tr('collab.dropHere')}</div>
                   )}
                 </div>
               </div>
@@ -246,6 +252,7 @@ function Portfolio({ spaces, loading, onOpen, onNew, onReload }: {
 function SpaceCard({ space, onOpen, dragging, onDragStart, onDragEnd }: {
   space: Space; onOpen: () => void; dragging?: boolean; onDragStart?: () => void; onDragEnd?: () => void;
 }) {
+  const { t: tr } = useLanguage();
   const bp = space.convergenceBp ?? 0;
   const late = isLate(space);
   const isArchived = space.status === 'archive';
@@ -271,13 +278,13 @@ function SpaceCard({ space, onOpen, dragging, onDragStart, onDragEnd }: {
       {space.objective && <span style={{ fontSize: 11.5, color: T.sub, lineHeight: 1.35 }}>{space.objective}</span>}
       {isArchived ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: T.green, fontWeight: 600 }}>
-          <Archive size={12} /> Clôturé {dayFR(space.closedAt)}
+          <Archive size={12} /> {tr('collab.closedOn')} {dayFR(space.closedAt)}
           {space.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· #{space.closureHash.slice(0, 8)}</span>}
         </div>
       ) : isAbandoned ? (
         <div style={{ fontSize: 11, color: T.red, fontWeight: 600 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ban size={12} /> Abandonné {dayFR(space.abandonedAt || space.updatedAt)}</span>
-          {space.abandonReason && <div style={{ fontSize: 10.5, color: T.sub, fontWeight: 400, marginTop: 2 }}>Motif : {space.abandonReason}</div>}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Ban size={12} /> {tr('collab.abandonedOn')} {dayFR(space.abandonedAt || space.updatedAt)}</span>
+          {space.abandonReason && <div style={{ fontSize: 10.5, color: T.sub, fontWeight: 400, marginTop: 2 }}>{tr('collab.motive')} : {space.abandonReason}</div>}
         </div>
       ) : (
         <>
@@ -295,16 +302,17 @@ function SpaceCard({ space, onOpen, dragging, onDragStart, onDragEnd }: {
 }
 
 function EmptyPortfolio({ onNew }: { onNew: () => void }) {
+  const { t: tr } = useLanguage();
   return (
     <div style={{ background: T.surface, border: `1px dashed ${T.line}`, borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
       <div style={{ width: 52, height: 52, borderRadius: 14, background: T.petrol + '14', color: T.petrol, display: 'grid', placeItems: 'center', margin: '0 auto 14px' }}>
         <Target size={26} />
       </div>
-      <h3 style={{ margin: 0, fontSize: 17, color: T.ink }}>Aucun espace de résolution</h3>
+      <h3 style={{ margin: 0, fontSize: 17, color: T.ink }}>{tr('collab.emptyTitle')}</h3>
       <p style={{ color: T.sub, fontSize: 13, maxWidth: 460, margin: '8px auto 18px' }}>
-        Un espace se crée à partir d'un problème concret ancré au grand livre : un écart de rapprochement, une créance à recouvrer, une clôture de période. Il converge vers zéro puis s'archive avec un rapport opposable.
+        {tr('collab.emptyDesc')}
       </p>
-      <button onClick={onNew} style={{ ...btn(T.petrol), margin: '0 auto' }}><Plus size={16} /> Ouvrir un espace</button>
+      <button onClick={onNew} style={{ ...btn(T.petrol), margin: '0 auto' }}><Plus size={16} /> {tr('collab.openSpace')}</button>
     </div>
   );
 }
@@ -315,6 +323,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
   onBack: () => void; onChanged: () => void;
 }) {
   const { adapter } = useData();
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [sp, setSp] = useState<Space>(space);
   const [events, setEvents] = useState<SpaceEvent[]>([]);
@@ -349,24 +358,24 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
   const openReport = async () => { const r = await getSpaceReport(adapter, sp.id); setReport(r || { content: null }); };
 
   const doClose = async () => {
-    if (!allCriteriaMet) { toast.warning(`Clôture verrouillée · ${criteria.filter(c => c.met).length}/${criteria.length} critères`); return; }
+    if (!allCriteriaMet) { toast.warning(tr('collab.closeLocked', { met: String(criteria.filter(c => c.met).length), total: String(criteria.length) })); return; }
     const { hash } = await closeSpace(adapter, sp, events);
-    toast.success(`Espace clôturé · rapport scellé ${hash.slice(0, 10)}…`);
+    toast.success(tr('collab.spaceClosedToast', { hash: hash.slice(0, 10) }));
     await reload(); onChanged();
   };
   const doAbandon = async (reason?: string) => {
     try {
       await abandonSpace(adapter, sp, me, reason);
-      toast.success('Espace abandonné · retiré de la vue active (sans rapport)');
+      toast.success(tr('collab.spaceAbandonedToast'));
       await reload(); onChanged();
-    } catch (e) { console.error(e); toast.error('Échec de l\'abandon'); }
+    } catch (e) { console.error(e); toast.error(tr('collab.abandonFailed')); }
   };
   const doReactivate = async () => {
     try {
       const r = await reactivateSpace(adapter, sp, me);
-      toast.success(`Espace réactivé · statut ${r.status}`);
+      toast.success(tr('collab.spaceReactivatedToast', { status: r.status }));
       await reload(); onChanged();
-    } catch (e) { console.error(e); toast.error('Échec de la réactivation'); }
+    } catch (e) { console.error(e); toast.error(tr('collab.reactivateFailed')); }
   };
 
   return (
@@ -381,13 +390,13 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
           </div>
           {(sp.anchors?.[0] || sp.linkedLabel) && (
             <div style={{ fontSize: 11.5, color: T.sub, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Link2 size={12} /> Ouvert depuis : {sp.anchors?.[0]?.label || sp.linkedLabel}
-              {sp.anchors?.[0]?.path && <span style={{ color: T.petrol }}> · ouvrir l'écran source</span>}
+              <Link2 size={12} /> {tr('collab.openedFrom')} {sp.anchors?.[0]?.label || sp.linkedLabel}
+              {sp.anchors?.[0]?.path && <span style={{ color: T.petrol }}> · {tr('collab.openSourceScreen')}</span>}
             </div>
           )}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: 10.5, color: T.sub, textTransform: 'uppercase', letterSpacing: .5 }}>Convergence</div>
+          <div style={{ fontSize: 10.5, color: T.sub, textTransform: 'uppercase', letterSpacing: .5 }}>{tr('collab.convergence')}</div>
           <div style={{ fontFamily: MONO, fontWeight: 800, fontSize: 20, color: T.gold }}>{conv ? conv.pct : sp.convergenceBp ? Math.round(sp.convergenceBp / 100) : 0}%</div>
         </div>
       </header>
@@ -405,7 +414,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
             <ProphetSynthesis sp={sp} conv={conv} events={events} criteria={criteria} tasks={tasks} />
           </div>
           <div ref={feedRef} style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
-            {events.length === 0 && <div style={{ color: T.sub, textAlign: 'center', paddingTop: 30, fontSize: 13 }}>Le fil est vide — énoncez le problème, proposez une solution.</div>}
+            {events.length === 0 && <div style={{ color: T.sub, textAlign: 'center', paddingTop: 30, fontSize: 13 }}>{tr('collab.feedEmpty')}</div>}
             {events.map(ev => <FeedEvent key={ev.id} ev={ev} me={me} adapter={adapter} onReload={reload} readOnly={readOnly} />)}
           </div>
           {!readOnly && <Composer sp={sp} me={me} tenantId={tenantId} adapter={adapter} onSent={reload} />}
@@ -416,7 +425,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
           <ObjectiveCard sp={sp} conv={conv} criteria={criteria} readOnly={readOnly} me={me}
             adapter={adapter} onReload={reload} />
           <div style={{ display: 'flex', borderBottom: `1px solid ${T.line}`, padding: '0 8px' }}>
-            {([['actions', 'Actions', ListChecks], ['decisions', 'Décisions', Gavel], ['pieces', 'Pièces', FileText], ['diffusion', 'Diffusion', Radio]] as const).map(([k, lbl, Ic]) => (
+            {([['actions', tr('collab.tabActions'), ListChecks], ['decisions', tr('collab.tabDecisions'), Gavel], ['pieces', tr('collab.tabPieces'), FileText], ['diffusion', tr('collab.tabDiffusion'), Radio]] as const).map(([k, lbl, Ic]) => (
               <button key={k} onClick={() => setRightTab(k)} style={{
                 flex: 1, padding: '9px 4px', border: 'none', background: 'none', cursor: 'pointer',
                 borderBottom: `2px solid ${rightTab === k ? T.orange : 'transparent'}`,
@@ -440,6 +449,7 @@ function SpaceView({ space, me, tenantId, onBack, onChanged }: {
 
 // ── Colonne Méthode ───────────────────────────────────────────────────────────
 function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, allCriteriaMet, onClose, onAbandon, onReactivate, onReload, onShowReport }: any) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [solTitle, setSolTitle] = useState('');
   const [abandoning, setAbandoning] = useState(false);
@@ -449,29 +459,29 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
   const propose = async () => {
     if (!solTitle.trim()) return;
     await addSolution(adapter, sp, { title: solTitle.trim(), authorId: me.id, authorName: me.name });
-    setSolTitle(''); toast.success('Solution proposée'); onReload();
+    setSolTitle(''); toast.success(tr('collab.solutionProposed')); onReload();
   };
   const decide = async (id: string, state: 'kept' | 'rejected') => {
     let motif: string | undefined;
-    if (state === 'rejected') { motif = window.prompt('Motif de l\'écartement (tracé) :') || undefined; if (!motif) return; }
-    await decideSolution(adapter, sp, id, state, me, motif); toast.success(state === 'kept' ? 'Solution retenue' : 'Solution écartée'); onReload();
+    if (state === 'rejected') { motif = window.prompt(tr('collab.rejectMotivePrompt')) || undefined; if (!motif) return; }
+    await decideSolution(adapter, sp, id, state, me, motif); toast.success(state === 'kept' ? tr('collab.solutionKept') : tr('collab.solutionRejected')); onReload();
   };
 
   return (
     <div style={{ borderRight: `1px solid ${T.line}`, background: T.surface, overflowY: 'auto', padding: '14px 14px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* ① Problème */}
-      <Step n="①" label="Problème">
+      <Step n="①" label={tr('collab.stepProblem')}>
         <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: T.ink }}>{sp.problem || '—'}</p>
         {conv && conv.initialGap > 0 && (
           <div style={{ marginTop: 8, fontSize: 11.5, color: T.sub }}>
-            Écart initial <b style={{ fontFamily: MONO, color: T.gold }}>{fmtXof(conv.initialGap)}</b> FCFA
+            {tr('collab.initialGapLabel')} <b style={{ fontFamily: MONO, color: T.gold }}>{fmtXof(conv.initialGap)}</b> FCFA
           </div>
         )}
       </Step>
 
       {/* ② Solutions */}
-      <Step n="②" label="Solutions">
-        {(sp.solutions || []).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune solution proposée.</div>}
+      <Step n="②" label={tr('collab.stepSolutions')}>
+        {(sp.solutions || []).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>{tr('collab.noSolutions')}</div>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
           {(sp.solutions || []).map((s: any) => (
             <div key={s.id} style={{ border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '7px 9px', background: s.state === 'kept' ? T.green + '0d' : s.state === 'rejected' ? '#0000000a' : T.surface }}>
@@ -481,12 +491,12 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
                 {s.state === 'proposed' && <Circle size={13} color={T.orange} />}
                 <span style={{ fontSize: 12, fontWeight: 600, textDecoration: s.state === 'rejected' ? 'line-through' : 'none', color: s.state === 'rejected' ? T.sub : T.ink }}>{s.title}</span>
               </div>
-              {s.motif && <div style={{ fontSize: 10.5, color: T.sub, marginTop: 3, paddingLeft: 19 }}>Motif : {s.motif}</div>}
+              {s.motif && <div style={{ fontSize: 10.5, color: T.sub, marginTop: 3, paddingLeft: 19 }}>{tr('collab.motive')} : {s.motif}</div>}
               {s.decisionRef && <div style={{ fontSize: 10.5, color: T.orange, marginTop: 3, paddingLeft: 19, fontFamily: MONO }}>{s.decisionRef}</div>}
               {!readOnly && s.state === 'proposed' && (
                 <div style={{ display: 'flex', gap: 6, marginTop: 6, paddingLeft: 19 }}>
-                  <button onClick={() => decide(s.id, 'kept')} style={miniBtn(T.green)}>Retenir</button>
-                  <button onClick={() => decide(s.id, 'rejected')} style={miniBtn(T.sub)}>Écarter</button>
+                  <button onClick={() => decide(s.id, 'kept')} style={miniBtn(T.green)}>{tr('collab.keep')}</button>
+                  <button onClick={() => decide(s.id, 'rejected')} style={miniBtn(T.sub)}>{tr('collab.discard')}</button>
                 </div>
               )}
             </div>
@@ -495,14 +505,14 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
         {!readOnly && (
           <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
             <input value={solTitle} onChange={e => setSolTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && propose()}
-              placeholder="Proposer une solution…" style={inp} />
+              placeholder={tr('collab.proposeSolutionPh')} style={inp} />
             <button onClick={propose} style={iconBtn}><Plus size={16} /></button>
           </div>
         )}
       </Step>
 
       {/* ③ Échéances */}
-      <Step n="③" label="Échéances">
+      <Step n="③" label={tr('collab.stepMilestones')}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {(sp.milestones || []).map((m: any, i: number) => (
             <div key={m.id} style={{ display: 'flex', gap: 9, position: 'relative', paddingBottom: i === (sp.milestones.length - 1) ? 0 : 12 }}>
@@ -520,45 +530,45 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
       </Step>
 
       {/* ④ Clôture ou abandon */}
-      <Step n="④" label="Clôture ou abandon">
+      <Step n="④" label={tr('collab.stepClosure')}>
         <div style={{ fontSize: 11.5, color: T.sub, marginBottom: 8 }}>
-          {criteria.filter((c: ExitCriterion) => c.met).length}/{criteria.length} critères de sortie satisfaits
+          {tr('collab.criteriaMetCount', { met: String(criteria.filter((c: ExitCriterion) => c.met).length), total: String(criteria.length) })}
         </div>
         {readOnly ? (
           sp.status === 'archive' ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.green, fontWeight: 700 }}>
-                <ShieldCheck size={16} /> Archivé le {dayFR(sp.closedAt)}
+                <ShieldCheck size={16} /> {tr('collab.archivedOn')} {dayFR(sp.closedAt)}
                 {sp.closureHash && <span style={{ fontFamily: MONO, fontSize: 10, color: T.sub }}>· {sp.closureHash.slice(0, 10)}…</span>}
               </div>
-              <div style={{ fontSize: 10.5, color: T.sub, marginTop: 4 }}>Clôture opposable · rapport scellé.</div>
-              <button onClick={onShowReport} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><FileText size={15} /> Voir le rapport de clôture</button>
+              <div style={{ fontSize: 10.5, color: T.sub, marginTop: 4 }}>{tr('collab.closureSealed')}</div>
+              <button onClick={onShowReport} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><FileText size={15} /> {tr('collab.viewClosureReport')}</button>
             </div>
           ) : (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: T.red, fontWeight: 700 }}>
-                <Ban size={16} /> Abandonné le {dayFR(sp.abandonedAt || sp.updatedAt)}
+                <Ban size={16} /> {tr('collab.abandonedOnLabel')} {dayFR(sp.abandonedAt || sp.updatedAt)}
               </div>
               <div style={{ fontSize: 10.5, color: T.sub, marginTop: 4 }}>
-                Arrêt manuel · <b>sans rapport de clôture</b>.{sp.abandonReason ? <> Motif : <i style={{ color: T.ink }}>{sp.abandonReason}</i></> : ' Aucun motif renseigné.'}
+                {tr('collab.manualStop')} <b>{tr('collab.noClosureReport')}</b>.{sp.abandonReason ? <> {tr('collab.motive')} : <i style={{ color: T.ink }}>{sp.abandonReason}</i></> : ` ${tr('collab.noMotiveGiven')}`}
               </div>
-              <button onClick={onReactivate} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><RotateCcw size={15} /> Réactiver l'espace</button>
+              <button onClick={onReactivate} style={{ ...btn(T.petrol), width: '100%', justifyContent: 'center', marginTop: 8 }}><RotateCcw size={15} /> {tr('collab.reactivateSpace')}</button>
             </div>
           )
         ) : abandoning ? (
           <div style={{ border: `1px solid ${T.red}44`, background: T.red + '0a', borderRadius: 9, padding: 10 }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, color: T.red, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <Ban size={14} /> Abandonner cet espace ?
+              <Ban size={14} /> {tr('collab.abandonConfirmTitle')}
             </div>
             <div style={{ fontSize: 10.5, color: T.sub, marginBottom: 7 }}>
-              Il quitte la vue active sans clôture opposable ni rapport scellé. Réversible (réactivation possible).
+              {tr('collab.abandonConfirmDesc')}
             </div>
             <textarea value={abReason} onChange={e => setAbReason(e.target.value)} rows={2}
-              placeholder="Motif (optionnel) — ex. doublon, obsolète, non résoluble…"
+              placeholder={tr('collab.abandonReasonPh')}
               style={{ ...inp, width: '100%', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: 7 }} />
             <div style={{ display: 'flex', gap: 6 }}>
-              <button onClick={() => { onAbandon(abReason.trim() || undefined); setAbandoning(false); setAbReason(''); }} style={miniBtn(T.red)}>Confirmer l'abandon</button>
-              <button onClick={() => { setAbandoning(false); setAbReason(''); }} style={miniBtn(T.sub)}>Annuler</button>
+              <button onClick={() => { onAbandon(abReason.trim() || undefined); setAbandoning(false); setAbReason(''); }} style={miniBtn(T.red)}>{tr('collab.confirmAbandon')}</button>
+              <button onClick={() => { setAbandoning(false); setAbReason(''); }} style={miniBtn(T.sub)}>{tr('collab.cancel')}</button>
             </div>
           </div>
         ) : (
@@ -568,12 +578,12 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
               cursor: allCriteriaMet ? 'pointer' : 'not-allowed', color: allCriteriaMet ? '#fff' : T.sub,
             }}>
               {allCriteriaMet ? <Unlock size={15} /> : <Lock size={15} />}
-              Clôturer & sceller le rapport
+              {tr('collab.closeAndSeal')}
             </button>
             <button onClick={() => setAbandoning(true)} style={{
               ...btn('#0000'), width: '100%', justifyContent: 'center', color: T.red, border: `1px solid ${T.red}44`,
             }}>
-              <Ban size={15} /> Abandonner l'espace
+              <Ban size={15} /> {tr('collab.abandonSpace')}
             </button>
           </div>
         )}
@@ -584,16 +594,23 @@ function MethodColumn({ sp, criteria, conv, readOnly, me, adapter, tenantId, all
 
 // ── Synthèse PROPH3T épinglée ─────────────────────────────────────────────────
 function ProphetSynthesis({ sp, conv, events, criteria, tasks }: any) {
+  const { t: tr } = useLanguage();
   const openActions = (tasks as Task[]).filter(t => t.status !== 'done').length;
   const kept = (sp.solutions || []).find((s: any) => s.state === 'kept');
-  const line = `Convergence ${conv?.pct ?? 0} %${conv?.initialGap ? ` · écart restant ${fmtXof(conv.currentGap)} / ${fmtXof(conv.initialGap)} FCFA` : ''}. `
-    + `${(sp.solutions || []).length} solution(s), ${kept ? `retenue : « ${kept.title} »` : 'aucune retenue'}. `
-    + `${openActions} action(s) ouverte(s), ${criteria.filter((c: ExitCriterion) => c.met).length}/${criteria.length} critères verts.`;
+  const line = tr('collab.synthConvergence', { pct: String(conv?.pct ?? 0) })
+    + (conv?.initialGap ? tr('collab.synthGap', { current: fmtXof(conv.currentGap), initial: fmtXof(conv.initialGap) }) : '')
+    + '. ' + tr('collab.synthSolutions', { count: String((sp.solutions || []).length) })
+    + ' ' + (kept ? tr('collab.synthKept', { title: kept.title }) : tr('collab.synthNoneKept'))
+    + '. ' + tr('collab.synthActions', {
+      open: String(openActions),
+      met: String(criteria.filter((c: ExitCriterion) => c.met).length),
+      total: String(criteria.length),
+    });
   return (
     <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
       <div style={{ width: 26, height: 26, borderRadius: 8, background: T.petrol + '15', color: T.petrol, display: 'grid', placeItems: 'center', flexShrink: 0 }}><Sparkles size={15} /></div>
       <div>
-        <div style={{ fontSize: 11, fontWeight: 700, color: T.petrol }}>Synthèse PROPH3T <span style={{ color: T.sub, fontWeight: 500 }}>· mode strict, chiffres issus du GL</span></div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: T.petrol }}>{tr('collab.prophetSynthesis')} <span style={{ color: T.sub, fontWeight: 500 }}>{tr('collab.prophetStrictMode')}</span></div>
         <div style={{ fontSize: 12, color: T.ink, lineHeight: 1.45, marginTop: 2 }}>{line}</div>
       </div>
     </div>
@@ -602,6 +619,7 @@ function ProphetSynthesis({ sp, conv, events, criteria, tasks }: any) {
 
 // ── Événement du fil ──────────────────────────────────────────────────────────
 function FeedEvent({ ev, me, adapter, onReload, readOnly }: { ev: SpaceEvent; me: any; adapter: any; onReload: () => void; readOnly: boolean }) {
+  const { t: tr } = useLanguage();
   const meta = EVENT_META[ev.type];
   const Icon = meta.icon;
   const react = async (emoji: string) => { await toggleReaction(adapter, ev, emoji, me.id); onReload(); };
@@ -610,7 +628,7 @@ function FeedEvent({ ev, me, adapter, onReload, readOnly }: { ev: SpaceEvent; me
     return (
       <div style={{ display: 'flex', justifyContent: 'center', margin: '8px 0' }}>
         <span style={{ fontSize: 11, color: T.petrol, background: T.petrol + '10', borderRadius: 12, padding: '3px 12px', display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-          <Sparkles size={12} /> {ev.body} · {timeAgo(ev.createdAt)}
+          <Sparkles size={12} /> {ev.body} · {timeAgo(ev.createdAt, tr)}
         </span>
       </div>
     );
@@ -618,14 +636,14 @@ function FeedEvent({ ev, me, adapter, onReload, readOnly }: { ev: SpaceEvent; me
 
   return (
     <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-      <Avatar name={ev.authorName || 'Utilisateur'} size="sm" />
+      <Avatar name={ev.authorName || tr('collab.user')} size="sm" />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ev.authorName || 'Utilisateur'}</span>
+          <span style={{ fontWeight: 700, fontSize: 12.5 }}>{ev.authorName || tr('collab.user')}</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, color: meta.color, background: meta.color + '15', borderRadius: 6, padding: '1px 6px' }}>
-            <Icon size={11} /> {meta.label}
+            <Icon size={11} /> {tr(meta.labelKey)}
           </span>
-          {ev.via && <span style={{ fontSize: 10.5, color: T.sub }}>via {ev.via}</span>}
+          {ev.via && <span style={{ fontSize: 10.5, color: T.sub }}>{tr('collab.via')} {ev.via}</span>}
           <span style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{timeHM(ev.createdAt)}</span>
         </div>
 
@@ -657,6 +675,7 @@ function renderRefs(body: string) {
 }
 
 function EcritureChip({ p, body }: { p: EcriturePayload; body: string }) {
+  const { t: tr } = useLanguage();
   return (
     <div style={{ marginTop: 5 }}>
       {body && <div style={{ fontSize: 13, color: T.ink, marginBottom: 5 }}>{body}</div>}
@@ -666,13 +685,14 @@ function EcritureChip({ p, body }: { p: EcriturePayload; body: string }) {
           <div style={{ fontSize: 12, fontWeight: 700, fontFamily: MONO }}>{p.entryNumber}{p.journal ? ` · ${p.journal}` : ''}</div>
           <div style={{ fontSize: 11, color: T.sub }}>{p.accounts}{p.amount != null ? ` · ${fmtXof(p.amount)} FCFA` : ''}</div>
         </div>
-        <span style={{ fontSize: 11, color: T.green, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>Ouvrir dans FNA <ChevronRight size={13} /></span>
+        <span style={{ fontSize: 11, color: T.green, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}>{tr('collab.openInFna')} <ChevronRight size={13} /></span>
       </div>
     </div>
   );
 }
 
 function DecisionChip({ p }: { p: DecisionPayload }) {
+  const { t: tr } = useLanguage();
   const pp = p as any;
   const status: string = pp.status || (pp.approvedAt ? 'approved' : 'in_approval');
   const chain: string[] = Array.isArray(pp.chain) ? pp.chain : (p.requiredRole ? [p.requiredRole] : []);
@@ -703,23 +723,24 @@ function DecisionChip({ p }: { p: DecisionPayload }) {
             const sym = done ? '✓' : rejectedHere ? '✗' : pending ? '②'.replace('②', String(pos)) : String(pos);
             return (
               <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700, color: c, background: c + '15', borderRadius: 6, padding: '2px 8px' }}>
-                {sym} {role.toUpperCase()}{pending ? ' · en attente' : ''}
+                {sym} {role.toUpperCase()}{pending ? ` · ${tr('collab.pendingSuffix')}` : ''}
               </span>
             );
           })}
         </div>
       )}
       <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: status === 'approved' ? T.green : status === 'rejected' ? T.red : status === 'cancelled' ? T.sub : T.orange }}>
-        {status === 'approved' && `✓ Validée${pp.approvedByName ? ` · ${pp.approvedByName}` : ''}${pp.approvedAt ? ` · ${dayFR(pp.approvedAt)}` : ''}${pp.effect ? ` · effet ${pp.effect}` : ''}`}
-        {status === 'rejected' && `✗ Rejetée${pp.rejectMotive ? ` : ${pp.rejectMotive}` : ''}`}
-        {status === 'cancelled' && 'Annulée'}
-        {status === 'in_approval' && `En attente · étape ${step}/${chain.length || 1} — ${(chain[step - 1] || p.requiredRole || '').toUpperCase()}`}
+        {status === 'approved' && `${tr('collab.decApproved')}${pp.approvedByName ? ` · ${pp.approvedByName}` : ''}${pp.approvedAt ? ` · ${dayFR(pp.approvedAt)}` : ''}${pp.effect ? ` · ${tr('collab.decEffect')} ${pp.effect}` : ''}`}
+        {status === 'rejected' && `${tr('collab.decRejected')}${pp.rejectMotive ? ` : ${pp.rejectMotive}` : ''}`}
+        {status === 'cancelled' && tr('collab.decCancelled')}
+        {status === 'in_approval' && tr('collab.decPending', { step: String(step), total: String(chain.length || 1), role: (chain[step - 1] || p.requiredRole || '').toUpperCase() })}
       </div>
     </div>
   );
 }
 
 function SnapshotChip({ p }: { p: SnapshotPayload }) {
+  const { t: tr } = useLanguage();
   return (
     <div style={{ marginTop: 5, border: `1px solid ${T.purple}44`, background: T.purple + '0a', borderRadius: 9, padding: '9px 11px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
@@ -733,13 +754,14 @@ function SnapshotChip({ p }: { p: SnapshotPayload }) {
           <tbody>{p.rows.slice(0, 6).map((r, ri) => <tr key={ri}>{r.map((cell, ci) => <td key={ci} style={{ padding: '3px 8px', fontFamily: typeof cell === 'number' ? MONO : undefined, color: typeof cell === 'number' ? T.gold : T.ink }}>{typeof cell === 'number' ? fmtXof(cell) : cell}</td>)}</tr>)}</tbody>
         </table>
       </div>
-      <div style={{ fontSize: 10, color: T.sub, marginTop: 5 }}>Figé le {new Date(p.frozenAt).toLocaleString('fr-FR')} · {p.source} · immuable</div>
+      <div style={{ fontSize: 10, color: T.sub, marginTop: 5 }}>{tr('collab.frozenOn')} {new Date(p.frozenAt).toLocaleString('fr-FR')} · {p.source} · {tr('collab.immutable')}</div>
     </div>
   );
 }
 
 // ── Composeur multi-type ──────────────────────────────────────────────────────
 function Composer({ sp, me, tenantId, adapter, onSent }: any) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [mode, setMode] = useState<'message' | 'ecriture' | 'decision' | 'snapshot'>('message');
   const [text, setText] = useState('');
@@ -788,24 +810,25 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
           space: sp, tenantId, authorId: me.id, authorName: me.name, decisionType: decType,
           title: decTitle.trim(), detail: text.trim() || undefined, amount: amount ? Number(amount) : undefined,
         });
-        toast.success(`Décision ${ref} soumise${chain && chain.length ? ` · chaîne ${chain.map(r => r.toUpperCase()).join(' → ')}` : ''}`);
+        toast.success(`${tr('collab.decisionSubmitted', { ref })}${chain && chain.length ? ` · ${tr('collab.chain')} ${chain.map(r => r.toUpperCase()).join(' → ')}` : ''}`);
       } else if (mode === 'snapshot') {
         const payload = await buildSnapshotPayload(
-          text.trim() || 'Snapshot convergence',
+          text.trim() || tr('collab.snapshotDefaultTitle'),
           'Atlas FNA · Espace',
-          ['Indicateur', 'Valeur'],
-          [['Écart restant', sp.convergence?.source?.kind === 'manual' ? sp.convergence.source.currentGap : 0], ['Convergence bp', sp.convergenceBp || 0]],
+          [tr('collab.colIndicator'), tr('collab.colValue')],
+          [[tr('collab.rowRemainingGap'), sp.convergence?.source?.kind === 'manual' ? sp.convergence.source.currentGap : 0], [tr('collab.rowConvergenceBp'), sp.convergenceBp || 0]],
         );
         await postSnapshot(adapter, { spaceId: sp.id, tenantId, authorId: me.id, authorName: me.name, body: '', payload, via: 'Atlas FNA' });
       }
       setText(''); setEntryNumber(''); setAccounts(''); setAmount(''); setDecTitle(''); setDecType('regularisation');
       setEntryId(undefined); setJournal(undefined); setEntryQuery(''); setHits([]);
       onSent();
-    } catch (e) { console.error(e); toast.error('Échec de l\'envoi'); }
+    } catch (e) { console.error(e); toast.error(tr('collab.sendFailed')); }
   };
 
   const modes: [typeof mode, string, React.ComponentType<any>][] = [
-    ['message', 'Message', Send], ['ecriture', 'Écriture', PenLine], ['decision', 'Décision', Gavel], ['snapshot', 'Snapshot', Camera],
+    ['message', tr('collab.evtMessage'), Send], ['ecriture', tr('collab.evtEcriture'), PenLine],
+    ['decision', tr('collab.evtDecision'), Gavel], ['snapshot', tr('collab.evtSnapshot'), Camera],
   ];
   const amt = amount ? Number(amount) : 0;
 
@@ -834,7 +857,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
             </div>
           ) : (
             <div style={{ position: 'relative' }}>
-              <input value={entryQuery} onChange={e => setEntryQuery(e.target.value)} placeholder="Rechercher une pièce réelle (n°, compte, libellé)…" style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
+              <input value={entryQuery} onChange={e => setEntryQuery(e.target.value)} placeholder={tr('collab.searchEntryPh')} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
               {hits.length > 0 && (
                 <div style={{ position: 'absolute', bottom: '100%', left: 0, right: 0, marginBottom: 4, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,.12)', maxHeight: 220, overflowY: 'auto', zIndex: 5 }}>
                   {hits.map(h => (
@@ -859,11 +882,11 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
             <select value={decType} onChange={e => setDecType(e.target.value)} style={{ ...inp, flex: '0 0 160px' }}>
               {DECISION_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
-            <input value={amount} onChange={e => setAmount(e.target.value)} placeholder="Montant FCFA" type="number" style={{ ...inp, width: 130 }} />
+            <input value={amount} onChange={e => setAmount(e.target.value)} placeholder={tr('collab.amountXofPh')} type="number" style={{ ...inp, width: 130 }} />
           </div>
-          <input value={decTitle} onChange={e => setDecTitle(e.target.value)} placeholder="Intitulé de la décision" style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
+          <input value={decTitle} onChange={e => setDecTitle(e.target.value)} placeholder={tr('collab.decisionTitlePh')} style={{ ...inp, width: '100%', boxSizing: 'border-box' }} />
           <div style={{ fontSize: 11, color: T.sub, marginTop: 5, display: 'flex', alignItems: 'center', gap: 5 }}>
-            <ShieldCheck size={13} color={T.orange} /> La chaîne de validation ({DECISION_TYPES.find(t => t.value === decType)?.label} · {fmtXof(amt)} FCFA) sera résolue par la matrice du tenant — cumul possible (ex. DAF puis DG).
+            <ShieldCheck size={13} color={T.orange} /> {tr('collab.chainHint', { type: String(DECISION_TYPES.find(dt => dt.value === decType)?.label ?? ''), amount: fmtXof(amt) })}
           </div>
         </div>
       )}
@@ -871,7 +894,7 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
       <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
         <textarea value={text} onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) send(); }}
-          placeholder={mode === 'message' ? 'Écrire un message (#521100 pour référencer)…' : mode === 'decision' ? 'Corps / justification (optionnel)…' : mode === 'ecriture' ? 'Contexte de l\'écriture…' : 'Titre du snapshot…'}
+          placeholder={mode === 'message' ? tr('collab.msgPh') : mode === 'decision' ? tr('collab.decBodyPh') : mode === 'ecriture' ? tr('collab.ecrContextPh') : tr('collab.snapTitlePh')}
           rows={2} style={{ ...inp, resize: 'none', flex: 1, fontFamily: 'inherit' }} />
         <button onClick={send} style={{ ...btn(T.petrol), padding: '9px 14px' }}><Send size={16} /></button>
       </div>
@@ -881,34 +904,35 @@ function Composer({ sp, me, tenantId, adapter, onSent }: any) {
 
 // ── Carte Objectif & critères ─────────────────────────────────────────────────
 function ObjectiveCard({ sp, conv, criteria, readOnly, me, adapter, onReload }: any) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const check = async (c: ExitCriterion) => {
-    if (c.auto) { toast.info('Critère calculé — se satisfait automatiquement depuis le GL'); return; }
-    await satisfyCriterion(adapter, sp, c.id, me); toast.success('Critère validé'); onReload();
+    if (c.auto) { toast.info(tr('collab.autoCriterionInfo')); return; }
+    await satisfyCriterion(adapter, sp, c.id, me); toast.success(tr('collab.criterionValidated')); onReload();
   };
   return (
     <div style={{ padding: 14, borderBottom: `1px solid ${T.line}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
         <Target size={15} color={T.petrol} />
-        <span style={{ fontWeight: 800, fontSize: 13 }}>Objectif</span>
+        <span style={{ fontWeight: 800, fontSize: 13 }}>{tr('collab.objective')}</span>
       </div>
       <p style={{ margin: '0 0 10px', fontSize: 12, color: T.ink, lineHeight: 1.4 }}>{sp.objective || '—'}</p>
       {conv && (
         <>
           <ConvergenceBar bp={conv.bp} />
           {conv.formula && <div style={{ fontSize: 9.5, color: T.sub, fontFamily: MONO, marginTop: 4 }}>{conv.formula}</div>}
-          <div style={{ fontSize: 9.5, color: T.petrol, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingUp size={11} /> calculé · jamais saisi</div>
+          <div style={{ fontSize: 9.5, color: T.petrol, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 4 }}><TrendingUp size={11} /> {tr('collab.computedNeverEntered')}</div>
         </>
       )}
       <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 7 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: T.sub, textTransform: 'uppercase', letterSpacing: .4 }}>Critères de sortie</span>
-        {criteria.length === 0 && <span style={{ fontSize: 11.5, color: T.sub }}>Aucun critère.</span>}
+        <span style={{ fontSize: 11, fontWeight: 700, color: T.sub, textTransform: 'uppercase', letterSpacing: .4 }}>{tr('collab.exitCriteria')}</span>
+        {criteria.length === 0 && <span style={{ fontSize: 11.5, color: T.sub }}>{tr('collab.noCriteria')}</span>}
         {criteria.map((c: ExitCriterion) => (
           <button key={c.id} onClick={() => !readOnly && !c.met && check(c)} disabled={readOnly || c.met}
             style={{ display: 'flex', alignItems: 'center', gap: 8, textAlign: 'left', background: 'none', border: 'none', padding: 0, cursor: readOnly || c.met ? 'default' : 'pointer' }}>
             {c.met ? <CheckCircle2 size={16} color={T.green} /> : <Circle size={16} color={T.line} />}
             <span style={{ flex: 1, fontSize: 12, color: c.met ? T.ink : T.sub }}>{c.label}</span>
-            {c.auto && <span style={{ fontSize: 9, color: T.petrol, background: T.petrol + '12', borderRadius: 5, padding: '1px 5px' }}>calculé</span>}
+            {c.auto && <span style={{ fontSize: 9, color: T.petrol, background: T.petrol + '12', borderRadius: 5, padding: '1px 5px' }}>{tr('collab.computed')}</span>}
             {c.value && <span style={{ fontSize: 10.5, color: c.met ? T.green : T.gold, fontFamily: MONO }}>{c.value}</span>}
           </button>
         ))}
@@ -919,6 +943,7 @@ function ObjectiveCard({ sp, conv, criteria, readOnly, me, adapter, onReload }: 
 
 // ── Onglet Actions (checklist de résolution) ──────────────────────────────────
 function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: any) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [label, setLabel] = useState('');
   const [critical, setCritical] = useState(false);
@@ -930,13 +955,13 @@ function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: an
   };
   const toggle = async (t: Task) => {
     await updateTask(adapter, t.id, { status: t.status === 'done' ? 'todo' : 'done' });
-    if (t.status !== 'done') toast.success('Action complétée');
+    if (t.status !== 'done') toast.success(tr('collab.actionCompleted'));
     onReload();
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {(tasks as Task[]).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune action.</div>}
+      {(tasks as Task[]).length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>{tr('collab.noActions')}</div>}
       {(tasks as Task[]).map(t => (
         <div key={t.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '8px 9px', borderLeft: t.criticalPath ? `3px solid ${T.red}` : `1px solid ${T.softLine}` }}>
           <button onClick={() => !readOnly && toggle(t)} style={{ background: 'none', border: 'none', padding: 0, cursor: readOnly ? 'default' : 'pointer', marginTop: 1 }}>
@@ -945,7 +970,7 @@ function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: an
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 600, textDecoration: t.status === 'done' ? 'line-through' : 'none', color: t.status === 'done' ? T.sub : T.ink }}>{t.title}</div>
             <div style={{ display: 'flex', gap: 8, marginTop: 3, alignItems: 'center', flexWrap: 'wrap' }}>
-              {t.criticalPath && <span style={{ fontSize: 9.5, color: T.red, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Flag size={10} /> chemin critique</span>}
+              {t.criticalPath && <span style={{ fontSize: 9.5, color: T.red, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3 }}><Flag size={10} /> {tr('collab.criticalPath')}</span>}
               {t.assigneeName && <span style={{ fontSize: 10.5, color: T.sub }}>{t.assigneeName}</span>}
               {t.linkedRef && <span style={{ fontSize: 10, color: T.green, fontFamily: MONO }}>{t.linkedRef}</span>}
             </div>
@@ -955,11 +980,11 @@ function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: an
       {!readOnly && (
         <div style={{ marginTop: 4 }}>
           <div style={{ display: 'flex', gap: 6 }}>
-            <input value={label} onChange={e => setLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="Nouvelle action…" style={inp} />
+            <input value={label} onChange={e => setLabel(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder={tr('collab.newActionPh')} style={inp} />
             <button onClick={add} style={iconBtn}><Plus size={16} /></button>
           </div>
           <label style={{ fontSize: 10.5, color: T.sub, display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 5, cursor: 'pointer' }}>
-            <input type="checkbox" checked={critical} onChange={e => setCritical(e.target.checked)} /> chemin critique (bloquant)
+            <input type="checkbox" checked={critical} onChange={e => setCritical(e.target.checked)} /> {tr('collab.criticalPathBlocking')}
           </label>
         </div>
       )}
@@ -969,6 +994,7 @@ function ActionsTab({ sp, tasks, me, tenantId, adapter, onReload, readOnly }: an
 
 // ── Onglet Décisions (registre + matrice de validation) ───────────────────────
 function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [rejecting, setRejecting] = useState<string | null>(null);
   const [motive, setMotive] = useState('piece_manquante');
@@ -979,31 +1005,31 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
   const isOpen = (p: any) => (p.status || (p.approvedAt ? 'approved' : 'in_approval')) === 'in_approval';
 
   const approve = async (ev: SpaceEvent) => {
-    try { await approveDecision(adapter, ev, me, 'space'); toast.success('Étape validée'); onReload(); }
-    catch (e: any) { toast.error(mapErr(e?.message)); }
+    try { await approveDecision(adapter, ev, me, 'space'); toast.success(tr('collab.stepValidated')); onReload(); }
+    catch (e: any) { toast.error(mapErr(e?.message, tr)); }
   };
   const reject = async (ev: SpaceEvent) => {
-    try { await rejectDecision(adapter, ev, me, motive); toast.success('Décision rejetée'); setRejecting(null); onReload(); }
-    catch (e: any) { toast.error(mapErr(e?.message)); }
+    try { await rejectDecision(adapter, ev, me, motive); toast.success(tr('collab.decisionRejected')); setRejecting(null); onReload(); }
+    catch (e: any) { toast.error(mapErr(e?.message, tr)); }
   };
   const makeLink = async (ev: SpaceEvent) => {
     const decisionId = (ev.payload as any)?.decisionId;
-    if (!decisionId) { toast.warning('Lien externe disponible en mode SaaS (décision serveur).'); return; }
-    const name = window.prompt('Nom du validateur externe (ex. Cheick Sanankoua (DG)) :'); if (!name) return;
-    const contact = window.prompt('E-mail du validateur :'); if (!contact) return;
+    if (!decisionId) { toast.warning(tr('collab.externalLinkSaasOnly')); return; }
+    const name = window.prompt(tr('collab.externalApproverNamePrompt')); if (!name) return;
+    const contact = window.prompt(tr('collab.approverEmailPrompt')); if (!contact) return;
     try {
       const step = await getPendingApprovalId(adapter, decisionId);
-      if (!step) { toast.error('Aucune étape en attente.'); return; }
+      if (!step) { toast.error(tr('collab.noPendingStep')); return; }
       const { url, delivery } = await createApprovalLink(adapter, { approvalId: step.id, contactKind: 'email', contactValue: contact, displayName: name });
       try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
-      toast.success(delivery === 'sent' ? `Lien envoyé à ${contact} · copié` : `Lien créé (démo, non envoyé) · copié : ${url}`);
+      toast.success(delivery === 'sent' ? tr('collab.linkSent', { contact }) : tr('collab.linkCreatedDemo', { url }));
       onReload();
-    } catch (e: any) { toast.error(mapErr(e?.message)); }
+    } catch (e: any) { toast.error(mapErr(e?.message, tr)); }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-      {decisions.length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>Aucune décision enregistrée.</div>}
+      {decisions.length === 0 && <div style={{ fontSize: 11.5, color: T.sub }}>{tr('collab.noDecisions')}</div>}
       {decisions.map(ev => {
         const p = ev.payload as any;
         const req = (currentRole(p) || '').toUpperCase();
@@ -1017,15 +1043,15 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
                     {REJECT_MOTIVES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                   </select>
                   <div style={{ display: 'flex', gap: 6 }}>
-                    <button onClick={() => reject(ev)} style={miniBtn(T.red)}>Confirmer le rejet</button>
-                    <button onClick={() => setRejecting(null)} style={{ ...miniBtn(T.sub) }}>Annuler</button>
+                    <button onClick={() => reject(ev)} style={miniBtn(T.red)}>{tr('collab.confirmReject')}</button>
+                    <button onClick={() => setRejecting(null)} style={{ ...miniBtn(T.sub) }}>{tr('collab.cancel')}</button>
                   </div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
-                  <button onClick={() => approve(ev)} style={miniBtn(T.green)}><ShieldCheck size={12} /> Valider ({req})</button>
-                  <button onClick={() => setRejecting(ev.id)} style={miniBtn(T.sub)}>Rejeter</button>
-                  <button onClick={() => makeLink(ev)} style={miniBtn(T.petrol)}><Link2 size={12} /> Faire valider par lien</button>
+                  <button onClick={() => approve(ev)} style={miniBtn(T.green)}><ShieldCheck size={12} /> {tr('collab.validateWithRole', { role: req })}</button>
+                  <button onClick={() => setRejecting(ev.id)} style={miniBtn(T.sub)}>{tr('collab.reject')}</button>
+                  <button onClick={() => makeLink(ev)} style={miniBtn(T.petrol)}><Link2 size={12} /> {tr('collab.approveByLink')}</button>
                 </div>
               )
             )}
@@ -1037,23 +1063,24 @@ function DecisionsTab({ events, me, adapter, onReload, readOnly }: any) {
 }
 
 /** Traduit les codes d'erreur de gouvernance serveur en message lisible. */
-function mapErr(code?: string): string {
+function mapErr(code: string | undefined, tr: Tr): string {
   const m: Record<string, string> = {
-    ROLE_REQUIRED: 'Validation réservée au rôle requis de cette étape.',
-    SOD_AUTHOR: 'Séparation des tâches : l\'auteur ne valide pas sa décision.',
-    SOD_DISTINCT: 'Séparation des tâches : validateurs distincts par étape.',
-    NOT_IN_APPROVAL: 'Décision déjà clôturée.',
-    NO_PENDING_STEP: 'Aucune étape en attente.',
-    MOTIVE_REQUIRED: 'Motif de rejet obligatoire.',
-    NO_GOVERNANCE_RULE: 'Aucune règle de gouvernance pour ce type/montant.',
+    ROLE_REQUIRED: tr('collab.errRoleRequired'),
+    SOD_AUTHOR: tr('collab.errSodAuthor'),
+    SOD_DISTINCT: tr('collab.errSodDistinct'),
+    NOT_IN_APPROVAL: tr('collab.errNotInApproval'),
+    NO_PENDING_STEP: tr('collab.errNoPendingStep'),
+    MOTIVE_REQUIRED: tr('collab.errMotiveRequired'),
+    NO_GOVERNANCE_RULE: tr('collab.errNoGovernanceRule'),
   };
-  return (code && m[code]) || code || 'Échec de l\'opération';
+  return (code && m[code]) || code || tr('collab.errOperationFailed');
 }
 
 // ── Onglet Pièces (3 familles juridiques distinctes) ──────────────────────────
 function PiecesTab({ events, documents, sp, me, adapter, onReload, readOnly }: {
   events: SpaceEvent[]; documents: DBCollabDocument[]; sp: Space; me: any; adapter: any; onReload: () => void; readOnly: boolean;
 }) {
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const ecritures = events.filter(e => e.type === 'ecriture');
   const snaps = events.filter(e => e.type === 'snapshot');
@@ -1065,24 +1092,24 @@ function PiecesTab({ events, documents, sp, me, adapter, onReload, readOnly }: {
 
   const onFile = async (file?: File) => {
     if (!file) return;
-    if (file.size > 3 * 1024 * 1024) { toast.warning('Fichier > 3 Mo (limite v1 inline)'); return; }
+    if (file.size > 3 * 1024 * 1024) { toast.warning(tr('collab.fileTooLarge')); return; }
     const dataUrl = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(file); });
     await addDocument(adapter, { spaceId: sp.id, tenantId: sp.tenantId, name: file.name, dataUrl, size: file.size, mime: file.type, uploadedBy: me.id, uploadedByName: me.name });
-    toast.success('Document joint'); onReload();
+    toast.success(tr('collab.documentAttached')); onReload();
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <PieceGroup title="Écritures référencées" color={T.green} count={ecritures.length}>
-        {ecritures.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucune écriture liée.</div>}
+      <PieceGroup title={tr('collab.groupEntries')} color={T.green} count={ecritures.length}>
+        {ecritures.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>{tr('collab.noLinkedEntries')}</div>}
         {ecritures.map(e => <EcritureChip key={e.id} p={e.payload as EcriturePayload} body={e.body} />)}
       </PieceGroup>
-      <PieceGroup title="Snapshots figés" color={T.purple} count={snaps.length}>
-        {snaps.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucun snapshot.</div>}
+      <PieceGroup title={tr('collab.groupSnapshots')} color={T.purple} count={snaps.length}>
+        {snaps.length === 0 && <div style={{ fontSize: 11, color: T.sub }}>{tr('collab.noSnapshots')}</div>}
         {snaps.map(e => <SnapshotChip key={e.id} p={e.payload as SnapshotPayload} />)}
       </PieceGroup>
-      <PieceGroup title="Documents versionnés" color={T.blue} count={byName.size}>
-        {byName.size === 0 && <div style={{ fontSize: 11, color: T.sub }}>Aucun document joint.</div>}
+      <PieceGroup title={tr('collab.groupDocuments')} color={T.blue} count={byName.size}>
+        {byName.size === 0 && <div style={{ fontSize: 11, color: T.sub }}>{tr('collab.noDocuments')}</div>}
         {[...byName.entries()].map(([name, versions]) => {
           const cur = versions.slice().sort((a, b) => b.version - a.version)[0];
           return (
@@ -1092,14 +1119,14 @@ function PiecesTab({ events, documents, sp, me, adapter, onReload, readOnly }: {
                 <a href={cur.dataUrl} download={cur.name} style={{ flex: 1, fontSize: 12, fontWeight: 700, color: T.ink, textDecoration: 'none', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</a>
                 <span style={{ fontSize: 10, fontWeight: 700, color: T.blue, background: T.blue + '18', borderRadius: 6, padding: '1px 6px' }}>v{cur.version}</span>
               </div>
-              {cur.checksum && <div style={{ fontSize: 9.5, color: T.sub, fontFamily: MONO, marginTop: 3 }}>#{cur.checksum} · {versions.length} version(s)</div>}
+              {cur.checksum && <div style={{ fontSize: 9.5, color: T.sub, fontFamily: MONO, marginTop: 3 }}>#{cur.checksum} · {tr('collab.versionsCount', { count: String(versions.length) })}</div>}
             </div>
           );
         })}
         {!readOnly && (
           <div>
             <input ref={fileRef} type="file" style={{ display: 'none' }} onChange={e => onFile(e.target.files?.[0])} />
-            <button onClick={() => fileRef.current?.click()} style={{ ...miniBtn(T.blue), marginTop: 2 }}><Plus size={12} /> Joindre / versionner un document</button>
+            <button onClick={() => fileRef.current?.click()} style={{ ...miniBtn(T.blue), marginTop: 2 }}><Plus size={12} /> {tr('collab.attachDocument')}</button>
           </div>
         )}
       </PieceGroup>
@@ -1121,16 +1148,17 @@ function PieceGroup({ title, color, count, children }: any) {
 
 // ── Onglet Diffusion (routage) ────────────────────────────────────────────────
 function DiffusionTab({ sp, events }: { sp: Space; events: SpaceEvent[] }) {
+  const { t: tr } = useLanguage();
   const mentions = events.filter(e => (e.mentions || []).length > 0).length;
   const decisions = events.filter(e => e.type === 'decision' && !(e.payload as DecisionPayload)?.approvedAt).length;
   const rows = [
-    { who: sp.responsibleName || 'Responsable', surface: 'Workspace FNA', what: 'Synthèse + validations', state: decisions > 0 ? `${decisions} en attente` : 'à jour' },
-    { who: 'Équipe', surface: 'Dock « Mes espaces »', what: 'Mentions + relances', state: `${mentions} mention(s)` },
-    { who: 'DAF', surface: 'Digest e-mail 18h', what: 'Décisions > seuil', state: 'programmé' },
+    { who: sp.responsibleName || tr('collab.owner'), surface: 'Workspace FNA', what: tr('collab.diffSynthValidations'), state: decisions > 0 ? tr('collab.diffPending', { count: String(decisions) }) : tr('collab.upToDate') },
+    { who: tr('collab.team'), surface: tr('collab.dockMySpaces'), what: tr('collab.diffMentionsReminders'), state: tr('collab.diffMentionsCount', { count: String(mentions) }) },
+    { who: 'DAF', surface: tr('collab.diffEmailDigest'), what: tr('collab.diffDecisionsAboveThreshold'), state: tr('collab.scheduled') },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-      <div style={{ fontSize: 11, color: T.sub, marginBottom: 2 }}>Qui reçoit quoi, où — routage rendu visible (CDC §8.4).</div>
+      <div style={{ fontSize: 11, color: T.sub, marginBottom: 2 }}>{tr('collab.diffusionHint')}</div>
       {rows.map((r, i) => (
         <div key={i} style={{ border: `1px solid ${T.softLine}`, borderRadius: 9, padding: '8px 10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1146,27 +1174,28 @@ function DiffusionTab({ sp, events }: { sp: Space; events: SpaceEvent[] }) {
 
 // ════════════════════════════════════════════════ RAPPORT DE CLÔTURE ═════════
 function ReportModal({ report, space, onClose }: { report: any; space: Space; onClose: () => void }) {
+  const { t: tr } = useLanguage();
   const c = report?.content;
   const esc = (s: any) => String(s ?? '').replace(/[<>&]/g, m => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[m] as string));
   const printReport = () => {
     if (!c) return;
     const rows = (arr: any[], fn: (x: any) => string) => (arr || []).map(fn).join('');
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Rapport ${esc(c.space?.title)}</title>
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(tr('collab.rptTitle'))} · ${esc(c.space?.title)}</title>
       <style>body{font-family:Arial,sans-serif;color:#1c2b2e;max-width:800px;margin:24px auto;padding:0 20px;line-height:1.5}
       h1{color:#1E5A64}h2{color:#1E5A64;border-bottom:1px solid #E6E0D4;padding-bottom:4px;margin-top:26px;font-size:16px}
       .muted{color:#607377;font-size:12px}.gold{color:#C97E12;font-weight:bold}.mono{font-family:monospace}
       li{margin:3px 0}.tag{display:inline-block;font-size:11px;background:#f0ece2;border-radius:4px;padding:1px 6px;margin-right:4px}</style></head>
-      <body><h1>Rapport de clôture</h1>
-      <p class="muted">${esc(c.space?.title)} · réf ${esc(report.hash?.slice(0,16))}… · généré le ${new Date(report.generated_at).toLocaleString('fr-FR')}</p>
-      <h2>Problème</h2><p>${esc(c.space?.problem)}</p>
-      <h2>Objectif</h2><p>${esc(c.space?.objective)}</p>
-      <p class="muted">Responsable : ${esc(c.responsable)} · ouvert le ${esc(c.ouvertLe?.slice(0,10))} · clôturé le ${esc(c.clotureLe?.slice(0,10))} · durée ${esc(c.dureeJours)} j</p>
-      <h2>Solutions retenues</h2><ul>${rows(c.solutionsRetenues, (s:any)=>`<li>${esc(s.title)}${s.decisionRef?` <span class="tag mono">${esc(s.decisionRef)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
-      <h2>Solutions écartées (avec motifs)</h2><ul>${rows(c.solutionsEcartees, (s:any)=>`<li>${esc(s.title)} — <i>${esc(s.motif||'sans motif')}</i></li>`) || '<li class="muted">—</li>'}</ul>
-      <h2>Décisions & validations</h2><ul>${rows(c.decisions, (d:any)=>`<li><b>${esc(d.ref||'')}</b> ${esc(d.title)}${d.amount!=null?` — <span class="gold">${Math.round(d.amount).toLocaleString('fr-FR')} FCFA</span>`:''}${d.governanceRule?`<br><span class="muted">${esc(d.governanceRule)}</span>`:''}${d.approvedByName?`<br><span class="muted">✓ ${esc(d.approvedByName)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
-      <h2>Pièces référencées</h2><ul>${rows(c.piecesReferencees, (p:any)=>`<li class="mono">${esc(p.entryNumber)} ${esc(p.accounts||'')}</li>`) || '<li class="muted">—</li>'}</ul>
-      <h2>Snapshots</h2><ul>${rows(c.snapshots, (s:any)=>`<li>${esc(s.title)} <span class="mono muted">#${esc(s.hash)}</span></li>`) || '<li class="muted">—</li>'}</ul>
-      <h2>Chronologie</h2><ul>${rows(c.chronologie, (e:any)=>`<li><span class="muted mono">${esc(e.le?.slice(0,16).replace('T',' '))}</span> <span class="tag">${esc(e.type)}</span> ${esc(e.texte)}${e.auteur?` <span class="muted">— ${esc(e.auteur)}</span>`:''}</li>`)}</ul>
+      <body><h1>${esc(tr('collab.rptTitle'))}</h1>
+      <p class="muted">${esc(c.space?.title)} · ${esc(tr('collab.rptRef'))} ${esc(report.hash?.slice(0,16))}… · ${esc(tr('collab.rptGeneratedOn'))} ${new Date(report.generated_at).toLocaleString('fr-FR')}</p>
+      <h2>${esc(tr('collab.stepProblem'))}</h2><p>${esc(c.space?.problem)}</p>
+      <h2>${esc(tr('collab.objective'))}</h2><p>${esc(c.space?.objective)}</p>
+      <p class="muted">${esc(tr('collab.rptOwner'))} : ${esc(c.responsable)} · ${esc(tr('collab.rptOpenedOn'))} ${esc(c.ouvertLe?.slice(0,10))} · ${esc(tr('collab.rptClosedOn'))} ${esc(c.clotureLe?.slice(0,10))} · ${esc(tr('collab.rptDuration'))} ${esc(c.dureeJours)} ${esc(tr('collab.daysShort'))}</p>
+      <h2>${esc(tr('collab.rptSolutionsKept'))}</h2><ul>${rows(c.solutionsRetenues, (s:any)=>`<li>${esc(s.title)}${s.decisionRef?` <span class="tag mono">${esc(s.decisionRef)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>${esc(tr('collab.rptSolutionsDiscarded'))}</h2><ul>${rows(c.solutionsEcartees, (s:any)=>`<li>${esc(s.title)} — <i>${esc(s.motif||tr('collab.rptNoMotive'))}</i></li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>${esc(tr('collab.rptDecisions'))}</h2><ul>${rows(c.decisions, (d:any)=>`<li><b>${esc(d.ref||'')}</b> ${esc(d.title)}${d.amount!=null?` — <span class="gold">${Math.round(d.amount).toLocaleString('fr-FR')} FCFA</span>`:''}${d.governanceRule?`<br><span class="muted">${esc(d.governanceRule)}</span>`:''}${d.approvedByName?`<br><span class="muted">✓ ${esc(d.approvedByName)}</span>`:''}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>${esc(tr('collab.rptPieces'))}</h2><ul>${rows(c.piecesReferencees, (p:any)=>`<li class="mono">${esc(p.entryNumber)} ${esc(p.accounts||'')}</li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>${esc(tr('collab.rptSnapshots'))}</h2><ul>${rows(c.snapshots, (s:any)=>`<li>${esc(s.title)} <span class="mono muted">#${esc(s.hash)}</span></li>`) || '<li class="muted">—</li>'}</ul>
+      <h2>${esc(tr('collab.rptTimeline'))}</h2><ul>${rows(c.chronologie, (e:any)=>`<li><span class="muted mono">${esc(e.le?.slice(0,16).replace('T',' '))}</span> <span class="tag">${esc(e.type)}</span> ${esc(e.texte)}${e.auteur?` <span class="muted">— ${esc(e.auteur)}</span>`:''}</li>`)}</ul>
       </body></html>`;
     const w = window.open('', '_blank'); if (w) { w.document.write(html); w.document.close(); setTimeout(() => w.print(), 300); }
   };
@@ -1175,24 +1204,24 @@ function ReportModal({ report, space, onClose }: { report: any; space: Space; on
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,43,46,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 20 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: T.surface, borderRadius: 16, width: 'min(640px, 100%)', maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
         <div style={{ padding: '15px 20px', borderBottom: `1px solid ${T.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800, display: 'flex', gap: 8, alignItems: 'center' }}><FileText size={18} /> Rapport de clôture</h3>
+          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800, display: 'flex', gap: 8, alignItems: 'center' }}><FileText size={18} /> {tr('collab.rptTitle')}</h3>
           <div style={{ display: 'flex', gap: 8 }}>
-            {c && <button onClick={printReport} style={{ ...btn(T.petrol), padding: '7px 12px' }}>Imprimer / PDF</button>}
+            {c && <button onClick={printReport} style={{ ...btn(T.petrol), padding: '7px 12px' }}>{tr('collab.printPdf')}</button>}
             <button onClick={onClose} style={iconBtn}><X size={18} /></button>
           </div>
         </div>
         <div style={{ padding: 20 }}>
           {!c ? (
-            <div style={{ fontSize: 13, color: T.sub }}>Aucun rapport détaillé archivé pour cet espace{space.closureHash ? ` (scellé ${space.closureHash.slice(0, 12)}…).` : '.'} Les espaces clôturés avant l'activation du rapport n'ont que leur empreinte.</div>
+            <div style={{ fontSize: 13, color: T.sub }}>{tr('collab.rptNoneArchived')}{space.closureHash ? ` ${tr('collab.rptSealedWith', { hash: space.closureHash.slice(0, 12) })}` : '.'} {tr('collab.rptOnlyFingerprint')}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13 }}>
-              <div style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{c.space?.title} · #{String(report.hash).slice(0, 16)}… · {c.dureeJours} j</div>
-              <RSec title="Problème">{c.space?.problem}</RSec>
-              <RSec title="Objectif">{c.space?.objective}</RSec>
-              <RSec title={`Solutions retenues (${(c.solutionsRetenues || []).length})`}>{(c.solutionsRetenues || []).map((s: any, i: number) => <div key={i}>• {s.title} {s.decisionRef && <span style={{ fontFamily: MONO, color: T.orange, fontSize: 11 }}>{s.decisionRef}</span>}</div>)}</RSec>
-              <RSec title={`Solutions écartées (${(c.solutionsEcartees || []).length})`}>{(c.solutionsEcartees || []).map((s: any, i: number) => <div key={i}>• {s.title} — <i style={{ color: T.sub }}>{s.motif || 'sans motif'}</i></div>)}</RSec>
-              <RSec title={`Décisions (${(c.decisions || []).length})`}>{(c.decisions || []).map((d: any, i: number) => <div key={i}>• <b>{d.ref}</b> {d.title}{d.amount != null && <span style={{ color: T.gold, fontFamily: MONO }}> · {fmtXof(d.amount)} FCFA</span>}{d.approvedByName && <span style={{ color: T.green }}> · ✓ {d.approvedByName}</span>}</div>)}</RSec>
-              <RSec title={`Pièces (${(c.piecesReferencees || []).length}) · Snapshots (${(c.snapshots || []).length})`}>
+              <div style={{ fontSize: 10.5, color: T.sub, fontFamily: MONO }}>{c.space?.title} · #{String(report.hash).slice(0, 16)}… · {c.dureeJours} {tr('collab.daysShort')}</div>
+              <RSec title={tr('collab.stepProblem')}>{c.space?.problem}</RSec>
+              <RSec title={tr('collab.objective')}>{c.space?.objective}</RSec>
+              <RSec title={tr('collab.rptSolutionsKeptN', { count: String((c.solutionsRetenues || []).length) })}>{(c.solutionsRetenues || []).map((s: any, i: number) => <div key={i}>• {s.title} {s.decisionRef && <span style={{ fontFamily: MONO, color: T.orange, fontSize: 11 }}>{s.decisionRef}</span>}</div>)}</RSec>
+              <RSec title={tr('collab.rptSolutionsDiscardedN', { count: String((c.solutionsEcartees || []).length) })}>{(c.solutionsEcartees || []).map((s: any, i: number) => <div key={i}>• {s.title} — <i style={{ color: T.sub }}>{s.motif || tr('collab.rptNoMotive')}</i></div>)}</RSec>
+              <RSec title={tr('collab.rptDecisionsN', { count: String((c.decisions || []).length) })}>{(c.decisions || []).map((d: any, i: number) => <div key={i}>• <b>{d.ref}</b> {d.title}{d.amount != null && <span style={{ color: T.gold, fontFamily: MONO }}> · {fmtXof(d.amount)} FCFA</span>}{d.approvedByName && <span style={{ color: T.green }}> · ✓ {d.approvedByName}</span>}</div>)}</RSec>
+              <RSec title={tr('collab.rptPiecesSnapshotsN', { pieces: String((c.piecesReferencees || []).length), snapshots: String((c.snapshots || []).length) })}>
                 {(c.piecesReferencees || []).map((p: any, i: number) => <div key={i} style={{ fontFamily: MONO }}>• {p.entryNumber} {p.accounts}</div>)}
                 {(c.snapshots || []).map((s: any, i: number) => <div key={'s' + i}>📸 {s.title} <span style={{ fontFamily: MONO, color: T.sub, fontSize: 11 }}>#{s.hash}</span></div>)}
               </RSec>
@@ -1219,6 +1248,7 @@ function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
   onClose: () => void; onCreated: (id: string) => void;
 }) {
   const { adapter } = useData();
+  const { t: tr } = useLanguage();
   const { toast } = useToast();
   const [title, setTitle] = useState(prefill?.title || '');
   const [problem, setProblem] = useState(prefill?.problem || '');
@@ -1243,16 +1273,16 @@ function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
   };
 
   const submit = async () => {
-    if (!title.trim() || !problem.trim() || !objective.trim()) { toast.warning('Titre, problème et objectif sont requis'); return; }
-    if (!anchorLabel.trim()) { toast.warning('Un espace ne vit pas sans ancrage métier'); return; }
+    if (!title.trim() || !problem.trim() || !objective.trim()) { toast.warning(tr('collab.requiredFields')); return; }
+    if (!anchorLabel.trim()) { toast.warning(tr('collab.anchorRequired')); return; }
     setBusy(true);
     try {
       // Critère calculé obligatoire : compte à solder si un compte est fourni,
       // sinon un critère manuel saisi.
       const criteria: ExitCriterion[] = [];
-      if (account.trim()) criteria.push({ id: crypto.randomUUID?.() || String(Date.now()), label: `Écart ${account.trim()} soldé`, met: false, auto: { kind: 'account_zero', accountCode: account.trim() } });
+      if (account.trim()) criteria.push({ id: crypto.randomUUID?.() || String(Date.now()), label: tr('collab.criterionAccountCleared', { account: account.trim() }), met: false, auto: { kind: 'account_zero', accountCode: account.trim() } });
       if (critLabel.trim()) criteria.push({ id: (crypto.randomUUID?.() || String(Date.now())) + 'm', label: critLabel.trim(), met: false });
-      if (criteria.length === 0) criteria.push({ id: 'c0', label: 'Objectif atteint (validation responsable)', met: false });
+      if (criteria.length === 0) criteria.push({ id: 'c0', label: tr('collab.criterionObjectiveReached'), met: false });
 
       const convergence = account.trim() && initialGap
         ? { initialGap: Number(initialGap), source: { kind: 'account_balance' as const, accountCode: account.trim() }, label: `écart ${account.trim()}` }
@@ -1279,21 +1309,21 @@ function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
           await createTask(adapter, { tenantId, spaceId: space.id, title: label, createdBy: me.id }).catch(() => {});
         }
       }
-      toast.success('Espace de résolution ouvert');
+      toast.success(tr('collab.spaceOpened'));
       onCreated(space.id);
-    } catch (e) { console.error(e); toast.error('Échec de la création'); } finally { setBusy(false); }
+    } catch (e) { console.error(e); toast.error(tr('collab.createFailed')); } finally { setBusy(false); }
   };
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,43,46,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 20 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: T.surface, borderRadius: 16, width: 'min(600px, 100%)', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.line}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800 }}>Ouvrir un espace de résolution</h3>
+          <h3 style={{ margin: 0, fontSize: 16, color: T.petrol, fontWeight: 800 }}>{tr('collab.createModalTitle')}</h3>
           <button onClick={onClose} style={iconBtn}><X size={18} /></button>
         </div>
         <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 13 }}>
           <div>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 6 }}>Partir d'un template</span>
+            <span style={{ fontSize: 11.5, fontWeight: 600, color: T.sub, display: 'block', marginBottom: 6 }}>{tr('collab.startFromTemplate')}</span>
             <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap' }}>
               {SPACE_TEMPLATES.map(t => (
                 <button key={t.id} type="button" onClick={() => applyTemplate(t)} style={{
@@ -1304,47 +1334,47 @@ function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
               ))}
             </div>
           </div>
-          <Field label="Titre">
-            <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. Écarts BICICI 521100 — Mars 2026" style={inpFull} />
+          <Field label={tr('collab.fieldTitle')}>
+            <input value={title} onChange={e => setTitle(e.target.value)} placeholder={tr('collab.titlePh')} style={inpFull} />
           </Field>
-          <Field label="Problème (constat chiffré, impact, origine)">
-            <textarea value={problem} onChange={e => setProblem(e.target.value)} rows={3} placeholder="Ex. 14 120 000 FCFA d'écarts non justifiés sur le compte 521100 constatés à la clôture de mars par la DAF." style={{ ...inpFull, resize: 'vertical' }} />
+          <Field label={tr('collab.fieldProblem')}>
+            <textarea value={problem} onChange={e => setProblem(e.target.value)} rows={3} placeholder={tr('collab.problemPh')} style={{ ...inpFull, resize: 'vertical' }} />
           </Field>
-          <Field label="Objectif de résolution">
-            <input value={objective} onChange={e => setObjective(e.target.value)} placeholder="Ex. Ramener l'écart 521100 à zéro, justifié pièce par pièce." style={inpFull} />
+          <Field label={tr('collab.fieldObjective')}>
+            <input value={objective} onChange={e => setObjective(e.target.value)} placeholder={tr('collab.objectivePh')} style={inpFull} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Type d'ancrage">
+            <Field label={tr('collab.fieldAnchorType')}>
               <select value={anchorType} onChange={e => setAnchorType(e.target.value as any)} style={inpFull}>
                 {Object.entries(ANCHOR_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </Field>
-            <Field label="Échéance">
+            <Field label={tr('collab.fieldDeadline')}>
               <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={inpFull} />
             </Field>
           </div>
-          <Field label="Objet ancré (libellé)">
-            <input value={anchorLabel} onChange={e => setAnchorLabel(e.target.value)} placeholder="Ex. Rapprochement 521100 · Mars 2026" style={inpFull} />
+          <Field label={tr('collab.fieldAnchorLabel')}>
+            <input value={anchorLabel} onChange={e => setAnchorLabel(e.target.value)} placeholder={tr('collab.anchorLabelPh')} style={inpFull} />
           </Field>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <Field label="Compte GL (convergence calculée)">
-              <input value={account} onChange={e => setAccount(e.target.value)} placeholder="Ex. 521100" style={{ ...inpFull, fontFamily: MONO }} />
+            <Field label={tr('collab.fieldGlAccount')}>
+              <input value={account} onChange={e => setAccount(e.target.value)} placeholder={tr('collab.accountPh')} style={{ ...inpFull, fontFamily: MONO }} />
             </Field>
-            <Field label="Écart initial (FCFA)">
-              <input value={initialGap} onChange={e => setInitialGap(e.target.value)} type="number" placeholder="Ex. 14120000" style={{ ...inpFull, fontFamily: MONO }} />
+            <Field label={tr('collab.fieldInitialGap')}>
+              <input value={initialGap} onChange={e => setInitialGap(e.target.value)} type="number" placeholder={tr('collab.initialGapPh')} style={{ ...inpFull, fontFamily: MONO }} />
             </Field>
           </div>
-          <Field label="Critère de sortie manuel (optionnel)">
-            <input value={critLabel} onChange={e => setCritLabel(e.target.value)} placeholder="Ex. Liasse validée par la DAF" style={inpFull} />
+          <Field label={tr('collab.fieldManualCriterion')}>
+            <input value={critLabel} onChange={e => setCritLabel(e.target.value)} placeholder={tr('collab.manualCriterionPh')} style={inpFull} />
           </Field>
           <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px', display: 'flex', gap: 7 }}>
             <Sparkles size={14} color={T.petrol} style={{ flexShrink: 0, marginTop: 1 }} />
-            La convergence sera <b>calculée depuis le grand livre</b> (jamais saisie). Un critère « compte à solder » se satisfait automatiquement quand le solde atteint zéro.
+            {tr('collab.createHintPre')} <b>{tr('collab.createHintBold')}</b> {tr('collab.createHintPost')}
           </div>
         </div>
         <div style={{ padding: '14px 20px', borderTop: `1px solid ${T.line}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={{ ...btn('#0000'), color: T.sub, border: `1px solid ${T.line}` }}>Annuler</button>
-          <button onClick={submit} disabled={busy} style={btn(T.petrol)}>{busy ? 'Création…' : 'Ouvrir l\'espace'}</button>
+          <button onClick={onClose} style={{ ...btn('#0000'), color: T.sub, border: `1px solid ${T.line}` }}>{tr('collab.cancel')}</button>
+          <button onClick={submit} disabled={busy} style={btn(T.petrol)}>{busy ? tr('collab.creating') : tr('collab.openSpaceBtn')}</button>
         </div>
       </div>
     </div>
@@ -1353,12 +1383,13 @@ function CreateSpaceModal({ me, tenantId, prefill, onClose, onCreated }: {
 
 // ════════════════════════════════════════════════ PETITS COMPOSANTS ══════════
 function ConvergenceBar({ bp, compact }: { bp: number; compact?: boolean }) {
+  const { t: tr } = useLanguage();
   const pct = Math.round(bp / 100);
   const color = pct >= 100 ? T.green : pct >= 50 ? T.gold : T.orange;
   return (
     <div>
       {!compact && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: T.sub, marginBottom: 3 }}>
-        <span>Convergence</span><span style={{ fontFamily: MONO, color, fontWeight: 700 }}>{pct}%</span>
+        <span>{tr('collab.convergence')}</span><span style={{ fontFamily: MONO, color, fontWeight: 700 }}>{pct}%</span>
       </div>}
       <div style={{ height: compact ? 5 : 7, background: T.softLine, borderRadius: 4, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 4, transition: 'width .4s' }} />
