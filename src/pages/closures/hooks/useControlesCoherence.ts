@@ -193,8 +193,9 @@ export function useControlesCoherence(controlIds?: string[], scope?: ControlesSc
       const results: ControleResult[] = [];
 
       // Anomalies partagées — pièces dont débit ≠ crédit (C1 agrégé / C2 pièce à pièce).
-      // `montant` porte l'écart SIGNÉ (> 0 = excès de débit) : c'est ce que la
-      // correction automatique passe au compte d'attente.
+      // Ces pièces sont VALIDÉES (les brouillons relèvent de C8) : `corrigeable`
+      // reste faux, une écriture validée est intangible (SYSCOHADA Art. 19) et se
+      // corrige par contrepassation, pas par retouche.
       const unbalancedEntries = entries.filter((e: any) => Math.abs(e.totalDebit - e.totalCredit) > 1);
       const unbalancedAnomalies: ControleAnomalie[] = unbalancedEntries.map((e: any) => ({
         ref: e.entryNumber || e.id,
@@ -203,7 +204,7 @@ export function useControlesCoherence(controlIds?: string[], scope?: ControlesSc
         date: e.date,
         entryId: e.id,
         info: `D ${formatCurrency(e.totalDebit)} / C ${formatCurrency(e.totalCredit)}`,
-        corrigeable: true,
+        corrigeable: false,
       }));
 
       const entryNumberById = new Map<string, string>(
@@ -511,14 +512,19 @@ export function useControlesCoherence(controlIds?: string[], scope?: ControlesSc
           // `corrigeable` = brouillon ÉQUILIBRÉ : lui seul peut être validé
           // automatiquement. Un brouillon déséquilibré doit repasser par la saisie.
           const anomalies: ControleAnomalie[] = drafts.map((e: any) => {
-            const equilibree = Math.abs((e.totalDebit || 0) - (e.totalCredit || 0)) <= 1;
+            const ecart = Number((((e.totalDebit || 0) - (e.totalCredit || 0))).toFixed(2));
+            const equilibree = Math.abs(ecart) <= 1;
             return {
               ref: e.entryNumber || e.id,
               libelle: e.label || 'Écriture sans libellé',
               montant: Number(e.totalDebit) || 0,
+              // `ecart` non nul = brouillon complétable sur compte d'attente.
+              ecart: equilibree ? undefined : ecart,
               date: e.date,
               entryId: e.id,
-              info: equilibree ? 'Équilibrée — validable' : 'Déséquilibrée — correction de saisie requise',
+              info: equilibree
+                ? 'Équilibrée — validable'
+                : `Déséquilibrée de ${formatCurrency(Math.abs(ecart))}`,
               corrigeable: equilibree,
             };
           });

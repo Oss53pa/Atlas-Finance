@@ -24,8 +24,8 @@ export interface PreflightVerrouillageProps {
   periodEnd: string;
   periodLabel: string;
   fiscalYearId?: string;
-  /** Remonte le nombre de bloquants au parent (pour désactiver le verrouillage). */
-  onBlockersChange?: (count: number) => void;
+  /** Remonte les identifiants des contrôles bloquants (gating + trace de dérogation). */
+  onBlockersChange?: (controleIds: string[]) => void;
 }
 
 /** Un contrôle NON CONFORME empêche le verrouillage ; « attention » avertit seulement. */
@@ -50,9 +50,10 @@ export default function PreflightVerrouillage({
   const blockers = controles.filter(isBlocker);
   const warnings = controles.filter(c => c.statut === 'attention');
 
+  const blockerIds = blockers.map(c => c.id).join(',');
   React.useEffect(() => {
-    if (!loading) onBlockersChange?.(blockers.length);
-  }, [loading, blockers.length, onBlockersChange]);
+    if (!loading) onBlockersChange?.(blockerIds ? blockerIds.split(',') : []);
+  }, [loading, blockerIds, onBlockersChange]);
 
   const fixables = useMemo(
     () => controles
