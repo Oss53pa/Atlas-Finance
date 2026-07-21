@@ -61,6 +61,14 @@ interface LigneEcriture {
   credit: number;
   codeAnalytique?: string;
   noteLigne?: string;
+  /**
+   * Code tiers de la ligne — requis sur les comptes collectifs 40x/41x.
+   * Le tiers de l'entête (achat/vente/règlement) est propagé automatiquement ;
+   * ce champ sert aux écritures OD/virement, qui n'ont pas de tiers d'entête et
+   * créaient donc des lignes fournisseur/client SANS tiers (invisibles de
+   * l'encours, de la balance âgée et du lettrage).
+   */
+  tiers?: string;
 }
 
 type TransactionType = 'purchase' | 'sale' | 'payment' | 'transfer' | 'other';
@@ -509,6 +517,18 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     onClose();
   }, [resetForm, onClose]);
 
+  /**
+   * Tiers porté par l'entête (achat/vente/règlement). Il satisfait la règle
+   * « tiers obligatoire sur 40x/41x » sans ressaisie ; les OD et virements n'en
+   * ont pas → la saisie se fait ligne par ligne.
+   */
+  const tiersEnteteCourant = useMemo(() => (
+    transactionType === 'purchase' ? factureInfo.fournisseur
+    : transactionType === 'sale' ? venteInfo.client
+    : transactionType === 'payment' ? reglementInfo.tiers
+    : ''
+  ), [transactionType, factureInfo.fournisseur, venteInfo.client, reglementInfo.tiers]);
+
   // Fonction pour calculer les erreurs de validation
   const getValidationErrors = useCallback((): string[] => {
     const errors: string[] = [];
@@ -532,6 +552,22 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     const emptyAccounts = lignesEcriture.filter(l => !l.compte);
     if (emptyAccounts.length > 0) {
       errors.push(t('journalEntry.errLinesWithoutAccount', { count: String(emptyAccounts.length) }));
+    }
+
+    // Tiers OBLIGATOIRE sur les comptes collectifs 40x/41x. Le tiers d'entête
+    // (achat/vente/règlement) satisfait la règle ; les OD/virements doivent le
+    // saisir par ligne. Sans tiers, le montant n'apparaît dans AUCUNE vue par
+    // tiers (encours, balance âgée, relances, lettrage) et casse la
+    // réconciliation sous-registre ↔ compte collectif.
+    const collectifsSansTiers = lignesEcriture.filter(
+      l => /^4[01]/.test(String(l.compte || '')) && !String(l.tiers || tiersEnteteCourant || '').trim(),
+    );
+    if (collectifsSansTiers.length > 0) {
+      errors.push(
+        `Tiers obligatoire sur ${collectifsSansTiers.length} ligne(s) de compte collectif `
+        + `(${collectifsSansTiers.map(l => l.compte).join(', ')}) — sans tiers, le montant `
+        + `n'apparaîtra ni dans l'encours, ni dans la balance âgée, ni dans le lettrage.`,
+      );
     }
 
     // Vérifications spécifiques par type
@@ -562,7 +598,7 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     }
 
     return errors;
-  }, [details, transactionType, sousJournalOD, totalDebit, totalCredit, lignesEcriture, factureInfo, venteInfo, reglementInfo, virementInfo, tvaValidation]);
+  }, [details, transactionType, sousJournalOD, totalDebit, totalCredit, lignesEcriture, factureInfo, venteInfo, reglementInfo, virementInfo, tvaValidation, tiersEnteteCourant]);
 
   // Mettre à jour les erreurs de validation quand les données changent
   useEffect(() => {
@@ -699,8 +735,13 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
         debit: l.debit,
         credit: l.credit,
         analyticalCode: l.codeAnalytique || undefined,
-        thirdPartyCode: (tiersCode && /^4[01]/.test(String(l.compte))) ? tiersCode : undefined,
-        thirdPartyName: (tiersCode && /^4[01]/.test(String(l.compte))) ? (tiersFiche?.name || undefined) : undefined,
+        // Tiers de la LIGNE (saisi sur les OD/virements) sinon tiers d'entête
+        // (achat/vente/règlement). Sans cela, une ligne 401/411 d'une OD partait
+        // sans tiers et devenait invisible de l'encours / balance âgée / lettrage.
+        thirdPartyCode: /^4[01]/.test(String(l.compte)) ? ((l.tiers || tiersCode) || undefined) : undefined,
+        thirdPartyName: /^4[01]/.test(String(l.compte))
+          ? (thirdPartiesList.find(tp => tp.code === (l.tiers || tiersCode))?.name || tiersFiche?.name || undefined)
+          : undefined,
       }));
 
       const result = await validateJournalEntry(adapter, {
@@ -1647,6 +1688,32 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                               </div>,
                               document.body
                             )}
+                            {/* Compte collectif 40x/41x → le tiers est obligatoire.
+                                Prérempli par le tiers d'entête (achat/vente/règlement) ;
+                                saisissable ligne par ligne pour les OD et virements. */}
+                            {/^4[01]/.test(String(ligne.compte || '')) && (() => {
+                              const isClient = String(ligne.compte).startsWith('41');
+                              const opts = isClient ? clientOptions : fournisseurOptions;
+                              const current = ligne.tiers || tiersEnteteCourant || '';
+                              const options = current && !opts.some(o => o.value === current)
+                                ? [{ value: current, label: current }, ...opts]
+                                : opts;
+                              return (
+                                <select
+                                  value={current}
+                                  onChange={(e) => modifierLigne(index, 'tiers', e.target.value)}
+                                  title="Compte collectif : sans tiers, le montant n'apparaît ni dans l'encours, ni dans la balance âgée, ni dans le lettrage."
+                                  className={`mt-1 w-full px-2 py-1 text-xs rounded border ${
+                                    current ? 'border-gray-300 bg-white' : 'border-red-400 bg-red-50 text-red-700'
+                                  }`}
+                                >
+                                  <option value="">— {isClient ? 'Client' : 'Fournisseur'} obligatoire —</option>
+                                  {options.map(o => (
+                                    <option key={o.value} value={o.value}>{o.label}</option>
+                                  ))}
+                                </select>
+                              );
+                            })()}
                           </td>
                           <td className="px-3 py-2">
                             <input
