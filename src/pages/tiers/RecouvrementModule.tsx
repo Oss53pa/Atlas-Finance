@@ -62,6 +62,8 @@ interface CommercialData {
 interface CreanceEnrichie extends DebtCollection {
   clientNom: string;
   clientCode: string;
+  /** Langue préférée du tiers (`languePrefere`) : la relance part dans CETTE langue. */
+  clientLangue?: string;
   crmData?: CrmData;
   commercialData?: CommercialData;
 }
@@ -7218,62 +7220,18 @@ const RECOUVREMENT_PREFIXES = ['411', '421', '422', '423', '424', '425', '431', 
 const isRecouvrementAccount = (accountCode: string): boolean =>
   RECOUVREMENT_PREFIXES.some(prefix => accountCode.startsWith(prefix));
 
-const RecouvrementModule: React.FC = () => {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('creances');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatut, setFilterStatut] = useState('tous');
-  const [filterNiveau, setFilterNiveau] = useState('tous');
-  const [selectedCreance, setSelectedCreance] = useState<CreanceEnrichie | null>(null);
-  const [showActionModal, setShowActionModal] = useState(false);
-  const [actionFormData, setActionFormData] = useState({
-    typeAction: 'APPEL' as 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE',
-    date: new Date().toISOString().split('T')[0],
-    heure: new Date().toTimeString().slice(0, 5),
-    responsable: '',
-    details: '',
-    montantPromis: '',
-    datePromesse: ''
-  });
-  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
-  const [selectedFactures, setSelectedFactures] = useState<Set<string>>(new Set());
+/**
+ * Modèles de relance TRILINGUES (fr/en/es).
+ *
+ * ⚠️ Ce sont des DONNÉES métier (contenu de la lettre envoyée au client), pas des
+ * libellés d'interface : ils ne passent donc PAS par t(). Une lettre de relance part
+ * chez le CLIENT → elle est rédigée dans la langue du client destinataire
+ * (`languePrefere` du tiers), jamais dans la langue de l'interface.
+ */
+type RelanceLang = 'fr' | 'en' | 'es';
 
-  // États pour les modales de rapports
-  const [showRapportMensuelModal, setShowRapportMensuelModal] = useState(false);
-  const [showAnalyseROIModal, setShowAnalyseROIModal] = useState(false);
-  const [showPerformanceEquipeModal, setShowPerformanceEquipeModal] = useState(false);
-  const [showPrevisionTresorerieModal, setShowPrevisionTresorerieModal] = useState(false);
-  const [showDossiersRisqueModal, setShowDossiersRisqueModal] = useState(false);
-  const [showExportPersonnaliseModal, setShowExportPersonnaliseModal] = useState(false);
-
-  // États pour les modales des plans de remboursement
-  const [showPlanDetailModal, setShowPlanDetailModal] = useState(false);
-  const [showEnregistrerPaiementModal, setShowEnregistrerPaiementModal] = useState(false);
-  const [showRelancePlanModal, setShowRelancePlanModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanRemboursement | null>(null);
-  const [showCreateDossierModal, setShowCreateDossierModal] = useState(false);
-  const [showDossierActionModal, setShowDossierActionModal] = useState(false);
-  const [selectedDossierAction, setSelectedDossierAction] = useState<DossierRecouvrement | null>(null);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [showDossierDetail, setShowDossierDetail] = useState(false);
-  const [selectedDossierDetail, setSelectedDossierDetail] = useState<DossierRecouvrement | null>(null);
-  const [showDossierSummary, setShowDossierSummary] = useState(false);
-  const [selectedDossierSummary, setSelectedDossierSummary] = useState<DossierRecouvrement | null>(null);
-  const [activeDossierTab, setActiveDossierTab] = useState('dashboard');
-  const [activeRelanceSubTab, setActiveRelanceSubTab] = useState('historique');
-  const [activeParametresTab, setActiveParametresTab] = useState('configuration');
-  const [selectedTemplateType, setSelectedTemplateType] = useState('rappel_amical');
-  const [showEmailPreview, setShowEmailPreview] = useState(false);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [selectedTransferDossier, setSelectedTransferDossier] = useState<DossierRecouvrement | null>(null);
-  const [transferDetails, setTransferDetails] = useState({
-    destinataire: '',
-    motif: '',
-    notes: '',
-    validationStatus: 'pending' as 'pending' | 'approved' | 'rejected'
-  });
-  const [emailTemplates, setEmailTemplates] = useState({
+const RELANCE_EMAIL_TEMPLATES: Record<RelanceLang, Record<string, string>> = {
+  fr: {
     rappel_amical: `Objet: Rappel de paiement - {invoice_list}
 
 Madame, Monsieur {client_name},
@@ -7364,16 +7322,379 @@ Tel: +242 06 XXX XX XX
 Email: contentieux@{company_domain}
 
 Service Contentieux
-{company_name}`
-  });
-  const [smsTemplates, setSmsTemplates] = useState({
+{company_name}`,
+  },
+  en: {
+    rappel_amical: `Subject: Payment reminder - {invoice_list}
+
+Dear {client_name},
+
+We would like to remind you that the following invoices remain unpaid:
+{invoice_details}
+
+Total amount due: {total_amount} FCFA
+
+This is most likely an oversight on your part. We would be grateful if you could settle this matter at your earliest convenience.
+
+If payment has been made in the meantime, please disregard this message.
+
+Kind regards,
+{company_name}`,
+    relance_ferme: `Subject: 2nd Reminder - {invoice_count} unpaid invoices
+
+Dear {client_name},
+
+Despite our previous reminder, we note that the following invoices remain unpaid:
+{invoice_details}
+
+Total amount: {total_amount} FCFA
+Average overdue: {avg_days_overdue} days
+
+We request that payment be made within 48 hours.
+
+Failing a reply from you, we will be compelled to start collection proceedings.
+
+Accounting Department
+{company_name}`,
+    dernier_avis: `Subject: FINAL NOTICE before proceedings - {invoice_count} invoices
+
+Dear {client_name},
+
+FINAL NOTICE BEFORE LEGAL ACTION
+
+Despite our repeated reminders, the following invoices remain unpaid:
+{invoice_details}
+
+TOTAL DUE: {total_amount} FCFA
+
+Without payment within 72 hours, your file will be transferred to our litigation department.
+
+This is our last amicable notice.
+
+Finance Department
+{company_name}`,
+    mise_demeure: `Subject: FORMAL NOTICE - Unpaid receivables
+
+REGISTERED LETTER WITH ACKNOWLEDGEMENT OF RECEIPT
+
+Dear {client_name},
+
+FORMAL NOTICE
+
+By this letter, we formally require you to pay within EIGHT (8) days:
+
+{invoice_details}
+
+PRINCIPAL AMOUNT: {total_amount} FCFA
+LATE PAYMENT INTEREST: {interest_amount} FCFA
+COLLECTION FEES: {fees_amount} FCFA
+TOTAL PAYABLE: {grand_total} FCFA
+
+Failing payment within this period, we will start any appropriate legal proceedings.
+
+{company_name}
+Legal Department`,
+    pre_contentieux: `Subject: TRANSFER TO LITIGATION - File {client_code}
+
+Dear {client_name},
+
+Your file has been transferred to our litigation department.
+
+Outstanding receivables:
+{invoice_details}
+
+- Principal amount: {total_amount} FCFA
+- Late payment interest: {interest_amount} FCFA
+- Collection fees: {fees_amount} FCFA
+- TOTAL: {grand_total} FCFA
+
+Legal proceedings will be started within 48 hours.
+
+To avoid this action, please contact us immediately:
+Tel: +242 06 XXX XX XX
+Email: contentieux@{company_domain}
+
+Litigation Department
+{company_name}`,
+  },
+  es: {
+    rappel_amical: `Asunto: Recordatorio de pago - {invoice_list}
+
+Estimado/a {client_name}:
+
+Le recordamos que las siguientes facturas siguen pendientes de pago:
+{invoice_details}
+
+Importe total adeudado: {total_amount} FCFA
+
+Probablemente se trate de un olvido por su parte. Le agradecemos que regularice esta situación con la mayor brevedad posible.
+
+Si el pago ya se ha efectuado, le rogamos que no tenga en cuenta este mensaje.
+
+Atentamente,
+{company_name}`,
+    relance_ferme: `Asunto: 2.º Recordatorio - {invoice_count} facturas impagadas
+
+Estimado/a {client_name}:
+
+A pesar de nuestro recordatorio anterior, constatamos que las siguientes facturas siguen impagadas:
+{invoice_details}
+
+Importe total: {total_amount} FCFA
+Retraso medio: {avg_days_overdue} días
+
+Le solicitamos que efectúe el pago en un plazo de 48 horas.
+
+De no recibir respuesta por su parte, nos veremos obligados a iniciar procedimientos de cobro.
+
+Departamento de Contabilidad
+{company_name}`,
+    dernier_avis: `Asunto: ÚLTIMO AVISO antes de procedimiento - {invoice_count} facturas
+
+Estimado/a {client_name}:
+
+ÚLTIMO AVISO ANTES DE EMPRENDER ACCIONES LEGALES
+
+A pesar de nuestros múltiples recordatorios, las siguientes facturas siguen impagadas:
+{invoice_details}
+
+TOTAL ADEUDADO: {total_amount} FCFA
+
+Sin el pago en un plazo de 72 horas, su expediente será remitido a nuestro departamento de litigios.
+
+Este es nuestro último aviso amistoso.
+
+Dirección Financiera
+{company_name}`,
+    mise_demeure: `Asunto: REQUERIMIENTO FORMAL DE PAGO - Créditos impagados
+
+CARTA CERTIFICADA CON ACUSE DE RECIBO
+
+Estimado/a {client_name}:
+
+REQUERIMIENTO FORMAL DE PAGO
+
+Por la presente, le requerimos formalmente el pago en un plazo de OCHO (8) días de:
+
+{invoice_details}
+
+IMPORTE PRINCIPAL: {total_amount} FCFA
+INTERESES DE DEMORA: {interest_amount} FCFA
+GASTOS DE RECLAMACIÓN: {fees_amount} FCFA
+TOTAL A PAGAR: {grand_total} FCFA
+
+De no efectuarse el pago en dicho plazo, emprenderemos cuantas acciones judiciales resulten oportunas.
+
+{company_name}
+Departamento Jurídico`,
+    pre_contentieux: `Asunto: REMISIÓN AL DEPARTAMENTO JURÍDICO - Expediente {client_code}
+
+Estimado/a {client_name}:
+
+Su expediente ha sido remitido a nuestro departamento de litigios.
+
+Créditos pendientes:
+{invoice_details}
+
+- Importe principal: {total_amount} FCFA
+- Intereses de demora: {interest_amount} FCFA
+- Gastos de reclamación: {fees_amount} FCFA
+- TOTAL: {grand_total} FCFA
+
+Se emprenderá un procedimiento judicial en un plazo de 48 horas.
+
+Para evitar estas acciones, póngase en contacto de inmediato:
+Tel: +242 06 XXX XX XX
+Email: contentieux@{company_domain}
+
+Departamento Jurídico
+{company_name}`,
+  },
+};
+
+const RELANCE_SMS_TEMPLATES: Record<RelanceLang, Record<string, string>> = {
+  fr: {
     rappel_amical: `Rappel: {invoice_count} factures de {total_amount} FCFA en retard. Merci de régulariser.`,
     relance_ferme: `2e RAPPEL: {invoice_count} factures impayées, total {total_amount} FCFA. Règlement sous 48h. {company_name}`,
     dernier_avis: `DERNIER AVIS: {invoice_count} factures. Sans règlement sous 72h, procédure contentieux. {company_name}`,
     mise_demeure: `MISE EN DEMEURE: Règlement {grand_total} FCFA sous 8 jours. Procédure judiciaire sinon. {company_name}`,
-    pre_contentieux: `CONTENTIEUX: Dossier transmis service juridique. Total {grand_total} FCFA. Contact urgent: +242 06 XXX XX XX`
+    pre_contentieux: `CONTENTIEUX: Dossier transmis service juridique. Total {grand_total} FCFA. Contact urgent: +242 06 XXX XX XX`,
+  },
+  en: {
+    rappel_amical: `Reminder: {invoice_count} invoices for {total_amount} FCFA are overdue. Please settle them.`,
+    relance_ferme: `2nd REMINDER: {invoice_count} unpaid invoices, total {total_amount} FCFA. Payment within 48h. {company_name}`,
+    dernier_avis: `FINAL NOTICE: {invoice_count} invoices. Without payment within 72h, litigation proceedings. {company_name}`,
+    mise_demeure: `FORMAL NOTICE: Pay {grand_total} FCFA within 8 days. Legal proceedings otherwise. {company_name}`,
+    pre_contentieux: `LITIGATION: File sent to legal department. Total {grand_total} FCFA. Urgent contact: +242 06 XXX XX XX`,
+  },
+  es: {
+    rappel_amical: `Recordatorio: {invoice_count} facturas de {total_amount} FCFA vencidas. Le rogamos regularice el pago.`,
+    relance_ferme: `2.º RECORDATORIO: {invoice_count} facturas impagadas, total {total_amount} FCFA. Pago en 48h. {company_name}`,
+    dernier_avis: `ÚLTIMO AVISO: {invoice_count} facturas. Sin pago en 72h, procedimiento de litigio. {company_name}`,
+    mise_demeure: `REQUERIMIENTO FORMAL: Pago de {grand_total} FCFA en 8 días. En su defecto, acción judicial. {company_name}`,
+    pre_contentieux: `LITIGIO: Expediente remitido al departamento jurídico. Total {grand_total} FCFA. Contacto urgente: +242 06 XXX XX XX`,
+  },
+};
+
+/** Langues proposées dans l'éditeur de modèles (ordre d'affichage). */
+const RELANCE_LANGS: RelanceLang[] = ['fr', 'en', 'es'];
+
+/**
+ * Normalise la langue préférée d'un tiers (`languePrefere`) vers 'fr' | 'en' | 'es'.
+ * Accepte les libellés ('Français', 'English', 'Español', 'Anglais', 'Espagnol'…)
+ * comme les codes ISO ('fr', 'en', 'es'). Défaut : 'fr'.
+ */
+const clientLang = (v?: string): RelanceLang => {
+  // Les 2 premières lettres suffisent et sont toujours ASCII ('Français',
+  // 'Español', 'Inglés'…) : pas besoin de dépoussiérer les diacritiques.
+  const s = (v ?? '').trim().toLowerCase();
+  if (!s) return 'fr';
+  if (s.startsWith('en') || s.startsWith('an') || s.startsWith('in')) return 'en'; // en / english / anglais / ingles
+  if (s.startsWith('es') || s.startsWith('sp')) return 'es'; // es / espanol / espagnol / spanish
+  return 'fr'; // fr / francais / french / inconnu
+};
+
+/** Substitue les variables {xxx} ; une variable non disponible devient vide. */
+const applyRelanceVars = (template: string, vars: Record<string, string | number | null | undefined>): string =>
+  template.replace(/\{(\w+)\}/g, (_match, key: string) => {
+    const value = vars[key];
+    return value === undefined || value === null ? '' : String(value);
   });
+
+/** Sépare la 1ʳᵉ ligne « Objet:/Subject:/Asunto: » (objet) du reste (corps). */
+const splitRelanceSubjectBody = (template: string): { subject: string; body: string } => {
+  const lines = template.split('\n');
+  const match = lines[0]?.match(/^\s*(?:objet|subject|asunto)\s*:\s*(.*)$/i);
+  if (!match) return { subject: '', body: template };
+  return { subject: match[1].trim(), body: lines.slice(1).join('\n').replace(/^\n+/, '') };
+};
+
+/** Construit un lien mailto: pré-rempli (objet + corps) à partir d'un modèle. */
+const buildRelanceMailto = (
+  email: string,
+  template: string,
+  vars: Record<string, string | number | null | undefined>,
+): string => {
+  const { subject, body } = splitRelanceSubjectBody(applyRelanceVars(template, vars));
+  const params: string[] = [];
+  if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+  if (body) params.push(`body=${encodeURIComponent(body)}`);
+  return `mailto:${email}${params.length ? `?${params.join('&')}` : ''}`;
+};
+
+/** Étiquettes du détail des factures, dans la langue du destinataire (données). */
+const RELANCE_INVOICE_LABELS: Record<RelanceLang, { due: string; days: string }> = {
+  fr: { due: 'échéance', days: 'j de retard' },
+  en: { due: 'due', days: 'days overdue' },
+  es: { due: 'vencimiento', days: 'días de retraso' },
+};
+
+const RecouvrementModule: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('creances');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatut, setFilterStatut] = useState('tous');
+  const [filterNiveau, setFilterNiveau] = useState('tous');
+  const [selectedCreance, setSelectedCreance] = useState<CreanceEnrichie | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionFormData, setActionFormData] = useState({
+    typeAction: 'APPEL' as 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE',
+    date: new Date().toISOString().split('T')[0],
+    heure: new Date().toTimeString().slice(0, 5),
+    responsable: '',
+    details: '',
+    montantPromis: '',
+    datePromesse: ''
+  });
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [selectedFactures, setSelectedFactures] = useState<Set<string>>(new Set());
+
+  // États pour les modales de rapports
+  const [showRapportMensuelModal, setShowRapportMensuelModal] = useState(false);
+  const [showAnalyseROIModal, setShowAnalyseROIModal] = useState(false);
+  const [showPerformanceEquipeModal, setShowPerformanceEquipeModal] = useState(false);
+  const [showPrevisionTresorerieModal, setShowPrevisionTresorerieModal] = useState(false);
+  const [showDossiersRisqueModal, setShowDossiersRisqueModal] = useState(false);
+  const [showExportPersonnaliseModal, setShowExportPersonnaliseModal] = useState(false);
+
+  // États pour les modales des plans de remboursement
+  const [showPlanDetailModal, setShowPlanDetailModal] = useState(false);
+  const [showEnregistrerPaiementModal, setShowEnregistrerPaiementModal] = useState(false);
+  const [showRelancePlanModal, setShowRelancePlanModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanRemboursement | null>(null);
+  const [showCreateDossierModal, setShowCreateDossierModal] = useState(false);
+  const [showDossierActionModal, setShowDossierActionModal] = useState(false);
+  const [selectedDossierAction, setSelectedDossierAction] = useState<DossierRecouvrement | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [showDossierDetail, setShowDossierDetail] = useState(false);
+  const [selectedDossierDetail, setSelectedDossierDetail] = useState<DossierRecouvrement | null>(null);
+  const [showDossierSummary, setShowDossierSummary] = useState(false);
+  const [selectedDossierSummary, setSelectedDossierSummary] = useState<DossierRecouvrement | null>(null);
+  const [activeDossierTab, setActiveDossierTab] = useState('dashboard');
+  const [activeRelanceSubTab, setActiveRelanceSubTab] = useState('historique');
+  const [activeParametresTab, setActiveParametresTab] = useState('configuration');
+  const [selectedTemplateType, setSelectedTemplateType] = useState('rappel_amical');
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [selectedTransferDossier, setSelectedTransferDossier] = useState<DossierRecouvrement | null>(null);
+  const [transferDetails, setTransferDetails] = useState({
+    destinataire: '',
+    motif: '',
+    notes: '',
+    validationStatus: 'pending' as 'pending' | 'approved' | 'rejected'
+  });
+  // Langue d'ÉDITION des modèles (l'utilisateur peut éditer chaque langue).
+  // Défaut = langue de l'interface si supportée, sinon 'fr'.
+  const [templateLang, setTemplateLang] = useState<RelanceLang>(
+    () => (RELANCE_LANGS as string[]).includes(language) ? (language as RelanceLang) : 'fr',
+  );
+  const [emailTemplates, setEmailTemplates] = useState<Record<RelanceLang, Record<string, string>>>(
+    () => ({ fr: { ...RELANCE_EMAIL_TEMPLATES.fr }, en: { ...RELANCE_EMAIL_TEMPLATES.en }, es: { ...RELANCE_EMAIL_TEMPLATES.es } }),
+  );
+  const [smsTemplates, setSmsTemplates] = useState<Record<RelanceLang, Record<string, string>>>(
+    () => ({ fr: { ...RELANCE_SMS_TEMPLATES.fr }, en: { ...RELANCE_SMS_TEMPLATES.en }, es: { ...RELANCE_SMS_TEMPLATES.es } }),
+  );
   const [multipleInvoices, setMultipleInvoices] = useState(false);
+
+  /**
+   * Lien mailto: pré-rempli (objet + corps) pour une créance donnée.
+   * Le modèle utilisé est celui du type de relance courant, DANS LA LANGUE DU
+   * CLIENT destinataire (`clientLangue`) — pas celle de l'interface.
+   * Les variables non disponibles ici (intérêts, frais, total général…) sont
+   * remplacées par une chaîne vide plutôt que laissées en placeholder.
+   */
+  const buildCreanceMailto = React.useCallback((
+    creance: {
+      clientNom?: string;
+      clientCode?: string;
+      clientLangue?: string;
+      montantTotal?: number;
+      dsoMoyen?: number;
+      factures?: Array<{ numero: string; montantRestant: number; dateEcheance: string; joursRetard: number }>;
+    },
+    email: string,
+  ): string => {
+    const lang = clientLang(creance.clientLangue);
+    const template = emailTemplates[lang]?.[selectedTemplateType]
+      || RELANCE_EMAIL_TEMPLATES[lang][selectedTemplateType]
+      || '';
+    const factures = creance.factures ?? [];
+    const labels = RELANCE_INVOICE_LABELS[lang];
+    return buildRelanceMailto(email, template, {
+      client_name: creance.clientNom ?? '',
+      client_code: creance.clientCode ?? '',
+      company_name: user?.company ?? '',
+      invoice_count: factures.length,
+      invoice_list: factures.map(f => f.numero).join(', '),
+      invoice_details: factures
+        .map(f => `- ${f.numero} : ${formatCurrency(f.montantRestant)} FCFA (${labels.due} ${f.dateEcheance}, ${Math.max(0, f.joursRetard)} ${labels.days})`)
+        .join('\n'),
+      total_amount: formatCurrency(creance.montantTotal ?? 0),
+      avg_days_overdue: creance.dsoMoyen ?? '',
+    });
+  }, [emailTemplates, selectedTemplateType, user]);
 
   // Onglets de la page de modification du dossier
   const dossierTabs = [
@@ -7657,6 +7978,8 @@ Service Contentieux
           clientId: code,
           clientNom: clientName,
           clientCode: code,
+          // Langue du destinataire : une relance se rédige dans la langue du client.
+          clientLangue: (tp?.languePrefere as string | undefined) ?? '',
           factures,
           montantTotal: solde,
           joursRetard: maxRetard,
@@ -7683,6 +8006,7 @@ Service Contentieux
         clientId: string;
         clientNom: string;
         clientCode: string;
+        clientLangue: string;
         factures: Array<{
           factureId: string;
           numero: string;
@@ -8489,7 +8813,8 @@ Service Contentieux
                               `Email à ${creance.crmData.contactPrincipal.nom}` : 'Email'}
                             onClick={() => {
                               if (creance.crmData?.contactPrincipal?.email) {
-                                window.open(`mailto:${creance.crmData.contactPrincipal.email}`);
+                                // Relance pré-remplie (objet + corps) dans la langue DU CLIENT
+                                window.open(buildCreanceMailto(creance, creance.crmData.contactPrincipal.email));
                               }
                             }}
                           >
@@ -8681,7 +9006,7 @@ Service Contentieux
                                  className="text-xs text-blue-600 hover:text-blue-800">
                                 {selectedCreance.crmData.contactPrincipal.telephone}
                               </a>
-                              <a href={`mailto:${selectedCreance.crmData.contactPrincipal.email}`}
+                              <a href={buildCreanceMailto(selectedCreance, selectedCreance.crmData.contactPrincipal.email)}
                                  className="text-xs text-blue-600 hover:text-blue-800">
                                 {selectedCreance.crmData.contactPrincipal.email}
                               </a>
@@ -9253,6 +9578,22 @@ Service Contentieux
                           <option value="pre_contentieux">{t('recovery.level5PreLitigation')}</option>
                         </select>
                       </div>
+                      {/* Langue du modèle : la relance part dans la langue du CLIENT */}
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('recovery.templateLanguage')}
+                        </label>
+                        <select
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
+                          value={templateLang}
+                          onChange={(e) => setTemplateLang(e.target.value as RelanceLang)}
+                        >
+                          <option value="fr">{t('recovery.languageFrench')}</option>
+                          <option value="en">{t('recovery.languageEnglish')}</option>
+                          <option value="es">{t('recovery.languageSpanish')}</option>
+                        </select>
+                        <p className="mt-1 text-xs text-gray-500">{t('recovery.templateLanguageHint')}</p>
+                      </div>
                       <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 rounded-lg">
                         <input
                           type="checkbox"
@@ -9306,11 +9647,12 @@ Service Contentieux
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                             rows={12}
-                            value={emailTemplates[selectedTemplateType as keyof typeof emailTemplates]}
+                            value={emailTemplates[templateLang]?.[selectedTemplateType] ?? ''}
                             onChange={(e) => {
+                              const value = e.target.value;
                               setEmailTemplates(prev => ({
                                 ...prev,
-                                [selectedTemplateType]: e.target.value
+                                [templateLang]: { ...prev[templateLang], [selectedTemplateType]: value }
                               }));
                             }}
                           />
@@ -9324,11 +9666,12 @@ Service Contentieux
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             rows={3}
-                            value={smsTemplates[selectedTemplateType as keyof typeof smsTemplates]}
+                            value={smsTemplates[templateLang]?.[selectedTemplateType] ?? ''}
                             onChange={(e) => {
+                              const value = e.target.value;
                               setSmsTemplates(prev => ({
                                 ...prev,
-                                [selectedTemplateType]: e.target.value
+                                [templateLang]: { ...prev[templateLang], [selectedTemplateType]: value }
                               }));
                             }}
                           />

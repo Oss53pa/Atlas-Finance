@@ -126,16 +126,16 @@ const BankAccountsPage: React.FC = () => {
     if (!deleteConfirmId) return;
     deleteAccount.mutate(deleteConfirmId, {
       onSuccess: () => {
-        toast.success('Compte bancaire supprimé avec succès');
+        toast.success(t('bankAccounts.deleteSuccess'));
         setDeleteConfirmId(null);
       },
       onError: (error) => {
         console.error('[BankAccountsPage] Erreur suppression compte:', error);
-        toast.error('Erreur lors de la suppression du compte bancaire');
+        toast.error(t('bankAccounts.deleteError'));
         setDeleteConfirmId(null);
       },
     });
-  }, [deleteConfirmId, deleteAccount]);
+  }, [deleteConfirmId, deleteAccount, t]);
 
   const handleFilterChange = (key: keyof BankAccountsFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -165,10 +165,10 @@ const BankAccountsPage: React.FC = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case 'actif': return 'Actif';
-      case 'inactif': return 'Inactif';
-      case 'ferme': return 'Fermé';
-      case 'bloque': return 'Bloqué';
+      case 'actif': return t('bankAccounts.statusActive');
+      case 'inactif': return t('bankAccounts.statusInactive');
+      case 'ferme': return t('bankAccounts.statusClosed');
+      case 'bloque': return t('bankAccounts.statusBlocked');
       default: return statut;
     }
   };
@@ -185,10 +185,10 @@ const BankAccountsPage: React.FC = () => {
 
   const getAccountTypeLabel = (type: string) => {
     switch (type) {
-      case 'courant': return 'Courant';
-      case 'epargne': return 'Épargne';
-      case 'terme': return 'À terme';
-      case 'credit': return 'Crédit';
+      case 'courant': return t('bankAccounts.typeCurrent');
+      case 'epargne': return t('bankAccounts.typeSavings');
+      case 'terme': return t('bankAccounts.typeTerm');
+      case 'credit': return t('bankAccounts.typeCredit');
       default: return type;
     }
   };
@@ -207,10 +207,10 @@ const BankAccountsPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <CreditCard className="mr-3 h-7 w-7" />
-              Comptes Bancaires
+              {t('bankAccounts.title')}
             </h1>
             <p className="mt-2 text-[var(--color-text-secondary)]">
-              Gestion des comptes bancaires et de trésorerie
+              {t('bankAccounts.subtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -219,26 +219,26 @@ const BankAccountsPage: React.FC = () => {
               const csvContent = accountsData?.results?.map(acc =>
                 `${acc.account_number ?? (acc as any).numero_compte ?? ''};${acc.bank?.name ?? (acc as any).nom_banque ?? ''};${acc.account_type ?? (acc as any).type_compte ?? ''};${acc.currency ?? (acc as any).devise ?? ''};${acc.current_balance ?? (acc as any).solde_comptable ?? 0}`
               ).join('\n') || '';
-              const blob = new Blob([`Numéro;Banque;Type;Devise;Solde\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+              const blob = new Blob([`${t('bankAccounts.csvHeader')}\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
               const link = document.createElement('a');
               link.href = URL.createObjectURL(blob);
               link.download = `comptes_bancaires_${new Date().toISOString().split('T')[0]}.csv`;
               link.click();
-              toast.success('Export réussi !');
+              toast.success(t('bankAccounts.exportSuccess'));
             }}>
               <Download className="mr-2 h-4 w-4" />
-              Exporter
+              {t('bankAccounts.export')}
             </Button>
             <Button variant="outline" onClick={() => setShowImportModal(true)}>
               <Upload className="mr-2 h-4 w-4" />
-              Importer
+              {t('bankAccounts.import')}
             </Button>
             <Button 
               className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nouveau Compte
+              {t('bankAccounts.newAccount')}
             </Button>
           </div>
         </div>
@@ -253,7 +253,7 @@ const BankAccountsPage: React.FC = () => {
                 <CreditCard className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Comptes</p>
+                <p className="text-sm font-medium text-gray-600">{t('bankAccounts.totalAccounts')}</p>
                 <p className="text-lg font-bold text-gray-900">
                   {accountsData?.count || 0}
                 </p>
@@ -280,7 +280,7 @@ const BankAccountsPage: React.FC = () => {
                       <TrendingUp className="h-6 w-6 text-green-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Solde Total</p>
+                      <p className="text-sm font-medium text-gray-600">{t('bankAccounts.totalBalance')}</p>
                       <p className={`text-lg font-bold ${getBalanceColor(totalBalance)}`}>
                         {formatCurrency(totalBalance)}
                       </p>
@@ -296,7 +296,7 @@ const BankAccountsPage: React.FC = () => {
                       <Banknote className="h-6 w-6 text-primary-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Disponible</p>
+                      <p className="text-sm font-medium text-gray-600">{t('bankAccounts.available')}</p>
                       <p className="text-lg font-bold text-green-700">
                         {formatCurrency(availableBalance)}
                       </p>
@@ -312,7 +312,7 @@ const BankAccountsPage: React.FC = () => {
                       <AlertCircle className="h-6 w-6 text-red-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-gray-600">Découverts</p>
+                      <p className="text-sm font-medium text-gray-600">{t('bankAccounts.overdrafts')}</p>
                       <p className="text-lg font-bold text-red-700">
                         {formatCurrency(Math.abs(overdraftTotal))}
                       </p>
@@ -330,7 +330,7 @@ const BankAccountsPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="mr-2 h-5 w-5" />
-            Filtres
+            {t('bankAccounts.filters')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -338,7 +338,7 @@ const BankAccountsPage: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
-                placeholder="Rechercher un compte..."
+                placeholder={t('bankAccounts.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="pl-10"
@@ -348,7 +348,7 @@ const BankAccountsPage: React.FC = () => {
             <div className="relative">
               <Building className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
-                placeholder="Banque"
+                placeholder={t('bankAccounts.bank')}
                 value={filters.banque}
                 onChange={(e) => handleFilterChange('banque', e.target.value)}
                 className="pl-10"
@@ -357,48 +357,48 @@ const BankAccountsPage: React.FC = () => {
 
             <Select value={filters.type_compte} onValueChange={(value) => handleFilterChange('type_compte', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les types" />
+                <SelectValue placeholder={t('bankAccounts.allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
-                <SelectItem value="courant">Compte courant</SelectItem>
-                <SelectItem value="epargne">Compte d'épargne</SelectItem>
-                <SelectItem value="terme">Compte à terme</SelectItem>
-                <SelectItem value="credit">Ligne de crédit</SelectItem>
+                <SelectItem value="">{t('bankAccounts.allTypes')}</SelectItem>
+                <SelectItem value="courant">{t('bankAccounts.typeCurrentAccount')}</SelectItem>
+                <SelectItem value="epargne">{t('bankAccounts.typeSavingsAccount')}</SelectItem>
+                <SelectItem value="terme">{t('bankAccounts.typeTermAccount')}</SelectItem>
+                <SelectItem value="credit">{t('bankAccounts.typeCreditLine')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.statut} onValueChange={(value) => handleFilterChange('statut', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les statuts" />
+                <SelectValue placeholder={t('bankAccounts.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="actif">Actif</SelectItem>
-                <SelectItem value="inactif">Inactif</SelectItem>
-                <SelectItem value="ferme">Fermé</SelectItem>
-                <SelectItem value="bloque">Bloqué</SelectItem>
+                <SelectItem value="">{t('bankAccounts.allStatuses')}</SelectItem>
+                <SelectItem value="actif">{t('bankAccounts.statusActive')}</SelectItem>
+                <SelectItem value="inactif">{t('bankAccounts.statusInactive')}</SelectItem>
+                <SelectItem value="ferme">{t('bankAccounts.statusClosed')}</SelectItem>
+                <SelectItem value="bloque">{t('bankAccounts.statusBlocked')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.devise} onValueChange={(value) => handleFilterChange('devise', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Toutes les devises" />
+                <SelectValue placeholder={t('bankAccounts.allCurrencies')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes les devises</SelectItem>
-                <SelectItem value="XAF">XAF (Franc CFA CEMAC)</SelectItem>
-                <SelectItem value="XOF">XOF (Franc CFA UEMOA)</SelectItem>
-                <SelectItem value="EUR">EUR (Euro)</SelectItem>
-                <SelectItem value="USD">USD (Dollar)</SelectItem>
-                <SelectItem value="GBP">GBP (Livre Sterling)</SelectItem>
+                <SelectItem value="">{t('bankAccounts.allCurrencies')}</SelectItem>
+                <SelectItem value="XAF">{t('bankAccounts.currencyXaf')}</SelectItem>
+                <SelectItem value="XOF">{t('bankAccounts.currencyXof')}</SelectItem>
+                <SelectItem value="EUR">{t('bankAccounts.currencyEur')}</SelectItem>
+                <SelectItem value="USD">{t('bankAccounts.currencyUsd')}</SelectItem>
+                <SelectItem value="GBP">{t('bankAccounts.currencyGbp')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={resetFilters}>
-              Réinitialiser
+              {t('bankAccounts.reset')}
             </Button>
           </div>
         </CardContent>
@@ -408,10 +408,10 @@ const BankAccountsPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Liste des Comptes Bancaires</span>
+            <span>{t('bankAccounts.listTitle')}</span>
             {accountsData && (
               <Badge variant="outline">
-                {accountsData.count} compte(s)
+                {t('bankAccounts.accountsCount', { count: String(accountsData.count) })}
               </Badge>
             )}
           </CardTitle>
@@ -419,7 +419,7 @@ const BankAccountsPage: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" text="Chargement des comptes..." />
+              <LoadingSpinner size="lg" text={t('bankAccounts.loadingAccounts')} />
             </div>
           ) : (
             <>
@@ -428,15 +428,15 @@ const BankAccountsPage: React.FC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t('accounting.account')}</TableHead>
-                      <TableHead>Banque</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Titulaire</TableHead>
-                      <TableHead>Devise</TableHead>
-                      <TableHead>Solde Comptable</TableHead>
-                      <TableHead>Solde Banque</TableHead>
-                      <TableHead>Différence</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('bankAccounts.bank')}</TableHead>
+                      <TableHead>{t('bankAccounts.colType')}</TableHead>
+                      <TableHead>{t('bankAccounts.colHolder')}</TableHead>
+                      <TableHead>{t('bankAccounts.colCurrency')}</TableHead>
+                      <TableHead>{t('bankAccounts.colBookBalance')}</TableHead>
+                      <TableHead>{t('bankAccounts.colBankBalance')}</TableHead>
+                      <TableHead>{t('bankAccounts.colDifference')}</TableHead>
+                      <TableHead>{t('bankAccounts.colStatus')}</TableHead>
+                      <TableHead className="text-right">{t('bankAccounts.colActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -503,7 +503,7 @@ const BankAccountsPage: React.FC = () => {
                             {formatCurrency(displayBankBalance, displayCurrency)}
                           </span>
                           {!hasBankBalance && (
-                            <p className="text-xs text-amber-600 mt-0.5">solde ouverture</p>
+                            <p className="text-xs text-amber-600 mt-0.5">{t('bankAccounts.openingBalanceHint')}</p>
                           )}
                         </TableCell>
                         <TableCell>
@@ -535,14 +535,14 @@ const BankAccountsPage: React.FC = () => {
                                 setSelectedAccount(account);
                                 setShowViewModal(true);
                               }}
-                              aria-label="Voir les détails"
+                              aria-label={t('bankAccounts.viewDetails')}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Mouvements"
+                              aria-label={t('bankAccounts.movements')}
                               onClick={() => {
                                 navigate(`/treasury/movements?account=${account.id}`);
                               }}
@@ -552,7 +552,7 @@ const BankAccountsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Modifier"
+                              aria-label={t('bankAccounts.edit')}
                               onClick={() => {
                                 setSelectedAccount(account);
                                 setEditForm({
@@ -575,7 +575,7 @@ const BankAccountsPage: React.FC = () => {
                                 account.label ?? (account as any).libelle_compte ?? account.account_number ?? ''
                               )}
                               className="text-red-600 hover:text-red-700"
-                              aria-label="Supprimer"
+                              aria-label={t('bankAccounts.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -602,18 +602,18 @@ const BankAccountsPage: React.FC = () => {
               {(!accountsData?.results || accountsData.results.length === 0) && (
                 <div className="text-center py-12">
                   <CreditCard className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun compte bancaire trouvé</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('bankAccounts.emptyTitle')}</h3>
                   <p className="text-gray-700 mb-6">
                     {filters.search || filters.banque || filters.type_compte || filters.statut || filters.devise
-                      ? 'Aucun compte ne correspond aux critères de recherche.'
-                      : 'Commencez par créer votre premier compte bancaire.'}
+                      ? t('bankAccounts.emptyFiltered')
+                      : t('bankAccounts.emptyNoData')}
                   </p>
                   <Button 
                     className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Créer un compte
+                    {t('bankAccounts.createAccount')}
                   </Button>
                 </div>
               )}
@@ -629,8 +629,8 @@ const BankAccountsPage: React.FC = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Nouveau Compte Bancaire</h2>
-                  <p className="text-sm text-gray-500">Étape {formStep} sur 4</p>
+                  <h2 className="text-lg font-bold text-gray-900">{t('bankAccounts.createModalTitle')}</h2>
+                  <p className="text-sm text-gray-500">{t('bankAccounts.stepOfFour', { step: String(formStep) })}</p>
                 </div>
                 <button onClick={() => { setShowCreateModal(false); resetNewAccount(); }} className="text-gray-400 hover:text-gray-600">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -644,10 +644,10 @@ const BankAccountsPage: React.FC = () => {
                 ))}
               </div>
               <div className="flex mt-2 text-xs text-gray-500">
-                <span className="flex-1">Compte</span>
-                <span className="flex-1">Banque</span>
-                <span className="flex-1">Paramètres</span>
-                <span className="flex-1">Contact & Validation</span>
+                <span className="flex-1">{t('bankAccounts.stepAccount')}</span>
+                <span className="flex-1">{t('bankAccounts.stepBank')}</span>
+                <span className="flex-1">{t('bankAccounts.stepSettings')}</span>
+                <span className="flex-1">{t('bankAccounts.stepContactValidation')}</span>
               </div>
             </div>
 
@@ -655,12 +655,12 @@ const BankAccountsPage: React.FC = () => {
               {/* Étape 1: Informations du compte */}
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center"><CreditCard className="w-5 h-5 mr-2" />Informations du compte</h3>
+                  <h3 className="font-semibold text-gray-900 flex items-center"><CreditCard className="w-5 h-5 mr-2" />{t('bankAccounts.accountInfo')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Numéro de compte *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.accountNumberRequired')}</label>
                       <input type="text" value={newAccount.numeroCompte} onChange={(e) => setNewAccount({ ...newAccount, numeroCompte: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: 12345678901" />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('bankAccounts.accountNumberPlaceholder')} />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">IBAN</label>
@@ -669,14 +669,14 @@ const BankAccountsPage: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Libellé du compte *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.accountLabelRequired')}</label>
                     <input type="text" value={newAccount.libelle} onChange={(e) => setNewAccount({ ...newAccount, libelle: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Compte courant principal" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('bankAccounts.accountLabelPlaceholder')} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Titulaire du compte *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.holderRequired')}</label>
                     <input type="text" value={newAccount.titulaire} onChange={(e) => setNewAccount({ ...newAccount, titulaire: e.target.value })}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom du titulaire" />
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('bankAccounts.holderPlaceholder')} />
                   </div>
                 </div>
               )}
@@ -684,13 +684,13 @@ const BankAccountsPage: React.FC = () => {
               {/* Étape 2: Banque */}
               {formStep === 2 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center"><Building className="w-5 h-5 mr-2" />Banque</h3>
+                  <h3 className="font-semibold text-gray-900 flex items-center"><Building className="w-5 h-5 mr-2" />{t('bankAccounts.stepBank')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nom de la banque *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.bankNameRequired')}</label>
                       <select value={newAccount.banque} onChange={(e) => setNewAccount({ ...newAccount, banque: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="">Sélectionner...</option>
+                        <option value="">{t('bankAccounts.selectPlaceholder')}</option>
                         <option value="SGBC">Société Générale Cameroun</option>
                         <option value="Afriland">Afriland First Bank</option>
                         <option value="Ecobank">Ecobank</option>
@@ -699,29 +699,29 @@ const BankAccountsPage: React.FC = () => {
                         <option value="CBC">Commercial Bank Cameroun</option>
                         <option value="SCB">SCB Cameroun</option>
                         <option value="BOA">Bank of Africa</option>
-                        <option value="Autre">Autre</option>
+                        <option value="Autre">{t('bankAccounts.otherBank')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Code banque</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.bankCode')}</label>
                       <input type="text" value={newAccount.codeBanque} onChange={(e) => setNewAccount({ ...newAccount, codeBanque: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: 10005" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Code guichet</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.branchCode')}</label>
                       <input type="text" value={newAccount.codeGuichet} onChange={(e) => setNewAccount({ ...newAccount, codeGuichet: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: 00100" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Code BIC/SWIFT</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.swiftCode')}</label>
                       <input type="text" value={newAccount.swift} onChange={(e) => setNewAccount({ ...newAccount, swift: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Ex: SGCMCMCX" />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Agence</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.branch')}</label>
                     <input type="text" value={newAccount.agence} onChange={(e) => setNewAccount({ ...newAccount, agence: e.target.value })}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Akwa, Douala" />
                   </div>
@@ -731,47 +731,47 @@ const BankAccountsPage: React.FC = () => {
               {/* Étape 3: Paramètres */}
               {formStep === 3 && (
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 flex items-center"><DollarSign className="w-5 h-5 mr-2" />Paramètres du compte</h3>
+                  <h3 className="font-semibold text-gray-900 flex items-center"><DollarSign className="w-5 h-5 mr-2" />{t('bankAccounts.accountSettings')}</h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type de compte *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.accountTypeRequired')}</label>
                       <select value={newAccount.typeCompte} onChange={(e) => setNewAccount({ ...newAccount, typeCompte: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="courant">Courant</option>
-                        <option value="epargne">Épargne</option>
-                        <option value="depot">Dépôt à terme</option>
-                        <option value="credit">Crédit</option>
+                        <option value="courant">{t('bankAccounts.typeCurrent')}</option>
+                        <option value="epargne">{t('bankAccounts.typeSavings')}</option>
+                        <option value="depot">{t('bankAccounts.typeTermDeposit')}</option>
+                        <option value="credit">{t('bankAccounts.typeCredit')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Devise *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.currencyRequired')}</label>
                       <select value={newAccount.devise} onChange={(e) => setNewAccount({ ...newAccount, devise: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="XAF">XAF (Franc CFA CEMAC)</option>
-                        <option value="EUR">EUR (Euro)</option>
-                        <option value="USD">USD (Dollar)</option>
-                        <option value="GBP">GBP (Livre Sterling)</option>
+                        <option value="XAF">{t('bankAccounts.currencyXaf')}</option>
+                        <option value="EUR">{t('bankAccounts.currencyEur')}</option>
+                        <option value="USD">{t('bankAccounts.currencyUsd')}</option>
+                        <option value="GBP">{t('bankAccounts.currencyGbp')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Statut *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.statusRequired')}</label>
                       <select value={newAccount.statut} onChange={(e) => setNewAccount({ ...newAccount, statut: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="actif">Actif</option>
-                        <option value="inactif">Inactif</option>
-                        <option value="ferme">Fermé</option>
-                        <option value="bloque">Bloqué</option>
+                        <option value="actif">{t('bankAccounts.statusActive')}</option>
+                        <option value="inactif">{t('bankAccounts.statusInactive')}</option>
+                        <option value="ferme">{t('bankAccounts.statusClosed')}</option>
+                        <option value="bloque">{t('bankAccounts.statusBlocked')}</option>
                       </select>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Solde initial</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.initialBalance')}</label>
                       <input type="number" value={newAccount.soldeInitial} onChange={(e) => setNewAccount({ ...newAccount, soldeInitial: parseFloat(e.target.value) || 0 })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date d'ouverture</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.openingDate')}</label>
                       <input type="date" value={newAccount.dateOuverture} onChange={(e) => setNewAccount({ ...newAccount, dateOuverture: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" />
                     </div>
@@ -783,43 +783,43 @@ const BankAccountsPage: React.FC = () => {
               {formStep === 4 && (
                 <div className="space-y-6">
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900 flex items-center"><Building className="w-5 h-5 mr-2" />Contact bancaire</h3>
+                    <h3 className="font-semibold text-gray-900 flex items-center"><Building className="w-5 h-5 mr-2" />{t('bankAccounts.bankContact')}</h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Chargé de compte</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.accountManager')}</label>
                         <input type="text" value={newAccount.chargeCompte} onChange={(e) => setNewAccount({ ...newAccount, chargeCompte: e.target.value })}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom du conseiller" />
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('bankAccounts.accountManagerPlaceholder')} />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.phone')}</label>
                         <input type="tel" value={newAccount.telephoneBanque} onChange={(e) => setNewAccount({ ...newAccount, telephoneBanque: e.target.value })}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="+237 6XX XXX XXX" />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.email')}</label>
                       <input type="email" value={newAccount.emailBanque} onChange={(e) => setNewAccount({ ...newAccount, emailBanque: e.target.value })}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="conseiller@banque.com" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankAccounts.notes')}</label>
                       <textarea rows={2} value={newAccount.notes} onChange={(e) => setNewAccount({ ...newAccount, notes: e.target.value })}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Informations complémentaires..." />
+                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('bankAccounts.notesPlaceholder')} />
                     </div>
                   </div>
 
                   {/* Récapitulatif */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Récapitulatif</h4>
+                    <h4 className="font-semibold text-gray-900 mb-3">{t('bankAccounts.summary')}</h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div><span className="text-gray-500">N° compte:</span> <span className="ml-2 font-mono font-medium">{newAccount.numeroCompte || '-'}</span></div>
-                      <div><span className="text-gray-500">Libellé:</span> <span className="ml-2 font-medium">{newAccount.libelle || '-'}</span></div>
-                      <div><span className="text-gray-500">Banque:</span> <span className="ml-2 font-medium">{newAccount.banque || '-'}</span></div>
-                      <div><span className="text-gray-500">IBAN:</span> <span className="ml-2 font-mono">{newAccount.iban || '-'}</span></div>
-                      <div><span className="text-gray-500">Type:</span> <span className="ml-2">{newAccount.typeCompte}</span></div>
-                      <div><span className="text-gray-500">Devise:</span> <span className="ml-2">{newAccount.devise}</span></div>
-                      <div><span className="text-gray-500">Solde initial:</span> <span className="ml-2 font-medium">{formatCurrency(newAccount.soldeInitial)}</span></div>
-                      <div><span className="text-gray-500">Titulaire:</span> <span className="ml-2">{newAccount.titulaire || '-'}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryAccountNumber')}</span> <span className="ml-2 font-mono font-medium">{newAccount.numeroCompte || '-'}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryLabel')}</span> <span className="ml-2 font-medium">{newAccount.libelle || '-'}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryBank')}</span> <span className="ml-2 font-medium">{newAccount.banque || '-'}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryIban')}</span> <span className="ml-2 font-mono">{newAccount.iban || '-'}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryType')}</span> <span className="ml-2">{newAccount.typeCompte}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryCurrency')}</span> <span className="ml-2">{newAccount.devise}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryInitialBalance')}</span> <span className="ml-2 font-medium">{formatCurrency(newAccount.soldeInitial)}</span></div>
+                      <div><span className="text-gray-500">{t('bankAccounts.summaryHolder')}</span> <span className="ml-2">{newAccount.titulaire || '-'}</span></div>
                     </div>
                   </div>
                 </div>
@@ -831,7 +831,7 @@ const BankAccountsPage: React.FC = () => {
                 onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowCreateModal(false), resetNewAccount())}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
               >
-                {formStep > 1 ? 'Précédent' : 'Annuler'}
+                {formStep > 1 ? t('bankAccounts.previous') : t('bankAccounts.cancel')}
               </button>
               <div className="flex space-x-3">
                 {formStep < 4 ? (
@@ -839,26 +839,26 @@ const BankAccountsPage: React.FC = () => {
                     // Valider les champs obligatoires de l'étape 1 avant d'avancer
                     if (formStep === 1) {
                       if (!newAccount.numeroCompte.trim()) {
-                        toast.error('Le numéro de compte est obligatoire');
+                        toast.error(t('bankAccounts.errAccountNumberRequired'));
                         return;
                       }
                       if (!newAccount.libelle.trim()) {
-                        toast.error('Le libellé du compte est obligatoire');
+                        toast.error(t('bankAccounts.errLabelRequired'));
                         return;
                       }
                       if (!newAccount.titulaire.trim()) {
-                        toast.error('Le titulaire du compte est obligatoire');
+                        toast.error(t('bankAccounts.errHolderRequired'));
                         return;
                       }
                     }
                     setFormStep(formStep + 1);
                   }}
-                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">{t('bankAccounts.next')}</button>
                 ) : (
                   <button
                     onClick={() => {
                       if (!newAccount.numeroCompte || !newAccount.libelle) {
-                        toast.error('Veuillez remplir le numéro et le libellé du compte');
+                        toast.error(t('bankAccounts.errNumberAndLabel'));
                         return;
                       }
                       createAccount.mutate(
@@ -874,12 +874,12 @@ const BankAccountsPage: React.FC = () => {
                         } as Partial<BankAccount>,
                         {
                           onSuccess: () => {
-                            toast.success('Compte bancaire créé avec succès');
+                            toast.success(t('bankAccounts.createSuccess'));
                             setShowCreateModal(false);
                             resetNewAccount();
                           },
                           onError: () => {
-                            toast.error('Erreur lors de la création du compte bancaire');
+                            toast.error(t('bankAccounts.createError'));
                           },
                         }
                       );
@@ -887,7 +887,7 @@ const BankAccountsPage: React.FC = () => {
                     disabled={createAccount.isPending}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold disabled:opacity-60"
                   >
-                    {createAccount.isPending ? 'Création...' : 'Créer le compte'}
+                    {createAccount.isPending ? t('bankAccounts.creating') : t('bankAccounts.createTheAccount')}
                   </button>
                 )}
               </div>
@@ -925,19 +925,19 @@ const BankAccountsPage: React.FC = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-blue-900 mb-3 flex items-center">
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Identification Internationale (ISO 13616 / ISO 9362)
+                  {t('bankAccounts.internationalId')}
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs font-medium text-blue-700">IBAN (International Bank Account Number)</p>
                     <p className="text-base font-mono font-semibold text-blue-900">
-                      {selectedAccount.iban || 'Non renseigné'}
+                      {selectedAccount.iban || t('bankAccounts.notProvided')}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-blue-700">BIC/SWIFT (Bank Identifier Code)</p>
                     <p className="text-base font-mono font-semibold text-blue-900">
-                      {selectedAccount.bic_swift || selectedAccount.code_swift || 'Non renseigné'}
+                      {selectedAccount.bic_swift || selectedAccount.code_swift || t('bankAccounts.notProvided')}
                     </p>
                   </div>
                 </div>
@@ -946,63 +946,63 @@ const BankAccountsPage: React.FC = () => {
               {/* Section Informations Bancaires */}
               <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Établissement Bancaire</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">{t('bankAccounts.bankInstitution')}</h3>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Nom de la Banque</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.bankNameLabel')}</p>
                     <p className="text-sm font-semibold">{selectedAccount.bank?.name ?? selectedAccount.nom_banque}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Code Banque</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.bankCodeLabel')}</p>
                     <p className="text-sm font-mono">{selectedAccount.bank?.code ?? selectedAccount.code_banque ?? '-'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Code Guichet/Agence</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.branchCodeLabel')}</p>
                     <p className="text-sm font-mono">{selectedAccount.code_guichet || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Domiciliation</p>
-                    <p className="text-sm">{selectedAccount.domiciliation || selectedAccount.agence || 'Non renseigné'}</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.domiciliation')}</p>
+                    <p className="text-sm">{selectedAccount.domiciliation || selectedAccount.agence || t('bankAccounts.notProvided')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Caractéristiques du Compte</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">{t('bankAccounts.accountFeatures')}</h3>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Type de Compte</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.accountTypeLabel')}</p>
                     <Badge className={getAccountTypeColor(selectedAccount.account_type ?? selectedAccount.type_compte)}>
                       {getAccountTypeLabel(selectedAccount.account_type ?? selectedAccount.type_compte)}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Devise (ISO 4217)</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.currencyIso')}</p>
                     <p className="text-sm font-semibold">{selectedAccount.currency ?? selectedAccount.devise}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Statut</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.statusLabel')}</p>
                     <Badge className={getStatusColor(selectedAccount.status ?? selectedAccount.statut)}>
                       {getStatusLabel(selectedAccount.status ?? selectedAccount.statut)}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Clé RIB</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.ribKeyLabel')}</p>
                     <p className="text-sm font-mono">{selectedAccount.cle_rib || '-'}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">Titulaire(s)</h3>
+                  <h3 className="text-sm font-semibold text-gray-900 border-b pb-2">{t('bankAccounts.holders')}</h3>
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Titulaire Principal</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.mainHolder')}</p>
                     <p className="text-sm font-semibold">{selectedAccount.titulaire}</p>
                   </div>
                   {selectedAccount.co_titulaire && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500">Co-titulaire</p>
+                      <p className="text-xs font-medium text-gray-500">{t('bankAccounts.coHolder')}</p>
                       <p className="text-sm">{selectedAccount.co_titulaire}</p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs font-medium text-gray-500">Date d'ouverture</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.openingDate')}</p>
                     <p className="text-sm">{(selectedAccount.opening_date ?? selectedAccount.date_ouverture) ? formatDate(selectedAccount.opening_date ?? selectedAccount.date_ouverture) : '-'}</p>
                   </div>
                 </div>
@@ -1010,7 +1010,7 @@ const BankAccountsPage: React.FC = () => {
 
               {/* Section Soldes */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-4">Position Financière</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('bankAccounts.financialPosition')}</h3>
                 {(() => {
                   const viewCurrency = selectedAccount.currency ?? selectedAccount.devise ?? 'XAF';
                   const viewCurrentBalance = selectedAccount.current_balance ?? selectedAccount.solde_comptable ?? 0;
@@ -1019,19 +1019,19 @@ const BankAccountsPage: React.FC = () => {
                   return (
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-xs font-medium text-gray-500">Solde Comptable</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.colBookBalance')}</p>
                     <p className={`text-lg font-bold ${getBalanceColor(viewCurrentBalance)}`}>
                       {formatCurrency(viewCurrentBalance, viewCurrency)}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-xs font-medium text-gray-500">Solde Banque</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.colBankBalance')}</p>
                     <p className={`text-lg font-bold ${getBalanceColor(viewBankBalance)}`}>
                       {formatCurrency(viewBankBalance, viewCurrency)}
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-xs font-medium text-gray-500">Écart de Rapprochement</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.reconciliationGap')}</p>
                     <div className={`flex items-center ${viewDiff > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
                       {viewDiff > 0.01 ? (
                         <AlertCircle className="w-4 h-4 mr-1" />
@@ -1044,9 +1044,9 @@ const BankAccountsPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-xs font-medium text-gray-500">Plafond Autorisé</p>
+                    <p className="text-xs font-medium text-gray-500">{t('bankAccounts.authorizedLimit')}</p>
                     <p className="text-lg font-bold text-gray-700">
-                      {selectedAccount.overdraft_limit ? formatCurrency(selectedAccount.overdraft_limit, viewCurrency) : 'Illimité'}
+                      {selectedAccount.overdraft_limit ? formatCurrency(selectedAccount.overdraft_limit, viewCurrency) : t('bankAccounts.unlimited')}
                     </p>
                   </div>
                 </div>
@@ -1056,7 +1056,7 @@ const BankAccountsPage: React.FC = () => {
 
               {/* Section RIB Complet */}
               <div className="border rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">RIB Complet (Relevé d'Identité Bancaire)</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">{t('bankAccounts.fullRib')}</h3>
                 <div className="flex items-center space-x-2 bg-gray-100 rounded p-3 font-mono text-sm">
                   <span>{selectedAccount.bank?.code ?? selectedAccount.code_banque ?? 'XXXXX'}</span>
                   <span className="text-gray-400">-</span>
@@ -1071,14 +1071,14 @@ const BankAccountsPage: React.FC = () => {
 
             <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
               <div className="text-xs text-gray-500">
-                Dernière mise à jour: {selectedAccount.updated_at ? formatDate(selectedAccount.updated_at) : 'N/A'}
+                {t('bankAccounts.lastUpdate')} {selectedAccount.updated_at ? formatDate(selectedAccount.updated_at) : 'N/A'}
               </div>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowViewModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  Fermer
+                  {t('bankAccounts.close')}
                 </button>
                 <button
                   onClick={() => {
@@ -1092,19 +1092,19 @@ const BankAccountsPage: React.FC = () => {
                     const codeGuichet = (acc as any).code_guichet ?? '';
                     const cleRib = (acc as any).cle_rib ?? '';
                     const titulaire = (acc as any).titulaire ?? '';
-                    const ribContent = `RELEVÉ D'IDENTITÉ BANCAIRE (RIB)\n${'='.repeat(50)}\n\nTitulaire : ${titulaire}\nLibellé   : ${label}\n\nÉtablissement : ${bankName}\nCode Banque   : ${bankCode}\nCode Guichet  : ${codeGuichet}\nN° de Compte  : ${accountNumber}\nClé RIB       : ${cleRib}\n\nIBAN : ${iban || 'Non renseigné'}\nBIC  : ${bic || 'Non renseigné'}\n\nGénéré le ${new Date().toLocaleDateString('fr-FR')}\n`;
+                    const ribContent = `${t('bankAccounts.ribDocTitle')}\n${'='.repeat(50)}\n\n${t('bankAccounts.ribHolder')} : ${titulaire}\n${t('bankAccounts.ribLabel')} : ${label}\n\n${t('bankAccounts.ribInstitution')} : ${bankName}\n${t('bankAccounts.bankCodeLabel')} : ${bankCode}\n${t('bankAccounts.branchCode')} : ${codeGuichet}\n${t('bankAccounts.ribAccountNumber')} : ${accountNumber}\n${t('bankAccounts.ribKeyLabel')} : ${cleRib}\n\nIBAN : ${iban || t('bankAccounts.notProvided')}\nBIC  : ${bic || t('bankAccounts.notProvided')}\n\n${t('bankAccounts.ribGeneratedOn')} ${new Date().toLocaleDateString('fr-FR')}\n`;
                     const blob = new Blob([ribContent], { type: 'text/plain;charset=utf-8;' });
                     const link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = `RIB_${accountNumber || 'compte'}_${new Date().toISOString().split('T')[0]}.txt`;
                     link.click();
                     URL.revokeObjectURL(link.href);
-                    toast.success('RIB exporté avec succès');
+                    toast.success(t('bankAccounts.ribExportSuccess'));
                   }}
                   className="px-4 py-2 border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/10 transition-colors"
                 >
                   <Download className="w-4 h-4 inline mr-2" />
-                  Exporter RIB
+                  {t('bankAccounts.exportRib')}
                 </button>
                 <button
                   onClick={() => {
@@ -1113,7 +1113,7 @@ const BankAccountsPage: React.FC = () => {
                   }}
                   className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors"
                 >
-                  Modifier
+                  {t('bankAccounts.edit')}
                 </button>
               </div>
             </div>
@@ -1126,7 +1126,7 @@ const BankAccountsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Modifier le Compte Bancaire</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('bankAccounts.editModalTitle')}</h2>
               <button
                 onClick={() => setShowEditModal(false)}
                 className="text-gray-700 hover:text-gray-600"
@@ -1140,7 +1140,7 @@ const BankAccountsPage: React.FC = () => {
             <form onSubmit={(e) => {
               e.preventDefault();
               if (!editForm.label.trim()) {
-                toast.error('Le libellé du compte est obligatoire');
+                toast.error(t('bankAccounts.errLabelRequired'));
                 return;
               }
               updateAccount.mutate(
@@ -1155,11 +1155,11 @@ const BankAccountsPage: React.FC = () => {
                 },
                 {
                   onSuccess: () => {
-                    toast.success('Compte modifié avec succès');
+                    toast.success(t('bankAccounts.updateSuccess'));
                     setShowEditModal(false);
                   },
                   onError: () => {
-                    toast.error('Erreur lors de la modification du compte');
+                    toast.error(t('bankAccounts.updateError'));
                   },
                 }
               );
@@ -1167,7 +1167,7 @@ const BankAccountsPage: React.FC = () => {
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de compte</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('bankAccounts.accountNumber')}</label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100"
@@ -1187,7 +1187,7 @@ const BankAccountsPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Libellé du compte *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('bankAccounts.accountLabelRequired')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -1199,35 +1199,35 @@ const BankAccountsPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type de compte</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('bankAccounts.accountType')}</label>
                     <select
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
                       value={editForm.account_type}
                       onChange={(e) => setEditForm(f => ({ ...f, account_type: e.target.value }))}
                     >
-                      <option value="courant">Courant</option>
-                      <option value="epargne">Épargne</option>
-                      <option value="terme">À terme</option>
-                      <option value="credit">Crédit</option>
+                      <option value="courant">{t('bankAccounts.typeCurrent')}</option>
+                      <option value="epargne">{t('bankAccounts.typeSavings')}</option>
+                      <option value="terme">{t('bankAccounts.typeTerm')}</option>
+                      <option value="credit">{t('bankAccounts.typeCredit')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('bankAccounts.statusLabel')}</label>
                     <select
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
                       value={editForm.status}
                       onChange={(e) => setEditForm(f => ({ ...f, status: e.target.value }))}
                     >
-                      <option value="actif">Actif</option>
-                      <option value="inactif">Inactif</option>
-                      <option value="ferme">Fermé</option>
-                      <option value="bloque">Bloqué</option>
+                      <option value="actif">{t('bankAccounts.statusActive')}</option>
+                      <option value="inactif">{t('bankAccounts.statusInactive')}</option>
+                      <option value="ferme">{t('bankAccounts.statusClosed')}</option>
+                      <option value="bloque">{t('bankAccounts.statusBlocked')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Titulaire</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('bankAccounts.colHolder')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -1243,14 +1243,14 @@ const BankAccountsPage: React.FC = () => {
                   onClick={() => setShowEditModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('bankAccounts.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={updateAccount.isPending}
                   className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] disabled:opacity-60"
                 >
-                  {updateAccount.isPending ? 'Enregistrement...' : 'Enregistrer'}
+                  {updateAccount.isPending ? t('bankAccounts.saving') : t('bankAccounts.save')}
                 </button>
               </div>
             </form>
@@ -1263,7 +1263,7 @@ const BankAccountsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Importer un Relevé Bancaire</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('bankAccounts.importModalTitle')}</h2>
               <button
                 onClick={() => { setShowImportModal(false); setImportFile(null); }}
                 className="text-gray-700 hover:text-gray-600"
@@ -1278,9 +1278,9 @@ const BankAccountsPage: React.FC = () => {
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-[var(--color-primary)] transition-colors">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-lg font-medium text-gray-700 mb-2">
-                  {importFile ? importFile.name : 'Glissez votre fichier ici'}
+                  {importFile ? importFile.name : t('bankAccounts.dropFileHere')}
                 </p>
-                <p className="text-sm text-gray-500 mb-4">ou cliquez pour sélectionner</p>
+                <p className="text-sm text-gray-500 mb-4">{t('bankAccounts.orClickToSelect')}</p>
                 <input
                   type="file"
                   accept=".csv"
@@ -1290,26 +1290,26 @@ const BankAccountsPage: React.FC = () => {
                   onChange={(e) => {
                     const f = e.target.files?.[0] ?? null;
                     setImportFile(f);
-                    if (f) toast.success(`Fichier sélectionné : ${f.name}`);
+                    if (f) toast.success(t('bankAccounts.fileSelected', { name: f.name }));
                   }}
                 />
                 <label
                   htmlFor="file-import-bank"
                   className="inline-block px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] cursor-pointer"
                 >
-                  Sélectionner un fichier CSV
+                  {t('bankAccounts.selectCsvFile')}
                 </label>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-800 mb-2">Format attendu (CSV) :</h4>
+                <h4 className="font-medium text-blue-800 mb-2">{t('bankAccounts.expectedFormat')}</h4>
                 <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Séparateur point-virgule (;)</li>
-                  <li>• Colonnes : Date;Libellé;Référence;Montant</li>
-                  <li>• Montant négatif = débit, positif = crédit</li>
+                  <li>{t('bankAccounts.formatSeparator')}</li>
+                  <li>{t('bankAccounts.formatColumns')}</li>
+                  <li>{t('bankAccounts.formatAmountRule')}</li>
                 </ul>
                 <p className="text-xs text-blue-600 mt-2">
-                  Note : l'import de relevés via API bancaire (EBICS/PSD2) n'est pas encore disponible dans cette version.
+                  {t('bankAccounts.apiImportNote')}
                 </p>
               </div>
             </div>
@@ -1319,19 +1319,19 @@ const BankAccountsPage: React.FC = () => {
                 onClick={() => { setShowImportModal(false); setImportFile(null); }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('bankAccounts.cancel')}
               </button>
               <button
                 disabled={!importFile}
                 onClick={() => {
                   if (!importFile) {
-                    toast.error('Veuillez sélectionner un fichier CSV');
+                    toast.error(t('bankAccounts.selectCsvError'));
                     return;
                   }
                   const reader = new FileReader();
                   reader.onload = (ev) => {
                     const text = ev.target?.result as string;
-                    if (!text) { toast.error('Fichier vide ou illisible'); return; }
+                    if (!text) { toast.error(t('bankAccounts.emptyFileError')); return; }
                     // Parse CSV: Date;Libellé;Référence;Montant
                     const lines = text.trim().split('\n').slice(1); // skip header
                     let parsed = 0;
@@ -1341,30 +1341,30 @@ const BankAccountsPage: React.FC = () => {
                       if (cols.length < 4) return;
                       const [date, , , montantStr] = cols.map(c => c.trim().replace(/"/g, ''));
                       const montant = parseFloat(montantStr.replace(',', '.'));
-                      if (!date || isNaN(montant)) { errors.push(`Ligne ${i + 2} ignorée`); return; }
+                      if (!date || isNaN(montant)) { errors.push(t('bankAccounts.lineIgnored', { line: String(i + 2) })); return; }
                       parsed++;
                     });
                     if (parsed === 0) {
-                      toast.error(`Aucune ligne valide trouvée. ${errors.length} erreur(s).`);
+                      toast.error(t('bankAccounts.noValidLine', { count: String(errors.length) }));
                     } else {
                       // NOTE: Le fichier est parsé mais les mouvements ne sont pas encore persistés.
                       // Utilisez la page Rapprochement Bancaire pour importer et valider ce relevé.
                       console.info(`[BankAccountsPage] CSV parsé : ${parsed} ligne(s) valide(s). Redirection vers Rapprochement conseillée.`);
                       toast.success(
-                        `${parsed} ligne(s) lue(s) dans le fichier. Pour persister ces mouvements, utilisez la page Rapprochement Bancaire.`,
+                        t('bankAccounts.linesReadNotice', { count: String(parsed) }),
                         { duration: 6000 }
                       );
-                      if (errors.length) toast.error(`${errors.length} ligne(s) ignorée(s)`);
+                      if (errors.length) toast.error(t('bankAccounts.linesIgnored', { count: String(errors.length) }));
                       setShowImportModal(false);
                       setImportFile(null);
                     }
                   };
-                  reader.onerror = () => toast.error('Erreur lors de la lecture du fichier');
+                  reader.onerror = () => toast.error(t('bankAccounts.fileReadError'));
                   reader.readAsText(importFile, 'utf-8');
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
               >
-                Importer
+                {t('bankAccounts.import')}
               </button>
             </div>
           </div>
@@ -1380,11 +1380,11 @@ const BankAccountsPage: React.FC = () => {
                 <Trash2 className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Supprimer le compte bancaire</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('bankAccounts.deleteModalTitle')}</h3>
                 <p className="text-sm text-gray-600">
-                  Êtes-vous sûr de vouloir supprimer le compte{' '}
-                  <span className="font-semibold">{deleteConfirmLabel}</span> ?
-                  Cette action est irréversible.
+                  {t('bankAccounts.deleteConfirmPrefix')}{' '}
+                  <span className="font-semibold">{deleteConfirmLabel}</span>{' '}
+                  {t('bankAccounts.deleteConfirmSuffix')}
                 </p>
               </div>
             </div>
@@ -1393,7 +1393,7 @@ const BankAccountsPage: React.FC = () => {
                 onClick={() => setDeleteConfirmId(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
               >
-                Annuler
+                {t('bankAccounts.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
@@ -1401,9 +1401,9 @@ const BankAccountsPage: React.FC = () => {
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 flex items-center space-x-2"
               >
                 {deleteAccount.isPending ? (
-                  <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Suppression...</span></>
+                  <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>{t('bankAccounts.deleting')}</span></>
                 ) : (
-                  <><Trash2 className="h-4 w-4" /><span>Supprimer</span></>
+                  <><Trash2 className="h-4 w-4" /><span>{t('bankAccounts.delete')}</span></>
                 )}
               </button>
             </div>
