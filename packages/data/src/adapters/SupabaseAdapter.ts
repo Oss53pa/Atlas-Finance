@@ -79,6 +79,11 @@ const TABLE_MAP: Record<TableName, string> = {
   stockCountDocuments: 'stock_count_documents',
   stockCountLines: 'stock_count_lines',
   stockReservations: 'stock_reservations',
+  // Ossature d'intégration Suite Atlas (L1)
+  integrationEvents: 'integration_events',
+  postingRules: 'posting_rules',
+  integrationDeadLetters: 'integration_dead_letters',
+  entrySequences: 'entry_sequences',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -101,6 +106,14 @@ function normalizeJournalEntry(r: any): any {
     reversedBy:   r.reversed_by   || r.reversedBy   || undefined,
     reversedAt:   r.reversed_at   || r.reversedAt   || undefined,
     reversalOf:   r.reversal_of   || r.reversalOf   || undefined,
+    // Ossature d'intégration Suite Atlas (L0) : sans ces alias, toute écriture
+    // issue d'un satellite remonte sourceSystem=undefined → le drill-down
+    // inter-application et la réconciliation auxiliaire lisent du vide.
+    sourceSystem:      r.source_system       || r.sourceSystem      || 'manual',
+    sourceDocType:     r.source_doc_type     || r.sourceDocType     || undefined,
+    sourceDocId:       r.source_doc_id       || r.sourceDocId       || undefined,
+    idempotencyKey:    r.idempotency_key     || r.idempotencyKey    || undefined,
+    sourcePayloadHash: r.source_payload_hash || r.sourcePayloadHash || undefined,
     lines:        Array.isArray(r.lines) ? r.lines : [],  // injecté séparément
   }
 }
@@ -268,6 +281,13 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   stock_count_documents:   normalizeGeneric,
   stock_count_lines:       normalizeGeneric,
   stock_reservations:      normalizeGeneric,
+  // Ossature d'intégration Suite Atlas (L1) — sans ces alias, sourceSystem,
+  // eventType, idempotencyKey… remontent undefined et le moteur de posting
+  // ne voit rien.
+  integration_events:        normalizeGeneric,
+  posting_rules:             normalizeGeneric,
+  integration_dead_letters:  normalizeGeneric,
+  entry_sequences:           normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {
@@ -545,9 +565,23 @@ export class SupabaseAdapter implements DataAdapter {
       // classes (6/7) étaient tronquées → états financiers à 0. On boucle par tranches.
       if (pg === 'journal_entries' && rows.length > 0) {
         try {
-          const linesData = await this.fetchAllPaginated(() =>
-            this.client.from('journal_lines').select('*').eq('tenant_id', this.tenantId).order('id', { ascending: true })
-          )
+          // Requête BORNÉE quand le jeu d'écritures l'est (filters.limit, ex. la
+          // recherche du dernier maillon de la chaîne de hash) : sans ce garde-fou,
+          // un getAll(limit:1) déclenchait quand même le rapatriement des 10 319
+          // lignes du journal — coût prohibitif sur un chemin appelé à CHAQUE
+          // écriture postée par un satellite.
+          const entryIds = rows.map(e => e.id).filter(Boolean)
+          const bounded = entryIds.length > 0 && entryIds.length <= 200
+          const linesData = bounded
+            ? await this.fetchAllPaginated(() =>
+                this.client.from('journal_lines').select('*')
+                  .eq('tenant_id', this.tenantId)
+                  .in('entry_id', entryIds)
+                  .order('id', { ascending: true })
+              )
+            : await this.fetchAllPaginated(() =>
+                this.client.from('journal_lines').select('*').eq('tenant_id', this.tenantId).order('id', { ascending: true })
+              )
           const linesByEntry = new Map<string, any[]>()
           for (const l of linesData) {
             const norm = normalizeJournalLine(l)
