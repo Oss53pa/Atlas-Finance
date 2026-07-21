@@ -36,6 +36,7 @@ export const ANALYTIQUE_TABS: GroupTab[] = [
 ];
 export const CAPEX_TABS: GroupTab[] = [
   { path: '/capex', label: 'Portefeuille', icon: Layers, exact: true },
+  { path: '/capex/business-cases', label: 'Business Cases', icon: FileBarChart },
   { path: '/capex/priorisation', label: 'Priorisation', icon: Trophy },
   { path: '/capex/enveloppe', label: 'Enveloppe', icon: PiggyBank },
   { path: '/capex/reaffectations', label: 'Réaffectations', icon: Shuffle },

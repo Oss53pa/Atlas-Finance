@@ -277,8 +277,8 @@ const AdvancedBalance: React.FC = () => {
         showPrintButton={false}
         headerContent={
           <div className="text-center mb-4">
-            <h2 className="text-lg font-bold">Balance Avancée</h2>
-            <p className="text-sm text-gray-600">Conforme SYSCOHADA - {dateRange.start} au {dateRange.end}</p>
+            <h2 className="text-lg font-bold">{t('advBalance.title')}</h2>
+            <p className="text-sm text-gray-600">{t('advBalance.printSubtitle', { start: dateRange.start, end: dateRange.end })}</p>
           </div>
         }
       >
@@ -288,8 +288,8 @@ const AdvancedBalance: React.FC = () => {
           <div className="flex items-center space-x-4">
             <BarChart3 className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-primary)]">Balance Avancée</h1>
-              <p className="text-sm text-[var(--color-primary)]/70">Tableau de bord interactif - Conforme SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('advBalance.title')}</h1>
+              <p className="text-sm text-[var(--color-primary)]/70">{t('advBalance.subtitle')}</p>
             </div>
           </div>
           
@@ -303,7 +303,7 @@ const AdvancedBalance: React.FC = () => {
               <span className="text-sm">
                 {dateRange.start && dateRange.end
                   ? `${new Date(dateRange.start).toLocaleDateString('fr-FR')} - ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
-                  : 'Période'
+                  : t('advBalance.period')
                 }
               </span>
             </button>
@@ -313,7 +313,7 @@ const AdvancedBalance: React.FC = () => {
               className={`px-4 py-2 rounded-lg border transition-colors ${showFilters ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)] border-[var(--color-primary)]' : 'bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border-[var(--color-border)] hover:bg-[var(--color-border)]'}`}
             >
               <Filter className="w-4 h-4 mr-2 inline" />
-              Filtres
+              {t('advBalance.filters')}
             </button>
             
             <button 
@@ -321,7 +321,7 @@ const AdvancedBalance: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
             >
               <Settings className="w-4 h-4 mr-2 inline" />
-              Configuration
+              {t('advBalance.configuration')}
             </button>
             
             <button 
@@ -329,24 +329,24 @@ const AdvancedBalance: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-surface-hover)] text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)] transition-colors"
             >
               <Printer className="w-4 h-4 mr-2 inline" />
-              Aperçu
+              {t('advBalance.preview')}
             </button>
             
             <ExportMenu
               data={filteredData as unknown as Record<string, unknown>[]}
               filename="balance-avancee"
               columns={{
-                compte: 'Compte',
-                libelle: 'Libellé',
-                debitPrecedent: 'Débit Précédent',
-                creditPrecedent: 'Crédit Précédent',
-                debitMouvement: 'Débit Mouvement',
-                creditMouvement: 'Crédit Mouvement',
-                debitSolde: 'Débit Solde',
-                creditSolde: 'Crédit Solde',
-                type: 'Type'
+                compte: t('advBalance.colCompte'),
+                libelle: t('advBalance.colLibelle'),
+                debitPrecedent: t('advBalance.colDebitPrecedent'),
+                creditPrecedent: t('advBalance.colCreditPrecedent'),
+                debitMouvement: t('advBalance.colDebitMouvement'),
+                creditMouvement: t('advBalance.colCreditMouvement'),
+                debitSolde: t('advBalance.colDebitSolde'),
+                creditSolde: t('advBalance.colCreditSolde'),
+                type: t('advBalance.colType')
               }}
-              buttonText="Exporter"
+              buttonText={t('advBalance.export')}
             />
           </div>
         </div>
@@ -354,9 +354,9 @@ const AdvancedBalance: React.FC = () => {
         {/* Navigation des vues */}
         <div className="flex space-x-1 mt-4">
           {[
-            { id: 'dashboard', label: 'Tableau de Bord', icon: BarChart3 },
-            { id: 'generale', label: 'Balance Générale', icon: Grid3X3 },
-            { id: 'analytique', label: 'Balance Analytique', icon: PieChartIcon }
+            { id: 'dashboard', label: t('advBalance.tabDashboard'), icon: BarChart3 },
+            { id: 'generale', label: t('advBalance.tabGeneral'), icon: Grid3X3 },
+            { id: 'analytique', label: t('advBalance.tabAnalytic'), icon: PieChartIcon }
           ].map((view) => (
             <button
               key={view.id}
@@ -379,7 +379,7 @@ const AdvancedBalance: React.FC = () => {
         <div className="bg-[var(--color-surface-hover)] border-b border-[var(--color-border)] px-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date début</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.dateStart')}</label>
               <input 
                 type="date" 
                 value={filters.dateDebut}
@@ -388,7 +388,7 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date fin</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.dateEnd')}</label>
               <input 
                 type="date" 
                 value={filters.dateFin}
@@ -397,7 +397,7 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte (Min)</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.accountMin')}</label>
               <input 
                 type="text" 
                 placeholder="101000"
@@ -407,7 +407,7 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte (Max)</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.accountMax')}</label>
               <input 
                 type="text" 
                 placeholder="899999"
@@ -417,12 +417,12 @@ const AdvancedBalance: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Recherche libellé</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.searchLabel')}</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-primary)]/50" />
                 <input
                   type="text"
-                  placeholder="Compte ou libellé..."
+                  placeholder={t('advBalance.searchPlaceholder')}
                   value={filters.libelle}
                   onChange={(e) => setFilters({...filters, libelle: e.target.value})}
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -430,16 +430,16 @@ const AdvancedBalance: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Centre de coût</label>
+              <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('advBalance.costCenter')}</label>
               <select
                 value={filters.centreCout}
                 onChange={(e) => setFilters({...filters, centreCout: e.target.value})}
                 className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               >
-                <option value="">Tous</option>
-                <option value="CC001">CC001 - Commercial</option>
-                <option value="CC002">CC002 - Production</option>
-                <option value="CC003">CC003 - Administration</option>
+                <option value="">{t('advBalance.all')}</option>
+                <option value="CC001">{t('advBalance.cc001')}</option>
+                <option value="CC002">{t('advBalance.cc002')}</option>
+                <option value="CC003">{t('advBalance.cc003')}</option>
               </select>
             </div>
           </div>
@@ -454,7 +454,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, showZeroBalance: e.target.checked})}
                   className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[var(--color-primary)]/70">Afficher soldes nuls</span>
+                <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.showZeroBalance')}</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -465,7 +465,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, onlyMovement: e.target.checked})}
                   className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[var(--color-primary)]/70">Avec mouvements seulement</span>
+                <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.onlyMovement')}</span>
               </label>
             </div>
             <div className="flex items-center">
@@ -476,7 +476,7 @@ const AdvancedBalance: React.FC = () => {
                   onChange={(e) => setFilters({...filters, onlyUnbalanced: e.target.checked})}
                   className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-[var(--color-primary)]/70">Déséquilibrés seulement</span>
+                <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.onlyUnbalanced')}</span>
               </label>
             </div>
             <div className="col-span-3 flex items-center justify-end space-x-3">
@@ -498,11 +498,11 @@ const AdvancedBalance: React.FC = () => {
                 })}
                 className="px-4 py-2 border border-[var(--color-border)] text-[var(--color-primary)]/70 rounded-md hover:bg-[var(--color-border)] transition-colors"
               >
-                Réinitialiser
+                {t('advBalance.reset')}
               </button>
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] transition-colors">
                 <Search className="w-4 h-4 mr-2 inline" />
-                Appliquer filtres
+                {t('advBalance.applyFilters')}
               </button>
             </div>
           </div>
@@ -518,7 +518,7 @@ const AdvancedBalance: React.FC = () => {
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Total Débit</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.totalDebit')}</p>
                   <p className="text-lg font-bold text-blue-600">{fmt(indicators.totalDebit)}</p>
                   <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
                 </div>
@@ -531,7 +531,7 @@ const AdvancedBalance: React.FC = () => {
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Total Crédit</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.totalCredit')}</p>
                   <p className="text-lg font-bold text-green-600">{fmt(indicators.totalCredit)}</p>
                   <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
                 </div>
@@ -544,12 +544,12 @@ const AdvancedBalance: React.FC = () => {
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Taux d'Équilibre</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.balanceRate')}</p>
                   <p className={`text-lg font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
                     {indicators.tauxEquilibre.toFixed(1)}%
                   </p>
                   <p className="text-xs text-gray-700">
-                    {indicators.equilibre === 0 ? 'Parfait' : `Écart: ${(indicators.equilibre / 1000).toFixed(0)}K`}
+                    {indicators.equilibre === 0 ? t('advBalance.perfect') : t('advBalance.gapK', { value: (indicators.equilibre / 1000).toFixed(0) })}
                   </p>
                 </div>
                 <div className={`w-12 h-12 ${indicators.equilibre === 0 ? 'bg-green-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center`}>
@@ -564,9 +564,9 @@ const AdvancedBalance: React.FC = () => {
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">Comptes Actifs</p>
+                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.activeAccounts')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">{balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
-                  <p className="text-xs text-gray-700">sur {balanceData.length} total</p>
+                  <p className="text-xs text-gray-700">{t('advBalance.ofTotal', { count: String(balanceData.length) })}</p>
                 </div>
                 <div className="w-12 h-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
                   <Building className="w-6 h-6 text-[var(--color-primary)]" />
@@ -580,14 +580,14 @@ const AdvancedBalance: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)]">
-                  Balance de Vérification
+                  {t('advBalance.trialBalanceCheck')}
                 </h3>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                   trialBalance.isBalanced
                     ? 'bg-green-100 text-green-700'
                     : 'bg-red-100 text-red-700'
                 }`}>
-                  {trialBalance.isBalanced ? 'Conforme' : 'Anomalie(s)'}
+                  {trialBalance.isBalanced ? t('advBalance.compliant') : t('advBalance.anomalies')}
                 </span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -611,7 +611,7 @@ const AdvancedBalance: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-400 mt-3">{trialBalance.entriesChecked} écritures vérifiées</p>
+              <p className="text-xs text-gray-400 mt-3">{t('advBalance.entriesChecked', { count: String(trialBalance.entriesChecked) })}</p>
             </div>
           )}
 
@@ -621,12 +621,12 @@ const AdvancedBalance: React.FC = () => {
             {/* Évolution par période */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Évolution par Période</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.evolutionByPeriod')}</h3>
                 <div className="flex items-center space-x-2">
                   <select className="px-3 py-1 border border-[var(--color-border)] rounded text-sm">
-                    <option>Mensuelle</option>
-                    <option>Trimestrielle</option>
-                    <option>Annuelle</option>
+                    <option>{t('advBalance.monthly')}</option>
+                    <option>{t('advBalance.quarterly')}</option>
+                    <option>{t('advBalance.yearly')}</option>
                   </select>
                   <button className="p-2 text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70">
                     <ZoomIn className="w-4 h-4" />
@@ -640,10 +640,10 @@ const AdvancedBalance: React.FC = () => {
                   <YAxis tickFormatter={(value) => fmt(value)} />
                   <Tooltip formatter={(value) => [fmt(value as number), '']} />
                   <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="actif" fill="url(#gradPetrol)" name="Actif" />
-                  <Bar radius={[6,6,0,0]} dataKey="passif" fill="url(#gradPetrolLight)" name="Passif" />
-                  <Line type="monotone" dataKey="charges" stroke="#C0322B" name="Charges" />
-                  <Line type="monotone" dataKey="produits" stroke="#15803D" name="Produits" />
+                  <Bar radius={[6,6,0,0]} dataKey="actif" fill="url(#gradPetrol)" name={t('advBalance.assets')} />
+                  <Bar radius={[6,6,0,0]} dataKey="passif" fill="url(#gradPetrolLight)" name={t('advBalance.liabilities')} />
+                  <Line type="monotone" dataKey="charges" stroke="#C0322B" name={t('advBalance.expenses')} />
+                  <Line type="monotone" dataKey="produits" stroke="#15803D" name={t('advBalance.revenues')} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -651,8 +651,8 @@ const AdvancedBalance: React.FC = () => {
             {/* Répartition par type */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Répartition par Type</h3>
-                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label="Voir les détails">
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.breakdownByType')}</h3>
+                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label={t('advBalance.viewDetails')}>
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
@@ -660,10 +660,10 @@ const AdvancedBalance: React.FC = () => {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'Actif', value: indicators.actif },
-                      { name: 'Passif', value: indicators.passif },
-                      { name: 'Charges', value: indicators.charges },
-                      { name: 'Produits', value: indicators.produits }
+                      { name: t('advBalance.assets'), value: indicators.actif },
+                      { name: t('advBalance.liabilities'), value: indicators.passif },
+                      { name: t('advBalance.expenses'), value: indicators.charges },
+                      { name: t('advBalance.revenues'), value: indicators.produits }
                     ]}
                     cx="50%"
                     cy="50%"
@@ -688,16 +688,16 @@ const AdvancedBalance: React.FC = () => {
           <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)]">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Top 10 - Comptes les Plus Mouvementés</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.topAccounts')}</h3>
                 <div className="flex items-center space-x-2">
                   <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
-                    Débit
+                    {t('advBalance.debit')}
                   </button>
                   <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
-                    Crédit
+                    {t('advBalance.credit')}
                   </button>
                   <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">
-                    Mouvement
+                    {t('advBalance.movement')}
                   </button>
                 </div>
               </div>
@@ -707,13 +707,13 @@ const AdvancedBalance: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-[var(--color-primary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Rang</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.rank')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.account')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.label')}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Mouvement Débit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Mouvement Crédit</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Total Mouvement</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">Statut</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementDebit')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementCredit')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.totalMovement')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-[var(--color-surface-hover)] divide-y divide-[var(--color-border)]">
@@ -748,8 +748,8 @@ const AdvancedBalance: React.FC = () => {
                             Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? 'bg-red-100 text-red-800' : 
                             'bg-yellow-100 text-yellow-800'
                           }`}>
-                            {(item.debitSolde - item.creditSolde) === 0 ? 'Équilibré' : 
-                             Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? 'Déséquilibré' : 'Actif'}
+                            {(item.debitSolde - item.creditSolde) === 0 ? t('advBalance.balanced') :
+                             Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? t('advBalance.unbalanced') : t('advBalance.active')}
                           </span>
                         </td>
                       </tr>
@@ -765,21 +765,21 @@ const AdvancedBalance: React.FC = () => {
             {/* Comptes non lettrés */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[var(--color-primary)]">Comptes Non Lettrés</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('advBalance.unmatchedAccounts')}</h4>
                 <AlertCircle className="w-5 h-5 text-orange-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Clients (41xxx)</span>
-                  <span className="text-sm font-medium text-orange-600">{nonLettre.clients} compte(s)</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.customers41')}</span>
+                  <span className="text-sm font-medium text-orange-600">{t('advBalance.accountsCount', { count: String(nonLettre.clients) })}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Fournisseurs (40xxx)</span>
-                  <span className="text-sm font-medium text-orange-600">{nonLettre.fournisseurs} compte(s)</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.suppliers40')}</span>
+                  <span className="text-sm font-medium text-orange-600">{t('advBalance.accountsCount', { count: String(nonLettre.fournisseurs) })}</span>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-[var(--color-primary)]">Total non lettré</span>
+                    <span className="text-sm font-medium text-[var(--color-primary)]">{t('advBalance.totalUnmatched')}</span>
                     <span className="text-sm font-bold text-orange-600">{formatCurrency(nonLettre.total)}</span>
                   </div>
                 </div>
@@ -789,12 +789,12 @@ const AdvancedBalance: React.FC = () => {
             {/* Variations significatives */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[var(--color-primary)]">Top Mouvements</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('advBalance.topMovements')}</h4>
                 <TrendingUp className="w-5 h-5 text-blue-500" />
               </div>
               <div className="space-y-3">
                 {topVariations.length === 0 ? (
-                  <p className="text-xs text-[var(--color-primary)]/50 text-center py-2">Aucune donnée disponible</p>
+                  <p className="text-xs text-[var(--color-primary)]/50 text-center py-2">{t('advBalance.noData')}</p>
                 ) : topVariations.map((item, i) => (
                   <div key={i} className="flex justify-between items-center">
                     <div>
@@ -812,24 +812,24 @@ const AdvancedBalance: React.FC = () => {
             {/* Taux de rapprochement */}
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-md font-semibold text-[var(--color-primary)]">Équilibre Balance</h4>
+                <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('advBalance.balanceEquilibrium')}</h4>
                 <CheckCircle className="w-5 h-5 text-green-500" />
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Taux équilibre</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.equilibriumRate')}</span>
                   <span className={`text-sm font-medium ${indicators.tauxEquilibre >= 99 ? 'text-green-600' : indicators.tauxEquilibre >= 95 ? 'text-orange-600' : 'text-red-600'}`}>
                     {indicators.tauxEquilibre > 0 ? `${Math.min(100, indicators.tauxEquilibre).toFixed(1)}%` : '—'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Écart débit/crédit</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.debitCreditGap')}</span>
                   <span className={`text-sm font-medium ${indicators.equilibre < 0.01 ? 'text-green-600' : 'text-red-600'}`}>
                     {fmt(indicators.equilibre)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-primary)]/70">Comptes mouvementés</span>
+                  <span className="text-sm text-[var(--color-primary)]/70">{t('advBalance.movedAccounts')}</span>
                   <span className="text-sm font-medium text-[var(--color-primary)]">
                     {balanceData.length}
                   </span>
@@ -852,11 +852,11 @@ const AdvancedBalance: React.FC = () => {
           {/* Graphique par centre de coût */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Répartition par Centre de Coût</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">{t('advBalance.breakdownByCostCenter')}</h3>
               {analyticsData.length === 0 ? (
                 <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-primary)]/50">
-                  Aucun axe analytique configuré.
-                  <br />Assignez des centres de coût lors de la saisie.
+                  {t('advBalance.noAnalyticAxis')}
+                  <br />{t('advBalance.assignCostCenters')}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
@@ -866,17 +866,17 @@ const AdvancedBalance: React.FC = () => {
                     <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value) => [fmt(value as number), '']} />
                     <Legend />
-                    <Bar radius={[6,6,0,0]} dataKey="reel" fill="url(#gradPetrol)" name="Réel" />
+                    <Bar radius={[6,6,0,0]} dataKey="reel" fill="url(#gradPetrol)" name={t('advBalance.actual')} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
 
             <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">Évolution des Écarts</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-6">{t('advBalance.varianceTrend')}</h3>
               {analyticsData.length === 0 ? (
                 <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-primary)]/50">
-                  Données insuffisantes pour l'analyse d'évolution.
+                  {t('advBalance.insufficientData')}
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
@@ -886,7 +886,7 @@ const AdvancedBalance: React.FC = () => {
                     <YAxis tickFormatter={(value) => fmt(value)} />
                     <Tooltip formatter={(value) => [fmt(value as number), '']} />
                     <Legend />
-                    <Line type="monotone" dataKey="reel" stroke="#235A6E" name="Réel" />
+                    <Line type="monotone" dataKey="reel" stroke="#235A6E" name={t('advBalance.actual')} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -896,27 +896,27 @@ const AdvancedBalance: React.FC = () => {
           {/* Tableau analytique détaillé */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h4 className="text-md font-semibold text-[var(--color-primary)]">Balance Analytique Détaillée</h4>
+              <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('advBalance.detailedAnalyticBalance')}</h4>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-[var(--color-primary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">Centre</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">Projet</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Budget Initial</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Réalisé</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">Écart €</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">Écart %</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">Statut</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">{t('advBalance.center')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase">{t('advBalance.project')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">{t('advBalance.initialBudget')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">{t('advBalance.actualAmount')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase">{t('advBalance.varianceAmount')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('advBalance.variancePercent')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase">{t('advBalance.status')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {analyticsData.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
-                        Aucun axe analytique — assignez des centres de coût lors de la saisie d'écritures.
+                        {t('advBalance.noAnalyticAxisRow')}
                       </td>
                     </tr>
                   ) : analyticsData.map((item, index) => (
@@ -931,7 +931,7 @@ const AdvancedBalance: React.FC = () => {
                       <td className="px-6 py-4 text-sm font-mono text-right text-gray-400">—</td>
                       <td className="px-6 py-4 text-center">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Réel seul
+                          {t('advBalance.actualOnly')}
                         </span>
                       </td>
                     </tr>
@@ -949,7 +949,7 @@ const AdvancedBalance: React.FC = () => {
           <div className="bg-[var(--color-surface-hover)] rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Configuration des Colonnes</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.columnConfiguration')}</h3>
                 <button
                   onClick={() => setShowConfig(false)}
                   className="text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70"
@@ -964,7 +964,7 @@ const AdvancedBalance: React.FC = () => {
             <div className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-[var(--color-primary)] mb-2">
-                  Nombre total de colonnes ({columnConfig.totalColumns})
+                  {t('advBalance.totalColumnsCount', { count: String(columnConfig.totalColumns) })}
                 </label>
                 <input 
                   type="range"
@@ -975,22 +975,22 @@ const AdvancedBalance: React.FC = () => {
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-[var(--color-primary)]/50 mt-1">
-                  <span>4 (Minimal)</span>
-                  <span>8 (Recommandé)</span>
-                  <span>12 (Complet)</span>
+                  <span>{t('advBalance.colsMinimal')}</span>
+                  <span>{t('advBalance.colsRecommended')}</span>
+                  <span>{t('advBalance.colsComplete')}</span>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-md font-medium text-[var(--color-primary)] mb-4">Colonnes disponibles</h4>
+                <h4 className="text-md font-medium text-[var(--color-primary)] mb-4">{t('advBalance.availableColumns')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { id: 'debitPrecedent', label: 'Débit Précédent' },
-                    { id: 'creditPrecedent', label: 'Crédit Précédent' },
-                    { id: 'debitMouvement', label: 'Mouvement Débit' },
-                    { id: 'creditMouvement', label: 'Mouvement Crédit' },
-                    { id: 'debitSolde', label: 'Solde Débit' },
-                    { id: 'creditSolde', label: 'Solde Crédit' }
+                    { id: 'debitPrecedent', label: t('advBalance.colDebitPrecedent') },
+                    { id: 'creditPrecedent', label: t('advBalance.colCreditPrecedent') },
+                    { id: 'debitMouvement', label: t('advBalance.movementDebit') },
+                    { id: 'creditMouvement', label: t('advBalance.movementCredit') },
+                    { id: 'debitSolde', label: t('advBalance.colSoldeDebit') },
+                    { id: 'creditSolde', label: t('advBalance.colSoldeCredit') }
                   ].map((col) => (
                     <label key={col.id} className="flex items-center">
                       <input 
@@ -1023,7 +1023,7 @@ const AdvancedBalance: React.FC = () => {
                 onClick={() => setShowConfig(false)}
                 className="px-4 py-2 text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)]"
               >
-                Annuler
+                {t('advBalance.cancel')}
               </button>
               <button 
                 onClick={() => {
@@ -1033,7 +1033,7 @@ const AdvancedBalance: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
                 <Save className="w-4 h-4 mr-2 inline" />
-                Sauvegarder
+                {t('advBalance.save')}
               </button>
             </div>
           </div>
@@ -1046,10 +1046,10 @@ const AdvancedBalance: React.FC = () => {
           <div className="bg-[var(--color-surface-hover)] rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Aperçu Avant Impression</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.printPreview')}</h3>
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-[var(--color-primary)]/70">Format:</label>
+                    <label className="text-sm text-[var(--color-primary)]/70">{t('advBalance.format')}</label>
                     <select 
                       value={printConfig.format}
                       onChange={(e) => setPrintConfig({...printConfig, format: e.target.value as 'A4' | 'A3'})}
@@ -1060,14 +1060,14 @@ const AdvancedBalance: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <label className="text-sm text-[var(--color-primary)]/70">Orientation:</label>
+                    <label className="text-sm text-[var(--color-primary)]/70">{t('advBalance.orientation')}</label>
                     <select 
                       value={printConfig.orientation}
                       onChange={(e) => setPrintConfig({...printConfig, orientation: e.target.value as 'portrait' | 'landscape'})}
                       className="px-2 py-1 border border-[var(--color-border)] rounded text-sm"
                     >
-                      <option value="portrait">Portrait</option>
-                      <option value="landscape">Paysage</option>
+                      <option value="portrait">{t('advBalance.portrait')}</option>
+                      <option value="landscape">{t('advBalance.landscape')}</option>
                     </select>
                   </div>
                   <button 
@@ -1092,7 +1092,7 @@ const AdvancedBalance: React.FC = () => {
                     onChange={(e) => setPrintConfig({...printConfig, includeCharts: e.target.checked})}
                     className="rounded mr-2"
                   />
-                  <span className="text-sm">Inclure les graphiques</span>
+                  <span className="text-sm">{t('advBalance.includeCharts')}</span>
                 </label>
                 <label className="flex items-center">
                   <input 
@@ -1101,7 +1101,7 @@ const AdvancedBalance: React.FC = () => {
                     onChange={(e) => setPrintConfig({...printConfig, includeDetails: e.target.checked})}
                     className="rounded mr-2"
                   />
-                  <span className="text-sm">Inclure les détails</span>
+                  <span className="text-sm">{t('advBalance.includeDetails')}</span>
                 </label>
                 <label className="flex items-center">
                   <input 
@@ -1110,7 +1110,7 @@ const AdvancedBalance: React.FC = () => {
                     onChange={(e) => setPrintConfig({...printConfig, showLogos: e.target.checked})}
                     className="rounded mr-2"
                   />
-                  <span className="text-sm">Afficher les logos</span>
+                  <span className="text-sm">{t('advBalance.showLogos')}</span>
                 </label>
               </div>
             </div>
@@ -1127,29 +1127,29 @@ const AdvancedBalance: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">BALANCE GÉNÉRALE</h1>
-                <p className="text-[var(--color-primary)]/70">Période du {filters.dateDebut} au {filters.dateFin}</p>
-                <p className="text-[var(--color-primary)]/50 text-sm">Généré le {new Date().toLocaleDateString('fr-FR')} - Conforme SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('advBalance.generalBalanceUpper')}</h1>
+                <p className="text-[var(--color-primary)]/70">{t('advBalance.periodFromTo', { start: filters.dateDebut, end: filters.dateFin })}</p>
+                <p className="text-[var(--color-primary)]/50 text-sm">{t('advBalance.generatedOn', { date: new Date().toLocaleDateString('fr-FR') })}</p>
               </div>
 
               {/* Résumé des indicateurs */}
               <div className="grid grid-cols-4 gap-4 mb-6 p-4 bg-[var(--color-border)] rounded">
                 <div className="text-center">
-                  <div className="text-xs text-[var(--color-primary)]/70">Total Débit</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">{t('advBalance.totalDebit')}</div>
                   <div className="font-bold text-blue-600">{fmt(indicators.totalDebit)} XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[var(--color-primary)]/70">Total Crédit</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">{t('advBalance.totalCredit')}</div>
                   <div className="font-bold text-green-600">{fmt(indicators.totalCredit)} XAF</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[var(--color-primary)]/70">Équilibre</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">{t('advBalance.equilibrium')}</div>
                   <div className={`font-bold ${indicators.equilibre === 0 ? 'text-green-600' : 'text-orange-600'}`}>
-                    {indicators.equilibre === 0 ? 'Parfait' : `Écart: ${(indicators.equilibre / 1000).toFixed(0)}K`}
+                    {indicators.equilibre === 0 ? t('advBalance.perfect') : t('advBalance.gapK', { value: (indicators.equilibre / 1000).toFixed(0) })}
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-[var(--color-primary)]/70">Comptes Actifs</div>
+                  <div className="text-xs text-[var(--color-primary)]/70">{t('advBalance.activeAccounts')}</div>
                   <div className="font-bold text-[var(--color-primary)]">
                     {balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}
                   </div>
@@ -1162,8 +1162,8 @@ const AdvancedBalance: React.FC = () => {
                   <tr className="bg-[var(--color-primary)] border-b border-[var(--color-border)]">
                     <th className="border-r border-[var(--color-border)] px-2 py-1 text-left font-medium text-[var(--color-surface-hover)]">{t('accounting.account')}</th>
                     <th className="border-r border-[var(--color-border)] px-2 py-1 text-left font-medium text-[var(--color-surface-hover)]">{t('accounting.label')}</th>
-                    <th className="border-r border-[var(--color-border)] px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">Solde Débit</th>
-                    <th className="px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">Solde Crédit</th>
+                    <th className="border-r border-[var(--color-border)] px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">{t('advBalance.colSoldeDebit')}</th>
+                    <th className="px-2 py-1 text-right font-medium text-[var(--color-surface-hover)]">{t('advBalance.colSoldeCredit')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1182,7 +1182,7 @@ const AdvancedBalance: React.FC = () => {
                 </tbody>
                 <tfoot className="bg-[var(--color-primary)] border-t-2 border-[var(--color-border)]">
                   <tr>
-                    <td colSpan={2} className="px-2 py-2 font-bold text-[var(--color-surface-hover)]">TOTAUX</td>
+                    <td colSpan={2} className="px-2 py-2 font-bold text-[var(--color-surface-hover)]">{t('advBalance.totals')}</td>
                     <td className="px-2 py-2 text-right font-mono font-bold border-r border-[var(--color-border)] text-[var(--color-surface-hover)]">
                       {fmt(indicators.totalDebit)}
                     </td>
@@ -1196,12 +1196,12 @@ const AdvancedBalance: React.FC = () => {
               {/* Pied de page */}
               <div className="mt-8 pt-4 border-t border-[var(--color-border)] flex justify-between items-center text-xs text-[var(--color-primary)]/50">
                 <div>
-                  <p><span className="atlas-brand">Atlas FnA</span> - Balance Générale</p>
-                  <p>Système conforme SYSCOHADA</p>
+                  <p><span className="atlas-brand">Atlas FnA</span> - {t('advBalance.generalBalance')}</p>
+                  <p>{t('advBalance.syscohadaCompliantSystem')}</p>
                 </div>
                 <div className="text-right">
-                  <p>Page 1 sur 1</p>
-                  <p>Généré par: —</p>
+                  <p>{t('advBalance.pageXofY', { current: '1', total: '1' })}</p>
+                  <p>{t('advBalance.generatedBy')}</p>
                 </div>
               </div>
             </div>
@@ -1211,23 +1211,23 @@ const AdvancedBalance: React.FC = () => {
                 onClick={() => setShowPrintPreview(false)}
                 className="px-4 py-2 text-[var(--color-primary)]/70 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-border)]"
               >
-                Fermer
+                {t('advBalance.close')}
               </button>
               <div className="flex space-x-3">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                   <Mail className="w-4 h-4 mr-2 inline" />
-                  Envoyer par email
+                  {t('advBalance.sendByEmail')}
                 </button>
                 <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                   <FileSpreadsheet className="w-4 h-4 mr-2 inline" />
-                  Exporter Excel
+                  {t('advBalance.exportExcel')}
                 </button>
                 <button
                   onClick={handlePrint}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Printer className="w-4 h-4 mr-2 inline" />
-                  Imprimer
+                  {t('advBalance.print')}
                 </button>
               </div>
             </div>

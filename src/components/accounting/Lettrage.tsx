@@ -156,7 +156,7 @@ const Lettrage: React.FC = () => {
   const tiersKeyOf = (e: LettrageEntry) =>
     (e.tiersCode && e.tiersCode.trim()) || (e.tiers && e.tiers.trim().toUpperCase()) || `cpt:${e.compte}`;
   const tiersLabelOf = (e: LettrageEntry) =>
-    (e.tiers && e.tiers.trim()) || (e.tiersCode && e.tiersCode.trim()) || `${e.compte} — sans tiers détaillé`;
+    (e.tiers && e.tiers.trim()) || (e.tiersCode && e.tiersCode.trim()) || `${e.compte} — ${t('lettrage.noDetailedThirdParty')}`;
 
   // Grouper les écritures par TIERS
   const groupedEntries = useMemo(() => {
@@ -326,7 +326,7 @@ const Lettrage: React.FC = () => {
       }
 
       if (selections.length < 2) {
-        toast.error('Impossible de trouver les lignes correspondantes');
+        toast.error(t('lettrage.matchingLinesNotFound'));
         return;
       }
 
@@ -335,21 +335,21 @@ const Lettrage: React.FC = () => {
       const newHistory: LettrageHistory = {
         id: Date.now().toString(),
         date: new Date(),
-        user: 'Utilisateur actuel',
+        user: t('lettrage.currentUser'),
         action: 'create',
         code,
         ecritures: Array.from(selectedEntries),
         montant: selectedData.reduce((s, e) => s + Math.max(e.debit, e.credit), 0),
       };
       setLettrageHistory(prev => [newHistory, ...prev]);
-      toast.success(`Lettrage ${code} appliqué (${selections.length} lignes)`);
+      toast.success(t('lettrage.matchingApplied', { code, count: String(selections.length) }));
       setSelectedEntries(new Set());
       queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
       refetchEntries();
     } finally {
       setIsSaving(false);
     }
-  }, [selectedEntries, lettrageEntries, queryClient, refetchEntries, isSaving]);
+  }, [selectedEntries, lettrageEntries, queryClient, refetchEntries, isSaving, t]);
 
   const handleDelettrage = useCallback(async (code: string) => {
     const count = await delettrage(adapter, code);
@@ -357,17 +357,17 @@ const Lettrage: React.FC = () => {
     const newHistory: LettrageHistory = {
       id: Date.now().toString(),
       date: new Date(),
-      user: 'Utilisateur actuel',
+      user: t('lettrage.currentUser'),
       action: 'delete',
       code,
       ecritures: [],
       montant: 0,
     };
     setLettrageHistory(prev => [newHistory, ...prev]);
-    toast.success(`Délettrage ${code} : ${count} ligne(s)`);
+    toast.success(t('lettrage.unmatchingDone', { code, count: String(count) }));
     queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
     refetchEntries();
-  }, [queryClient, refetchEntries]);
+  }, [queryClient, refetchEntries, t]);
 
   const buildAutoConfig = useCallback(() => ({
     parMontant: autoLettrageConfig.parMontant,
@@ -385,13 +385,13 @@ const Lettrage: React.FC = () => {
     try {
       const result = await autoLettrage(adapter, buildAutoConfig());
       setAutoPreview(result);
-      toast(`Apercu : ${result.matches.length} rapprochement(s) possible(s)`, { icon: '🔍' });
+      toast(t('lettrage.previewResult', { count: String(result.matches.length) }), { icon: '🔍' });
     } catch (e: any) {
-      toast.error(e?.message || 'Erreur lors de l’apercu');
+      toast.error(e?.message || t('lettrage.previewError'));
     } finally {
       setAutoRunning(false);
     }
-  }, [adapter, buildAutoConfig, autoRunning]);
+  }, [adapter, buildAutoConfig, autoRunning, t]);
 
   const runAutoLettrage = useCallback(async () => {
     if (autoRunning) return;
@@ -401,23 +401,23 @@ const Lettrage: React.FC = () => {
     setAutoPreview(result);
 
     if (result.matches.length === 0) {
-      toast('Aucun rapprochement trouvé', { icon: '\u2139\uFE0F' });
+      toast(t('lettrage.noMatchFound'),{ icon: '\u2139\uFE0F' });
       return;
     }
 
     const applied = await applyLettrage(adapter, result.matches);
-    toast.success(`Lettrage automatique : ${result.matches.length} rapprochement(s) appliqué(s) (${applied} ligne(s) lettrée(s))`);
+    toast.success(t('lettrage.autoApplied', { count: String(result.matches.length), lines: String(applied) }));
     queryClient.invalidateQueries({ queryKey: ['lettrage-entries'] });
     refetchEntries();
     } catch (e: any) {
-      toast.error(e?.message || 'Erreur lors du lettrage automatique');
+      toast.error(e?.message || t('lettrage.autoError'));
     } finally {
       setAutoRunning(false);
     }
-  }, [adapter, buildAutoConfig, queryClient, refetchEntries, autoRunning]);
+  }, [adapter, buildAutoConfig, queryClient, refetchEntries, autoRunning, t]);
 
   const canLettrage = useMemo(() => {
-    if (selectedEntries.size < 2) return { valid: false, reason: 'Sélectionnez au moins 2 écritures' };
+    if (selectedEntries.size < 2) return { valid: false, reason: t('lettrage.selectAtLeastTwo') };
     const selectedEntriesData = lettrageEntries.filter(e => selectedEntries.has(e.id));
     const totalDebit = selectedEntriesData.reduce((sum, e) => money(sum).add(money(e.debit)).toNumber(), 0);
     const totalCredit = selectedEntriesData.reduce((sum, e) => money(sum).add(money(e.credit)).toNumber(), 0);
@@ -425,17 +425,17 @@ const Lettrage: React.FC = () => {
 
     if (lettrageMode === 'complete') {
       if (difference > tolerance) {
-        return { valid: false, reason: `Écart de ${fmt(difference)}` };
+        return { valid: false, reason: t('lettrage.varianceOf', { amount: fmt(difference) }) };
       }
-      return { valid: true, reason: 'Équilibré' };
+      return { valid: true, reason: t('lettrage.balanced') };
     } else {
       // Lettrage partiel
       if (totalDebit === 0 && totalCredit === 0) {
-        return { valid: false, reason: 'Aucun montant à lettrer' };
+        return { valid: false, reason: t('lettrage.noAmountToMatch') };
       }
-      return { valid: true, reason: 'Lettrage partiel possible', partial: true };
+      return { valid: true, reason: t('lettrage.partialMatchingPossible'), partial: true };
     }
-  }, [selectedEntries, lettrageMode, tolerance]);
+  }, [selectedEntries, lettrageMode, tolerance, t]);
 
   // Calcul des statistiques
   useEffect(() => {
@@ -475,8 +475,8 @@ const Lettrage: React.FC = () => {
           <div className="flex items-center space-x-4">
             <Link2 className="w-8 h-8 text-[var(--color-primary)]" />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">Module de Lettrage</h1>
-              <p className="text-sm text-gray-600">Rapprochement et lettrage des comptes - Conforme SYSCOHADA</p>
+              <h1 className="text-lg font-bold text-gray-900">{t('lettrage.title')}</h1>
+              <p className="text-sm text-gray-600">{t('lettrage.subtitle')}</p>
             </div>
           </div>
 
@@ -484,11 +484,11 @@ const Lettrage: React.FC = () => {
             <PageHeaderActions />
             <button className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
               <Calendar className="w-4 h-4 mr-2 inline" />
-              Période
+              {t('lettrage.period')}
             </button>
             <button className="px-4 py-2 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
               <Download className="w-4 h-4 mr-2 inline" />
-              Exporter
+              {t('lettrage.export')}
             </button>
           </div>
         </div>
@@ -504,7 +504,7 @@ const Lettrage: React.FC = () => {
             }`}
           >
             <Link2 className="w-4 h-4 mr-2 inline" />
-            Lettrage Manuel
+            {t('lettrage.tabManual')}
           </button>
           <button
             onClick={() => setViewMode('automatic')}
@@ -515,7 +515,7 @@ const Lettrage: React.FC = () => {
             }`}
           >
             <Zap className="w-4 h-4 mr-2 inline" />
-            Lettrage Automatique
+            {t('lettrage.tabAutomatic')}
           </button>
           <button
             onClick={() => setViewMode('analysis')}
@@ -526,7 +526,7 @@ const Lettrage: React.FC = () => {
             }`}
           >
             <BarChart3 className="w-4 h-4 mr-2 inline" />
-            Analyse & Statistiques
+            {t('lettrage.tabAnalysis')}
           </button>
           <button
             onClick={() => setViewMode('history')}
@@ -537,7 +537,7 @@ const Lettrage: React.FC = () => {
             }`}
           >
             <History className="w-4 h-4 mr-2 inline" />
-            Historique
+            {t('lettrage.tabHistory')}
           </button>
           <button
             onClick={() => setViewMode('config')}
@@ -548,7 +548,7 @@ const Lettrage: React.FC = () => {
             }`}
           >
             <Settings className="w-4 h-4 mr-2 inline" />
-            Configuration
+            {t('lettrage.tabConfig')}
           </button>
         </div>
       </div>
@@ -565,7 +565,7 @@ const Lettrage: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher un compte, tiers, libellé ou n° de pièce..."
+                  placeholder={t('lettrage.searchPlaceholder')}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
               </div>
@@ -577,7 +577,7 @@ const Lettrage: React.FC = () => {
                   onChange={(e) => setShowOnlyNonLettrage(e.target.checked)}
                   className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                 />
-                <span className="text-sm text-gray-600">Comptes avec écritures non lettrées</span>
+                <span className="text-sm text-gray-600">{t('lettrage.accountsWithUnmatched')}</span>
               </label>
 
               <select
@@ -585,17 +585,17 @@ const Lettrage: React.FC = () => {
                 onChange={(e) => setCompteFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                <option value="all">Tous les comptes</option>
-                <option value="411">411 - Clients</option>
-                <option value="401">401 - Fournisseurs</option>
-                <option value="42">42 - Personnel</option>
-                <option value="44">44 - État et collectivités</option>
-                <option value="46">46 - Débiteurs / créditeurs divers</option>
+                <option value="all">{t('lettrage.allAccounts')}</option>
+                <option value="411">411 - {t('lettrage.acc411')}</option>
+                <option value="401">401 - {t('lettrage.acc401')}</option>
+                <option value="42">42 - {t('lettrage.acc42')}</option>
+                <option value="44">44 - {t('lettrage.acc44')}</option>
+                <option value="46">46 - {t('lettrage.acc46')}</option>
               </select>
 
               <span className="ml-auto text-xs text-gray-500 flex items-center gap-1">
                 <Info className="w-3.5 h-3.5" />
-                Cliquez sur un tiers pour lettrer ses écritures
+                {t('lettrage.clickThirdPartyHint')}
               </span>
             </div>
           </div>
@@ -605,9 +605,9 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total comptes</p>
+                  <p className="text-sm text-gray-600">{t('lettrage.totalAccounts')}</p>
                   <p className="text-lg font-bold text-gray-900">{stats.totalComptes}</p>
-                  <p className="text-xs text-gray-700 mt-1">{stats.totalEcritures} écritures</p>
+                  <p className="text-xs text-gray-700 mt-1">{t('lettrage.entriesCount', { count: String(stats.totalEcritures) })}</p>
                 </div>
                 <Database className="w-8 h-8 text-gray-700" />
               </div>
@@ -615,7 +615,7 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Non lettrées</p>
+                  <p className="text-sm text-gray-600">{t('lettrage.unmatched')}</p>
                   <p className="text-lg font-bold text-orange-600">{stats.ecrituresNonLettrees}</p>
                   <p className="text-xs text-orange-500 mt-1">
                     {fmt(stats.montantNonLettre)}
@@ -627,9 +627,9 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Lettrées</p>
+                  <p className="text-sm text-gray-600">{t('lettrage.matched')}</p>
                   <p className="text-lg font-bold text-green-600">{stats.ecrituresLettrees}</p>
-                  <p className="text-xs text-green-500 mt-1">Complètement</p>
+                  <p className="text-xs text-green-500 mt-1">{t('lettrage.fully')}</p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-400" />
               </div>
@@ -637,7 +637,7 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Taux lettrage</p>
+                  <p className="text-sm text-gray-600">{t('lettrage.matchingRate')}</p>
                   <p className="text-lg font-bold text-blue-600">
                     {stats.tauxLettrage.toFixed(1)}%
                   </p>
@@ -654,13 +654,13 @@ const Lettrage: React.FC = () => {
             <div className="bg-white rounded-lg border border-gray-200 p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Plus ancienne</p>
+                  <p className="text-sm text-gray-600">{t('lettrage.oldest')}</p>
                   <p className="text-lg font-bold text-red-600">
                     {stats.plusAncienneNonLettree
                       ? Math.floor((Date.now() - stats.plusAncienneNonLettree.getTime()) / (1000 * 60 * 60 * 24))
-                      : 0} jours
+                      : 0} {t('lettrage.days')}
                   </p>
-                  <p className="text-xs text-gray-700 mt-1">Non lettrée</p>
+                  <p className="text-xs text-gray-700 mt-1">{t('lettrage.unmatchedSingular')}</p>
                 </div>
                 <Clock className="w-8 h-8 text-red-400" />
               </div>
@@ -672,17 +672,17 @@ const Lettrage: React.FC = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Tiers</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Compte(s)</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Solde</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrées</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Non lettrées</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colThirdParty')}</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colAccounts')}</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{t('lettrage.colBalance')}</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.matched')}</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.unmatched')}</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{t('lettrage.colAction')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {groupedEntries.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">Aucun tiers à afficher pour ces critères.</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-gray-500">{t('lettrage.noThirdPartyForCriteria')}</td></tr>
                 )}
                 {groupedEntries.map((group) => {
                   const lettrees = group.entries.filter((e: LettrageEntry) => e.lettrage).length;
@@ -721,12 +721,12 @@ const Lettrage: React.FC = () => {
                             {group.nonLettres}
                           </span>
                         ) : (
-                          <span className="text-xs text-green-600">soldé</span>
+                          <span className="text-xs text-green-600">{t('lettrage.settled')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium">
-                          <Eye className="w-3.5 h-3.5" /> Détailler
+                          <Eye className="w-3.5 h-3.5" /> {t('lettrage.viewDetails')}
                         </span>
                       </td>
                     </tr>
@@ -742,44 +742,44 @@ const Lettrage: React.FC = () => {
       {viewMode === 'automatic' && (
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Lettrage Automatique</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('lettrage.tabAutomatic')}</h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Critères de rapprochement
+                  {t('lettrage.matchingCriteria')}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" checked={autoLettrageConfig.parMontant}
                       onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parMontant: e.target.checked })}
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
-                    <span className="text-sm">Par montant exact</span>
+                    <span className="text-sm">{t('lettrage.byExactAmount')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" checked={autoLettrageConfig.parReference}
                       onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parReference: e.target.checked })}
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
-                    <span className="text-sm">Par numéro de pièce</span>
+                    <span className="text-sm">{t('lettrage.byDocumentNumber')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" checked={autoLettrageConfig.parTiers}
                       onChange={(e) => setAutoLettrageConfig({ ...autoLettrageConfig, parTiers: e.target.checked })}
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
-                    <span className="text-sm">Par référence client/fournisseur</span>
+                    <span className="text-sm">{t('lettrage.byCustomerSupplierRef')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" checked={autoPartiel}
                       onChange={(e) => setAutoPartiel(e.target.checked)}
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]" />
-                    <span className="text-sm">Lettrage partiel autorisé</span>
+                    <span className="text-sm">{t('lettrage.partialMatchingAllowed')}</span>
                   </label>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Période de rapprochement
+                  {t('lettrage.matchingPeriod')}
                 </label>
                 <div className="flex space-x-4">
                   <input
@@ -799,7 +799,7 @@ const Lettrage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Comptes à traiter
+                  {t('lettrage.accountsToProcess')}
                 </label>
                 <select
                   multiple
@@ -807,11 +807,11 @@ const Lettrage: React.FC = () => {
                   onChange={(e) => setAutoAccounts(Array.from(e.target.selectedOptions, o => o.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm h-32"
                 >
-                  <option value="411">411 - Clients</option>
-                  <option value="401">401 - Fournisseurs</option>
-                  <option value="42">42 - Personnel</option>
-                  <option value="44">44 - État et collectivités</option>
-                  <option value="46">46 - Débiteurs et créditeurs divers</option>
+                  <option value="411">411 - {t('lettrage.acc411')}</option>
+                  <option value="401">401 - {t('lettrage.acc401')}</option>
+                  <option value="42">42 - {t('lettrage.acc42')}</option>
+                  <option value="44">44 - {t('lettrage.acc44')}</option>
+                  <option value="46">46 - {t('lettrage.acc46b')}</option>
                 </select>
               </div>
 
@@ -822,7 +822,7 @@ const Lettrage: React.FC = () => {
                   className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 inline ${autoRunning ? 'animate-spin' : ''}`} />
-                  {autoRunning ? 'Lettrage en cours…' : 'Lancer le lettrage automatique'}
+                  {autoRunning ? t('lettrage.matchingInProgress') : t('lettrage.runAutoMatching')}
                 </button>
                 <button
                   onClick={previewAutoLettrage}
@@ -830,7 +830,7 @@ const Lettrage: React.FC = () => {
                   className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Eye className="w-4 h-4 mr-2 inline" />
-                  Aperçu
+                  {t('lettrage.preview')}
                 </button>
               </div>
             </div>
@@ -838,10 +838,10 @@ const Lettrage: React.FC = () => {
 
           {/* Résultats du lettrage automatique */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Résultats du rapprochement</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('lettrage.matchingResults')}</h3>
             {!autoPreview ? (
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
-                Cliquez sur « Aperçu » pour simuler, ou « Lancer le lettrage automatique » pour appliquer.
+                {t('lettrage.previewHint')}
               </div>
             ) : (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -849,14 +849,14 @@ const Lettrage: React.FC = () => {
                   <Info className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div>
                     <p className="text-sm text-blue-900">
-                      Rapprochement sur les comptes : {autoAccounts.join(', ') || '—'}
+                      {t('lettrage.matchingOnAccounts', { accounts: autoAccounts.join(', ') || '—' })}
                     </p>
                     <ul className="mt-2 space-y-1 text-sm text-blue-800">
-                      <li>• {autoPreview.matches.length} rapprochement(s) proposé(s)</li>
-                      <li>• {autoPreview.matches.filter(m => m.method === 'exact').length} par montant exact</li>
-                      <li>• {autoPreview.matches.filter(m => m.method === 'reference').length} par numéro de pièce</li>
-                      <li>• {autoPreview.matches.filter(m => m.method === 'somme').length} par sommes de montants</li>
-                      <li>• {autoPreview.totalMatched} ligne(s) lettrable(s) · {autoPreview.totalUnmatched} restante(s)</li>
+                      <li>• {t('lettrage.proposedMatches', { count: String(autoPreview.matches.length) })}</li>
+                      <li>• {t('lettrage.byExactAmountCount', { count: String(autoPreview.matches.filter(m => m.method === 'exact').length) })}</li>
+                      <li>• {t('lettrage.byDocumentNumberCount', { count: String(autoPreview.matches.filter(m => m.method === 'reference').length) })}</li>
+                      <li>• {t('lettrage.byAmountSumsCount', { count: String(autoPreview.matches.filter(m => m.method === 'somme').length) })}</li>
+                      <li>• {t('lettrage.matchableLines', { matched: String(autoPreview.totalMatched), remaining: String(autoPreview.totalUnmatched) })}</li>
                     </ul>
                   </div>
                 </div>
@@ -872,7 +872,7 @@ const Lettrage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Statistiques par compte */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Analyse par tiers</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('lettrage.analysisByThirdParty')}</h3>
               <div className="space-y-3">
                 {groupedEntries.map((group) => {
                   const lettrees = group.entries.filter((e: LettrageEntry) => e.lettrage).length;
@@ -906,7 +906,7 @@ const Lettrage: React.FC = () => {
 
             {/* Écritures en attente */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Écritures anciennes non lettrées</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('lettrage.oldUnmatchedEntries')}</h3>
               <div className="space-y-2">
                 {lettrageEntries
                   .filter(e => !e.lettrage)
@@ -925,7 +925,7 @@ const Lettrage: React.FC = () => {
                           {fmt(entry.debit || entry.credit)}
                         </p>
                         <p className="text-xs text-gray-700">
-                          {Math.floor((Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24))} jours
+                          {Math.floor((Date.now() - new Date(entry.date).getTime()) / (1000 * 60 * 60 * 24))} {t('lettrage.days')}
                         </p>
                       </div>
                     </div>
@@ -936,31 +936,31 @@ const Lettrage: React.FC = () => {
 
           {/* Recommandations */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recommandations</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('lettrage.recommendations')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <AlertTriangle className="w-6 h-6 text-yellow-600 mb-2" />
-                <p className="text-sm font-medium text-gray-900">Écritures anciennes</p>
+                <p className="text-sm font-medium text-gray-900">{t('lettrage.oldEntries')}</p>
                 <p className="text-xs text-gray-600 mt-1">
-                  {lettrageEntries.filter(e => !e.lettrage && (Date.now() - new Date(e.date).getTime()) / 86400000 > 60).length} écriture(s) de plus de 60 jours nécessitent une attention particulière
+                  {t('lettrage.oldEntriesHint', { count: String(lettrageEntries.filter(e => !e.lettrage && (Date.now() - new Date(e.date).getTime()) / 86400000 > 60).length) })}
                 </p>
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <Info className="w-6 h-6 text-blue-600 mb-2" />
-                <p className="text-sm font-medium text-gray-900">Lettrage partiel possible</p>
+                <p className="text-sm font-medium text-gray-900">{t('lettrage.partialMatchingPossible')}</p>
                 <p className="text-xs text-gray-600 mt-1">
-                  Activez le lettrage partiel pour traiter les règlements partiels
+                  {t('lettrage.partialMatchingHint')}
                 </p>
               </div>
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <CheckCircle className="w-6 h-6 text-green-600 mb-2" />
-                <p className="text-sm font-medium text-gray-900">Taux de lettrage</p>
+                <p className="text-sm font-medium text-gray-900">{t('lettrage.matchingRateTitle')}</p>
                 <p className="text-xs text-gray-600 mt-1">
                   {(() => {
                     const tot = lettrageEntries.length;
                     const let_ = lettrageEntries.filter(e => e.lettrage).length;
                     const taux = tot > 0 ? Math.round((let_ / tot) * 100) : 0;
-                    return `Taux de lettrage global : ${taux}% (${let_}/${tot} écritures rapprochées)`;
+                    return t('lettrage.globalMatchingRate', { rate: String(taux), matched: String(let_), total: String(tot) });
                   })()}
                 </p>
               </div>
@@ -974,13 +974,13 @@ const Lettrage: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">Historique des opérations de lettrage</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('lettrage.historyTitle')}</h3>
               <div className="flex items-center space-x-3">
                 <select className="px-3 py-2 text-sm border border-gray-300 rounded-lg">
-                  <option>Toutes les actions</option>
-                  <option>Lettrages créés</option>
-                  <option>Lettrages supprimés</option>
-                  <option>Modifications</option>
+                  <option>{t('lettrage.allActions')}</option>
+                  <option>{t('lettrage.matchingsCreated')}</option>
+                  <option>{t('lettrage.matchingsDeleted')}</option>
+                  <option>{t('lettrage.modifications')}</option>
                 </select>
                 <input
                   type="date"
@@ -988,7 +988,7 @@ const Lettrage: React.FC = () => {
                 />
                 <button className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg">
                   <Filter className="w-4 h-4 mr-2 inline" />
-                  Filtrer
+                  {t('lettrage.filter')}
                 </button>
               </div>
             </div>
@@ -998,13 +998,13 @@ const Lettrage: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Date/Heure</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Utilisateur</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Code Lettrage</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colDateTime')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colUser')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colAction')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colMatchingCode')}</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('navigation.entries')}</th>
-                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">Montant</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Statut</th>
+                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{t('lettrage.colAmount')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.colStatus')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -1020,12 +1020,12 @@ const Lettrage: React.FC = () => {
                           history.action === 'delete' ? 'bg-red-100 text-red-800' :
                           'bg-blue-100 text-blue-800'
                         }`}>
-                          {history.action === 'create' ? 'Création' :
-                           history.action === 'delete' ? 'Suppression' : 'Modification'}
+                          {history.action === 'create' ? t('lettrage.actionCreate') :
+                           history.action === 'delete' ? t('lettrage.actionDelete') : t('lettrage.actionModify')}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm font-mono text-gray-700">{history.code}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">{history.ecritures.length} écritures</td>
+                      <td className="px-4 py-3 text-sm text-gray-600">{t('lettrage.entriesCount', { count: String(history.ecritures.length) })}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">
                         {fmt(history.montant)}
                       </td>
@@ -1041,15 +1041,15 @@ const Lettrage: React.FC = () => {
             {/* Pagination */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
               <p className="text-sm text-gray-600">
-                Affichage de 1 à {lettrageHistory.length} sur {lettrageHistory.length} résultats
+                {t('lettrage.paginationInfo', { from: '1', to: String(lettrageHistory.length), total: String(lettrageHistory.length) })}
               </p>
               <div className="flex space-x-2">
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                  Précédent
+                  {t('lettrage.previous')}
                 </button>
                 <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">1</button>
                 <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
-                  Suivant
+                  {t('lettrage.next')}
                 </button>
               </div>
             </div>
@@ -1058,25 +1058,25 @@ const Lettrage: React.FC = () => {
           {/* Statistiques historiques */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-4">Activité mensuelle</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">{t('lettrage.monthlyActivity')}</h4>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Lettrages créés</span>
+                  <span className="text-sm text-gray-600">{t('lettrage.matchingsCreated')}</span>
                   <span className="text-sm font-bold text-green-600">127</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Lettrages supprimés</span>
+                  <span className="text-sm text-gray-600">{t('lettrage.matchingsDeleted')}</span>
                   <span className="text-sm font-bold text-red-600">15</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Modifications</span>
+                  <span className="text-sm text-gray-600">{t('lettrage.modifications')}</span>
                   <span className="text-sm font-bold text-blue-600">23</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h4 className="text-sm font-semibold text-gray-700 mb-4">Utilisateurs actifs</h4>
+              <h4 className="text-sm font-semibold text-gray-700 mb-4">{t('lettrage.activeUsers')}</h4>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -1100,7 +1100,7 @@ const Lettrage: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Temps moyen</span>
+                    <span className="text-gray-600">{t('lettrage.averageTime')}</span>
                     <span className="font-bold">2.3s</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -1109,7 +1109,7 @@ const Lettrage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600">Taux de succès</span>
+                    <span className="text-gray-600">{t('lettrage.successRate')}</span>
                     <span className="font-bold">98.5%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -1128,12 +1128,12 @@ const Lettrage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Configuration du lettrage automatique */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Configuration du lettrage automatique</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('lettrage.autoConfigTitle')}</h3>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Critères de rapprochement
+                    {t('lettrage.matchingCriteria')}
                   </label>
                   <div className="space-y-2">
                     <label className="flex items-center">
@@ -1143,7 +1143,7 @@ const Lettrage: React.FC = () => {
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parMontant: e.target.checked})}
                         className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
-                      <span className="text-sm">Par montant exact</span>
+                      <span className="text-sm">{t('lettrage.byExactAmount')}</span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -1152,7 +1152,7 @@ const Lettrage: React.FC = () => {
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parReference: e.target.checked})}
                         className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
-                      <span className="text-sm">Par référence de pièce</span>
+                      <span className="text-sm">{t('lettrage.byDocumentReference')}</span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -1161,7 +1161,7 @@ const Lettrage: React.FC = () => {
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parTiers: e.target.checked})}
                         className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
-                      <span className="text-sm">Par tiers</span>
+                      <span className="text-sm">{t('lettrage.byThirdParty')}</span>
                     </label>
                     <label className="flex items-center">
                       <input
@@ -1170,14 +1170,14 @@ const Lettrage: React.FC = () => {
                         onChange={(e) => setAutoLettrageConfig({...autoLettrageConfig, parDate: e.target.checked})}
                         className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                       />
-                      <span className="text-sm">Par proximité de date</span>
+                      <span className="text-sm">{t('lettrage.byDateProximity')}</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tolérance d'écart (FCFA)
+                    {t('lettrage.varianceTolerance')}
                   </label>
                   <input
                     type="number"
@@ -1190,7 +1190,7 @@ const Lettrage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Période maximale (jours)
+                    {t('lettrage.maxPeriodDays')}
                   </label>
                   <input
                     type="number"
@@ -1207,37 +1207,37 @@ const Lettrage: React.FC = () => {
                       const cur = await (adapter as any).getById('settings', 'lettrage_config').catch(() => null);
                       if (cur) await adapter.update('settings' as any, 'lettrage_config', payload as any);
                       else await adapter.create('settings' as any, payload as any);
-                      toast.success('Configuration de lettrage enregistrée');
-                    } catch { toast.error('Échec de l\'enregistrement'); }
+                      toast.success(t('lettrage.configSaved'));
+                    } catch { toast.error(t('lettrage.saveFailed')); }
                   }}
                   className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
                 >
                   <Save className="w-4 h-4 mr-2 inline" />
-                  Sauvegarder la configuration
+                  {t('lettrage.saveConfig')}
                 </button>
               </div>
             </div>
 
             {/* Paramètres généraux */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Paramètres généraux</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('lettrage.generalSettings')}</h3>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Format des codes de lettrage
+                    {t('lettrage.matchingCodeFormat')}
                   </label>
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option>Alphabétique (AA, AB, AC...)</option>
-                    <option>Numérique (001, 002, 003...)</option>
-                    <option>Alphanumérique (A01, A02...)</option>
-                    <option>Date + Séquence (20240101...)</option>
+                    <option>{t('lettrage.formatAlphabetic')}</option>
+                    <option>{t('lettrage.formatNumeric')}</option>
+                    <option>{t('lettrage.formatAlphanumeric')}</option>
+                    <option>{t('lettrage.formatDateSequence')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prochain code disponible
+                    {t('lettrage.nextAvailableCode')}
                   </label>
                   <input
                     type="text"
@@ -1254,7 +1254,7 @@ const Lettrage: React.FC = () => {
                       defaultChecked
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                     />
-                    <span className="text-sm">Autoriser le lettrage partiel</span>
+                    <span className="text-sm">{t('lettrage.allowPartialMatching')}</span>
                   </label>
                 </div>
 
@@ -1265,13 +1265,13 @@ const Lettrage: React.FC = () => {
                       defaultChecked
                       className="mr-2 rounded border-gray-300 text-[var(--color-primary)]"
                     />
-                    <span className="text-sm">Envoyer des notifications pour les écritures anciennes</span>
+                    <span className="text-sm">{t('lettrage.notifyOldEntries')}</span>
                   </label>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Seuil d'alerte (jours)
+                    {t('lettrage.alertThresholdDays')}
                   </label>
                   <input
                     type="number"
@@ -1285,23 +1285,23 @@ const Lettrage: React.FC = () => {
 
           {/* Droits et permissions */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Droits et permissions</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('lettrage.rightsAndPermissions')}</h3>
 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">Rôle</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Consulter</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrer</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Délettrer</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">Lettrage Auto</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">{t('lettrage.colRole')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.permView')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.permMatch')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.permUnmatch')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('lettrage.permAutoMatch')}</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700">{t('settings.configuration')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">Administrateur</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{t('lettrage.roleAdmin')}</td>
                     <td className="px-4 py-3 text-center">
                       <CheckCircle className="w-5 h-5 text-green-500 inline" />
                     </td>
@@ -1319,7 +1319,7 @@ const Lettrage: React.FC = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">Comptable</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{t('lettrage.roleAccountant')}</td>
                     <td className="px-4 py-3 text-center">
                       <CheckCircle className="w-5 h-5 text-green-500 inline" />
                     </td>
@@ -1337,7 +1337,7 @@ const Lettrage: React.FC = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">Assistant</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{t('lettrage.roleAssistant')}</td>
                     <td className="px-4 py-3 text-center">
                       <CheckCircle className="w-5 h-5 text-green-500 inline" />
                     </td>
@@ -1355,7 +1355,7 @@ const Lettrage: React.FC = () => {
                     </td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">Consultant</td>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{t('lettrage.roleConsultant')}</td>
                     <td className="px-4 py-3 text-center">
                       <CheckCircle className="w-5 h-5 text-green-500 inline" />
                     </td>
@@ -1396,12 +1396,12 @@ const Lettrage: React.FC = () => {
                     {detailMeta.tiersCode && <span className="ml-2 font-mono text-xs text-gray-400">{detailMeta.tiersCode}</span>}
                   </h3>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    <span className="font-mono">Compte {detailMeta.comptes.join(', ')}</span>
-                    {' · '}Solde&nbsp;
+                    <span className="font-mono">{t('lettrage.account')} {detailMeta.comptes.join(', ')}</span>
+                    {' · '}{t('lettrage.balance')}&nbsp;
                     <span className={`font-semibold ${detailMeta.solde > 0 ? 'text-red-600' : detailMeta.solde < 0 ? 'text-green-600' : 'text-gray-700'}`}>
-                      {fmt(Math.abs(detailMeta.solde))} {detailMeta.solde > 0 ? '(Débiteur)' : detailMeta.solde < 0 ? '(Créditeur)' : '(Soldé)'}
+                      {fmt(Math.abs(detailMeta.solde))} {detailMeta.solde > 0 ? t('lettrage.debitSide') : detailMeta.solde < 0 ? t('lettrage.creditSide') : t('lettrage.settledSide')}
                     </span>
-                    {' · '}{detailMeta.nonLettres} non lettrées · {detailMeta.lettrees} lettrées
+                    {' · '}{t('lettrage.unmatchedCount', { count: String(detailMeta.nonLettres) })} · {t('lettrage.matchedCount', { count: String(detailMeta.lettrees) })}
                   </p>
                 </div>
               </div>
@@ -1419,7 +1419,7 @@ const Lettrage: React.FC = () => {
                     type="text"
                     value={modalSearch}
                     onChange={(e) => setModalSearch(e.target.value)}
-                    placeholder="Filtrer : montant, pièce, libellé…"
+                    placeholder={t('lettrage.modalFilterPlaceholder')}
                     className="pl-9 pr-3 py-2 w-full border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
@@ -1430,7 +1430,7 @@ const Lettrage: React.FC = () => {
                     onChange={(e) => setModalSortByAmount(e.target.checked)}
                     className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
-                  <span className="text-sm text-gray-600 flex items-center gap-1"><ArrowUpDown className="w-3.5 h-3.5" />Trier par montant</span>
+                  <span className="text-sm text-gray-600 flex items-center gap-1"><ArrowUpDown className="w-3.5 h-3.5" />{t('lettrage.sortByAmount')}</span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input
@@ -1439,7 +1439,7 @@ const Lettrage: React.FC = () => {
                     onChange={(e) => setModalOnlyNonLettre(!e.target.checked)}
                     className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
-                  <span className="text-sm text-gray-600">Voir les lettrées</span>
+                  <span className="text-sm text-gray-600">{t('lettrage.showMatched')}</span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input
@@ -1448,18 +1448,18 @@ const Lettrage: React.FC = () => {
                     onChange={(e) => setLettrageMode(e.target.checked ? 'partial' : 'complete')}
                     className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                   />
-                  <span className="text-sm text-gray-600">Partiel</span>
+                  <span className="text-sm text-gray-600">{t('lettrage.partial')}</span>
                 </label>
               </div>
 
               {/* Compteur vivant + action */}
               <div className="flex items-center flex-wrap gap-3">
                 <div className="flex items-center gap-4 text-sm bg-white border border-gray-200 rounded-lg px-3 py-1.5">
-                  <span className="text-gray-500">{selDetail.count} sélectionnée(s)</span>
-                  <span className="text-red-600">Débit&nbsp;<span className="font-semibold">{fmt(selDetail.debit)}</span></span>
-                  <span className="text-green-600">Crédit&nbsp;<span className="font-semibold">{fmt(selDetail.credit)}</span></span>
+                  <span className="text-gray-500">{t('lettrage.selectedCount', { count: String(selDetail.count) })}</span>
+                  <span className="text-red-600">{t('lettrage.debit')}&nbsp;<span className="font-semibold">{fmt(selDetail.debit)}</span></span>
+                  <span className="text-green-600">{t('lettrage.credit')}&nbsp;<span className="font-semibold">{fmt(selDetail.credit)}</span></span>
                   <span className={`font-semibold ${Math.abs(selDetail.ecart) <= tolerance ? 'text-green-700' : 'text-orange-600'}`}>
-                    Écart&nbsp;{fmt(Math.abs(selDetail.ecart))}
+                    {t('lettrage.variance')}&nbsp;{fmt(Math.abs(selDetail.ecart))}
                   </span>
                 </div>
                 <div className="ml-auto flex items-center gap-3">
@@ -1480,7 +1480,7 @@ const Lettrage: React.FC = () => {
                     }`}
                   >
                     {(canLettrage as any).partial ? <Lock className="w-4 h-4 mr-2 inline" /> : <Check className="w-4 h-4 mr-2 inline" />}
-                    {(canLettrage as any).partial ? 'Lettrage partiel' : 'Lettrer'} ({selectedEntries.size})
+                    {(canLettrage as any).partial ? t('lettrage.partialMatching') : t('lettrage.match')} ({selectedEntries.size})
                   </button>
                 </div>
               </div>
@@ -1506,7 +1506,7 @@ const Lettrage: React.FC = () => {
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('common.date')}</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.piece')}</th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('accounting.label')}</th>
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">Compte</th>
+                    <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700">{t('lettrage.account')}</th>
                     <th className="px-4 py-2 text-center text-xs font-semibold text-gray-700">{t('accounting.journal')}</th>
                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.debit')}</th>
                     <th className="px-4 py-2 text-right text-xs font-semibold text-gray-700">{t('accounting.credit')}</th>
@@ -1516,7 +1516,7 @@ const Lettrage: React.FC = () => {
                 <tbody>
                   {detailEntries.length === 0 && (
                     <tr><td colSpan={9} className="px-4 py-10 text-center text-sm text-gray-500">
-                      {modalOnlyNonLettre ? 'Toutes les écritures de ce tiers sont lettrées.' : 'Aucune écriture.'}
+                      {modalOnlyNonLettre ? t('lettrage.allEntriesMatched') : t('lettrage.noEntries')}
                     </td></tr>
                   )}
                   {detailEntries.map((entry) => (
@@ -1526,7 +1526,7 @@ const Lettrage: React.FC = () => {
                         selectedEntries.has(entry.id) ? 'bg-blue-50' :
                         suggestedIds.has(entry.id) ? 'bg-amber-50 ring-1 ring-inset ring-amber-300' : ''
                       } ${entry.lettrage ? 'opacity-70' : 'cursor-pointer'}`}
-                      title={suggestedIds.has(entry.id) ? 'Montant correspondant à votre sélection' : undefined}
+                      title={suggestedIds.has(entry.id) ? t('lettrage.amountMatchesSelection') : undefined}
                       onClick={() => { if (!entry.lettrage) toggleEntrySelection(entry.id); }}
                     >
                       <td className="px-4 py-2">
@@ -1551,8 +1551,8 @@ const Lettrage: React.FC = () => {
                       <td className="px-4 py-2 text-center">
                         {entry.lettrage ? (
                           <button
-                            onClick={(e) => { e.stopPropagation(); if (window.confirm(`Délettrer le code ${entry.lettrage} ?`)) handleDelettrage(entry.lettrage!); }}
-                            title="Cliquer pour délettrer"
+                            onClick={(e) => { e.stopPropagation(); if (window.confirm(t('lettrage.confirmUnmatch', { code: entry.lettrage! }))) handleDelettrage(entry.lettrage!); }}
+                            title={t('lettrage.clickToUnmatch')}
                             className="px-2 py-1 bg-green-100 text-green-800 hover:bg-red-100 hover:text-red-700 rounded text-xs font-mono inline-flex items-center gap-1"
                           >
                             {entry.lettrage} <Unlink className="w-3 h-3" />
@@ -1568,7 +1568,7 @@ const Lettrage: React.FC = () => {
                   <tfoot className="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300">
                     <tr className="text-sm font-bold text-gray-900">
                       <td className="px-4 py-2.5" colSpan={6}>
-                        Total ({detailEntries.length} ligne{detailEntries.length > 1 ? 's' : ''})
+                        {t('lettrage.totalLines', { count: String(detailEntries.length) })}
                       </td>
                       <td className="px-4 py-2.5 text-right text-red-700 whitespace-nowrap">
                         {fmt(detailEntries.reduce((s, e) => money(s).add(money(e.debit)).toNumber(), 0))}
@@ -1586,10 +1586,10 @@ const Lettrage: React.FC = () => {
             {/* Pied */}
             <div className="flex items-center justify-between px-5 py-3 border-t border-gray-200 bg-gray-50">
               <p className="text-xs text-gray-500">
-                Cochez une ligne : les montants correspondants sont surlignés en <span className="text-amber-600 font-medium">orange</span>. Équilibrez débit = crédit pour lettrer, ou cliquez un code pour délettrer.
+                {t('lettrage.footerHintStart')} <span className="text-amber-600 font-medium">{t('lettrage.footerHintColor')}</span>{t('lettrage.footerHintEnd')}
               </p>
               <button onClick={() => { setDetailCompte(null); setSelectedEntries(new Set()); }} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-white">
-                Fermer
+                {t('lettrage.close')}
               </button>
             </div>
           </div>

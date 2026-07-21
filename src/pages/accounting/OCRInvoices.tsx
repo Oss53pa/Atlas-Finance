@@ -176,7 +176,7 @@ const OCRInvoices: React.FC = () => {
       if (file.type.startsWith('image/') || file.type === 'application/pdf') {
         processFile(file);
       } else {
-        toast.error(`Format non supporté : ${file.name} (PDF, JPG ou PNG attendu)`);
+        toast.error(t('ocr.unsupportedFormat', { name: file.name }));
       }
     });
   };
@@ -184,7 +184,7 @@ const OCRInvoices: React.FC = () => {
   const processFile = async (file: File) => {
     const fileId = `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const cfg = ocrConfigRef.current;
-    const userName = user?.name || 'Utilisateur';
+    const userName = user?.name || t('ocr.defaultUser');
 
     let dataUrl = '';
     try {
@@ -197,12 +197,12 @@ const OCRInvoices: React.FC = () => {
         id: fileId, fileName: file.name, fileSize: file.size, fileType: file.type,
         uploadDate: new Date(), status: 'error', confidence: 0,
         extractedData: blankExtracted(), originalFileUrl: dataUrl, tags: [],
-        notes: 'Service OCR non configuré — extraction impossible.',
+        notes: t('ocr.notConfiguredNote'),
         auditLog: [{ action: 'uploaded', user: userName, timestamp: new Date() }],
       };
       setScannedInvoices(prev => [doc, ...prev]);
       await saveScannedDocument(adapter, doc).catch(() => {});
-      toast.error('Aucun service OCR configuré. Demandez à l\'admin de le configurer.');
+      toast.error(t('ocr.noServiceToast'));
       return;
     }
 
@@ -245,9 +245,13 @@ const OCRInvoices: React.FC = () => {
 
       if (result.success) {
         const jrn = doc.extractedData.direction === 'sale' ? 'VE' : 'AC';
-        toast.success(`Facture extraite — confiance ${result.confidence}%${doc.status === 'validated' ? ` (brouillon ${jrn} à valider)` : ''}`);
+        toast.success(
+          `${t('ocr.extractedToast', { confidence: String(result.confidence) })}${
+            doc.status === 'validated' ? ` (${t('ocr.draftToValidate', { journal: jrn })})` : ''
+          }`
+        );
       } else {
-        toast.error(`Extraction échouée : ${result.error}`);
+        toast.error(t('ocr.extractionFailed', { error: String(result.error ?? '') }));
       }
     } finally {
       setProcessingFiles(prev => prev.filter(id => id !== fileId));
@@ -268,60 +272,60 @@ const OCRInvoices: React.FC = () => {
 
   const validateInvoice = async (invoice: ScannedInvoice) => {
     const cfg = ocrConfig;
-    if (!cfg) { toast.error('Configuration OCR introuvable'); return; }
+    if (!cfg) { toast.error(t('ocr.configNotFound')); return; }
     let entryId = invoice.accountingEntryId;
     try {
       if (!entryId) {
         entryId = await createEntryFromInvoice(adapter, invoice.extractedData, cfg, { createdBy: `ocr:${user?.id || ''}`, company: companyRef.current });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Comptabilisation échouée');
+      toast.error(err instanceof Error ? err.message : t('ocr.postingFailed'));
       return;
     }
     const updated: ScannedInvoice = {
       ...invoice,
       status: 'validated',
-      validatedBy: user?.name || 'Utilisateur',
+      validatedBy: user?.name || t('ocr.defaultUser'),
       validatedAt: new Date(),
       accountingEntryId: entryId,
     };
     setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
     await saveScannedDocument(adapter, updated).catch(() => {});
     const jrn = invoice.extractedData.direction === 'sale' ? 'VE' : 'AC';
-    toast.success(`Écriture créée en brouillon (journal ${jrn}) — à valider dans le journal`);
+    toast.success(t('ocr.entryCreatedDraft', { journal: jrn }));
   };
 
   const rejectInvoice = async (invoice: ScannedInvoice, reason: string) => {
     const updated: ScannedInvoice = {
       ...invoice,
       status: 'rejected',
-      rejectedBy: user?.name || 'Utilisateur',
+      rejectedBy: user?.name || t('ocr.defaultUser'),
       rejectedAt: new Date(),
       rejectionReason: reason,
     };
     setScannedInvoices(prev => prev.map(i => i.id === invoice.id ? updated : i));
     await saveScannedDocument(adapter, updated).catch(() => {});
-    toast('Facture rejetée');
+    toast(t('ocr.invoiceRejected'));
   };
 
   const bulkValidate = async () => {
     const targets = scannedInvoices.filter(i => selectedInvoices.includes(i.id) && i.status === 'review');
-    if (targets.length === 0) { toast('Aucune facture à réviser dans la sélection'); return; }
+    if (targets.length === 0) { toast(t('ocr.noInvoiceToReview')); return; }
     let ok = 0;
     for (const inv of targets) {
       try { await validateInvoice(inv); ok++; } catch { /* ignorée */ }
     }
     setSelectedInvoices([]);
-    toast.success(`${ok}/${targets.length} facture(s) validée(s) et comptabilisée(s)`);
+    toast.success(t('ocr.bulkValidated', { ok: String(ok), total: String(targets.length) }));
   };
 
   const bulkReject = async () => {
     const targets = scannedInvoices.filter(i => selectedInvoices.includes(i.id) && i.status === 'review');
     for (const inv of targets) {
-      await rejectInvoice(inv, 'Rejet en lot');
+      await rejectInvoice(inv, t('ocr.bulkRejectReason'));
     }
     setSelectedInvoices([]);
-    toast(`${targets.length} facture(s) rejetée(s)`);
+    toast(t('ocr.bulkRejected', { count: String(targets.length) }));
   };
 
   const getStatusColor = (status: string) => {
@@ -363,8 +367,8 @@ const OCRInvoices: React.FC = () => {
             <div className="flex items-center space-x-3">
               <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-amber-800">Aucun service OCR configuré — l'extraction automatique est désactivée</p>
-                <p className="text-xs text-amber-600">Les fichiers déposés seront enregistrés mais non extraits tant qu'un moteur OCR (IA Vision ou Mindee) n'est pas configuré dans l'espace Admin.</p>
+                <p className="text-sm font-medium text-amber-800">{t('ocr.noticeTitle')}</p>
+                <p className="text-xs text-amber-600">{t('ocr.noticeDesc')}</p>
               </div>
             </div>
             <button
@@ -372,7 +376,7 @@ const OCRInvoices: React.FC = () => {
               className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors whitespace-nowrap flex items-center gap-2"
             >
               <Settings className="w-4 h-4" />
-              Configurer
+              {t('ocr.configure')}
             </button>
           </div>
         )}
@@ -382,10 +386,10 @@ const OCRInvoices: React.FC = () => {
             <div>
               <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-3">
                 <ScanLine className="w-8 h-8 text-[var(--color-primary)]" />
-                OCR Factures Intelligent
+                {t('ocr.title')}
               </h1>
               <p className="text-[var(--color-text-secondary)] mt-1">
-                Extraction automatique avec IA - Standards internationaux (UBL, PEPPOL, Factur-X)
+                {t('ocr.subtitle')}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -394,7 +398,7 @@ const OCRInvoices: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
               >
                 <Settings className="w-4 h-4" />
-                Paramètres OCR
+                {t('ocr.settings')}
               </button>
               <button
                 onClick={() => setBatchMode(!batchMode)}
@@ -405,14 +409,14 @@ const OCRInvoices: React.FC = () => {
                 }`}
               >
                 <Copy className="w-4 h-4" />
-                Mode Batch
+                {t('ocr.batchMode')}
               </button>
               <button
                 onClick={() => { setActiveTab('scan'); fileInputRef.current?.click(); }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
               >
                 <Camera className="w-4 h-4" />
-                Scanner
+                {t('ocr.scan')}
               </button>
             </div>
           </div>
@@ -420,10 +424,10 @@ const OCRInvoices: React.FC = () => {
           {/* Tabs */}
           <div className="flex gap-1 mt-4 border-t border-[var(--color-border)] -mx-6 px-6 pt-3">
             {[
-              { id: 'scan', label: 'Numérisation', icon: ScanLine, count: processingFiles.length },
-              { id: 'review', label: 'À Réviser', icon: Eye, count: stats.pending },
-              { id: 'validated', label: 'Validées', icon: CheckCircle, count: stats.validated },
-              { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+              { id: 'scan', label: t('ocr.tabScan'), icon: ScanLine, count: processingFiles.length },
+              { id: 'review', label: t('ocr.tabReview'), icon: Eye, count: stats.pending },
+              { id: 'validated', label: t('ocr.tabValidated'), icon: CheckCircle, count: stats.validated },
+              { id: 'analytics', label: t('ocr.tabAnalytics'), icon: BarChart3 }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -458,7 +462,7 @@ const OCRInvoices: React.FC = () => {
                 <FileText className="w-5 h-5 text-[var(--color-primary)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Total</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('ocr.statTotal')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.total}</p>
               </div>
             </div>
@@ -476,7 +480,7 @@ const OCRInvoices: React.FC = () => {
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Validées</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('ocr.statValidated')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.validated}</p>
               </div>
             </div>
@@ -485,7 +489,7 @@ const OCRInvoices: React.FC = () => {
                 <Brain className="w-5 h-5 text-[var(--color-info)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Confiance moy.</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('ocr.statAvgConfidence')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.averageConfidence}%</p>
               </div>
             </div>
@@ -494,7 +498,7 @@ const OCRInvoices: React.FC = () => {
                 <Zap className="w-5 h-5 text-[var(--color-success)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Temps moy.</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('ocr.statAvgTime')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.processingTime}</p>
               </div>
             </div>
@@ -503,7 +507,7 @@ const OCRInvoices: React.FC = () => {
                 <TrendingUp className="w-5 h-5 text-[var(--color-accent)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Taux succès</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('ocr.statSuccessRate')}</p>
                 <p className="text-lg font-semibold text-[var(--color-text-primary)]">{stats.successRate}%</p>
               </div>
             </div>
@@ -540,30 +544,30 @@ const OCRInvoices: React.FC = () => {
                     <Upload className="w-10 h-10 text-[var(--color-primary)]" />
                   </div>
                   <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-                    Glissez vos factures ici
+                    {t('ocr.dropHere')}
                   </h3>
                   <p className="text-[var(--color-text-secondary)] mb-4">
-                    ou cliquez pour sélectionner des fichiers (PDF, JPG, PNG)
+                    {t('ocr.dropHint')}
                   </p>
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="px-6 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors inline-flex items-center gap-2"
                   >
                     <Upload className="w-5 h-5" />
-                    Sélectionner des fichiers
+                    {t('ocr.selectFiles')}
                   </button>
                   <div className="mt-6 flex items-center justify-center gap-8 text-sm text-[var(--color-text-secondary)]">
                     <div className="flex items-center gap-2">
                       <Shield className="w-4 h-4" />
-                      <span>RGPD Compliant</span>
+                      <span>{t('ocr.gdprCompliant')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Globe className="w-4 h-4" />
-                      <span>Multi-langues</span>
+                      <span>{t('ocr.multiLanguage')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Zap className="w-4 h-4" />
-                      <span>IA Avancée</span>
+                      <span>{t('ocr.advancedAI')}</span>
                     </div>
                   </div>
                 </div>
@@ -573,7 +577,7 @@ const OCRInvoices: React.FC = () => {
               {processingFiles.length > 0 && (
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                   <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-                    Traitement en cours
+                    {t('ocr.processing')}
                   </h3>
                   <div className="space-y-3">
                     {processingFiles.map(fileId => (
@@ -582,10 +586,10 @@ const OCRInvoices: React.FC = () => {
                           <Loader2 className="w-5 h-5 text-[var(--color-primary)] animate-spin" />
                           <div>
                             <p className="font-medium text-[var(--color-text-primary)]">
-                              Extraction en cours...
+                              {t('ocr.extracting')}
                             </p>
                             <p className="text-sm text-[var(--color-text-secondary)]">
-                              Analyse avec Intelligence Artificielle
+                              {t('ocr.aiAnalysis')}
                             </p>
                           </div>
                         </div>
@@ -610,7 +614,7 @@ const OCRInvoices: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Rechercher par nom de fichier ou fournisseur..."
+                    placeholder={t('ocr.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -621,22 +625,22 @@ const OCRInvoices: React.FC = () => {
                   onChange={(e) => setFilter(e.target.value)}
                   className="px-4 py-2.5 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
-                  <option value="all">Tous les statuts</option>
-                  <option value="review">À réviser</option>
-                  <option value="validated">Validées</option>
-                  <option value="rejected">Rejetées</option>
-                  <option value="error">Erreurs</option>
+                  <option value="all">{t('ocr.filterAll')}</option>
+                  <option value="review">{t('ocr.filterReview')}</option>
+                  <option value="validated">{t('ocr.filterValidated')}</option>
+                  <option value="rejected">{t('ocr.filterRejected')}</option>
+                  <option value="error">{t('ocr.filterErrors')}</option>
                 </select>
                 {batchMode && selectedInvoices.length > 0 && (
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-[var(--color-text-secondary)]">
-                      {selectedInvoices.length} sélectionnées
+                      {t('ocr.selectedCount', { count: String(selectedInvoices.length) })}
                     </span>
                     <button onClick={bulkValidate} className="px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors text-sm">
-                      Valider la sélection
+                      {t('ocr.validateSelection')}
                     </button>
                     <button onClick={bulkReject} className="px-3 py-1.5 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors text-sm">
-                      Rejeter
+                      {t('ocr.reject')}
                     </button>
                   </div>
                 )}
@@ -688,15 +692,15 @@ const OCRInvoices: React.FC = () => {
                           </div>
                         </div>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(invoice.status)}`}>
-                          {invoice.status === 'review' ? 'À réviser' :
-                           invoice.status === 'validated' ? 'Validée' :
-                           invoice.status === 'rejected' ? 'Rejetée' : invoice.status}
+                          {invoice.status === 'review' ? t('ocr.statusReview') :
+                           invoice.status === 'validated' ? t('ocr.statusValidated') :
+                           invoice.status === 'rejected' ? t('ocr.statusRejected') : invoice.status}
                         </span>
                       </div>
 
                       {/* Confidence Score */}
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs text-[var(--color-text-secondary)]">Confiance IA</span>
+                        <span className="text-xs text-[var(--color-text-secondary)]">{t('ocr.aiConfidence')}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-24 bg-gray-200 rounded-full h-1.5">
                             <div
@@ -732,21 +736,21 @@ const OCRInvoices: React.FC = () => {
 
                     {/* Sens comptable : Achat (AC) / Vente (VE) — auto-détecté, corrigeable */}
                     <div className="px-4 py-2 border-b border-[var(--color-border)] flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <span className="text-xs text-[var(--color-text-tertiary)]">Sens</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{t('ocr.direction')}</span>
                       {invoice.status === 'review' ? (
                         <div className="inline-flex rounded-lg border border-[var(--color-border)] overflow-hidden text-xs">
                           <button
                             onClick={() => setInvoiceDirection(invoice, 'purchase')}
                             className={`px-2.5 py-1 transition-colors ${(invoice.extractedData.direction ?? 'purchase') === 'purchase' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}
-                          >Achat · AC</button>
+                          >{t('ocr.purchaseAC')}</button>
                           <button
                             onClick={() => setInvoiceDirection(invoice, 'sale')}
                             className={`px-2.5 py-1 transition-colors ${invoice.extractedData.direction === 'sale' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}
-                          >Vente · VE</button>
+                          >{t('ocr.saleVE')}</button>
                         </div>
                       ) : (
                         <span className="px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-primary-light)] text-[var(--color-primary)]">
-                          {invoice.extractedData.direction === 'sale' ? 'Vente · VE' : 'Achat · AC'}
+                          {invoice.extractedData.direction === 'sale' ? t('ocr.saleVE') : t('ocr.purchaseAC')}
                         </span>
                       )}
                     </div>
@@ -754,14 +758,14 @@ const OCRInvoices: React.FC = () => {
                     {/* Invoice Amount */}
                     <div className="px-4 py-3 bg-[var(--color-background)]">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">Montant total</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.totalAmount')}</span>
                         <span className="text-lg font-bold text-[var(--color-text-primary)]">
                           {formatCurrency(invoice.extractedData.totalAmount, invoice.extractedData.currency)}
                         </span>
                       </div>
                       {invoice.extractedData.items.length > 0 && (
                         <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-                          {invoice.extractedData.items.length} ligne{invoice.extractedData.items.length > 1 ? 's' : ''} d'articles
+                          {t('ocr.lineItemsCount', { count: String(invoice.extractedData.items.length) })}
                         </p>
                       )}
                     </div>
@@ -773,7 +777,7 @@ const OCRInvoices: React.FC = () => {
                           <AlertTriangle className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
                           <div className="flex-1">
                             <p className="text-xs font-medium text-yellow-800">
-                              {invoice.validationErrors.length} point{invoice.validationErrors.length > 1 ? 's' : ''} à vérifier
+                              {t('ocr.pointsToCheck', { count: String(invoice.validationErrors.length) })}
                             </p>
                             <p className="text-xs text-yellow-700 mt-0.5">
                               {invoice.validationErrors[0].message}
@@ -795,17 +799,17 @@ const OCRInvoices: React.FC = () => {
                             className="px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors text-sm flex items-center gap-1"
                           >
                             <Check className="w-4 h-4" />
-                            Valider
+                            {t('ocr.validate')}
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              rejectInvoice(invoice, 'Données incorrectes');
+                              rejectInvoice(invoice, t('ocr.rejectReasonIncorrectData'));
                             }}
                             className="px-3 py-1.5 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors text-sm flex items-center gap-1"
                           >
                             <X className="w-4 h-4" />
-                            Rejeter
+                            {t('ocr.reject')}
                           </button>
                         </div>
                         <button
@@ -816,7 +820,7 @@ const OCRInvoices: React.FC = () => {
                           className="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm flex items-center gap-1"
                         >
                           <Edit className="w-4 h-4" />
-                          Éditer
+                          {t('ocr.edit')}
                         </button>
                       </div>
                     )}
@@ -827,7 +831,10 @@ const OCRInvoices: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4 text-green-600" />
                           <p className="text-xs text-green-800">
-                            Validée par {invoice.validatedBy} le {invoice.validatedAt?.toLocaleDateString('fr-FR')}
+                            {t('ocr.validatedByOn', {
+                              user: String(invoice.validatedBy),
+                              date: invoice.validatedAt?.toLocaleDateString('fr-FR') ?? '',
+                            })}
                           </p>
                         </div>
                       </div>
@@ -844,36 +851,36 @@ const OCRInvoices: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">Volume mensuel</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.monthlyVolume')}</h3>
                     <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
                   </div>
                   <div className="text-lg font-bold text-[var(--color-text-primary)]">{stats.total}</div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                    Factures scannées
+                    {t('ocr.scannedInvoices')}
                   </p>
                 </div>
 
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">Montant total</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.totalAmount')}</h3>
                     <DollarSign className="w-5 h-5 text-[var(--color-primary)]" />
                   </div>
                   <div className="text-lg font-bold text-[var(--color-text-primary)]">
                     {formatCurrency(stats.totalAmount)}
                   </div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                    Factures validées
+                    {t('ocr.validatedInvoices')}
                   </p>
                 </div>
 
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">Top Fournisseurs</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.topSuppliers')}</h3>
                     <Users className="w-5 h-5 text-[var(--color-info)]" />
                   </div>
                   <div className="space-y-3">
                     {scannedInvoices.length === 0 ? (
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Aucune facture scannée</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('ocr.noScannedInvoice')}</p>
                     ) : (
                       Object.entries(
                         scannedInvoices.reduce<Record<string, number>>((acc, inv) => {
@@ -896,22 +903,22 @@ const OCRInvoices: React.FC = () => {
 
                 <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-[var(--color-text-primary)]">Performance IA</h3>
+                    <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.aiPerformance')}</h3>
                     <Brain className="w-5 h-5 text-[var(--color-accent)]" />
                   </div>
                   <div className="text-lg font-bold text-[var(--color-text-primary)]">
                     {stats.averageConfidence}%
                   </div>
                   <p className="text-sm text-[var(--color-text-secondary)] mt-2">
-                    Précision moyenne
+                    {t('ocr.avgAccuracy')}
                   </p>
                   <div className="mt-4">
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-[var(--color-text-secondary)]">Temps traitement</span>
+                      <span className="text-[var(--color-text-secondary)]">{t('ocr.processingTime')}</span>
                       <span className="text-[var(--color-text-primary)] font-medium">{stats.processingTime}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-[var(--color-text-secondary)]">Taux succès</span>
+                      <span className="text-[var(--color-text-secondary)]">{t('ocr.statSuccessRate')}</span>
                       <span className="text-[var(--color-text-primary)] font-medium">{stats.successRate}%</span>
                     </div>
                   </div>
@@ -921,7 +928,7 @@ const OCRInvoices: React.FC = () => {
               {/* Compliance Section */}
               <div className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-6">
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-                  Conformité & Standards
+                  {t('ocr.complianceStandards')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="flex items-start gap-3">
@@ -929,9 +936,9 @@ const OCRInvoices: React.FC = () => {
                       <Shield className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-[var(--color-text-primary)]">RGPD Compliant</h4>
+                      <h4 className="font-medium text-[var(--color-text-primary)]">{t('ocr.gdprCompliant')}</h4>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        Données chiffrées et anonymisées
+                        {t('ocr.gdprDesc')}
                       </p>
                     </div>
                   </div>
@@ -940,9 +947,9 @@ const OCRInvoices: React.FC = () => {
                       <Globe className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-[var(--color-text-primary)]">Standards UBL 2.1</h4>
+                      <h4 className="font-medium text-[var(--color-text-primary)]">{t('ocr.ublStandards')}</h4>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        Format international d'échange
+                        {t('ocr.ublDesc')}
                       </p>
                     </div>
                   </div>
@@ -951,9 +958,9 @@ const OCRInvoices: React.FC = () => {
                       <FileCheck className="w-5 h-5 text-primary-600" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-[var(--color-text-primary)]">PEPPOL Ready</h4>
+                      <h4 className="font-medium text-[var(--color-text-primary)]">{t('ocr.peppolReady')}</h4>
                       <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                        Compatible réseau européen
+                        {t('ocr.peppolDesc')}
                       </p>
                     </div>
                   </div>
@@ -991,7 +998,7 @@ const OCRInvoices: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 {/* Preview */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Aperçu du document</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.documentPreview')}</h3>
                   <div className="bg-[var(--color-background)] rounded-lg p-4 h-96 flex items-center justify-center">
                     {selectedInvoice.fileType.startsWith('image/') ? (
                       <img
@@ -1002,7 +1009,7 @@ const OCRInvoices: React.FC = () => {
                     ) : (
                       <div className="text-center">
                         <FileText className="w-16 h-16 text-[var(--color-text-tertiary)] mx-auto mb-3" />
-                        <p className="text-[var(--color-text-secondary)]">PDF Document</p>
+                        <p className="text-[var(--color-text-secondary)]">{t('ocr.pdfDocument')}</p>
                       </div>
                     )}
                   </div>
@@ -1010,26 +1017,26 @@ const OCRInvoices: React.FC = () => {
 
                 {/* Extracted Data */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Données extraites</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('ocr.extractedData')}</h3>
 
                   {/* Supplier Section */}
                   <div className="bg-[var(--color-background)] rounded-lg p-4">
-                    <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Fournisseur</h4>
+                    <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('ocr.supplier')}</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">Nom</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.name')}</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                           {selectedInvoice.extractedData.supplierName}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">N° Contribuable</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.taxIdNumber')}</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                           {selectedInvoice.extractedData.supplierTaxId}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">Adresse</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.address')}</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)] text-right max-w-[200px]">
                           {selectedInvoice.extractedData.supplierAddress}
                         </span>
@@ -1039,30 +1046,30 @@ const OCRInvoices: React.FC = () => {
 
                   {/* Financial Details */}
                   <div className="bg-[var(--color-background)] rounded-lg p-4">
-                    <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Détails financiers</h4>
+                    <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('ocr.financialDetails')}</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">Sous-total</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.subtotal')}</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                           {formatCurrency(selectedInvoice.extractedData.subtotal, selectedInvoice.extractedData.currency)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-[var(--color-text-secondary)]">TVA</span>
+                        <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.vat')}</span>
                         <span className="text-sm font-medium text-[var(--color-text-primary)]">
                           {formatCurrency(selectedInvoice.extractedData.taxAmount, selectedInvoice.extractedData.currency)}
                         </span>
                       </div>
                       {selectedInvoice.extractedData.discountAmount > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-sm text-[var(--color-text-secondary)]">Remise</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.discount')}</span>
                           <span className="text-sm font-medium text-red-600">
                             -{formatCurrency(selectedInvoice.extractedData.discountAmount, selectedInvoice.extractedData.currency)}
                           </span>
                         </div>
                       )}
                       <div className="flex justify-between pt-2 border-t border-[var(--color-border)]">
-                        <span className="text-sm font-semibold text-[var(--color-text-primary)]">Total</span>
+                        <span className="text-sm font-semibold text-[var(--color-text-primary)]">{t('ocr.total')}</span>
                         <span className="text-lg font-bold text-[var(--color-text-primary)]">
                           {formatCurrency(selectedInvoice.extractedData.totalAmount, selectedInvoice.extractedData.currency)}
                         </span>
@@ -1073,7 +1080,7 @@ const OCRInvoices: React.FC = () => {
                   {/* Line Items */}
                   {selectedInvoice.extractedData.items.length > 0 && (
                     <div className="bg-[var(--color-background)] rounded-lg p-4">
-                      <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Articles</h4>
+                      <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('ocr.items')}</h4>
                       <div className="space-y-2">
                         {selectedInvoice.extractedData.items.map((item, index) => (
                           <div key={index} className="flex justify-between py-2 border-b border-[var(--color-border)] last:border-b-0">
@@ -1100,7 +1107,7 @@ const OCRInvoices: React.FC = () => {
             {/* Modal Footer */}
             <div className="px-6 py-4 border-t border-[var(--color-border)] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-[var(--color-text-secondary)]">Confiance IA:</span>
+                <span className="text-sm text-[var(--color-text-secondary)]">{t('ocr.aiConfidenceLabel')}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-24 bg-gray-200 rounded-full h-2">
                     <div
@@ -1121,19 +1128,19 @@ const OCRInvoices: React.FC = () => {
                   onClick={() => setSelectedInvoice(null)}
                   className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
-                  Annuler
+                  {t('ocr.cancel')}
                 </button>
                 {selectedInvoice.status === 'review' && (
                   <>
                     <button
                       onClick={() => {
-                        rejectInvoice(selectedInvoice, 'Données incorrectes');
+                        rejectInvoice(selectedInvoice, t('ocr.rejectReasonIncorrectData'));
                         setSelectedInvoice(null);
                       }}
                       className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-[var(--color-error-dark)] transition-colors flex items-center gap-2"
                     >
                       <X className="w-4 h-4" />
-                      Rejeter
+                      {t('ocr.reject')}
                     </button>
                     <button
                       onClick={() => {
@@ -1143,7 +1150,7 @@ const OCRInvoices: React.FC = () => {
                       className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] transition-colors flex items-center gap-2"
                     >
                       <Check className="w-4 h-4" />
-                      Valider et Comptabiliser
+                      {t('ocr.validateAndPost')}
                     </button>
                   </>
                 )}
@@ -1158,7 +1165,7 @@ const OCRInvoices: React.FC = () => {
         <div className="fixed right-0 top-0 h-full w-96 bg-[var(--color-surface)] border-l border-[var(--color-border)] shadow-xl z-50 flex flex-col">
           <div className="px-6 py-4 border-b border-[var(--color-border)] flex items-center justify-between">
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Paramètres OCR
+              {t('ocr.settings')}
             </h3>
             <button
               onClick={() => setShowSettings(false)}
@@ -1170,7 +1177,7 @@ const OCRInvoices: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Validation automatique
+                {t('ocr.autoValidation')}
               </label>
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
@@ -1180,14 +1187,14 @@ const OCRInvoices: React.FC = () => {
                   className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                 />
                 <span className="text-sm text-[var(--color-text-secondary)]">
-                  Valider automatiquement si confiance &gt; {settings.confidenceThreshold}%
+                  {t('ocr.autoValidateIf', { threshold: String(settings.confidenceThreshold) })}
                 </span>
               </label>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Seuil de confiance: {settings.confidenceThreshold}%
+                {t('ocr.confidenceThreshold', { value: String(settings.confidenceThreshold) })}
               </label>
               <input
                 type="range"
@@ -1201,7 +1208,7 @@ const OCRInvoices: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Devise par défaut
+                {t('ocr.defaultCurrency')}
               </label>
               <select
                 value={settings.defaultCurrency}
@@ -1210,13 +1217,13 @@ const OCRInvoices: React.FC = () => {
               >
                 <option value="XAF">FCFA (XAF)</option>
                 <option value="EUR">Euro (EUR)</option>
-                <option value="USD">Dollar US (USD)</option>
+                <option value="USD">{t('ocr.currencyUSD')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Taux TVA par défaut
+                {t('ocr.defaultTaxRate')}
               </label>
               <input
                 type="number"
@@ -1229,7 +1236,7 @@ const OCRInvoices: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Options d'extraction
+                {t('ocr.extractionOptions')}
               </label>
               <div className="space-y-2">
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -1240,7 +1247,7 @@ const OCRInvoices: React.FC = () => {
                     className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-sm text-[var(--color-text-secondary)]">
-                    Extraire les lignes d'articles
+                    {t('ocr.extractLineItems')}
                   </span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -1251,7 +1258,7 @@ const OCRInvoices: React.FC = () => {
                     className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-sm text-[var(--color-text-secondary)]">
-                    Vérifier les doublons
+                    {t('ocr.checkDuplicates')}
                   </span>
                 </label>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -1262,7 +1269,7 @@ const OCRInvoices: React.FC = () => {
                     className="w-4 h-4 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
                   />
                   <span className="text-sm text-[var(--color-text-secondary)]">
-                    Amélioration d'image IA
+                    {t('ocr.aiImageEnhancement')}
                   </span>
                 </label>
               </div>
@@ -1270,7 +1277,7 @@ const OCRInvoices: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                Langue de traitement
+                {t('ocr.processingLanguage')}
               </label>
               <select
                 value={settings.language}
@@ -1289,7 +1296,7 @@ const OCRInvoices: React.FC = () => {
             <button
               onClick={async () => {
                 const base = ocrConfigRef.current;
-                if (!base) { toast.error('Configuration OCR introuvable'); return; }
+                if (!base) { toast.error(t('ocr.configNotFound')); return; }
                 const merged: OCRConfig = {
                   ...base,
                   autoValidate: settings.autoValidate,
@@ -1305,15 +1312,15 @@ const OCRInvoices: React.FC = () => {
                 setOcrConfig(merged);
                 try {
                   await saveOCRConfig(adapter, merged);
-                  toast.success('Paramètres OCR enregistrés');
+                  toast.success(t('ocr.settingsSaved'));
                   setShowSettings(false);
                 } catch {
-                  toast.error('Échec de l\'enregistrement');
+                  toast.error(t('ocr.saveFailed'));
                 }
               }}
               className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
             >
-              Enregistrer les paramètres
+              {t('ocr.saveSettings')}
             </button>
           </div>
         </div>

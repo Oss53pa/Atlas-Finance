@@ -10,6 +10,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
+import AccountCombobox from '../../components/common/AccountCombobox';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import { createCapexRequest } from '../../features/budget/services/budgetService';
 import {
   getBcRequest, updateBcFields, recomputeBcMetrics,
@@ -35,6 +37,7 @@ const Field: React.FC<{ label: string; className?: string; children: React.React
 const BCStepperPage: React.FC = () => {
   const { id = '' } = useParams();
   const { adapter } = useData();
+  const { label: accountLabel } = useAccountNames();
   const navigate = useNavigate();
   const isNew = id === 'new';
 
@@ -123,7 +126,12 @@ const BCStepperPage: React.FC = () => {
         <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> Nouveau Business Case</h1>
         {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
         <Field label="Intitulé de l'investissement"><input value={newLibelle} onChange={(e) => setNewLibelle(e.target.value)} className={INP} placeholder="Extension entrepôt Nord" /></Field>
-        <Field label="Compte d'immobilisation (classe 2)"><input value={newAccount} onChange={(e) => setNewAccount(e.target.value)} className={INP} placeholder="2313" /></Field>
+        <Field label="Compte d'immobilisation (classe 2)">
+          <AccountCombobox value={newAccount} onChange={setNewAccount} classPrefix="2" placeholder="2313" inputClassName="w-full" />
+          <span className="block mt-1 text-xs text-[var(--color-text-tertiary)] truncate" title={accountLabel(newAccount)}>
+            {newAccount ? (accountLabel(newAccount) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+          </span>
+        </Field>
         <label className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
           <input type="checkbox" checked={newUrgence} onChange={(e) => setNewUrgence(e.target.checked)} /> CAPEX d'urgence (fast-track)
         </label>
@@ -186,7 +194,15 @@ const BCStepperPage: React.FC = () => {
         {step === 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Intitulé"><input defaultValue={bc.libelle} onBlur={(e) => patch({ libelle: e.target.value })} className={INP} /></Field>
-            <Field label="Compte immobilisation (classe 2)"><input defaultValue={bc.account_code} onBlur={(e) => patch({ account_code: e.target.value })} className={INP} /></Field>
+            <Field label="Compte immobilisation (classe 2)">
+              <AccountCombobox value={bc.account_code ?? ''}
+                onChange={(code) => setBc((b: any) => ({ ...b, account_code: code }))}
+                onCommit={(code) => patch({ account_code: code })}
+                classPrefix="2" placeholder="ex. 2313" inputClassName="w-full" />
+              <span className="block mt-1 text-xs text-[var(--color-text-tertiary)] truncate" title={accountLabel(bc.account_code)}>
+                {bc.account_code ? (accountLabel(bc.account_code) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+              </span>
+            </Field>
             <Field label="Section porteuse">
               <select defaultValue={bc.section_id ?? ''} onChange={(e) => patch({ section_id: e.target.value || null })} className={INP}>
                 <option value="">—</option>{sections.map((s) => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}

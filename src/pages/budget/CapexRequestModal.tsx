@@ -12,6 +12,8 @@ import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
+import AccountCombobox from '../../components/common/AccountCombobox';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import {
   getActiveFiscalYear, createCapexRequest, updateCapexRequest, saveCapexEvaluation, dotationAnnuelle,
   type CapexRequest,
@@ -25,7 +27,6 @@ import { computeCapexMetrics } from '../../utils/capexMetrics';
 import { useAuth } from '../../contexts/AuthContext';
 import { Package, X, CheckCircle, Eye, Pencil, Calculator, ShieldCheck, Paperclip, StickyNote, Download, Trash2, Upload } from 'lucide-react';
 
-interface AccountLite { code: string; name: string }
 interface Props { open: boolean; onClose: () => void; onCreated?: () => void; editing?: CapexRequest | null }
 
 const CATEGORIES = [
@@ -50,8 +51,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
   const { adapter } = useData();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { label: accountLabel } = useAccountNames();
   const [tab, setTab] = useState<'demande' | 'eval' | 'notes'>('demande');
-  const [accounts, setAccounts] = useState<AccountLite[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [matrix, setMatrix] = useState<ApprovalBracket[]>([]);
   const [saving, setSaving] = useState(false);
@@ -109,14 +110,13 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
     } else { reset(); setNotes([]); }
     (async () => {
       try {
-        const [accs, secs, mtx] = await Promise.all([adapter.getAll<any>('accounts'), listSections(adapter), ensureDefaultMatrix(adapter).catch(() => listApprovalMatrix(adapter))]);
-        setAccounts((accs || []).map((a: any) => ({ code: String(a.code || ''), name: String(a.name || a.libelle || '') })).filter(a => a.code.startsWith('2')).sort((a, b) => a.code.localeCompare(b.code)));
+        const [secs, mtx] = await Promise.all([listSections(adapter), ensureDefaultMatrix(adapter).catch(() => listApprovalMatrix(adapter))]);
         setSections(secs); setMatrix(mtx);
       } catch { /* ignore */ }
     })();
   }, [open, adapter, editing]);
 
-  const accountName = (code: string) => accounts.find(a => a.code === code)?.name || '';
+  const accountName = (code: string) => accountLabel(code);
   const dotation = useMemo(() => dotationAnnuelle({
     montant: parseFloat(f.montant) || 0, valeur_residuelle: parseFloat(f.valeur_residuelle) || 0, duree_amortissement: parseInt(f.duree_amortissement) || 0, methode: f.methode,
   }), [f.montant, f.valeur_residuelle, f.duree_amortissement, f.methode]);
@@ -192,9 +192,11 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
           <div className="grid grid-cols-2 gap-3">
             {field('Intitulé du projet / bien *', <input value={f.libelle} disabled={readOnly} onChange={e => setF(s => ({ ...s, libelle: e.target.value }))} placeholder="ex. Groupe électrogène 250 kVA" className={inputCls} />)}
             {field('Compte immobilisation (classe 2) *', <>
-              <input list="capex-accounts" value={f.account_code} disabled={readOnly} onChange={e => setF(s => ({ ...s, account_code: e.target.value }))} placeholder="ex. 2411" className={inputCls + ' font-mono'} />
-              {accountName(f.account_code) && <div className="text-[10px] text-gray-400 truncate">{accountName(f.account_code)}</div>}
-              <datalist id="capex-accounts">{accounts.map(a => <option key={a.code} value={a.code}>{a.code} — {a.name}</option>)}</datalist>
+              <AccountCombobox value={f.account_code} onChange={(code) => setF(s => ({ ...s, account_code: code }))}
+                classPrefix="2" disabled={readOnly} placeholder="ex. 2411" inputClassName="w-full" />
+              <div className="text-[10px] text-gray-400 truncate" title={accountName(f.account_code)}>
+                {f.account_code ? (accountName(f.account_code) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+              </div>
             </>)}
             {field('Montant (FCFA) *', <input type="number" value={f.montant} disabled={readOnly} onChange={e => setF(s => ({ ...s, montant: e.target.value }))} placeholder="0" className={inputCls} />)}
             {field("Date d'acquisition prévue", <input type="date" value={f.date_prevue} disabled={readOnly} onChange={e => setF(s => ({ ...s, date_prevue: e.target.value }))} className={inputCls} />)}

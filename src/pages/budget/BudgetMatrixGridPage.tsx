@@ -11,7 +11,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
-import { getAccountLabel } from '../../utils/accountLabels';
+import { useAccountNames } from '../../hooks/useAccountNames';
+import AccountCombobox from '../../components/common/AccountCombobox';
 import {
   getDefaultAnnee, getActiveBudgetVersion, getBudgetLinesWithPeriods, saveBudgetLine,
   getActualExploitation, type BudgetVersion,
@@ -39,6 +40,7 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
   const isRevenus = nature === 'revenus';
   const classPrefix = isRevenus ? '7' : '6';
   const { adapter } = useData();
+  const { label: accountLabel } = useAccountNames();
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
   const [version, setVersion] = useState<BudgetVersion | null>(null);
@@ -245,11 +247,17 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
                       {r.id ? (
                         <div>
                           <div className="font-mono text-[var(--color-text-primary)]">{r.account_code}</div>
-                          <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[190px]">{getAccountLabel(r.account_code)}</div>
+                          <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[190px]" title={accountLabel(r.account_code)}>{accountLabel(r.account_code) || '—'}</div>
                         </div>
                       ) : (
-                        <input value={r.account_code} onChange={(e) => setAccount(idx, e.target.value)} disabled={locked}
-                          placeholder={isRevenus ? '7011' : '6132'} className="w-24 px-2 py-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
+                        <div>
+                          <AccountCombobox value={r.account_code} onChange={(code) => setAccount(idx, code)}
+                            classPrefix={classPrefix} disabled={locked}
+                            placeholder={isRevenus ? '7011' : '6132'} inputClassName="w-28" />
+                          <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[190px]" title={accountLabel(r.account_code)}>
+                            {r.account_code ? (accountLabel(r.account_code) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+                          </div>
+                        </div>
                       )}
                       {(r.id || r.account_code) && (
                         <input value={r.commentaire ?? ''} onChange={(e) => setComment(idx, e.target.value)} disabled={locked}
