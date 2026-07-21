@@ -137,12 +137,12 @@ const EntriesPage: React.FC = () => {
       setEcrituresData(mapped);
     } catch (err) {
       console.error('[EntriesPage] Erreur chargement des écritures :', err);
-      toast.error('Impossible de charger les écritures comptables. Vérifiez votre connexion.');
+      toast.error(t('entries.loadError'));
       setEcrituresData([]);
     } finally {
       setIsLoading(false);
     }
-  }, [adapter]);
+  }, [adapter, t]);
 
   useEffect(() => { loadEntries(); }, [loadEntries]);
 
@@ -167,12 +167,12 @@ const EntriesPage: React.FC = () => {
     },
     {
       key: 'source',
-      label: 'Source',
+      label: t('entries.colSource'),
       sortable: true,
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'Manuel', label: 'Manuel' },
+        { value: 'Manuel', label: t('entries.sourceManual') },
         { value: 'API', label: 'API' }
       ],
       width: '100px',
@@ -183,7 +183,7 @@ const EntriesPage: React.FC = () => {
             : 'bg-[var(--color-success-light)] text-[var(--color-success)]'
         }`}>
           {item.source === 'Manuel' ? <Edit className="w-3 h-3 mr-1" /> : <BarChart3 className="w-3 h-3 mr-1" />}
-          {item.source}
+          {item.source === 'Manuel' ? t('entries.sourceManual') : item.source}
         </span>
       )
     },
@@ -202,7 +202,7 @@ const EntriesPage: React.FC = () => {
     },
     {
       key: 'numero',
-      label: 'N° Pièce',
+      label: t('entries.colDocNumber'),
       sortable: true,
       filterable: true,
       filterType: 'text',
@@ -252,13 +252,13 @@ const EntriesPage: React.FC = () => {
     },
     {
       key: 'equilibre',
-      label: 'Équilibre',
+      label: t('entries.colBalanced'),
       sortable: true,
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'true', label: 'Équilibrée' },
-        { value: 'false', label: 'Déséquilibrée' }
+        { value: 'true', label: t('entries.balanced') },
+        { value: 'false', label: t('entries.unbalanced') }
       ],
       width: '120px',
       align: 'center',
@@ -269,7 +269,7 @@ const EntriesPage: React.FC = () => {
             : 'bg-[var(--color-error-light)] text-[var(--color-error)]'
         }`}>
           {item.equilibre ? <CheckCircle className="w-3 h-3 inline mr-1" /> : <X className="w-3 h-3 inline mr-1" />}
-          {item.equilibre ? 'OK' : 'Déséq.'}
+          {item.equilibre ? 'OK' : t('entries.unbalancedShort')}
         </span>
       )
     },
@@ -292,9 +292,9 @@ const EntriesPage: React.FC = () => {
             : 'bg-[var(--color-warning-light)] text-[var(--color-warning)]'
         }`}>
           {item.statut === 'validated' ? (
-            <><CheckCircle className="w-3 h-3 inline mr-1" />Validée</>
+            <><CheckCircle className="w-3 h-3 inline mr-1" />{t('entries.statusValidated')}</>
           ) : (
-            <><Clock className="w-3 h-3 inline mr-1" />Brouillon</>
+            <><Clock className="w-3 h-3 inline mr-1" />{t('entries.statusDraft')}</>
           )}
         </span>
       )
@@ -308,9 +308,9 @@ const EntriesPage: React.FC = () => {
 
   // Raccourcis modèles — mappés sur les IDs réels de journalTemplates.ts
   const modelesSaisie = [
-    { id: 'TPL-VTE-001', nom: 'Facture vente standard', journal: 'VE' },
-    { id: 'TPL-ACH-001', nom: 'Achat avec TVA',         journal: 'AC' },
-    { id: 'TPL-TRE-002', nom: 'Paiement fournisseur',   journal: 'BQ' },
+    { id: 'TPL-VTE-001', nom: t('entries.templateSalesInvoice'),    journal: 'VE' },
+    { id: 'TPL-ACH-001', nom: t('entries.templatePurchaseVat'),     journal: 'AC' },
+    { id: 'TPL-TRE-002', nom: t('entries.templateSupplierPayment'), journal: 'BQ' },
   ];
 
   // Fonction pour ouvrir le modal d'édition
@@ -333,14 +333,14 @@ const EntriesPage: React.FC = () => {
     try {
       const result = await validerEcriture(adapter, entryId);
       if (result.success) {
-        toast.success('Écriture validée avec succès');
+        toast.success(t('entries.validateSuccess'));
         loadEntries();
       } else {
-        toast.error(result.error || 'Validation impossible');
+        toast.error(result.error || t('entries.validateImpossible'));
       }
     } catch (err) {
       console.error('[EntriesPage] Erreur validation écriture :', err);
-      toast.error('Erreur lors de la validation');
+      toast.error(t('entries.validateError'));
     } finally {
       setIsValidatingEntry(false);
     }
@@ -382,14 +382,14 @@ const EntriesPage: React.FC = () => {
     setValidatingBatch(false);
     setSelectedEntries([]);
     await loadEntries();
-    if (ko === 0) toast.success(`${ok} écriture(s) validée(s) avec succès`);
-    else toast.error(`${ok} validée(s), ${ko} en erreur (vérifier l'équilibre débit/crédit)`);
+    if (ko === 0) toast.success(t('entries.batchValidateSuccess', { ok: String(ok) }));
+    else toast.error(t('entries.batchValidatePartial', { ok: String(ok), ko: String(ko) }));
   };
 
   // Valider TOUTES les écritures brouillon en un clic
   const handleValidateAll = async () => {
     const draftIds = ecrituresData.filter(e => e.statut === 'draft').map(e => e.id);
-    if (draftIds.length === 0) { toast.info('Aucun brouillon à valider'); return; }
+    if (draftIds.length === 0) { toast.info(t('entries.noDraftToValidate')); return; }
     setValidatingBatch(true);
     let ok = 0; let ko = 0;
     for (const id of draftIds) {
@@ -403,8 +403,8 @@ const EntriesPage: React.FC = () => {
     }
     setValidatingBatch(false);
     await loadEntries();
-    if (ko === 0) toast.success(`${ok} brouillon(s) validé(s) avec succès`);
-    else toast.error(`${ok} validé(s), ${ko} en erreur`);
+    if (ko === 0) toast.success(t('entries.batchDraftSuccess', { ok: String(ok) }));
+    else toast.error(t('entries.batchDraftPartial', { ok: String(ok), ko: String(ko) }));
   };
 
   return (
@@ -418,7 +418,7 @@ const EntriesPage: React.FC = () => {
               className="flex items-center space-x-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">Retour</span>
+              <span className="text-sm">{t('entries.back')}</span>
             </button>
 
             <div className="flex items-center space-x-3">
@@ -426,17 +426,17 @@ const EntriesPage: React.FC = () => {
                 <FileText className="w-5 h-5 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-[var(--color-primary)]">Écritures Comptables</h1>
-                <p className="text-sm text-[var(--color-text-tertiary)]">Saisie et gestion des écritures SYSCOHADA</p>
+                <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('entries.title')}</h1>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('entries.subtitle')}</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            <PageHeaderActions printTitle="Écritures Comptables" />
+            <PageHeaderActions printTitle={t('entries.title')} />
             <div className="flex items-center space-x-2 bg-[var(--color-warning-light)] text-[var(--color-warning)] px-3 py-1 rounded-full text-sm">
               <Clock className="w-4 h-4" />
-              <span>{draftCount} en attente</span>
+              <span>{t('entries.pendingCount', { count: String(draftCount) })}</span>
             </div>
 
             {/* Validation en lot */}
@@ -447,7 +447,7 @@ const EntriesPage: React.FC = () => {
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-60"
               >
                 {validatingBatch ? <span className="animate-spin">⏳</span> : <span>✓</span>}
-                <span className="text-sm">Valider la sélection ({selectedEntries.length})</span>
+                <span className="text-sm">{t('entries.validateSelection', { count: String(selectedEntries.length) })}</span>
               </button>
             )}
             {draftCount > 0 && selectedEntries.length === 0 && (
@@ -457,7 +457,7 @@ const EntriesPage: React.FC = () => {
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2 disabled:opacity-60"
               >
                 {validatingBatch ? <span className="animate-spin">⏳</span> : <span>✓✓</span>}
-                <span className="text-sm">Valider tout ({draftCount})</span>
+                <span className="text-sm">{t('entries.validateAll', { count: String(draftCount) })}</span>
               </button>
             )}
 
@@ -466,7 +466,7 @@ const EntriesPage: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] transition-colors flex items-center space-x-2"
             >
               <FileType className="w-4 h-4" />
-              <span className="text-sm">Ajouter un modèle de saisie</span>
+              <span className="text-sm">{t('entries.addTemplate')}</span>
             </button>
 
             <div className="relative">
@@ -475,14 +475,14 @@ const EntriesPage: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
               >
                 <Eye className="w-4 h-4" />
-                <span className="text-sm">Consulter un modèle</span>
+                <span className="text-sm">{t('entries.viewTemplate')}</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
 
               {showTemplateDropdown && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-[var(--color-surface)] rounded-lg shadow-xl border border-[var(--color-border)] z-50">
                   <div className="p-3 border-b border-[var(--color-border)]">
-                    <h4 className="font-medium text-[var(--color-text-primary)]">Modèles disponibles</h4>
+                    <h4 className="font-medium text-[var(--color-text-primary)]">{t('entries.availableTemplates')}</h4>
                   </div>
                   {modelesSaisie.map((modele) => (
                     <div
@@ -524,7 +524,7 @@ const EntriesPage: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
             >
               <Home className="w-4 h-4" />
-              <span className="text-sm">Workspace</span>
+              <span className="text-sm">{t('entries.workspace')}</span>
             </button>
           </div>
         </div>
@@ -571,7 +571,7 @@ const EntriesPage: React.FC = () => {
                 {isLoading && (
                   <div className="flex items-center justify-center py-8 space-x-2 text-[var(--color-text-tertiary)]">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--color-primary)]"></div>
-                    <span className="text-sm">Chargement des écritures…</span>
+                    <span className="text-sm">{t('entries.loadingEntries')}</span>
                   </div>
                 )}
                 {/* Liste des écritures avec DataTable - Pleine largeur */}
@@ -591,7 +591,7 @@ const EntriesPage: React.FC = () => {
                       <button
                         onClick={() => handleViewEntry(entry)}
                         className="p-1 hover:bg-[var(--color-info-light)] rounded transition-colors"
-                        title="Voir les détails"
+                        title={t('entries.viewDetails')}
                       >
                         <Eye className="w-4 h-4 text-[var(--color-info)]" />
                       </button>
@@ -601,7 +601,7 @@ const EntriesPage: React.FC = () => {
                         className={`p-1 hover:bg-[var(--color-warning-light)] rounded transition-colors ${
                           entry.equilibre ? 'text-[var(--color-text-secondary)]' : 'text-[var(--color-warning)]'
                         }`}
-                        title={entry.equilibre ? "Modifier l'écriture" : "Corriger l'écriture"}
+                        title={entry.equilibre ? t('entries.editEntry') : t('entries.fixEntry')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -609,7 +609,7 @@ const EntriesPage: React.FC = () => {
                     </div>
                     );
                   }}
-                  emptyMessage="Aucune écriture en brouillard"
+                  emptyMessage={t('entries.emptyDraft')}
                   className="bg-white border-0 data-table w-full rounded-none shadow-none"
                 />}
             </div>
@@ -671,7 +671,7 @@ const EntriesPage: React.FC = () => {
                 <div className="p-6 border-b border-[var(--color-border)] bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-[var(--color-primary)]">
-                      Détails de l'écriture {selectedEntry.numero}
+                      {t('entries.detailsTitle', { numero: selectedEntry.numero })}
                     </h2>
                     <button
                       onClick={() => setShowDetailsModal(false)}
@@ -686,54 +686,54 @@ const EntriesPage: React.FC = () => {
                 <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">Informations générales</h3>
+                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">{t('entries.generalInfo')}</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">N° Pièce:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.docNumberLabel')}</span>
                           <span className="text-sm font-medium">{selectedEntry.numero}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">Journal:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.journalLabel')}</span>
                           <span className="text-sm font-medium">{selectedEntry.journal}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">Date:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.dateLabel')}</span>
                           <span className="text-sm font-medium">{selectedEntry.date}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">Libellé:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.labelLabel')}</span>
                           <span className="text-sm font-medium">{selectedEntry.libelle}</span>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">Montants</h3>
+                      <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-2">{t('entries.amounts')}</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">Débit:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.debitLabel')}</span>
                           <span className="text-sm font-medium text-[var(--color-error)]">
                             {formatCurrency(selectedEntry.debit ?? 0)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-[#404040]">Crédit:</span>
+                          <span className="text-sm text-[#404040]">{t('entries.creditLabel')}</span>
                           <span className="text-sm font-medium text-[var(--color-success)]">
                             {formatCurrency(selectedEntry.credit ?? 0)}
                           </span>
                         </div>
                         <div className="pt-2 border-t">
                           <div className="flex justify-between">
-                            <span className="text-sm font-medium text-[#404040]">État:</span>
+                            <span className="text-sm font-medium text-[#404040]">{t('entries.stateLabel')}</span>
                             {selectedEntry.debit === selectedEntry.credit ? (
                               <span className="px-2 py-1 text-xs bg-[var(--color-success-light)] text-[var(--color-success)] rounded-full">
                                 <CheckCircle className="w-3 h-3 inline mr-1" />
-                                Équilibrée
+                                {t('entries.balanced')}
                               </span>
                             ) : (
                               <span className="px-2 py-1 text-xs bg-[var(--color-error-light)] text-[var(--color-error)] rounded-full">
                                 <X className="w-3 h-3 inline mr-1" />
-                                Déséquilibrée
+                                {t('entries.unbalanced')}
                               </span>
                             )}
                           </div>
@@ -744,7 +744,7 @@ const EntriesPage: React.FC = () => {
 
                   {/* Lignes d'écriture */}
                   <div>
-                    <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-3">Lignes d'écriture</h3>
+                    <h3 className="text-sm font-medium text-[var(--color-text-tertiary)] mb-3">{t('entries.entryLines')}</h3>
                     <div className="border rounded-lg overflow-hidden">
                       <table className="w-full">
                         <thead className="bg-[var(--color-surface-hover)]">
@@ -766,7 +766,7 @@ const EntriesPage: React.FC = () => {
                           ))}
                           {(!(selectedEntry as any)?.lines || ((selectedEntry as any).lines as any[]).length === 0) && (
                             <tr>
-                              <td colSpan={4} className="px-4 py-3 text-sm text-center text-[var(--color-text-tertiary)]">Aucune ligne</td>
+                              <td colSpan={4} className="px-4 py-3 text-sm text-center text-[var(--color-text-tertiary)]">{t('entries.noLine')}</td>
                             </tr>
                           )}
                         </tbody>
@@ -792,7 +792,7 @@ const EntriesPage: React.FC = () => {
                       onClick={() => setShowDetailsModal(false)}
                       className="px-4 py-2 text-[#404040] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                     >
-                      Fermer
+                      {t('entries.close')}
                     </button>
                     <button
                       onClick={() => {
@@ -829,7 +829,7 @@ const EntriesPage: React.FC = () => {
                 {/* Header */}
                 <div className="p-6 border-b border-[var(--color-border)]">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-[var(--color-primary)]">Créer un modèle de saisie</h2>
+                    <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('entries.createTemplateTitle')}</h2>
                     <button
                       onClick={() => setShowTemplateModal(false)}
                       className="p-2 hover:bg-[var(--color-surface-hover)] rounded-lg transition-colors"
@@ -842,62 +842,62 @@ const EntriesPage: React.FC = () => {
                 {/* Corps du modal */}
                 <div className="p-6 space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#404040] mb-2">Nom du modèle *</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">{t('entries.templateNameLabel')}</label>
                     <input
                       type="text"
                       value={templateForm.nom}
                       onChange={e => setTemplateForm(f => ({ ...f, nom: e.target.value }))}
-                      placeholder="Ex: Facture fournisseur avec TVA"
+                      placeholder={t('entries.templateNamePlaceholder')}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#404040] mb-2">Type de transaction *</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">{t('entries.transactionTypeLabel')}</label>
                     <select
                       value={templateForm.type}
                       onChange={e => setTemplateForm(f => ({ ...f, type: e.target.value }))}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     >
-                      <option value="">Sélectionnez un type</option>
-                      <option value="achats">Facture d'Achat</option>
-                      <option value="ventes">Facture de Vente</option>
-                      <option value="reglements">Règlement</option>
-                      <option value="operations">Opérations Diverses</option>
+                      <option value="">{t('entries.selectType')}</option>
+                      <option value="achats">{t('entries.typePurchaseInvoice')}</option>
+                      <option value="ventes">{t('entries.typeSalesInvoice')}</option>
+                      <option value="reglements">{t('entries.typeSettlement')}</option>
+                      <option value="operations">{t('entries.typeMiscOperations')}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#404040] mb-2">Journal par défaut *</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">{t('entries.defaultJournalLabel')}</label>
                     <SearchableDropdown
                       options={[
-                        { value: 'AC', label: 'AC - Achats' },
-                        { value: 'VE', label: 'VE - Ventes' },
-                        { value: 'BQ', label: 'BQ - Banque' },
-                        { value: 'CA', label: 'CA - Caisse' },
-                        { value: 'OD', label: 'OD - Opérations Diverses' }
+                        { value: 'AC', label: t('entries.journalAC') },
+                        { value: 'VE', label: t('entries.journalVE') },
+                        { value: 'BQ', label: t('entries.journalBQ') },
+                        { value: 'CA', label: t('entries.journalCA') },
+                        { value: 'OD', label: t('entries.journalOD') }
                       ]}
                       value={templateForm.journal}
                       onChange={val => setTemplateForm(f => ({ ...f, journal: val }))}
-                      placeholder="Sélectionnez un journal"
-                      searchPlaceholder="Rechercher un journal..."
+                      placeholder={t('entries.selectJournal')}
+                      searchPlaceholder={t('entries.searchJournal')}
                       clearable
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-[#404040] mb-2">Description</label>
+                    <label className="block text-sm font-medium text-[#404040] mb-2">{t('entries.descriptionLabel')}</label>
                     <textarea
                       rows={3}
                       value={templateForm.description}
                       onChange={e => setTemplateForm(f => ({ ...f, description: e.target.value }))}
-                      placeholder="Description du modèle..."
+                      placeholder={t('entries.descriptionPlaceholder')}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]/20"
                     />
                   </div>
 
                   <div className="border rounded-lg p-4 bg-[var(--color-surface-hover)]">
-                    <h3 className="text-sm font-medium text-[#404040] mb-3">Lignes d'écriture par défaut</h3>
+                    <h3 className="text-sm font-medium text-[#404040] mb-3">{t('entries.defaultLines')}</h3>
                     <div className="space-y-2">
                       {templateLines.map((line, idx) => (
                         <div key={idx} className="flex items-center space-x-2">
@@ -938,7 +938,7 @@ const EntriesPage: React.FC = () => {
                       className="mt-3 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] flex items-center space-x-1"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Ajouter une ligne</span>
+                      <span>{t('entries.addLine')}</span>
                     </button>
                   </div>
 
@@ -950,7 +950,7 @@ const EntriesPage: React.FC = () => {
                         onChange={e => setTemplateForm(f => ({ ...f, actif: e.target.checked }))}
                         className="rounded border-[var(--color-border)]"
                       />
-                      <span className="text-sm text-[#404040]">Activer ce modèle</span>
+                      <span className="text-sm text-[#404040]">{t('entries.activateTemplate')}</span>
                     </label>
                   </div>
                 </div>
@@ -961,17 +961,17 @@ const EntriesPage: React.FC = () => {
                     onClick={() => setShowTemplateModal(false)}
                     className="px-4 py-2 text-[#404040] border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)]"
                   >
-                    Annuler
+                    {t('entries.cancel')}
                   </button>
                   <button
                     disabled={isSavingTemplate}
                     onClick={async () => {
                       if (!templateForm.nom.trim()) {
-                        toast.error('Le nom du modèle est obligatoire');
+                        toast.error(t('entries.templateNameRequired'));
                         return;
                       }
                       if (!templateForm.journal) {
-                        toast.error('Veuillez sélectionner un journal par défaut');
+                        toast.error(t('entries.templateJournalRequired'));
                         return;
                       }
                       setIsSavingTemplate(true);
@@ -987,20 +987,20 @@ const EntriesPage: React.FC = () => {
                           lines: templateLines.filter(l => l.compte.trim()),
                           createdAt: new Date().toISOString(),
                         });
-                        toast.success(`Modèle "${templateForm.nom}" créé avec succès`);
+                        toast.success(t('entries.templateCreated', { nom: templateForm.nom }));
                         setTemplateForm({ nom: '', type: '', journal: '', description: '', actif: false });
                         setTemplateLines([{ compte: '', libelle: '', debit: '', credit: '' }]);
                         setShowTemplateModal(false);
                       } catch (err) {
                         console.error('[EntriesPage] Erreur création modèle :', err);
-                        toast.error('Erreur lors de la création du modèle');
+                        toast.error(t('entries.templateCreateError'));
                       } finally {
                         setIsSavingTemplate(false);
                       }
                     }}
                     className="px-6 py-2 bg-[var(--color-text-secondary)] text-white rounded-lg hover:bg-[#404040] disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {isSavingTemplate ? 'Création…' : 'Créer le modèle'}
+                    {isSavingTemplate ? t('entries.creating') : t('entries.createTemplate')}
                   </button>
                 </div>
               </div>
