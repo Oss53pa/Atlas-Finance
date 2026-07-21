@@ -9,6 +9,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
 import { listCapexRequests, type CapexRequest } from '../../features/budget/services/budgetService';
 import { getCapexExecution, type CapexExecution } from '../../features/budget/services/cockpitService';
+import NewBusinessCaseModal from './NewBusinessCaseModal';
 import { Layers, Loader2, Plus, ArrowRight, Package, Boxes, TrendingDown, Wallet } from 'lucide-react';
 
 const MOIS_COURT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
@@ -143,17 +144,16 @@ const CapexPortfolioPage: React.FC = () => {
   const [rows, setRows] = useState<CapexRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true); setError(null);
-      try { const r = await listCapexRequests(adapter); if (!cancelled) setRows(r); }
-      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
-      finally { if (!cancelled) setLoading(false); }
-    })();
-    return () => { cancelled = true; };
+  const loadRows = useCallback(async () => {
+    setLoading(true); setError(null);
+    try { const r = await listCapexRequests(adapter); setRows(r); }
+    catch (e: any) { setError(e?.message || 'Erreur'); }
+    finally { setLoading(false); }
   }, [adapter]);
+
+  useEffect(() => { loadRows(); }, [loadRows]);
 
   const totals = useMemo(() => ({
     count: rows.length,
@@ -170,7 +170,7 @@ const CapexPortfolioPage: React.FC = () => {
           <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> Portefeuille CAPEX</h1>
           <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{totals.count} business case(s) · {totals.approuves} approuvé(s) · {formatCurrency(totals.montant)}</p>
         </div>
-        <button onClick={() => navigate('/capex/bc/new')} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> Nouveau Business Case</button>
+        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> Nouveau Business Case</button>
       </header>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -178,10 +178,13 @@ const CapexPortfolioPage: React.FC = () => {
       {/* Exécution réelle de l'investissement (GL classe 2) */}
       <CapexExecutionSection adapter={adapter} />
 
-      {/* Pipeline des Business Cases (planification) */}
-      <div className="flex items-center gap-2 pt-2">
+      {/* Pipeline des Business Cases — détail dans son onglet dédié ; ici, aperçu court. */}
+      <div className="flex items-center gap-2 pt-2 flex-wrap">
         <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-4 h-4 text-[var(--color-primary)]" /> Business Cases</h2>
         <span className="text-xs text-[var(--color-text-tertiary)]">pipeline de décision d'investissement</span>
+        <button onClick={() => navigate('/capex/business-cases')} className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-[var(--color-primary)] hover:underline">
+          Voir tous les Business Cases <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
       {loading ? (
@@ -218,6 +221,12 @@ const CapexPortfolioPage: React.FC = () => {
           </table>
         </div>
       )}
+
+      <NewBusinessCaseModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onCreated={(id) => { setShowCreate(false); loadRows(); navigate(`/capex/bc/${id}`); }}
+      />
     </div>
   );
 };

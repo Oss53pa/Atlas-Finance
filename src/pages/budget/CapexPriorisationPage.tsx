@@ -9,10 +9,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
-import { listCapexRequests } from '../../features/budget/services/budgetService';
+import { listCapexRequests, type CapexPriorite, type CapexRequest } from '../../features/budget/services/budgetService';
 import { updateBcFields } from '../../features/budget/services/capexBcService';
 import { computeRanking, listCriteria, type BcScoringInput, type RankedBc, type ScoringCritere } from '../../features/budget/services/capexScoringService';
-import { Trophy, Loader2, Check, Clock, X, Waves } from 'lucide-react';
+import CapexPrioriteKanban from './CapexPrioriteKanban';
+import { Trophy, Loader2, Check, Clock, X, Waves, Table2, Columns3 } from 'lucide-react';
 
 function getClient(adapter: any): any | null {
   const c = (adapter as any).client;
@@ -23,6 +24,9 @@ const CapexPriorisationPage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
   const [items, setItems] = useState<BcScoringInput[]>([]);
+  /** Lignes brutes (avec priorite/account_code) — nécessaires au kanban. */
+  const [candidateRows, setCandidateRows] = useState<CapexRequest[]>([]);
+  const [vue, setVue] = useState<'tableau' | 'kanban'>('tableau');
   const [criteria, setCriteria] = useState<ScoringCritere[]>([]);
   const [enveloppe, setEnveloppe] = useState('0');
   const [loading, setLoading] = useState(true);
@@ -54,7 +58,7 @@ const CapexPriorisationPage: React.FC = () => {
           riskPI: riskByReq[r.id] || 0, obligatoire: !!(r as any).obligatoire, urgence: !!(r as any).urgence,
         }));
         if (cancelled) return;
-        setItems(mapped); setCriteria(crit);
+        setItems(mapped); setCandidateRows(candidates); setCriteria(crit);
         setEnveloppe((e) => (e === '0' ? String(mapped.reduce((s, m) => s + m.montant, 0)) : e));
       } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
       finally { if (!cancelled) setLoading(false); }
@@ -69,6 +73,14 @@ const CapexPriorisationPage: React.FC = () => {
   const passeCount = ranked.filter((r) => r.passe).length;
   const passeMontant = ranked.filter((r) => r.passe).reduce((s, r) => s + r.montant, 0);
 
+  /** Persiste la priorité posée au drag & drop. Optimiste, rollback si la base refuse. */
+  const changePriorite = useCallback(async (id: string, priorite: CapexPriorite) => {
+    const before = candidateRows;
+    setCandidateRows((rs) => rs.map((r) => (r.id === id ? { ...r, priorite } : r)));
+    try { await updateBcFields(adapter, id, { priorite }); }
+    catch (e) { setCandidateRows(before); throw e; }
+  }, [adapter, candidateRows]);
+
   const decide = useCallback(async (id: string, statut: 'approuve' | 'ajourne' | 'rejete') => {
     setBusyId(id); setError(null); setNotice(null);
     try { await updateBcFields(adapter, id, { statut }); setNotice(`BC ${statut}.`); setRefreshKey((k) => k + 1); }
@@ -82,11 +94,24 @@ const CapexPriorisationPage: React.FC = () => {
           <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Trophy className="w-6 h-6 text-[var(--color-primary)]" /> Priorisation du portefeuille</h1>
           <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{ranked.length} BC en lice · {passeCount} servi(s) · {formatCurrency(passeMontant)} sous l'enveloppe</p>
         </div>
-        <label className="text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
-          Enveloppe
-          <input type="number" value={enveloppe} onChange={(e) => setEnveloppe(e.target.value)}
-            className="w-40 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
-        </label>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            {([['tableau', 'Tableau', Table2], ['kanban', 'Kanban', Columns3]] as const).map(([k, lbl, Icon]) => (
+              <button key={k} onClick={() => setVue(k)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                  vue === k ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+                <Icon className="w-3.5 h-3.5" /> {lbl}
+              </button>
+            ))}
+          </div>
+          {vue === 'tableau' && (
+            <label className="text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
+              Enveloppe
+              <input type="number" value={enveloppe} onChange={(e) => setEnveloppe(e.target.value)}
+                className="w-40 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
+            </label>
+          )}
+        </div>
       </header>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -96,6 +121,12 @@ const CapexPriorisationPage: React.FC = () => {
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
       ) : ranked.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
+      ) : vue === 'kanban' ? (
+        <CapexPrioriteKanban
+          rows={candidateRows}
+          onChangePriorite={changePriorite}
+          onOpen={(id) => navigate(`/capex/bc/${id}`)}
+        />
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">

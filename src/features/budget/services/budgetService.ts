@@ -302,6 +302,8 @@ export async function getInvestmentSummary(adapter: DataAdapter, annee: string):
 // ── Capital Appropriation Request (CAR) — demandes CAPEX ─────────────────────
 
 export type CapexStatut = 'demande' | 'approuve' | 'fonds_disponibles' | 'clos' | 'rejete';
+/** Priorité d'arbitrage d'un Business Case (colonnes du kanban de priorisation). */
+export type CapexPriorite = 'critique' | 'haute' | 'moyenne' | 'basse';
 
 export interface CapexRequest {
   id: string;
@@ -315,6 +317,8 @@ export interface CapexRequest {
   valeur_residuelle: number;
   justification: string | null;
   statut: CapexStatut;
+  /** Priorité d'arbitrage posée à la main (kanban de priorisation). */
+  priorite?: CapexPriorite;
   montant_utilise: number;
   created_at?: string;
   // L3 — stage-gate / évaluation financière
@@ -364,7 +368,7 @@ export async function listCapexRequests(adapter: DataAdapter): Promise<CapexRequ
   if (!client) return [];
   const { data } = await client
     .from('capex_requests')
-    .select('id,libelle,account_code,section_id,montant,date_prevue,duree_amortissement,methode,valeur_residuelle,justification,statut,montant_utilise,created_at,categorie,business_case,contingence_pct,taux_actualisation,cashflows,van,tri,payback_simple_mois,payback_actualise_mois,indice_profitabilite,roi,test_capitalisation')
+    .select('id,libelle,account_code,section_id,montant,date_prevue,duree_amortissement,methode,valeur_residuelle,justification,statut,montant_utilise,created_at,priorite,categorie,business_case,contingence_pct,taux_actualisation,cashflows,van,tri,payback_simple_mois,payback_actualise_mois,indice_profitabilite,roi,test_capitalisation')
     .order('created_at', { ascending: false });
   return (data ?? []).map((r: any) => ({
     ...r,

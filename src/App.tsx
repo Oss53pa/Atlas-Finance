@@ -156,6 +156,7 @@ const BudgetPnLPage = lazyRetry(() => import('./pages/budget/BudgetPnLPage'));
 const BudgetAlertesPage = lazyRetry(() => import('./pages/budget/BudgetAlertesPage'));
 const BudgetCampagnePage = lazyRetry(() => import('./pages/budget/BudgetCampagnePage'));
 const CapexPortfolioPage = lazyRetry(() => import('./pages/budget/CapexPortfolioPage'));
+const CapexBusinessCasesPage = lazyRetry(() => import('./pages/budget/CapexBusinessCasesPage'));
 const BCStepperPage = lazyRetry(() => import('./pages/budget/BCStepperPage'));
 const CapexPriorisationPage = lazyRetry(() => import('./pages/budget/CapexPriorisationPage'));
 const ProjetCockpitPage = lazyRetry(() => import('./pages/budget/ProjetCockpitPage'));
@@ -454,6 +455,7 @@ function App() {
                           <Route path="/budget/snapshots" element={work(<BudgetSnapshotsPage />)} />
                           <Route path="/budget/cockpit-analytique" element={work(<BudgetCockpitProPage />)} />
                           <Route path="/capex" element={work(<CapexPortfolioPage />)} />
+                          <Route path="/capex/business-cases" element={work(<CapexBusinessCasesPage />)} />
                           {/* Pas de route littérale « /capex/bc/new » : elle ne capture aucun
                               param `id` (useParams().id = undefined → '' par défaut), donc
                               isNew = id === 'new' était FAUX → « Business Case introuvable ».
