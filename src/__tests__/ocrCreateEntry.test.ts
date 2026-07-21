@@ -103,6 +103,38 @@ describe('createEntryFromInvoice', () => {
       createEntryFromInvoice(adapter, mkData({ subtotal: 0, taxAmount: 0, totalAmount: 0 }), config),
     ).rejects.toThrow();
   });
+
+  it('rattache la fiche tiers : thirdPartyCode + compte auxiliaire', async () => {
+    await db.thirdParties.clear();
+    await db.thirdParties.add({
+      id: 'tp-1', code: 'F0042', name: 'ACME SARL', type: 'supplier',
+      accountCode: '401042', taxId: 'P1234567', balance: 0, isActive: true,
+    } as never);
+
+    const id = await createEntryFromInvoice(
+      adapter,
+      mkData({ direction: 'purchase', supplierName: 'Acme Sarl' }), // casse différente
+      config,
+    );
+    const e = await db.journalEntries.get(id);
+    const collectif = e!.lines.find(l => l.accountCode!.startsWith('401'))!;
+    expect(collectif.accountCode).toBe('401042');   // compte auxiliaire de la fiche
+    expect(collectif.thirdPartyCode).toBe('F0042'); // ligne visible des vues par tiers
+    await db.thirdParties.clear();
+  });
+
+  it('aucune fiche correspondante → compte collectif, sans code tiers (pas de devinette)', async () => {
+    await db.thirdParties.clear();
+    const id = await createEntryFromInvoice(
+      adapter,
+      mkData({ direction: 'purchase', supplierName: 'INCONNU SA' }),
+      config,
+    );
+    const e = await db.journalEntries.get(id);
+    const l401 = e!.lines.find(l => l.accountCode === '401')!;
+    expect(l401.thirdPartyCode).toBeUndefined();
+    expect(l401.thirdPartyName).toBe('INCONNU SA');
+  });
 });
 
 describe('detectInvoiceDirection', () => {

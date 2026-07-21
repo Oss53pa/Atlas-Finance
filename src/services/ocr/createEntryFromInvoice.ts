@@ -69,6 +69,46 @@ export function detectInvoiceDirection(
   return taxMatch || nameMatch ? 'sale' : 'purchase';
 }
 
+interface ThirdPartyRow { code?: string; name?: string; taxId?: string; type?: string; accountCode?: string }
+
+/**
+ * Retrouve la FICHE tiers correspondant à l'émetteur/destinataire de la facture.
+ *
+ * POURQUOI : écrire seulement `thirdPartyName` laisse la ligne 401/411 sans
+ * `thirdPartyCode` — elle devient invisible de toute vue par tiers (encours,
+ * balance âgée, relances, lettrage) et casse la réconciliation sous-registre ↔
+ * compte collectif. On rapproche par NIF/IFU (fort) puis par nom (tolérant).
+ * Aucune fiche créée à la volée : en cas de doute on ne devine pas.
+ */
+async function resolveThirdPartyCode(
+  adapter: DataAdapter,
+  name: string,
+  taxId: string | undefined,
+  wanted: 'customer' | 'supplier',
+): Promise<{ code: string; accountCode?: string } | null> {
+  let rows: ThirdPartyRow[] = [];
+  try {
+    rows = await adapter.getAll<ThirdPartyRow>('thirdParties');
+  } catch {
+    return null; // fiches indisponibles → on comptabilise quand même (nom seul)
+  }
+  const candidates = rows.filter(r => !r.type || r.type === wanted);
+  const tax = digits(taxId);
+  if (tax.length >= 4) {
+    const byTax = candidates.find(r => digits(r.taxId) === tax);
+    if (byTax?.code) return { code: byTax.code, accountCode: byTax.accountCode };
+  }
+  const n = norm(name);
+  if (n.length >= 4) {
+    const byName = candidates.find(r => {
+      const rn = norm(r.name);
+      return rn.length >= 4 && (rn === n || rn.includes(n) || n.includes(rn));
+    });
+    if (byName?.code) return { code: byName.code, accountCode: byName.accountCode };
+  }
+  return null;
+}
+
 export async function createEntryFromInvoice(
   adapter: DataAdapter,
   data: ExtractedData,
@@ -104,6 +144,19 @@ export async function createEntryFromInvoice(
     : (data.supplierName || 'Fournisseur');
   const label = `${isSale ? 'Facture vente' : 'Facture'} ${data.documentNumber || ''} — ${thirdParty}`.trim();
 
+  // Code tiers : indispensable pour que la ligne collective remonte dans les vues
+  // par tiers. Si la fiche porte un compte auxiliaire (411001…), on l'utilise
+  // plutôt que le compte collectif générique.
+  const fiche = await resolveThirdPartyCode(
+    adapter,
+    thirdParty,
+    isSale ? data.customerTaxId : data.supplierTaxId,
+    isSale ? 'customer' : 'supplier',
+  );
+  const thirdPartyCode = fiche?.code;
+  const compteTiers = fiche?.accountCode
+    || (isSale ? config.defaultCustomerAccount : config.defaultSupplierAccount);
+
   const lines: DBJournalLine[] = [];
 
   if (isSale) {
@@ -111,8 +164,9 @@ export async function createEntryFromInvoice(
     // Avoir → sens inversé.
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: config.defaultCustomerAccount,
+      accountCode: compteTiers,
       accountName: thirdParty,
+      thirdPartyCode,
       thirdPartyName: thirdParty,
       label,
       debit: isCreditNote ? 0 : ttc,
@@ -158,8 +212,9 @@ export async function createEntryFromInvoice(
     }
     lines.push({
       id: crypto.randomUUID(),
-      accountCode: config.defaultSupplierAccount,
+      accountCode: compteTiers,
       accountName: thirdParty,
+      thirdPartyCode,
       thirdPartyName: thirdParty,
       label,
       debit: isCreditNote ? ttc : 0,
