@@ -133,7 +133,7 @@ const AssetsDisposals: React.FC = () => {
 
   const handleCreateDisposal = async () => {
     if (!createForm.assetId || !createForm.disposalType || !createForm.disposalDate) {
-      toast.error('Actif, type et date de sortie requis'); return;
+      toast.error(t('assetsDisposals.errRequiredFields')); return;
     }
     setSaving(true);
     try {
@@ -143,11 +143,14 @@ const AssetsDisposals: React.FC = () => {
         reason: createForm.reason || null, buyer: createForm.buyer || null, location: createForm.location || null, notes: createForm.notes || null,
       };
       const { gainLoss } = await createDisposal(adapter, input);
-      toast.success(`Sortie enregistrée · ${gainLoss >= 0 ? 'plus-value' : 'moins-value'} ${formatCurrency(Math.abs(gainLoss))} · écriture de cession générée`);
+      toast.success(t('assetsDisposals.toastSaved', {
+        type: gainLoss >= 0 ? t('assetsDisposals.gain') : t('assetsDisposals.loss'),
+        amount: formatCurrency(Math.abs(gainLoss)),
+      }));
       setDisposalModal({ isOpen: false, mode: 'view' });
       setCreateForm({ assetId: '', disposalType: '', disposalDate: '', disposalValue: '', method: '', reason: '', buyer: '', location: '', notes: '' });
       await reload();
-    } catch (e: any) { toast.error('Échec : ' + (e?.message || 'erreur')); }
+    } catch (e: any) { toast.error(t('assetsDisposals.toastFailed') + ' ' + (e?.message || t('assetsDisposals.genericError'))); }
     finally { setSaving(false); }
   };
 
@@ -171,7 +174,7 @@ const AssetsDisposals: React.FC = () => {
         category: asset.category,
         disposalType: (rec?.disposal_type as AssetDisposal['disposalType']) || (asset.status === 'disposed' ? 'sale' as const : 'scrap' as const),
         status: 'completed' as const,
-        reason: rec?.reason ?? (asset.status === 'disposed' ? 'Cession' : 'Mise au rebut'),
+        reason: rec?.reason ?? (asset.status === 'disposed' ? t('assetsDisposals.reasonSale') : t('assetsDisposals.reasonScrap')),
         initiatedDate: rec?.disposal_date ?? asset.acquisitionDate,
         plannedDate: rec?.disposal_date ?? asset.acquisitionDate,
         completedDate: rec?.disposal_date ?? asset.acquisitionDate,
@@ -180,16 +183,16 @@ const AssetsDisposals: React.FC = () => {
         // Prix de cession et plus/moins-value : depuis l'enregistrement réel.
         disposalValue: rec ? Number(rec.disposal_value) || 0 : null,
         gainLoss: rec ? Number(rec.gain_loss) || 0 : null,
-        method: rec?.method ?? (asset.status === 'disposed' ? 'Vente' : 'Mise au rebut'),
+        method: rec?.method ?? (asset.status === 'disposed' ? t('assetsDisposals.methodSale') : t('assetsDisposals.methodScrap')),
         location: rec?.location ?? '',
         initiatedBy: '',
         responsiblePerson: '',
         documentation: [],
         environmentalCompliance: null,
-        notes: rec?.notes ?? `Méthode amortissement: ${asset.depreciationMethod}`
+        notes: rec?.notes ?? t('assetsDisposals.notesDepreciationMethod', { method: String(asset.depreciationMethod ?? '') })
       };
     });
-  }, [dbDisposedAssets, disposalRecords]);
+  }, [dbDisposedAssets, disposalRecords, t]);
 
   // Approvals derived from disposals (none pending for completed disposals)
   const approvals: DisposalApproval[] = [];
@@ -304,32 +307,32 @@ const AssetsDisposals: React.FC = () => {
   };
 
   const statusLabels = {
-    planned: 'Planifié',
-    in_process: 'En cours',
-    completed: 'Terminé',
-    cancelled: 'Annulé'
+    planned: t('assetsDisposals.statusPlanned'),
+    in_process: t('assetsDisposals.statusInProcess'),
+    completed: t('assetsDisposals.statusCompleted'),
+    cancelled: t('assetsDisposals.statusCancelled')
   };
 
   const typeLabels = {
-    sale: 'Vente',
-    donation: 'Don',
-    trade_in: 'Reprise',
-    destruction: 'Destruction',
-    scrap: 'Récupération',
-    transfer: 'Transfert'
+    sale: t('assetsDisposals.typeSale'),
+    donation: t('assetsDisposals.typeDonation'),
+    trade_in: t('assetsDisposals.typeTradeIn'),
+    destruction: t('assetsDisposals.typeDestruction'),
+    scrap: t('assetsDisposals.typeScrap'),
+    transfer: t('assetsDisposals.typeTransfer')
   };
 
   const categoryLabels: Record<string, string> = {
-    materiel_informatique: 'Matériel IT',
-    vehicules: 'Véhicules',
-    mobilier: 'Mobilier',
-    equipements: 'Équipements'
+    materiel_informatique: t('assetsDisposals.categoryIt'),
+    vehicules: t('assetsDisposals.categoryVehicles'),
+    mobilier: t('assetsDisposals.categoryFurniture'),
+    equipements: t('assetsDisposals.categoryEquipment')
   };
 
   const statusChartData = [
-    { label: 'Terminés', value: aggregatedData.completedDisposals, color: 'bg-[var(--color-primary)]' },
+    { label: t('assetsDisposals.chartCompleted'), value: aggregatedData.completedDisposals, color: 'bg-[var(--color-primary)]' },
     { label: t('status.inProgress'), value: aggregatedData.inProcessDisposals, color: 'bg-[var(--color-text-secondary)]' },
-    { label: 'Planifiés', value: aggregatedData.plannedDisposals, color: 'bg-[var(--color-text-tertiary)]' }
+    { label: t('assetsDisposals.chartPlanned'), value: aggregatedData.plannedDisposals, color: 'bg-[var(--color-text-tertiary)]' }
   ];
 
   const typeChartData = Object.entries(typeLabels).map(([key, label]) => ({
@@ -347,8 +350,8 @@ const AssetsDisposals: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Sorties d'Actifs"
-          subtitle="Gestion des cessions, dons et destructions d'immobilisations"
+          title={t('assetsDisposals.title')}
+          subtitle={t('assetsDisposals.subtitle')}
           icon={Trash2}
           action={
             <div className="flex gap-3">
@@ -356,31 +359,31 @@ const AssetsDisposals: React.FC = () => {
                 variant="outline"
                 icon={FileText}
                 onClick={() => {
-                  toast.success('Génération du rapport en cours...');
+                  toast.success(t('assetsDisposals.reportGenerating'));
                 }}
               >
-                Rapport
+                {t('assetsDisposals.report')}
               </ElegantButton>
               <ExportMenu
                 data={filteredDisposals as unknown as Record<string, unknown>[]}
                 filename="sorties_actifs"
                 columns={{
-                  assetName: 'Nom Actif',
-                  assetTag: 'Tag',
-                  category: 'Catégorie',
-                  disposalType: 'Type Sortie',
-                  status: 'Statut',
-                  reason: 'Raison',
-                  plannedDate: 'Date Prévue',
-                  originalCost: 'Coût Original',
-                  bookValue: 'Valeur Comptable',
-                  disposalValue: 'Valeur Sortie',
-                  gainLoss: 'Plus/Moins-Value',
-                  buyer: 'Acheteur',
-                  method: 'Méthode',
-                  location: 'Localisation'
+                  assetName: t('assetsDisposals.colAssetName'),
+                  assetTag: t('assetsDisposals.colTag'),
+                  category: t('assetsDisposals.colCategory'),
+                  disposalType: t('assetsDisposals.colDisposalType'),
+                  status: t('assetsDisposals.colStatus'),
+                  reason: t('assetsDisposals.colReason'),
+                  plannedDate: t('assetsDisposals.colPlannedDate'),
+                  originalCost: t('assetsDisposals.colOriginalCost'),
+                  bookValue: t('assetsDisposals.colBookValue'),
+                  disposalValue: t('assetsDisposals.colDisposalValue'),
+                  gainLoss: t('assetsDisposals.colGainLoss'),
+                  buyer: t('assetsDisposals.colBuyer'),
+                  method: t('assetsDisposals.colMethod'),
+                  location: t('assetsDisposals.colLocation')
                 }}
-                buttonText="Exporter"
+                buttonText={t('assetsDisposals.export')}
                 buttonVariant="outline"
               />
               <ElegantButton
@@ -388,7 +391,7 @@ const AssetsDisposals: React.FC = () => {
                 icon={Plus}
                 onClick={() => setDisposalModal({ isOpen: true, mode: 'create' })}
               >
-                Nouvelle Sortie
+                {t('assetsDisposals.newDisposal')}
               </ElegantButton>
             </div>
           }
@@ -397,9 +400,9 @@ const AssetsDisposals: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Sorties Totales"
+            title={t('assetsDisposals.kpiTotalDisposals')}
             value={aggregatedData.totalDisposals.toString()}
-            subtitle={`${aggregatedData.completedDisposals} terminées`}
+            subtitle={t('assetsDisposals.kpiTotalDisposalsSub', { count: String(aggregatedData.completedDisposals) })}
             icon={Trash2}
             color="primary"
             delay={0.1}
@@ -407,9 +410,9 @@ const AssetsDisposals: React.FC = () => {
           />
 
           <KPICard
-            title="Plus/Moins-Value"
+            title={t('assetsDisposals.kpiGainLoss')}
             value="—"
-            subtitle="Produit de cession non renseigné"
+            subtitle={t('assetsDisposals.kpiGainLossSub')}
             icon={TrendingUp}
             color="neutral"
             delay={0.2}
@@ -417,9 +420,9 @@ const AssetsDisposals: React.FC = () => {
           />
 
           <KPICard
-            title="Valeur de Cession"
+            title={t('assetsDisposals.kpiDisposalValue')}
             value="—"
-            subtitle={`VNC: ${formatCurrency(aggregatedData.totalBookValue)}`}
+            subtitle={t('assetsDisposals.kpiDisposalValueSub', { value: formatCurrency(aggregatedData.totalBookValue) })}
             icon={DollarSign}
             color="neutral"
             delay={0.3}
@@ -427,9 +430,9 @@ const AssetsDisposals: React.FC = () => {
           />
 
           <KPICard
-            title="Valeur d'Origine"
+            title={t('assetsDisposals.kpiOriginalValue')}
             value={formatCurrency(aggregatedData.totalOriginalValue)}
-            subtitle={`${aggregatedData.totalDisposals} actif(s) sorti(s)`}
+            subtitle={t('assetsDisposals.kpiOriginalValueSub', { count: String(aggregatedData.totalDisposals) })}
             icon={DollarSign}
             color="neutral"
             delay={0.4}
@@ -451,24 +454,24 @@ const AssetsDisposals: React.FC = () => {
                       : 'text-gray-600 hover:text-[var(--color-text-tertiary)]'
                   }`}
                 >
-                  {mode === 'disposals' ? 'Sorties' :
-                   mode === 'approvals' ? 'Approbations' : 'Analytique'}
+                  {mode === 'disposals' ? t('assetsDisposals.tabDisposals') :
+                   mode === 'approvals' ? t('assetsDisposals.tabApprovals') : t('assetsDisposals.tabAnalytics')}
                 </button>
               ))}
             </div>
 
             <div className="flex items-center gap-4">
               <PageHeaderActions />
-              <label className="text-sm font-medium text-gray-900">Période:</label>
+              <label className="text-sm font-medium text-gray-900">{t('assetsDisposals.periodLabel')}</label>
               <select
                 value={filterPeriod}
                 onChange={(e) => setFilterPeriod(e.target.value)}
                 className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-var(--color-blue-primary)"
               >
-                <option value="all">Toutes les périodes</option>
-                <option value="current_month">Mois en cours</option>
-                <option value="last_month">Mois dernier</option>
-                <option value="current_year">Année en cours</option>
+                <option value="all">{t('assetsDisposals.periodAll')}</option>
+                <option value="current_month">{t('assetsDisposals.periodCurrentMonth')}</option>
+                <option value="last_month">{t('assetsDisposals.periodLastMonth')}</option>
+                <option value="current_year">{t('assetsDisposals.periodCurrentYear')}</option>
               </select>
             </div>
           </div>
@@ -484,8 +487,8 @@ const AssetsDisposals: React.FC = () => {
                 transition={{ delay: 0.5 }}
               >
                 <ModernChartCard
-                  title="État des Sorties"
-                  subtitle="Répartition par statut"
+                  title={t('assetsDisposals.chartStatusTitle')}
+                  subtitle={t('assetsDisposals.chartStatusSubtitle')}
                   icon={PieChart}
                 >
                   <ColorfulBarChart
@@ -501,8 +504,8 @@ const AssetsDisposals: React.FC = () => {
                 transition={{ delay: 0.6 }}
               >
                 <ModernChartCard
-                  title="Types de Sortie"
-                  subtitle="Répartition par mode de sortie"
+                  title={t('assetsDisposals.chartTypeTitle')}
+                  subtitle={t('assetsDisposals.chartTypeSubtitle')}
                   icon={Target}
                 >
                   <ColorfulBarChart
@@ -516,14 +519,14 @@ const AssetsDisposals: React.FC = () => {
             {/* Filters */}
             <UnifiedCard variant="elevated" size="md">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Filtres et Recherche</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('assetsDisposals.filtersTitle')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 h-4 w-4" />
                     <input
                       type="text"
-                      placeholder="Rechercher..."
+                      placeholder={t('assetsDisposals.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-var(--color-blue-primary)"
@@ -535,7 +538,7 @@ const AssetsDisposals: React.FC = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-var(--color-blue-primary)"
                   >
-                    <option value="all">Tous les statuts</option>
+                    <option value="all">{t('assetsDisposals.allStatuses')}</option>
                     {Object.entries(statusLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -546,7 +549,7 @@ const AssetsDisposals: React.FC = () => {
                     onChange={(e) => setFilterType(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-var(--color-blue-primary)"
                   >
-                    <option value="all">Tous les types</option>
+                    <option value="all">{t('assetsDisposals.allTypes')}</option>
                     {Object.entries(typeLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -557,7 +560,7 @@ const AssetsDisposals: React.FC = () => {
                     onChange={(e) => setFilterCategory(e.target.value)}
                     className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-var(--color-blue-primary)"
                   >
-                    <option value="all">Toutes les catégories</option>
+                    <option value="all">{t('assetsDisposals.allCategories')}</option>
                     {Object.entries(categoryLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -571,7 +574,7 @@ const AssetsDisposals: React.FC = () => {
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Sorties d'Actifs ({filteredDisposals.length})
+                    {t('assetsDisposals.listTitle', { count: String(filteredDisposals.length) })}
                   </h3>
                   {selectedDisposals.length > 0 && (
                     <div className="flex gap-2">
@@ -579,10 +582,10 @@ const AssetsDisposals: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          toast(`Actions groupées pour ${selectedDisposals.length} éléments`);
+                          toast(t('assetsDisposals.bulkActionsToast', { count: String(selectedDisposals.length) }));
                         }}
                       >
-                        Actions groupées ({selectedDisposals.length})
+                        {t('assetsDisposals.bulkActions', { count: String(selectedDisposals.length) })}
                       </ElegantButton>
                     </div>
                   )}
@@ -623,12 +626,12 @@ const AssetsDisposals: React.FC = () => {
                                 </span>
                                 {disposal.environmentalCompliance && (
                                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                                    Conforme env.
+                                    {t('assetsDisposals.envCompliant')}
                                   </span>
                                 )}
                                 {disposal.dataWiping && (
                                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)]">
-                                    Données effacées
+                                    {t('assetsDisposals.dataWiped')}
                                   </span>
                                 )}
                               </div>
@@ -658,17 +661,17 @@ const AssetsDisposals: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-var(--color-border-light)">
                           <div>
-                            <p className="text-sm text-gray-600">Valeur comptable:</p>
+                            <p className="text-sm text-gray-600">{t('assetsDisposals.bookValueLabel')}</p>
                             <p className="font-medium text-gray-900">{formatCurrency(disposal.bookValue)}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Valeur de cession:</p>
+                            <p className="text-sm text-gray-600">{t('assetsDisposals.disposalValueLabel')}</p>
                             <p className="font-medium text-gray-900">
                               {disposal.disposalValue != null ? formatCurrency(disposal.disposalValue) : '—'}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Plus/Moins-value:</p>
+                            <p className="text-sm text-gray-600">{t('assetsDisposals.gainLossLabel')}</p>
                             <p className="font-medium text-gray-900">
                               {disposal.gainLoss != null
                                 ? `${disposal.gainLoss >= 0 ? '+' : ''}${formatCurrency(disposal.gainLoss)}`
@@ -676,9 +679,9 @@ const AssetsDisposals: React.FC = () => {
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-gray-600">Acheteur/Destinataire:</p>
+                            <p className="text-sm text-gray-600">{t('assetsDisposals.buyerRecipientLabel')}</p>
                             <p className="font-medium text-gray-900">
-                              {disposal.buyer || disposal.recipient || 'Non défini'}
+                              {disposal.buyer || disposal.recipient || t('assetsDisposals.notDefined')}
                             </p>
                           </div>
                         </div>
@@ -696,10 +699,10 @@ const AssetsDisposals: React.FC = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Approbations en Attente
+                  {t('assetsDisposals.pendingApprovals')}
                 </h3>
                 <span className="px-3 py-1 text-sm font-medium rounded-full bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]">
-                  {aggregatedData.pendingApprovals} en attente
+                  {t('assetsDisposals.pendingCount', { count: String(aggregatedData.pendingApprovals) })}
                 </span>
               </div>
 
@@ -730,7 +733,7 @@ const AssetsDisposals: React.FC = () => {
                                   {typeLabels[disposal.disposalType]}
                                 </span>
                                 <span className="text-sm text-gray-600">
-                                  Valeur: {disposal.disposalValue != null ? formatCurrency(disposal.disposalValue) : '—'}
+                                  {t('assetsDisposals.valuePrefix')} {disposal.disposalValue != null ? formatCurrency(disposal.disposalValue) : '—'}
                                 </span>
                               </div>
                             </div>
@@ -741,29 +744,29 @@ const AssetsDisposals: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                toast.error('Sortie rejetée');
+                                toast.error(t('assetsDisposals.disposalRejected'));
                               }}
                             >
-                              Rejeter
+                              {t('assetsDisposals.reject')}
                             </ElegantButton>
                             <ElegantButton
                               variant="primary"
                               size="sm"
                               onClick={() => {
-                                toast.success('Sortie approuvée avec succès');
+                                toast.success(t('assetsDisposals.disposalApproved'));
                               }}
                             >
-                              Approuver
+                              {t('assetsDisposals.approve')}
                             </ElegantButton>
                           </div>
                         </div>
 
                         <div className="bg-[var(--color-text-secondary)]/10 p-4 rounded-lg">
-                          <p className="text-sm font-medium text-var(--color-yellow-dark)">Commentaires de l'approbateur:</p>
+                          <p className="text-sm font-medium text-var(--color-yellow-dark)">{t('assetsDisposals.approverComments')}</p>
                           <p className="text-sm text-[var(--color-text-secondary)] mt-1">{approval.comments}</p>
                           {approval.conditions && approval.conditions.length > 0 && (
                             <div className="mt-2">
-                              <p className="text-sm font-medium text-var(--color-yellow-dark)">Conditions:</p>
+                              <p className="text-sm font-medium text-var(--color-yellow-dark)">{t('assetsDisposals.conditions')}</p>
                               <ul className="list-disc list-inside text-sm text-[var(--color-text-secondary)] mt-1">
                                 {approval.conditions.map((condition, i) => (
                                   <li key={i}>{condition}</li>
@@ -785,12 +788,12 @@ const AssetsDisposals: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <UnifiedCard variant="elevated" size="lg">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Impact Financier</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('assetsDisposals.financialImpact')}</h3>
 
                 <div className="space-y-4">
                   <div className="p-4 bg-[var(--color-text-tertiary)]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-text-tertiary)]">Valeur Originale Totale</span>
+                      <span className="text-sm font-medium text-[var(--color-text-tertiary)]">{t('assetsDisposals.totalOriginalValue')}</span>
                       <span className="text-lg font-bold text-var(--color-blue-dark)">
                         {formatCurrency(aggregatedData.totalOriginalValue)}
                       </span>
@@ -799,7 +802,7 @@ const AssetsDisposals: React.FC = () => {
 
                   <div className="p-4 bg-[var(--color-text-secondary)]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-text-secondary)]">Valeur Comptable Nette</span>
+                      <span className="text-sm font-medium text-[var(--color-text-secondary)]">{t('assetsDisposals.netBookValue')}</span>
                       <span className="text-lg font-bold text-var(--color-yellow-dark)">
                         {formatCurrency(aggregatedData.totalBookValue)}
                       </span>
@@ -808,18 +811,18 @@ const AssetsDisposals: React.FC = () => {
 
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Valeur de Cession</span>
+                      <span className="text-sm font-medium text-gray-600">{t('assetsDisposals.disposalValue')}</span>
                       <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Produit de cession non renseigné dans les fiches d'immobilisation</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('assetsDisposals.disposalValueEmptyHint')}</p>
                   </div>
 
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Plus/Moins-value Totale</span>
+                      <span className="text-sm font-medium text-gray-600">{t('assetsDisposals.totalGainLoss')}</span>
                       <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Non calculable sans valeur de cession</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('assetsDisposals.gainLossEmptyHint')}</p>
                   </div>
                 </div>
               </div>
@@ -827,20 +830,20 @@ const AssetsDisposals: React.FC = () => {
 
             <UnifiedCard variant="elevated" size="lg">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Conformité et Processus</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{t('assetsDisposals.complianceProcess')}</h3>
 
                 <div className="space-y-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-gray-600">Conformité Environnementale</span>
+                      <span className="text-sm font-medium text-gray-600">{t('assetsDisposals.envCompliance')}</span>
                       <span className="text-lg font-bold text-gray-900">—</span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Aucune donnée — module non alimenté par l'import</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('assetsDisposals.envComplianceEmptyHint')}</p>
                   </div>
 
                   <div className="p-4 bg-[var(--color-text-tertiary)]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-text-tertiary)]">Taux de Finalisation</span>
+                      <span className="text-sm font-medium text-[var(--color-text-tertiary)]">{t('assetsDisposals.completionRate')}</span>
                       <span className="text-lg font-bold text-var(--color-blue-dark)">
                         {aggregatedData.totalDisposals > 0
                           ? formatPercentage(aggregatedData.completedDisposals / aggregatedData.totalDisposals)
@@ -857,12 +860,12 @@ const AssetsDisposals: React.FC = () => {
 
                   <div className="p-4 bg-[var(--color-text-secondary)]/10 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-[var(--color-text-secondary)]">Approbations en Attente</span>
+                      <span className="text-sm font-medium text-[var(--color-text-secondary)]">{t('assetsDisposals.pendingApprovals')}</span>
                       <span className="text-lg font-bold text-var(--color-yellow-dark)">
                         {aggregatedData.pendingApprovals}
                       </span>
                     </div>
-                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">Traitement nécessaire</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('assetsDisposals.processingRequired')}</p>
                   </div>
                 </div>
               </div>
@@ -881,10 +884,10 @@ const AssetsDisposals: React.FC = () => {
               <div className="p-6 border-b border-gray-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {disposalModal.mode === 'create' ? 'Nouvelle Sortie d\'Actif' :
-                     disposalModal.mode === 'edit' ? 'Modifier la Sortie' :
-                     disposalModal.mode === 'approve' ? 'Approuver la Sortie' :
-                     'Détails de la Sortie'}
+                    {disposalModal.mode === 'create' ? t('assetsDisposals.modalCreateTitle') :
+                     disposalModal.mode === 'edit' ? t('assetsDisposals.modalEditTitle') :
+                     disposalModal.mode === 'approve' ? t('assetsDisposals.modalApproveTitle') :
+                     t('assetsDisposals.modalViewTitle')}
                   </h3>
                   <button
                     onClick={() => setDisposalModal({ isOpen: false, mode: 'view' })}
@@ -901,7 +904,7 @@ const AssetsDisposals: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Actif
+                          {t('assetsDisposals.fieldAsset')}
                         </label>
                         <p className="text-gray-900 font-semibold">{disposalModal.disposal.assetName}</p>
                         <p className="text-sm text-gray-600">{disposalModal.disposal.assetTag}</p>
@@ -909,7 +912,7 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Type de Sortie
+                          {t('assetsDisposals.fieldDisposalType')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getDisposalTypeColor(disposalModal.disposal.disposalType)}`}>
                           {typeLabels[disposalModal.disposal.disposalType]}
@@ -918,24 +921,24 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Raison
+                          {t('assetsDisposals.fieldReason')}
                         </label>
                         <p className="text-gray-900">{disposalModal.disposal.reason}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Méthode
+                          {t('assetsDisposals.fieldMethod')}
                         </label>
                         <p className="text-gray-900">{disposalModal.disposal.method}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Acheteur/Destinataire
+                          {t('assetsDisposals.fieldBuyerRecipient')}
                         </label>
                         <p className="text-gray-900">
-                          {disposalModal.disposal.buyer || disposalModal.disposal.recipient || 'Non défini'}
+                          {disposalModal.disposal.buyer || disposalModal.disposal.recipient || t('assetsDisposals.notDefined')}
                         </p>
                       </div>
                     </div>
@@ -943,7 +946,7 @@ const AssetsDisposals: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Statut
+                          {t('assetsDisposals.fieldStatus')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(disposalModal.disposal.status)}`}>
                           {statusLabels[disposalModal.disposal.status]}
@@ -952,7 +955,7 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Valeur d'Origine
+                          {t('assetsDisposals.fieldOriginalValue')}
                         </label>
                         <p className="text-gray-900 font-semibold">
                           {formatCurrency(disposalModal.disposal.originalCost)}
@@ -961,7 +964,7 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Valeur Comptable Nette
+                          {t('assetsDisposals.fieldNetBookValue')}
                         </label>
                         <p className="text-gray-900">
                           {formatCurrency(disposalModal.disposal.bookValue)}
@@ -970,7 +973,7 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Valeur de Cession
+                          {t('assetsDisposals.fieldDisposalValue')}
                         </label>
                         <p className="text-gray-900">
                           {disposalModal.disposal.disposalValue != null
@@ -981,7 +984,7 @@ const AssetsDisposals: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-1">
-                          Plus/Moins-Value
+                          {t('assetsDisposals.fieldGainLoss')}
                         </label>
                         <p className="font-semibold text-gray-900">
                           {disposalModal.disposal.gainLoss != null
@@ -998,7 +1001,7 @@ const AssetsDisposals: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Actif
+                            {t('assetsDisposals.fieldAsset')}
                           </label>
                           <div className="p-3 bg-gray-50 rounded-lg">
                             <p className="font-semibold text-gray-900">{disposalModal.disposal.assetName}</p>
@@ -1008,24 +1011,24 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Type de sortie *
+                            {t('assetsDisposals.formDisposalTypeRequired')}
                           </label>
                           <select
                             defaultValue={disposalModal.disposal.disposalType}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           >
-                            <option value="sale">Vente</option>
-                            <option value="donation">Don</option>
-                            <option value="destruction">Destruction</option>
-                            <option value="trade_in">Échange</option>
-                            <option value="scrap">Mise au rebut</option>
-                            <option value="transfer">Transfert</option>
+                            <option value="sale">{t('assetsDisposals.optSale')}</option>
+                            <option value="donation">{t('assetsDisposals.optDonation')}</option>
+                            <option value="destruction">{t('assetsDisposals.optDestruction')}</option>
+                            <option value="trade_in">{t('assetsDisposals.optTradeIn')}</option>
+                            <option value="scrap">{t('assetsDisposals.optScrap')}</option>
+                            <option value="transfer">{t('assetsDisposals.optTransfer')}</option>
                           </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Date de sortie *
+                            {t('assetsDisposals.formDisposalDateRequired')}
                           </label>
                           <input
                             type="date"
@@ -1036,7 +1039,7 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Valeur de sortie (FCFA) *
+                            {t('assetsDisposals.formDisposalValueRequired')}
                           </label>
                           <input
                             type="number"
@@ -1047,12 +1050,12 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Méthode de cession
+                            {t('assetsDisposals.formDisposalMethod')}
                           </label>
                           <input
                             type="text"
                             defaultValue={disposalModal.disposal.method}
-                            placeholder="Ex: Vente aux enchères, vente directe..."
+                            placeholder={t('assetsDisposals.formMethodPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1062,7 +1065,7 @@ const AssetsDisposals: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Raison de la sortie *
+                            {t('assetsDisposals.formReasonRequired')}
                           </label>
                           <textarea
                             defaultValue={disposalModal.disposal.reason}
@@ -1073,39 +1076,39 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Acheteur / Bénéficiaire
+                            {t('assetsDisposals.formBuyerBeneficiary')}
                           </label>
                           <input
                             type="text"
                             defaultValue={disposalModal.disposal.buyer || disposalModal.disposal.recipient}
-                            placeholder="Nom de l'acheteur ou bénéficiaire"
+                            placeholder={t('assetsDisposals.formBuyerPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Statut
+                            {t('assetsDisposals.formStatus')}
                           </label>
                           <select
                             defaultValue={disposalModal.disposal.status}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           >
-                            <option value="planned">Planifié</option>
-                            <option value="in_process">En cours</option>
-                            <option value="completed">Terminé</option>
-                            <option value="cancelled">Annulé</option>
+                            <option value="planned">{t('assetsDisposals.statusPlanned')}</option>
+                            <option value="in_process">{t('assetsDisposals.statusInProcess')}</option>
+                            <option value="completed">{t('assetsDisposals.statusCompleted')}</option>
+                            <option value="cancelled">{t('assetsDisposals.statusCancelled')}</option>
                           </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Localisation
+                            {t('assetsDisposals.formLocation')}
                           </label>
                           <input
                             type="text"
                             defaultValue={disposalModal.disposal.location}
-                            placeholder="Lieu de récupération"
+                            placeholder={t('assetsDisposals.formLocationPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
@@ -1113,7 +1116,7 @@ const AssetsDisposals: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Valeur comptable
+                              {t('assetsDisposals.formBookValue')}
                             </label>
                             <div className="p-2 bg-gray-50 rounded text-sm text-gray-600">
                               {formatCurrency(disposalModal.disposal.bookValue)}
@@ -1121,7 +1124,7 @@ const AssetsDisposals: React.FC = () => {
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-900 mb-2">
-                              Plus/Moins-value
+                              {t('assetsDisposals.formGainLoss')}
                             </label>
                             <div className="p-2 bg-gray-50 rounded text-sm font-semibold text-gray-900">
                               {disposalModal.disposal.gainLoss != null
@@ -1136,11 +1139,11 @@ const AssetsDisposals: React.FC = () => {
                     {/* Section notes */}
                     <div className="border-t pt-4">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Notes additionnelles
+                        {t('assetsDisposals.formNotes')}
                       </label>
                       <textarea
                         defaultValue={disposalModal.disposal.notes}
-                        placeholder="Informations complémentaires..."
+                        placeholder={t('assetsDisposals.formNotesPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       />
@@ -1153,12 +1156,12 @@ const AssetsDisposals: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Sélectionner l'actif *
+                            {t('assetsDisposals.formSelectAssetRequired')}
                           </label>
                           <select value={createForm.assetId} onChange={e => setCreateForm(s => ({ ...s, assetId: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
-                            <option value="">-- Choisir un actif --</option>
+                            <option value="">{t('assetsDisposals.formChooseAsset')}</option>
                             {activeAssets.length === 0 && (
-                              <option value="" disabled>Aucun actif en service</option>
+                              <option value="" disabled>{t('assetsDisposals.formNoActiveAsset')}</option>
                             )}
                             {activeAssets.map((a) => {
                               const asset = a as unknown as Record<string, unknown>;
@@ -1173,22 +1176,22 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Type de sortie *
+                            {t('assetsDisposals.formDisposalTypeRequired')}
                           </label>
                           <select value={createForm.disposalType} onChange={e => setCreateForm(s => ({ ...s, disposalType: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
-                            <option value="">-- Sélectionner le type --</option>
-                            <option value="sale">Vente</option>
-                            <option value="donation">Don</option>
-                            <option value="destruction">Destruction</option>
-                            <option value="trade_in">Échange</option>
-                            <option value="scrap">Mise au rebut</option>
-                            <option value="transfer">Transfert</option>
+                            <option value="">{t('assetsDisposals.formSelectType')}</option>
+                            <option value="sale">{t('assetsDisposals.optSale')}</option>
+                            <option value="donation">{t('assetsDisposals.optDonation')}</option>
+                            <option value="destruction">{t('assetsDisposals.optDestruction')}</option>
+                            <option value="trade_in">{t('assetsDisposals.optTradeIn')}</option>
+                            <option value="scrap">{t('assetsDisposals.optScrap')}</option>
+                            <option value="transfer">{t('assetsDisposals.optTransfer')}</option>
                           </select>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Date de sortie prévue *
+                            {t('assetsDisposals.formPlannedDisposalDateRequired')}
                           </label>
                           <input
                             type="date"
@@ -1200,7 +1203,7 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Valeur de sortie (FCFA) *
+                            {t('assetsDisposals.formDisposalValueRequired')}
                           </label>
                           <input
                             type="number"
@@ -1213,14 +1216,14 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Méthode de cession
+                            {t('assetsDisposals.formDisposalMethod')}
                           </label>
                           <select value={createForm.method} onChange={e => setCreateForm(s => ({ ...s, method: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]">
-                            <option value="">-- Sélectionner --</option>
-                            <option value="public_auction">Vente aux enchères publiques</option>
-                            <option value="direct_sale">Vente directe</option>
-                            <option value="tender">Appel d'offres</option>
-                            <option value="negotiation">Négociation</option>
+                            <option value="">{t('assetsDisposals.formSelect')}</option>
+                            <option value="public_auction">{t('assetsDisposals.methodPublicAuction')}</option>
+                            <option value="direct_sale">{t('assetsDisposals.methodDirectSale')}</option>
+                            <option value="tender">{t('assetsDisposals.methodTender')}</option>
+                            <option value="negotiation">{t('assetsDisposals.methodNegotiation')}</option>
                           </select>
                         </div>
                       </div>
@@ -1229,10 +1232,10 @@ const AssetsDisposals: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Raison de la sortie *
+                            {t('assetsDisposals.formReasonRequired')}
                           </label>
                           <textarea
-                            placeholder="Décrire la raison..."
+                            placeholder={t('assetsDisposals.formReasonPlaceholder')}
                             rows={3}
                             value={createForm.reason}
                             onChange={e => setCreateForm(s => ({ ...s, reason: e.target.value }))}
@@ -1242,11 +1245,11 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Acheteur / Bénéficiaire
+                            {t('assetsDisposals.formBuyerBeneficiary')}
                           </label>
                           <input
                             type="text"
-                            placeholder="Nom de l'acheteur ou bénéficiaire"
+                            placeholder={t('assetsDisposals.formBuyerPlaceholder')}
                             value={createForm.buyer}
                             onChange={e => setCreateForm(s => ({ ...s, buyer: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
@@ -1255,22 +1258,22 @@ const AssetsDisposals: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Contact
+                            {t('assetsDisposals.formContact')}
                           </label>
                           <input
                             type="text"
-                            placeholder="Téléphone ou email"
+                            placeholder={t('assetsDisposals.formContactPlaceholder')}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                           />
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-900 mb-2">
-                            Localisation de sortie
+                            {t('assetsDisposals.formDisposalLocation')}
                           </label>
                           <input
                             type="text"
-                            placeholder="Lieu de récupération"
+                            placeholder={t('assetsDisposals.formLocationPlaceholder')}
                             value={createForm.location}
                             onChange={e => setCreateForm(s => ({ ...s, location: e.target.value }))}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
@@ -1283,7 +1286,7 @@ const AssetsDisposals: React.FC = () => {
                               type="checkbox"
                               className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                             />
-                            <span className="text-sm text-gray-900">Conformité environnementale requise</span>
+                            <span className="text-sm text-gray-900">{t('assetsDisposals.formEnvComplianceRequired')}</span>
                           </label>
                         </div>
 
@@ -1293,7 +1296,7 @@ const AssetsDisposals: React.FC = () => {
                               type="checkbox"
                               className="rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
                             />
-                            <span className="text-sm text-gray-900">Effacement des données effectué</span>
+                            <span className="text-sm text-gray-900">{t('assetsDisposals.formDataWipingDone')}</span>
                           </label>
                         </div>
                       </div>
@@ -1302,15 +1305,15 @@ const AssetsDisposals: React.FC = () => {
                     {/* Section documents */}
                     <div className="border-t pt-4">
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Documents justificatifs
+                        {t('assetsDisposals.formSupportingDocuments')}
                       </label>
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[var(--color-primary)] transition-colors">
                         <Upload className="h-10 w-10 text-gray-700 mx-auto mb-2" />
                         <p className="text-sm text-gray-600">
-                          Glissez-déposez vos fichiers ici ou
+                          {t('assetsDisposals.formDropFiles')}
                         </p>
                         <button className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium mt-1">
-                          Parcourir les fichiers
+                          {t('assetsDisposals.formBrowseFiles')}
                         </button>
                       </div>
                     </div>
@@ -1318,10 +1321,10 @@ const AssetsDisposals: React.FC = () => {
                     {/* Section notes */}
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">
-                        Notes additionnelles
+                        {t('assetsDisposals.formNotes')}
                       </label>
                       <textarea
-                        placeholder="Informations complémentaires..."
+                        placeholder={t('assetsDisposals.formNotesPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
                       />
@@ -1334,7 +1337,7 @@ const AssetsDisposals: React.FC = () => {
                     variant="outline"
                     onClick={() => setDisposalModal({ isOpen: false, mode: 'view' })}
                   >
-                    {disposalModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {disposalModal.mode === 'view' ? t('assetsDisposals.close') : t('assetsDisposals.cancel')}
                   </ElegantButton>
                   {disposalModal.mode !== 'view' && (
                     <ElegantButton
@@ -1345,17 +1348,17 @@ const AssetsDisposals: React.FC = () => {
                         } else if (disposalModal.mode === 'approve') {
                           // Une cession créée est déjà comptabilisée (écriture validée) :
                           // pas de faux « approuvé ».
-                          toast('Cette cession est déjà comptabilisée et définitive (écriture validée).', { icon: 'ℹ️' });
+                          toast(t('assetsDisposals.alreadyPostedApprove'), { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         } else {
                           // Une écriture de cession ne se modifie pas : contrepasser puis ressaisir.
-                          toast('Une cession comptabilisée ne se modifie pas : contrepassez puis ressaisissez si nécessaire.', { icon: 'ℹ️' });
+                          toast(t('assetsDisposals.alreadyPostedEdit'), { icon: 'ℹ️' });
                           setDisposalModal({ isOpen: false, mode: 'view' });
                         }
                       }}
                     >
-                      {disposalModal.mode === 'create' ? (saving ? 'Enregistrement…' : 'Créer') :
-                       disposalModal.mode === 'approve' ? 'Approuver' : 'Sauvegarder'}
+                      {disposalModal.mode === 'create' ? (saving ? t('assetsDisposals.saving') : t('assetsDisposals.create')) :
+                       disposalModal.mode === 'approve' ? t('assetsDisposals.approve') : t('assetsDisposals.save')}
                     </ElegantButton>
                   )}
                 </div>
