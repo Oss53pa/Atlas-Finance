@@ -165,11 +165,11 @@ const UsersPage: React.FC = () => {
   // Enregistre l'édition (persistée).
   const handleSaveUser = async () => {
     if (!selectedUser) return;
-    if (!userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.email.trim()) { toast.error('Prénom, nom et email obligatoires'); return; }
+    if (!userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.email.trim()) { toast.error(t('users.requiredFields')); return; }
     const updated = allUsers.map(u => u.id === selectedUser.id ? { ...u, ...userForm, lastModified: new Date().toISOString() } : u);
     await saveUsersList(updated);
     await reloadUsers();
-    toast.success('Utilisateur mis à jour');
+    toast.success(t('users.userUpdated'));
     setShowEditModal(false); setSelectedUser(null);
   };
 
@@ -262,8 +262,8 @@ const UsersPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Gestion des Utilisateurs</h1>
-          <p className="text-gray-600">Administration des comptes utilisateurs et permissions</p>
+          <h1 className="text-lg font-bold text-gray-900">{t('users.title')}</h1>
+          <p className="text-gray-600">{t('users.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <PageHeaderActions
@@ -276,7 +276,7 @@ const UsersPage: React.FC = () => {
             className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>Nouvel Utilisateur</span>
+            <span>{t('users.newUser')}</span>
           </button>
         </div>
       </div>
@@ -286,7 +286,7 @@ const UsersPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Utilisateurs</p>
+              <p className="text-sm font-medium text-gray-600">{t('users.totalUsers')}</p>
               <p className="text-lg font-bold text-gray-900">{totalUsers}</p>
             </div>
             <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -298,7 +298,7 @@ const UsersPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Utilisateurs Actifs</p>
+              <p className="text-sm font-medium text-gray-600">{t('users.activeUsers')}</p>
               <p className="text-lg font-bold text-green-600">{activeUsers}</p>
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -310,7 +310,7 @@ const UsersPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Comptes Verrouillés</p>
+              <p className="text-sm font-medium text-gray-600">{t('users.lockedAccounts')}</p>
               <p className="text-lg font-bold text-red-600">{lockedUsers}</p>
             </div>
             <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -322,7 +322,7 @@ const UsersPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Non Vérifiés</p>
+              <p className="text-sm font-medium text-gray-600">{t('users.unverified')}</p>
               <p className="text-lg font-bold text-orange-600">{unverifiedUsers}</p>
             </div>
             <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -340,7 +340,7 @@ const UsersPage: React.FC = () => {
               <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
               <input
                 type="text"
-                placeholder="Rechercher un utilisateur..."
+                placeholder={t('users.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -352,13 +352,13 @@ const UsersPage: React.FC = () => {
         {showFilters && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Département</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.department')}</label>
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="all">Tous les départements</option>
+                <option value="all">{t('users.allDepartments')}</option>
                 <option value="Finance">Finance</option>
                 <option value="Commercial">Commercial</option>
                 <option value="Gestion">Gestion</option>
@@ -369,13 +369,13 @@ const UsersPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.role')}</label>
               <select
                 value={selectedRole}
                 onChange={(e) => setSelectedRole(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="all">Tous les rôles</option>
+                <option value="all">{t('users.allRoles')}</option>
                 {roles.map((role) => (
                   <option key={role.id} value={role.name}>{role.name}</option>
                 ))}
@@ -383,22 +383,22 @@ const UsersPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.status')}</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="all">Tous les statuts</option>
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-                <option value="locked">Verrouillé</option>
-                <option value="suspended">Suspendu</option>
+                <option value="all">{t('users.allStatuses')}</option>
+                <option value="active">{t('users.statusActive')}</option>
+                <option value="inactive">{t('users.statusInactive')}</option>
+                <option value="locked">{t('users.statusLocked')}</option>
+                <option value="suspended">{t('users.statusSuspended')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.actions')}</label>
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -408,7 +408,7 @@ const UsersPage: React.FC = () => {
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Réinitialiser
+                {t('users.reset')}
               </button>
             </div>
           </div>
@@ -422,25 +422,25 @@ const UsersPage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Utilisateur
+                  {t('users.thUser')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Rôle
+                  {t('users.role')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Département
+                  {t('users.department')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Statut
+                  {t('users.status')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Sécurité
+                  {t('users.thSecurity')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Dernière Connexion
+                  {t('users.thLastLogin')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Actions
+                  {t('users.actions')}
                 </th>
               </tr>
             </thead>
@@ -484,7 +484,7 @@ const UsersPage: React.FC = () => {
               ) : filteredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center text-gray-700">
-                    Aucun utilisateur trouvé
+                    {t('users.noUsers')}
                   </td>
                 </tr>
               ) : (
@@ -508,7 +508,7 @@ const UsersPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{user.role}</div>
-                      <div className="text-xs text-gray-700">{user.permissions.length} permissions</div>
+                      <div className="text-xs text-gray-700">{t('users.permissionsCount', { count: String(user.permissions.length) })}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {user.department}
@@ -517,31 +517,31 @@ const UsersPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(user.status)}
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(user.status)}`}>
-                          {user.status === 'active' ? 'Actif' :
-                           user.status === 'inactive' ? 'Inactif' :
-                           user.status === 'locked' ? 'Verrouillé' : 'Suspendu'}
+                          {user.status === 'active' ? t('users.statusActive') :
+                           user.status === 'inactive' ? t('users.statusInactive') :
+                           user.status === 'locked' ? t('users.statusLocked') : t('users.statusSuspended')}
                         </span>
                       </div>
                       {user.failedLogins > 0 && (
                         <div className="text-xs text-red-600 mt-1">
-                          {user.failedLogins} tentatives échouées
+                          {t('users.failedAttempts', { count: String(user.failedLogins) })}
                         </div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-1">
                         {user.isEmailVerified ? (
-                          <CheckCircleIcon className="h-4 w-4 text-green-500" title="Email vérifié" />
+                          <CheckCircleIcon className="h-4 w-4 text-green-500" title={t('users.emailVerified')} />
                         ) : (
-                          <XCircleIcon className="h-4 w-4 text-red-500" title="Email non vérifié" />
+                          <XCircleIcon className="h-4 w-4 text-red-500" title={t('users.emailNotVerified')} />
                         )}
                         {user.is2FAEnabled ? (
-                          <KeyIcon className="h-4 w-4 text-green-500" title="2FA activé" />
+                          <KeyIcon className="h-4 w-4 text-green-500" title={t('users.twoFaEnabled')} />
                         ) : (
-                          <KeyIcon className="h-4 w-4 text-gray-700" title="2FA désactivé" />
+                          <KeyIcon className="h-4 w-4 text-gray-700" title={t('users.twoFaDisabled')} />
                         )}
                         {isPasswordExpired(user.passwordLastChanged) && (
-                          <ClockIcon className="h-4 w-4 text-orange-500" title="Mot de passe expiré" />
+                          <ClockIcon className="h-4 w-4 text-orange-500" title={t('users.passwordExpired')} />
                         )}
                       </div>
                     </td>
@@ -556,7 +556,7 @@ const UsersPage: React.FC = () => {
                             setShowViewModal(true);
                           }}
                           className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
-                          title="Voir les détails"
+                          title={t('users.viewDetails')}
                         >
                           <EyeIcon className="h-4 w-4" />
                         </button>
@@ -573,7 +573,7 @@ const UsersPage: React.FC = () => {
                           <button
                             onClick={() => handleUnlockUser(user)}
                             className="p-2 text-gray-700 hover:text-green-600 transition-colors"
-                            title="Débloquer"
+                            title={t('users.unlock')}
                             disabled={toggleUserStatusMutation.isPending}
                           >
                             <LockOpenIcon className="h-4 w-4" />
@@ -582,7 +582,7 @@ const UsersPage: React.FC = () => {
                           <button
                             onClick={() => handleToggleStatus(user)}
                             className="p-2 text-gray-700 hover:text-yellow-600 transition-colors"
-                            title={user.status === 'active' ? 'Désactiver' : 'Activer'}
+                            title={user.status === 'active' ? t('users.deactivate') : t('users.activate')}
                             disabled={toggleUserStatusMutation.isPending}
                           >
                             {user.status === 'active' ? 
@@ -595,7 +595,7 @@ const UsersPage: React.FC = () => {
                         <button
                           onClick={() => handleResetPasswordClick(user)}
                           className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
-                          title="Réinitialiser le mot de passe"
+                          title={t('users.resetPassword')}
                           disabled={resetPasswordMutation.isPending}
                         >
                           <KeyIcon className="h-4 w-4" />
@@ -607,7 +607,7 @@ const UsersPage: React.FC = () => {
                             setShowPermissionsModal(true);
                           }}
                           className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
-                          title="Gérer les permissions"
+                          title={t('users.managePermissions')}
                         >
                           <UserIcon className="h-4 w-4" />
                         </button>
@@ -635,15 +635,15 @@ const UsersPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <p className="text-sm text-gray-700">
-                  Affichage de{' '}
+                  {t('users.showing')}{' '}
                   <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
-                  {' '}à{' '}
+                  {' '}{t('users.rangeTo')}{' '}
                   <span className="font-medium">
                     {Math.min(currentPage * itemsPerPage, users.length)}
                   </span>
-                  {' '}sur{' '}
+                  {' '}{t('users.rangeOf')}{' '}
                   <span className="font-medium">{users.length}</span>
-                  {' '}utilisateurs
+                  {' '}{t('users.usersUnit')}
                 </p>
               </div>
               <div className="flex space-x-2">
@@ -652,14 +652,14 @@ const UsersPage: React.FC = () => {
                   disabled={currentPage === 1}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Précédent
+                  {t('users.previous')}
                 </button>
                 <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Suivant
+                  {t('users.next')}
                 </button>
               </div>
             </div>
@@ -671,7 +671,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Nouvel Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('users.newUser')}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="text-gray-700 hover:text-gray-700"
@@ -684,7 +684,7 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prénom <span className="text-red-500">*</span>
+                    {t('users.firstName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -695,12 +695,12 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom <span className="text-red-500">*</span>
+                    {t('users.lastName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Nom"
+                    placeholder={t('users.lastName')}
                   />
                 </div>
               </div>
@@ -708,7 +708,7 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span className="text-red-500">*</span>
+                    {t('users.email')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -718,7 +718,7 @@ const UsersPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.phone')}</label>
                   <input
                     type="tel"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -730,10 +730,10 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rôle <span className="text-red-500">*</span>
+                    {t('users.role')} <span className="text-red-500">*</span>
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="">Sélectionner...</option>
+                    <option value="">{t('users.selectPlaceholder')}</option>
                     {roles.map((role) => (
                       <option key={role.id} value={role.name}>{role.name}</option>
                     ))}
@@ -742,10 +742,10 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Département <span className="text-red-500">*</span>
+                    {t('users.department')} <span className="text-red-500">*</span>
                   </label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="">Sélectionner...</option>
+                    <option value="">{t('users.selectPlaceholder')}</option>
                     <option value="Finance">Finance</option>
                     <option value="Commercial">Commercial</option>
                     <option value="Gestion">Gestion</option>
@@ -756,30 +756,30 @@ const UsersPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.status')}</label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                    <option value="suspended">Suspendu</option>
+                    <option value="active">{t('users.statusActive')}</option>
+                    <option value="inactive">{t('users.statusInactive')}</option>
+                    <option value="suspended">{t('users.statusSuspended')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Poste <span className="text-red-500">*</span>
+                  {t('users.position')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Directrice Financière"
+                  placeholder={t('users.positionPlaceholder')}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mot de passe <span className="text-red-500">*</span>
+                    {t('users.password')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
@@ -790,7 +790,7 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Confirmation <span className="text-red-500">*</span>
+                    {t('users.confirmation')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="password"
@@ -803,23 +803,23 @@ const UsersPage: React.FC = () => {
               <div className="space-y-2">
                 <label className="flex items-center">
                   <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
-                  <span className="ml-2 text-sm text-gray-700">Envoyer un email d'activation</span>
+                  <span className="ml-2 text-sm text-gray-700">{t('users.sendActivationEmail')}</span>
                 </label>
 
                 <label className="flex items-center">
                   <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500" />
-                  <span className="ml-2 text-sm text-gray-700">Activer l'authentification à deux facteurs (2FA)</span>
+                  <span className="ml-2 text-sm text-gray-700">{t('users.enable2fa')}</span>
                 </label>
 
                 <label className="flex items-center">
                   <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500" />
-                  <span className="ml-2 text-sm text-gray-700">Forcer le changement de mot de passe à la première connexion</span>
+                  <span className="ml-2 text-sm text-gray-700">{t('users.forcePasswordChange')}</span>
                 </label>
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  L'utilisateur recevra un email avec ses identifiants de connexion et un lien d'activation de compte.
+                  {t('users.createInfo')}
                 </p>
               </div>
             </div>
@@ -829,10 +829,10 @@ const UsersPage: React.FC = () => {
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {t('users.cancel')}
               </button>
               <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
-                Créer l'utilisateur
+                {t('users.createUser')}
               </button>
             </div>
           </div>
@@ -843,7 +843,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Détails de l'Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('users.userDetails')}</h2>
               <button
                 onClick={() => {
                   setShowViewModal(false);
@@ -872,73 +872,73 @@ const UsersPage: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(selectedUser.status)}
                   <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedUser.status)}`}>
-                    {selectedUser.status === 'active' ? 'Actif' :
-                     selectedUser.status === 'inactive' ? 'Inactif' :
-                     selectedUser.status === 'locked' ? 'Verrouillé' : 'Suspendu'}
+                    {selectedUser.status === 'active' ? t('users.statusActive') :
+                     selectedUser.status === 'inactive' ? t('users.statusInactive') :
+                     selectedUser.status === 'locked' ? t('users.statusLocked') : t('users.statusSuspended')}
                   </span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Informations Professionnelles</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">{t('users.professionalInfo')}</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Rôle:</span>
+                      <span className="text-gray-600">{t('users.role')}:</span>
                       <span className="text-gray-900 font-medium">{selectedUser.role}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Département:</span>
+                      <span className="text-gray-600">{t('users.department')}:</span>
                       <span className="text-gray-900 font-medium">{selectedUser.department}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Poste:</span>
+                      <span className="text-gray-600">{t('users.position')}:</span>
                       <span className="text-gray-900 font-medium">{selectedUser.position}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Téléphone:</span>
-                      <span className="text-gray-900 font-medium">{selectedUser.phone || 'Non renseigné'}</span>
+                      <span className="text-gray-600">{t('users.phone')}:</span>
+                      <span className="text-gray-900 font-medium">{selectedUser.phone || t('users.notProvided')}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Permissions:</span>
+                      <span className="text-gray-600">{t('users.permissions')}:</span>
                       <span className="text-gray-900 font-medium">{selectedUser.permissions.length}</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-3">Sécurité & Connexion</h4>
+                  <h4 className="font-medium text-gray-900 mb-3">{t('users.securityLogin')}</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Dernière connexion:</span>
+                      <span className="text-gray-600">{t('users.lastLogin')}:</span>
                       <span className="text-gray-900 font-medium">
                         {new Date(selectedUser.lastLogin).toLocaleString('fr-FR')}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Email vérifié:</span>
+                      <span className="text-gray-600">{t('users.emailVerified')}:</span>
                       <span className="text-gray-900 font-medium">
-                        {selectedUser.isEmailVerified ? 'Oui ✓' : 'Non ✗'}
+                        {selectedUser.isEmailVerified ? `${t('users.yes')} ✓` : `${t('users.no')} ✗`}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">2FA activé:</span>
+                      <span className="text-gray-600">{t('users.twoFaEnabled')}:</span>
                       <span className="text-gray-900 font-medium">
-                        {selectedUser.is2FAEnabled ? 'Oui ✓' : 'Non ✗'}
+                        {selectedUser.is2FAEnabled ? `${t('users.yes')} ✓` : `${t('users.no')} ✗`}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tentatives échouées:</span>
+                      <span className="text-gray-600">{t('users.failedAttemptsLabel')}:</span>
                       <span className={`font-medium ${selectedUser.failedLogins > 0 ? 'text-red-600' : 'text-gray-900'}`}>
                         {selectedUser.failedLogins}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Mot de passe changé:</span>
+                      <span className="text-gray-600">{t('users.passwordChanged')}:</span>
                       <span className="text-gray-900 font-medium">
                         {new Date(selectedUser.passwordLastChanged).toLocaleDateString('fr-FR')}
                         {isPasswordExpired(selectedUser.passwordLastChanged) && (
-                          <span className="text-orange-600 ml-2">(Expiré)</span>
+                          <span className="text-orange-600 ml-2">{t('users.expired')}</span>
                         )}
                       </span>
                     </div>
@@ -947,7 +947,7 @@ const UsersPage: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Permissions</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{t('users.permissions')}</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedUser.permissions.map((permission, idx) => (
                     <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm">
@@ -959,16 +959,15 @@ const UsersPage: React.FC = () => {
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Créé le {new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</span>
-                  <span>Modifié le {new Date(selectedUser.lastModified).toLocaleDateString('fr-FR')}</span>
+                  <span>{t('users.createdOn', { date: new Date(selectedUser.createdAt).toLocaleDateString('fr-FR') })}</span>
+                  <span>{t('users.modifiedOn', { date: new Date(selectedUser.lastModified).toLocaleDateString('fr-FR') })}</span>
                 </div>
               </div>
 
               {selectedUser.status === 'locked' && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-sm text-red-800 font-medium">
-                    Ce compte est verrouillé suite à {selectedUser.failedLogins} tentatives de connexion échouées.
-                    Utilisez le bouton "Débloquer" pour réactiver le compte.
+                    {t('users.lockedNotice', { count: String(selectedUser.failedLogins) })}
                   </p>
                 </div>
               )}
@@ -985,7 +984,7 @@ const UsersPage: React.FC = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
                   >
                     <LockOpenIcon className="h-4 w-4" />
-                    <span>Débloquer</span>
+                    <span>{t('users.unlock')}</span>
                   </button>
                 )}
                 <button
@@ -995,7 +994,7 @@ const UsersPage: React.FC = () => {
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                 >
                   <KeyIcon className="h-4 w-4" />
-                  <span>Réinitialiser le mot de passe</span>
+                  <span>{t('users.resetPassword')}</span>
                 </button>
               </div>
               <div className="flex space-x-3">
@@ -1016,7 +1015,7 @@ const UsersPage: React.FC = () => {
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  Fermer
+                  {t('users.close')}
                 </button>
               </div>
             </div>
@@ -1028,7 +1027,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Modifier l'Utilisateur</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('users.editUser')}</h2>
               <button
                 onClick={() => {
                   setShowEditModal(false);
@@ -1044,7 +1043,7 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prénom <span className="text-red-500">*</span>
+                    {t('users.firstName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1055,7 +1054,7 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nom <span className="text-red-500">*</span>
+                    {t('users.lastName')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1068,7 +1067,7 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email <span className="text-red-500">*</span>
+                    {t('users.email')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -1078,7 +1077,7 @@ const UsersPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.phone')}</label>
                   <input
                     type="tel"
                     value={userForm.phone} onChange={(e) => setUserForm(f => ({ ...f, phone: e.target.value }))}
@@ -1090,7 +1089,7 @@ const UsersPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Rôle <span className="text-red-500">*</span>
+                    {t('users.role')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={userForm.role} onChange={(e) => setUserForm(f => ({ ...f, role: e.target.value }))}
@@ -1104,7 +1103,7 @@ const UsersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Département <span className="text-red-500">*</span>
+                    {t('users.department')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={userForm.department} onChange={(e) => setUserForm(f => ({ ...f, department: e.target.value }))}
@@ -1120,22 +1119,22 @@ const UsersPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('users.status')}</label>
                   <select
                     value={userForm.status} onChange={(e) => setUserForm(f => ({ ...f, status: e.target.value as User['status'] }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                    <option value="suspended">Suspendu</option>
-                    <option value="locked">Verrouillé</option>
+                    <option value="active">{t('users.statusActive')}</option>
+                    <option value="inactive">{t('users.statusInactive')}</option>
+                    <option value="suspended">{t('users.statusSuspended')}</option>
+                    <option value="locked">{t('users.statusLocked')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Poste <span className="text-red-500">*</span>
+                  {t('users.position')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -1152,7 +1151,7 @@ const UsersPage: React.FC = () => {
                     onChange={(e) => setUserForm(f => ({ ...f, isEmailVerified: e.target.checked }))}
                     className="rounded text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Email vérifié</span>
+                  <span className="ml-2 text-sm text-gray-700">{t('users.emailVerified')}</span>
                 </label>
 
                 <label className="flex items-center">
@@ -1162,15 +1161,15 @@ const UsersPage: React.FC = () => {
                     onChange={(e) => setUserForm(f => ({ ...f, is2FAEnabled: e.target.checked }))}
                     className="rounded text-primary-600 focus:ring-primary-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">Authentification à deux facteurs (2FA)</span>
+                  <span className="ml-2 text-sm text-gray-700">{t('users.twoFactorAuth')}</span>
                 </label>
               </div>
 
               {selectedUser.failedLogins > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <p className="text-sm text-yellow-800">
-                    Cet utilisateur a {selectedUser.failedLogins} tentatives de connexion échouées.
-                    {selectedUser.status === 'locked' && ' Le compte est actuellement verrouillé.'}
+                    {t('users.failedAttemptsWarning', { count: String(selectedUser.failedLogins) })}
+                    {selectedUser.status === 'locked' && ` ${t('users.accountCurrentlyLocked')}`}
                   </p>
                 </div>
               )}
@@ -1184,10 +1183,10 @@ const UsersPage: React.FC = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {t('users.cancel')}
               </button>
               <button onClick={handleSaveUser} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
-                Enregistrer
+                {t('users.save')}
               </button>
             </div>
           </div>
@@ -1198,7 +1197,7 @@ const UsersPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">Gérer les Permissions</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('users.managePermissions')}</h2>
               <button
                 onClick={() => {
                   setShowPermissionsModal(false);
@@ -1226,7 +1225,7 @@ const UsersPage: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Permissions Actuelles</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{t('users.currentPermissions')}</h4>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selectedUser.permissions.map((permission, idx) => (
                     <span key={idx} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm flex items-center space-x-2">
@@ -1238,18 +1237,18 @@ const UsersPage: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="font-medium text-gray-900 mb-3">Modules Disponibles</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{t('users.availableModules')}</h4>
                 <div className="space-y-3">
                   <div className="border border-gray-200 rounded-lg p-4">
                     <label className="flex items-start space-x-3">
                       <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('accounting.title')}</div>
-                        <p className="text-sm text-gray-600">Accès complet aux écritures, journaux et grand livre</p>
+                        <p className="text-sm text-gray-600">{t('users.modAccountingDesc')}</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Lecture</span>
+                            <span className="text-gray-600">{t('users.read')}</span>
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
@@ -1257,7 +1256,7 @@ const UsersPage: React.FC = () => {
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Validation</span>
+                            <span className="text-gray-600">{t('users.validation')}</span>
                           </label>
                         </div>
                       </div>
@@ -1269,11 +1268,11 @@ const UsersPage: React.FC = () => {
                       <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
                         <div className="font-medium text-gray-900">{t('navigation.treasury')}</div>
-                        <p className="text-sm text-gray-600">Gestion des flux de trésorerie et rapprochements bancaires</p>
+                        <p className="text-sm text-gray-600">{t('users.modTreasuryDesc')}</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Lecture</span>
+                            <span className="text-gray-600">{t('users.read')}</span>
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
@@ -1288,12 +1287,12 @@ const UsersPage: React.FC = () => {
                     <label className="flex items-start space-x-3">
                       <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">Budget & Analytique</div>
-                        <p className="text-sm text-gray-600">Suivi budgétaire et analyse par centres de coûts</p>
+                        <div className="font-medium text-gray-900">{t('users.modBudget')}</div>
+                        <p className="text-sm text-gray-600">{t('users.modBudgetDesc')}</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Lecture</span>
+                            <span className="text-gray-600">{t('users.read')}</span>
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
@@ -1308,12 +1307,12 @@ const UsersPage: React.FC = () => {
                     <label className="flex items-start space-x-3">
                       <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">Gestion Commerciale</div>
-                        <p className="text-sm text-gray-600">Gestion clients, devis, factures et recouvrement</p>
+                        <div className="font-medium text-gray-900">{t('users.modSales')}</div>
+                        <p className="text-sm text-gray-600">{t('users.modSalesDesc')}</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Lecture</span>
+                            <span className="text-gray-600">{t('users.read')}</span>
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
@@ -1328,12 +1327,12 @@ const UsersPage: React.FC = () => {
                     <label className="flex items-start space-x-3">
                       <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
                       <div className="flex-1">
-                        <div className="font-medium text-gray-900">Administration</div>
-                        <p className="text-sm text-gray-600">Gestion utilisateurs, rôles et configuration système</p>
+                        <div className="font-medium text-gray-900">{t('users.modAdmin')}</div>
+                        <p className="text-sm text-gray-600">{t('users.modAdminDesc')}</p>
                         <div className="flex items-center space-x-4 mt-2 text-sm">
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Lecture</span>
+                            <span className="text-gray-600">{t('users.read')}</span>
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
@@ -1341,7 +1340,7 @@ const UsersPage: React.FC = () => {
                           </label>
                           <label className="flex items-center">
                             <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-1" />
-                            <span className="text-gray-600">Admin</span>
+                            <span className="text-gray-600">{t('users.admin')}</span>
                           </label>
                         </div>
                       </div>
@@ -1352,7 +1351,7 @@ const UsersPage: React.FC = () => {
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">
-                  Les modifications de permissions prendront effet lors de la prochaine connexion de l'utilisateur.
+                  {t('users.permissionsNote')}
                 </p>
               </div>
             </div>
@@ -1365,10 +1364,10 @@ const UsersPage: React.FC = () => {
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {t('users.cancel')}
               </button>
               <button className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-700 transition-colors">
-                Enregistrer les permissions
+                {t('users.savePermissions')}
               </button>
             </div>
           </div>
@@ -1380,11 +1379,11 @@ const UsersPage: React.FC = () => {
         isOpen={resetPasswordConfirm.isOpen}
         onClose={() => setResetPasswordConfirm({ isOpen: false, user: null })}
         onConfirm={handleConfirmResetPassword}
-        title="Réinitialiser le mot de passe"
-        message={`Êtes-vous sûr de vouloir réinitialiser le mot de passe de ${resetPasswordConfirm.user?.firstName} ${resetPasswordConfirm.user?.lastName} ? Un nouveau mot de passe temporaire sera généré et envoyé par email.`}
+        title={t('users.resetPassword')}
+        message={t('users.resetPasswordConfirm', { name: `${resetPasswordConfirm.user?.firstName ?? ''} ${resetPasswordConfirm.user?.lastName ?? ''}`.trim() })}
         variant="warning"
-        confirmText="Réinitialiser"
-        cancelText="Annuler"
+        confirmText={t('users.reset')}
+        cancelText={t('users.cancel')}
         confirmLoading={resetPasswordMutation.isPending}
       />
 
@@ -1392,11 +1391,11 @@ const UsersPage: React.FC = () => {
         isOpen={deleteConfirm.isOpen}
         onClose={() => setDeleteConfirm({ isOpen: false, user: null })}
         onConfirm={handleConfirmDelete}
-        title="Supprimer l'utilisateur"
-        message={`Êtes-vous sûr de vouloir supprimer l'utilisateur ${deleteConfirm.user?.firstName} ${deleteConfirm.user?.lastName} ? Cette action est irréversible et toutes les données associées seront supprimées.`}
+        title={t('users.deleteUser')}
+        message={t('users.deleteUserConfirm', { name: `${deleteConfirm.user?.firstName ?? ''} ${deleteConfirm.user?.lastName ?? ''}`.trim() })}
         variant="danger"
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        confirmText={t('users.delete')}
+        cancelText={t('users.cancel')}
         confirmLoading={deleteUserMutation.isPending}
       />
     </div>
