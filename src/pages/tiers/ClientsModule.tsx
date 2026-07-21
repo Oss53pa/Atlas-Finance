@@ -200,26 +200,27 @@ const ClientsModule: React.FC = () => {
 
   // Relance client (ouvre le client mail avec un modèle pré-rempli).
   const sendRelance = (item: BalanceAgeeItem) => {
-    const subject = `Relance — solde client ${item.clientNom} (${item.clientCode})`;
-    const body = `Bonjour,\n\nSauf erreur de notre part, votre compte présente un solde échu de ${formatCurrency(item.totalCreances)} `
-      + `(dont ${formatCurrency(item.echu61_90 + item.echuPlus90)} à plus de 60 jours).\n\n`
-      + `Nous vous remercions de bien vouloir procéder au règlement dans les meilleurs délais.\n\nCordialement.`;
+    const subject = t('clients.relanceSubject', { name: item.clientNom, code: item.clientCode });
+    const body = t('clients.relanceBody', {
+      total: formatCurrency(item.totalCreances),
+      over60: formatCurrency(item.echu61_90 + item.echuPlus90),
+    });
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
   // Export CSV de la balance âgée d'un client (UTF-8 BOM pour Excel).
   const exportAgingCsv = (item: BalanceAgeeItem) => {
     const rows: (string | number)[][] = [
-      ['Balance âgée — client', item.clientCode, item.clientNom],
+      [t('clients.csvAgingTitle'), item.clientCode, item.clientNom],
       [],
-      ['Tranche', 'Montant (FCFA)'],
-      ['Non échu', item.nonEchu],
-      ['0-30 jours', item.echu0_30],
-      ['31-60 jours', item.echu31_60],
-      ['61-90 jours', item.echu61_90],
-      ['+90 jours', item.echuPlus90],
-      ['Total créances', item.totalCreances],
-      ['Provision', item.provision],
+      [t('clients.csvBucket'), t('clients.csvAmountFcfa')],
+      [t('clients.bucketNonEchu'), item.nonEchu],
+      [t('clients.bucket030'), item.echu0_30],
+      [t('clients.bucket3160'), item.echu31_60],
+      [t('clients.bucket6190'), item.echu61_90],
+      [t('clients.bucketPlus90'), item.echuPlus90],
+      [t('clients.totalReceivables'), item.totalCreances],
+      [t('clients.provision'), item.provision],
     ];
     const csv = '﻿' + rows.map(r => r.map(v => {
       const s = String(v ?? ''); return /[";\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -560,7 +561,7 @@ const ClientsModule: React.FC = () => {
       // Validation : raison sociale obligatoire + unicité du code (évite les fiches
       // fantômes et les collisions de rattachement des écritures).
       if (!newClient.raisonSociale?.trim()) {
-        toast.error('La raison sociale est obligatoire');
+        toast.error(t('clients.errCompanyNameRequired'));
         return;
       }
       if (newClient.code?.trim()) {
@@ -568,7 +569,7 @@ const ClientsModule: React.FC = () => {
           (tp: any) => tp.code === newClient.code && tp.id !== editingId
         );
         if (existing) {
-          toast.error(`Le code « ${newClient.code} » est déjà utilisé par « ${existing.name || existing.raisonSociale} »`);
+          toast.error(t('clients.errCodeAlreadyUsed', { code: newClient.code, name: String(existing.name || existing.raisonSociale || '') }));
           return;
         }
       }
@@ -589,7 +590,7 @@ const ClientsModule: React.FC = () => {
       };
       if (editingId) {
         await adapter.update('thirdParties', editingId, common);
-        toast.success('Client mis à jour');
+        toast.success(t('clients.toastClientUpdated'));
       } else {
         const id = crypto.randomUUID();
         await adapter.create('thirdParties', {
@@ -642,7 +643,7 @@ const ClientsModule: React.FC = () => {
       }));
       handleCloseNewClientModal();
     } catch {
-      toast.error('Erreur lors de la création du client');
+      toast.error(t('clients.errCreateClient'));
     }
   };
 
@@ -701,24 +702,24 @@ const ClientsModule: React.FC = () => {
     // les écritures 411 rattachées. On propose de le DÉSACTIVER à la place (SYSCOHADA).
     const client = clients.find(c => c.id === clientId);
     if (client && (client.encoursActuel !== 0 || client.chiffreAffaires !== 0)) {
-      if (window.confirm('Ce client a des écritures comptables et ne peut pas être supprimé.\n\nVoulez-vous le DÉSACTIVER à la place ?')) {
+      if (window.confirm(t('clients.confirmDeactivateInstead'))) {
         try {
           await adapter.update('thirdParties', clientId, { isActive: false });
           setClients(prev => prev.map(c => c.id === clientId ? { ...c, statut: 'INACTIF' as any } : c));
-          toast.success('Client désactivé');
+          toast.success(t('clients.toastClientDeactivated'));
         } catch {
-          toast.error('Erreur lors de la désactivation');
+          toast.error(t('clients.errDeactivate'));
         }
       }
       return;
     }
-    if (!window.confirm('Supprimer ce client définitivement ?')) return;
+    if (!window.confirm(t('clients.confirmDeleteClient'))) return;
     try {
       await adapter.delete('thirdParties', clientId);
       setClients(prev => prev.filter(c => c.id !== clientId));
-      toast.success('Client supprimé');
+      toast.success(t('clients.toastClientDeleted'));
     } catch {
-      toast.error('Erreur lors de la suppression du client');
+      toast.error(t('clients.errDeleteClient'));
     }
   };
 
@@ -747,30 +748,30 @@ const ClientsModule: React.FC = () => {
       clientsParCategorie,
       evolutionCA: [] as { mois: string; ca2024: number; ca2025: number }[],
       performanceClients: [
-        { critere: 'Fidélité', score: clients.length > 0 ? Math.round(clients.filter(c => c.fidele).length / clients.length * 100) : 0 },
-        { critere: 'Paiement', score: clients.length > 0 ? Math.round(clients.filter(c => c.statut === 'ACTIF').length / clients.length * 100) : 0 },
-        { critere: 'Volume', score: clients.length > 0 ? Math.min(100, Math.round(clients.reduce((s, c) => s + c.chiffreAffaires, 0) / 1000000)) : 0 },
-        { critere: 'Rentabilité', score: 0 },
-        { critere: 'Potentiel', score: 0 }
+        { critere: t('clients.critLoyalty'), score: clients.length > 0 ? Math.round(clients.filter(c => c.fidele).length / clients.length * 100) : 0 },
+        { critere: t('clients.critPayment'), score: clients.length > 0 ? Math.round(clients.filter(c => c.statut === 'ACTIF').length / clients.length * 100) : 0 },
+        { critere: t('clients.critVolume'), score: clients.length > 0 ? Math.min(100, Math.round(clients.reduce((s, c) => s + c.chiffreAffaires, 0) / 1000000)) : 0 },
+        { critere: t('clients.critProfitability'), score: 0 },
+        { critere: t('clients.critPotential'), score: 0 }
       ]
     };
-  }, [clients]);
+  }, [clients, t]);
 
   // Data pour graphique Balance Âgée
   const balanceAgeeChartData = [
-    { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#15803D' },
-    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#E89A2E' },
-    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#E89A2E' },
-    { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#C0322B' },
-    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#C0322B' }
+    { key: 'nonEchu', name: t('clients.bucketNonEchu'), value: totauxBalanceAgee.nonEchu, color: '#15803D' },
+    { key: 'echu0_30', name: t('clients.bucket030'), value: totauxBalanceAgee.echu0_30, color: '#E89A2E' },
+    { key: 'echu31_60', name: t('clients.bucket3160'), value: totauxBalanceAgee.echu31_60, color: '#E89A2E' },
+    { key: 'echu61_90', name: t('clients.bucket6190'), value: totauxBalanceAgee.echu61_90, color: '#C0322B' },
+    { key: 'echuPlus90', name: t('clients.bucketPlus90'), value: totauxBalanceAgee.echuPlus90, color: '#C0322B' }
   ];
 
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   const tabs = [
-    { id: 'liste', label: 'Liste Clients', icon: Users },
-    { id: 'balance-agee', label: 'Balance Âgée', icon: Receipt },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+    { id: 'liste', label: t('clients.tabList'), icon: Users },
+    { id: 'balance-agee', label: t('clients.tabAging'), icon: Receipt },
+    { id: 'analytics', label: t('clients.tabAnalytics'), icon: BarChart3 }
   ];
 
   if (isLoading) {
@@ -778,7 +779,7 @@ const ClientsModule: React.FC = () => {
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin text-[var(--color-text-secondary)] mx-auto mb-4" />
-          <p className="text-[var(--color-text-secondary)]">Chargement des clients...</p>
+          <p className="text-[var(--color-text-secondary)]">{t('clients.loading')}</p>
         </div>
       </div>
     );
@@ -788,7 +789,7 @@ const ClientsModule: React.FC = () => {
     <div className="p-6 space-y-6">
       {/* Header avec navigation */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-[var(--color-border)]">
-        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-6">Gestion des Clients</h2>
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-6">{t('clients.title')}</h2>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
@@ -821,9 +822,9 @@ const ClientsModule: React.FC = () => {
             <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-primary-600 font-medium">Total Encours</p>
+                  <p className="text-sm text-primary-600 font-medium">{t('clients.kpiTotalOutstanding')}</p>
                   <p className="text-lg font-bold text-primary-800">{formatCurrency(aggReceivables)}</p>
-                  <p className="text-xs text-primary-600 mt-1">Sur {clientsActifs} clients actifs</p>
+                  <p className="text-xs text-primary-600 mt-1">{t('clients.kpiOnActiveClients', { count: String(clientsActifs) })}</p>
                 </div>
                 <Wallet className="w-8 h-8 text-primary-400" />
               </div>
@@ -832,9 +833,9 @@ const ClientsModule: React.FC = () => {
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-blue-600 font-medium">Chiffre d'Affaires</p>
+                  <p className="text-sm text-blue-600 font-medium">{t('clients.kpiRevenue')}</p>
                   <p className="text-lg font-bold text-blue-800">{formatCurrency(aggCA)}</p>
-                  <p className="text-xs text-blue-600 mt-1">Année en cours</p>
+                  <p className="text-xs text-blue-600 mt-1">{t('clients.kpiCurrentYear')}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-blue-400" />
               </div>
@@ -843,9 +844,9 @@ const ClientsModule: React.FC = () => {
             <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-green-600 font-medium">DSO Moyen</p>
-                  <p className="text-lg font-bold text-green-800">{moyenneDSO} jours</p>
-                  <p className="text-xs text-green-600 mt-1">Délai encaissement</p>
+                  <p className="text-sm text-green-600 font-medium">{t('clients.kpiAvgDso')}</p>
+                  <p className="text-lg font-bold text-green-800">{moyenneDSO} {t('clients.days')}</p>
+                  <p className="text-xs text-green-600 mt-1">{t('clients.kpiCollectionDelay')}</p>
                 </div>
                 <Clock className="w-8 h-8 text-green-400" />
               </div>
@@ -854,9 +855,9 @@ const ClientsModule: React.FC = () => {
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-orange-600 font-medium">Alertes</p>
+                  <p className="text-sm text-orange-600 font-medium">{t('clients.kpiAlerts')}</p>
                   <p className="text-lg font-bold text-orange-800">{clients.reduce((sum, c) => sum + c.alertes, 0)}</p>
-                  <p className="text-xs text-orange-600 mt-1">À traiter</p>
+                  <p className="text-xs text-orange-600 mt-1">{t('clients.kpiToProcess')}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-orange-400" />
               </div>
@@ -869,7 +870,7 @@ const ClientsModule: React.FC = () => {
               <Search className="absolute left-3 top-3 w-5 h-5 text-[var(--color-text-secondary)]" />
               <input
                 type="text"
-                placeholder="Rechercher (nom, code, compte comptable)..."
+                placeholder={t('clients.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -883,11 +884,11 @@ const ClientsModule: React.FC = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
-              <option value="all">Toutes catégories</option>
-              <option value="GRAND_COMPTE">Grand Compte</option>
-              <option value="PME">PME</option>
-              <option value="TPE">TPE</option>
-              <option value="PARTICULIER">Particulier</option>
+              <option value="all">{t('clients.allCategories')}</option>
+              <option value="GRAND_COMPTE">{t('clients.catLargeAccount')}</option>
+              <option value="PME">{t('clients.catSme')}</option>
+              <option value="TPE">{t('clients.catVse')}</option>
+              <option value="PARTICULIER">{t('clients.catIndividual')}</option>
             </select>
 
             <select
@@ -895,11 +896,11 @@ const ClientsModule: React.FC = () => {
               onChange={(e) => setSelectedStatut(e.target.value)}
               className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
-              <option value="all">Tous statuts</option>
-              <option value="ACTIF">Actif</option>
-              <option value="BLOQUE">Bloqué</option>
-              <option value="SUSPENDU">Suspendu</option>
-              <option value="INACTIF">Inactif</option>
+              <option value="all">{t('clients.allStatuses')}</option>
+              <option value="ACTIF">{t('clients.statusActive')}</option>
+              <option value="BLOQUE">{t('clients.statusBlocked')}</option>
+              <option value="SUSPENDU">{t('clients.statusSuspended')}</option>
+              <option value="INACTIF">{t('clients.statusInactive')}</option>
             </select>
             </>
             )}
@@ -916,7 +917,7 @@ const ClientsModule: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
             >
               <Plus className="w-5 h-5" />
-              <span className="font-semibold">Nouveau Client</span>
+              <span className="font-semibold">{t('clients.newClient')}</span>
             </button>
           </div>
 
@@ -925,30 +926,30 @@ const ClientsModule: React.FC = () => {
             <div className="p-4 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  {filteredClients.length} client(s) trouvé(s)
+                  {t('clients.clientsFound', { count: String(filteredClients.length) })}
                 </p>
                 <div className="flex items-center space-x-2">
                   {selectedClients.length > 0 && (
                     <span className="text-sm text-[var(--color-primary)] font-medium">
-                      {selectedClients.length} sélectionné(s)
+                      {t('clients.selectedCount', { count: String(selectedClients.length) })}
                     </span>
                   )}
                   <ExportMenu
                     data={filteredClients as unknown as Record<string, unknown>[]}
                     filename="clients"
                     columns={{
-                      code: 'Code',
-                      compteComptable: 'Compte',
-                      raisonSociale: 'Client',
-                      niu: 'NIU',
-                      secteurActivite: 'Secteur',
-                      categorie: 'Catégorie',
-                      pays: 'Pays',
-                      encoursActuel: 'Encours',
-                      chiffreAffaires: 'CA',
-                      dso: 'DSO',
-                      notationInterne: 'Note',
-                      statut: 'Statut'
+                      code: t('clients.colCode'),
+                      compteComptable: t('clients.colAccount'),
+                      raisonSociale: t('clients.colClient'),
+                      niu: t('clients.colNiu'),
+                      secteurActivite: t('clients.colSector'),
+                      categorie: t('clients.colCategory'),
+                      pays: t('clients.colCountry'),
+                      encoursActuel: t('clients.colOutstanding'),
+                      chiffreAffaires: t('clients.colRevenue'),
+                      dso: t('clients.colDso'),
+                      notationInterne: t('clients.colRating'),
+                      statut: t('clients.colStatus')
                     }}
                     buttonText={t('common.export')}
                     buttonVariant="outline"
@@ -958,7 +959,7 @@ const ClientsModule: React.FC = () => {
                     className="flex items-center space-x-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded hover:bg-gray-50"
                   >
                     <Filter className="w-4 h-4" />
-                    <span>Plus de filtres</span>
+                    <span>{t('clients.moreFilters')}</span>
                   </button>
                 </div>
               </div>
@@ -976,16 +977,16 @@ const ClientsModule: React.FC = () => {
                         className="rounded"
                       />
                     </th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Code</th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Compte</th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Client</th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">NIU/RCCM</th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Catégorie</th>
-                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">Encours</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">DSO</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Note</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colCode')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colAccount')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colClient')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colNiuRccm')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colCategory')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colOutstanding')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colDso')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colRating')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colStatus')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('clients.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1026,14 +1027,14 @@ const ClientsModule: React.FC = () => {
                         <div>
                           <p className="text-sm font-medium text-[var(--color-primary)]">{formatCurrency(client.encoursActuel)}</p>
                           {client.encoursActuel > client.limiteCredit * 0.8 && (
-                            <p className="text-xs text-orange-600">Proche limite</p>
+                            <p className="text-xs text-orange-600">{t('clients.nearLimit')}</p>
                           )}
                         </div>
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center space-x-1">
                           <Clock className="w-3 h-3 text-[var(--color-text-secondary)]" />
-                          <span className="text-sm text-[var(--color-text-secondary)]">{client.dso}j</span>
+                          <span className="text-sm text-[var(--color-text-secondary)]">{client.dso}{t('clients.daysShort')}</span>
                         </div>
                       </td>
                       <td className="p-3 text-center">
@@ -1060,7 +1061,7 @@ const ClientsModule: React.FC = () => {
                             type="button"
                             onClick={() => handleViewClient(client.id)}
                             className="p-1 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded"
-                            title="Voir"
+                            title={t('clients.view')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -1068,7 +1069,7 @@ const ClientsModule: React.FC = () => {
                             type="button"
                             onClick={() => handleEditClient(client.id)}
                             className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                            title="Modifier"
+                            title={t('clients.edit')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -1076,7 +1077,7 @@ const ClientsModule: React.FC = () => {
                             type="button"
                             onClick={() => handleDeleteClient(client.id)}
                             className="p-1 text-red-600 hover:bg-red-100 rounded"
-                            title="Supprimer"
+                            title={t('clients.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1091,15 +1092,15 @@ const ClientsModule: React.FC = () => {
             {/* Pagination */}
             <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
               <span className="text-sm text-[var(--color-text-secondary)]">
-                Affichage de 1 à {filteredClients.length} sur {filteredClients.length} entrées
+                {t('clients.paginationShowing', { to: String(filteredClients.length), total: String(filteredClients.length) })}
               </span>
               <div className="flex items-center space-x-2">
                 <button type="button" className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
-                  Précédent
+                  {t('clients.previous')}
                 </button>
                 <button type="button" className="px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">1</button>
                 <button type="button" className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
-                  Suivant
+                  {t('clients.next')}
                 </button>
               </div>
             </div>
@@ -1114,8 +1115,8 @@ const ClientsModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée des Créances Clients</h3>
-                <p className="text-sm text-[var(--color-text-secondary)]">Analyse de l'ancienneté des créances au {new Date().toLocaleDateString('fr-FR')}</p>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('clients.agingTitle')}</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.agingSubtitle', { date: new Date().toLocaleDateString('fr-FR') })}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -1124,25 +1125,25 @@ const ClientsModule: React.FC = () => {
                   className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Date d'arrêté</span>
+                  <span>{t('clients.cutoffDate')}</span>
                 </button>
                 <ExportMenu
                   data={balanceAgeeData as unknown as Record<string, unknown>[]}
                   filename="balance-agee-clients"
                   columns={{
-                    clientCode: 'Code Client',
-                    clientNom: 'Nom Client',
-                    totalCreances: 'Total Créances',
-                    nonEchu: 'Non Échu',
-                    echu0_30: '0-30 jours',
-                    echu31_60: '31-60 jours',
-                    echu61_90: '61-90 jours',
-                    echuPlus90: '+90 jours',
-                    provision: 'Provision'
+                    clientCode: t('clients.colClientCode'),
+                    clientNom: t('clients.colClientName'),
+                    totalCreances: t('clients.colTotalReceivables'),
+                    nonEchu: t('clients.bucketNonEchu'),
+                    echu0_30: t('clients.bucket030'),
+                    echu31_60: t('clients.bucket3160'),
+                    echu61_90: t('clients.bucket6190'),
+                    echuPlus90: t('clients.bucketPlus90'),
+                    provision: t('clients.provision')
                   }}
-                  buttonText="Exporter"
+                  buttonText={t('clients.export')}
                 />
-                <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Imprimer">
+                <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title={t('clients.print')}>
                   <Printer className="w-4 h-4" />
                 </button>
               </div>
@@ -1156,7 +1157,7 @@ const ClientsModule: React.FC = () => {
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-              <p className="text-xs text-[var(--color-text-secondary)]">Total Créances</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.colTotalReceivables')}</p>
             </div>
 
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -1165,7 +1166,7 @@ const ClientsModule: React.FC = () => {
                 <span className="text-xs text-green-600">{((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
               <p className="text-lg font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
-              <p className="text-xs text-green-600">Non Échu</p>
+              <p className="text-xs text-green-600">{t('clients.bucketNonEchu')}</p>
             </div>
 
             <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
@@ -1174,7 +1175,7 @@ const ClientsModule: React.FC = () => {
                 <span className="text-xs text-yellow-600">{((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
               <p className="text-lg font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
-              <p className="text-xs text-yellow-600">0-30 jours</p>
+              <p className="text-xs text-yellow-600">{t('clients.bucket030')}</p>
             </div>
 
             <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
@@ -1183,7 +1184,7 @@ const ClientsModule: React.FC = () => {
                 <span className="text-xs text-orange-600">{((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
               <p className="text-lg font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
-              <p className="text-xs text-orange-600">31-60 jours</p>
+              <p className="text-xs text-orange-600">{t('clients.bucket3160')}</p>
             </div>
 
             <div className="bg-red-50 rounded-lg p-4 border border-red-200">
@@ -1192,7 +1193,7 @@ const ClientsModule: React.FC = () => {
                 <span className="text-xs text-red-600">{(((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
               </div>
               <p className="text-lg font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
-              <p className="text-xs text-red-600">+60 jours</p>
+              <p className="text-xs text-red-600">{t('clients.bucketPlus60')}</p>
             </div>
 
             <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
@@ -1200,7 +1201,7 @@ const ClientsModule: React.FC = () => {
                 <Shield className="w-5 h-5 text-primary-600" />
               </div>
               <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-primary-600">Provisions</p>
+              <p className="text-xs text-primary-600">{t('clients.provisions')}</p>
             </div>
           </div>
 
@@ -1217,7 +1218,7 @@ const ClientsModule: React.FC = () => {
                 }`}
               >
                 <PieChart className="w-4 h-4" />
-                <span>Répartition par ancienneté</span>
+                <span>{t('clients.subtabDistribution')}</span>
               </button>
               <button
                 type="button"
@@ -1229,7 +1230,7 @@ const ClientsModule: React.FC = () => {
                 }`}
               >
                 <FileText className="w-4 h-4" />
-                <span>Détail par client</span>
+                <span>{t('clients.subtabDetail')}</span>
               </button>
               <button
                 type="button"
@@ -1241,7 +1242,7 @@ const ClientsModule: React.FC = () => {
                 }`}
               >
                 <AlertTriangle className="w-4 h-4" />
-                <span>Clients à risque & Recommandations</span>
+                <span>{t('clients.subtabRisks')}</span>
               </button>
             </div>
 
@@ -1251,8 +1252,8 @@ const ClientsModule: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
                   <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">Distribution des Créances</h4>
-                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">Répartition par ancienneté</p>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">{t('clients.distributionTitle')}</h4>
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">{t('clients.subtabDistribution')}</p>
                     <div className="relative">
                       <ResponsiveContainer width="100%" height={320}>
                         <RechartsPieChart>
@@ -1285,9 +1286,9 @@ const ClientsModule: React.FC = () => {
                       {/* Centre du Donut avec Total (cercle net, sans ombre qui bave) */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center border border-[var(--color-border)] px-3">
-                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Total</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('clients.total')}</p>
                           <p className="text-base font-bold text-[var(--color-primary)] leading-tight">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">{balanceAgeeData.length} clients</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.clientsCount', { count: String(balanceAgeeData.length) })}</p>
                         </div>
                       </div>
                     </div>
@@ -1295,17 +1296,17 @@ const ClientsModule: React.FC = () => {
 
                   {/* Légende détaillée et statistiques */}
                   <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détail par Tranche d'Ancienneté</h4>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.detailByBucket')}</h4>
                     {balanceAgeeChartData.map((item, idx) => {
                       const percent = totauxBalanceAgee.totalCreances > 0
                         ? ((item.value / totauxBalanceAgee.totalCreances) * 100).toFixed(1)
                         : '0';
                       const clientCount = balanceAgeeData.filter(c => {
-                        if (item.name === 'Non échu') return c.nonEchu > 0;
-                        if (item.name === '0-30 jours') return c.echu0_30 > 0;
-                        if (item.name === '31-60 jours') return c.echu31_60 > 0;
-                        if (item.name === '61-90 jours') return c.echu61_90 > 0;
-                        if (item.name === '+90 jours') return c.echuPlus90 > 0;
+                        if (item.key === 'nonEchu') return c.nonEchu > 0;
+                        if (item.key === 'echu0_30') return c.echu0_30 > 0;
+                        if (item.key === 'echu31_60') return c.echu31_60 > 0;
+                        if (item.key === 'echu61_90') return c.echu61_90 > 0;
+                        if (item.key === 'echuPlus90') return c.echuPlus90 > 0;
                         return false;
                       }).length;
                       return (
@@ -1323,7 +1324,7 @@ const ClientsModule: React.FC = () => {
                             </div>
                             <div>
                               <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-primary)] transition-colors">{item.name}</p>
-                              <p className="text-sm text-[var(--color-text-secondary)]">{clientCount} client(s) concerné(s)</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.clientsConcerned', { count: String(clientCount) })}</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -1346,7 +1347,7 @@ const ClientsModule: React.FC = () => {
 
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">Évolution par Client</h4>
+                  <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('clients.evolutionByClient')}</h4>
                   <ResponsiveContainer width="100%" height={320}>
                     <BarChart data={balanceAgeeData.slice(0, 8).map(d => ({ ...d, label: `${d.clientCode} · ${(d.clientNom || '').slice(0, 22)}` }))} layout="vertical" margin={{ left: 12 }}>
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1354,11 +1355,11 @@ const ClientsModule: React.FC = () => {
                       <YAxis type="category" dataKey="label" width={200} tick={{ fontSize: 11 }} interval={0} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name="Non Échu" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name="0-30j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name="31-60j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name="61-90j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name="+90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name={t('clients.bucketNonEchu')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name={t('clients.bucket030Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name={t('clients.bucket3160Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name={t('clients.bucket6190Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name={t('clients.bucketPlus90Short')} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1375,21 +1376,21 @@ const ClientsModule: React.FC = () => {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Rechercher un client..."
+                        placeholder={t('clients.searchClientPlaceholder')}
                         className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
                     <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                      <option value="all">Toutes les tranches</option>
-                      <option value="nonechu">Non Échu seulement</option>
-                      <option value="0-30">0-30 jours</option>
-                      <option value="31-60">31-60 jours</option>
-                      <option value="61-90">61-90 jours</option>
-                      <option value="+90">+90 jours</option>
+                      <option value="all">{t('clients.allBuckets')}</option>
+                      <option value="nonechu">{t('clients.nonEchuOnly')}</option>
+                      <option value="0-30">{t('clients.bucket030')}</option>
+                      <option value="31-60">{t('clients.bucket3160')}</option>
+                      <option value="61-90">{t('clients.bucket6190')}</option>
+                      <option value="+90">{t('clients.bucketPlus90')}</option>
                     </select>
                   </div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{balanceAgeeData.length} clients</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.clientsCount', { count: String(balanceAgeeData.length) })}</p>
                 </div>
 
                 {/* Tableau détaillé */}
@@ -1397,16 +1398,16 @@ const ClientsModule: React.FC = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Code</th>
-                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Client</th>
-                        <th className="text-right p-3 font-medium text-[var(--color-text-secondary)]">Total Créances</th>
-                        <th className="text-right p-3 font-medium text-green-600">Non Échu</th>
-                        <th className="text-right p-3 font-medium text-yellow-600">0-30j</th>
-                        <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
-                        <th className="text-right p-3 font-medium text-red-600">61-90j</th>
-                        <th className="text-right p-3 font-medium text-red-800">+90j</th>
-                        <th className="text-right p-3 font-medium text-primary-600">Provision</th>
-                        <th className="text-center p-3 font-medium text-[var(--color-text-secondary)]">Actions</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">{t('clients.colCode')}</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">{t('clients.colClient')}</th>
+                        <th className="text-right p-3 font-medium text-[var(--color-text-secondary)]">{t('clients.colTotalReceivables')}</th>
+                        <th className="text-right p-3 font-medium text-green-600">{t('clients.bucketNonEchu')}</th>
+                        <th className="text-right p-3 font-medium text-yellow-600">{t('clients.bucket030Short')}</th>
+                        <th className="text-right p-3 font-medium text-orange-600">{t('clients.bucket3160Short')}</th>
+                        <th className="text-right p-3 font-medium text-red-600">{t('clients.bucket6190Short')}</th>
+                        <th className="text-right p-3 font-medium text-red-800">{t('clients.bucketPlus90Short')}</th>
+                        <th className="text-right p-3 font-medium text-primary-600">{t('clients.provision')}</th>
+                        <th className="text-center p-3 font-medium text-[var(--color-text-secondary)]">{t('clients.colActions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1421,7 +1422,7 @@ const ClientsModule: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <p className="font-medium text-[var(--color-primary)]">{item.clientNom}</p>
                                 {hasRisk && (
-                                  <span title={`Créances en retard : ${formatCurrency(item.echu61_90 + item.echuPlus90)} à plus de 60 jours`} className="cursor-help">
+                                  <span title={t('clients.overdueTooltip', { amount: formatCurrency(item.echu61_90 + item.echuPlus90) })} className="cursor-help">
                                     <AlertTriangle className="w-4 h-4 text-red-500" />
                                   </span>
                                 )}
@@ -1436,13 +1437,13 @@ const ClientsModule: React.FC = () => {
                             <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button type="button" onClick={() => setAgingDetail(item)} className="p-1 text-gray-500 hover:text-[var(--color-primary)]" title="Voir détail">
+                                <button type="button" onClick={() => setAgingDetail(item)} className="p-1 text-gray-500 hover:text-[var(--color-primary)]" title={t('clients.viewDetail')}>
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button type="button" onClick={() => sendRelance(item)} className="p-1 text-gray-500 hover:text-blue-600" title="Envoyer relance">
+                                <button type="button" onClick={() => sendRelance(item)} className="p-1 text-gray-500 hover:text-blue-600" title={t('clients.sendReminder')}>
                                   <Mail className="w-4 h-4" />
                                 </button>
-                                <button type="button" onClick={() => exportAgingCsv(item)} className="p-1 text-gray-500 hover:text-orange-600" title="Exporter (CSV)">
+                                <button type="button" onClick={() => exportAgingCsv(item)} className="p-1 text-gray-500 hover:text-orange-600" title={t('clients.exportCsv')}>
                                   <Printer className="w-4 h-4" />
                                 </button>
                               </div>
@@ -1453,7 +1454,7 @@ const ClientsModule: React.FC = () => {
                     </tbody>
                     <tfoot className="bg-gray-100 font-bold">
                       <tr>
-                        <td className="p-3" colSpan={2}>TOTAUX ({balanceAgeeData.length} clients)</td>
+                        <td className="p-3" colSpan={2}>{t('clients.totalsRow', { count: String(balanceAgeeData.length) })}</td>
                         <td className="p-3 text-right">{formatCurrency(totauxBalanceAgee.totalCreances)}</td>
                         <td className="p-3 text-right text-green-600">{formatCurrency(totauxBalanceAgee.nonEchu)}</td>
                         <td className="p-3 text-right text-yellow-600">{formatCurrency(totauxBalanceAgee.echu0_30)}</td>
@@ -1481,7 +1482,7 @@ const ClientsModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echuPlus90 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-red-700 mt-2">Clients critiques (+90j)</p>
+                    <p className="text-sm text-red-700 mt-2">{t('clients.criticalClients')}</p>
                   </div>
                   <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                     <div className="flex items-center justify-between">
@@ -1490,7 +1491,7 @@ const ClientsModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echu61_90 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-orange-700 mt-2">Clients à surveiller (61-90j)</p>
+                    <p className="text-sm text-orange-700 mt-2">{t('clients.clientsToWatch')}</p>
                   </div>
                   <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                     <div className="flex items-center justify-between">
@@ -1499,7 +1500,7 @@ const ClientsModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echu31_60 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-yellow-700 mt-2">Relances à prévoir (31-60j)</p>
+                    <p className="text-sm text-yellow-700 mt-2">{t('clients.remindersToPlan')}</p>
                   </div>
                   <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
                     <div className="flex items-center justify-between">
@@ -1508,7 +1509,7 @@ const ClientsModule: React.FC = () => {
                         {formatCurrency(totauxBalanceAgee.provision)}
                       </span>
                     </div>
-                    <p className="text-sm text-primary-700 mt-2">Provisions recommandées</p>
+                    <p className="text-sm text-primary-700 mt-2">{t('clients.recommendedProvisions')}</p>
                   </div>
                 </div>
 
@@ -1517,12 +1518,12 @@ const ClientsModule: React.FC = () => {
                   <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <div className="p-4 bg-red-50 border-b border-red-200">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-md font-semibold text-red-800">Clients à Risque Élevé</h4>
+                        <h4 className="text-md font-semibold text-red-800">{t('clients.highRiskClients')}</h4>
                         <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                          {balanceAgeeData.filter(item => item.echuPlus90 > 0).length} clients
+                          {t('clients.clientsCount', { count: String(balanceAgeeData.filter(item => item.echuPlus90 > 0).length) })}
                         </span>
                       </div>
-                      <p className="text-xs text-red-600 mt-1">Créances échues de plus de 90 jours</p>
+                      <p className="text-xs text-red-600 mt-1">{t('clients.receivablesOver90')}</p>
                     </div>
                     <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto">
                       {balanceAgeeData
@@ -1537,7 +1538,7 @@ const ClientsModule: React.FC = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-red-800">{formatCurrency(item.echuPlus90)}</p>
-                                <p className="text-xs text-[var(--color-text-secondary)]">échu +90j</p>
+                                <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.overduePlus90')}</p>
                               </div>
                             </div>
                             <div className="mt-3 flex items-center space-x-2">
@@ -1546,14 +1547,14 @@ const ClientsModule: React.FC = () => {
                                 className="flex-1 px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center space-x-1"
                               >
                                 <Mail className="w-3 h-3" />
-                                <span>Mise en demeure</span>
+                                <span>{t('clients.formalNotice')}</span>
                               </button>
                               <button
                                 type="button"
                                 className="flex-1 px-3 py-1.5 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center justify-center space-x-1"
                               >
                                 <Phone className="w-3 h-3" />
-                                <span>Appeler</span>
+                                <span>{t('clients.call')}</span>
                               </button>
                               <button
                                 type="button"
@@ -1567,7 +1568,7 @@ const ClientsModule: React.FC = () => {
                       {balanceAgeeData.filter(item => item.echuPlus90 > 0).length === 0 && (
                         <div className="p-8 text-center text-[var(--color-text-secondary)]">
                           <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
-                          <p>Aucun client à risque critique</p>
+                          <p>{t('clients.noCriticalRisk')}</p>
                         </div>
                       )}
                     </div>
@@ -1577,21 +1578,21 @@ const ClientsModule: React.FC = () => {
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                       <div className="p-4 bg-[var(--color-primary)]/10 border-b border-[var(--color-border)]">
-                        <h4 className="text-md font-semibold text-[var(--color-primary)]">Plan d'Actions Recommandé</h4>
-                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">Actions prioritaires basées sur l'analyse</p>
+                        <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('clients.recommendedActionPlan')}</h4>
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('clients.priorityActions')}</p>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* Action 1 */}
                         <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-red-800">Mises en demeure urgentes</p>
+                              <p className="font-medium text-red-800">{t('clients.urgentFormalNotices')}</p>
                               <p className="text-sm text-red-700">
-                                {balanceAgeeData.filter(i => i.echuPlus90 > 0).length} clients avec créances +90 jours
+                                {t('clients.clientsWithOver90', { count: String(balanceAgeeData.filter(i => i.echuPlus90 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">
-                              Traiter
+                              {t('clients.process')}
                             </button>
                           </div>
                         </div>
@@ -1600,13 +1601,13 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-orange-800">Relances niveau 2</p>
+                              <p className="font-medium text-orange-800">{t('clients.remindersLevel2')}</p>
                               <p className="text-sm text-orange-700">
-                                {balanceAgeeData.filter(i => i.echu61_90 > 0).length} clients avec créances 61-90 jours
+                                {t('clients.clientsWith6190', { count: String(balanceAgeeData.filter(i => i.echu61_90 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700">
-                              Relancer
+                              {t('clients.remind')}
                             </button>
                           </div>
                         </div>
@@ -1615,13 +1616,13 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-yellow-800">Relances niveau 1</p>
+                              <p className="font-medium text-yellow-800">{t('clients.remindersLevel1')}</p>
                               <p className="text-sm text-yellow-700">
-                                {balanceAgeeData.filter(i => i.echu31_60 > 0).length} clients avec créances 31-60 jours
+                                {t('clients.clientsWith3160', { count: String(balanceAgeeData.filter(i => i.echu31_60 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700">
-                              Envoyer
+                              {t('clients.send')}
                             </button>
                           </div>
                         </div>
@@ -1630,13 +1631,13 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-primary-800">Provisions à comptabiliser</p>
+                              <p className="font-medium text-primary-800">{t('clients.provisionsToRecord')}</p>
                               <p className="text-sm text-primary-700">
-                                {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
+                                {t('clients.perSyscohadaRules', { amount: formatCurrency(totauxBalanceAgee.provision) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
-                              Générer OD
+                              {t('clients.generateJournalEntry')}
                             </button>
                           </div>
                         </div>
@@ -1645,13 +1646,13 @@ const ClientsModule: React.FC = () => {
                         <div className="p-3 bg-gray-50 rounded-lg border-l-4 border-gray-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-gray-800">Comptes à bloquer</p>
+                              <p className="font-medium text-gray-800">{t('clients.accountsToBlock')}</p>
                               <p className="text-sm text-gray-700">
-                                {balanceAgeeData.filter(i => i.echuPlus90 > 500000).length} clients dépassent le seuil de 500K XAF
+                                {t('clients.clientsOverThreshold', { count: String(balanceAgeeData.filter(i => i.echuPlus90 > 500000).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
-                              Bloquer
+                              {t('clients.block')}
                             </button>
                           </div>
                         </div>
@@ -1662,20 +1663,20 @@ const ClientsModule: React.FC = () => {
                     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                       <h5 className="font-medium text-blue-800 flex items-center">
                         <Info className="w-4 h-4 mr-2" />
-                        Règles de Provisionnement SYSCOHADA
+                        {t('clients.syscohadaProvisionRules')}
                       </h5>
                       <div className="mt-3 space-y-2 text-sm text-blue-700">
                         <div className="flex justify-between">
-                          <span>Créances 61-90 jours</span>
-                          <span className="font-medium">20% de provision</span>
+                          <span>{t('clients.receivables6190')}</span>
+                          <span className="font-medium">{t('clients.provision20')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Créances +90 jours</span>
-                          <span className="font-medium">50% de provision</span>
+                          <span>{t('clients.receivablesPlus90')}</span>
+                          <span className="font-medium">{t('clients.provision50')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Créances contentieuses</span>
-                          <span className="font-medium">100% de provision</span>
+                          <span>{t('clients.receivablesLitigation')}</span>
+                          <span className="font-medium">{t('clients.provision100')}</span>
                         </div>
                       </div>
                     </div>
@@ -1700,9 +1701,9 @@ const ClientsModule: React.FC = () => {
         const riskClients = clients.filter(c => (c.scoreCredit || 0) < 50);
 
         const analyticsSubTabs = [
-          { key: 'kpis', label: 'Indicateurs', icon: BarChart3 },
-          { key: 'charts', label: 'Graphiques', icon: PieChart },
-          { key: 'performance', label: 'Performance', icon: Target },
+          { key: 'kpis', label: t('clients.subtabKpis'), icon: BarChart3 },
+          { key: 'charts', label: t('clients.subtabCharts'), icon: PieChart },
+          { key: 'performance', label: t('clients.subtabPerformance'), icon: Target },
         ];
 
         return (
@@ -1729,34 +1730,34 @@ const ClientsModule: React.FC = () => {
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Building className="w-5 h-5 text-[var(--color-primary)] mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{activeClients.length}</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Clients Actifs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.activeClients')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <DollarSign className="w-5 h-5 text-primary-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totalCA)}</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">CA Total</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.totalRevenue')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Clock className="w-5 h-5 text-blue-600 mb-3" />
-                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgDSO}j</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">DSO Moyen</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgDSO}{t('clients.daysShort')}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.kpiAvgDso')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Target className="w-5 h-5 text-orange-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{avgRecouvrement}%</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Recouvrement</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.collectionRate')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Shield className="w-5 h-5 text-green-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{avgScore}/5</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Score Moyen</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.avgScore')}</p>
                 </div>
               </div>
 
               {/* Catégories + Top clients */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse par Catégorie</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.analysisByCategory')}</h3>
                   <div className="space-y-3">
                     {catData.map((cat) => (
                       <div key={cat.categorie} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1771,10 +1772,10 @@ const ClientsModule: React.FC = () => {
                 </div>
 
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Top Clients</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.topClients')}</h3>
                   <div className="space-y-3">
                     {topClients.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-4">Aucun client</p>
+                      <p className="text-sm text-gray-500 text-center py-4">{t('clients.noClients')}</p>
                     ) : topClients.map((c, idx) => (
                       <div key={c.id} className="flex items-center justify-between">
                         <div className="flex items-center flex-1">
@@ -1801,7 +1802,7 @@ const ClientsModule: React.FC = () => {
           {analyticsSubTab === 'charts' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Catégorie</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.distributionByCategory')}</h3>
                 {pieData.some(d => d.ca > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
@@ -1816,19 +1817,19 @@ const ClientsModule: React.FC = () => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-gray-500">
-                    <p className="text-sm">Aucune donnée de CA disponible</p>
+                    <p className="text-sm">{t('clients.noRevenueData')}</p>
                   </div>
                 )}
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évaluation Performance</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.performanceEvaluation')}</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={analyticsData.performanceClients}>
                     <PolarGrid />
                     <PolarAngleAxis dataKey="critere" />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                    <Radar name="Score" dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
+                    <Radar name={t('clients.score')} dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
                     <Tooltip />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -1840,11 +1841,11 @@ const ClientsModule: React.FC = () => {
           {analyticsSubTab === 'performance' && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Clients à Risque</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.riskClients')}</h3>
                 {riskClients.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Aucun client à risque détecté</p>
+                    <p className="text-sm text-gray-600">{t('clients.noRiskClients')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1852,7 +1853,7 @@ const ClientsModule: React.FC = () => {
                       <div key={c.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                         <div>
                           <p className="text-sm font-medium text-gray-900">{c.raisonSociale}</p>
-                          <p className="text-xs text-gray-600">Score: {c.scoreCredit}/100 | DSO: {c.dso}j</p>
+                          <p className="text-xs text-gray-600">{t('clients.scoreDsoLine', { score: String(c.scoreCredit), dso: String(c.dso) })}</p>
                         </div>
                         <span className="text-sm font-bold text-red-600">{formatCurrency(c.encoursActuel || 0)}</span>
                       </div>
@@ -1873,8 +1874,8 @@ const ClientsModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? 'Modifier le client' : 'Nouveau Client'}</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Étape {formStep} sur 4</p>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? t('clients.editClient') : t('clients.newClient')}</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.stepOf4', { step: String(formStep) })}</p>
                 </div>
                 <button type="button" onClick={handleCloseNewClientModal} className="p-2 hover:bg-gray-100 rounded-full">
                   <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
@@ -1890,10 +1891,10 @@ const ClientsModule: React.FC = () => {
                 ))}
               </div>
               <div className="flex mt-2 text-xs text-[var(--color-text-secondary)]">
-                <span className="flex-1">Identification</span>
-                <span className="flex-1">Adresse & Contact</span>
-                <span className="flex-1">Comptabilité</span>
-                <span className="flex-1">Conditions</span>
+                <span className="flex-1">{t('clients.stepIdentification')}</span>
+                <span className="flex-1">{t('clients.stepAddressContact')}</span>
+                <span className="flex-1">{t('clients.stepAccounting')}</span>
+                <span className="flex-1">{t('clients.stepTerms')}</span>
               </div>
             </div>
 
@@ -1903,11 +1904,11 @@ const ClientsModule: React.FC = () => {
                 <div className="space-y-4">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center">
                     <FileCheck className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                    Identification de l'entreprise
+                    {t('clients.companyIdentification')}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code client *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelClientCode')}</label>
                       <div className="flex space-x-2">
                         <input
                           type="text"
@@ -1921,35 +1922,35 @@ const ClientsModule: React.FC = () => {
                           onClick={generateClientCode}
                           className="px-3 py-2 bg-gray-100 text-[var(--color-text-secondary)] rounded-lg hover:bg-gray-200"
                         >
-                          Auto
+                          {t('clients.auto')}
                         </button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Catégorie *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCategory')}</label>
                       <select
                         value={newClient.categorie}
                         onChange={(e) => setNewClient({ ...newClient, categorie: e.target.value as NewClientForm['categorie'] })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
-                        <option value="GRAND_COMPTE">Grand Compte</option>
-                        <option value="PME">PME</option>
-                        <option value="TPE">TPE</option>
-                        <option value="PARTICULIER">Particulier</option>
+                        <option value="GRAND_COMPTE">{t('clients.catLargeAccount')}</option>
+                        <option value="PME">{t('clients.catSme')}</option>
+                        <option value="TPE">{t('clients.catVse')}</option>
+                        <option value="PARTICULIER">{t('clients.catIndividual')}</option>
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Raison sociale *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCompanyName')}</label>
                       <input
                         type="text"
                         value={newClient.raisonSociale}
                         onChange={(e) => setNewClient({ ...newClient, raisonSociale: e.target.value })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                        placeholder="Nom légal de l'entreprise"
+                        placeholder={t('clients.phCompanyLegalName')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom commercial</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelTradeName')}</label>
                       <input
                         type="text"
                         value={newClient.nomCommercial}
@@ -1958,17 +1959,17 @@ const ClientsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Secteur d'activité *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelSector')}</label>
                       <input
                         type="text"
                         value={newClient.secteurActivite}
                         onChange={(e) => setNewClient({ ...newClient, secteurActivite: e.target.value })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                        placeholder="Ex: Commerce, BTP, Services..."
+                        placeholder={t('clients.phSector')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">RCCM *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelRccm')}</label>
                       <input
                         type="text"
                         value={newClient.rccm}
@@ -1978,7 +1979,7 @@ const ClientsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">NIU (Numéro d'Identification Unique) *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelNiu')}</label>
                       <input
                         type="text"
                         value={newClient.niu}
@@ -1988,16 +1989,16 @@ const ClientsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Régime TVA *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelVatRegime')}</label>
                       <select
                         value={newClient.regimeTVA}
                         onChange={(e) => setNewClient({ ...newClient, regimeTVA: e.target.value as NewClientForm['regimeTVA'] })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                       >
-                        <option value="REEL_NORMAL">Réel Normal</option>
-                        <option value="REEL_SIMPLIFIE">Réel Simplifié</option>
-                        <option value="FORFAIT">Forfait</option>
-                        <option value="EXONERE">Exonéré</option>
+                        <option value="REEL_NORMAL">{t('clients.vatRealNormal')}</option>
+                        <option value="REEL_SIMPLIFIE">{t('clients.vatRealSimplified')}</option>
+                        <option value="FORFAIT">{t('clients.vatFlatRate')}</option>
+                        <option value="EXONERE">{t('clients.vatExempt')}</option>
                       </select>
                     </div>
                   </div>
@@ -2010,21 +2011,21 @@ const ClientsModule: React.FC = () => {
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
                       <MapPin className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                      Adresse
+                      {t('clients.address')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Adresse *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelAddress')}</label>
                         <input
                           type="text"
                           value={newClient.adresse}
                           onChange={(e) => setNewClient({ ...newClient, adresse: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="Rue, numéro, quartier"
+                          placeholder={t('clients.phAddress')}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Boîte Postale</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPoBox')}</label>
                         <input
                           type="text"
                           value={newClient.codePostal}
@@ -2034,7 +2035,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Ville *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCity')}</label>
                         <input
                           type="text"
                           value={newClient.ville}
@@ -2043,7 +2044,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Région</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelRegion')}</label>
                         <input
                           type="text"
                           value={newClient.region}
@@ -2052,18 +2053,18 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Pays *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCountry')}</label>
                         <select
                           value={newClient.pays}
                           onChange={(e) => setNewClient({ ...newClient, pays: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value="Cameroun">Cameroun</option>
-                          <option value="Gabon">Gabon</option>
-                          <option value="Congo">Congo</option>
-                          <option value="Tchad">Tchad</option>
-                          <option value="Guinée Équatoriale">Guinée Équatoriale</option>
-                          <option value="République Centrafricaine">République Centrafricaine</option>
+                          <option value="Cameroun">{t('clients.countryCameroon')}</option>
+                          <option value="Gabon">{t('clients.countryGabon')}</option>
+                          <option value="Congo">{t('clients.countryCongo')}</option>
+                          <option value="Tchad">{t('clients.countryChad')}</option>
+                          <option value="Guinée Équatoriale">{t('clients.countryEqGuinea')}</option>
+                          <option value="République Centrafricaine">{t('clients.countryCar')}</option>
                         </select>
                       </div>
                     </div>
@@ -2072,11 +2073,11 @@ const ClientsModule: React.FC = () => {
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
                       <Users className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                      Contact Principal
+                      {t('clients.mainContact')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom du contact *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelContactName')}</label>
                         <input
                           type="text"
                           value={newClient.contactPrincipal}
@@ -2085,17 +2086,17 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Fonction</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPosition')}</label>
                         <input
                           type="text"
                           value={newClient.fonction}
                           onChange={(e) => setNewClient({ ...newClient, fonction: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="Directeur Financier, DAF..."
+                          placeholder={t('clients.phPosition')}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Email *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelEmail')}</label>
                         <input
                           type="email"
                           value={newClient.email}
@@ -2104,7 +2105,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPhone')}</label>
                         <input
                           type="tel"
                           value={newClient.telephone}
@@ -2114,7 +2115,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone secondaire</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPhone2')}</label>
                         <input
                           type="tel"
                           value={newClient.telephoneSecondaire}
@@ -2123,7 +2124,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Fax</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelFax')}</label>
                         <input
                           type="tel"
                           value={newClient.fax}
@@ -2142,11 +2143,11 @@ const ClientsModule: React.FC = () => {
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
                       <BookOpen className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                      Paramètres Comptables SYSCOHADA
+                      {t('clients.syscohadaAccountingSettings')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte comptable client *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCustomerAccount')}</label>
                         <div className="flex space-x-2">
                           <input
                             type="text"
@@ -2160,57 +2161,57 @@ const ClientsModule: React.FC = () => {
                             value={newClient.compteAuxiliaire}
                             onChange={(e) => setNewClient({ ...newClient, compteAuxiliaire: e.target.value })}
                             className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
-                            placeholder="Compte auxiliaire (ex: 411043)"
+                            placeholder={t('clients.phSubAccount')}
                           />
                         </div>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 411 - Clients (SYSCOHADA)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('clients.hint411')}</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code commercial</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCommercialCode')}</label>
                         <input
                           type="text"
                           value={newClient.codeCommercial}
                           onChange={(e) => setNewClient({ ...newClient, codeCommercial: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
-                          placeholder="Code commercial (ex: CL043)"
+                          placeholder={t('clients.phCommercialCode')}
                         />
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Dérivé du compte auxiliaire (préfixe CL / CLI / etc.)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('clients.hintCommercialCode')}</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Journal de ventes *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelSalesJournal')}</label>
                         <select
                           value={newClient.journalVentes}
                           onChange={(e) => setNewClient({ ...newClient, journalVentes: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value="VE">VE - Ventes</option>
-                          <option value="VX">VX - Ventes Export</option>
-                          <option value="PS">PS - Prestations de Services</option>
+                          <option value="VE">{t('clients.journalVe')}</option>
+                          <option value="VX">{t('clients.journalVx')}</option>
+                          <option value="PS">{t('clients.journalPs')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Taux TVA applicable (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelVatRate')}</label>
                         <select
                           value={newClient.tauxTVA}
                           onChange={(e) => setNewClient({ ...newClient, tauxTVA: parseFloat(e.target.value) })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value={19.25}>19,25% - Taux normal Cameroun</option>
-                          <option value={18}>18% - Taux CEMAC standard</option>
-                          <option value={15}>15% - Taux réduit</option>
-                          <option value={0}>0% - Exonéré</option>
+                          <option value={19.25}>{t('clients.vat1925')}</option>
+                          <option value={18}>{t('clients.vat18')}</option>
+                          <option value={15}>{t('clients.vat15')}</option>
+                          <option value={0}>{t('clients.vat0')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Devise *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCurrency')}</label>
                         <select
                           value={newClient.devise}
                           onChange={(e) => setNewClient({ ...newClient, devise: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value="XAF">XAF - Franc CFA CEMAC</option>
-                          <option value="EUR">EUR - Euro</option>
-                          <option value="USD">USD - Dollar US</option>
+                          <option value="XAF">{t('clients.currencyXaf')}</option>
+                          <option value="EUR">{t('clients.currencyEur')}</option>
+                          <option value="USD">{t('clients.currencyUsd')}</option>
                         </select>
                       </div>
                     </div>
@@ -2219,21 +2220,21 @@ const ClientsModule: React.FC = () => {
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
                       <Landmark className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                      Coordonnées Bancaires (optionnel)
+                      {t('clients.bankDetailsOptional')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Banque</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelBank')}</label>
                         <input
                           type="text"
                           value={newClient.banque}
                           onChange={(e) => setNewClient({ ...newClient, banque: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="Nom de la banque"
+                          placeholder={t('clients.phBankName')}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code SWIFT/BIC</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelSwift')}</label>
                         <input
                           type="text"
                           value={newClient.swift}
@@ -2243,7 +2244,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">IBAN / RIB</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelIban')}</label>
                         <input
                           type="text"
                           value={newClient.iban}
@@ -2263,41 +2264,41 @@ const ClientsModule: React.FC = () => {
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
                       <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />
-                      Conditions de Paiement
+                      {t('clients.paymentTerms')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Mode de règlement *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPaymentMethod')}</label>
                         <select
                           value={newClient.modeReglement}
                           onChange={(e) => setNewClient({ ...newClient, modeReglement: e.target.value as NewClientForm['modeReglement'] })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value="VIREMENT">Virement bancaire</option>
-                          <option value="CHEQUE">Chèque</option>
-                          <option value="PRELEVEMENT">Prélèvement automatique</option>
-                          <option value="TRAITE">Traite / Lettre de change</option>
-                          <option value="ESPECES">Espèces</option>
-                          <option value="MOBILE_MONEY">Mobile Money</option>
+                          <option value="VIREMENT">{t('clients.payTransfer')}</option>
+                          <option value="CHEQUE">{t('clients.payCheque')}</option>
+                          <option value="PRELEVEMENT">{t('clients.payDirectDebit')}</option>
+                          <option value="TRAITE">{t('clients.payBillOfExchange')}</option>
+                          <option value="ESPECES">{t('clients.payCash')}</option>
+                          <option value="MOBILE_MONEY">{t('clients.payMobileMoney')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Délai de paiement (jours) *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelPaymentDelay')}</label>
                         <select
                           value={newClient.delaiPaiement}
                           onChange={(e) => setNewClient({ ...newClient, delaiPaiement: parseInt(e.target.value) })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value={0}>Comptant</option>
-                          <option value={15}>15 jours</option>
-                          <option value={30}>30 jours</option>
-                          <option value={45}>45 jours</option>
-                          <option value={60}>60 jours fin de mois</option>
-                          <option value={90}>90 jours</option>
+                          <option value={0}>{t('clients.payImmediate')}</option>
+                          <option value={15}>{t('clients.days15')}</option>
+                          <option value={30}>{t('clients.days30')}</option>
+                          <option value={45}>{t('clients.days45')}</option>
+                          <option value={60}>{t('clients.days60Eom')}</option>
+                          <option value={90}>{t('clients.days90')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Limite de crédit (XAF) *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelCreditLimit')}</label>
                         <input
                           type="number"
                           value={newClient.limiteCredit}
@@ -2306,7 +2307,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Remise commerciale (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelDiscount')}</label>
                         <input
                           type="number"
                           step="0.5"
@@ -2317,7 +2318,7 @@ const ClientsModule: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Escompte pour paiement anticipé (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('clients.labelEarlyDiscount')}</label>
                         <input
                           type="number"
                           step="0.5"
@@ -2332,30 +2333,30 @@ const ClientsModule: React.FC = () => {
 
                   {/* Récapitulatif */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-md font-semibold text-[var(--color-primary)] mb-3">Récapitulatif</h4>
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] mb-3">{t('clients.summary')}</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">Code client:</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryClientCode')}</span>
                         <span className="ml-2 font-medium">{newClient.code || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">Raison sociale:</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryCompanyName')}</span>
                         <span className="ml-2 font-medium">{newClient.raisonSociale || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">Compte comptable:</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryAccount')}</span>
                         <span className="ml-2 font-mono">{fmtAccount(`${newClient.compteComptable}${newClient.compteAuxiliaire}`)}</span>
                       </div>
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">NIU:</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryNiu')}</span>
                         <span className="ml-2 font-mono">{newClient.niu || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">Délai paiement:</span>
-                        <span className="ml-2 font-medium">{newClient.delaiPaiement} jours</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryPaymentDelay')}</span>
+                        <span className="ml-2 font-medium">{newClient.delaiPaiement} {t('clients.days')}</span>
                       </div>
                       <div>
-                        <span className="text-[var(--color-text-secondary)]">Limite crédit:</span>
+                        <span className="text-[var(--color-text-secondary)]">{t('clients.summaryCreditLimit')}</span>
                         <span className="ml-2 font-medium">{formatCurrency(newClient.limiteCredit)}</span>
                       </div>
                     </div>
@@ -2370,7 +2371,7 @@ const ClientsModule: React.FC = () => {
                 onClick={() => formStep > 1 ? setFormStep(formStep - 1) : handleCloseNewClientModal()}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50"
               >
-                {formStep > 1 ? 'Précédent' : 'Annuler'}
+                {formStep > 1 ? t('clients.previous') : t('clients.cancel')}
               </button>
               <div className="flex space-x-3">
                 {formStep < 4 ? (
@@ -2379,7 +2380,7 @@ const ClientsModule: React.FC = () => {
                     onClick={() => setFormStep(formStep + 1)}
                     className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
                   >
-                    Suivant
+                    {t('clients.next')}
                   </button>
                 ) : (
                   <button
@@ -2387,7 +2388,7 @@ const ClientsModule: React.FC = () => {
                     onClick={handleSaveNewClient}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
                   >
-                    {editingId ? 'Enregistrer les modifications' : 'Créer le client'}
+                    {editingId ? t('clients.saveChanges') : t('clients.createClient')}
                   </button>
                 )}
               </div>
@@ -2409,29 +2410,29 @@ const ClientsModule: React.FC = () => {
             </div>
             <div className="p-5 space-y-4 overflow-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div><span className="text-gray-500">NIU</span><p className="font-medium">{viewingClient.niu || '—'}</p></div>
-                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{viewingClient.telephone || '—'}</p></div>
-                <div><span className="text-gray-500">Email</span><p className="font-medium">{viewingClient.email || '—'}</p></div>
-                <div><span className="text-gray-500">Statut</span><p className="font-medium">{viewingClient.statut}</p></div>
-                <div><span className="text-gray-500">Encours</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingClient.encoursActuel)}</p></div>
-                <div className="col-span-2 md:col-span-3"><span className="text-gray-500">Adresse</span><p className="font-medium">{viewingClient.adresse || '—'}</p></div>
+                <div><span className="text-gray-500">{t('clients.colNiu')}</span><p className="font-medium">{viewingClient.niu || '—'}</p></div>
+                <div><span className="text-gray-500">{t('clients.phone')}</span><p className="font-medium">{viewingClient.telephone || '—'}</p></div>
+                <div><span className="text-gray-500">{t('clients.email')}</span><p className="font-medium">{viewingClient.email || '—'}</p></div>
+                <div><span className="text-gray-500">{t('clients.colStatus')}</span><p className="font-medium">{viewingClient.statut}</p></div>
+                <div><span className="text-gray-500">{t('clients.colOutstanding')}</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingClient.encoursActuel)}</p></div>
+                <div className="col-span-2 md:col-span-3"><span className="text-gray-500">{t('clients.address')}</span><p className="font-medium">{viewingClient.adresse || '—'}</p></div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(clientLinesMap[viewingClient.id] || []).length})</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('clients.entriesCount', { count: String((clientLinesMap[viewingClient.id] || []).length) })}</h4>
                 <div className="border rounded-lg overflow-auto max-h-[40vh]">
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 text-gray-600 sticky top-0">
                       <tr>
-                        <th className="text-left px-3 py-2">Date</th>
-                        <th className="text-left px-3 py-2">Pièce</th>
-                        <th className="text-left px-3 py-2">Libellé</th>
-                        <th className="text-right px-3 py-2">Débit</th>
-                        <th className="text-right px-3 py-2">Crédit</th>
+                        <th className="text-left px-3 py-2">{t('clients.colDate')}</th>
+                        <th className="text-left px-3 py-2">{t('clients.colDocument')}</th>
+                        <th className="text-left px-3 py-2">{t('clients.colLabel')}</th>
+                        <th className="text-right px-3 py-2">{t('clients.colDebit')}</th>
+                        <th className="text-right px-3 py-2">{t('clients.colCredit')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(clientLinesMap[viewingClient.id] || []).length === 0 && (
-                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce client (tiers non rattaché dans les libellés).</td></tr>
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">{t('clients.noEntriesForClient')}</td></tr>
                       )}
                       {(clientLinesMap[viewingClient.id] || []).slice(0, 300).map((l, i) => (
                         <tr key={i} className="border-t hover:bg-gray-50">
@@ -2446,7 +2447,7 @@ const ClientsModule: React.FC = () => {
                     {(clientLinesMap[viewingClient.id] || []).length > 0 && (
                       <tfoot className="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-gray-900">
                         <tr>
-                          <td className="px-3 py-2" colSpan={3}>Total ({(clientLinesMap[viewingClient.id] || []).length})</td>
+                          <td className="px-3 py-2" colSpan={3}>{t('clients.totalCount', { count: String((clientLinesMap[viewingClient.id] || []).length) })}</td>
                           <td className="px-3 py-2 text-right text-red-700 whitespace-nowrap">{formatCurrency((clientLinesMap[viewingClient.id] || []).reduce((s, l) => s + (l.debit || 0), 0))}</td>
                           <td className="px-3 py-2 text-right text-green-700 whitespace-nowrap">{formatCurrency((clientLinesMap[viewingClient.id] || []).reduce((s, l) => s + (l.credit || 0), 0))}</td>
                         </tr>
@@ -2457,8 +2458,8 @@ const ClientsModule: React.FC = () => {
               </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
-              <button onClick={() => { const c = viewingClient; setViewingClient(null); if (c) handleEditClient(c.id); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
-              <button onClick={() => setViewingClient(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
+              <button onClick={() => { const c = viewingClient; setViewingClient(null); if (c) handleEditClient(c.id); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">{t('clients.edit')}</button>
+              <button onClick={() => setViewingClient(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">{t('clients.close')}</button>
             </div>
           </div>
         </div>
@@ -2469,14 +2470,14 @@ const ClientsModule: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-[var(--color-primary)]">Modifier le client</h3>
+              <h3 className="text-lg font-bold text-[var(--color-primary)]">{t('clients.editClient')}</h3>
               <button type="button" onClick={() => setEditingClient(null)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-gray-700">Raison sociale *</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.labelCompanyName')}</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.raisonSociale}
@@ -2484,7 +2485,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Code</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.colCode')}</label>
                 <input
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 bg-gray-50"
                   readOnly
@@ -2492,7 +2493,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">NIU</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.colNiu')}</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.niu || ''}
@@ -2500,7 +2501,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Téléphone</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.phone')}</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.telephone || ''}
@@ -2508,7 +2509,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.email')}</label>
                 <input
                   type="email"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -2517,7 +2518,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Compte collectif</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.labelCollectiveAccount')}</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.compteComptable || '411'}
@@ -2525,7 +2526,7 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div className="col-span-2">
-                <label className="text-sm font-medium text-gray-700">Adresse</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.address')}</label>
                 <input
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.adresse || ''}
@@ -2533,20 +2534,20 @@ const ClientsModule: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Statut</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.colStatus')}</label>
                 <select
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   value={editingClient.statut}
                   onChange={e => setEditingClient({ ...editingClient, statut: e.target.value as Client['statut'] })}
                 >
-                  <option value="ACTIF">Actif</option>
-                  <option value="BLOQUE">Bloqué</option>
-                  <option value="SUSPENDU">Suspendu</option>
-                  <option value="INACTIF">Inactif</option>
+                  <option value="ACTIF">{t('clients.statusActive')}</option>
+                  <option value="BLOQUE">{t('clients.statusBlocked')}</option>
+                  <option value="SUSPENDU">{t('clients.statusSuspended')}</option>
+                  <option value="INACTIF">{t('clients.statusInactive')}</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Limite crédit (FCFA)</label>
+                <label className="text-sm font-medium text-gray-700">{t('clients.labelCreditLimitFcfa')}</label>
                 <input
                   type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -2561,7 +2562,7 @@ const ClientsModule: React.FC = () => {
                 onClick={() => setEditingClient(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
               >
-                Annuler
+                {t('clients.cancel')}
               </button>
               <button
                 type="button"
@@ -2578,15 +2579,15 @@ const ClientsModule: React.FC = () => {
                       isActive: editingClient.statut === 'ACTIF',
                     });
                     setClients(prev => prev.map(c => c.id === editingClient.id ? { ...c, ...editingClient } : c));
-                    toast.success('Client mis à jour');
+                    toast.success(t('clients.toastClientUpdated'));
                     setEditingClient(null);
                   } catch {
-                    toast.error('Erreur lors de la mise à jour');
+                    toast.error(t('clients.errUpdate'));
                   }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
               >
-                Enregistrer
+                {t('clients.save')}
               </button>
             </div>
           </div>
@@ -2617,11 +2618,11 @@ const ClientsModule: React.FC = () => {
             </div>
             <div className="p-5 space-y-2">
               {[
-                { label: 'Non échu', value: agingDetail.nonEchu, cls: 'text-green-600' },
-                { label: '0-30 jours', value: agingDetail.echu0_30, cls: 'text-yellow-600' },
-                { label: '31-60 jours', value: agingDetail.echu31_60, cls: 'text-orange-600' },
-                { label: '61-90 jours', value: agingDetail.echu61_90, cls: 'text-red-600' },
-                { label: '+90 jours', value: agingDetail.echuPlus90, cls: 'text-red-800' },
+                { label: t('clients.bucketNonEchu'), value: agingDetail.nonEchu, cls: 'text-green-600' },
+                { label: t('clients.bucket030'), value: agingDetail.echu0_30, cls: 'text-yellow-600' },
+                { label: t('clients.bucket3160'), value: agingDetail.echu31_60, cls: 'text-orange-600' },
+                { label: t('clients.bucket6190'), value: agingDetail.echu61_90, cls: 'text-red-600' },
+                { label: t('clients.bucketPlus90'), value: agingDetail.echuPlus90, cls: 'text-red-800' },
               ].map(r => (
                 <div key={r.label} className="flex items-center justify-between py-1.5 border-b border-gray-100">
                   <span className="text-sm text-gray-600">{r.label}</span>
@@ -2629,17 +2630,17 @@ const ClientsModule: React.FC = () => {
                 </div>
               ))}
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-semibold">Total créances</span>
+                <span className="text-sm font-semibold">{t('clients.totalReceivables')}</span>
                 <span className="text-base font-mono font-bold text-[var(--color-primary)]">{formatCurrency(agingDetail.totalCreances)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Provision</span>
+                <span className="text-sm text-gray-600">{t('clients.provision')}</span>
                 <span className="text-sm font-mono">{formatCurrency(agingDetail.provision)}</span>
               </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-2">
-              <button onClick={() => sendRelance(agingDetail)} className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 flex items-center gap-1"><Mail className="w-4 h-4" /> Relancer</button>
-              <button onClick={() => exportAgingCsv(agingDetail)} className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg flex items-center gap-1"><Printer className="w-4 h-4" /> Exporter</button>
+              <button onClick={() => sendRelance(agingDetail)} className="px-3 py-1.5 text-sm border rounded-lg hover:bg-gray-50 flex items-center gap-1"><Mail className="w-4 h-4" /> {t('clients.remind')}</button>
+              <button onClick={() => exportAgingCsv(agingDetail)} className="px-3 py-1.5 text-sm bg-[var(--color-primary)] text-white rounded-lg flex items-center gap-1"><Printer className="w-4 h-4" /> {t('clients.export')}</button>
             </div>
           </div>
         </div>
