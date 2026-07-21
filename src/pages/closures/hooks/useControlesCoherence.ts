@@ -8,6 +8,12 @@ import { useData } from '../../../contexts/DataContext';
 import type { DBJournalEntry, DBJournalLine, DBAsset, DBFiscalYear } from '../../../lib/db';
 import { money } from '../../../utils/money';
 import { formatCurrency } from '../../../utils/formatters';
+import type { ControleAnomalie } from '../../../services/cloture/remediationService';
+
+export type { ControleAnomalie };
+
+/** Nombre maximum d'anomalies détaillées conservées par contrôle (le total reste exact). */
+const MAX_ANOMALIES = 200;
 
 // ============================================================================
 // TYPES
@@ -39,10 +45,20 @@ export interface ControleResult {
   modulesConcernes: string[];
   automatique: boolean;
   utilisateurExecution: string;
+  /** Éléments fautifs concrets (drill-down) — tronqué à MAX_ANOMALIES. */
+  anomalies: ControleAnomalie[];
+  /** Nombre TOTAL d'anomalies détectées (avant troncature d'affichage). */
+  anomaliesTotal: number;
 }
 
 /** Monthly control IDs (9/17) */
 export const MONTHLY_CONTROL_IDS = ['C1', 'C2', 'C3', 'C5', 'C6', 'C8', 'C10', 'C11', 'C13'];
+
+/** Les 17 contrôles (clôture annuelle). */
+export const ALL_CONTROL_IDS = [
+  'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9',
+  'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17',
+];
 
 /** Annual blocking control IDs — uniquement les contrôles réellement gatés.
  *  C15 (TVA) et C16 (régularisations) sont INFORMATIFS (pas de test dur) →
@@ -60,7 +76,7 @@ function runControl(
   description: string,
   categorie: ControleCategorie,
   priorite: ControlePriorite,
-  runner: () => { statut: ControleStatut; valeurAttendue?: number; valeurReelle?: number; tolerance?: number; messageResultat: string; recommandations: string[]; comptesConcernes?: string[] },
+  runner: () => { statut: ControleStatut; valeurAttendue?: number; valeurReelle?: number; tolerance?: number; messageResultat: string; recommandations: string[]; comptesConcernes?: string[]; anomalies?: ControleAnomalie[] },
   reglesMetier: string[],
   modulesConcernes: string[],
 ): ControleResult {
@@ -74,6 +90,8 @@ function runControl(
     ? (ecart / result.valeurAttendue) * 100
     : undefined;
 
+  const anomalies = result.anomalies ?? [];
+
   return {
     id,
     nom,
@@ -81,6 +99,8 @@ function runControl(
     categorie,
     priorite,
     statut: result.statut,
+    anomalies: anomalies.slice(0, MAX_ANOMALIES),
+    anomaliesTotal: anomalies.length,
     blocking: ANNUAL_BLOCKING_IDS.includes(id),
     valeurAttendue: result.valeurAttendue,
     valeurReelle: result.valeurReelle,
@@ -103,8 +123,23 @@ function runControl(
 // HOOK
 // ============================================================================
 
-export function useControlesCoherence(controlIds?: string[]) {
+export interface ControlesScope {
+  /** Borne basse (incluse) — restreint les contrôles à une période de l'exercice. */
+  start?: string;
+  /** Borne haute (incluse). */
+  end?: string;
+}
+
+/**
+ * Exécute les contrôles de cohérence.
+ * @param controlIds sous-ensemble de contrôles (défaut : les 17)
+ * @param scope      périmètre de dates — par défaut l'exercice actif entier.
+ *                   Utilisé pour la clôture d'une PÉRIODE (verrouillage mensuel).
+ */
+export function useControlesCoherence(controlIds?: string[], scope?: ControlesScope) {
   const { adapter } = useData();
+  const scopeStart = scope?.start;
+  const scopeEnd = scope?.end;
   const [controles, setControles] = useState<ControleResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,10 +159,13 @@ export function useControlesCoherence(controlIds?: string[]) {
         return;
       }
 
-      // 2. Load all entries for this FY
+      // 2. Load all entries for this FY — restreintes au périmètre demandé
+      // (période de clôture mensuelle) quand un `scope` est fourni.
+      const rangeStart = scopeStart && scopeStart > activeFY.startDate ? scopeStart : activeFY.startDate;
+      const rangeEnd = scopeEnd && scopeEnd < activeFY.endDate ? scopeEnd : activeFY.endDate;
       const allEntries = await adapter.getAll<any>('journalEntries');
       const periodEntries = allEntries.filter((e: any) =>
-        e.date >= activeFY.startDate && e.date <= activeFY.endDate
+        e.date >= rangeStart && e.date <= rangeEnd
       );
       // Les contrôles de VALEUR (balance, résultat, bilan, TVA…) ne portent que
       // sur les écritures validées/comptabilisées — sinon les brouillons
@@ -153,6 +191,33 @@ export function useControlesCoherence(controlIds?: string[]) {
 
       // 6. Run all 17 controls
       const results: ControleResult[] = [];
+
+      // Anomalies partagées — pièces dont débit ≠ crédit (C1 agrégé / C2 pièce à pièce).
+      // `montant` porte l'écart SIGNÉ (> 0 = excès de débit) : c'est ce que la
+      // correction automatique passe au compte d'attente.
+      const unbalancedEntries = entries.filter((e: any) => Math.abs(e.totalDebit - e.totalCredit) > 1);
+      const unbalancedAnomalies: ControleAnomalie[] = unbalancedEntries.map((e: any) => ({
+        ref: e.entryNumber || e.id,
+        libelle: e.label || 'Écriture sans libellé',
+        montant: Number((e.totalDebit - e.totalCredit).toFixed(2)),
+        date: e.date,
+        entryId: e.id,
+        info: `D ${formatCurrency(e.totalDebit)} / C ${formatCurrency(e.totalCredit)}`,
+        corrigeable: true,
+      }));
+
+      const entryNumberById = new Map<string, string>(
+        entries.map((e: any) => [e.id, e.entryNumber || e.id]),
+      );
+
+      // Soldes par compte (réutilisés par C3, C6, C11, C14, C17).
+      const soldesParCompte = new Map<string, number>();
+      for (const l of allLines) {
+        soldesParCompte.set(
+          l.accountCode,
+          (soldesParCompte.get(l.accountCode) || 0) + (l.debit || 0) - (l.credit || 0),
+        );
+      }
 
       // --- C1: Équilibre Balance Générale ---
       results.push(runControl('C1', 'Équilibre Balance Générale',
@@ -181,6 +246,7 @@ export function useControlesCoherence(controlIds?: string[]) {
               ? ['Vérifier les écritures déséquilibrées', 'Contrôler les saisies récentes']
               : [],
             comptesConcernes: ['TOUS'],
+            anomalies: ecart > tolerance ? unbalancedAnomalies : [],
           };
         },
         ['Total Débits = Total Crédits', 'Écart toléré < 1 000 FCFA'],
@@ -192,7 +258,7 @@ export function useControlesCoherence(controlIds?: string[]) {
         'Détection des écritures dont débit ≠ crédit',
         'balance', 'critique',
         () => {
-          const unbalanced = entries.filter(e => Math.abs(e.totalDebit - e.totalCredit) > 1);
+          const unbalanced = unbalancedEntries;
           return {
             statut: unbalanced.length === 0 ? 'conforme' : 'non_conforme',
             valeurAttendue: 0,
@@ -204,7 +270,8 @@ export function useControlesCoherence(controlIds?: string[]) {
             recommandations: unbalanced.length > 0
               ? ['Corriger les écritures déséquilibrées avant clôture']
               : [],
-            comptesConcernes: unbalanced.flatMap(e => e.lines.map((l: any) => l.accountCode)).filter((v: string, i: number, a: string[]) => a.indexOf(v) === i),
+            comptesConcernes: unbalanced.flatMap((e: any) => e.lines.map((l: any) => l.accountCode)).filter((v: string, i: number, a: string[]) => a.indexOf(v) === i),
+            anomalies: unbalancedAnomalies,
           };
         },
         ['Débit = Crédit pour chaque écriture'],
@@ -224,20 +291,35 @@ export function useControlesCoherence(controlIds?: string[]) {
             totalCredit = totalCredit.add(l.credit);
           }
           const solde = totalDebit.subtract(totalCredit).toNumber();
-          // Clients should normally have debit balance
-          const crediteurAnormal = solde < -1000;
+          // Un solde AGRÉGÉ débiteur peut masquer des comptes clients individuellement
+          // créditeurs (avoirs, acomptes) : on descend au compte.
+          const anomalies: ControleAnomalie[] = [];
+          for (const [code, s] of soldesParCompte) {
+            if (code.startsWith('411') && s < -1000) {
+              anomalies.push({
+                ref: code,
+                libelle: 'Compte client créditeur',
+                montant: s,
+                accountCode: code,
+                info: `Solde ${formatCurrency(s)} (attendu débiteur)`,
+              });
+            }
+          }
+          anomalies.sort((a, b) => (a.montant ?? 0) - (b.montant ?? 0));
+          const crediteurAnormal = solde < -1000 || anomalies.length > 0;
           return {
             statut: crediteurAnormal ? 'attention' : 'conforme',
             valeurAttendue: 0,
             valeurReelle: solde,
             tolerance: 1000,
             messageResultat: crediteurAnormal
-              ? `Solde clients créditeur anormal: ${formatCurrency(solde)}`
+              ? `${anomalies.length} compte(s) client créditeur(s) — solde global ${formatCurrency(solde)}`
               : `Solde clients débiteur: ${formatCurrency(Math.max(0, solde))}`,
             recommandations: crediteurAnormal
               ? ['Vérifier les avoirs non lettrés', 'Contrôler le lettrage des comptes 411']
               : [],
             comptesConcernes: ['411'],
+            anomalies,
           };
         },
         ['Solde client normalement débiteur', 'Lettrage obligatoire'],
@@ -275,18 +357,43 @@ export function useControlesCoherence(controlIds?: string[]) {
           const ecart = Math.abs(comptaVal - theoVal);
           const tolerance = 10000;
 
+          // Cause racine actionnable : les immobilisations amortissables SANS
+          // aucune écriture AMORT-* sur l'exercice (référence posée par le
+          // moteur d'amortissement : AMORT-<période>-<id actif>).
+          const amortis = new Set<string>();
+          for (const e of entries) {
+            const ref: string = e.reference || '';
+            if (!ref.startsWith('AMORT-')) continue;
+            for (const asset of activeAssets) {
+              if (ref.endsWith(`-${asset.id}`)) amortis.add(asset.id);
+            }
+          }
+          const anomalies: ControleAnomalie[] = activeAssets
+            .filter((a: any) => !amortis.has(a.id))
+            .map((a: any) => ({
+              ref: a.code || a.id,
+              libelle: a.name || 'Immobilisation',
+              montant: Number(a.acquisitionValue) || Number(a.purchaseValue) || 0,
+              accountCode: a.accountCode,
+              info: 'Aucune dotation comptabilisée sur l\'exercice',
+              corrigeable: true,
+            }));
+
           return {
-            statut: ecart <= tolerance ? 'conforme' : 'attention',
+            statut: ecart <= tolerance && anomalies.length === 0 ? 'conforme' : 'attention',
             valeurAttendue: theoVal,
             valeurReelle: comptaVal,
             tolerance,
-            messageResultat: ecart <= tolerance
+            messageResultat: ecart <= tolerance && anomalies.length === 0
               ? 'Amortissements conformes aux règles SYSCOHADA'
-              : `Écart d'amortissement de ${formatCurrency(ecart)}`,
-            recommandations: ecart > tolerance
+              : anomalies.length > 0
+                ? `${anomalies.length} immobilisation(s) sans dotation sur l'exercice — écart cumul ${formatCurrency(ecart)}`
+                : `Écart d'amortissement de ${formatCurrency(ecart)}`,
+            recommandations: ecart > tolerance || anomalies.length > 0
               ? ['Vérifier les dotations manquantes', 'Contrôler les durées de vie']
               : [],
             comptesConcernes: ['2', '28', '681'],
+            anomalies,
           };
         },
         ['Méthodes autorisées: linéaire, dégressive', 'Durées conformes SYSCOHADA', 'Calculs mathématiquement corrects'],
@@ -294,26 +401,43 @@ export function useControlesCoherence(controlIds?: string[]) {
       ));
 
       // --- C5: Cohérence Temporelle Écritures ---
+      // ⚠️ L'ancienne version testait `entries` — DÉJÀ filtré sur l'exercice —
+      // donc structurellement toujours conforme (contrôle décoratif). On teste
+      // désormais TOUTES les écritures : rattachement à un exercice et date future.
       results.push(runControl('C5', 'Cohérence Temporelle Écritures',
-        'Vérification que les dates d\'écriture sont dans l\'exercice',
+        'Écritures rattachées à aucun exercice ouvert, ou datées dans le futur',
         'coherence_temporelle', 'moyenne',
         () => {
-          const outOfRange = entries.filter(e =>
-            e.date < activeFY.startDate || e.date > activeFY.endDate
-          );
+          const today = new Date().toISOString().slice(0, 10);
+          const anomalies: ControleAnomalie[] = [];
+          for (const e of allEntries as any[]) {
+            if (e.status === 'draft') continue;
+            const rattachee = fiscalYears.some((fy: any) => e.date >= fy.startDate && e.date <= fy.endDate);
+            const futur = e.date > today;
+            if (rattachee && !futur) continue;
+            anomalies.push({
+              ref: e.entryNumber || e.id,
+              libelle: e.label || 'Écriture sans libellé',
+              montant: Number(e.totalDebit) || 0,
+              date: e.date,
+              entryId: e.id,
+              info: !rattachee ? 'Aucun exercice fiscal ne couvre cette date' : 'Date postérieure à aujourd\'hui',
+            });
+          }
           return {
-            statut: outOfRange.length === 0 ? 'conforme' : 'non_conforme',
+            statut: anomalies.length === 0 ? 'conforme' : 'non_conforme',
             valeurAttendue: 0,
-            valeurReelle: outOfRange.length,
-            messageResultat: outOfRange.length === 0
-              ? 'Toutes les écritures dans la période de l\'exercice'
-              : `${outOfRange.length} écriture(s) hors exercice`,
-            recommandations: outOfRange.length > 0
-              ? ['Corriger les dates des écritures hors exercice']
+            valeurReelle: anomalies.length,
+            messageResultat: anomalies.length === 0
+              ? 'Toutes les écritures sont rattachées à un exercice et antérieures à ce jour'
+              : `${anomalies.length} écriture(s) hors exercice ou datée(s) dans le futur`,
+            recommandations: anomalies.length > 0
+              ? ['Corriger la date ou créer l\'exercice manquant']
               : [],
+            anomalies,
           };
         },
-        ['Date écriture dans l\'exercice', 'Exercice comptable cohérent'],
+        ['Toute écriture est rattachée à un exercice', 'Aucune écriture antidatée au futur'],
         ['Saisie Comptable'],
       ));
 
@@ -330,19 +454,35 @@ export function useControlesCoherence(controlIds?: string[]) {
             totalCredit = totalCredit.add(l.credit);
           }
           const solde = totalCredit.subtract(totalDebit).toNumber();
-          const debiteurAnormal = solde < -1000;
+          // Descente au compte : un solde agrégé créditeur masque les
+          // fournisseurs individuellement débiteurs (acomptes, doubles règlements).
+          const anomalies: ControleAnomalie[] = [];
+          for (const [code, s] of soldesParCompte) {
+            if (code.startsWith('401') && s > 1000) {
+              anomalies.push({
+                ref: code,
+                libelle: 'Compte fournisseur débiteur',
+                montant: s,
+                accountCode: code,
+                info: `Solde ${formatCurrency(s)} (attendu créditeur)`,
+              });
+            }
+          }
+          anomalies.sort((a, b) => (b.montant ?? 0) - (a.montant ?? 0));
+          const debiteurAnormal = solde < -1000 || anomalies.length > 0;
           return {
             statut: debiteurAnormal ? 'attention' : 'conforme',
             valeurAttendue: 0,
             valeurReelle: solde,
             tolerance: 1000,
             messageResultat: debiteurAnormal
-              ? `Solde fournisseurs débiteur anormal: ${formatCurrency(Math.abs(solde))}`
+              ? `${anomalies.length} compte(s) fournisseur débiteur(s) — solde global ${formatCurrency(solde)}`
               : `Solde fournisseurs créditeur: ${formatCurrency(Math.max(0, solde))}`,
             recommandations: debiteurAnormal
               ? ['Vérifier les acomptes non imputés', 'Contrôler le lettrage 401']
               : [],
             comptesConcernes: ['401'],
+            anomalies,
           };
         },
         ['Solde fournisseur normalement créditeur'],
@@ -368,16 +508,32 @@ export function useControlesCoherence(controlIds?: string[]) {
         'balance', 'elevee',
         () => {
           const drafts = draftEntries;
+          // `corrigeable` = brouillon ÉQUILIBRÉ : lui seul peut être validé
+          // automatiquement. Un brouillon déséquilibré doit repasser par la saisie.
+          const anomalies: ControleAnomalie[] = drafts.map((e: any) => {
+            const equilibree = Math.abs((e.totalDebit || 0) - (e.totalCredit || 0)) <= 1;
+            return {
+              ref: e.entryNumber || e.id,
+              libelle: e.label || 'Écriture sans libellé',
+              montant: Number(e.totalDebit) || 0,
+              date: e.date,
+              entryId: e.id,
+              info: equilibree ? 'Équilibrée — validable' : 'Déséquilibrée — correction de saisie requise',
+              corrigeable: equilibree,
+            };
+          });
+          const validables = anomalies.filter(a => a.corrigeable).length;
           return {
             statut: drafts.length === 0 ? 'conforme' : 'attention',
             valeurAttendue: 0,
             valeurReelle: drafts.length,
             messageResultat: drafts.length === 0
               ? 'Aucune écriture en brouillon'
-              : `${drafts.length} écriture(s) en brouillon à valider`,
+              : `${drafts.length} écriture(s) en brouillon (${validables} validable(s) automatiquement)`,
             recommandations: drafts.length > 0
               ? ['Valider ou supprimer les écritures en brouillon avant clôture']
               : [],
+            anomalies,
           };
         },
         ['Toutes les écritures doivent être validées avant clôture'],
@@ -441,16 +597,37 @@ export function useControlesCoherence(controlIds?: string[]) {
             totalCredit = totalCredit.add(l.credit);
           }
           const solde = totalDebit.subtract(totalCredit).toNumber();
+          // Détail par compte : un solde global positif masque les comptes
+          // individuellement créditeurs (découverts). 58 = virements internes,
+          // 59 = dépréciations → exclus (créditeurs par nature).
+          const anomalies: ControleAnomalie[] = [];
+          for (const [code, s] of soldesParCompte) {
+            if (!code.startsWith('5')) continue;
+            if (code.startsWith('58') || code.startsWith('59')) continue;
+            if (s < -1000) {
+              anomalies.push({
+                ref: code,
+                libelle: 'Compte de trésorerie créditeur',
+                montant: s,
+                accountCode: code,
+                info: `Solde ${formatCurrency(s)} — découvert à justifier`,
+              });
+            }
+          }
+          anomalies.sort((a, b) => (a.montant ?? 0) - (b.montant ?? 0));
           return {
-            statut: solde >= 0 ? 'conforme' : 'attention',
+            statut: solde >= 0 && anomalies.length === 0 ? 'conforme' : 'attention',
             valeurReelle: solde,
-            messageResultat: solde >= 0
-              ? `Trésorerie positive: ${formatCurrency(solde)}`
-              : `Trésorerie négative: ${formatCurrency(solde)}`,
-            recommandations: solde < 0
+            messageResultat: anomalies.length > 0
+              ? `${anomalies.length} compte(s) de trésorerie créditeur(s) — position globale ${formatCurrency(solde)}`
+              : solde >= 0
+                ? `Trésorerie positive: ${formatCurrency(solde)}`
+                : `Trésorerie négative: ${formatCurrency(solde)}`,
+            recommandations: solde < 0 || anomalies.length > 0
               ? ['Vérifier les découverts bancaires', 'Contrôler la position de trésorerie']
               : [],
             comptesConcernes: ['5'],
+            anomalies,
           };
         },
         ['Solde trésorerie = Σ Débits − Σ Crédits (classe 5)'],
@@ -481,6 +658,20 @@ export function useControlesCoherence(controlIds?: string[]) {
           const nonLettrees = tiersLines.filter(l => !l.lettrageCode);
           const total = tiersLines.length;
           const tauxLettrage = total > 0 ? ((total - nonLettrees.length) / total) * 100 : 100;
+          const anomalies: ControleAnomalie[] = nonLettrees
+            .map(l => ({
+              ref: entryNumberById.get(l.entryId) || l.entryId,
+              libelle: l.label || l.accountName || 'Ligne non lettrée',
+              montant: (l.debit || 0) - (l.credit || 0),
+              date: l.entryDate,
+              entryId: l.entryId,
+              lineId: l.id,
+              accountCode: l.accountCode,
+              thirdPartyCode: l.thirdPartyCode,
+              info: l.thirdPartyCode ? `Tiers ${l.thirdPartyCode}` : 'Sans tiers renseigné',
+              corrigeable: true,
+            }))
+            .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant));
           return {
             statut: tauxLettrage >= 80 ? 'conforme' : tauxLettrage >= 50 ? 'attention' : 'non_conforme',
             valeurAttendue: 100,
@@ -490,6 +681,7 @@ export function useControlesCoherence(controlIds?: string[]) {
               ? ['Compléter le lettrage des comptes tiers', 'Identifier les factures en suspens']
               : [],
             comptesConcernes: ['411', '401'],
+            anomalies,
           };
         },
         ['Lettrage des comptes de tiers via lettrageCode'],
@@ -528,8 +720,27 @@ export function useControlesCoherence(controlIds?: string[]) {
           const actifVal = actif.toNumber();
           const passifVal = passif.toNumber();
           const ecart = Math.abs(actifVal - passifVal);
+          // Cause racine la plus fréquente d'un bilan déséquilibré : un compte
+          // dont la classe n'existe pas (code vide, alphanumérique, classe 0/9
+          // non affectée) — il n'est ni au bilan ni au résultat.
+          const anomalies: ControleAnomalie[] = [];
+          if (ecart >= 1000) {
+            for (const [code, solde] of soldesC14) {
+              const cls = code.charAt(0);
+              if (!['1', '2', '3', '4', '5', '6', '7', '8'].includes(cls)) {
+                anomalies.push({
+                  ref: code || '(code vide)',
+                  libelle: 'Compte hors plan SYSCOHADA — ni bilan ni gestion',
+                  montant: solde,
+                  accountCode: code,
+                  info: `Classe « ${cls || '—'} » non affectée`,
+                });
+              }
+            }
+          }
           return {
             statut: ecart < 1000 ? 'conforme' : 'non_conforme',
+            anomalies,
             valeurAttendue: actifVal,
             valeurReelle: passifVal,
             tolerance: 1000,
@@ -604,19 +815,31 @@ export function useControlesCoherence(controlIds?: string[]) {
         'Détection des comptes avec solde inversé par rapport à leur nature normale',
         'balance', 'moyenne',
         () => {
-          const balances = new Map<string, number>();
-          for (const l of allLines) {
-            const prev = balances.get(l.accountCode) || 0;
-            balances.set(l.accountCode, prev + l.debit - l.credit);
-          }
+          const balances = soldesParCompte;
           const anormaux: string[] = [];
+          const anomalies: ControleAnomalie[] = [];
           for (const [code, solde] of balances) {
             const cls = code.charAt(0);
-            // Classe 2,3,5 = normalement débiteur; Classe 1,4 = dépend du sous-compte
-            if (['2', '3'].includes(cls) && solde < -100) anormaux.push(code);
-            if (cls === '5' && code.startsWith('51') && solde < -100) anormaux.push(code);
+            // Classe 2,3,5 = normalement débiteur; Classe 1,4 = dépend du sous-compte.
+            // Les amortissements/dépréciations (28x, 29x, 39x, 59x) sont créditeurs
+            // par nature : les signaler serait un faux positif systématique.
+            const contreCompte = /^(28|29|39|59)/.test(code);
+            const debiteurAttendu =
+              (['2', '3'].includes(cls) && !contreCompte) || (cls === '5' && code.startsWith('51'));
+            if (debiteurAttendu && solde < -100) {
+              anormaux.push(code);
+              anomalies.push({
+                ref: code,
+                libelle: cls === '5' ? 'Compte bancaire créditeur' : 'Compte d\'actif à solde créditeur',
+                montant: solde,
+                accountCode: code,
+                info: `Solde ${formatCurrency(solde)} (attendu débiteur)`,
+              });
+            }
           }
+          anomalies.sort((a, b) => (a.montant ?? 0) - (b.montant ?? 0));
           return {
+            anomalies,
             statut: anormaux.length === 0 ? 'conforme' : 'attention',
             valeurAttendue: 0,
             valeurReelle: anormaux.length,
@@ -641,7 +864,7 @@ export function useControlesCoherence(controlIds?: string[]) {
     } finally {
       setLoading(false);
     }
-  }, [controlIds]);
+  }, [controlIds, scopeStart, scopeEnd]);
 
   useEffect(() => {
     executeControles();
