@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
   Database, Search, Plus, Trash2, X, Save, Eye, Edit,
@@ -104,18 +105,18 @@ const CLASSE_INFO: Record<string, { label: string; desc: string; collectifs: { c
   },
 };
 
-const CLASSE_FILTERS: { key: ClasseFilter; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: '43', label: 'Org. Sociaux (43x)' },
-  { key: '44', label: 'État & Impôts (44x)' },
-  { key: '46', label: 'Divers (46x)' },
-  { key: '47', label: 'Créditeurs (47x)' },
+const CLASSE_FILTERS: { key: ClasseFilter; labelKey: string }[] = [
+  { key: 'all', labelKey: 'otherTp.filterAll' },
+  { key: '43', labelKey: 'otherTp.filter43' },
+  { key: '44', labelKey: 'otherTp.filter44' },
+  { key: '46', labelKey: 'otherTp.filter46' },
+  { key: '47', labelKey: 'otherTp.filter47' },
 ];
 
 const MAIN_TABS = [
-  { key: 'liste' as MainTab, label: 'Liste Autres Tiers', icon: Database },
-  { key: 'balance' as MainTab, label: 'Balance par Classe', icon: BarChart3 },
-  { key: 'analytics' as MainTab, label: 'Analytics', icon: Activity },
+  { key: 'liste' as MainTab, labelKey: 'otherTp.tabList', icon: Database },
+  { key: 'balance' as MainTab, labelKey: 'otherTp.tabBalance', icon: BarChart3 },
+  { key: 'analytics' as MainTab, labelKey: 'otherTp.tabAnalytics', icon: Activity },
 ];
 
 const COLOR_PALETTE = ['#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4'];
@@ -153,6 +154,7 @@ function classeColorClasses(classe: string) {
 
 const AutresTiersModule: React.FC = () => {
   const { adapter } = useData();
+  const { t: tr } = useLanguage();
 
   // Données
   const [tiers, setTiers] = useState<AutreTiers[]>([]);
@@ -323,7 +325,7 @@ const AutresTiersModule: React.FC = () => {
         const credit = items.reduce((s, t) => s + t.totalCredit, 0);
         return {
           classe,
-          label: CLASSE_INFO[classe]?.label || `${classe}x`,
+          label: tr(`otherTp.classeLabel${classe}`) || `${classe}x`,
           count: items.length,
           debit,
           credit,
@@ -331,7 +333,7 @@ const AutresTiersModule: React.FC = () => {
           items,
         };
       }),
-    [tiers]
+    [tiers, tr]
   );
 
   // ── Données graphiques ──────────────────────────────────────────────────────
@@ -357,7 +359,7 @@ const AutresTiersModule: React.FC = () => {
   // ── Création ───────────────────────────────────────────────────────────────
   const handleCreate = async () => {
     if (!form.code.trim() || !form.name.trim()) {
-      toast.error('Le code et le nom sont obligatoires.');
+      toast.error(tr('otherTp.errRequired'));
       return;
     }
     setSaving(true);
@@ -375,12 +377,12 @@ const AutresTiersModule: React.FC = () => {
         isActive: true,
         createdAt: new Date().toISOString(),
       });
-      toast.success(`Tiers "${form.name}" créé avec succès.`);
+      toast.success(tr('otherTp.createdOk', { name: form.name }));
       setShowCreateModal(false);
       setForm({ ...DEFAULT_FORM });
       await loadTiers();
     } catch (err: any) {
-      toast.error(`Erreur lors de la création : ${err?.message || 'inconnue'}`);
+      toast.error(tr('otherTp.errCreate', { msg: err?.message || tr('otherTp.unknownError') }));
     } finally {
       setSaving(false);
     }
@@ -402,7 +404,7 @@ const AutresTiersModule: React.FC = () => {
 
   const handleEdit = async () => {
     if (!selectedTiers || !form.code.trim() || !form.name.trim()) {
-      toast.error('Le code et le nom sont obligatoires.');
+      toast.error(tr('otherTp.errRequired'));
       return;
     }
     setSaving(true);
@@ -415,12 +417,12 @@ const AutresTiersModule: React.FC = () => {
         phone: form.phone.trim() || undefined,
         updatedAt: new Date().toISOString(),
       });
-      toast.success(`Tiers "${form.name}" mis à jour.`);
+      toast.success(tr('otherTp.updatedOk', { name: form.name }));
       setShowEditModal(false);
       setSelectedTiers(null);
       await loadTiers();
     } catch (err: any) {
-      toast.error(`Erreur lors de la mise à jour : ${err?.message || 'inconnue'}`);
+      toast.error(tr('otherTp.errUpdate', { msg: err?.message || tr('otherTp.unknownError') }));
     } finally {
       setSaving(false);
     }
@@ -431,9 +433,9 @@ const AutresTiersModule: React.FC = () => {
     try {
       await adapter.delete('thirdParties', t.id);
       setTiers(prev => prev.filter(x => x.id !== t.id));
-      toast.success(`Tiers "${t.name}" supprimé.`);
+      toast.success(tr('otherTp.deletedOk', { name: t.name }));
     } catch (err: any) {
-      toast.error(`Erreur lors de la suppression : ${err?.message || 'inconnue'}`);
+      toast.error(tr('otherTp.errDelete', { msg: err?.message || tr('otherTp.unknownError') }));
     } finally {
       setDeleteTarget(null);
     }
@@ -446,25 +448,25 @@ const AutresTiersModule: React.FC = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Code <span className="text-red-500">*</span>
+            {tr('otherTp.code')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={form.code}
             onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))}
-            placeholder="ex: 4710001"
+            placeholder={tr('otherTp.codePlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none font-mono"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            Nom <span className="text-red-500">*</span>
+            {tr('otherTp.name')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={form.name}
             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Dénomination"
+            placeholder={tr('otherTp.namePlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
           />
         </div>
@@ -472,7 +474,7 @@ const AutresTiersModule: React.FC = () => {
 
       {/* Classe SYSCOHADA */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Classe SYSCOHADA</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">{tr('otherTp.syscohadaClass')}</label>
         <select
           value={form.classe}
           onChange={e => {
@@ -482,23 +484,23 @@ const AutresTiersModule: React.FC = () => {
           }}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
         >
-          <option value="43">43x — Organismes sociaux (CNPS, mutuelles)</option>
-          <option value="44">44x — État & Impôts (TVA, IS, patentes)</option>
-          <option value="46">46x — Associés / Débiteurs divers</option>
-          <option value="47">47x — Créditeurs divers</option>
+          <option value="43">{tr('otherTp.opt43')}</option>
+          <option value="44">{tr('otherTp.opt44')}</option>
+          <option value="46">{tr('otherTp.opt46')}</option>
+          <option value="47">{tr('otherTp.opt47')}</option>
         </select>
       </div>
 
       {/* Compte collectif */}
       <div>
-        <label className="block text-xs font-medium text-gray-700 mb-1">Compte collectif</label>
+        <label className="block text-xs font-medium text-gray-700 mb-1">{tr('otherTp.collectiveAccount')}</label>
         <select
           value={form.collectif_account}
           onChange={e => setForm(f => ({ ...f, collectif_account: e.target.value }))}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none font-mono"
         >
           {(CLASSE_INFO[form.classe]?.collectifs || []).map(opt => (
-            <option key={opt.code} value={opt.code}>{opt.label}</option>
+            <option key={opt.code} value={opt.code}>{tr(`otherTp.collectif${opt.code}`)}</option>
           ))}
         </select>
       </div>
@@ -507,19 +509,19 @@ const AutresTiersModule: React.FC = () => {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            <Mail className="inline w-3 h-3 mr-1" />Email
+            <Mail className="inline w-3 h-3 mr-1" />{tr('otherTp.email')}
           </label>
           <input
             type="email"
             value={form.email}
             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-            placeholder="contact@exemple.com"
+            placeholder={tr('otherTp.emailPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-700 mb-1">
-            <Phone className="inline w-3 h-3 mr-1" />Téléphone
+            <Phone className="inline w-3 h-3 mr-1" />{tr('otherTp.phone')}
           </label>
           <input
             type="tel"
@@ -545,9 +547,9 @@ const AutresTiersModule: React.FC = () => {
             <Database className="w-6 h-6 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Autres Tiers</h1>
+            <h1 className="text-xl font-bold text-gray-900">{tr('otherTp.title')}</h1>
             <p className="text-sm text-gray-500">
-              Org. sociaux (43x) · État (44x) · Divers (46x) · Créditeurs (47x)
+              {tr('otherTp.subtitle')}
             </p>
           </div>
         </div>
@@ -559,14 +561,14 @@ const AutresTiersModule: React.FC = () => {
           />
           <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium flex items-center gap-1">
             <ShieldCheck className="w-3 h-3" />
-            Conforme SYSCOHADA Art. 27 · IAS 12 · IAS 19
+            {tr('otherTp.compliance')}
           </span>
           <button
             onClick={() => { setForm({ ...DEFAULT_FORM }); setShowCreateModal(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Nouvel autre tiers
+            {tr('otherTp.newOther')}
           </button>
         </div>
       </div>
@@ -575,38 +577,38 @@ const AutresTiersModule: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-500 uppercase">Total</span>
+            <span className="text-xs font-medium text-gray-500 uppercase">{tr('otherTp.total')}</span>
             <Users className="w-4 h-4 text-purple-500" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{kpis.total}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{kpis.actifs} actifs</p>
+          <p className="text-xs text-gray-400 mt-0.5">{tr('otherTp.activeCount', { count: String(kpis.actifs) })}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-amber-600 uppercase">Dettes fiscales (44x)</span>
+            <span className="text-xs font-medium text-amber-600 uppercase">{tr('otherTp.taxLiabilities44')}</span>
             <FileText className="w-4 h-4 text-amber-500" />
           </div>
           <p className="text-lg font-bold text-amber-700">{formatCurrency(kpis.dettesFiscales)}</p>
-          <p className="text-xs text-gray-400 mt-0.5">IAS 12 — Impôt sur le résultat</p>
+          <p className="text-xs text-gray-400 mt-0.5">{tr('otherTp.ias12Income')}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-blue-600 uppercase">Charges sociales (43x)</span>
+            <span className="text-xs font-medium text-blue-600 uppercase">{tr('otherTp.socialCharges43')}</span>
             <Building className="w-4 h-4 text-blue-500" />
           </div>
           <p className="text-lg font-bold text-blue-700">{formatCurrency(kpis.chargesSociales)}</p>
-          <p className="text-xs text-gray-400 mt-0.5">IAS 19 — Cotisations</p>
+          <p className="text-xs text-gray-400 mt-0.5">{tr('otherTp.ias19Contrib')}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-purple-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-purple-600 uppercase">Créditeurs divers (47x)</span>
+            <span className="text-xs font-medium text-purple-600 uppercase">{tr('otherTp.miscCreditors47')}</span>
             <TrendingDown className="w-4 h-4 text-purple-500" />
           </div>
           <p className="text-lg font-bold text-purple-700">{formatCurrency(kpis.crediteursDivers)}</p>
-          <p className="text-xs text-gray-400 mt-0.5">Obligations diverses</p>
+          <p className="text-xs text-gray-400 mt-0.5">{tr('otherTp.miscObligations')}</p>
         </div>
       </div>
 
@@ -625,7 +627,7 @@ const AutresTiersModule: React.FC = () => {
               }`}
             >
               <Icon className="w-4 h-4" />
-              {tab.label}
+              {tr(tab.labelKey)}
             </button>
           );
         })}
@@ -650,7 +652,7 @@ const AutresTiersModule: React.FC = () => {
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {f.label}
+                  {tr(f.labelKey)}
                   {f.key !== 'all' && (
                     <span className="ml-1 text-gray-400">
                       ({tiers.filter(t => t.classe === f.key).length})
@@ -666,7 +668,7 @@ const AutresTiersModule: React.FC = () => {
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Rechercher par code ou nom..."
+                placeholder={tr('otherTp.searchPlaceholder')}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
@@ -676,16 +678,16 @@ const AutresTiersModule: React.FC = () => {
           {loading ? (
             <div className="text-center py-16 text-gray-400">
               <div className="w-8 h-8 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin mx-auto mb-3" />
-              Chargement...
+              {tr('otherTp.loading')}
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-400 bg-white rounded-xl border border-gray-200">
               <Database className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">Aucun tiers trouvé</p>
+              <p className="font-medium">{tr('otherTp.noneFound')}</p>
               <p className="text-xs mt-1">
                 {tiers.length === 0
-                  ? 'Cliquez sur "+ Nouvel autre tiers" pour commencer.'
-                  : 'Aucun résultat pour ce filtre.'}
+                  ? tr('otherTp.emptyHint')
+                  : tr('otherTp.noFilterResult')}
               </p>
             </div>
           ) : (
@@ -693,9 +695,9 @@ const AutresTiersModule: React.FC = () => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    {['Code', 'Nom', 'Classe SYSCOHADA', 'Compte collectif', 'Statut', 'Actions'].map(h => (
+                    {['otherTp.colCode', 'otherTp.colName', 'otherTp.colClass', 'otherTp.colCollective', 'otherTp.colStatus', 'otherTp.colActions'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        {h}
+                        {tr(h)}
                       </th>
                     ))}
                   </tr>
@@ -709,7 +711,7 @@ const AutresTiersModule: React.FC = () => {
                         <td className="px-4 py-3 font-medium text-gray-900">{t.name}</td>
                         <td className="px-4 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${cc.badge}`}>
-                            {t.classe}x — {CLASSE_INFO[t.classe]?.label}
+                            {t.classe}x — {tr(`otherTp.classeLabel${t.classe}`)}
                           </span>
                         </td>
                         <td className="px-4 py-3 font-mono text-gray-600 text-xs">{t.collectif_account}</td>
@@ -717,7 +719,7 @@ const AutresTiersModule: React.FC = () => {
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             t.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
-                            {t.is_active ? 'Actif' : 'Inactif'}
+                            {t.is_active ? tr('otherTp.active') : tr('otherTp.inactive')}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -725,21 +727,21 @@ const AutresTiersModule: React.FC = () => {
                             <button
                               onClick={() => { setSelectedTiers(t); setShowDetailModal(true); }}
                               className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                              title="Voir détail"
+                              title={tr('otherTp.viewDetail')}
                             >
                               <Eye className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => openEdit(t)}
                               className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
-                              title="Modifier"
+                              title={tr('otherTp.edit')}
                             >
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => setDeleteTarget(t)}
                               className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                              title="Supprimer"
+                              title={tr('otherTp.delete')}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -751,8 +753,8 @@ const AutresTiersModule: React.FC = () => {
                 </tbody>
               </table>
               <div className="px-4 py-2 border-t border-gray-100 text-xs text-gray-400 flex justify-between">
-                <span>{filtered.length} résultat(s)</span>
-                <span>{tiers.length} tiers au total</span>
+                <span>{tr('otherTp.resultsCount', { count: String(filtered.length) })}</span>
+                <span>{tr('otherTp.totalCount', { count: String(tiers.length) })}</span>
               </div>
             </div>
           )}
@@ -774,18 +776,18 @@ const AutresTiersModule: React.FC = () => {
                   <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold mb-3 ${cc.badge}`}>
                     {b.classe}x — {b.label}
                   </div>
-                  <p className="text-xs text-gray-500 mb-4">{info?.desc}</p>
+                  <p className="text-xs text-gray-500 mb-4">{tr(`otherTp.classeDesc${b.classe}`)}</p>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Débit total</span>
+                      <span className="text-gray-500">{tr('otherTp.totalDebit')}</span>
                       <span className="font-mono font-medium text-gray-900">{formatCurrency(b.debit)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Crédit total</span>
+                      <span className="text-gray-500">{tr('otherTp.totalCredit')}</span>
                       <span className="font-mono font-medium text-gray-900">{formatCurrency(b.credit)}</span>
                     </div>
                     <div className={`flex justify-between text-sm font-semibold pt-2 border-t ${cc.border}`}>
-                      <span className={cc.text}>Solde net</span>
+                      <span className={cc.text}>{tr('otherTp.netBalance')}</span>
                       <span className={`font-mono ${b.solde >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(Math.abs(b.solde))}
                         <span className="text-xs ml-1">{b.solde >= 0 ? 'C' : 'D'}</span>
@@ -793,7 +795,7 @@ const AutresTiersModule: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-400">
-                    {b.count} tiers · IFRS {info?.ifrs}
+                    {tr('otherTp.countThirdPartiesIfrs', { count: String(b.count), norm: String(info?.ifrs || '') })}
                   </div>
                 </div>
               );
@@ -805,15 +807,15 @@ const AutresTiersModule: React.FC = () => {
             <div className="px-5 py-4 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-purple-600" />
-                Récapitulatif Balance par Classe SYSCOHADA
+                {tr('otherTp.balanceRecap')}
               </h3>
             </div>
             <table className="w-full text-sm">
               <thead className="bg-gray-50">
                 <tr>
-                  {['Classe', 'Intitulé', 'Nbre tiers', 'Débit total', 'Crédit total', 'Solde', 'Norme IFRS'].map(h => (
+                  {['otherTp.colClasse', 'otherTp.colLabel', 'otherTp.colNbThirdParties', 'otherTp.totalDebit', 'otherTp.totalCredit', 'otherTp.colBalance', 'otherTp.colIfrsStandard'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      {h}
+                      {tr(h)}
                     </th>
                   ))}
                 </tr>
@@ -844,7 +846,7 @@ const AutresTiersModule: React.FC = () => {
                 })}
                 {/* Total */}
                 <tr className="bg-gray-50 font-semibold">
-                  <td className="px-4 py-3 text-gray-700" colSpan={2}>TOTAL</td>
+                  <td className="px-4 py-3 text-gray-700" colSpan={2}>{tr('otherTp.totalRow')}</td>
                   <td className="px-4 py-3 text-gray-700">{tiers.length}</td>
                   <td className="px-4 py-3 font-mono text-gray-900">
                     {formatCurrency(balanceByClasse.reduce((s, b) => s + b.debit, 0))}
@@ -864,7 +866,7 @@ const AutresTiersModule: React.FC = () => {
           {/* Graphique barres */}
           {barData.some(d => d.Débit > 0 || d.Crédit > 0) && (
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-900 mb-4">Débit / Crédit par classe</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-4">{tr('otherTp.debitCreditByClass')}</h3>
               <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={barData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -872,8 +874,8 @@ const AutresTiersModule: React.FC = () => {
                   <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
                   <Tooltip formatter={(v: number) => formatCurrency(v)} />
                   <Legend />
-                  <Bar dataKey="Débit" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Crédit" fill="#10B981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Débit" name={tr('otherTp.debit')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Crédit" name={tr('otherTp.credit')} fill="#10B981" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -891,37 +893,37 @@ const AutresTiersModule: React.FC = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Users className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-semibold text-gray-600 uppercase">Autres tiers actifs</span>
+                <span className="text-xs font-semibold text-gray-600 uppercase">{tr('otherTp.activeOthers')}</span>
               </div>
               <p className="text-3xl font-bold text-purple-700">{kpis.actifs}</p>
-              <p className="text-xs text-gray-400 mt-1">/ {kpis.total} enregistrés</p>
+              <p className="text-xs text-gray-400 mt-1">{tr('otherTp.registeredCount', { count: String(kpis.total) })}</p>
             </div>
 
             <div className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-4 h-4 text-amber-500" />
-                <span className="text-xs font-semibold text-amber-600 uppercase">Dettes fiscales</span>
+                <span className="text-xs font-semibold text-amber-600 uppercase">{tr('otherTp.taxLiabilities')}</span>
               </div>
               <p className="text-xl font-bold text-amber-700">{formatCurrency(kpis.dettesFiscales)}</p>
-              <p className="text-xs text-gray-400 mt-1">IAS 12 — Impôt sur le résultat</p>
+              <p className="text-xs text-gray-400 mt-1">{tr('otherTp.ias12Income')}</p>
             </div>
 
             <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <Building className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-semibold text-blue-600 uppercase">Charges sociales</span>
+                <span className="text-xs font-semibold text-blue-600 uppercase">{tr('otherTp.socialCharges')}</span>
               </div>
               <p className="text-xl font-bold text-blue-700">{formatCurrency(kpis.chargesSociales)}</p>
-              <p className="text-xs text-gray-400 mt-1">IAS 19 — Cotisations employeur</p>
+              <p className="text-xs text-gray-400 mt-1">{tr('otherTp.ias19Employer')}</p>
             </div>
 
             <div className="bg-white rounded-xl border border-purple-200 p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <TrendingDown className="w-4 h-4 text-purple-500" />
-                <span className="text-xs font-semibold text-purple-600 uppercase">Créditeurs divers</span>
+                <span className="text-xs font-semibold text-purple-600 uppercase">{tr('otherTp.miscCreditors')}</span>
               </div>
               <p className="text-xl font-bold text-purple-700">{formatCurrency(kpis.crediteursDivers)}</p>
-              <p className="text-xs text-gray-400 mt-1">IFRS 9 — Passifs financiers</p>
+              <p className="text-xs text-gray-400 mt-1">{tr('otherTp.ifrs9Liabilities')}</p>
             </div>
           </div>
 
@@ -931,9 +933,9 @@ const AutresTiersModule: React.FC = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
                 <PieChart className="w-4 h-4 text-purple-600" />
-                Répartition par classe SYSCOHADA
+                {tr('otherTp.breakdownByClass')}
               </h3>
-              <p className="text-xs text-gray-400 mb-4">Nombre de tiers par classe</p>
+              <p className="text-xs text-gray-400 mb-4">{tr('otherTp.countByClass')}</p>
               {pieData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <RechartsPieChart>
@@ -950,13 +952,13 @@ const AutresTiersModule: React.FC = () => {
                         <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: number, name: string) => [v + ' tiers', name]} />
+                    <Tooltip formatter={(v: number, name: string) => [tr('otherTp.thirdPartiesUnit', { count: String(v) }), name]} />
                     <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
                   </RechartsPieChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
-                  Aucune donnée
+                  {tr('otherTp.noData')}
                 </div>
               )}
             </div>
@@ -965,9 +967,9 @@ const AutresTiersModule: React.FC = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-1 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />
-                Mouvements par classe SYSCOHADA
+                {tr('otherTp.movementsByClass')}
               </h3>
-              <p className="text-xs text-gray-400 mb-4">Débit / Crédit cumulés (43x, 44x, 46x, 47x)</p>
+              <p className="text-xs text-gray-400 mb-4">{tr('otherTp.cumulatedDebitCredit')}</p>
               {barData.some(d => d.Débit > 0 || d.Crédit > 0) ? (
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -976,13 +978,13 @@ const AutresTiersModule: React.FC = () => {
                     <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
                     <Tooltip formatter={(v: number) => formatCurrency(v)} />
                     <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
-                    <Bar dataKey="Débit" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Crédit" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Débit" name={tr('otherTp.debit')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="Crédit" name={tr('otherTp.credit')} fill="#F59E0B" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
                 <div className="h-48 flex items-center justify-center text-center text-gray-400 text-sm px-4">
-                  Aucune donnée — module non alimenté par l'import
+                  {tr('otherTp.noDataImport')}
                 </div>
               )}
             </div>
@@ -992,14 +994,14 @@ const AutresTiersModule: React.FC = () => {
           <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Info className="w-4 h-4 text-green-600" />
-              Référentiel normatif appliqué
+              {tr('otherTp.standardsFramework')}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               {[
-                { classe: '43x', norm: 'IAS 19', title: 'Avantages du personnel', detail: 'Cotisations patronales, indemnités départ, retraites' },
-                { classe: '44x', norm: 'IAS 12', title: 'Impôt sur le résultat', detail: 'Impôts exigibles et différés, TVA, patentes' },
-                { classe: '46x', norm: 'IFRS 9', title: 'Instruments financiers', detail: 'Créances associés, débiteurs transitoires' },
-                { classe: '47x', norm: 'IFRS 9', title: 'Passifs financiers', detail: 'Créditeurs divers, produits/charges constatés d\'avance' },
+                { classe: '43x', norm: 'IAS 19', title: tr('otherTp.norm43Title'), detail: tr('otherTp.norm43Detail') },
+                { classe: '44x', norm: 'IAS 12', title: tr('otherTp.norm44Title'), detail: tr('otherTp.norm44Detail') },
+                { classe: '46x', norm: 'IFRS 9', title: tr('otherTp.norm46Title'), detail: tr('otherTp.norm46Detail') },
+                { classe: '47x', norm: 'IFRS 9', title: tr('otherTp.norm47Title'), detail: tr('otherTp.norm47Detail') },
               ].map(n => (
                 <div key={n.classe} className="border border-gray-100 rounded-lg p-3 bg-gray-50">
                   <div className="flex items-center justify-between mb-1">
@@ -1013,7 +1015,7 @@ const AutresTiersModule: React.FC = () => {
             </div>
             <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3" />
-              Conforme au Plan Comptable SYSCOHADA Révisé (2017) — Art. 27 et Annexes
+              {tr('otherTp.syscohadaCompliance')}
             </p>
           </div>
         </div>
@@ -1028,7 +1030,7 @@ const AutresTiersModule: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-purple-50">
               <div className="flex items-center gap-2">
                 <Plus className="w-5 h-5 text-purple-600" />
-                <h2 className="text-base font-semibold text-gray-900">Nouveau tiers — 43x/44x/46x/47x</h2>
+                <h2 className="text-base font-semibold text-gray-900">{tr('otherTp.createTitle')}</h2>
               </div>
               <button onClick={() => setShowCreateModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
                 <X className="w-5 h-5" />
@@ -1042,7 +1044,7 @@ const AutresTiersModule: React.FC = () => {
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {tr('otherTp.cancel')}
               </button>
               <button
                 onClick={handleCreate}
@@ -1050,7 +1052,7 @@ const AutresTiersModule: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-sm bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Enregistrement...' : 'Enregistrer'}
+                {saving ? tr('otherTp.saving') : tr('otherTp.save')}
               </button>
             </div>
           </div>
@@ -1066,7 +1068,7 @@ const AutresTiersModule: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-amber-50">
               <div className="flex items-center gap-2">
                 <Edit className="w-5 h-5 text-amber-600" />
-                <h2 className="text-base font-semibold text-gray-900">Modifier — {selectedTiers.name}</h2>
+                <h2 className="text-base font-semibold text-gray-900">{tr('otherTp.editTitle', { name: selectedTiers.name })}</h2>
               </div>
               <button onClick={() => setShowEditModal(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded">
                 <X className="w-5 h-5" />
@@ -1080,7 +1082,7 @@ const AutresTiersModule: React.FC = () => {
                 onClick={() => setShowEditModal(false)}
                 className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {tr('otherTp.cancel')}
               </button>
               <button
                 onClick={handleEdit}
@@ -1088,7 +1090,7 @@ const AutresTiersModule: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-sm bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Save className="w-4 h-4" />
-                {saving ? 'Mise à jour...' : 'Enregistrer les modifications'}
+                {saving ? tr('otherTp.updating') : tr('otherTp.saveChanges')}
               </button>
             </div>
           </div>
@@ -1104,7 +1106,7 @@ const AutresTiersModule: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-blue-50">
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5 text-blue-600" />
-                <h2 className="text-base font-semibold text-gray-900">Détail — {selectedTiers.name}</h2>
+                <h2 className="text-base font-semibold text-gray-900">{tr('otherTp.detailTitle', { name: selectedTiers.name })}</h2>
               </div>
               <button onClick={() => { setShowDetailModal(false); setSelectedTiers(null); }} className="p-1 text-gray-400 hover:text-gray-600 rounded">
                 <X className="w-5 h-5" />
@@ -1114,27 +1116,27 @@ const AutresTiersModule: React.FC = () => {
               {/* Identité */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">Code</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{tr('otherTp.code')}</p>
                   <p className="font-mono font-semibold text-purple-700">{selectedTiers.code}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">Statut</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{tr('otherTp.status')}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${selectedTiers.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {selectedTiers.is_active ? 'Actif' : 'Inactif'}
+                    {selectedTiers.is_active ? tr('otherTp.active') : tr('otherTp.inactive')}
                   </span>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs text-gray-500 mb-0.5">Dénomination</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{tr('otherTp.denomination')}</p>
                   <p className="font-semibold text-gray-900">{selectedTiers.name}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">Classe SYSCOHADA</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{tr('otherTp.syscohadaClass')}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${classeColorClasses(selectedTiers.classe).badge}`}>
-                    {selectedTiers.classe}x — {CLASSE_INFO[selectedTiers.classe]?.label}
+                    {selectedTiers.classe}x — {tr(`otherTp.classeLabel${selectedTiers.classe}`)}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 mb-0.5">Compte collectif</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{tr('otherTp.collectiveAccount')}</p>
                   <p className="font-mono text-gray-700">{selectedTiers.collectif_account}</p>
                 </div>
               </div>
@@ -1142,7 +1144,7 @@ const AutresTiersModule: React.FC = () => {
               {/* Contact */}
               {(selectedTiers.email || selectedTiers.phone) && (
                 <div className="border-t border-gray-100 pt-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Contact</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{tr('otherTp.contact')}</p>
                   <div className="space-y-1.5">
                     {selectedTiers.email && (
                       <p className="text-sm text-gray-700 flex items-center gap-2">
@@ -1162,18 +1164,18 @@ const AutresTiersModule: React.FC = () => {
 
               {/* Soldes */}
               <div className="border-t border-gray-100 pt-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Soldes comptables</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">{tr('otherTp.accountingBalances')}</p>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-blue-50 rounded-lg p-3 text-center">
-                    <p className="text-xs text-blue-600 mb-1">Débit total</p>
+                    <p className="text-xs text-blue-600 mb-1">{tr('otherTp.totalDebit')}</p>
                     <p className="text-sm font-bold text-blue-700 font-mono">{formatCurrency(selectedTiers.totalDebit)}</p>
                   </div>
                   <div className="bg-green-50 rounded-lg p-3 text-center">
-                    <p className="text-xs text-green-600 mb-1">Crédit total</p>
+                    <p className="text-xs text-green-600 mb-1">{tr('otherTp.totalCredit')}</p>
                     <p className="text-sm font-bold text-green-700 font-mono">{formatCurrency(selectedTiers.totalCredit)}</p>
                   </div>
                   <div className={`rounded-lg p-3 text-center ${selectedTiers.solde >= 0 ? 'bg-purple-50' : 'bg-red-50'}`}>
-                    <p className={`text-xs mb-1 ${selectedTiers.solde >= 0 ? 'text-purple-600' : 'text-red-600'}`}>Solde net</p>
+                    <p className={`text-xs mb-1 ${selectedTiers.solde >= 0 ? 'text-purple-600' : 'text-red-600'}`}>{tr('otherTp.netBalance')}</p>
                     <p className={`text-sm font-bold font-mono ${selectedTiers.solde >= 0 ? 'text-purple-700' : 'text-red-700'}`}>
                       {formatCurrency(Math.abs(selectedTiers.solde))} {selectedTiers.solde >= 0 ? 'C' : 'D'}
                     </p>
@@ -1185,7 +1187,7 @@ const AutresTiersModule: React.FC = () => {
               <div className="border-t border-gray-100 pt-3">
                 <p className="text-xs text-gray-400 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3 text-green-500" />
-                  SYSCOHADA Art. 27 · Norme IFRS applicable : {CLASSE_INFO[selectedTiers.classe]?.ifrs}
+                  {tr('otherTp.ifrsApplicable', { norm: String(CLASSE_INFO[selectedTiers.classe]?.ifrs || '') })}
                 </p>
               </div>
             </div>
@@ -1195,13 +1197,13 @@ const AutresTiersModule: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2 text-sm border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-50 transition-colors"
               >
                 <Edit className="w-4 h-4" />
-                Modifier
+                {tr('otherTp.edit')}
               </button>
               <button
                 onClick={() => { setShowDetailModal(false); setSelectedTiers(null); }}
                 className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
-                Fermer
+                {tr('otherTp.close')}
               </button>
             </div>
           </div>
@@ -1219,20 +1221,20 @@ const AutresTiersModule: React.FC = () => {
                 <div className="p-2 bg-red-100 rounded-lg">
                   <Trash2 className="w-5 h-5 text-red-600" />
                 </div>
-                <h2 className="text-base font-semibold text-gray-900">Confirmer la suppression</h2>
+                <h2 className="text-base font-semibold text-gray-900">{tr('otherTp.confirmDelete')}</h2>
               </div>
               <p className="text-sm text-gray-600">
-                Supprimer définitivement le tiers{' '}
+                {tr('otherTp.deletePrefix')}{' '}
                 <span className="font-semibold text-gray-900">
                   {deleteTarget.name} ({deleteTarget.code})
                 </span>{' '}
-                ? Cette action est irréversible.
+                {tr('otherTp.deleteSuffix')}
               </p>
               {deleteTarget.totalDebit > 0 || deleteTarget.totalCredit > 0 ? (
                 <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-xs text-amber-700">
-                    Ce tiers possède des écritures comptables. La suppression peut créer des incohérences.
+                    {tr('otherTp.deleteWarning')}
                   </p>
                 </div>
               ) : null}
@@ -1242,14 +1244,14 @@ const AutresTiersModule: React.FC = () => {
                 onClick={() => setDeleteTarget(null)}
                 className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {tr('otherTp.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(deleteTarget)}
                 className="flex items-center gap-2 px-4 py-2 text-sm bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                Supprimer
+                {tr('otherTp.delete')}
               </button>
             </div>
           </div>

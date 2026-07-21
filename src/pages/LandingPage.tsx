@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { FEATURE_MATRIX } from '../config/plans';
 import { useLandingContent } from '../hooks/useLandingContent';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 function getWorkspacePath(_role: string): string {
   return '/home';
@@ -63,49 +64,63 @@ function AnimatedNumber({ value, suffix = '' }: { value: string; suffix?: string
   return <div ref={ref} className="font-bold">{value.startsWith('<') ? '< ' : ''}{display}{suffix}</div>;
 }
 
-/* ═══ Data ═══ */
-const MODULES = [
-  { icon: Calculator, label: 'Comptabilité SYSCOHADA', desc: 'Plan comptable OHADA, journaux, grand livre, balance. Conformité native 17 pays.' },
-  { icon: BarChart3, label: 'États financiers', desc: 'Bilan, résultat, TAFIRE, SIG & ratios — générés automatiquement en un clic.' },
-  { icon: Shield, label: 'Fiscalité automatique', desc: 'TVA, IS, IMF, patente. Calendrier fiscal, alertes. Liasse DSF 22 annexes.' },
-  { icon: Wallet, label: 'Trésorerie & banque', desc: 'Rapprochement bancaire intelligent, caisse, effets de commerce, prévisions.' },
-  { icon: PieChart, label: 'Contrôle de gestion', desc: 'Budget OPEX & CAPEX, cockpit analytique, écarts budget/réalisé, waterfall, P&L de gestion.' },
-  { icon: Landmark, label: 'Immobilisations', desc: 'Registre, amortissements SYSCOHADA, acquisitions, cessions, inventaire, ventilation TAFIRE.' },
-  { icon: Users, label: 'Gestion des tiers', desc: 'Clients, fournisseurs, balance âgée, lettrage, recouvrement, provisions.' },
-  { icon: CheckCircle, label: 'Clôture & report à nouveau', desc: 'Clôtures périodiques, régularisations, extournes, report à nouveau, verrou de période.' },
-  { icon: Brain, label: <>IA <span className="atlas-brand">Proph3t</span></>, desc: 'Anomalies, suggestions, audit Benford, analyse prédictive LLM intégrée.' },
-  { icon: Globe, label: 'Multi-devises', desc: 'XAF, XOF, EUR, USD. Écarts de conversion automatiques (476/477).' },
-  { icon: Building2, label: 'Multi-sociétés', desc: 'Consolidation inter-company, multi-sites, multi-pays OHADA.' },
-  { icon: Lock, label: 'Audit trail SHA-256', desc: 'Piste d\'audit inaltérable, chaîne de hachage, conformité totale.' },
+/* ═══ Data (i18n : les chaînes sont des CLÉS résolues au rendu) ═══ */
+type ModuleItem = {
+  icon: typeof Calculator;
+  labelKey: string;
+  descKey: string;
+  /** Ajoute le suffixe de marque « Proph3t » après le libellé traduit. */
+  brand?: boolean;
+};
+
+const MODULES: ModuleItem[] = [
+  { icon: Calculator, labelKey: 'landing.modAccounting', descKey: 'landing.modAccountingDesc' },
+  { icon: BarChart3, labelKey: 'landing.modStatements', descKey: 'landing.modStatementsDesc' },
+  { icon: Shield, labelKey: 'landing.modTax', descKey: 'landing.modTaxDesc' },
+  { icon: Wallet, labelKey: 'landing.modTreasury', descKey: 'landing.modTreasuryDesc' },
+  { icon: PieChart, labelKey: 'landing.modControlling', descKey: 'landing.modControllingDesc' },
+  { icon: Landmark, labelKey: 'landing.modAssets', descKey: 'landing.modAssetsDesc' },
+  { icon: Users, labelKey: 'landing.modThirdParties', descKey: 'landing.modThirdPartiesDesc' },
+  { icon: CheckCircle, labelKey: 'landing.modClosing', descKey: 'landing.modClosingDesc' },
+  { icon: Brain, labelKey: 'landing.modAi', descKey: 'landing.modAiDesc', brand: true },
+  { icon: Globe, labelKey: 'landing.modMultiCurrency', descKey: 'landing.modMultiCurrencyDesc' },
+  { icon: Building2, labelKey: 'landing.modMultiCompany', descKey: 'landing.modMultiCompanyDesc' },
+  { icon: Lock, labelKey: 'landing.modAudit', descKey: 'landing.modAuditDesc' },
 ];
 
-const STATS = [
-  { value: '500', suffix: '+', label: 'entreprises' },
-  { value: '17', suffix: '', label: 'pays OHADA' },
-  { value: '100', suffix: '%', label: 'conformité' },
-  { value: '99', suffix: '.9%', label: 'disponibilité' },
+/** `label` reste possible : le contenu distant (Atlas Studio) fournit du texte déjà localisé. */
+type StatItem = { value: string; suffix: string; labelKey?: string; label?: string };
+
+const STATS: StatItem[] = [
+  { value: '500', suffix: '+', labelKey: 'landing.statCompanies' },
+  { value: '17', suffix: '', labelKey: 'landing.statCountries' },
+  { value: '100', suffix: '%', labelKey: 'landing.statCompliance' },
+  { value: '99', suffix: '.9%', labelKey: 'landing.statUptime' },
 ];
 
 const STEPS = [
-  { num: '01', title: 'Créez votre compte', desc: 'Inscription en 2 minutes. Aucune carte bancaire requise.' },
-  { num: '02', title: 'Configurez votre société', desc: 'L\'assistant charge le plan SYSCOHADA et configure tout.' },
-  { num: '03', title: 'Saisissez vos écritures', desc: 'Interface intuitive avec contrôle D=C temps réel.' },
-  { num: '04', title: 'Générez vos états', desc: 'Bilan, résultat, TAFIRE, liasse — tout est automatique.' },
+  { num: '01', titleKey: 'landing.step1Title', descKey: 'landing.step1Desc' },
+  { num: '02', titleKey: 'landing.step2Title', descKey: 'landing.step2Desc' },
+  { num: '03', titleKey: 'landing.step3Title', descKey: 'landing.step3Desc' },
+  { num: '04', titleKey: 'landing.step4Title', descKey: 'landing.step4Desc' },
 ];
 
 const TESTIMONIALS = [
-  { name: 'Amadou Diallo', initials: 'AD', role: 'Expert-Comptable', company: 'Cabinet Diallo & Associés, Dakar', text: 'Atlas FnA a transformé notre cabinet. La conformité SYSCOHADA est native, on gagne 3 heures par dossier.' },
-  { name: 'Marie-Claire Eboué', initials: 'MC', role: 'DAF', company: 'TechCorp Cameroun, Douala', text: 'Le rapprochement bancaire et les prévisions nous ont permis de réduire nos délais de clôture de 5 à 2 jours.' },
-  { name: 'Ibrahim Koné', initials: 'IK', role: 'Directeur Financier', company: 'Groupe Koné Industries, Abidjan', text: 'La consolidation multi-sociétés qui prenait une semaine se fait maintenant en une heure. Impressionnant.' },
+  { name: 'Amadou Diallo', initials: 'AD', roleKey: 'landing.testimonial1Role', company: 'Cabinet Diallo & Associés, Dakar', textKey: 'landing.testimonial1Text' },
+  { name: 'Marie-Claire Eboué', initials: 'MC', roleKey: 'landing.testimonial2Role', company: 'TechCorp Cameroun, Douala', textKey: 'landing.testimonial2Text' },
+  { name: 'Ibrahim Koné', initials: 'IK', roleKey: 'landing.testimonial3Role', company: 'Groupe Koné Industries, Abidjan', textKey: 'landing.testimonial3Text' },
 ];
 
-const FAQ = [
-  { q: 'Atlas FnA est-il conforme au SYSCOHADA révisé 2017 ?', a: 'Oui, à 100%. Plan comptable OHADA intégré nativement, états financiers conformes aux modèles officiels, piste d\'audit conforme aux exigences OHADA.' },
-  { q: 'Puis-je essayer avant de payer ?', a: 'Souscrivez maintenant avec toutes les fonctionnalités. Aucune carte bancaire requise.' },
-  { q: 'Quels modes de paiement acceptez-vous ?', a: 'Mobile Money (Orange Money, MTN MoMo, Wave), virement bancaire, carte bancaire (Visa, Mastercard). Facturation en FCFA ou EUR.' },
-  { q: 'Mes données sont-elles sécurisées ?', a: 'Chiffrement AES-256, backup quotidien, piste d\'audit SHA-256. Conformité RGPD et réglementation OHADA.' },
-  { q: 'Puis-je migrer depuis un autre logiciel ?', a: 'Import CSV/Excel de vos écritures, plan comptable, tiers et immobilisations. Migration assistée disponible.' },
-  { q: 'Le logiciel fonctionne-t-il hors ligne ?', a: 'L\'app desktop fonctionne 100% hors ligne avec synchronisation automatique au retour de la connexion.' },
+/** `q`/`a` restent possibles : le contenu distant fournit du texte déjà localisé. */
+type FaqItem = { qKey?: string; aKey?: string; q?: string; a?: string };
+
+const FAQ: FaqItem[] = [
+  { qKey: 'landing.faq1Q', aKey: 'landing.faq1A' },
+  { qKey: 'landing.faq2Q', aKey: 'landing.faq2A' },
+  { qKey: 'landing.faq3Q', aKey: 'landing.faq3A' },
+  { qKey: 'landing.faq4Q', aKey: 'landing.faq4A' },
+  { qKey: 'landing.faq5Q', aKey: 'landing.faq5A' },
+  { qKey: 'landing.faq6Q', aKey: 'landing.faq6A' },
 ];
 
 /* ═══ Theme-aware CSS helper ═══ */
@@ -165,6 +180,8 @@ function t(mode: LandingThemeMode) {
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
+  // `t` est déjà pris par le helper de thème ci-dessus → on alias la fonction i18n en `tr`.
+  const { t: tr } = useLanguage();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mode, setMode] = useState<LandingThemeMode>(getLandingTheme);
 
@@ -193,10 +210,10 @@ const LandingPage: React.FC = () => {
   const premiumPrice = remotePricing?.plans?.[1]?.price ?? 250000;
 
   const remoteStats = remoteContent?.stats;
-  const statsData = (remoteStats?.items as typeof STATS | undefined) ?? STATS;
+  const statsData = (remoteStats?.items as StatItem[] | undefined) ?? STATS;
 
   const remoteFaq = remoteContent?.faq;
-  const faqData = (remoteFaq?.items as typeof FAQ | undefined) ?? FAQ;
+  const faqData = (remoteFaq?.items as FaqItem[] | undefined) ?? FAQ;
 
   // Scroll-triggered animations
   const stats = useInView();
@@ -223,25 +240,25 @@ const LandingPage: React.FC = () => {
             <span className="atlas-brand text-lg" style={c.sGold}>Atlas Finance &amp; Accounting</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm" style={c.sTer}>
-            <a href="#modules" className="hover:opacity-80 transition-colors" style={c.sTer}>Applications</a>
-            <a href="#tarifs" className="hover:opacity-80 transition-colors" style={c.sTer}>Tarifs</a>
-            <a href="#blog" className="hover:opacity-80 transition-colors" style={c.sTer}>Blog</a>
-            <a href="#about" className="hover:opacity-80 transition-colors" style={c.sTer}>À propos</a>
-            <a href="#faq" className="hover:opacity-80 transition-colors" style={c.sTer}>FAQ</a>
-            <a href="#contact" className="hover:opacity-80 transition-colors" style={c.sTer}>Contact</a>
+            <a href="#modules" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navApplications')}</a>
+            <a href="#tarifs" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navPricing')}</a>
+            <a href="#blog" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navBlog')}</a>
+            <a href="#about" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navAbout')}</a>
+            <a href="#faq" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navFaq')}</a>
+            <a href="#contact" className="hover:opacity-80 transition-colors" style={c.sTer}>{tr('landing.navContact')}</a>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={toggleMode} className={`p-2 rounded-lg ${mode === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'} transition-colors`} style={c.sTer} title={mode === 'dark' ? 'Mode jour' : 'Mode nuit'}>
+            <button onClick={toggleMode} className={`p-2 rounded-lg ${mode === 'dark' ? 'hover:bg-white/10' : 'hover:bg-gray-100'} transition-colors`} style={c.sTer} title={mode === 'dark' ? tr('landing.lightMode') : tr('landing.darkMode')}>
               {mode === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             {isAuthenticated ? (
               <button onClick={handleGetStarted} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all flex items-center gap-2`} style={c.sBtnP}>
-                Mon espace <ArrowRight className="w-4 h-4" />
+                {tr('landing.myWorkspace')} <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
               <>
-                <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium transition-colors" style={c.sSec}>Se connecter</button>
-                <a href={ATLAS_STUDIO.LOGIN} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all`} style={c.sBtnP}>Souscrire maintenant</a>
+                <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-medium transition-colors" style={c.sSec}>{tr('landing.signIn')}</button>
+                <a href={ATLAS_STUDIO.LOGIN} className={`px-5 py-2.5 ${c.btnPrimary} rounded-lg text-sm font-bold transition-all`} style={c.sBtnP}>{tr('landing.subscribeNow')}</a>
               </>
             )}
           </div>
@@ -264,30 +281,30 @@ const LandingPage: React.FC = () => {
 
         <div className="max-w-5xl mx-auto text-center relative">
           <div className={`anim-hero inline-flex items-center gap-2 px-4 py-2 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-8`} style={c.sGold}>
-            <Sparkles className="w-3.5 h-3.5" /> 100 % conforme SYSCOHADA révisé 2017
+            <Sparkles className="w-3.5 h-3.5" /> {tr('landing.heroBadge')}
           </div>
 
           <h1 className="anim-hero-delay-1 text-5xl md:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight" style={c.s}>
-            La comptabilité africaine,
+            {tr('landing.heroTitle1')}
             <br />
             <span className={`bg-gradient-to-r ${c.gradFrom} ${c.gradVia} ${c.gradTo} bg-clip-text text-transparent`} style={{ color: 'transparent' }}>
-              simplifiée et intelligente.
+              {tr('landing.heroTitle2')}
             </span>
           </h1>
 
           <p className="anim-hero-delay-2 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed" style={c.sSec}>
-            Atlas FnA est l'ERP comptable et financier conçu pour les{' '}
-            <strong style={c.s}>17 pays de l'espace OHADA</strong>.
-            Écritures, états financiers, fiscalité, trésorerie — tout est automatisé.
+            {tr('landing.heroSubtitlePart1')}{' '}
+            <strong style={c.s}>{tr('landing.heroSubtitleStrong')}</strong>.{' '}
+            {tr('landing.heroSubtitlePart2')}
           </p>
 
           <div className="anim-hero-delay-3 flex items-center justify-center gap-4 flex-wrap mb-14">
             <button onClick={handleGetStarted} className={`group px-8 py-4 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2`} style={c.sBtnP}>
-              <Zap className="w-4 h-4" /> Souscrire maintenant
+              <Zap className="w-4 h-4" /> {tr('landing.subscribeNow')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button onClick={() => navigate('/demo')} className={`px-8 py-4 ${c.btnSecondary} border rounded-xl text-sm font-semibold transition-all flex items-center gap-2`} style={c.sBtnS}>
-              <Play className="w-4 h-4" style={c.sGold} /> Voir la démo
+              <Play className="w-4 h-4" style={c.sGold} /> {tr('landing.watchDemo')}
             </button>
           </div>
 
@@ -299,7 +316,7 @@ const LandingPage: React.FC = () => {
                 </div>
               ))}
             </div>
-            <span>Rejoint par <strong style={c.s}>500+ entreprises</strong> en Afrique</span>
+            <span>{tr('landing.heroJoinedByPrefix')} <strong style={c.s}>{tr('landing.heroJoinedByStrong')}</strong> {tr('landing.heroJoinedBySuffix')}</span>
           </div>
         </div>
       </section>
@@ -312,7 +329,7 @@ const LandingPage: React.FC = () => {
               <div className="text-4xl md:text-5xl" style={c.s}>
                 <AnimatedNumber value={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-xs mt-2 uppercase tracking-wider font-medium" style={c.sTer}>{stat.label}</p>
+              <p className="text-xs mt-2 uppercase tracking-wider font-medium" style={c.sTer}>{stat.labelKey ? tr(stat.labelKey) : stat.label}</p>
             </div>
           ))}
         </div>
@@ -323,10 +340,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-5`} style={c.sGold}>
-              <Layers className="w-3.5 h-3.5" /> 12 modules intégrés
+              <Layers className="w-3.5 h-3.5" /> {tr('landing.modulesBadge')}
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Tout ce dont vous avez besoin.</h2>
-            <p className="max-w-xl mx-auto text-lg" style={c.sSec}>Une suite complète pour couvrir l'ensemble de vos besoins comptables et financiers.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>{tr('landing.modulesTitle')}</h2>
+            <p className="max-w-xl mx-auto text-lg" style={c.sSec}>{tr('landing.modulesSubtitle')}</p>
           </div>
 
           <div ref={modules.ref} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 anim-stagger ${modules.className}`}>
@@ -335,8 +352,12 @@ const LandingPage: React.FC = () => {
                 <div className={`w-12 h-12 ${c.goldBgLight} rounded-xl flex items-center justify-center mb-4`}>
                   <m.icon className="w-6 h-6" style={c.sGold} />
                 </div>
-                <h3 className="text-sm font-bold mb-2" style={c.s}>{m.label}</h3>
-                <p className="text-xs leading-relaxed" style={c.sTer}>{m.desc}</p>
+                <h3 className="text-sm font-bold mb-2" style={c.s}>
+                  {m.brand
+                    ? <>{tr(m.labelKey)} <span className="atlas-brand">Proph3t</span></>
+                    : tr(m.labelKey)}
+                </h3>
+                <p className="text-xs leading-relaxed" style={c.sTer}>{tr(m.descKey)}</p>
               </div>
             ))}
           </div>
@@ -348,10 +369,10 @@ const LandingPage: React.FC = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-5`} style={c.sGold}>
-              <TrendingUp className="w-3.5 h-3.5" /> Démarrage rapide
+              <TrendingUp className="w-3.5 h-3.5" /> {tr('landing.stepsBadge')}
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Opérationnel en 10 minutes</h2>
-            <p className="text-lg" style={c.sSec}>De l'inscription à votre premier bilan.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>{tr('landing.stepsTitle')}</h2>
+            <p className="text-lg" style={c.sSec}>{tr('landing.stepsSubtitle')}</p>
           </div>
 
           <div ref={steps.ref} className={`grid grid-cols-1 md:grid-cols-4 gap-6 anim-stagger ${steps.className}`}>
@@ -360,8 +381,8 @@ const LandingPage: React.FC = () => {
                 <div className={`w-16 h-16 ${c.goldBgLight} border ${c.goldBorder} rounded-2xl flex items-center justify-center mx-auto mb-5`}>
                   <span className="text-lg font-bold" style={c.sGold}>{step.num}</span>
                 </div>
-                <h3 className="text-sm font-bold mb-2" style={c.s}>{step.title}</h3>
-                <p className="text-xs leading-relaxed" style={c.sTer}>{step.desc}</p>
+                <h3 className="text-sm font-bold mb-2" style={c.s}>{tr(step.titleKey)}</h3>
+                <p className="text-xs leading-relaxed" style={c.sTer}>{tr(step.descKey)}</p>
               </div>
             ))}
           </div>
@@ -375,23 +396,23 @@ const LandingPage: React.FC = () => {
             <div className="relative flex flex-col md:flex-row items-center gap-10">
               <div className="flex-1">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-4`} style={c.sGold}>
-                  <MousePointerClick className="w-3.5 h-3.5" /> Aucun compte requis
+                  <MousePointerClick className="w-3.5 h-3.5" /> {tr('landing.demoBadge')}
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold mb-3" style={c.s}>Essayez avant de vous inscrire</h2>
+                <h2 className="text-3xl md:text-4xl font-bold mb-3" style={c.s}>{tr('landing.demoTitle')}</h2>
                 <p className="mb-6 leading-relaxed" style={c.sSec}>
-                  Visite guidée, démos interactives et tutoriels. Découvrez Atlas FnA en action.
+                  {tr('landing.demoSubtitle')}
                 </p>
                 <button onClick={() => navigate('/demo')} className={`group px-8 py-4 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg inline-flex items-center gap-2`} style={c.sBtnP}>
-                  <Play className="w-4 h-4" /> Lancer la démo
+                  <Play className="w-4 h-4" /> {tr('landing.demoLaunch')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </div>
 
               <div className="flex-shrink-0 grid grid-cols-1 gap-3 w-full md:w-72">
                 {[
-                  { icon: Calculator, title: 'Saisie d\'écriture', tag: 'Interactif' },
-                  { icon: BarChart3, title: 'Bilan SYSCOHADA', tag: 'Drill-down' },
-                  { icon: Shield, title: 'Calcul TVA auto', tag: 'Temps réel' },
+                  { icon: Calculator, title: tr('landing.demoCardEntry'), tag: tr('landing.demoCardEntryTag') },
+                  { icon: BarChart3, title: tr('landing.demoCardBalanceSheet'), tag: tr('landing.demoCardBalanceSheetTag') },
+                  { icon: Shield, title: tr('landing.demoCardVat'), tag: tr('landing.demoCardVatTag') },
                 ].map((demo, i) => (
                   <button key={i} onClick={() => navigate('/demo')} className={`group/card flex items-center gap-3 p-3.5 ${c.card} border rounded-xl ${c.cardHover} transition-all text-left`}>
                     <div className={`w-10 h-10 ${c.goldBgLight} rounded-lg flex items-center justify-center shrink-0`}>
@@ -414,9 +435,9 @@ const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-5`} style={c.sGold}>
-              <Star className="w-3.5 h-3.5" /> Ils nous font confiance
+              <Star className="w-3.5 h-3.5" /> {tr('landing.testimonialsBadge')}
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Ce que disent nos clients</h2>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>{tr('landing.testimonialsTitle')}</h2>
           </div>
           <div ref={testimonials.ref} className={`grid grid-cols-1 md:grid-cols-3 gap-6 anim-stagger ${testimonials.className}`}>
             {TESTIMONIALS.map((tt, i) => (
@@ -424,12 +445,12 @@ const LandingPage: React.FC = () => {
                 <div className="flex gap-0.5 mb-5">
                   {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4" style={{ color: c.gold, fill: c.gold }} />)}
                 </div>
-                <p className="text-sm leading-relaxed mb-6 italic" style={c.sSec}>"{tt.text}"</p>
+                <p className="text-sm leading-relaxed mb-6 italic" style={c.sSec}>"{tr(tt.textKey)}"</p>
                 <div className={`flex items-center gap-3 pt-5 border-t ${c.border}`}>
                   <div className={`w-10 h-10 rounded-full ${c.goldBg} flex items-center justify-center text-xs font-bold`} style={c.sInv}>{tt.initials}</div>
                   <div>
                     <p className="text-sm font-bold" style={c.s}>{tt.name}</p>
-                    <p className="text-xs" style={c.sTer}>{tt.role} · {tt.company}</p>
+                    <p className="text-xs" style={c.sTer}>{tr(tt.roleKey)} · {tt.company}</p>
                   </div>
                 </div>
               </div>
@@ -443,34 +464,34 @@ const LandingPage: React.FC = () => {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 ${c.goldBgLight} border ${c.goldBorder} rounded-full text-xs font-semibold mb-5`} style={c.sGold}>
-              <Award className="w-3.5 h-3.5" /> Tarification transparente
+              <Award className="w-3.5 h-3.5" /> {tr('landing.pricingBadge')}
             </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Deux plans, zéro surprise</h2>
-            <p className="text-lg" style={c.sSec}>Souscrivez maintenant · Sans engagement</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>{tr('landing.pricingTitle')}</h2>
+            <p className="text-lg" style={c.sSec}>{tr('landing.pricingSubtitle')}</p>
           </div>
 
           {/* Plan cards */}
           <div ref={plans.ref} className={`grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-16 anim-stagger ${plans.className}`}>
             {/* PME/TPE */}
             <div className={`${c.card} border-2 rounded-2xl p-8 ${c.cardHover} transition-all`}>
-              <h3 className="text-xl font-bold" style={c.s}>PME / TPE</h3>
-              <p className="text-sm mt-1" style={c.sSec}>Comptabilité complète pour une société</p>
+              <h3 className="text-xl font-bold" style={c.s}>{tr('landing.planSmb')}</h3>
+              <p className="text-sm mt-1" style={c.sSec}>{tr('landing.planSmbDesc')}</p>
               <div className="mt-6 mb-1">
                 <span className="text-5xl font-bold" style={c.s}>{formatXOF(pmePrice)}</span>
-                <span className="ml-2 text-sm" style={c.sTer}>FCFA / mois</span>
+                <span className="ml-2 text-sm" style={c.sTer}>{tr('landing.perMonth')}</span>
               </div>
-              <p className="text-xs mb-6" style={c.sMuted}>~75 EUR · 1 à 5 utilisateurs · +9 000 FCFA/user suppl.</p>
+              <p className="text-xs mb-6" style={c.sMuted}>{tr('landing.planSmbNote')}</p>
               <button onClick={handleGetStarted} className={`w-full py-3.5 border-2 ${c.goldBorderSolid} rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2`} style={c.sGold}>
-                <Zap className="w-4 h-4" /> Souscrire maintenant
+                <Zap className="w-4 h-4" /> {tr('landing.subscribeNow')}
               </button>
               <ul className="mt-7 space-y-3">
                 {[
-                  'Comptabilité SYSCOHADA complète',
-                  'États financiers & TAFIRE',
-                  'Fiscalité (TVA, IS, IMF)',
-                  'Trésorerie & rapprochement',
-                  <>IA <span className="atlas-brand">Proph3t</span> (contrôles)</>,
-                  'Support email',
+                  tr('landing.planSmbFeat1'),
+                  tr('landing.planSmbFeat2'),
+                  tr('landing.planSmbFeat3'),
+                  tr('landing.planSmbFeat4'),
+                  <>{tr('landing.planSmbFeat5Prefix')} <span className="atlas-brand">Proph3t</span> {tr('landing.planSmbFeat5Suffix')}</>,
+                  tr('landing.planSmbFeat6'),
                 ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-xs" style={c.sSec}>
                     <CheckCircle className="w-4 h-4 shrink-0" style={c.sChk} /> {f}
@@ -482,32 +503,32 @@ const LandingPage: React.FC = () => {
             {/* Premium */}
             <div className={`relative ${c.card} border-2 ${c.goldBorderSolid} rounded-2xl p-8 shadow-xl`}>
               <div className={`absolute -top-3 right-6 ${c.goldBg} text-xs font-bold px-4 py-1 rounded-full flex items-center gap-1`} style={c.sInv}>
-                <Star className="w-3 h-3" /> Populaire
+                <Star className="w-3 h-3" /> {tr('landing.popular')}
               </div>
               <div className="flex items-center gap-2">
                 <Crown className="w-5 h-5" style={c.sGold} />
                 <h3 className="text-xl font-bold" style={c.s}>Premium</h3>
               </div>
-              <p className="text-sm mt-1" style={c.sSec}>Multi-sociétés, devises, IA avancée, RBAC, API</p>
+              <p className="text-sm mt-1" style={c.sSec}>{tr('landing.planPremiumDesc')}</p>
               <div className="mt-6 mb-1">
                 <span className="text-5xl font-bold" style={c.s}>{formatXOF(premiumPrice)}</span>
-                <span className="ml-2 text-sm" style={c.sTer}>FCFA / mois</span>
+                <span className="ml-2 text-sm" style={c.sTer}>{tr('landing.perMonth')}</span>
               </div>
-              <p className="text-xs mb-6" style={c.sMuted}>~380 EUR · 20 utilisateurs inclus · +7 000 FCFA/user · 50+ users ou 5+ sociétés : Entreprise sur devis</p>
+              <p className="text-xs mb-6" style={c.sMuted}>{tr('landing.planPremiumNote')}</p>
               <button onClick={handleGetStarted} className={`w-full py-3.5 ${c.btnPrimary} rounded-xl text-sm font-bold transition-all shadow-lg flex items-center justify-center gap-2`} style={c.sBtnP}>
-                <Zap className="w-4 h-4" /> Souscrire maintenant
+                <Zap className="w-4 h-4" /> {tr('landing.subscribeNow')}
               </button>
               <ul className="mt-7 space-y-3">
                 {[
-                  'Tout le plan PME/TPE, plus :',
-                  '20 utilisateurs inclus (+7 000 FCFA/user)',
-                  'Multi-sociétés illimité',
-                  'Multi-devises & multi-pays',
-                  <>IA <span className="atlas-brand">Proph3t</span> avancé (LLM)</>,
-                  'Workflow RBAC & audit trail',
-                  'API REST & intégrations',
-                  'Support prioritaire & formation',
-                  'SLA 99.5 %',
+                  tr('landing.planPremiumFeat1'),
+                  tr('landing.planPremiumFeat2'),
+                  tr('landing.planPremiumFeat3'),
+                  tr('landing.planPremiumFeat4'),
+                  <>{tr('landing.planPremiumFeat5Prefix')} <span className="atlas-brand">Proph3t</span> {tr('landing.planPremiumFeat5Suffix')}</>,
+                  tr('landing.planPremiumFeat6'),
+                  tr('landing.planPremiumFeat7'),
+                  tr('landing.planPremiumFeat8'),
+                  tr('landing.planPremiumFeat9'),
                 ].map((f, i) => (
                   <li key={i} className="flex items-center gap-2.5 text-xs" style={c.sSec}>
                     <CheckCircle className="w-4 h-4 shrink-0" style={c.sChk} /> {f}
@@ -520,14 +541,14 @@ const LandingPage: React.FC = () => {
           {/* ══════ Feature comparison — HIGH CONTRAST ══════ */}
           <div ref={comparison.ref} className={`anim-fade-up ${comparison.className} ${c.card} border rounded-2xl overflow-hidden`}>
             <div className={`px-6 py-4 border-b ${c.border} flex items-center justify-between ${c.bgAlt}`}>
-              <h3 className="text-sm font-bold" style={c.s}>Comparatif complet des fonctionnalités</h3>
-              <span className="text-[10px] uppercase tracking-wider" style={c.sMuted}>{FEATURE_MATRIX.reduce((a, cc) => a + cc.items.length, 0)} fonctionnalités</span>
+              <h3 className="text-sm font-bold" style={c.s}>{tr('landing.comparisonTitle')}</h3>
+              <span className="text-[10px] uppercase tracking-wider" style={c.sMuted}>{tr('landing.featuresCount', { count: String(FEATURE_MATRIX.reduce((a, cc) => a + cc.items.length, 0)) })}</span>
             </div>
 
             {/* Header row */}
             <div className={`grid grid-cols-[1fr_100px_100px] ${c.bgAlt} border-b ${c.border}`}>
-              <div className="px-6 py-3 text-xs font-bold uppercase tracking-wider" style={c.sTer}>Fonctionnalité</div>
-              <div className="px-3 py-3 text-xs font-bold text-center" style={c.sSec}>PME / TPE</div>
+              <div className="px-6 py-3 text-xs font-bold uppercase tracking-wider" style={c.sTer}>{tr('landing.featureColumn')}</div>
+              <div className="px-3 py-3 text-xs font-bold text-center" style={c.sSec}>{tr('landing.planSmb')}</div>
               <div className="px-3 py-3 text-xs font-bold text-center" style={c.sGold}>Premium</div>
             </div>
 
@@ -555,7 +576,7 @@ const LandingPage: React.FC = () => {
             ))}
 
             <div className={`grid grid-cols-[1fr_100px_100px] ${c.tableFootBg} border-t ${c.goldBorder}`}>
-              <div className="px-6 py-4 text-sm font-bold" style={c.s}>Prix mensuel</div>
+              <div className="px-6 py-4 text-sm font-bold" style={c.s}>{tr('landing.monthlyPrice')}</div>
               <div className="flex flex-col items-center justify-center py-4">
                 <span className="text-sm font-bold" style={c.s}>{formatXOF(pmePrice)}</span>
                 <span className="text-[10px]" style={c.sTer}>FCFA</span>
@@ -573,19 +594,19 @@ const LandingPage: React.FC = () => {
       <section id="faq" className={`py-24 px-6 ${c.bgAlt} transition-colors duration-300`}>
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>Questions fréquentes</h2>
-            <p className="text-lg" style={c.sSec}>Tout ce que vous devez savoir.</p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4" style={c.s}>{tr('landing.faqTitle')}</h2>
+            <p className="text-lg" style={c.sSec}>{tr('landing.faqSubtitle')}</p>
           </div>
           <div ref={faq.ref} className={`space-y-3 anim-stagger ${faq.className}`}>
             {faqData.map((item, i) => (
               <div key={i} className={`${c.card} border rounded-xl overflow-hidden ${c.cardHover} transition-colors`}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex items-center justify-between p-5 text-left">
-                  <span className="text-sm font-semibold pr-4" style={c.s}>{item.q}</span>
+                  <span className="text-sm font-semibold pr-4" style={c.s}>{item.qKey ? tr(item.qKey) : item.q}</span>
                   <ChevronDown className="w-5 h-5 shrink-0 transition-transform duration-200" style={openFaq === i ? c.sGold : c.sTer} />
                 </button>
                 <div className={`overflow-hidden transition-all duration-300 ${openFaq === i ? 'max-h-40' : 'max-h-0'}`}>
                   <div className="px-5 pb-5">
-                    <p className="text-sm leading-relaxed" style={c.sSec}>{item.a}</p>
+                    <p className="text-sm leading-relaxed" style={c.sSec}>{item.aKey ? tr(item.aKey) : item.a}</p>
                   </div>
                 </div>
               </div>
@@ -598,26 +619,26 @@ const LandingPage: React.FC = () => {
       <section className="py-24 px-6 bg-[#13323D]" style={{ color: '#ffffff' }}>
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl md:text-6xl font-bold mb-5" style={{ color: '#ffffff' }}>
-            Prêt à simplifier votre
+            {tr('landing.ctaTitle1')}
             <br />
-            <span className="bg-gradient-to-r from-[#F2A93B] via-[#F2A93B] to-[#E89A2E] bg-clip-text text-transparent" style={{ color: 'transparent' }}>comptabilité ?</span>
+            <span className="bg-gradient-to-r from-[#F2A93B] via-[#F2A93B] to-[#E89A2E] bg-clip-text text-transparent" style={{ color: 'transparent' }}>{tr('landing.ctaTitle2')}</span>
           </h2>
           <p className="text-lg max-w-lg mx-auto mb-10" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Rejoignez 500+ entreprises qui font confiance à Atlas FnA. Souscrivez maintenant.
+            {tr('landing.ctaSubtitle')}
           </p>
           <div className="flex items-center justify-center gap-4 flex-wrap mb-8">
             <button onClick={handleGetStarted} className="group px-10 py-4 bg-[#E89A2E] rounded-xl text-sm font-bold hover:bg-[#F2A93B] transition-all shadow-lg hover:-translate-y-0.5 flex items-center gap-2" style={{ color: '#261E15' }}>
-              <Zap className="w-4 h-4" /> Créer mon compte
+              <Zap className="w-4 h-4" /> {tr('landing.createAccount')}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
             <button onClick={() => navigate('/demo')} className="px-10 py-4 bg-white/5 border border-white/10 rounded-xl text-sm font-semibold hover:bg-white/10 transition-all flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              <Play className="w-4 h-4" style={{ color: '#E89A2E' }} /> Voir la démo
+              <Play className="w-4 h-4" style={{ color: '#E89A2E' }} /> {tr('landing.watchDemo')}
             </button>
           </div>
           <div className="flex items-center justify-center gap-6 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>
-            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> Sans carte bancaire</span>
-            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> Mobile Money accepté</span>
-            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> Support réactif</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> {tr('landing.noCreditCard')}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> {tr('landing.mobileMoneyAccepted')}</span>
+            <span className="flex items-center gap-1.5"><CheckCircle className="w-3.5 h-3.5" style={{ color: 'rgba(52,211,153,0.5)' }} /> {tr('landing.responsiveSupport')}</span>
           </div>
         </div>
       </section>
@@ -629,21 +650,21 @@ const LandingPage: React.FC = () => {
             <div>
               <AtlasStudioBrand className="atlas-brand text-2xl" style={c.s} />
               <p className="atlas-brand text-sm mt-1" style={c.sGold}>Atlas Finance &amp; Accounting</p>
-              <p className="text-xs leading-relaxed mt-2" style={c.sTer}>ERP comptable et financier pour l'Afrique. Conforme SYSCOHADA, intelligent et sécurisé.</p>
+              <p className="text-xs leading-relaxed mt-2" style={c.sTer}>{tr('landing.footerTagline')}</p>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Navigation</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>{tr('landing.footerNavigation')}</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
-                <li><a href="#modules" style={c.sMuted}>Applications</a></li>
-                <li><a href="#tarifs" style={c.sMuted}>Tarifs</a></li>
-                <li><a href="#blog" style={c.sMuted}>Blog</a></li>
-                <li><a href="#about" style={c.sMuted}>À propos</a></li>
-                <li><a href="#faq" style={c.sMuted}>FAQ</a></li>
-                <li><a href="#contact" style={c.sMuted}>Contact</a></li>
+                <li><a href="#modules" style={c.sMuted}>{tr('landing.navApplications')}</a></li>
+                <li><a href="#tarifs" style={c.sMuted}>{tr('landing.navPricing')}</a></li>
+                <li><a href="#blog" style={c.sMuted}>{tr('landing.navBlog')}</a></li>
+                <li><a href="#about" style={c.sMuted}>{tr('landing.navAbout')}</a></li>
+                <li><a href="#faq" style={c.sMuted}>{tr('landing.navFaq')}</a></li>
+                <li><a href="#contact" style={c.sMuted}>{tr('landing.navContact')}</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Solutions</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>{tr('landing.footerSolutions')}</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
                 <li className="flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${c.goldBg}`} /> Atlas FnA</li>
                 <li className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> Liass'Pilot</li>
@@ -651,20 +672,20 @@ const LandingPage: React.FC = () => {
               </ul>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>Contact</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={c.sTer}>{tr('landing.footerContact')}</h4>
               <ul className="space-y-2.5 text-xs" style={c.sMuted}>
                 <li className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> contact@atlasstudio.org</li>
                 <li className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> +237 6XX XXX XXX</li>
-                <li className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5" /> Douala, Cameroun</li>
+                <li className="flex items-center gap-2"><Building2 className="w-3.5 h-3.5" /> {tr('landing.footerCity')}</li>
               </ul>
             </div>
           </div>
           <div className={`border-t ${c.border} pt-6 flex flex-col md:flex-row items-center justify-between gap-4`}>
-            <span className="text-xs" style={c.sMuted}>&copy; {new Date().getFullYear()} <AtlasStudioBrand className="hover:opacity-80">Atlas Studio</AtlasStudioBrand>. Tous droits réservés.</span>
+            <span className="text-xs" style={c.sMuted}>&copy; {new Date().getFullYear()} <AtlasStudioBrand className="hover:opacity-80">Atlas Studio</AtlasStudioBrand>. {tr('landing.allRightsReserved')}</span>
             <div className="flex items-center gap-6 text-xs" style={c.sMuted}>
-              <span>Mentions légales</span>
-              <span>Confidentialité</span>
-              <span>CGV</span>
+              <span>{tr('landing.legalNotice')}</span>
+              <span>{tr('landing.privacy')}</span>
+              <span>{tr('landing.terms')}</span>
             </div>
           </div>
         </div>
