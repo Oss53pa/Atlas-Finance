@@ -47,7 +47,6 @@ import {
 } from 'lucide-react';
 
 // Sections
-import ControlePeriodes from './sections/ControlePeriodes';
 import Immobilisations from './sections/Immobilisations';
 import RapprochementBancaire from './sections/RapprochementBancaire';
 import EtatsSYSCOHADA from './sections/EtatsSYSCOHADA';
@@ -58,6 +57,7 @@ import RegularisationsTab from './components/RegularisationsTab';
 import AffectationTab from './components/AffectationTab';
 import ControlesPanel, { StatutIcon } from './components/ControlesPanel';
 import PreflightVerrouillage from './components/PreflightVerrouillage';
+import VerificationPrerequis from './components/VerificationPrerequis';
 
 // ============================================================================
 // TYPES
@@ -581,7 +581,13 @@ function CloturesPeriodiquesPage() {
         )}
 
         {/* ===== MONTHLY TABS ===== */}
-        {mode === 'mensuelle' && tab === 'verification' && <ControlePeriodes />}
+        {mode === 'mensuelle' && tab === 'verification' && (
+          <VerificationPrerequis
+            fiscalYear={selectedFY}
+            periods={periods}
+            onNavigateTab={(id) => setTab(id as TabId)}
+          />
+        )}
 
         {mode === 'mensuelle' && tab === 'regularisations' && (
           <RegularisationsTab
@@ -632,7 +638,9 @@ function CloturesPeriodiquesPage() {
                 </button>
               ))}
             </div>
-            {travauxSubTab === 'controle' && <ControlePeriodes />}
+            {travauxSubTab === 'controle' && (
+              <VerificationPrerequis fiscalYear={selectedFY} periods={periods} />
+            )}
             {travauxSubTab === 'immobilisations' && <Immobilisations />}
             {travauxSubTab === 'rapprochement' && <RapprochementBancaire />}
           </div>
@@ -1121,13 +1129,15 @@ const MONTHLY_SECTIONS: SectionDef[] = [
   {
     tab: 'verification' as MonthlyTabId,
     title: 'Vérification',
-    description: 'Contrôle des périodes, vérification des pré-requis, ordre chronologique, délais légaux OHADA.',
+    description: '6 règles de pré-requis évaluées sur les écritures réelles de chaque période, avec le détail des pièces bloquantes.',
     icon: <ClipboardCheck className="w-5 h-5" />,
     details: [
-      'Pré-requis de clôture (aucun brouillon)',
-      'Ordre chronologique des périodes',
-      'Délai légal (10 jours après fin de période)',
-      'Validations requises (comptable, fiscal, audit, direction)',
+      'R1 — Période terminée',
+      'R2 — Ordre chronologique des périodes',
+      'R3 — Délai légal OHADA (10 jours)',
+      'R4 — Aucune écriture en brouillon',
+      'R5 — Pièces validées équilibrées',
+      'R6 — Lettrage des comptes de tiers',
     ],
   },
   {
@@ -1141,7 +1151,8 @@ const MONTHLY_SECTIONS: SectionDef[] = [
       'FNP — Fournisseurs, factures non parvenues',
       'FAE — Clients, factures à établir',
       'Calcul prorata temporis automatique',
-      'Preview des extournes',
+      'Régularisations déjà comptabilisées (lues au grand livre)',
+      'Génération des extournes au cut-off N+1',
     ],
   },
   {
@@ -1181,11 +1192,11 @@ const MONTHLY_SECTIONS: SectionDef[] = [
     description: 'Génération des états financiers SYSCOHADA pour la période.',
     icon: <FileText className="w-5 h-5" />,
     details: [
-      'Bilan (actif/passif)',
-      'Compte de résultat',
-      'TAFIRE (Tableau Financier des Ressources et Emplois)',
+      'Bilan — équilibre Actif = Passif vérifié',
+      'Compte de résultat — sens des comptes + IS classe 8 déduit',
+      'TAFIRE — non calculable sans comparatif N-1 (annoncé comme tel)',
       'Notes annexes',
-      'Conformité SYSCOHADA révisé',
+      'Taux de conformité calculé sur des contrôles réels',
     ],
   },
 ];
