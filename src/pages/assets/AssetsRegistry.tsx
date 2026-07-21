@@ -306,7 +306,7 @@ const AssetsRegistry: React.FC = () => {
       }
     } catch (error) {
       // Intégration Capitation non disponible — ne pas injecter de données fictives
-      toast.error('Service Capitation non disponible. Renseignez les champs manuellement.');
+      toast.error(t('assetsRegistry.capitationUnavailable'));
     }
   };
 
@@ -340,7 +340,7 @@ const AssetsRegistry: React.FC = () => {
       }
     } catch (error) {
       // Intégration WiseFM non disponible — ne pas injecter de données fictives
-      toast.error('Service WiseFM non disponible. Renseignez les champs manuellement.');
+      toast.error(t('assetsRegistry.wisefmUnavailable'));
     }
   };
 
@@ -497,7 +497,7 @@ const AssetsRegistry: React.FC = () => {
 
   const handleQrCode = (asset: Asset) => {
     // Générer ou afficher le QR Code
-    toast(`QR Code pour l'actif: ${asset.asset_number}`);
+    toast(t('assetsRegistry.qrCodeForAsset', { number: String(asset.asset_number) }));
     // TODO: Implémenter la génération de QR Code
   };
 
@@ -508,27 +508,27 @@ const AssetsRegistry: React.FC = () => {
   };
 
   const handleDelete = async (asset: Asset) => {
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer l'actif ${asset.asset_number}?`)) return;
+    if (!confirm(t('assetsRegistry.confirmDelete', { number: String(asset.asset_number) }))) return;
     try {
       const raw = await adapter.getById<any>('assets', asset.id);
-      if (!raw) throw new Error('Immobilisation introuvable.');
-      if ((Number(raw.cumulDepreciation) || 0) > 0) throw new Error('Bien amorti : utilisez une cession/sortie, pas la suppression.');
-      if (raw.status && raw.status !== 'active') throw new Error('Bien déjà sorti/inactif.');
+      if (!raw) throw new Error(t('assetsRegistry.assetNotFound'));
+      if ((Number(raw.cumulDepreciation) || 0) > 0) throw new Error(t('assetsRegistry.depreciatedAssetError'));
+      if (raw.status && raw.status !== 'active') throw new Error(t('assetsRegistry.alreadyDisposed'));
       const entries = await adapter.getAll<any>('journalEntries');
       if (entries.some(e => String(e.reference || '').includes(asset.id))) {
-        throw new Error('Des écritures comptables sont liées à ce bien.');
+        throw new Error(t('assetsRegistry.linkedEntries'));
       }
       await adapter.delete('assets', asset.id);
-      toast.success(`Actif ${asset.asset_number} supprimé`);
+      toast.success(t('assetsRegistry.assetDeleted', { number: String(asset.asset_number) }));
       await queryClient.invalidateQueries({ queryKey: ['assets-registry'] });
     } catch (e: any) {
-      toast.error('Suppression impossible : ' + (e?.message || 'erreur'));
+      toast.error(t('assetsRegistry.deleteFailed') + (e?.message || t('assetsRegistry.genericError')));
     }
   };
 
   const handleExport = (asset: Asset) => {
     // Exporter les données de l'actif
-    toast.success(`Export des données de l'actif ${asset.asset_number}`);
+    toast.success(t('assetsRegistry.exportAssetData', { number: String(asset.asset_number) }));
     // TODO: Implémenter l'export
   };
 
@@ -632,13 +632,13 @@ const AssetsRegistry: React.FC = () => {
     try {
       if (assetToEdit) {
         await adapter.update('assets', assetToEdit.id, payload);
-        toast.success('Actif mis à jour');
+        toast.success(t('assetsRegistry.assetUpdated'));
       } else {
         // Unicité du code.
         const code = String(payload.code || '').trim();
         const existing = await adapter.getAll<any>('assets');
         if (code && existing.some(a => String(a.code || '').trim().toLowerCase() === code.toLowerCase())) {
-          throw new Error(`Le code immobilisation « ${code} » existe déjà.`);
+          throw new Error(t('assetsRegistry.codeAlreadyExists', { code }));
         }
         const assetId = crypto.randomUUID();
         await adapter.create('assets', { id: assetId, ...payload });
@@ -661,12 +661,12 @@ const AssetsRegistry: React.FC = () => {
             createdBy: 'system',
           } as any, { skipSyncValidation: true });
         }
-        toast.success('Actif créé (fiche + écriture d\'acquisition)');
+        toast.success(t('assetsRegistry.assetCreated'));
       }
       await queryClient.invalidateQueries({ queryKey: ['assets-registry'] });
       await queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
       setShowAssetModal(false); setAssetToEdit(null); setRawAsset(null);
-    } catch (e: any) { toast.error('Échec de l’enregistrement : ' + (e?.message || 'erreur')); }
+    } catch (e: any) { toast.error(t('assetsRegistry.saveFailed') + (e?.message || t('assetsRegistry.genericError'))); }
   };
 
   // Calculer les catégories par CLASSE SYSCOHADA (le champ `category` vaut une
@@ -693,13 +693,13 @@ const AssetsRegistry: React.FC = () => {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([code, data]) => ({
         code,
-        name: CLASS_LABELS[code] || `Classe ${code}`,
+        name: CLASS_LABELS[code] || t('assetsRegistry.classPrefix', { code }),
         count: data.count,
         totalValue: data.totalValue,
         averageAge: data.count > 0 ? new Money(data.totalAge).divide(data.count).round(1).toNumber() : 0,
         depreciationRate: data.count > 0 ? new Money(data.totalRate).divide(data.count).divide(100).round(4).toNumber() : 0,
       }));
-  }, [assets]);
+  }, [assets, t]);
 
   // Filter assets based on search and filters
   const filteredAssets = useMemo(() => {
@@ -776,27 +776,27 @@ const AssetsRegistry: React.FC = () => {
   };
 
   const categoryLabels: Record<string, string> = {
-    materiel_informatique: 'Matériel IT',
-    vehicules: 'Véhicules',
-    mobilier: 'Mobilier',
-    equipements: 'Équipements',
-    immobilier: 'Immobilier',
-    outillage: 'Outillage'
+    materiel_informatique: t('assetsRegistry.catIt'),
+    vehicules: t('assetsRegistry.catVehicles'),
+    mobilier: t('assetsRegistry.catFurniture'),
+    equipements: t('assetsRegistry.catEquipment'),
+    immobilier: t('assetsRegistry.catRealEstate'),
+    outillage: t('assetsRegistry.catTooling')
   };
 
   const statusLabels: Record<Asset['status'], string> = {
-    active: 'Actif',
-    en_service: 'En service',
-    inactive: 'Inactif',
-    maintenance: 'Maintenance',
-    disposed: 'Cédé'
+    active: t('assetsRegistry.statusActive'),
+    en_service: t('assetsRegistry.statusInService'),
+    inactive: t('assetsRegistry.statusInactive'),
+    maintenance: t('assetsRegistry.statusMaintenance'),
+    disposed: t('assetsRegistry.statusDisposed')
   };
 
   const conditionLabels: Record<string, string> = {
-    excellent: 'Excellent',
-    good: 'Bon',
-    fair: 'Correct',
-    poor: 'Mauvais'
+    excellent: t('assetsRegistry.condExcellent'),
+    good: t('assetsRegistry.condGood'),
+    fair: t('assetsRegistry.condFair'),
+    poor: t('assetsRegistry.condPoor')
   };
 
   const uniqueLocations = [...new Set(assets.map(a => a.location.split(' - ')[0]))];
@@ -812,18 +812,18 @@ const AssetsRegistry: React.FC = () => {
     }));
 
   const conditionChartData = [
-    { label: 'En Service', value: filteredAssets.filter(a => a.status === 'en_service').length, color: 'bg-green-500' },
-    { label: 'Maintenance', value: filteredAssets.filter(a => a.status === 'maintenance').length, color: 'bg-yellow-500' },
-    { label: 'Inactif', value: filteredAssets.filter(a => a.status === 'inactive').length, color: 'bg-gray-500' },
-    { label: 'Cédé', value: filteredAssets.filter(a => a.status === 'disposed').length, color: 'bg-red-500' }
+    { label: t('assetsRegistry.statusInService'), value: filteredAssets.filter(a => a.status === 'en_service').length, color: 'bg-green-500' },
+    { label: t('assetsRegistry.statusMaintenance'), value: filteredAssets.filter(a => a.status === 'maintenance').length, color: 'bg-yellow-500' },
+    { label: t('assetsRegistry.statusInactive'), value: filteredAssets.filter(a => a.status === 'inactive').length, color: 'bg-gray-500' },
+    { label: t('assetsRegistry.statusDisposed'), value: filteredAssets.filter(a => a.status === 'disposed').length, color: 'bg-red-500' }
   ];
 
   // Tab definitions
   const mainTabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: PieChart },
-    { id: 'assets', label: 'Liste des Actifs', icon: List },
-    { id: 'bulk', label: 'Actions en Lot', icon: Settings },
-    { id: 'history', label: 'Historique', icon: History }
+    { id: 'overview', label: t('assetsRegistry.tabOverview'), icon: PieChart },
+    { id: 'assets', label: t('assetsRegistry.tabAssetsList'), icon: List },
+    { id: 'bulk', label: t('assetsRegistry.tabBulkActions'), icon: Settings },
+    { id: 'history', label: t('assetsRegistry.tabHistory'), icon: History }
   ];
 
   // Content renderers for each tab
@@ -832,9 +832,9 @@ const AssetsRegistry: React.FC = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
-          title="Actifs Totaux"
+          title={t('assetsRegistry.kpiTotalAssets')}
           value={aggregatedData.totalAssets.toString()}
-          subtitle={`${aggregatedData.activeAssets} actifs`}
+          subtitle={t('assetsRegistry.kpiActiveAssetsSub', { count: String(aggregatedData.activeAssets) })}
           icon={Package}
           color="primary"
           delay={0.1}
@@ -842,9 +842,9 @@ const AssetsRegistry: React.FC = () => {
         />
 
         <KPICard
-          title="Valeur Actuelle"
+          title={t('assetsRegistry.kpiCurrentValue')}
           value={formatCurrency(aggregatedData.totalValue)}
-          subtitle={`${formatPercentage(1 - aggregatedData.depreciationRate)} de la valeur d'origine`}
+          subtitle={t('assetsRegistry.kpiOfOriginalValue', { value: String(formatPercentage(1 - aggregatedData.depreciationRate)) })}
           icon={DollarSign}
           color="success"
           delay={0.2}
@@ -852,9 +852,9 @@ const AssetsRegistry: React.FC = () => {
         />
 
         <KPICard
-          title="Actifs Assignés"
+          title={t('assetsRegistry.kpiAssignedAssets')}
           value={aggregatedData.assignedAssets.toString()}
-          subtitle={`${formatPercentage(aggregatedData.assignedAssets / aggregatedData.totalAssets)} assignés`}
+          subtitle={t('assetsRegistry.kpiAssignedSub', { value: String(formatPercentage(aggregatedData.assignedAssets / aggregatedData.totalAssets)) })}
           icon={User}
           color="neutral"
           delay={0.3}
@@ -862,9 +862,9 @@ const AssetsRegistry: React.FC = () => {
         />
 
         <KPICard
-          title="Excellent État"
+          title={t('assetsRegistry.kpiExcellentCondition')}
           value={aggregatedData.excellentCondition.toString()}
-          subtitle={`${formatPercentage(aggregatedData.excellentCondition / aggregatedData.totalAssets)} en excellent état`}
+          subtitle={t('assetsRegistry.kpiExcellentSub', { value: String(formatPercentage(aggregatedData.excellentCondition / aggregatedData.totalAssets)) })}
           icon={CheckCircle}
           color="warning"
           delay={0.4}
@@ -880,8 +880,8 @@ const AssetsRegistry: React.FC = () => {
           transition={{ delay: 0.5 }}
         >
           <ModernChartCard
-            title="Valeur par Catégorie"
-            subtitle="Répartition de la valeur actuelle"
+            title={t('assetsRegistry.chartValueByCategory')}
+            subtitle={t('assetsRegistry.chartValueByCategorySub')}
             icon={PieChart}
           >
             <ColorfulBarChart
@@ -897,8 +897,8 @@ const AssetsRegistry: React.FC = () => {
           transition={{ delay: 0.6 }}
         >
           <ModernChartCard
-            title="État des Actifs"
-            subtitle="Répartition par condition"
+            title={t('assetsRegistry.chartAssetsCondition')}
+            subtitle={t('assetsRegistry.chartAssetsConditionSub')}
             icon={Target}
           >
             <ColorfulBarChart
@@ -914,7 +914,7 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Top Catégories</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.topCategories')}</h3>
               <Target className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
@@ -937,13 +937,13 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Indicateurs Clés</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.keyIndicators')}</h3>
               <BarChart3 className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-neutral-600">Taux d'assignation</span>
+                  <span className="text-sm text-neutral-600">{t('assetsRegistry.assignmentRate')}</span>
                   <span className="text-sm font-semibold text-green-600">
                     {formatPercentage(aggregatedData.assignedAssets / aggregatedData.totalAssets)}
                   </span>
@@ -957,7 +957,7 @@ const AssetsRegistry: React.FC = () => {
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm text-neutral-600">Taux de dépréciation</span>
+                  <span className="text-sm text-neutral-600">{t('assetsRegistry.depreciationRateLabel')}</span>
                   <span className="text-sm font-semibold text-orange-600">
                     {formatPercentage(aggregatedData.depreciationRate)}
                   </span>
@@ -976,7 +976,7 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Actions Rapides</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.quickActions')}</h3>
               <Activity className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
@@ -986,16 +986,16 @@ const AssetsRegistry: React.FC = () => {
                 className="w-full justify-start"
                 onClick={handleOpenNewAssetModal}
               >
-                Nouvel Actif
+                {t('assetsRegistry.newAsset')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={QrCode} className="w-full justify-start">
-                Scanner QR Code
+                {t('assetsRegistry.scanQrCode')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download} className="w-full justify-start">
-                Exporter Données
+                {t('assetsRegistry.exportData')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={RefreshCw} className="w-full justify-start">
-                Synchroniser
+                {t('assetsRegistry.synchronize')}
               </ElegantButton>
             </div>
           </div>
@@ -1010,7 +1010,7 @@ const AssetsRegistry: React.FC = () => {
       <UnifiedCard variant="elevated" size="md">
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
+            <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.filtersAndSearch')}</h3>
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('table')}
@@ -1036,7 +1036,7 @@ const AssetsRegistry: React.FC = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
               <input
                 type="text"
-                placeholder="Rechercher..."
+                placeholder={t('assetsRegistry.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1048,7 +1048,7 @@ const AssetsRegistry: React.FC = () => {
               onChange={(e) => setFilterCategory(e.target.value)}
               className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t('assetsRegistry.allCategories')}</option>
               {Object.entries(categoryLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
@@ -1059,7 +1059,7 @@ const AssetsRegistry: React.FC = () => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">Tous les statuts</option>
+              <option value="all">{t('assetsRegistry.allStatuses')}</option>
               {Object.entries(statusLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
@@ -1070,7 +1070,7 @@ const AssetsRegistry: React.FC = () => {
               onChange={(e) => setFilterLocation(e.target.value)}
               className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">Tous les emplacements</option>
+              <option value="all">{t('assetsRegistry.allLocations')}</option>
               {uniqueLocations.map(location => (
                 <option key={location} value={location}>{location}</option>
               ))}
@@ -1081,7 +1081,7 @@ const AssetsRegistry: React.FC = () => {
               onChange={(e) => setFilterCondition(e.target.value)}
               className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="all">Toutes les conditions</option>
+              <option value="all">{t('assetsRegistry.allConditions')}</option>
               {Object.entries(conditionLabels).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
@@ -1095,12 +1095,12 @@ const AssetsRegistry: React.FC = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-semibold text-neutral-800">
-              Actifs ({filteredAssets.length})
+              {t('assetsRegistry.assetsCount', { count: String(filteredAssets.length) })}
             </h3>
             {selectedAssets.length > 0 && (
               <div className="flex gap-2">
                 <ElegantButton variant="outline" size="sm">
-                  Actions groupées ({selectedAssets.length})
+                  {t('assetsRegistry.bulkActionsCount', { count: String(selectedAssets.length) })}
                 </ElegantButton>
               </div>
             )}
@@ -1124,13 +1124,13 @@ const AssetsRegistry: React.FC = () => {
                         }}
                       />
                     </th>
-                    <th className="text-left py-3 px-4 font-medium text-neutral-600">Actif</th>
-                    <th className="text-left py-3 px-4 font-medium text-neutral-600">Catégorie</th>
-                    <th className="text-right py-3 px-4 font-medium text-neutral-600">Valeur</th>
-                    <th className="text-left py-3 px-4 font-medium text-neutral-600">Emplacement</th>
-                    <th className="text-center py-3 px-4 font-medium text-neutral-600">Statut</th>
-                    <th className="text-center py-3 px-4 font-medium text-neutral-600">État</th>
-                    <th className="text-center py-3 px-4 font-medium text-neutral-600">Actions</th>
+                    <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colAsset')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colCategory')}</th>
+                    <th className="text-right py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colValue')}</th>
+                    <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colLocation')}</th>
+                    <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colStatus')}</th>
+                    <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colCondition')}</th>
+                    <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsRegistry.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1188,7 +1188,7 @@ const AssetsRegistry: React.FC = () => {
                             {formatCurrency(asset.current_value)}
                           </p>
                           <p className="text-sm text-neutral-500">
-                            Achat: {formatCurrency(asset.acquisition_cost)}
+                            {t('assetsRegistry.purchaseLabel', { value: String(formatCurrency(asset.acquisition_cost)) })}
                           </p>
                         </div>
                       </td>
@@ -1214,7 +1214,7 @@ const AssetsRegistry: React.FC = () => {
                       </td>
                       <td className="py-4 px-4 text-center">
                         <span className={`px-2 py-1 text-xs font-medium rounded-full text-green-600 bg-green-50`}>
-                          En service
+                          {t('assetsRegistry.statusInService')}
                         </span>
                       </td>
                       <td className="py-4 px-4">
@@ -1238,7 +1238,7 @@ const AssetsRegistry: React.FC = () => {
                           <button
                             onClick={() => handleQrCode(asset)}
                             className="p-2 text-neutral-400 hover:text-primary-600 transition-colors"
-                            title="Afficher QR Code"
+                            title={t('assetsRegistry.showQrCode')}
                           >
                             <QrCode className="h-4 w-4" />
                           </button>
@@ -1246,7 +1246,7 @@ const AssetsRegistry: React.FC = () => {
                             <button
                               onClick={() => setActiveDropdown(activeDropdown === asset.id ? null : asset.id)}
                               className="p-2 text-neutral-400 hover:text-gray-600 transition-colors"
-                              title="Plus d'actions"
+                              title={t('assetsRegistry.moreActions')}
                             >
                               <MoreVertical className="h-4 w-4" />
                             </button>
@@ -1260,50 +1260,50 @@ const AssetsRegistry: React.FC = () => {
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <Copy className="h-4 w-4" />
-                                  Dupliquer
+                                  {t('assetsRegistry.duplicate')}
                                 </button>
                                 <button
                                   onClick={() => {
-                                    toast.success(`Archiver l'actif: ${asset.asset_number}`);
+                                    toast.success(t('assetsRegistry.archiveAssetToast', { number: String(asset.asset_number) }));
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <Archive className="h-4 w-4" />
-                                  Archiver
+                                  {t('assetsRegistry.archive')}
                                 </button>
                                 <button
                                   onClick={() => {
-                                    toast(`Imprimer l'étiquette: ${asset.asset_number}`);
+                                    toast(t('assetsRegistry.printLabelToast', { number: String(asset.asset_number) }));
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <Tag className="h-4 w-4" />
-                                  Imprimer étiquette
+                                  {t('assetsRegistry.printLabel')}
                                 </button>
                                 <button
                                   onClick={() => {
-                                    toast(`Historique de l'actif: ${asset.asset_number}`);
+                                    toast(t('assetsRegistry.assetHistoryToast', { number: String(asset.asset_number) }));
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                                 >
                                   <History className="h-4 w-4" />
-                                  Voir l'historique
+                                  {t('assetsRegistry.viewHistory')}
                                 </button>
                                 <hr className="my-1" />
                                 <button
                                   onClick={() => {
-                                    if (confirm(`Voulez-vous vraiment supprimer l'actif ${asset.asset_number} ?`)) {
-                                      toast.success(`Supprimer l'actif: ${asset.asset_number}`);
+                                    if (confirm(t('assetsRegistry.confirmDeleteAsset', { number: String(asset.asset_number) }))) {
+                                      toast.success(t('assetsRegistry.deleteAssetToast', { number: String(asset.asset_number) }));
                                     }
                                     setActiveDropdown(null);
                                   }}
                                   className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center gap-2"
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                  Supprimer
+                                  {t('assetsRegistry.delete')}
                                 </button>
                               </div>
                             )}
@@ -1348,24 +1348,24 @@ const AssetsRegistry: React.FC = () => {
 
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-neutral-500">Valeur actuelle:</span>
+                        <span className="text-sm text-neutral-500">{t('assetsRegistry.currentValueLabel')}</span>
                         <span className="font-semibold text-neutral-800">
                           {formatCurrency(asset.current_value)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-neutral-500">Emplacement:</span>
+                        <span className="text-sm text-neutral-500">{t('assetsRegistry.locationLabel')}</span>
                         <span className="text-sm text-neutral-700">{asset.location.split(' - ')[0]}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-neutral-500">État:</span>
+                        <span className="text-sm text-neutral-500">{t('assetsRegistry.conditionLabel')}</span>
                         <span className={`px-2 py-1 text-xs font-medium rounded-full text-green-600 bg-green-50`}>
-                          En service
+                          {t('assetsRegistry.statusInService')}
                         </span>
                       </div>
                       {asset.employee && (
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Assigné à:</span>
+                          <span className="text-sm text-neutral-500">{t('assetsRegistry.assignedToLabel')}</span>
                           <span className="text-sm text-neutral-700">{asset.employee}</span>
                         </div>
                       )}
@@ -1413,24 +1413,24 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Sélection d'Actifs</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.assetSelection')}</h3>
               <Users className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Actifs sélectionnés</span>
+                <span className="text-sm text-neutral-600">{t('assetsRegistry.selectedAssets')}</span>
                 <span className="text-lg font-bold text-[var(--color-primary)]">{selectedAssets.length}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-neutral-600">Total disponible</span>
+                <span className="text-sm text-neutral-600">{t('assetsRegistry.totalAvailable')}</span>
                 <span className="text-sm font-semibold text-neutral-800">{filteredAssets.length}</span>
               </div>
               <div className="space-y-2">
                 <ElegantButton variant="outline" size="sm" className="w-full">
-                  Sélectionner tout
+                  {t('assetsRegistry.selectAll')}
                 </ElegantButton>
                 <ElegantButton variant="outline" size="sm" className="w-full">
-                  Désélectionner tout
+                  {t('assetsRegistry.deselectAll')}
                 </ElegantButton>
               </div>
             </div>
@@ -1440,21 +1440,21 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Import/Export</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.importExport')}</h3>
               <Database className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
               <ElegantButton variant="outline" icon={Upload} className="w-full justify-start">
-                Importer depuis Excel
+                {t('assetsRegistry.importFromExcel')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download} className="w-full justify-start">
-                Exporter vers Excel
+                {t('assetsRegistry.exportToExcel')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Import} className="w-full justify-start">
-                Import/Export avancé
+                {t('assetsRegistry.advancedImportExport')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Copy} className="w-full justify-start">
-                Dupliquer actifs
+                {t('assetsRegistry.duplicateAssets')}
               </ElegantButton>
             </div>
           </div>
@@ -1463,21 +1463,21 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Actions en Lot</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.bulkActions')}</h3>
               <Settings className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="space-y-3">
               <ElegantButton variant="outline" icon={Edit} className="w-full justify-start">
-                Modifier en lot
+                {t('assetsRegistry.bulkEdit')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={User} className="w-full justify-start">
-                Réassigner
+                {t('assetsRegistry.reassign')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={MapPin} className="w-full justify-start">
-                Changer emplacement
+                {t('assetsRegistry.changeLocation')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Trash2} className="w-full justify-start text-red-600">
-                Supprimer sélection
+                {t('assetsRegistry.deleteSelection')}
               </ElegantButton>
             </div>
           </div>
@@ -1488,9 +1488,9 @@ const AssetsRegistry: React.FC = () => {
       <UnifiedCard variant="elevated" size="lg">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-neutral-800">Opérations en Lot</h3>
+            <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.bulkOperations')}</h3>
             <span className="text-sm text-neutral-500">
-              {selectedAssets.length} actif(s) sélectionné(s)
+              {t('assetsRegistry.assetsSelectedCount', { count: String(selectedAssets.length) })}
             </span>
           </div>
 
@@ -1499,70 +1499,70 @@ const AssetsRegistry: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Changer le statut
+                    {t('assetsRegistry.changeStatus')}
                   </label>
                   <select className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option value="">-- Sélectionner --</option>
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="disposed">Cédé</option>
+                    <option value="">{t('assetsRegistry.selectPlaceholder')}</option>
+                    <option value="active">{t('assetsRegistry.statusActive')}</option>
+                    <option value="inactive">{t('assetsRegistry.statusInactive')}</option>
+                    <option value="maintenance">{t('assetsRegistry.statusMaintenance')}</option>
+                    <option value="disposed">{t('assetsRegistry.statusDisposed')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Nouvel emplacement
+                    {t('assetsRegistry.newLocation')}
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Nouvel emplacement"
+                    placeholder={t('assetsRegistry.newLocation')}
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Assigner à
+                    {t('assetsRegistry.assignTo')}
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Nom de l'employé"
+                    placeholder={t('assetsRegistry.employeeNamePlaceholder')}
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Notes pour l'opération
+                  {t('assetsRegistry.operationNotes')}
                 </label>
                 <textarea
                   className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   rows={3}
-                  placeholder="Ajouter des notes pour cette opération en lot..."
+                  placeholder={t('assetsRegistry.bulkNotesPlaceholder')}
                 />
               </div>
 
               <div className="flex justify-end space-x-3">
                 <ElegantButton variant="outline">
-                  Annuler
+                  {t('assetsRegistry.cancel')}
                 </ElegantButton>
                 <ElegantButton variant="primary">
-                  Appliquer les modifications
+                  {t('assetsRegistry.applyChanges')}
                 </ElegantButton>
               </div>
             </div>
           ) : (
             <div className="text-center py-12">
               <Settings className="mx-auto h-12 w-12 text-neutral-400" />
-              <h3 className="mt-4 text-lg font-medium text-neutral-900">Aucun actif sélectionné</h3>
+              <h3 className="mt-4 text-lg font-medium text-neutral-900">{t('assetsRegistry.noAssetSelected')}</h3>
               <p className="mt-2 text-sm text-neutral-500">
-                Sélectionnez des actifs depuis l'onglet "Liste des Actifs" pour effectuer des opérations en lot.
+                {t('assetsRegistry.noAssetSelectedHint')}
               </p>
               <div className="mt-6">
                 <ElegantButton variant="outline" onClick={() => setActiveMainTab('assets')}>
-                  Aller à la liste des actifs
+                  {t('assetsRegistry.goToAssetsList')}
                 </ElegantButton>
               </div>
             </div>
@@ -1573,16 +1573,16 @@ const AssetsRegistry: React.FC = () => {
       {/* Quick Templates */}
       <UnifiedCard variant="elevated" size="md">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-neutral-800">Modèles d'Actions Rapides</h3>
+          <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.quickActionTemplates')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
               <div className="flex items-center space-x-3 mb-2">
                 <div className="p-2 bg-green-100 rounded-lg">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
-                <span className="font-medium text-neutral-800">Validation annuelle</span>
+                <span className="font-medium text-neutral-800">{t('assetsRegistry.annualValidation')}</span>
               </div>
-              <p className="text-sm text-neutral-500">Marquer comme vérifié pour inventaire annuel</p>
+              <p className="text-sm text-neutral-500">{t('assetsRegistry.annualValidationDesc')}</p>
             </button>
 
             <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
@@ -1590,9 +1590,9 @@ const AssetsRegistry: React.FC = () => {
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <Wrench className="h-4 w-4 text-orange-600" />
                 </div>
-                <span className="font-medium text-neutral-800">Maintenance planifiée</span>
+                <span className="font-medium text-neutral-800">{t('assetsRegistry.plannedMaintenance')}</span>
               </div>
-              <p className="text-sm text-neutral-500">Planifier maintenance préventive</p>
+              <p className="text-sm text-neutral-500">{t('assetsRegistry.plannedMaintenanceDesc')}</p>
             </button>
 
             <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
@@ -1600,9 +1600,9 @@ const AssetsRegistry: React.FC = () => {
                 <div className="p-2 bg-[var(--color-primary)]/20 rounded-lg">
                   <RotateCcw className="h-4 w-4 text-[var(--color-primary)]" />
                 </div>
-                <span className="font-medium text-neutral-800">Réaffectation</span>
+                <span className="font-medium text-neutral-800">{t('assetsRegistry.reassignment')}</span>
               </div>
-              <p className="text-sm text-neutral-500">Changer département/employé</p>
+              <p className="text-sm text-neutral-500">{t('assetsRegistry.reassignmentDesc')}</p>
             </button>
 
             <button className="p-4 border border-neutral-200 rounded-lg hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/50 transition-colors text-left">
@@ -1610,9 +1610,9 @@ const AssetsRegistry: React.FC = () => {
                 <div className="p-2 bg-red-100 rounded-lg">
                   <Archive className="h-4 w-4 text-red-600" />
                 </div>
-                <span className="font-medium text-neutral-800">Mise au rebut</span>
+                <span className="font-medium text-neutral-800">{t('assetsRegistry.scrapping')}</span>
               </div>
-              <p className="text-sm text-neutral-500">Processus de mise au rebut</p>
+              <p className="text-sm text-neutral-500">{t('assetsRegistry.scrappingDesc')}</p>
             </button>
           </div>
         </div>
@@ -1625,38 +1625,38 @@ const AssetsRegistry: React.FC = () => {
       {/* History Filters */}
       <UnifiedCard variant="elevated" size="md">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-neutral-800">Filtres d'Historique</h3>
+          <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.historyFilters')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Date de début</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t('assetsRegistry.startDate')}</label>
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Date de fin</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t('assetsRegistry.endDate')}</label>
               <input
                 type="date"
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Type d'action</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t('assetsRegistry.actionType')}</label>
               <select className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500">
-                <option value="">Toutes les actions</option>
-                <option value="create">Création</option>
-                <option value="update">Modification</option>
-                <option value="transfer">Transfert</option>
-                <option value="maintenance">Maintenance</option>
-                <option value="dispose">Mise au rebut</option>
+                <option value="">{t('assetsRegistry.allActions')}</option>
+                <option value="create">{t('assetsRegistry.actionCreate')}</option>
+                <option value="update">{t('assetsRegistry.actionUpdate')}</option>
+                <option value="transfer">{t('assetsRegistry.actionTransfer')}</option>
+                <option value="maintenance">{t('assetsRegistry.statusMaintenance')}</option>
+                <option value="dispose">{t('assetsRegistry.scrapping')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">Utilisateur</label>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">{t('assetsRegistry.user')}</label>
               <input
                 type="text"
-                placeholder="Nom d'utilisateur"
+                placeholder={t('assetsRegistry.usernamePlaceholder')}
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -1668,16 +1668,16 @@ const AssetsRegistry: React.FC = () => {
       <UnifiedCard variant="elevated" size="lg">
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-neutral-800">Historique des Activités</h3>
+            <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.activityHistory')}</h3>
             <ElegantButton variant="outline" icon={Download} size="sm">
-              Exporter l'historique
+              {t('assetsRegistry.exportHistory')}
             </ElegantButton>
           </div>
 
           <div className="flex flex-col items-center justify-center py-12 text-center">
               <Clock className="h-10 w-10 mb-3 text-neutral-300" />
-              <p className="text-sm font-medium text-neutral-500">Aucun historique disponible</p>
-              <p className="text-xs mt-1 text-neutral-400">Les actions sur les actifs apparaîtront ici une fois enregistrées.</p>
+              <p className="text-sm font-medium text-neutral-500">{t('assetsRegistry.noHistory')}</p>
+              <p className="text-xs mt-1 text-neutral-400">{t('assetsRegistry.noHistoryHint')}</p>
           </div>
         </div>
       </UnifiedCard>
@@ -1687,12 +1687,12 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Activités Récentes</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.recentActivities')}</h3>
               <Activity className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
               <Activity className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
+              <p className="text-xs text-neutral-400">{t('assetsRegistry.noDataAvailable')}</p>
             </div>
           </div>
         </UnifiedCard>
@@ -1700,12 +1700,12 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Actions les Plus Fréquentes</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.mostFrequentActions')}</h3>
               <BarChart3 className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
               <BarChart3 className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
+              <p className="text-xs text-neutral-400">{t('assetsRegistry.noDataAvailable')}</p>
             </div>
           </div>
         </UnifiedCard>
@@ -1713,12 +1713,12 @@ const AssetsRegistry: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Utilisateurs Actifs</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('assetsRegistry.activeUsers')}</h3>
               <Users className="h-5 w-5 text-neutral-400" />
             </div>
             <div className="flex flex-col items-center justify-center py-6 text-neutral-400">
               <Users className="h-8 w-8 mb-2 opacity-30" />
-              <p className="text-xs text-neutral-400">Aucune donnée disponible</p>
+              <p className="text-xs text-neutral-400">{t('assetsRegistry.noDataAvailable')}</p>
             </div>
           </div>
         </UnifiedCard>
@@ -1731,24 +1731,24 @@ const AssetsRegistry: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Registre des Actifs"
-          subtitle="Inventaire et suivi des immobilisations et équipements"
+          title={t('assetsRegistry.title')}
+          subtitle={t('assetsRegistry.subtitle')}
           icon={Package}
           action={
             <div className="flex gap-3">
               <PageHeaderActions />
               <ElegantButton variant="outline" icon={QrCode}>
-                Scanner QR
+                {t('assetsRegistry.scanQr')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download}>
-                Exporter
+                {t('assetsRegistry.export')}
               </ElegantButton>
               <ElegantButton
                 variant="primary"
                 icon={Plus}
                 onClick={handleOpenNewAssetModal}
               >
-                Nouvel Actif
+                {t('assetsRegistry.newAsset')}
               </ElegantButton>
             </div>
           }
@@ -1803,8 +1803,8 @@ const AssetsRegistry: React.FC = () => {
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    {assetModal.mode === 'create' ? 'Nouvel Actif' :
-                     assetModal.mode === 'edit' ? 'Modifier l\'Actif' : 'Détails de l\'Actif'}
+                    {assetModal.mode === 'create' ? t('assetsRegistry.newAsset') :
+                     assetModal.mode === 'edit' ? t('assetsRegistry.editAsset') : t('assetsRegistry.assetDetails')}
                   </h3>
                   <button
                     onClick={() => setAssetModal({ isOpen: false, mode: 'view' })}
@@ -1822,21 +1822,21 @@ const AssetsRegistry: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Description de l'Actif
+                            {t('assetsRegistry.assetDescription')}
                           </label>
                           <p className="text-neutral-800 font-semibold">{assetModal.asset.description}</p>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Numéro d'Inventaire
+                            {t('assetsRegistry.inventoryNumber')}
                           </label>
                           <p className="text-neutral-800 font-mono">{assetModal.asset.asset_number}</p>
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Catégorie
+                            {t('assetsRegistry.colCategory')}
                           </label>
                           <div className="flex items-center space-x-2">
                             {getCategoryIcon(assetModal.asset.category)}
@@ -1846,7 +1846,7 @@ const AssetsRegistry: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Classe d'Actif
+                            {t('assetsRegistry.assetClass')}
                           </label>
                           <p className="text-neutral-800">
                             {assetModal.asset.asset_class}
@@ -1855,7 +1855,7 @@ const AssetsRegistry: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Numéro de Série
+                            {t('assetsRegistry.serialNumber')}
                           </label>
                           <p className="text-neutral-800 font-mono">{assetModal.asset.serial_number}</p>
                         </div>
@@ -1864,7 +1864,7 @@ const AssetsRegistry: React.FC = () => {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Valeur d'Acquisition
+                            {t('assetsRegistry.acquisitionValue')}
                           </label>
                           <p className="text-neutral-800 font-bold text-lg">
                             {formatCurrency(assetModal.asset.acquisition_cost)}
@@ -1873,7 +1873,7 @@ const AssetsRegistry: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Valeur Actuelle
+                            {t('assetsRegistry.kpiCurrentValue')}
                           </label>
                           <p className="text-neutral-800 font-semibold">
                             {formatCurrency(assetModal.asset.current_value)}
@@ -1882,7 +1882,7 @@ const AssetsRegistry: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Amortissement Cumulé
+                            {t('assetsRegistry.accumulatedDepreciation')}
                           </label>
                           <p className="text-red-600 font-medium">
                             -{formatCurrency(assetModal.asset.cumulated_depreciation)}
@@ -1891,7 +1891,7 @@ const AssetsRegistry: React.FC = () => {
 
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Date d'Acquisition
+                            {t('assetsRegistry.acquisitionDate')}
                           </label>
                           <p className="text-neutral-800">{formatDate(assetModal.asset.acquisition_date)}</p>
                         </div>
@@ -1899,7 +1899,7 @@ const AssetsRegistry: React.FC = () => {
                         <div className="flex space-x-4">
                           <div>
                             <label className="block text-sm font-medium text-neutral-700 mb-1">
-                              Statut
+                              {t('assetsRegistry.colStatus')}
                             </label>
                             <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(assetModal.asset.status)}`}>
                               {statusLabels[assetModal.asset.status]}
@@ -1908,10 +1908,10 @@ const AssetsRegistry: React.FC = () => {
 
                           <div>
                             <label className="block text-sm font-medium text-neutral-700 mb-1">
-                              État
+                              {t('assetsRegistry.colCondition')}
                             </label>
                             <span className={`px-3 py-1 text-sm font-medium rounded-full text-green-600 bg-green-50`}>
-                              En service
+                              {t('assetsRegistry.statusInService')}
                             </span>
                           </div>
                         </div>
@@ -1921,7 +1921,7 @@ const AssetsRegistry: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Emplacement
+                          {t('assetsRegistry.colLocation')}
                         </label>
                         <div className="flex items-center space-x-2">
                           <MapPin className="h-4 w-4 text-neutral-400" />
@@ -1931,7 +1931,7 @@ const AssetsRegistry: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Département
+                          {t('assetsRegistry.department')}
                         </label>
                         <p className="text-neutral-800">{assetModal.asset.department}</p>
                       </div>
@@ -1939,7 +1939,7 @@ const AssetsRegistry: React.FC = () => {
                       {assetModal.asset.employee && (
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Assigné à
+                            {t('assetsRegistry.assignedTo')}
                           </label>
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-neutral-400" />
@@ -1951,7 +1951,7 @@ const AssetsRegistry: React.FC = () => {
                       {assetModal.asset.notes && (
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Notes
+                            {t('assetsRegistry.notes')}
                           </label>
                           <p className="text-neutral-800 text-sm bg-gray-50 p-3 rounded-lg">
                             {assetModal.asset.notes}
@@ -1967,11 +1967,11 @@ const AssetsRegistry: React.FC = () => {
                     variant="outline"
                     onClick={() => setAssetModal({ isOpen: false, mode: 'view' })}
                   >
-                    {assetModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {assetModal.mode === 'view' ? t('assetsRegistry.close') : t('assetsRegistry.cancel')}
                   </ElegantButton>
                   {assetModal.mode !== 'view' && (
                     <ElegantButton variant="primary">
-                      {assetModal.mode === 'create' ? 'Créer' : 'Sauvegarder'}
+                      {assetModal.mode === 'create' ? t('assetsRegistry.create') : t('assetsRegistry.save')}
                     </ElegantButton>
                   )}
                 </div>
