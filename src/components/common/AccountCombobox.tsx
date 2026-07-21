@@ -38,6 +38,11 @@ export function useAccountOptions(classPrefix: string): AccountOption[] {
 interface Props {
   value: string;
   onChange: (code: string) => void;
+  /**
+   * Appelé UNE fois la valeur arrêtée (choix dans la liste ou sortie du champ) :
+   * à utiliser quand le parent persiste (évite une écriture par frappe).
+   */
+  onCommit?: (code: string) => void;
   /** Classe SYSCOHADA à proposer (« 6 », « 7 », « 2 »…). */
   classPrefix: string;
   disabled?: boolean;
@@ -47,7 +52,7 @@ interface Props {
 }
 
 const AccountCombobox: React.FC<Props> = ({
-  value, onChange, classPrefix, disabled, placeholder = 'Compte…', inputClassName = 'w-28',
+  value, onChange, onCommit, classPrefix, disabled, placeholder = 'Compte…', inputClassName = 'w-28',
 }) => {
   const options = useAccountOptions(classPrefix);
   const [open, setOpen] = useState(false);
@@ -99,11 +104,25 @@ const AccountCombobox: React.FC<Props> = ({
     };
   }, [open, close, place]);
 
+  // Valeur en cours de frappe, arrêtée au choix dans la liste ou à la sortie du
+  // champ : le parent qui persiste (onCommit) n'écrit pas une fois par frappe.
+  const pending = useRef(value);
+  const dirty = useRef(false);
+
+  const commit = useCallback(() => {
+    if (!dirty.current) return;
+    dirty.current = false;
+    onCommit?.(pending.current);
+  }, [onCommit]);
+
   const select = useCallback((o: AccountOption) => {
+    pending.current = o.code;
+    dirty.current = true;
     onChange(o.code);
+    commit();
     close();
     inputRef.current?.blur();
-  }, [onChange, close]);
+  }, [onChange, commit, close]);
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowDown') {
@@ -130,7 +149,12 @@ const AccountCombobox: React.FC<Props> = ({
           placeholder={placeholder}
           onFocus={openList}
           onClick={openList}
-          onChange={(e) => { setQuery(e.target.value); onChange(e.target.value); setActive(0); if (!open) openList(); }}
+          onChange={(e) => {
+            pending.current = e.target.value; dirty.current = true;
+            setQuery(e.target.value); onChange(e.target.value); setActive(0);
+            if (!open) openList();
+          }}
+          onBlur={commit}
           onKeyDown={onKeyDown}
           role="combobox"
           aria-expanded={open}
