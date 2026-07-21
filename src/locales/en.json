@@ -316,7 +316,7 @@
   "thirdParty": {
     "collection": "Collection",
     "dueDate": "Due dates",
-    "reconciliation": "Reconciliation",
+    "reconciliation": "Matching",
     "matching": "Matching",
     "suppliers": "Suppliers",
     "customers": "Customers"
@@ -347,7 +347,14 @@
   },
   "dashboard": {
     "performance": "Performance",
-    "title": "Dashboard"
+    "title": "Dashboard",
+    "revenue": "Revenue",
+    "activeClients": "Active customers",
+    "pendingInvoices": "Pending invoices",
+    "overview": "Overview of your business",
+    "recentActivity": "Recent activity",
+    "quickActions": "Quick actions",
+    "statistics": "Statistics"
   },
   "journals": {
     "miscellaneous": "Miscellaneous Operations",
@@ -3611,5 +3618,14 @@
     "colCredit": "Credit",
     "noEntries": "No journal entry assigned to this partner.",
     "close": "Close"
+  },
+  "invoice": {
+    "title": "Invoice"
+  },
+  "quote": {
+    "title": "Quote"
+  },
+  "order": {
+    "purchaseOrder": "Purchase order"
   }
 }
