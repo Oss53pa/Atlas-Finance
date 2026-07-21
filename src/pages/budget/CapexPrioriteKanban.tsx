@@ -14,6 +14,18 @@ import { getAccountLabel } from '../../utils/accountLabels';
 import type { CapexPriorite, CapexRequest } from '../../features/budget/services/budgetService';
 import { Loader2, GripVertical, AlertTriangle } from 'lucide-react';
 
+const STATUT_STYLE: Record<string, string> = {
+  brouillon: 'bg-neutral-100 text-[var(--color-text-secondary)]',
+  demande: 'bg-neutral-100 text-[var(--color-text-secondary)]',
+  soumis: 'bg-amber-100 text-amber-700',
+  en_priorisation: 'bg-blue-100 text-blue-700',
+  approuve: 'bg-emerald-100 text-emerald-700',
+  approuve_avec_conditions: 'bg-emerald-100 text-emerald-700',
+  car_emis: 'bg-[var(--color-primary-light)] text-[var(--color-primary)]',
+  fonds_disponibles: 'bg-[var(--color-primary-light)] text-[var(--color-primary)]',
+  ajourne: 'bg-neutral-100 text-[var(--color-text-tertiary)]',
+};
+
 export const PRIORITES: { key: CapexPriorite; label: string; accent: string; ring: string }[] = [
   { key: 'critique', label: 'Critique', accent: 'text-red-700', ring: 'border-red-300' },
   { key: 'haute', label: 'Haute', accent: 'text-amber-700', ring: 'border-amber-300' },
@@ -114,6 +126,11 @@ const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }
                             </span>
                           )}
                         </div>
+                        {/* Le kanban couvre tout le portefeuille vivant → on situe
+                            chaque carte dans le circuit de décision. */}
+                        <span className={`inline-block mt-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${STATUT_STYLE[String(r.statut)] || 'bg-neutral-100 text-[var(--color-text-secondary)]'}`}>
+                          {String(r.statut).replace(/_/g, ' ')}
+                        </span>
                       </div>
                       {busyId === r.id && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--color-primary)] shrink-0" />}
                     </div>
