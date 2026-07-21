@@ -7,7 +7,7 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Calendar, FileBarChart, TrendingUp, Lock, Activity, BarChart3, Target, Calculator,
-  Bell, Archive, FileCheck, Link2, PieChart, Split, Layers, Trophy, PiggyBank, Shuffle,
+  Bell, Archive, FileCheck, Link2, PieChart, Split, Layers, Trophy, PiggyBank, Shuffle, Landmark,
 } from 'lucide-react';
 
 export interface GroupTab { path: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; }
@@ -38,6 +38,7 @@ export const CAPEX_TABS: GroupTab[] = [
   { path: '/capex', label: 'Portefeuille', icon: Layers, exact: true },
   { path: '/capex/business-cases', label: 'Business Cases', icon: FileBarChart },
   { path: '/capex/priorisation', label: 'Priorisation', icon: Trophy },
+  { path: '/capex/car', label: 'CAR', icon: Landmark },
   { path: '/capex/enveloppe', label: 'Enveloppe', icon: PiggyBank },
   { path: '/capex/reaffectations', label: 'Réaffectations', icon: Shuffle },
 ];
