@@ -316,7 +316,7 @@
   "thirdParty": {
     "collection": "Recaudación",
     "dueDate": "Vencimientos",
-    "reconciliation": "Conciliación",
+    "reconciliation": "Conciliación de partidas",
     "matching": "Conciliación",
     "suppliers": "Proveedores",
     "customers": "Clientes"
@@ -347,7 +347,14 @@
   },
   "dashboard": {
     "performance": "Rendimiento",
-    "title": "Panel de control"
+    "title": "Panel de control",
+    "revenue": "Cifra de negocio",
+    "activeClients": "Clientes activos",
+    "pendingInvoices": "Facturas pendientes",
+    "overview": "Visión general de su actividad",
+    "recentActivity": "Actividad reciente",
+    "quickActions": "Acciones rápidas",
+    "statistics": "Estadísticas"
   },
   "journals": {
     "miscellaneous": "Operaciones diversas",
@@ -3611,5 +3618,14 @@
     "colCredit": "Haber",
     "noEntries": "Ningún asiento asignado a este socio.",
     "close": "Cerrar"
+  },
+  "invoice": {
+    "title": "Factura"
+  },
+  "quote": {
+    "title": "Presupuesto"
+  },
+  "order": {
+    "purchaseOrder": "Orden de compra"
   }
 }
