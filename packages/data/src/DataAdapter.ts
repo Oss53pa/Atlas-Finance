@@ -87,6 +87,11 @@ export type TableName =
   | 'stockCountDocuments'
   | 'stockCountLines'
   | 'stockReservations'
+  // Ossature d'intégration Suite Atlas (L1) — SaaS uniquement
+  | 'integrationEvents'
+  | 'postingRules'
+  | 'integrationDeadLetters'
+  | 'entrySequences'
 
 export interface QueryFilters {
   where?: Record<string, any>

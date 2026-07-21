@@ -17,6 +17,24 @@ export interface HashableEntry {
   totalCredit: number;
   /** Computed hash — set after creation */
   hash?: string;
+  /**
+   * Empreinte du fait de gestion source (Suite Atlas, L7).
+   * Présente uniquement sur les écritures issues d'un satellite : elle scelle
+   * le DOCUMENT d'origine, pas seulement l'écriture qui en découle.
+   */
+  sourcePayloadHash?: string;
+}
+
+/**
+ * Sel de chaînage d'une écriture.
+ *
+ * ⚠️ SOURCE UNIQUE : `safeAddEntry` (production du hash) et `verifyChain`
+ * (vérification) DOIVENT appeler cette fonction. Si les deux calculaient le
+ * sel séparément, toute écriture issue d'un satellite serait déclarée corrompue
+ * au premier contrôle d'intégrité.
+ */
+export function chainSalt(previousHash: string, sourcePayloadHash?: string): string {
+  return sourcePayloadHash ? `${previousHash}:${sourcePayloadHash}` : previousHash;
 }
 
 /** Generic SHA-256 hex digest of an arbitrary string payload (canonical hashing primitive). */
@@ -66,7 +84,9 @@ export async function verifyChain(
     if (!entry.hash) {
       return { valid: false, brokenAt: entry.entryNumber, checkedCount: i };
     }
-    const expectedHash = await hashEntry(entry, previousHash);
+    // Le sel intègre l'empreinte du document source quand l'écriture vient
+    // d'un satellite : la preuve remonte jusqu'au fait de gestion.
+    const expectedHash = await hashEntry(entry, chainSalt(previousHash, entry.sourcePayloadHash));
     if (entry.hash !== expectedHash) {
       return { valid: false, brokenAt: entry.entryNumber, checkedCount: i };
     }
