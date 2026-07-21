@@ -202,8 +202,14 @@ export async function createCar(adapter: DataAdapter, car: {
 }): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
+  // Tenancy = societe (get_user_company_id), comme le reste du module CAPEX.
+  // Avant : org_id via fna_auth_org_ids('editor') — mais aucun utilisateur n'ayant
+  // de ligne fna_user_orgs, la création échouait toujours et la RLS org bloquait
+  // même la lecture → le CAR était inaccessible. Cf. migration 20240101000082.
+  const { data: tenant } = await client.rpc('get_user_company_id');
+  if (!tenant) throw new Error('Société courante introuvable.');
   const { data, error } = await client.from('fna_car').insert({
-    org_id: await orgOf(client),
+    tenant_id: tenant,
     request_id: car.requestId,
     reference: car.reference || null,
     montant_approprie: Math.round(car.montant_approprie),
