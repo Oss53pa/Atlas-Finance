@@ -21,6 +21,7 @@ import { useFiscalPeriods } from './hooks/useFiscalPeriods';
 import type { Periodicite } from './hooks/useFiscalPeriods';
 import type { DBFiscalYear, DBClosureSession, DBFiscalPeriod } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
+import { logAudit } from '../../lib/db';
 import toast from 'react-hot-toast';
 import {
   Lock,
@@ -275,11 +276,31 @@ function CloturesPeriodiquesPage() {
     }
   };
 
-  const handleLockPeriod = async () => {
+  /**
+   * @param derogation renseignée quand l'utilisateur force le verrouillage malgré
+   *        des contrôles non conformes — l'événement est journalisé AVANT le
+   *        verrouillage pour rester opposable même si celui-ci échoue ensuite.
+   */
+  const handleLockPeriod = async (derogation?: { blockers: number; controles: string[] }) => {
     if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
     try {
+      if (derogation) {
+        const period = periods.find(p => p.id === selectedPeriodId);
+        await logAudit(
+          'CLOSURE_LOCK_OVERRIDE',
+          'fiscalPeriod',
+          selectedPeriodId,
+          JSON.stringify({
+            periode: period?.code,
+            exercice: selectedFYId,
+            controlesNonConformes: derogation.controles,
+            nombreBloquants: derogation.blockers,
+            utilisateur: user?.id ?? 'inconnu',
+          }),
+        );
+      }
       await lockPeriod(selectedPeriodId, user?.id);
-      toast.success('Période verrouillée');
+      toast.success(derogation ? 'Période verrouillée par dérogation (tracée)' : 'Période verrouillée');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
     }
@@ -1150,7 +1171,7 @@ const MONTHLY_SECTIONS: SectionDef[] = [
       'Pré-vol : les 9 contrôles rejoués SUR LA PÉRIODE',
       'Verrouillage refusé tant qu\'un contrôle est non conforme',
       'Corrections automatiques applicables depuis le pré-vol',
-      'Dérogation possible, explicite et tracée',
+      'Dérogation explicite, journalisée (CLOSURE_LOCK_OVERRIDE)',
       'Statuts: ouverte → en clôture → clôturée → rouverte',
     ],
   },
@@ -1366,14 +1387,15 @@ function VerrouillageSection({
 }: {
   period: DBFiscalPeriod | null;
   fiscalYearId?: string;
-  onLock: () => void;
+  onLock: (derogation?: { blockers: number; controles: string[] }) => void;
   onUnlock: () => void;
   executing: boolean;
 }) {
-  // Pré-vol : nombre de contrôles non conformes SUR LA PÉRIODE. Tant qu'il est
-  // > 0, le verrouillage est refusé — sauf dérogation explicite et tracée.
-  const [blockers, setBlockers] = useState(0);
+  // Pré-vol : contrôles non conformes SUR LA PÉRIODE. Tant qu'il en reste,
+  // le verrouillage est refusé — sauf dérogation explicite et journalisée.
+  const [blockerIds, setBlockerIds] = useState<string[]>([]);
   const [force, setForce] = useState(false);
+  const blockers = blockerIds.length;
   useEffect(() => { setForce(false); }, [period?.id]);
 
   if (!period) {
@@ -1437,7 +1459,7 @@ function VerrouillageSection({
           {!isClosed && (
             <>
               <button
-                onClick={onLock}
+                onClick={() => onLock(blockers > 0 ? { blockers, controles: blockerIds } : undefined)}
                 disabled={executing || (blockers > 0 && !force)}
                 title={blockers > 0 && !force
                   ? `${blockers} contrôle(s) non conforme(s) sur la période — corrigez-les ou cochez la dérogation.`
@@ -1480,7 +1502,7 @@ function VerrouillageSection({
           periodEnd={period.endDate}
           periodLabel={period.label}
           fiscalYearId={fiscalYearId}
-          onBlockersChange={setBlockers}
+          onBlockersChange={setBlockerIds}
         />
       )}
 

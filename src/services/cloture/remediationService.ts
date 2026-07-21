@@ -15,10 +15,12 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry } from '../../lib/db';
-import { money } from '../../utils/money';
+import { money, Money } from '../../utils/money';
+import { hashEntry } from '../../utils/integrity';
 import { autoLettrage, applyLettrage } from '../lettrageService';
 import { posterAmortissementsAnnuels } from '../postingService';
 import { logAudit } from '../../lib/db';
+import { getPeriodeStatus } from '../periodeComptableService';
 
 // ============================================================================
 // TYPES
@@ -30,6 +32,8 @@ export interface ControleAnomalie {
   ref: string;
   libelle: string;
   montant?: number;
+  /** Écart SIGNÉ débit − crédit (> 0 = excès de débit). Porte l'équilibrage. */
+  ecart?: number;
   date?: string;
   entryId?: string;
   lineId?: string;
@@ -142,36 +146,18 @@ export function buildRemediations(controle: ControleLike): RemediationProposal[]
 
   switch (controle.id) {
     // --- Déséquilibres de pièce (C1 agrégé, C2 pièce à pièce) -----------------
+    // ⚠️ Une pièce déséquilibrée détectée ici est VALIDÉE (les brouillons sont
+    // traités par C8). SYSCOHADA Art. 19 : une écriture validée est INTANGIBLE
+    // — la patcher briserait en plus la chaîne de hachage SHA-256. Aucune
+    // correction automatique n'est donc proposée : c'est une OD de correction
+    // saisie par le comptable, ou une contrepassation.
     case 'C1':
     case 'C2': {
-      const corrigeables = anomalies.filter(a => a.corrigeable && a.entryId && a.montant);
-      if (corrigeables.length > 0) {
-        const first = corrigeables[0];
-        const ecart = first.montant ?? 0;
-        props.push({
-          id: `${controle.id}.EQUILIBRER_SUR_ATTENTE`,
-          controleId: controle.id,
-          action: 'EQUILIBRER_SUR_ATTENTE',
-          titre: `Équilibrer ${corrigeables.length} pièce(s) sur le compte d'attente ${COMPTE_ATTENTE}`,
-          description:
-            'Ajoute à chaque pièce déséquilibrée la ligne manquante sur le compte d\'attente ' +
-            `${COMPTE_ATTENTE}. La pièce redevient équilibrée (D = C) et le solde du compte ` +
-            'd\'attente matérialise le montant à ré-imputer.',
-          impact:
-            `${corrigeables.length} ligne(s) créée(s) sur ${COMPTE_ATTENTE} — ` +
-            'le compte d\'attente devra être soldé avant la clôture définitive.',
-          mode: 'assistee',
-          cibles: corrigeables.length,
-          preview: [
-            ecart > 0
-              ? { accountCode: COMPTE_ATTENTE, libelle: `Équilibrage pièce ${first.ref}`, debit: 0, credit: Math.abs(ecart) }
-              : { accountCode: COMPTE_ATTENTE, libelle: `Équilibrage pièce ${first.ref}`, debit: Math.abs(ecart), credit: 0 },
-          ],
-        });
-      }
       props.push(nav(controle.id, 'Ouvrir les écritures concernées',
-        'Analyser et corriger la saisie à la source (recommandé si l\'écart provient d\'une ligne oubliée).',
-        '/accounting/entries', total));
+        'Une pièce validée est intangible (SYSCOHADA Art. 19) : la corriger passe par une ' +
+        'contrepassation puis une nouvelle saisie — jamais par une retouche de la pièce.',
+        '/accounting/entries', total,
+        'Aucune écriture générée automatiquement — la correction d\'une pièce validée doit rester tracée.'));
       break;
     }
 
@@ -225,11 +211,31 @@ export function buildRemediations(controle: ControleLike): RemediationProposal[]
           cibles: corrigeables.length,
         });
       }
-      const bloques = total - corrigeables.length;
-      if (bloques > 0) {
-        props.push(nav('C8', `Corriger ${bloques} brouillon(s) déséquilibré(s)`,
-          'Ces brouillons ne peuvent pas être validés tant que débit ≠ crédit.',
-          '/accounting/entries', bloques));
+      // Un brouillon N'EST PAS encore une écriture comptable : le compléter est
+      // légitime (contrairement à une pièce validée, cf. C1/C2).
+      const desequilibres = anomalies.filter(a => a.entryId && !!a.ecart);
+      if (desequilibres.length > 0) {
+        const ecart = desequilibres[0].ecart ?? 0;
+        props.push({
+          id: 'C8.EQUILIBRER_SUR_ATTENTE',
+          controleId: 'C8',
+          action: 'EQUILIBRER_SUR_ATTENTE',
+          titre: `Équilibrer ${desequilibres.length} brouillon(s) sur le compte d'attente ${COMPTE_ATTENTE}`,
+          description:
+            'Complète chaque brouillon déséquilibré par la ligne manquante sur le compte ' +
+            `d'attente ${COMPTE_ATTENTE}, puis recalcule les totaux et le sceau d'intégrité. ` +
+            'Le brouillon devient validable ; le solde du compte d\'attente matérialise le montant à ré-imputer.',
+          impact:
+            `${desequilibres.length} ligne(s) créée(s) sur ${COMPTE_ATTENTE} — ` +
+            'le compte d\'attente devra être soldé avant la clôture définitive.',
+          mode: 'assistee',
+          cibles: desequilibres.length,
+          preview: [
+            ecart > 0
+              ? { accountCode: COMPTE_ATTENTE, libelle: `Équilibrage ${desequilibres[0].ref}`, debit: 0, credit: Math.abs(ecart) }
+              : { accountCode: COMPTE_ATTENTE, libelle: `Équilibrage ${desequilibres[0].ref}`, debit: Math.abs(ecart), credit: 0 },
+          ],
+        });
       }
       break;
     }
@@ -303,8 +309,14 @@ export function buildRemediations(controle: ControleLike): RemediationProposal[]
 // ============================================================================
 
 /**
- * Ajoute une ligne à une écriture existante.
- * SaaS : insertion directe dans `journal_lines` (table séparée).
+ * Ajoute une ligne à une écriture existante et RE-SCELLE la pièce :
+ * totaux recalculés + hash SHA-256 recalculé sur le nouveau contenu.
+ * Sans ce re-scellement, la pièce apparaîtrait falsifiée dans la piste d'audit
+ * (`verifyChain` hache les lignes ET les totaux).
+ *
+ * Réservé aux BROUILLONS : une écriture validée est intangible (SYSCOHADA Art. 19).
+ *
+ * SaaS : les lignes vivent dans la table séparée `journal_lines`.
  * Dexie / offline : lignes imbriquées dans l'écriture.
  */
 async function appendJournalLine(
@@ -312,11 +324,26 @@ async function appendJournalLine(
   entryId: string,
   line: { accountCode: string; accountName: string; label: string; debit: number; credit: number },
 ): Promise<void> {
+  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
+  if (!entry) throw new Error(`Écriture ${entryId} introuvable`);
+  if (entry.status !== 'draft') {
+    throw new Error(
+      `Écriture ${entry.entryNumber || entryId} déjà validée — intangible (SYSCOHADA Art. 19). ` +
+      'Utilisez une contrepassation.',
+    );
+  }
+
+  const newLine = { id: crypto.randomUUID(), ...line };
+  const lines = [...(entry.lines || []), newLine];
+  const totalDebit = Money.sum(lines.map(l => money(l.debit || 0))).toNumber();
+  const totalCredit = Money.sum(lines.map(l => money(l.credit || 0))).toNumber();
+  const hash = await hashEntry({ ...entry, lines, totalDebit, totalCredit }, entry.previousHash ?? '');
+
   const client = (adapter as any).client;
   const isSaas = adapter.getMode?.() === 'saas' && client;
   if (isSaas) {
     const { error } = await client.from('journal_lines').insert({
-      id: crypto.randomUUID(),
+      id: newLine.id,
       entry_id: entryId,
       tenant_id: (adapter as any).tenantId,
       account_code: line.accountCode,
@@ -326,18 +353,17 @@ async function appendJournalLine(
       credit: line.credit,
     });
     if (error) throw new Error(error.message);
+    // L'entête porte ses propres totaux + le sceau : sans cette mise à jour, la
+    // pièce resterait déséquilibrée côté entête et scellée sur l'ancien contenu.
+    await adapter.update('journalEntries', entryId, { totalDebit, totalCredit, hash });
     (adapter as any).invalidateCache?.();
     return;
   }
-  const entry = await adapter.getById<DBJournalEntry>('journalEntries', entryId);
-  if (!entry) throw new Error(`Écriture ${entryId} introuvable`);
-  const lines = [...(entry.lines || []), { id: crypto.randomUUID(), ...line }];
-  const totalDebit = money(0).add(lines.reduce((s, l) => s + (l.debit || 0), 0)).toNumber();
-  const totalCredit = money(0).add(lines.reduce((s, l) => s + (l.credit || 0), 0)).toNumber();
   await adapter.update('journalEntries', entryId, {
     lines,
     totalDebit,
     totalCredit,
+    hash,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -362,6 +388,15 @@ export async function applyRemediation(
       const cibles = anomalies.filter(a => a.corrigeable && a.entryId);
       for (const a of cibles) {
         try {
+          // Verrou de clôture : valider un brouillon daté d'une période close
+          // reviendrait à injecter une écriture dans un exercice scellé.
+          if (a.date) {
+            const statut = await getPeriodeStatus(adapter, a.date);
+            if (statut === 'closed' || statut === 'locked') {
+              errors.push(`${a.ref} : période du ${a.date} clôturée/verrouillée`);
+              continue;
+            }
+          }
           await adapter.update('journalEntries', a.entryId!, {
             status: 'validated',
             updatedAt: new Date().toISOString(),
@@ -433,10 +468,10 @@ export async function applyRemediation(
 
     // ------------------------------------------------------------------------
     case 'EQUILIBRER_SUR_ATTENTE': {
-      const cibles = anomalies.filter(a => a.corrigeable && a.entryId && a.montant);
+      const cibles = anomalies.filter(a => a.entryId && !!a.ecart);
       for (const a of cibles) {
         try {
-          const ecart = a.montant ?? 0; // > 0 → excès de débit
+          const ecart = a.ecart ?? 0; // > 0 → excès de débit
           await appendJournalLine(adapter, a.entryId!, {
             accountCode: COMPTE_ATTENTE,
             accountName: 'Compte d\'attente — régularisation clôture',

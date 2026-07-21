@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import 'fake-indexeddb/auto';
 import { db } from '../lib/db';
 import { createTestAdapter } from '../test/createTestAdapter';
+import { hashEntry } from '../utils/integrity';
 import {
   buildRemediations,
   applyRemediation,
@@ -38,22 +39,34 @@ describe('remediationService — construction des propositions', () => {
       anomalies: [
         { ref: 'OD-1', libelle: 'ok', entryId: 'e1', corrigeable: true },
         { ref: 'OD-2', libelle: 'ok', entryId: 'e2', corrigeable: true },
-        { ref: 'OD-3', libelle: 'déséquilibrée', entryId: 'e3', corrigeable: false },
+        { ref: 'OD-3', libelle: 'déséquilibrée', entryId: 'e3', ecart: 250, corrigeable: false },
       ],
     }));
     const auto = props.find(p => p.action === 'VALIDER_BROUILLONS');
     expect(auto).toBeDefined();
     expect(auto!.mode).toBe('auto');
     expect(auto!.cibles).toBe(2);
-    // Le brouillon déséquilibré est renvoyé vers la saisie, pas validé en masse.
-    const manuel = props.find(p => p.action === 'NAVIGUER');
-    expect(manuel?.cibles).toBe(1);
+    // Le brouillon déséquilibré n'est PAS validé en masse : il relève de
+    // l'équilibrage assisté, qui ne cible que lui.
+    const equilibrage = props.find(p => p.action === 'EQUILIBRER_SUR_ATTENTE');
+    expect(equilibrage?.mode).toBe('assistee');
+    expect(equilibrage?.cibles).toBe(1);
   });
 
-  it('C2 : propose un équilibrage sur compte d\'attente avec le bon sens', () => {
-    const excesDebit = buildRemediations(controle({
+  it('C2 : N\'automatise RIEN sur une pièce validée (intangibilité Art. 19)', () => {
+    const props = buildRemediations(controle({
       id: 'C2',
-      anomalies: [{ ref: 'OD-9', libelle: 'x', entryId: 'e9', montant: 5000, corrigeable: true }],
+      anomalies: [{ ref: 'OD-9', libelle: 'x', entryId: 'e9', montant: 5000, corrigeable: false }],
+    }));
+    expect(props.find(p => p.action === 'EQUILIBRER_SUR_ATTENTE')).toBeUndefined();
+    expect(props.every(p => p.mode === 'manuelle')).toBe(true);
+  });
+
+  it('C8 : propose l\'équilibrage des BROUILLONS avec le bon sens', () => {
+    const excesDebit = buildRemediations(controle({
+      id: 'C8',
+      statut: 'attention',
+      anomalies: [{ ref: 'OD-9', libelle: 'x', entryId: 'e9', ecart: 5000, corrigeable: false }],
     }));
     const p = excesDebit.find(x => x.action === 'EQUILIBRER_SUR_ATTENTE')!;
     expect(p.mode).toBe('assistee');
@@ -61,8 +74,9 @@ describe('remediationService — construction des propositions', () => {
     expect(p.preview![0]).toMatchObject({ accountCode: COMPTE_ATTENTE, credit: 5000, debit: 0 });
 
     const excesCredit = buildRemediations(controle({
-      id: 'C2',
-      anomalies: [{ ref: 'OD-10', libelle: 'x', entryId: 'e10', montant: -5000, corrigeable: true }],
+      id: 'C8',
+      statut: 'attention',
+      anomalies: [{ ref: 'OD-10', libelle: 'x', entryId: 'e10', ecart: -5000, corrigeable: false }],
     }));
     const p2 = excesCredit.find(x => x.action === 'EQUILIBRER_SUR_ATTENTE')!;
     expect(p2.preview![0]).toMatchObject({ accountCode: COMPTE_ATTENTE, debit: 5000, credit: 0 });
@@ -135,19 +149,25 @@ describe('remediationService — application réelle', () => {
     expect((await db.journalEntries.get('e2'))!.status).toBe('draft');
   });
 
-  it('EQUILIBRER_SUR_ATTENTE rend la pièce équilibrée via le compte d\'attente', async () => {
-    await db.journalEntries.add({
+  it('EQUILIBRER_SUR_ATTENTE équilibre un brouillon ET re-scelle son hash', async () => {
+    const brouillon = {
       id: 'e9', entryNumber: 'OD-9', journal: 'OD', date: '2025-04-01', reference: '', label: 'déséquilibrée',
-      status: 'validated', totalDebit: 10000, totalCredit: 7000, createdAt: '', updatedAt: '',
+      status: 'draft', totalDebit: 10000, totalCredit: 7000, createdAt: '', updatedAt: '',
+      previousHash: '',
       lines: [
         { id: 'l1', accountCode: '601', accountName: 'Achats', label: 'a', debit: 10000, credit: 0 },
         { id: 'l2', accountCode: '401', accountName: 'Fourn.', label: 'a', debit: 0, credit: 7000 },
       ],
+    };
+    await db.journalEntries.add({
+      ...brouillon,
+      hash: await hashEntry(brouillon as any, ''),
     } as any);
 
     const c = controle({
-      id: 'C2',
-      anomalies: [{ ref: 'OD-9', libelle: 'déséquilibrée', entryId: 'e9', montant: 3000, corrigeable: true }],
+      id: 'C8',
+      statut: 'attention',
+      anomalies: [{ ref: 'OD-9', libelle: 'déséquilibrée', entryId: 'e9', ecart: 3000, corrigeable: false }],
     });
     const proposal = buildRemediations(c).find(p => p.action === 'EQUILIBRER_SUR_ATTENTE')!;
     const outcome = await applyRemediation(adapter, c, proposal);
@@ -158,6 +178,31 @@ describe('remediationService — application réelle', () => {
     const ligne = entry!.lines.find(l => l.accountCode === COMPTE_ATTENTE)!;
     expect(ligne.credit).toBe(3000);
     expect(entry!.totalDebit).toBe(entry!.totalCredit);
+    // Le sceau d'intégrité doit correspondre au NOUVEAU contenu, sinon la pièce
+    // apparaîtrait falsifiée dans la piste d'audit.
+    expect(entry!.hash).toBe(await hashEntry(entry as any, entry!.previousHash ?? ''));
+  });
+
+  it('EQUILIBRER_SUR_ATTENTE REFUSE de toucher une écriture validée', async () => {
+    await db.journalEntries.add({
+      id: 'e11', entryNumber: 'OD-11', journal: 'OD', date: '2025-04-02', reference: '', label: 'validée',
+      status: 'validated', totalDebit: 10000, totalCredit: 7000, createdAt: '', updatedAt: '',
+      lines: [{ id: 'l1', accountCode: '601', accountName: 'Achats', label: 'a', debit: 10000, credit: 0 }],
+    } as any);
+
+    const c = controle({
+      id: 'C8',
+      statut: 'attention',
+      anomalies: [{ ref: 'OD-11', libelle: 'validée', entryId: 'e11', ecart: 3000, corrigeable: false }],
+    });
+    const proposal = buildRemediations(c).find(p => p.action === 'EQUILIBRER_SUR_ATTENTE')!;
+    const outcome = await applyRemediation(adapter, c, proposal);
+
+    expect(outcome.ok).toBe(false);
+    expect(outcome.applied).toBe(0);
+    expect(outcome.errors[0]).toMatch(/intangible/i);
+    // La pièce n'a pas été modifiée.
+    expect((await db.journalEntries.get('e11'))!.lines).toHaveLength(1);
   });
 
   it('une proposition manuelle n\'écrit rien', async () => {
