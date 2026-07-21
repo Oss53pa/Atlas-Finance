@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAccountNames } from '../../hooks/useAccountNames';
 import { formatCurrency } from '../../utils/formatters';
 import {
@@ -108,6 +109,7 @@ async function generateCode(
 
 const PersonnelModule: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const { format: fmtAccount } = useAccountNames();
 
   // Tab state
@@ -189,7 +191,7 @@ const PersonnelModule: React.FC = () => {
       );
     } catch {
       setPersonnel([]);
-      toast.error('Erreur lors du chargement du personnel');
+      toast.error(t('personnel.loadError'));
     } finally {
       setLoading(false);
     }
@@ -241,7 +243,12 @@ const PersonnelModule: React.FC = () => {
       );
 
       // Masse salariale mensuelle réelle = charges de personnel (comptes 66) par mois.
-      const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+      const MOIS = [
+        t('personnel.monthJan'), t('personnel.monthFeb'), t('personnel.monthMar'),
+        t('personnel.monthApr'), t('personnel.monthMay'), t('personnel.monthJun'),
+        t('personnel.monthJul'), t('personnel.monthAug'), t('personnel.monthSep'),
+        t('personnel.monthOct'), t('personnel.monthNov'), t('personnel.monthDec'),
+      ];
       const masseByMonth = new Map<string, number>();
       for (const entry of allEntries) {
         if (entry.status === 'draft') continue;
@@ -352,9 +359,9 @@ const PersonnelModule: React.FC = () => {
 
   const validateForm = (f: CreateForm): Partial<Record<keyof CreateForm, string>> => {
     const errs: Partial<Record<keyof CreateForm, string>> = {};
-    if (!f.name.trim()) errs.name = 'Le nom est requis';
-    if (!f.code.trim()) errs.code = 'Le code est requis';
-    else if (!/^\d+$/.test(f.code.trim())) errs.code = 'Le code doit être numérique';
+    if (!f.name.trim()) errs.name = t('personnel.errNameRequired');
+    if (!f.code.trim()) errs.code = t('personnel.errCodeRequired');
+    else if (!/^\d+$/.test(f.code.trim())) errs.code = t('personnel.errCodeNumeric');
     return errs;
   };
 
@@ -377,11 +384,11 @@ const PersonnelModule: React.FC = () => {
         isActive: form.is_active,
         createdAt: new Date().toISOString(),
       });
-      toast.success(`Membre "${form.firstName.trim()} ${form.name.trim()}" créé avec succès`);
+      toast.success(t('personnel.createSuccess', { name: `${form.firstName.trim()} ${form.name.trim()}`.trim() }));
       closeCreateModal();
       await Promise.all([loadPersonnel(), loadSoldes()]);
     } catch (err: any) {
-      toast.error(err?.message ? `Erreur : ${err.message}` : 'Impossible de créer le membre');
+      toast.error(err?.message ? t('personnel.errorWithMessage', { message: String(err.message) }) : t('personnel.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -426,11 +433,11 @@ const PersonnelModule: React.FC = () => {
         is_active: editForm.is_active,
         isActive: editForm.is_active,
       });
-      toast.success('Membre mis à jour');
+      toast.success(t('personnel.updateSuccess'));
       closeEditModal();
       await Promise.all([loadPersonnel(), loadSoldes()]);
     } catch (err: any) {
-      toast.error(err?.message ? `Erreur : ${err.message}` : 'Mise à jour impossible');
+      toast.error(err?.message ? t('personnel.errorWithMessage', { message: String(err.message) }) : t('personnel.updateError'));
     } finally {
       setEditSubmitting(false);
     }
@@ -447,21 +454,21 @@ const PersonnelModule: React.FC = () => {
     if (!deleteId) return;
     try {
       await adapter.delete('thirdParties', deleteId);
-      toast.success('Membre supprimé');
+      toast.success(t('personnel.deleteSuccess'));
       setDeleteId(null);
       setDeleteLabel('');
       await Promise.all([loadPersonnel(), loadSoldes()]);
     } catch (err: any) {
-      toast.error(err?.message ? `Erreur : ${err.message}` : 'Suppression impossible');
+      toast.error(err?.message ? t('personnel.errorWithMessage', { message: String(err.message) }) : t('personnel.deleteError'));
     }
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   const tabs = [
-    { id: 'liste',     label: 'Liste Personnel',    icon: Users },
-    { id: 'soldes',    label: 'Soldes Comptes 42',   icon: Wallet },
-    { id: 'analytics', label: 'Analytics',           icon: BarChart3 },
+    { id: 'liste',     label: t('personnel.tabList'),      icon: Users },
+    { id: 'soldes',    label: t('personnel.tabBalances'),  icon: Wallet },
+    { id: 'analytics', label: t('personnel.tabAnalytics'), icon: BarChart3 },
   ] as const;
 
   return (
@@ -474,9 +481,9 @@ const PersonnelModule: React.FC = () => {
             <Users className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Personnel</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('personnel.title')}</h1>
             <p className="text-sm text-gray-500">
-              Comptes 421–425 SYSCOHADA &mdash; IAS 19 Avantages du personnel
+              {t('personnel.subtitle')}
             </p>
           </div>
         </div>
@@ -492,7 +499,7 @@ const PersonnelModule: React.FC = () => {
             style={{ background: PETROL }}
           >
             <Plus className="w-4 h-4" />
-            Nouveau membre
+            {t('personnel.newMember')}
           </button>
         </div>
       </div>
@@ -506,7 +513,7 @@ const PersonnelModule: React.FC = () => {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-xs text-gray-500">Total personnel</p>
+            <p className="text-xs text-gray-500">{t('personnel.kpiTotal')}</p>
           </div>
         </div>
 
@@ -517,7 +524,7 @@ const PersonnelModule: React.FC = () => {
           </div>
           <div>
             <p className="text-2xl font-bold text-green-700">{stats.actifs}</p>
-            <p className="text-xs text-gray-500">Actifs</p>
+            <p className="text-xs text-gray-500">{t('personnel.kpiActive')}</p>
           </div>
         </div>
 
@@ -530,7 +537,7 @@ const PersonnelModule: React.FC = () => {
             <p className="text-lg font-bold text-gray-900">
               {formatCurrency(stats.solde422, 'XAF')}
             </p>
-            <p className="text-xs text-gray-500">Rémunérations dues (422)</p>
+            <p className="text-xs text-gray-500">{t('personnel.kpiPayableDue')}</p>
           </div>
         </div>
 
@@ -540,9 +547,9 @@ const PersonnelModule: React.FC = () => {
             <Info className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-blue-700">Note IAS 19</p>
+            <p className="text-xs font-semibold text-blue-700">{t('personnel.iasNoteTitle')}</p>
             <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-              Avantages du personnel comptabilisés en charges
+              {t('personnel.iasNoteText')}
             </p>
           </div>
         </div>
@@ -587,7 +594,7 @@ const PersonnelModule: React.FC = () => {
                     type="text"
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    placeholder="Rechercher par nom, code, email..."
+                    placeholder={t('personnel.searchPlaceholder')}
                     className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 outline-none bg-gray-50"
                     style={{ '--tw-ring-color': PETROL } as React.CSSProperties}
                   />
@@ -616,7 +623,11 @@ const PersonnelModule: React.FC = () => {
                       }`}
                       style={filterStatut === s ? { background: PETROL } : {}}
                     >
-                      {s === 'all' ? 'Tous' : s.charAt(0).toUpperCase() + s.slice(1)}
+                      {s === 'all'
+                        ? t('personnel.filterAll')
+                        : s === 'actifs'
+                          ? t('personnel.filterActive')
+                          : t('personnel.filterInactive')}
                     </button>
                   ))}
                 </div>
@@ -627,7 +638,7 @@ const PersonnelModule: React.FC = () => {
                   onChange={e => setFilterCompte(e.target.value)}
                   className="px-3 py-2 border border-gray-200 rounded-xl text-sm bg-gray-50 outline-none"
                 >
-                  <option value="all">Tous les comptes</option>
+                  <option value="all">{t('personnel.allAccounts')}</option>
                   {COLLECTIF_OPTIONS.map(c => (
                     <option key={c} value={c}>{COLLECTIF_LABELS[c]}</option>
                   ))}
@@ -643,16 +654,16 @@ const PersonnelModule: React.FC = () => {
                     className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto mb-3"
                     style={{ borderColor: `${PETROL}44`, borderTopColor: PETROL }}
                   />
-                  Chargement...
+                  {t('personnel.loading')}
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                   <Users className="w-12 h-12 mx-auto mb-3 opacity-25" />
-                  <p className="font-medium">Aucun membre du personnel trouvé</p>
+                  <p className="font-medium">{t('personnel.emptyTitle')}</p>
                   {search || filterStatut !== 'all' || filterCompte !== 'all' ? (
-                    <p className="text-xs mt-1">Modifiez les filtres de recherche</p>
+                    <p className="text-xs mt-1">{t('personnel.emptyFilters')}</p>
                   ) : (
-                    <p className="text-xs mt-1">Cliquez sur "Nouveau membre" pour en ajouter un</p>
+                    <p className="text-xs mt-1">{t('personnel.emptyHint')}</p>
                   )}
                 </div>
               ) : (
@@ -660,7 +671,15 @@ const PersonnelModule: React.FC = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 border-b border-gray-100">
                       <tr>
-                        {['Code', 'Nom', 'Compte collectif', 'Email', 'Téléphone', 'Statut', 'Actions'].map(h => (
+                        {[
+                          t('personnel.colCode'),
+                          t('personnel.colName'),
+                          t('personnel.colCollectiveAccount'),
+                          t('personnel.colEmail'),
+                          t('personnel.colPhone'),
+                          t('personnel.colStatus'),
+                          t('personnel.colActions'),
+                        ].map(h => (
                           <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
                             {h}
                           </th>
@@ -716,7 +735,7 @@ const PersonnelModule: React.FC = () => {
                                 }`}
                               >
                                 {p.is_active ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
-                                {p.is_active ? 'Actif' : 'Inactif'}
+                                {p.is_active ? t('personnel.statusActive') : t('personnel.statusInactive')}
                               </span>
                             </td>
                             <td className="px-4 py-3">
@@ -724,21 +743,21 @@ const PersonnelModule: React.FC = () => {
                                 <button
                                   onClick={() => setViewingRecord(p)}
                                   className="p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                  title="Voir"
+                                  title={t('personnel.actionView')}
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => openEditModal(p)}
                                   className="p-1.5 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                                  title="Modifier"
+                                  title={t('personnel.actionEdit')}
                                 >
                                   <Edit className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => requestDelete(p)}
                                   className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  title="Supprimer"
+                                  title={t('personnel.actionDelete')}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -760,7 +779,7 @@ const PersonnelModule: React.FC = () => {
               <div className="flex items-center gap-2 mb-1">
                 <Wallet className="w-5 h-5" style={{ color: PETROL }} />
                 <h2 className="text-base font-semibold text-gray-800">
-                  Soldes par sous-compte SYSCOHADA — Comptes 42x
+                  {t('personnel.balancesTitle')}
                 </h2>
               </div>
 
@@ -770,7 +789,7 @@ const PersonnelModule: React.FC = () => {
                     className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto mb-3"
                     style={{ borderColor: `${PETROL}44`, borderTopColor: PETROL }}
                   />
-                  Calcul des soldes...
+                  {t('personnel.balancesLoading')}
                 </div>
               ) : (
                 <>
@@ -779,7 +798,12 @@ const PersonnelModule: React.FC = () => {
                     <table className="w-full text-sm">
                       <thead className="border-b border-gray-100" style={{ background: `${PETROL}0d` }}>
                         <tr>
-                          {['Compte', 'Libellé SYSCOHADA', 'Membres', 'Montant total'].map(h => (
+                          {[
+                            t('personnel.colAccount'),
+                            t('personnel.colSyscohadaLabel'),
+                            t('personnel.colMembers'),
+                            t('personnel.colTotalAmount'),
+                          ].map(h => (
                             <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                               {h}
                             </th>
@@ -819,7 +843,7 @@ const PersonnelModule: React.FC = () => {
                       <tfoot className="border-t-2 border-gray-200">
                         <tr style={{ background: `${PETROL}0a` }}>
                           <td colSpan={2} className="px-4 py-3 font-semibold text-gray-700 text-sm">
-                            TOTAL CONSOLIDÉ
+                            {t('personnel.totalConsolidated')}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: `${PETROL}18`, color: PETROL }}>
@@ -838,9 +862,9 @@ const PersonnelModule: React.FC = () => {
                   <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 flex items-start gap-3">
                     <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
                     <div className="text-xs text-blue-700 space-y-1">
-                      <p className="font-semibold">Référentiel SYSCOHADA — Comptes 42</p>
-                      <p>Les comptes 42x enregistrent les dettes de l'entreprise envers son personnel (rémunérations, avances, dépôts, participation). Ils constituent des comptes de passif au bilan.</p>
-                      <p>IAS 19 — Les avantages à court terme du personnel sont comptabilisés en charges de la période au cours de laquelle les services correspondants sont rendus.</p>
+                      <p className="font-semibold">{t('personnel.infoSyscohadaTitle')}</p>
+                      <p>{t('personnel.infoSyscohadaP1')}</p>
+                      <p>{t('personnel.infoSyscohadaP2')}</p>
                     </div>
                   </div>
                 </>
@@ -856,41 +880,41 @@ const PersonnelModule: React.FC = () => {
                 <div className="rounded-2xl border border-gray-100 p-4" style={{ background: `${PETROL}0a` }}>
                   <div className="flex items-center gap-2 mb-2">
                     <Users className="w-4 h-4" style={{ color: PETROL }} />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Effectif actif</span>
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t('personnel.kpiHeadcount')}</span>
                   </div>
                   <p className="text-3xl font-bold" style={{ color: PETROL }}>{stats.actifs}</p>
-                  <p className="text-xs text-gray-500 mt-1">sur {stats.total} inscrits</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('personnel.ofRegistered', { count: String(stats.total) })}</p>
                 </div>
 
                 <div className="rounded-2xl border border-gray-100 p-4" style={{ background: `${AMBER}10` }}>
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="w-4 h-4" style={{ color: AMBER }} />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Masse salariale</span>
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t('personnel.payroll')}</span>
                   </div>
                   <p className="text-xl font-bold" style={{ color: AMBER }}>
                     {formatCurrency(stats.solde422, 'XAF')}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">Compte 422 — en attente</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('personnel.account422Pending')}</p>
                 </div>
 
                 <div className="rounded-2xl border border-gray-100 p-4 bg-white">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="w-4 h-4 text-purple-600" />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Ratio avances/sal.</span>
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t('personnel.ratioAdvances')}</span>
                   </div>
                   <p className="text-3xl font-bold text-purple-700">
                     {stats.ratioAvancesSalaires.toFixed(1)}%
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">IAS 19 — 421/422</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('personnel.ratioSource')}</p>
                 </div>
 
                 <div className="rounded-2xl border border-gray-100 p-4 bg-white">
                   <div className="flex items-center gap-2 mb-2">
                     <Clock className="w-4 h-4 text-orange-500" />
-                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Durée moy. impayés</span>
+                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">{t('personnel.avgUnpaidDuration')}</span>
                   </div>
                   <p className="text-3xl font-bold text-orange-600">30</p>
-                  <p className="text-xs text-gray-500 mt-1">jours (standard)</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('personnel.daysStandard')}</p>
                 </div>
               </div>
 
@@ -901,11 +925,11 @@ const PersonnelModule: React.FC = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                   <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <Activity className="w-4 h-4" style={{ color: PETROL }} />
-                    Répartition par compte collectif
+                    {t('personnel.chartByAccount')}
                   </h3>
                   {pieData.length === 0 ? (
                     <div className="flex items-center justify-center h-40 text-gray-400 text-sm">
-                      Aucune donnée disponible
+                      {t('personnel.noData')}
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height={220}>
@@ -929,8 +953,8 @@ const PersonnelModule: React.FC = () => {
                         </Pie>
                         <Tooltip
                           formatter={(value: any, _name: any, props: any) => [
-                            `${value} membre(s) — ${formatCurrency(props.payload?.montant ?? 0, 'XAF')}`,
-                            'Compte ' + props.payload?.name,
+                            `${t('personnel.membersCount', { count: String(value) })} — ${formatCurrency(props.payload?.montant ?? 0, 'XAF')}`,
+                            t('personnel.accountPrefix', { code: String(props.payload?.name ?? '') }),
                           ]}
                         />
                         <Legend />
@@ -943,7 +967,7 @@ const PersonnelModule: React.FC = () => {
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                   <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <TrendingUp className="w-4 h-4" style={{ color: AMBER }} />
-                    Évolution mensuelle masse salariale
+                    {t('personnel.chartMonthlyPayroll')}
                   </h3>
                   <ResponsiveContainer width="100%" height={220}>
                     <AreaChart data={monthlyMasse}>
@@ -960,7 +984,7 @@ const PersonnelModule: React.FC = () => {
                         tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`}
                       />
                       <Tooltip
-                        formatter={(v: any) => [formatCurrency(v, 'XAF'), 'Masse salariale']}
+                        formatter={(v: any) => [formatCurrency(v, 'XAF'), t('personnel.payroll')]}
                       />
                       <Area
                         type="monotone"
@@ -978,7 +1002,7 @@ const PersonnelModule: React.FC = () => {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
                   <BarChart3 className="w-4 h-4" style={{ color: PETROL }} />
-                  Soldes par sous-compte (421 – 425)
+                  {t('personnel.chartBalancesBySubAccount')}
                 </h3>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={soldes} barSize={40}>
@@ -986,8 +1010,8 @@ const PersonnelModule: React.FC = () => {
                     <XAxis dataKey="compte" tick={{ fontSize: 12, fontWeight: 600 }} />
                     <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
-                      formatter={(v: any) => [formatCurrency(v, 'XAF'), 'Solde']}
-                      labelFormatter={label => `Compte ${label}`}
+                      formatter={(v: any) => [formatCurrency(v, 'XAF'), t('personnel.balance')]}
+                      labelFormatter={label => t('personnel.accountPrefix', { code: String(label) })}
                     />
                     <Bar dataKey="montant" radius={[6, 6, 0, 0]}>
                       {soldes.map(s => (
@@ -1003,13 +1027,13 @@ const PersonnelModule: React.FC = () => {
                 <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-green-800 mb-1">
-                    Conformité IAS 19 — Avantages du personnel
+                    {t('personnel.iasComplianceTitle')}
                   </p>
                   <ul className="text-xs text-green-700 space-y-1 list-disc list-inside">
-                    <li>Les avantages à court terme sont comptabilisés en charges sur la période</li>
-                    <li>Compte 422 : rémunérations dues non encore décaissées</li>
-                    <li>Compte 421 : avances sur salaires — à suivre (ratio IAS 19 recommandé {'<'} 25%)</li>
-                    <li>Compte 424 : participation des salariés aux résultats</li>
+                    <li>{t('personnel.iasBullet1')}</li>
+                    <li>{t('personnel.iasBullet2')}</li>
+                    <li>{t('personnel.iasBullet3')}</li>
+                    <li>{t('personnel.iasBullet4')}</li>
                   </ul>
                 </div>
               </div>
@@ -1028,7 +1052,7 @@ const PersonnelModule: React.FC = () => {
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100" style={{ background: `${PETROL}0d` }}>
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5" style={{ color: PETROL }} />
-                <h2 className="text-base font-semibold text-gray-900">Nouveau membre du personnel</h2>
+                <h2 className="text-base font-semibold text-gray-900">{t('personnel.modalCreateTitle')}</h2>
               </div>
               <button onClick={closeCreateModal} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
                 <X className="w-5 h-5" />
@@ -1039,7 +1063,7 @@ const PersonnelModule: React.FC = () => {
               {/* Compte collectif */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Compte collectif *
+                  {t('personnel.fieldCollectiveAccountRequired')}
                 </label>
                 <div className="grid grid-cols-5 gap-1.5">
                   {COLLECTIF_OPTIONS.map(c => (
@@ -1067,7 +1091,7 @@ const PersonnelModule: React.FC = () => {
               {/* Code auto */}
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">
-                  Code comptable *
+                  {t('personnel.fieldAccountCodeRequired')}
                 </label>
                 <div className="relative">
                   <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -1086,23 +1110,23 @@ const PersonnelModule: React.FC = () => {
               {/* Nom + Prénom */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Prénom</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldFirstName')}</label>
                   <input
                     type="text"
                     value={form.firstName}
                     onChange={e => setForm(prev => ({ ...prev, firstName: e.target.value }))}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2"
-                    placeholder="Prénom"
+                    placeholder={t('personnel.placeholderFirstName')}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nom *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldLastNameRequired')}</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2"
-                    placeholder="Nom de famille"
+                    placeholder={t('personnel.placeholderLastName')}
                   />
                   {formErrors.name && <p className="mt-1 text-xs text-red-500">{formErrors.name}</p>}
                 </div>
@@ -1111,7 +1135,7 @@ const PersonnelModule: React.FC = () => {
               {/* Email + Téléphone */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldEmail')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -1124,7 +1148,7 @@ const PersonnelModule: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Téléphone</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldPhone')}</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -1140,7 +1164,7 @@ const PersonnelModule: React.FC = () => {
 
               {/* Adresse */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Adresse</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldAddress')}</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <textarea
@@ -1148,14 +1172,14 @@ const PersonnelModule: React.FC = () => {
                     onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))}
                     rows={2}
                     className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 resize-none"
-                    placeholder="Adresse complète"
+                    placeholder={t('personnel.placeholderAddress')}
                   />
                 </div>
               </div>
 
               {/* Statut */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-sm font-medium text-gray-700">Statut actif</span>
+                <span className="text-sm font-medium text-gray-700">{t('personnel.fieldActiveStatus')}</span>
                 <button
                   type="button"
                   onClick={() => setForm(prev => ({ ...prev, is_active: !prev.is_active }))}
@@ -1179,7 +1203,7 @@ const PersonnelModule: React.FC = () => {
                   onClick={closeCreateModal}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  Annuler
+                  {t('personnel.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -1187,7 +1211,7 @@ const PersonnelModule: React.FC = () => {
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
                   style={{ background: PETROL }}
                 >
-                  {submitting ? 'Création...' : 'Créer le membre'}
+                  {submitting ? t('personnel.creating') : t('personnel.createMember')}
                 </button>
               </div>
             </form>
@@ -1205,7 +1229,7 @@ const PersonnelModule: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Edit className="w-5 h-5" style={{ color: AMBER }} />
                 <h2 className="text-base font-semibold text-gray-900">
-                  Modifier — {editingRecord.firstName} {editingRecord.name}
+                  {t('personnel.modalEditTitle', { name: `${editingRecord.firstName} ${editingRecord.name}`.trim() })}
                 </h2>
               </div>
               <button onClick={closeEditModal} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
@@ -1216,7 +1240,7 @@ const PersonnelModule: React.FC = () => {
             <form onSubmit={handleSaveEdit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
               {/* Compte collectif */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Compte collectif</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldCollectiveAccount')}</label>
                 <div className="grid grid-cols-5 gap-1.5">
                   {COLLECTIF_OPTIONS.map(c => (
                     <button
@@ -1240,7 +1264,7 @@ const PersonnelModule: React.FC = () => {
               {/* Nom + Prénom */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Prénom</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldFirstName')}</label>
                   <input
                     type="text"
                     value={editForm.firstName}
@@ -1249,7 +1273,7 @@ const PersonnelModule: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Nom *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldLastNameRequired')}</label>
                   <input
                     type="text"
                     value={editForm.name}
@@ -1263,7 +1287,7 @@ const PersonnelModule: React.FC = () => {
               {/* Email + Téléphone */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldEmail')}</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -1275,7 +1299,7 @@ const PersonnelModule: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Téléphone</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldPhone')}</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -1290,7 +1314,7 @@ const PersonnelModule: React.FC = () => {
 
               {/* Adresse */}
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Adresse</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">{t('personnel.fieldAddress')}</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
                   <textarea
@@ -1304,7 +1328,7 @@ const PersonnelModule: React.FC = () => {
 
               {/* Statut */}
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <span className="text-sm font-medium text-gray-700">Statut actif</span>
+                <span className="text-sm font-medium text-gray-700">{t('personnel.fieldActiveStatus')}</span>
                 <button
                   type="button"
                   onClick={() => setEditForm(prev => ({ ...prev, is_active: !prev.is_active }))}
@@ -1326,7 +1350,7 @@ const PersonnelModule: React.FC = () => {
                   onClick={closeEditModal}
                   className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
-                  Annuler
+                  {t('personnel.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -1334,7 +1358,7 @@ const PersonnelModule: React.FC = () => {
                   className="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-opacity disabled:opacity-60"
                   style={{ background: AMBER }}
                 >
-                  {editSubmitting ? 'Enregistrement...' : 'Enregistrer'}
+                  {editSubmitting ? t('personnel.saving') : t('personnel.save')}
                 </button>
               </div>
             </form>
@@ -1372,7 +1396,7 @@ const PersonnelModule: React.FC = () => {
               {/* Infos */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500 mb-0.5">Compte collectif</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{t('personnel.fieldCollectiveAccount')}</p>
                   <p
                     className="font-mono font-bold"
                     style={{ color: COLLECTIF_COLORS[viewingRecord.collectif_account || guessCollectif(viewingRecord.code)] || PETROL }}
@@ -1381,15 +1405,15 @@ const PersonnelModule: React.FC = () => {
                   </p>
                 </div>
                 <div className="rounded-xl bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500 mb-0.5">Statut</p>
+                  <p className="text-xs text-gray-500 mb-0.5">{t('personnel.fieldStatus')}</p>
                   <span className={`inline-flex items-center gap-1 text-xs font-semibold ${viewingRecord.is_active ? 'text-green-700' : 'text-red-600'}`}>
                     {viewingRecord.is_active ? <UserCheck className="w-3 h-3" /> : <UserX className="w-3 h-3" />}
-                    {viewingRecord.is_active ? 'Actif' : 'Inactif'}
+                    {viewingRecord.is_active ? t('personnel.statusActive') : t('personnel.statusInactive')}
                   </span>
                 </div>
                 {viewingRecord.email && (
                   <div className="rounded-xl bg-gray-50 p-3 col-span-2">
-                    <p className="text-xs text-gray-500 mb-0.5">Email</p>
+                    <p className="text-xs text-gray-500 mb-0.5">{t('personnel.fieldEmail')}</p>
                     <p className="text-sm text-gray-800 flex items-center gap-1">
                       <Mail className="w-3 h-3 text-gray-400" />
                       {viewingRecord.email}
@@ -1398,7 +1422,7 @@ const PersonnelModule: React.FC = () => {
                 )}
                 {viewingRecord.phone && (
                   <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500 mb-0.5">Téléphone</p>
+                    <p className="text-xs text-gray-500 mb-0.5">{t('personnel.fieldPhone')}</p>
                     <p className="text-sm text-gray-800 flex items-center gap-1">
                       <Phone className="w-3 h-3 text-gray-400" />
                       {viewingRecord.phone}
@@ -1407,7 +1431,7 @@ const PersonnelModule: React.FC = () => {
                 )}
                 {viewingRecord.address && (
                   <div className="rounded-xl bg-gray-50 p-3">
-                    <p className="text-xs text-gray-500 mb-0.5">Adresse</p>
+                    <p className="text-xs text-gray-500 mb-0.5">{t('personnel.fieldAddress')}</p>
                     <p className="text-sm text-gray-800 flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
                       {viewingRecord.address}
@@ -1419,18 +1443,18 @@ const PersonnelModule: React.FC = () => {
               {/* Historique fictif */}
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  Historique récent
+                  {t('personnel.recentHistory')}
                 </p>
                 <div className="space-y-2">
                   {[
-                    { date: '31/05/2026', libelle: 'Salaire mai 2026', compte: '422', montant: 350000, type: 'débit' },
-                    { date: '30/04/2026', libelle: 'Salaire avril 2026', compte: '422', montant: 350000, type: 'débit' },
-                    { date: '15/04/2026', libelle: 'Avance sur salaire', compte: '421', montant: 75000, type: 'débit' },
+                    { date: '31/05/2026', libelle: t('personnel.histSalaryMay2026'), compte: '422', montant: 350000, type: 'débit' },
+                    { date: '30/04/2026', libelle: t('personnel.histSalaryApr2026'), compte: '422', montant: 350000, type: 'débit' },
+                    { date: '15/04/2026', libelle: t('personnel.histSalaryAdvance'), compte: '421', montant: 75000, type: 'débit' },
                   ].map((h, i) => (
                     <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                       <div>
                         <p className="text-xs font-medium text-gray-700">{h.libelle}</p>
-                        <p className="text-xs text-gray-400">{h.date} · Cpte {fmtAccount(h.compte)}</p>
+                        <p className="text-xs text-gray-400">{h.date} · {t('personnel.accountShort')} {fmtAccount(h.compte)}</p>
                       </div>
                       <span
                         className="text-sm font-bold"
@@ -1448,7 +1472,7 @@ const PersonnelModule: React.FC = () => {
                 className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-white"
                 style={{ background: PETROL }}
               >
-                Fermer
+                {t('personnel.close')}
               </button>
             </div>
           </div>
@@ -1465,13 +1489,13 @@ const PersonnelModule: React.FC = () => {
                 <Trash2 className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900">Supprimer le membre</h3>
-                <p className="text-sm text-gray-500">Cette action est irréversible</p>
+                <h3 className="font-semibold text-gray-900">{t('personnel.deleteTitle')}</h3>
+                <p className="text-sm text-gray-500">{t('personnel.deleteIrreversible')}</p>
               </div>
             </div>
             <div className="bg-red-50 rounded-xl p-3 border border-red-100">
               <p className="text-sm text-red-700">
-                Vous allez supprimer <strong>{deleteLabel}</strong>. Toutes les données associées seront perdues.
+                {t('personnel.deleteWarnPrefix')} <strong>{deleteLabel}</strong>. {t('personnel.deleteWarnSuffix')}
               </p>
             </div>
             <div className="flex gap-3">
@@ -1479,13 +1503,13 @@ const PersonnelModule: React.FC = () => {
                 onClick={() => setDeleteId(null)}
                 className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
               >
-                Annuler
+                {t('personnel.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
               >
-                Supprimer
+                {t('personnel.actionDelete')}
               </button>
             </div>
           </div>
