@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'sonner';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { formatCurrency } from '../../utils/formatters';
@@ -49,10 +50,11 @@ const SCENARIO_MULTIPLIERS: Record<Scenario, number> = {
   pessimiste: 0.7,
 };
 
-const SCENARIO_LABELS: Record<Scenario, string> = {
-  optimiste: 'Optimiste (+30%)',
-  realiste: 'Réaliste',
-  pessimiste: 'Pessimiste (-30%)',
+// Clés i18n (les hooks ne sont pas accessibles au niveau module → résolution au rendu).
+const SCENARIO_LABEL_KEYS: Record<Scenario, string> = {
+  optimiste: 'cashForecast.scenarioOptimistic',
+  realiste: 'cashForecast.scenarioRealistic',
+  pessimiste: 'cashForecast.scenarioPessimistic',
 };
 
 // ──────────── Helpers ────────────
@@ -80,6 +82,8 @@ function computePlanTotals(plan: TreasuryPlan): TreasuryPlan {
 
 const PrevisionsTresoreriePage: React.FC = () => {
   const { adapter } = useData();
+  // « t » est déjà utilisé comme variable de lambda dans ce fichier → alias « tr ».
+  const { t: tr } = useLanguage();
   const [activeTab, setActiveTab] = useState('account_management');
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
   // Onglet « Transactions futures » : banque sélectionnée (pilote selectedAccounts).
@@ -369,14 +373,14 @@ const PrevisionsTresoreriePage: React.FC = () => {
   // ──────── Export data ────────
 
   const exportColumns = {
-    periode: 'Période',
-    soldeDebut: 'Solde Début',
-    encaissements: 'Encaissements',
-    decaissements: 'Décaissements',
-    soldeFin: 'Solde Fin',
-    confiance: 'Confiance',
-    statut: 'Statut',
-    scenario: 'Scénario',
+    periode: tr('cashForecast.exportPeriod'),
+    soldeDebut: tr('cashForecast.exportOpeningBalance'),
+    encaissements: tr('cashForecast.exportReceipts'),
+    decaissements: tr('cashForecast.exportPayments'),
+    soldeFin: tr('cashForecast.exportClosingBalance'),
+    confiance: tr('cashForecast.exportConfidence'),
+    statut: tr('cashForecast.exportStatus'),
+    scenario: tr('cashForecast.exportScenario'),
   };
 
   // ──────── Form helpers ────────
@@ -407,7 +411,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!dateRange.start || !dateRange.end) {
-      toast.error('Veuillez sélectionner une période');
+      toast.error(tr('cashForecast.toastSelectPeriod'));
       return;
     }
 
@@ -431,7 +435,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
       });
       const newPlans = treasuryPlans.map(p => (p.id === updated.id ? updated : p));
       await savePlans(newPlans);
-      toast.success('Plan mis à jour avec succès');
+      toast.success(tr('cashForecast.toastPlanUpdated'));
     } else {
       // Create
       const newPlan: TreasuryPlan = computePlanTotals({
@@ -453,7 +457,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
         updatedAt: now,
       });
       await savePlans([...treasuryPlans, newPlan]);
-      toast.success('Plan de trésorerie créé avec succès');
+      toast.success(tr('cashForecast.toastPlanCreated'));
     }
 
     setShowCreatePlanModal(false);
@@ -464,7 +468,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
     const newPlans = treasuryPlans.filter(p => p.id !== planId);
     await savePlans(newPlans);
     setDeletingPlanId(null);
-    toast.success('Plan supprimé');
+    toast.success(tr('cashForecast.toastPlanDeleted'));
   };
 
   // ──────── Plan line management ────────
@@ -480,7 +484,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
   const handleAddLine = async () => {
     if (!detailPlan || !newLineLabel || newLineAmount <= 0 || !newLineDate) {
-      toast.error('Veuillez remplir tous les champs de la ligne');
+      toast.error(tr('cashForecast.toastFillLine'));
       return;
     }
     const newLine: TreasuryPlanLine = {
@@ -501,7 +505,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
     await savePlans(newPlans);
     setDetailPlan(updatedPlan);
     resetLineForm();
-    toast.success('Ligne ajoutée');
+    toast.success(tr('cashForecast.toastLineAdded'));
   };
 
   const handleDeleteLine = async (lineId: string) => {
@@ -514,7 +518,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
     const newPlans = treasuryPlans.map(p => (p.id === updatedPlan.id ? updatedPlan : p));
     await savePlans(newPlans);
     setDetailPlan(updatedPlan);
-    toast.success('Ligne supprimée');
+    toast.success(tr('cashForecast.toastLineDeleted'));
   };
 
   // ──────── Render helpers ────────
@@ -537,6 +541,33 @@ const PrevisionsTresoreriePage: React.FC = () => {
     }
   };
 
+  // Traduction à l'affichage des valeurs stockées (enums FR persistés).
+  const statutLabel = (s: string) => {
+    switch (s) {
+      case 'Brouillon': return tr('cashForecast.statusDraft');
+      case 'Planifie': return tr('cashForecast.statusPlanned');
+      case 'En cours': return tr('cashForecast.statusInProgress');
+      case 'Cloture': return tr('cashForecast.statusClosed');
+      default: return s;
+    }
+  };
+  const confianceLabel = (c: string) => {
+    switch (c) {
+      case 'Haute': return tr('cashForecast.confidenceHigh');
+      case 'Moyenne': return tr('cashForecast.confidenceMedium');
+      case 'Faible': return tr('cashForecast.confidenceLow');
+      default: return c;
+    }
+  };
+  const freqLabel = (f?: string) => {
+    switch (f) {
+      case 'mensuel': return tr('cashForecast.freqMonthly');
+      case 'trimestriel': return tr('cashForecast.freqQuarterly');
+      case 'annuel': return tr('cashForecast.freqYearly');
+      default: return f || '';
+    }
+  };
+
   // ──────────── RENDER ────────────
 
   return (
@@ -544,8 +575,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
       {/* Header */}
       <div className="border-b border-gray-200 pb-4 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Prévisions de Trésorerie</h1>
-          <p className="mt-2 text-[var(--color-text-secondary)]">Gestion des comptes et planification de trésorerie</p>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{tr('cashForecast.title')}</h1>
+          <p className="mt-2 text-[var(--color-text-secondary)]">{tr('cashForecast.subtitle')}</p>
         </div>
         <PageHeaderActions />
       </div>
@@ -554,9 +585,9 @@ const PrevisionsTresoreriePage: React.FC = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-8">
           {[
-            { key: 'account_management', label: 'Account Management' },
-            { key: 'future', label: 'Transactions futures' },
-            { key: 'prevision_tresorerie', label: 'Prévision de trésorerie' },
+            { key: 'account_management', label: tr('cashForecast.tabAccountManagement') },
+            { key: 'future', label: tr('cashForecast.tabFuture') },
+            { key: 'prevision_tresorerie', label: tr('cashForecast.tabForecast') },
           ].map(tab => (
             <button
               key={tab.key}
@@ -579,19 +610,19 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Solde total</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiTotalBalance')}</div>
               <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(getTotalAmount())}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Nb comptes</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiAccountCount')}</div>
               <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{allTreasuryAccounts.length}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Total entrant</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiTotalIn')}</div>
               <div className="text-lg font-bold text-green-600 mt-1">{formatCurrency(totalIncoming)}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Total sortant</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiTotalOut')}</div>
               <div className="text-lg font-bold text-red-600 mt-1">{formatCurrency(totalOutgoing)}</div>
             </div>
           </div>
@@ -599,8 +630,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* Comptes de trésorerie — pleine largeur. */}
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Comptes de trésorerie</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Les transactions futures par banque sont dans l'onglet « Transactions futures ».</p>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{tr('cashForecast.treasuryAccounts')}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{tr('cashForecast.treasuryAccountsHint')}</p>
             </div>
             <div style={{ maxHeight: '62vh', overflowY: 'auto' }} className="overflow-x-auto">
               <table className="w-full">
@@ -615,14 +646,14 @@ const PrevisionsTresoreriePage: React.FC = () => {
                         className="w-4 h-4"
                       />
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Account number</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Account description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Banque</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">RIB</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">IBAN number</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Code SWIFT / BIC</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Amount</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thAccountNumber')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thAccountDescription')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thBank')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thRib')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thIban')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thSwift')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thAmount')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -650,7 +681,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                           type="button"
                           onClick={() => { setEditAccount({ number: account.number, description: account.description }); setMetaForm({ rib: account.rib || '', iban: account.iban === '-' ? '' : account.iban, swift: account.swift === '-' ? '' : account.swift }); }}
                           className="p-1.5 text-gray-400 hover:text-[var(--color-primary)] rounded transition-colors"
-                          title="Modifier RIB / IBAN / SWIFT"
+                          title={tr('cashForecast.editBankDetailsTitle')}
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                         </button>
@@ -659,7 +690,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   ))}
                   <tr className="bg-gray-50 border-t-2 border-gray-300">
                     <td className="px-4 py-3"></td>
-                    <td colSpan={6} className="px-4 py-3 font-bold text-[var(--color-text-primary)]">Total général :</td>
+                    <td colSpan={6} className="px-4 py-3 font-bold text-[var(--color-text-primary)]">{tr('cashForecast.grandTotal')}</td>
                     <td className={`px-4 py-3 text-right font-bold text-lg ${getTotalAmount() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(getTotalAmount())}
                     </td>
@@ -680,7 +711,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
               distinguer plusieurs comptes d'une même banque) — filtre les transactions
               et alimente les cartes Cash. */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-wrap items-center gap-3">
-            <label className="text-sm font-medium text-[var(--color-text-primary)]">Compte</label>
+            <label className="text-sm font-medium text-[var(--color-text-primary)]">{tr('cashForecast.accountLabel')}</label>
             <select
               value={futureBank}
               onChange={(e) => {
@@ -692,7 +723,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
               }}
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-[var(--color-primary)] min-w-[320px]"
             >
-              <option value="all">Toutes les banques</option>
+              <option value="all">{tr('cashForecast.allBanks')}</option>
               {Object.entries(
                 allTreasuryAccounts.reduce((acc, a) => { (acc[a.bank] ||= []).push(a); return acc; }, {} as Record<string, typeof allTreasuryAccounts>)
               ).map(([bank, accts]) => (
@@ -705,25 +736,25 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 </optgroup>
               ))}
             </select>
-            <span className="text-xs text-gray-500">Sélectionnez un compte (groupé par banque) ou « Toutes les banques ».</span>
+            <span className="text-xs text-gray-500">{tr('cashForecast.accountSelectHint')}</span>
           </div>
 
           {/* Cartes Cash (alimentées par la sélection) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-              <div className="text-sm text-gray-600">Incoming</div>
+              <div className="text-sm text-gray-600">{tr('cashForecast.cardIncoming')}</div>
               <div className="font-bold text-green-600">{formatCurrency(totalIncoming)}</div>
             </div>
             <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-              <div className="text-sm text-gray-600">Outcoming</div>
+              <div className="text-sm text-gray-600">{tr('cashForecast.cardOutcoming')}</div>
               <div className="font-bold text-red-600">{formatCurrency(totalOutgoing)}</div>
             </div>
             <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
-              <div className="text-sm text-gray-600">Total</div>
+              <div className="text-sm text-gray-600">{tr('cashForecast.cardTotal')}</div>
               <div className="font-bold">{formatCurrency(getTotalAmount())}</div>
             </div>
             <div className="text-center p-3 bg-[var(--color-primary)]/10 rounded-lg border border-[var(--color-primary)]">
-              <div className="text-sm text-[var(--color-text-primary)] font-medium">Solde Final</div>
+              <div className="text-sm text-[var(--color-text-primary)] font-medium">{tr('cashForecast.cardFinalBalance')}</div>
               <div className={`font-bold ${(getTotalAmount() + getFilteredTransactionsTotal()) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(getTotalAmount() + getFilteredTransactionsTotal())}
               </div>
@@ -733,12 +764,12 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* Table des transactions futures — pleine largeur, colonnes compactes, scroll horizontal. */}
           <div className="bg-white border border-gray-200 rounded-lg" data-print-root>
             <div className="p-3 border-b border-gray-200 flex items-center justify-between gap-3">
-              <h3 className="text-base font-semibold text-[var(--color-text-primary)]">Future transaction</h3>
+              <h3 className="text-base font-semibold text-[var(--color-text-primary)]">{tr('cashForecast.futureTransactionTitle')}</h3>
               <PageHeaderActions
                 onToggleFilters={() => setFutureFiltersOpen(o => !o)}
                 filtersOpen={futureFiltersOpen}
                 activeFilters={(futureSearch.trim() ? 1 : 0) + (futureSens !== 'all' ? 1 : 0)}
-                printTitle="Transactions futures"
+                printTitle={tr('cashForecast.printTitleFuture')}
               />
             </div>
             {futureFiltersOpen && (
@@ -746,23 +777,23 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 <input
                   value={futureSearch}
                   onChange={e => setFutureSearch(e.target.value)}
-                  placeholder="Rechercher (description, compte, n° pièce…)"
+                  placeholder={tr('cashForecast.searchPlaceholder')}
                   className="flex-1 min-w-[240px] border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
                 />
                 <select value={futureSens} onChange={e => setFutureSens(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                  <option value="all">Tous les sens</option>
-                  <option value="IN">Encaissements (IN)</option>
-                  <option value="OUT">Décaissements (OUT)</option>
+                  <option value="all">{tr('cashForecast.allDirections')}</option>
+                  <option value="IN">{tr('cashForecast.inflowsIn')}</option>
+                  <option value="OUT">{tr('cashForecast.outflowsOut')}</option>
                 </select>
                 <select value={`${futureSort.key}:${futureSort.dir}`} onChange={e => { const [key, dir] = e.target.value.split(':'); setFutureSort({ key, dir: dir as 'asc' | 'desc' }); }} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                  <option value="transDate:desc">Date ↓</option>
-                  <option value="transDate:asc">Date ↑</option>
-                  <option value="amount:desc">Montant ↓</option>
-                  <option value="amount:asc">Montant ↑</option>
-                  <option value="glAccount:asc">Compte A→Z</option>
+                  <option value="transDate:desc">{tr('cashForecast.sortDateDesc')}</option>
+                  <option value="transDate:asc">{tr('cashForecast.sortDateAsc')}</option>
+                  <option value="amount:desc">{tr('cashForecast.sortAmountDesc')}</option>
+                  <option value="amount:asc">{tr('cashForecast.sortAmountAsc')}</option>
+                  <option value="glAccount:asc">{tr('cashForecast.sortAccountAz')}</option>
                 </select>
                 {(futureSearch || futureSens !== 'all') && (
-                  <button onClick={() => { setFutureSearch(''); setFutureSens('all'); }} className="text-xs text-[var(--color-primary)] hover:underline">Réinitialiser</button>
+                  <button onClick={() => { setFutureSearch(''); setFutureSens('all'); }} className="text-xs text-[var(--color-primary)] hover:underline">{tr('cashForecast.reset')}</button>
                 )}
               </div>
             )}
@@ -771,17 +802,17 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
                     {(() => { const caret = (k: string) => futureSort.key === k ? (futureSort.dir === 'asc' ? ' ▲' : ' ▼') : ''; const thCls = 'px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase cursor-pointer select-none hover:text-[var(--color-primary)]'; return (<>
-                    <th className={thCls} onClick={() => toggleFutureSort('codeJournal')}>Journal{caret('codeJournal')}</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N°facture</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">N° pièce</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Date doc.</th>
-                    <th className={thCls} onClick={() => toggleFutureSort('transDate')}>Date trans.{caret('transDate')}</th>
-                    <th className={thCls} onClick={() => toggleFutureSort('glAccount')}>Compte{caret('glAccount')}</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Description</th>
-                    <th className={thCls + ' text-center'} onClick={() => toggleFutureSort('cashTransaction')}>Sens{caret('cashTransaction')}</th>
-                    <th className={thCls + ' text-right'} onClick={() => toggleFutureSort('amount')}>Montant{caret('amount')}</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Encaiss.</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">Comptable</th>
+                    <th className={thCls} onClick={() => toggleFutureSort('codeJournal')}>{tr('cashForecast.thJournal')}{caret('codeJournal')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thInvoiceNo')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thDocumentNo')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thDocDate')}</th>
+                    <th className={thCls} onClick={() => toggleFutureSort('transDate')}>{tr('cashForecast.thTransDate')}{caret('transDate')}</th>
+                    <th className={thCls} onClick={() => toggleFutureSort('glAccount')}>{tr('cashForecast.thAccount')}{caret('glAccount')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thDescription')}</th>
+                    <th className={thCls + ' text-center'} onClick={() => toggleFutureSort('cashTransaction')}>{tr('cashForecast.thDirection')}{caret('cashTransaction')}</th>
+                    <th className={thCls + ' text-right'} onClick={() => toggleFutureSort('amount')}>{tr('cashForecast.thAmountShort')}{caret('amount')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thCollection')}</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thAccountant')}</th>
                     </>); })()}
                   </tr>
                 </thead>
@@ -790,10 +821,10 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     <tr>
                       <td colSpan={11} className="px-3 py-8 text-center text-gray-500">
                         {selectedAccounts.length === 0
-                          ? 'Choisissez une banque ci-dessus pour voir les transactions futures.'
+                          ? tr('cashForecast.emptyChooseBank')
                           : (futureSearch || futureSens !== 'all')
-                          ? 'Aucune transaction ne correspond au filtre.'
-                          : 'Aucune transaction future pour cette banque.'}
+                          ? tr('cashForecast.emptyFilter')
+                          : tr('cashForecast.emptyBank')}
                       </td>
                     </tr>
                   ) : (
@@ -824,7 +855,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     ))
                   )}
                   <tr className="bg-gray-50 border-t-2 border-gray-300">
-                    <td colSpan={8} className="px-2 py-2 font-bold text-[var(--color-text-primary)]">Solde (vue filtrée) :</td>
+                    <td colSpan={8} className="px-2 py-2 font-bold text-[var(--color-text-primary)]">{tr('cashForecast.filteredBalance')}</td>
                     <td className="px-2 py-2 text-right font-bold text-[var(--color-text-primary)] whitespace-nowrap">
                       {formatCurrency(displayedFutureTotal)}
                     </td>
@@ -843,19 +874,19 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Solde actuel</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiCurrentBalance')}</div>
               <div className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(kpiSoldeActuel)}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Encaissements prévus</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiPlannedReceipts')}</div>
               <div className="text-lg font-bold text-green-600 mt-1">{formatCurrency(kpiEncaissements)}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-3">
-              <div className="text-xs text-gray-500">Décaissements prévus</div>
+              <div className="text-xs text-gray-500">{tr('cashForecast.kpiPlannedPayments')}</div>
               <div className="text-lg font-bold text-red-600 mt-1">{formatCurrency(kpiDecaissements)}</div>
             </div>
             <div className="bg-white border border-gray-200 rounded-lg p-4 border-l-4 border-l-[var(--color-primary)]">
-              <div className="text-sm text-gray-500">Solde projeté</div>
+              <div className="text-sm text-gray-500">{tr('cashForecast.kpiProjectedBalance')}</div>
               <div className={`text-xl font-bold mt-1 ${kpiSoldeProjecte >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatCurrency(kpiSoldeProjecte)}
               </div>
@@ -864,7 +895,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
           {/* Scenario selector */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Scénario :</span>
+            <span className="text-sm font-medium text-gray-700">{tr('cashForecast.scenarioLabel')}</span>
             {(['optimiste', 'realiste', 'pessimiste'] as Scenario[]).map(s => (
               <button
                 key={s}
@@ -875,7 +906,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {SCENARIO_LABELS[s]}
+                {tr(SCENARIO_LABEL_KEYS[s])}
               </button>
             ))}
           </div>
@@ -883,7 +914,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* Chart */}
           {chartData.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Évolution de trésorerie</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{tr('cashForecast.chartTitle')}</h3>
               <ResponsiveContainer width="100%" height={320}>
                 <ComposedChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -891,9 +922,9 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`} />
                   <Tooltip formatter={(value: number) => formatCurrency(value)} />
                   <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="encaissements" fill="url(#gradGreen)" name="Encaissements" />
-                  <Bar radius={[6,6,0,0]} dataKey="decaissements" fill="url(#gradRed)" name="Décaissements" />
-                  <Line type="monotone" dataKey="soldeFin" stroke="#235A6E" strokeWidth={2} name="Solde fin" dot={{ r: 4 }} />
+                  <Bar radius={[6,6,0,0]} dataKey="encaissements" fill="url(#gradGreen)" name={tr('cashForecast.receipts')} />
+                  <Bar radius={[6,6,0,0]} dataKey="decaissements" fill="url(#gradRed)" name={tr('cashForecast.payments')} />
+                  <Line type="monotone" dataKey="soldeFin" stroke="#235A6E" strokeWidth={2} name={tr('cashForecast.closingBalanceShort')} dot={{ r: 4 }} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -902,7 +933,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {/* Plans table */}
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Plans de Trésorerie</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{tr('cashForecast.plansTitle')}</h3>
               <div className="flex items-center space-x-2">
                 <ExportMenu
                   data={treasuryPlans as unknown as Record<string, unknown>[]}
@@ -914,7 +945,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors flex items-center space-x-2"
                 >
                   <span>+</span>
-                  <span>Nouveau Plan</span>
+                  <span>{tr('cashForecast.newPlan')}</span>
                 </button>
               </div>
             </div>
@@ -922,22 +953,22 @@ const PrevisionsTresoreriePage: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Nom</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Période</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Solde Début</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Encaissements</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Décaissements</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Solde Fin</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Confiance</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thName')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thPeriod')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thOpeningBalance')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thReceipts')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thPayments')}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thClosingBalance')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thConfidence')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thStatus')}</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">{tr('cashForecast.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {treasuryPlans.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
-                        Aucun plan de trésorerie. Cliquez sur "Nouveau Plan" pour en créer un.
+                        {tr('cashForecast.emptyPlans')}
                       </td>
                     </tr>
                   ) : (
@@ -957,11 +988,11 @@ const PrevisionsTresoreriePage: React.FC = () => {
                             {formatCurrency(fin)}
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`font-medium ${getConfianceStyle(plan.confiance)}`}>{plan.confiance}</span>
+                            <span className={`font-medium ${getConfianceStyle(plan.confiance)}`}>{confianceLabel(plan.confiance)}</span>
                           </td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(plan.statut)}`}>
-                              {plan.statut}
+                              {statutLabel(plan.statut)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -969,21 +1000,21 @@ const PrevisionsTresoreriePage: React.FC = () => {
                               <button
                                 onClick={() => setDetailPlan(plan)}
                                 className="p-1.5 text-gray-600 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded transition-colors"
-                                title="Voir les détails"
+                                title={tr('cashForecast.viewDetails')}
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                               </button>
                               <button
                                 onClick={() => openEditModal(plan)}
                                 className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                title="Modifier le plan"
+                                title={tr('cashForecast.editPlan')}
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                               </button>
                               <button
                                 onClick={() => setDeletingPlanId(plan.id)}
                                 className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                title="Supprimer le plan"
+                                title={tr('cashForecast.deletePlan')}
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                               </button>
@@ -1006,7 +1037,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                {editingPlan ? 'Modifier le Plan' : 'Création de Plan de Trésorerie'}
+                {editingPlan ? tr('cashForecast.modalEditPlan') : tr('cashForecast.modalCreatePlan')}
               </h3>
               <button
                 onClick={() => { setShowCreatePlanModal(false); resetForm(); }}
@@ -1020,32 +1051,32 @@ const PrevisionsTresoreriePage: React.FC = () => {
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom du plan</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.planName')}</label>
                     <input
                       type="text"
                       required
                       value={formName}
                       onChange={e => setFormName(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                      placeholder="Ex: Plan Trésorerie Q4 2025"
+                      placeholder={tr('cashForecast.planNamePlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.author')}</label>
                     <input
                       type="text"
                       required
                       value={formAuthor}
                       onChange={e => setFormAuthor(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]"
-                      placeholder="Nom de l'auteur"
+                      placeholder={tr('cashForecast.authorPlaceholder')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Période du Plan</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.planPeriod')}</label>
                     <button
                       type="button"
                       onClick={() => setShowPeriodModal(true)}
@@ -1053,8 +1084,8 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     >
                       <span className={dateRange.start && dateRange.end ? 'text-gray-900 font-medium' : 'text-gray-400'}>
                         {dateRange.start && dateRange.end
-                          ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
-                          : 'Sélectionner une période'}
+                          ? tr('cashForecast.fromTo', { start: new Date(dateRange.start).toLocaleDateString('fr-FR'), end: new Date(dateRange.end).toLocaleDateString('fr-FR') })
+                          : tr('cashForecast.selectPeriod')}
                       </span>
                       <svg className="h-4 w-4 text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1062,7 +1093,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     </button>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Solde Initial (CFA)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.openingBalanceCfa')}</label>
                     <input
                       type="number"
                       required
@@ -1077,40 +1108,40 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Confiance</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.confidence')}</label>
                     <select
                       value={formConfiance}
                       onChange={e => setFormConfiance(e.target.value as TreasuryPlan['confiance'])}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="Haute">Haute</option>
-                      <option value="Moyenne">Moyenne</option>
-                      <option value="Faible">Faible</option>
+                      <option value="Haute">{tr('cashForecast.confidenceHigh')}</option>
+                      <option value="Moyenne">{tr('cashForecast.confidenceMedium')}</option>
+                      <option value="Faible">{tr('cashForecast.confidenceLow')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.status')}</label>
                     <select
                       value={formStatut}
                       onChange={e => setFormStatut(e.target.value as TreasuryPlan['statut'])}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="Brouillon">Brouillon</option>
-                      <option value="Planifie">Planifié</option>
-                      <option value="En cours">En cours</option>
-                      <option value="Cloture">Clôturé</option>
+                      <option value="Brouillon">{tr('cashForecast.statusDraft')}</option>
+                      <option value="Planifie">{tr('cashForecast.statusPlanned')}</option>
+                      <option value="En cours">{tr('cashForecast.statusInProgress')}</option>
+                      <option value="Cloture">{tr('cashForecast.statusClosed')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Scénario</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.scenario')}</label>
                     <select
                       value={formScenario}
                       onChange={e => setFormScenario(e.target.value as Scenario)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="realiste">Réaliste</option>
-                      <option value="optimiste">Optimiste</option>
-                      <option value="pessimiste">Pessimiste</option>
+                      <option value="realiste">{tr('cashForecast.scenarioRealisticShort')}</option>
+                      <option value="optimiste">{tr('cashForecast.scenarioOptimisticShort')}</option>
+                      <option value="pessimiste">{tr('cashForecast.scenarioPessimisticShort')}</option>
                     </select>
                   </div>
                 </div>
@@ -1122,13 +1153,13 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   onClick={() => { setShowCreatePlanModal(false); resetForm(); }}
                   className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Annuler
+                  {tr('cashForecast.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
                 >
-                  {editingPlan ? 'Mettre à jour' : 'Créer le Plan'}
+                  {editingPlan ? tr('cashForecast.update') : tr('cashForecast.createPlan')}
                 </button>
               </div>
             </form>
@@ -1140,22 +1171,22 @@ const PrevisionsTresoreriePage: React.FC = () => {
       {deletingPlanId && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Confirmer la suppression</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{tr('cashForecast.confirmDeleteTitle')}</h3>
             <p className="text-gray-600 mb-6">
-              Êtes-vous sûr de vouloir supprimer ce plan de trésorerie ? Cette action est irréversible.
+              {tr('cashForecast.confirmDeleteText')}
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setDeletingPlanId(null)}
                 className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Annuler
+                {tr('cashForecast.cancel')}
               </button>
               <button
                 onClick={() => handleDeletePlan(deletingPlanId)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                Supprimer
+                {tr('cashForecast.delete')}
               </button>
             </div>
           </div>
@@ -1169,7 +1200,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{detailPlan.name}</h3>
-                <p className="text-sm text-gray-500">{detailPlan.periode} — par {detailPlan.author}</p>
+                <p className="text-sm text-gray-500">{detailPlan.periode} — {tr('cashForecast.byAuthor')} {detailPlan.author}</p>
               </div>
               <button
                 onClick={() => { setDetailPlan(null); resetLineForm(); }}
@@ -1182,19 +1213,19 @@ const PrevisionsTresoreriePage: React.FC = () => {
             {/* Plan summary cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-gray-500">Solde début</div>
+                <div className="text-xs text-gray-500">{tr('cashForecast.openingBalanceShort')}</div>
                 <div className="font-bold">{formatCurrency(detailPlan.soldeDebut)}</div>
               </div>
               <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-gray-500">Encaissements</div>
+                <div className="text-xs text-gray-500">{tr('cashForecast.receipts')}</div>
                 <div className="font-bold text-green-600">+{formatCurrency(detailPlan.encaissements)}</div>
               </div>
               <div className="bg-red-50 rounded-lg p-3 text-center">
-                <div className="text-xs text-gray-500">Décaissements</div>
+                <div className="text-xs text-gray-500">{tr('cashForecast.payments')}</div>
                 <div className="font-bold text-red-600">-{formatCurrency(detailPlan.decaissements)}</div>
               </div>
               <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-200">
-                <div className="text-xs text-gray-500">Solde fin</div>
+                <div className="text-xs text-gray-500">{tr('cashForecast.closingBalanceShort')}</div>
                 <div className={`font-bold ${detailPlan.soldeFin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {formatCurrency(detailPlan.soldeFin)}
                 </div>
@@ -1214,13 +1245,13 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{line.label}</div>
                     <div className="text-xs text-gray-500">
-                      {new Date(line.date).toLocaleDateString('fr-FR')}{line.recurrent ? ` · ${line.frequency}` : ''}
+                      {new Date(line.date).toLocaleDateString('fr-FR')}{line.recurrent ? ` · ${freqLabel(line.frequency)}` : ''}
                     </div>
                   </div>
                   <span className={`text-sm font-mono font-medium whitespace-nowrap shrink-0 ${positive ? 'text-green-600' : 'text-red-600'}`}>
                     {positive ? '+' : '-'}{formatCurrency(line.amount)}
                   </span>
-                  <button onClick={() => handleDeleteLine(line.id)} className="p-1 text-gray-400 hover:text-red-600 rounded shrink-0" title="Supprimer">
+                  <button onClick={() => handleDeleteLine(line.id)} className="p-1 text-gray-400 hover:text-red-600 rounded shrink-0" title={tr('cashForecast.deleteLine')}>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -1231,12 +1262,12 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     {/* Encaissements */}
                     <div className="flex-1 min-w-0 border border-green-200 rounded-lg overflow-hidden">
                       <div className="px-3 py-2 bg-green-50 border-b border-green-200 flex items-center justify-between">
-                        <span className="text-sm font-semibold text-green-700">Encaissements (+)</span>
+                        <span className="text-sm font-semibold text-green-700">{tr('cashForecast.receiptsPlus')}</span>
                         <span className="text-sm font-mono font-semibold text-green-700">{formatCurrency(totalEnc)}</span>
                       </div>
                       <div className="max-h-[42vh] overflow-y-auto divide-y divide-gray-100">
                         {encs.length === 0
-                          ? <div className="p-4 text-center text-sm text-gray-400">Aucun encaissement.</div>
+                          ? <div className="p-4 text-center text-sm text-gray-400">{tr('cashForecast.noReceipt')}</div>
                           : encs.map(l => renderLine(l, true))}
                       </div>
                     </div>
@@ -1250,19 +1281,19 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     {/* Décaissements */}
                     <div className="flex-1 min-w-0 border border-red-200 rounded-lg overflow-hidden">
                       <div className="px-3 py-2 bg-red-50 border-b border-red-200 flex items-center justify-between">
-                        <span className="text-sm font-semibold text-red-700">Décaissements (−)</span>
+                        <span className="text-sm font-semibold text-red-700">{tr('cashForecast.paymentsMinus')}</span>
                         <span className="text-sm font-mono font-semibold text-red-700">{formatCurrency(totalDec)}</span>
                       </div>
                       <div className="max-h-[42vh] overflow-y-auto divide-y divide-gray-100">
                         {decs.length === 0
-                          ? <div className="p-4 text-center text-sm text-gray-400">Aucun décaissement.</div>
+                          ? <div className="p-4 text-center text-sm text-gray-400">{tr('cashForecast.noPayment')}</div>
                           : decs.map(l => renderLine(l, false))}
                       </div>
                     </div>
                   </div>
                   {/* Solde net prévisionnel */}
                   <div className="mt-2 flex items-center justify-end gap-2 text-sm">
-                    <span className="text-gray-600">Solde net prévisionnel :</span>
+                    <span className="text-gray-600">{tr('cashForecast.netForecastBalance')}</span>
                     <span className={`font-mono font-bold ${totalEnc - totalDec >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                       {totalEnc - totalDec >= 0 ? '+' : ''}{formatCurrency(totalEnc - totalDec)}
                     </span>
@@ -1273,31 +1304,31 @@ const PrevisionsTresoreriePage: React.FC = () => {
 
             {/* Add line form */}
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Ajouter une ligne</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{tr('cashForecast.addLineTitle')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Libellé</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{tr('cashForecast.lineLabel')}</label>
                   <input
                     type="text"
                     value={newLineLabel}
                     onChange={e => setNewLineLabel(e.target.value)}
                     className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-[var(--color-primary)]"
-                    placeholder="Ex: Loyer bureau"
+                    placeholder={tr('cashForecast.lineLabelPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Catégorie</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{tr('cashForecast.lineCategory')}</label>
                   <select
                     value={newLineCategory}
                     onChange={e => setNewLineCategory(e.target.value as 'encaissement' | 'decaissement')}
                     className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="encaissement">Encaissement</option>
-                    <option value="decaissement">Décaissement</option>
+                    <option value="encaissement">{tr('cashForecast.categoryReceipt')}</option>
+                    <option value="decaissement">{tr('cashForecast.categoryPayment')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Montant</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{tr('cashForecast.lineAmount')}</label>
                   <input
                     type="number"
                     value={newLineAmount || ''}
@@ -1309,7 +1340,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Date</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">{tr('cashForecast.lineDate')}</label>
                   <input
                     type="date"
                     value={newLineDate}
@@ -1323,7 +1354,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     onClick={handleAddLine}
                     className="w-full px-3 py-1.5 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary)]/80 transition-colors"
                   >
-                    Ajouter
+                    {tr('cashForecast.add')}
                   </button>
                 </div>
               </div>
@@ -1335,7 +1366,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     onChange={e => setNewLineRecurrent(e.target.checked)}
                     className="w-4 h-4"
                   />
-                  <span>Récurrent</span>
+                  <span>{tr('cashForecast.recurring')}</span>
                 </label>
                 {newLineRecurrent && (
                   <select
@@ -1343,9 +1374,9 @@ const PrevisionsTresoreriePage: React.FC = () => {
                     onChange={e => setNewLineFrequency(e.target.value as 'mensuel' | 'trimestriel' | 'annuel')}
                     className="px-2 py-1 border border-gray-300 rounded text-sm"
                   >
-                    <option value="mensuel">Mensuel</option>
-                    <option value="trimestriel">Trimestriel</option>
-                    <option value="annuel">Annuel</option>
+                    <option value="mensuel">{tr('cashForecast.freqMonthly')}</option>
+                    <option value="trimestriel">{tr('cashForecast.freqQuarterly')}</option>
+                    <option value="annuel">{tr('cashForecast.freqYearly')}</option>
                   </select>
                 )}
               </div>
@@ -1356,7 +1387,7 @@ const PrevisionsTresoreriePage: React.FC = () => {
                 onClick={() => { setDetailPlan(null); resetLineForm(); }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/80 transition-colors"
               >
-                Fermer
+                {tr('cashForecast.close')}
               </button>
             </div>
           </div>
@@ -1376,44 +1407,44 @@ const PrevisionsTresoreriePage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Coordonnées bancaires</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{tr('cashForecast.bankDetailsTitle')}</h3>
               <p className="text-xs text-gray-500 mt-0.5">
                 <span className="font-mono">{editAccount.number}</span> · {editAccount.description}
               </p>
             </div>
             <div className="p-4 space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">RIB</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.thRib')}</label>
                 <input type="text" value={metaForm.rib}
                   onChange={(e) => setMetaForm(f => ({ ...f, rib: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
-                  placeholder="Ex. CI93 CI008 01234 567890123456 78" />
+                  placeholder={tr('cashForecast.ribPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">IBAN number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.thIban')}</label>
                 <input type="text" value={metaForm.iban}
                   onChange={(e) => setMetaForm(f => ({ ...f, iban: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
-                  placeholder="Ex. CI93CI0080123456789012345678" />
+                  placeholder={tr('cashForecast.ibanPlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Code SWIFT / BIC</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{tr('cashForecast.thSwift')}</label>
                 <input type="text" value={metaForm.swift}
                   onChange={(e) => setMetaForm(f => ({ ...f, swift: e.target.value.toUpperCase() }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-[var(--color-primary)]"
-                  placeholder="Ex. ECOCCIAB" />
+                  placeholder={tr('cashForecast.swiftPlaceholder')} />
               </div>
-              <p className="text-xs text-gray-400">Seuls le RIB, l'IBAN et le code SWIFT/BIC sont modifiables — le solde provient du Grand Livre.</p>
+              <p className="text-xs text-gray-400">{tr('cashForecast.bankDetailsHint')}</p>
             </div>
             <div className="p-4 border-t border-gray-200 flex justify-end gap-2">
               <button type="button" onClick={() => setEditAccount(null)}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                Annuler
+                {tr('cashForecast.cancel')}
               </button>
               <button type="button"
                 onClick={async () => { await saveAccountMeta(editAccount.number, metaForm); setEditAccount(null); }}
                 className="px-4 py-2 text-sm bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]">
-                Enregistrer
+                {tr('cashForecast.save')}
               </button>
             </div>
           </div>
