@@ -254,6 +254,7 @@ const StockGlSetup = lazyRetry(() => import('./pages/stock/GlSetupPage'));
 const IntegrationPostingRules = lazyRetry(() => import('./pages/integration/PostingRulesPage'));
 const IntegrationReconciliation = lazyRetry(() => import('./pages/integration/SubledgerReconciliationPage'));
 const IntegrationMonitor = lazyRetry(() => import('./pages/integration/IntegrationMonitorPage'));
+const IntegrationKeys = lazyRetry(() => import('./pages/integration/IntegrationKeysPage'));
 const StockBatches = lazyRetry(() => import('./pages/stock/BatchesPage'));
 const StockPhysical = lazyRetry(() => import('./pages/stock/PhysicalInventoryPage'));
 const StockReorder = lazyRetry(() => import('./pages/stock/ReorderPage'));
@@ -624,6 +625,7 @@ function App() {
                           <Route path="/integration/posting-rules" element={work(<IntegrationPostingRules />)} />
                           <Route path="/integration/reconciliation" element={work(<IntegrationReconciliation />)} />
                           <Route path="/integration/monitor" element={work(<IntegrationMonitor />)} />
+                          <Route path="/integration/keys" element={work(<IntegrationKeys />)} />
                         </Route>
 
                         {/* Fiscalite */}
