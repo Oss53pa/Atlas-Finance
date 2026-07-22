@@ -147,189 +147,189 @@ const IAConfigPage: React.FC = () => {
   const algorithmDetails: Record<string, AlgorithmDetail> = {
     'LSTM': {
       name: 'LSTM Neural Network',
-      title: 'Prédiction de Trésorerie',
+      title: t('aiConfig.lstmTitle'),
       type: 'LSTM Neural Network',
       accuracy: '94.2%',
-      trainingData: '24,567 transactions',
-      description: 'Ce modèle utilise un réseau de neurones LSTM (Long Short-Term Memory) pour analyser les flux de trésorerie historiques et prédire les mouvements futurs avec une haute précision. L\'algorithme prend en compte les tendances saisonnières, les cycles de paiement clients, et les patterns de dépenses.',
+      trainingData: t('aiConfig.lstmTrainingData'),
+      description: t('aiConfig.lstmDesc'),
       parameters: [
-        { name: 'Couches cachées', value: '3 couches (128, 64, 32 neurones)' },
-        { name: 'Taux d\'apprentissage', value: '0.001' },
-        { name: 'Fenêtre temporelle', value: '90 jours' },
+        { name: t('aiConfig.paramHiddenLayers'), value: t('aiConfig.paramHiddenLayersValue') },
+        { name: t('aiConfig.paramLearningRate'), value: '0.001' },
+        { name: t('aiConfig.paramTimeWindow'), value: t('aiConfig.value90Days') },
         { name: 'Dropout', value: '0.2' }
       ],
       inputVariables: [
-        { name: 'Soldes bancaires historiques', importance: '32%' },
-        { name: 'Factures clients en attente', importance: '28%' },
-        { name: 'Échéances fournisseurs', importance: '24%' },
-        { name: 'Tendances saisonnières', importance: '16%' }
+        { name: t('aiConfig.varHistoricalBankBalances'), importance: '32%' },
+        { name: t('aiConfig.varPendingCustomerInvoices'), importance: '28%' },
+        { name: t('aiConfig.varSupplierDueDates'), importance: '24%' },
+        { name: t('aiConfig.varSeasonalTrends'), importance: '16%' }
       ]
     },
     'IsolationForest': {
       name: 'Isolation Forest',
-      title: 'Détection d\'Anomalies',
+      title: t('aiConfig.isolationForestTitle'),
       type: 'Isolation Forest',
       accuracy: '89.7%',
-      detected: '147 ce mois',
-      description: 'Cet algorithme utilise la méthode Isolation Forest pour détecter les transactions inhabituelles qui pourraient indiquer des erreurs, des fraudes ou des comportements anormaux. Il apprend continuellement des patterns normaux pour mieux identifier les anomalies.',
+      detected: t('aiConfig.isolationForestDetected'),
+      description: t('aiConfig.isolationForestDesc'),
       detectionCriteria: [
-        { name: 'Montant inhabituel', threshold: '±3σ' },
-        { name: 'Fréquence anormale', threshold: '±2.5σ' },
-        { name: 'Bénéficiaire inhabituel', threshold: 'Score < 0.3' },
-        { name: 'Timing suspect', threshold: 'Hors heures: 22h-6h' }
+        { name: t('aiConfig.critUnusualAmount'), threshold: '±3σ' },
+        { name: t('aiConfig.critAbnormalFrequency'), threshold: '±2.5σ' },
+        { name: t('aiConfig.critUnusualBeneficiary'), threshold: 'Score < 0.3' },
+        { name: t('aiConfig.critSuspiciousTiming'), threshold: t('aiConfig.thresholdOffHours') }
       ]
     },
     'RandomForest': {
       name: 'Random Forest',
-      title: 'Recommandations Comptables',
+      title: t('aiConfig.randomForestTitle'),
       type: 'Random Forest',
       accuracy: '96.1%',
       adoption: '87%',
-      description: 'Ce modèle utilise un ensemble d\'arbres de décision (Random Forest) pour suggérer les comptes comptables appropriés et proposer des écritures automatiques basées sur l\'analyse de milliers de transactions similaires passées.',
+      description: t('aiConfig.randomForestDesc'),
       parameters: [
-        { name: 'Nombre d\'arbres', value: '500 arbres' },
-        { name: 'Profondeur maximale', value: '15 niveaux' },
-        { name: 'Variables par split', value: '√n features' },
-        { name: 'Min samples leaf', value: '10 échantillons' }
+        { name: t('aiConfig.paramTreeCount'), value: t('aiConfig.value500Trees') },
+        { name: t('aiConfig.paramMaxDepth'), value: t('aiConfig.value15Levels') },
+        { name: t('aiConfig.paramVarsPerSplit'), value: '√n features' },
+        { name: 'Min samples leaf', value: t('aiConfig.value10Samples') }
       ],
       features: [
-        { name: 'Libellé de la transaction', importance: '38%' },
-        { name: 'Montant et devise', importance: '22%' },
-        { name: 'Tiers (client/fournisseur)', importance: '25%' },
-        { name: 'Historique des comptes utilisés', importance: '15%' }
+        { name: t('aiConfig.featTransactionLabel'), importance: '38%' },
+        { name: t('aiConfig.featAmountCurrency'), importance: '22%' },
+        { name: t('aiConfig.featThirdParty'), importance: '25%' },
+        { name: t('aiConfig.featAccountHistory'), importance: '15%' }
       ]
     },
     'GradientBoosting': {
       name: 'Gradient Boosting',
-      title: 'Analyse de Risques Clients',
+      title: t('aiConfig.gradientBoostingTitle'),
       type: 'Gradient Boosting',
       accuracy: '91.3%',
-      atRisk: '12 actuellement',
-      description: 'Cet algorithme de Gradient Boosting analyse le comportement de paiement des clients pour prédire le risque de défaut. Il combine plusieurs modèles faibles pour créer une prédiction robuste et fiable du risque client.',
+      atRisk: t('aiConfig.gradientBoostingAtRisk'),
+      description: t('aiConfig.gradientBoostingDesc'),
       riskIndicators: [
-        { name: 'Historique de retards', importance: '35%' },
-        { name: 'Montant des créances', importance: '28%' },
-        { name: 'Secteur d\'activité', importance: '18%' },
-        { name: 'Ancienneté du client', importance: '19%' }
+        { name: t('aiConfig.riskLateHistory'), importance: '35%' },
+        { name: t('aiConfig.riskReceivablesAmount'), importance: '28%' },
+        { name: t('aiConfig.riskIndustry'), importance: '18%' },
+        { name: t('aiConfig.riskCustomerSeniority'), importance: '19%' }
       ]
     },
     'DBSCAN': {
       name: 'DBSCAN Clustering',
-      title: 'Segmentation Comportementale',
+      title: t('aiConfig.dbscanTitle'),
       type: 'DBSCAN Clustering',
       accuracy: '88.5%',
-      segments: '7 segments',
-      description: 'Algorithme de clustering DBSCAN pour identifier les segments de comportement clients et détecter les comportements anormaux. Détecte automatiquement les anomalies comme du bruit dans les clusters.',
+      segments: t('aiConfig.dbscanSegments'),
+      description: t('aiConfig.dbscanDesc'),
       parameters: [
         { name: 'Epsilon (eps)', value: '0.3' },
-        { name: 'Min samples', value: '5 échantillons' },
-        { name: 'Métrique', value: 'Euclidean' },
-        { name: 'Dimensions', value: '12 features' }
+        { name: 'Min samples', value: t('aiConfig.value5Samples') },
+        { name: t('aiConfig.paramMetric'), value: 'Euclidean' },
+        { name: t('aiConfig.paramDimensions'), value: '12 features' }
       ],
       features: [
-        { name: 'Variance des paiements', importance: '32%' },
-        { name: 'Fréquence de commande', importance: '28%' },
-        { name: 'Changements d\'adresse', importance: '18%' },
-        { name: 'Montant moyen', importance: '22%' }
+        { name: t('aiConfig.featPaymentVariance'), importance: '32%' },
+        { name: t('aiConfig.featOrderFrequency'), importance: '28%' },
+        { name: t('aiConfig.featAddressChanges'), importance: '18%' },
+        { name: t('aiConfig.featAverageAmount'), importance: '22%' }
       ]
     },
     'Prophet': {
       name: 'Prophet Time Series',
-      title: 'Prévision de Trésorerie',
+      title: t('aiConfig.prophetTitle'),
       type: 'Prophet (Facebook)',
       accuracy: '93.8%',
-      forecasts: '90 jours',
-      description: 'Modèle Prophet de Facebook pour la prévision de séries temporelles et la détection d\'anomalies saisonnières dans les flux de trésorerie. Prend en compte les tendances, saisonnalités et jours fériés.',
+      forecasts: t('aiConfig.value90Days'),
+      description: t('aiConfig.prophetDesc'),
       parameters: [
         { name: 'Changepoint prior', value: '0.05' },
         { name: 'Seasonality mode', value: 'Multiplicative' },
         { name: 'Interval width', value: '95%' },
-        { name: 'Horizon', value: '90 jours' }
+        { name: 'Horizon', value: t('aiConfig.value90Days') }
       ],
       inputVariables: [
-        { name: 'Flux de trésorerie historiques', importance: '40%' },
-        { name: 'Saisonnalité mensuelle', importance: '25%' },
-        { name: 'Tendances annuelles', importance: '20%' },
-        { name: 'Jours fériés et événements', importance: '15%' }
+        { name: t('aiConfig.varHistoricalCashFlows'), importance: '40%' },
+        { name: t('aiConfig.varMonthlySeasonality'), importance: '25%' },
+        { name: t('aiConfig.varAnnualTrends'), importance: '20%' },
+        { name: t('aiConfig.varHolidaysEvents'), importance: '15%' }
       ]
     },
     'NetworkAnalysis': {
       name: 'Network Analysis',
-      title: 'Détection de Fraude par Graphes',
+      title: t('aiConfig.networkAnalysisTitle'),
       type: 'Graph Analytics (NetworkX)',
       accuracy: '90.2%',
-      detected: '23 patterns',
-      description: 'Analyse de réseaux de transactions pour détecter les flux circulaires suspects, les hubs anormaux et les patterns de blanchiment d\'argent. Utilise la théorie des graphes pour identifier les structures anormales.',
+      detected: t('aiConfig.networkAnalysisDetected'),
+      description: t('aiConfig.networkAnalysisDesc'),
       detectionCriteria: [
-        { name: 'Flux circulaires', threshold: '> 10,000€' },
-        { name: 'Centralité anormale', threshold: '> 3σ' },
-        { name: 'Clusters isolés', threshold: 'Score < 0.4' },
-        { name: 'Vélocité suspecte', threshold: '> 5 trans/30min' }
+        { name: t('aiConfig.critCircularFlows'), threshold: '> 10,000€' },
+        { name: t('aiConfig.critAbnormalCentrality'), threshold: '> 3σ' },
+        { name: t('aiConfig.critIsolatedClusters'), threshold: 'Score < 0.4' },
+        { name: t('aiConfig.critSuspiciousVelocity'), threshold: '> 5 trans/30min' }
       ]
     },
     'SYSCOHADACompliance': {
       name: 'SYSCOHADA Compliance',
-      title: 'Conformité SYSCOHADA & OHADA',
+      title: t('aiConfig.syscohadaTitle'),
       type: 'Rule-Based System + ML',
       accuracy: '98.5%',
-      rulesCount: '17 règles',
-      description: 'Système hybride combinant règles métier SYSCOHADA et machine learning pour garantir la conformité comptable, fiscale et réglementaire selon les normes OHADA (UEMOA/CEMAC).',
+      rulesCount: t('aiConfig.syscohadaRulesCount'),
+      description: t('aiConfig.syscohadaDesc'),
       ruleCategories: [
         {
-          category: 'Conformité Comptable',
+          category: t('aiConfig.catAccountingCompliance'),
           rules: [
-            { id: 'RS001', name: 'Plan comptable SYSCOHADA', description: 'Vérification structure comptes classe 1-9' },
-            { id: 'RS002', name: 'TVA OHADA et exonérations', description: 'Contrôle taux TVA (18%) et régimes' },
-            { id: 'RS003', name: 'États financiers DSF/TAFIRE', description: 'Présence états obligatoires' },
-            { id: 'RS011', name: 'Structure bilan SYSCOHADA', description: 'Actif/Passif selon SYSCOHADA' },
-            { id: 'RS012', name: 'Compte de résultat & SIG', description: 'Cohérence charges/produits' },
-            { id: 'RS013', name: 'Équilibre TAFIRE', description: 'Variation trésorerie cohérente' }
+            { id: 'RS001', name: t('aiConfig.ruleRs001'), description: t('aiConfig.ruleRs001Desc') },
+            { id: 'RS002', name: t('aiConfig.ruleRs002'), description: t('aiConfig.ruleRs002Desc') },
+            { id: 'RS003', name: t('aiConfig.ruleRs003'), description: t('aiConfig.ruleRs003Desc') },
+            { id: 'RS011', name: t('aiConfig.ruleRs011'), description: t('aiConfig.ruleRs011Desc') },
+            { id: 'RS012', name: t('aiConfig.ruleRs012'), description: t('aiConfig.ruleRs012Desc') },
+            { id: 'RS013', name: t('aiConfig.ruleRs013'), description: t('aiConfig.ruleRs013Desc') }
           ]
         },
         {
-          category: 'Provisions & Amortissements',
+          category: t('aiConfig.catProvisionsDepreciation'),
           rules: [
-            { id: 'RS004', name: 'Provisionnement créances', description: '25% à 3 mois, 50% à 6 mois, 100% à 1 an' },
-            { id: 'RS005', name: 'Durées amortissement', description: 'Conformes barème SYSCOHADA' }
+            { id: 'RS004', name: t('aiConfig.ruleRs004'), description: t('aiConfig.provisionScaleDesc') },
+            { id: 'RS005', name: t('aiConfig.ruleRs005'), description: t('aiConfig.ruleRs005Desc') }
           ]
         },
         {
-          category: 'Comptes & Journaux',
+          category: t('aiConfig.catAccountsJournals'),
           rules: [
-            { id: 'RS007', name: 'Comptes tiers lettrables', description: 'Classes 4 avec soldes normaux' },
-            { id: 'RS010', name: 'Journaux obligatoires', description: 'JA, JV, JT, JO, JP présents' }
+            { id: 'RS007', name: t('aiConfig.ruleRs007'), description: t('aiConfig.ruleRs007Desc') },
+            { id: 'RS010', name: t('aiConfig.ruleRs010'), description: t('aiConfig.ruleRs010Desc') }
           ]
         },
         {
-          category: 'Obligations Fiscales',
+          category: t('aiConfig.catTaxObligations'),
           rules: [
-            { id: 'RS014', name: 'Acomptes IS', description: '2,5% CA ou 1/3 IS N-1 trimestriels' },
-            { id: 'RS015', name: 'Patente & contributions', description: 'Taxes locales calculées' },
-            { id: 'RS016', name: 'Précompte achats', description: 'Retenue 5% sur achats locaux' }
+            { id: 'RS014', name: t('aiConfig.ruleRs014'), description: t('aiConfig.ruleRs014Desc') },
+            { id: 'RS015', name: t('aiConfig.ruleRs015'), description: t('aiConfig.ruleRs015Desc') },
+            { id: 'RS016', name: t('aiConfig.ruleRs016'), description: t('aiConfig.ruleRs016Desc') }
           ]
         },
         {
-          category: 'Formalités Juridiques',
+          category: t('aiConfig.catLegalFormalities'),
           rules: [
-            { id: 'RS017', name: 'RCCM & AG annuelle', description: 'Dépôt états financiers obligatoire' }
+            { id: 'RS017', name: t('aiConfig.ruleRs017'), description: t('aiConfig.ruleRs017Desc') }
           ]
         }
       ],
       mlDetections: [
-        { name: 'Anomalies DSF', description: 'Incohérences déclaration statistique fiscale' },
-        { name: 'Transactions UEMOA/CEMAC', description: 'Prix de transfert et flux intra-zone' },
-        { name: 'Seuils cash 1M FCFA', description: 'Détection fractionnement transactions' },
-        { name: 'Parité CFA fixe', description: 'Contrôle taux change 655.957 FCFA/EUR' },
-        { name: 'Marchés publics', description: 'Vérification garanties et procédures' }
+        { name: t('aiConfig.mlDsfAnomalies'), description: t('aiConfig.mlDsfAnomaliesDesc') },
+        { name: t('aiConfig.mlUemoaCemac'), description: t('aiConfig.mlUemoaCemacDesc') },
+        { name: t('aiConfig.mlCashThreshold'), description: t('aiConfig.mlCashThresholdDesc') },
+        { name: t('aiConfig.mlCfaParity'), description: t('aiConfig.mlCfaParityDesc') },
+        { name: t('aiConfig.mlPublicProcurement'), description: t('aiConfig.mlPublicProcurementDesc') }
       ]
     },
     'SVM': {
       name: 'Support Vector Machine',
-      title: 'Classification Avancée Multi-Classes',
+      title: t('aiConfig.svmTitle'),
       type: 'SVM (Kernel RBF)',
       accuracy: '89.5%',
-      classes: '8 catégories',
-      description: 'Machine à vecteurs de support (SVM) avec noyau RBF pour la classification avancée de transactions et la catégorisation automatique des opérations comptables. Particulièrement efficace pour séparer des classes complexes dans des espaces de haute dimension.',
+      classes: t('aiConfig.svmClasses'),
+      description: t('aiConfig.svmDesc'),
       parameters: [
         { name: 'Kernel', value: 'RBF (Radial Basis Function)' },
         { name: 'Gamma', value: '0.1' },
@@ -337,62 +337,62 @@ const IAConfigPage: React.FC = () => {
         { name: 'Multi-class strategy', value: 'One-vs-Rest' }
       ],
       features: [
-        { name: 'Montant et variance', importance: '30%' },
-        { name: 'Fréquence des transactions', importance: '25%' },
-        { name: 'Type de tiers (client/fournisseur)', importance: '22%' },
-        { name: 'Patterns temporels', importance: '23%' }
+        { name: t('aiConfig.featAmountVariance'), importance: '30%' },
+        { name: t('aiConfig.featTransactionFrequency'), importance: '25%' },
+        { name: t('aiConfig.featThirdPartyType'), importance: '22%' },
+        { name: t('aiConfig.featTemporalPatterns'), importance: '23%' }
       ],
       classifications: [
-        { name: 'Opérations bancaires', count: '2,453' },
-        { name: 'Achats & Fournisseurs', count: '1,892' },
-        { name: 'Ventes & Clients', count: '3,214' },
-        { name: 'Charges de personnel', count: '1,067' },
-        { name: 'Charges fiscales', count: '845' },
-        { name: 'Investissements', count: '234' },
+        { name: t('aiConfig.classBankOperations'), count: '2,453' },
+        { name: t('aiConfig.classPurchasesSuppliers'), count: '1,892' },
+        { name: t('aiConfig.classSalesCustomers'), count: '3,214' },
+        { name: t('aiConfig.classPayrollExpenses'), count: '1,067' },
+        { name: t('aiConfig.classTaxExpenses'), count: '845' },
+        { name: t('aiConfig.classInvestments'), count: '234' },
         { name: t('journals.miscellaneous'), count: '567' },
-        { name: 'Opérations exceptionnelles', count: '123' }
+        { name: t('aiConfig.classExceptionalOperations'), count: '123' }
       ]
     },
     'XGBoost': {
       name: 'XGBoost',
-      title: 'Optimisation Prédictive Gradient Boosting',
+      title: t('aiConfig.xgboostTitle'),
       type: 'XGBoost (Extreme Gradient Boosting)',
       accuracy: '93.1%',
-      predictions: '1,847/mois',
-      description: 'XGBoost est un algorithme de gradient boosting optimisé pour des performances maximales. Il combine plusieurs arbres de décision faibles pour créer un modèle puissant, idéal pour prédire les comportements de paiement, optimiser les recommandations de lettrage et anticiper les risques financiers.',
+      predictions: t('aiConfig.xgboostPredictions'),
+      description: t('aiConfig.xgboostDesc'),
       parameters: [
-        { name: 'Max depth', value: '8 niveaux' },
+        { name: 'Max depth', value: t('aiConfig.value8Levels') },
         { name: 'Learning rate', value: '0.05' },
-        { name: 'N estimators', value: '300 arbres' },
+        { name: 'N estimators', value: t('aiConfig.value300Trees') },
         { name: 'Subsample', value: '0.8' },
         { name: 'Colsample bytree', value: '0.8' }
       ],
       features: [
-        { name: 'Historique de paiements', importance: '35%' },
-        { name: 'Score crédit client', importance: '28%' },
-        { name: 'Saisonnalité & tendances', importance: '20%' },
-        { name: 'Indicateurs macroéconomiques', importance: '17%' }
+        { name: t('aiConfig.featPaymentHistory'), importance: '35%' },
+        { name: t('aiConfig.featCustomerCreditScore'), importance: '28%' },
+        { name: t('aiConfig.featSeasonalityTrends'), importance: '20%' },
+        { name: t('aiConfig.featMacroIndicators'), importance: '17%' }
       ],
       useCases: [
-        { name: 'Prédiction défauts de paiement', accuracy: '94.2%' },
-        { name: 'Optimisation lettrage automatique', accuracy: '96.5%' },
-        { name: 'Recommandations de recouvrement', accuracy: '91.8%' },
-        { name: 'Scoring risque fournisseurs', accuracy: '89.3%' }
+        { name: t('aiConfig.ucPaymentDefault'), accuracy: '94.2%' },
+        { name: t('aiConfig.ucAutoMatching'), accuracy: '96.5%' },
+        { name: t('aiConfig.ucCollections'), accuracy: '91.8%' },
+        { name: t('aiConfig.ucSupplierRiskScoring'), accuracy: '89.3%' }
       ]
     }
   };
 
   const allAlgorithms = [
-    { name: 'LSTM', title: 'LSTM Neural Network', desc: 'Prédiction de Trésorerie', accuracy: '94.2%', icon: TrendingUp },
-    { name: 'IsolationForest', title: 'Isolation Forest', desc: 'Détection d\'Anomalies', accuracy: '91.7%', icon: AlertTriangle },
-    { name: 'RandomForest', title: 'Random Forest', desc: 'Recommandations Comptables', accuracy: '88.9%', icon: Brain },
-    { name: 'GradientBoosting', title: 'Gradient Boosting', desc: 'Analyse de Risques Clients', accuracy: '92.4%', icon: BarChart3 },
-    { name: 'DBSCAN', title: 'DBSCAN Clustering', desc: 'Segmentation Comportementale', accuracy: '88.5%', icon: GitBranch },
-    { name: 'Prophet', title: 'Prophet Time Series', desc: 'Prévision de Trésorerie', accuracy: '93.8%', icon: Calendar },
-    { name: 'NetworkAnalysis', title: 'Network Analysis', desc: 'Détection de Fraude par Graphes', accuracy: '90.2%', icon: Network },
-    { name: 'SYSCOHADACompliance', title: 'SYSCOHADA Compliance', desc: 'Conformité SYSCOHADA & OHADA', accuracy: '98.5%', icon: Shield },
-    { name: 'SVM', title: 'Support Vector Machine', desc: 'Classification avancée', accuracy: '89.5%', icon: Brain },
-    { name: 'XGBoost', title: 'XGBoost', desc: 'Optimisation prédictive', accuracy: '93.1%', icon: BarChart3 }
+    { name: 'LSTM', title: 'LSTM Neural Network', desc: t('aiConfig.lstmTitle'), accuracy: '94.2%', icon: TrendingUp },
+    { name: 'IsolationForest', title: 'Isolation Forest', desc: t('aiConfig.isolationForestTitle'), accuracy: '91.7%', icon: AlertTriangle },
+    { name: 'RandomForest', title: 'Random Forest', desc: t('aiConfig.randomForestTitle'), accuracy: '88.9%', icon: Brain },
+    { name: 'GradientBoosting', title: 'Gradient Boosting', desc: t('aiConfig.gradientBoostingTitle'), accuracy: '92.4%', icon: BarChart3 },
+    { name: 'DBSCAN', title: 'DBSCAN Clustering', desc: t('aiConfig.dbscanTitle'), accuracy: '88.5%', icon: GitBranch },
+    { name: 'Prophet', title: 'Prophet Time Series', desc: t('aiConfig.prophetTitle'), accuracy: '93.8%', icon: Calendar },
+    { name: 'NetworkAnalysis', title: 'Network Analysis', desc: t('aiConfig.networkAnalysisTitle'), accuracy: '90.2%', icon: Network },
+    { name: 'SYSCOHADACompliance', title: 'SYSCOHADA Compliance', desc: t('aiConfig.syscohadaTitle'), accuracy: '98.5%', icon: Shield },
+    { name: 'SVM', title: 'Support Vector Machine', desc: t('aiConfig.svmShortDesc'), accuracy: '89.5%', icon: Brain },
+    { name: 'XGBoost', title: 'XGBoost', desc: t('aiConfig.xgboostShortDesc'), accuracy: '93.1%', icon: BarChart3 }
   ];
 
   const activeAlgorithms = allAlgorithms.filter(algo => algorithmStatus[algo.name]);
@@ -427,7 +427,7 @@ const IAConfigPage: React.FC = () => {
               "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
               isActive ? "bg-[var(--color-primary)]" : "bg-gray-300"
             )}
-            title={isActive ? "Désactiver" : "Activer"}
+            title={isActive ? t('aiConfig.deactivate') : t('aiConfig.activate')}
           >
             <span
               className={cn(
@@ -443,12 +443,12 @@ const IAConfigPage: React.FC = () => {
               "text-xs font-medium",
               isActive ? "text-[var(--color-success)]" : "text-[var(--color-text-tertiary)]"
             )}>
-              {isActive ? 'Actif' : 'Inactif'}
+              {isActive ? t('aiConfig.statusActive') : t('aiConfig.statusInactive')}
             </span>
             {isActive && (
               <>
                 <span className="text-xs text-[var(--color-text-tertiary)]">•</span>
-                <span className="text-xs text-[var(--color-text-tertiary)]">{algo.accuracy} précision</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">{algo.accuracy} {t('aiConfig.accuracyLabel')}</span>
               </>
             )}
           </div>
@@ -464,7 +464,7 @@ const IAConfigPage: React.FC = () => {
             )}
             leftIcon={<Eye className="w-4 h-4" />}
           >
-            Voir Algorithme
+            {t('aiConfig.viewAlgorithm')}
           </ModernButton>
         </div>
       </div>
@@ -476,7 +476,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-          <span>Algorithmes Actifs ({activeAlgorithms.length})</span>
+          <span>{t('aiConfig.activeAlgorithms')} ({activeAlgorithms.length})</span>
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -488,7 +488,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2 text-[var(--color-text-secondary)]">
           <Activity className="w-5 h-5 text-[var(--color-text-tertiary)]" />
-          <span>Algorithmes Inactifs ({inactiveAlgorithms.length})</span>
+          <span>{t('aiConfig.inactiveAlgorithms')} ({inactiveAlgorithms.length})</span>
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -502,7 +502,7 @@ const IAConfigPage: React.FC = () => {
   const renderListView = () => (
     <ModernCard>
       <CardHeader>
-        <span>Liste des Algorithmes ({allAlgorithms.length})</span>
+        <span>{t('aiConfig.algorithmList')} ({allAlgorithms.length})</span>
       </CardHeader>
       <CardBody>
         <div className="divide-y divide-[var(--color-border)]">
@@ -527,13 +527,13 @@ const IAConfigPage: React.FC = () => {
                           ? "bg-green-100 text-green-700"
                           : "bg-gray-100 text-gray-700"
                       )}>
-                        {isActive ? 'Actif' : 'Inactif'}
+                        {isActive ? t('aiConfig.statusActive') : t('aiConfig.statusInactive')}
                       </span>
                     </div>
                     <p className="text-sm text-[var(--color-text-secondary)]">{algo.desc}</p>
                     {isActive && (
                       <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-                        Précision: {algo.accuracy}
+                        {t('aiConfig.precisionLabel')}: {algo.accuracy}
                       </p>
                     )}
                   </div>
@@ -543,7 +543,7 @@ const IAConfigPage: React.FC = () => {
                       "relative inline-flex h-6 w-11 items-center rounded-full transition-colors mr-3",
                       isActive ? "bg-[var(--color-primary)]" : "bg-gray-300"
                     )}
-                    title={isActive ? "Désactiver" : "Activer"}
+                    title={isActive ? t('aiConfig.deactivate') : t('aiConfig.activate')}
                   >
                     <span
                       className={cn(
@@ -559,7 +559,7 @@ const IAConfigPage: React.FC = () => {
                     size="sm"
                     leftIcon={<Eye className="w-4 h-4" />}
                   >
-                    Détails
+                    {t('aiConfig.details')}
                   </ModernButton>
                 </div>
               </div>
@@ -575,7 +575,7 @@ const IAConfigPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-          <h3 className="font-semibold text-[var(--color-text-primary)]">Actifs ({activeAlgorithms.length})</h3>
+          <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.activeShort')} ({activeAlgorithms.length})</h3>
         </div>
         <div className="space-y-3">
           {activeAlgorithms.map(algo => renderAlgorithmCard(algo, true))}
@@ -584,7 +584,7 @@ const IAConfigPage: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-[var(--color-text-tertiary)]" />
-          <h3 className="font-semibold text-[var(--color-text-secondary)]">Inactifs ({inactiveAlgorithms.length})</h3>
+          <h3 className="font-semibold text-[var(--color-text-secondary)]">{t('aiConfig.inactiveShort')} ({inactiveAlgorithms.length})</h3>
         </div>
         <div className="space-y-3">
           {inactiveAlgorithms.map(algo => renderAlgorithmCard(algo, false))}
@@ -598,11 +598,11 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Approche Hybride Innovante</span>
+          <span>{t('aiConfig.hybridApproachTitle')}</span>
         </CardHeader>
         <CardBody>
           <p className="text-[var(--color-text-secondary)] mb-6">
-            Le système Atlas FnA combine intelligemment règles métier déterministes et intelligence artificielle probabiliste pour une détection optimale des anomalies et recommandations précises.
+            {t('aiConfig.hybridApproachDesc')}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -611,8 +611,8 @@ const IAConfigPage: React.FC = () => {
                 <CheckCircle2 className="w-6 h-6" />
                 <h3 className="font-bold text-lg">40%</h3>
               </div>
-              <p className="text-sm opacity-90 font-semibold mb-2">Règles Déterministes</p>
-              <p className="text-xs opacity-75">Détection immédiate des violations évidentes: équilibre comptable, limites crédit, cohérence TVA</p>
+              <p className="text-sm opacity-90 font-semibold mb-2">{t('aiConfig.deterministicRules')}</p>
+              <p className="text-xs opacity-75">{t('aiConfig.deterministicRulesDesc')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040] rounded-lg p-6 text-white">
@@ -620,17 +620,17 @@ const IAConfigPage: React.FC = () => {
                 <Brain className="w-6 h-6" />
                 <h3 className="font-bold text-lg">60%</h3>
               </div>
-              <p className="text-sm opacity-90 font-semibold mb-2">ML Probabiliste</p>
-              <p className="text-xs opacity-75">Identification de patterns subtils et anomalies complexes via apprentissage continu</p>
+              <p className="text-sm opacity-90 font-semibold mb-2">{t('aiConfig.probabilisticMl')}</p>
+              <p className="text-xs opacity-75">{t('aiConfig.probabilisticMlDesc')}</p>
             </div>
 
             <div className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)] rounded-lg p-6 text-white">
               <div className="flex items-center gap-2 mb-3">
                 <Layers className="w-6 h-6" />
-                <h3 className="font-bold text-lg">Fusion</h3>
+                <h3 className="font-bold text-lg">{t('aiConfig.fusion')}</h3>
               </div>
-              <p className="text-sm opacity-90 font-semibold mb-2">Scoring Composite</p>
-              <p className="text-xs opacity-75">Boost de corrélation x2 quand règles et ML convergent sur la même détection</p>
+              <p className="text-sm opacity-90 font-semibold mb-2">{t('aiConfig.compositeScoring')}</p>
+              <p className="text-xs opacity-75">{t('aiConfig.compositeScoringDesc')}</p>
             </div>
           </div>
         </CardBody>
@@ -639,7 +639,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Settings className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Règles Métier Spécialisées</span>
+          <span>{t('aiConfig.specializedBusinessRules')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
@@ -647,36 +647,36 @@ const IAConfigPage: React.FC = () => {
               <div className="bg-[var(--color-primary-light)] px-4 py-2 border-b border-[var(--color-border)]">
                 <h4 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
                   <CheckCircle className="w-4 h-4" />
-                  Règles Comptables (15 règles)
+                  {t('aiConfig.accountingRules15')}
                 </h4>
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Équilibre Débit/Crédit</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Débit = Crédit pour toute écriture</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleDebitCreditBalance')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleDebitCreditBalanceDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Lettrage Automatique</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Factures/Paiements avec montants = 0</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleAutoMatching')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleAutoMatchingDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">TVA Cohérente</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Taux TVA selon régime fiscal</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleConsistentVat')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleConsistentVatDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Comptes Clés Obligatoires</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Présence comptes 401, 411, 512...</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleMandatoryKeyAccounts')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleMandatoryKeyAccountsDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -686,36 +686,36 @@ const IAConfigPage: React.FC = () => {
               <div className="bg-[var(--color-primary-light)] px-4 py-2 border-b border-[var(--color-border)]">
                 <h4 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
-                  Règles de Limites (8 règles)
+                  {t('aiConfig.limitRules8')}
                 </h4>
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Limite de Crédit Client</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Créances ≤ plafond autorisé</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleCustomerCreditLimit')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleCustomerCreditLimitDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Découvert Bancaire</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Solde ≥ découvert max autorisé</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleBankOverdraft')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleBankOverdraftDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Montants Suspects</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Transaction &gt; 3σ du montant moyen</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleSuspiciousAmounts')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleSuspiciousAmountsDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Seuil Cash OHADA</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Paiements cash &gt; 1M FCFA</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleOhadaCashThreshold')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleOhadaCashThresholdDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -725,36 +725,36 @@ const IAConfigPage: React.FC = () => {
               <div className="bg-[var(--color-primary-light)] px-4 py-2 border-b border-[var(--color-border)]">
                 <h4 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  Règles de Délais (6 règles)
+                  {t('aiConfig.deadlineRules6')}
                 </h4>
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Échéances Dépassées</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Date paiement &gt; date échéance</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleOverdueDates')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleOverdueDatesDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Retards Répétés</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">&gt; 3 retards en 6 mois = risque</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleRepeatedDelays')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleRepeatedDelaysDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Provisions SYSCOHADA</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">25% à 3 mois, 50% à 6 mois, 100% à 1 an</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleSyscohadaProvisions')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.provisionScaleDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Délais Fournisseurs</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Respect conditions négociées</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleSupplierTerms')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleSupplierTermsDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -764,36 +764,36 @@ const IAConfigPage: React.FC = () => {
               <div className="bg-[var(--color-primary-light)] px-4 py-2 border-b border-[var(--color-border)]">
                 <h4 className="font-semibold text-[var(--color-primary)] flex items-center gap-2">
                   <Shield className="w-4 h-4" />
-                  Règles Anti-Fraude (12 règles)
+                  {t('aiConfig.antiFraudRules12')}
                 </h4>
               </div>
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Transactions Rondes</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Montants arrondis suspects (1000.00)</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleRoundTransactions')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleRoundTransactionsDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Flux Circulaires</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">A→B→C→A avec montants similaires</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleCircularFlows')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleCircularFlowsDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Modifications Suspectes</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Édition après validation comptable</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleSuspiciousEdits')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleSuspiciousEditsDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Fractionnement Transactions</p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">Multiple petits montants = gros montant</p>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiConfig.ruleTransactionSplitting')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">{t('aiConfig.ruleTransactionSplittingDesc')}</p>
                   </div>
                 </div>
               </div>
@@ -805,7 +805,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Brain className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Algorithmes ML Diversifiés</span>
+          <span>{t('aiConfig.diversifiedMlAlgorithms')}</span>
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -814,10 +814,10 @@ const IAConfigPage: React.FC = () => {
                 <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">Isolation Forest</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-2">Détection d'anomalies complexes que les règles ne capturent pas</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('aiConfig.isoForestCardDesc')}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 bg-[var(--color-warning)] bg-opacity-20 text-[var(--color-warning)] rounded">89.7% précision</span>
-                <span className="text-[var(--color-text-tertiary)]">147 détections ce mois</span>
+                <span className="px-2 py-0.5 bg-[var(--color-warning)] bg-opacity-20 text-[var(--color-warning)] rounded">89.7% {t('aiConfig.accuracyLabel')}</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('aiConfig.isoForestDetections')}</span>
               </div>
             </div>
 
@@ -826,10 +826,10 @@ const IAConfigPage: React.FC = () => {
                 <GitBranch className="w-5 h-5 text-[var(--color-primary)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">DBSCAN Clustering</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-2">Segmentation comportementale des clients et fournisseurs</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('aiConfig.dbscanCardDesc')}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 bg-[var(--color-primary)] bg-opacity-20 text-[var(--color-primary)] rounded">88.5% précision</span>
-                <span className="text-[var(--color-text-tertiary)]">7 segments identifiés</span>
+                <span className="px-2 py-0.5 bg-[var(--color-primary)] bg-opacity-20 text-[var(--color-primary)] rounded">88.5% {t('aiConfig.accuracyLabel')}</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('aiConfig.dbscanSegmentsIdentified')}</span>
               </div>
             </div>
 
@@ -838,10 +838,10 @@ const IAConfigPage: React.FC = () => {
                 <TrendingUp className="w-5 h-5 text-[var(--color-success)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">LSTM Neural Network</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-2">Prévisions de trésorerie et détection de dérives temporelles</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('aiConfig.lstmCardDesc')}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)] rounded">94.2% précision</span>
-                <span className="text-[var(--color-text-tertiary)]">24,567 transactions</span>
+                <span className="px-2 py-0.5 bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)] rounded">94.2% {t('aiConfig.accuracyLabel')}</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('aiConfig.lstmTrainingData')}</span>
               </div>
             </div>
 
@@ -850,10 +850,10 @@ const IAConfigPage: React.FC = () => {
                 <Network className="w-5 h-5 text-[var(--color-error)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">Graph Analysis</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)] mb-2">Détection flux circulaires et réseaux de transactions suspects</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-2">{t('aiConfig.graphCardDesc')}</p>
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-2 py-0.5 bg-[var(--color-error)] bg-opacity-20 text-[var(--color-error)] rounded">90.2% précision</span>
-                <span className="text-[var(--color-text-tertiary)]">23 patterns détectés</span>
+                <span className="px-2 py-0.5 bg-[var(--color-error)] bg-opacity-20 text-[var(--color-error)] rounded">90.2% {t('aiConfig.accuracyLabel')}</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('aiConfig.graphPatternsDetected')}</span>
               </div>
             </div>
           </div>
@@ -863,49 +863,49 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Explainability Complète</span>
+          <span>{t('aiConfig.explainabilityTitle')}</span>
         </CardHeader>
         <CardBody>
           <p className="text-[var(--color-text-secondary)] mb-4">
-            Chaque détection est accompagnée d'une justification complète combinant règles métier et insights ML.
+            {t('aiConfig.explainabilityDesc')}
           </p>
 
           <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border-l-4 border-[var(--color-warning)]">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">Exemple: Transaction Suspecte Détectée</h4>
+                <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">{t('aiConfig.exampleSuspiciousTx')}</h4>
 
                 <div className="space-y-3 text-sm">
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Score de Risque: 87/100</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">{t('aiConfig.riskScore')}</p>
                     <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                       <div className="bg-[var(--color-warning)] h-2 rounded-full" style={{width: '87%'}}></div>
                     </div>
                   </div>
 
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Règles Violées (40 points):</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">{t('aiConfig.rulesViolated')}</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
-                      <li>Montant &gt; 3σ du profil client (+25 pts)</li>
-                      <li>Transaction hors heures ouvrées 23h (+15 pts)</li>
+                      <li>{t('aiConfig.violationAmountSigma')}</li>
+                      <li>{t('aiConfig.violationOffHours')}</li>
                     </ul>
                   </div>
 
                   <div>
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Détection ML (47 points):</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">{t('aiConfig.mlDetectionPoints')}</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
-                      <li>Isolation Forest: anomalie score 0.92 (+30 pts)</li>
-                      <li>Graph Analysis: flux circulaire détecté (+17 pts)</li>
+                      <li>{t('aiConfig.mlIsoForestScore')}</li>
+                      <li>{t('aiConfig.mlGraphCircular')}</li>
                     </ul>
                   </div>
 
                   <div className="pt-2 border-t border-[var(--color-border)]">
-                    <p className="font-medium text-[var(--color-text-primary)] mb-1">Actions Recommandées:</p>
+                    <p className="font-medium text-[var(--color-text-primary)] mb-1">{t('aiConfig.recommendedActions')}</p>
                     <ul className="list-disc list-inside text-[var(--color-text-secondary)] space-y-1 ml-2">
-                      <li>Demander justificatif au client</li>
-                      <li>Vérifier l'identité du bénéficiaire</li>
-                      <li>Marquer pour audit si répétition</li>
+                      <li>{t('aiConfig.actionRequestProof')}</li>
+                      <li>{t('aiConfig.actionVerifyBeneficiary')}</li>
+                      <li>{t('aiConfig.actionFlagForAudit')}</li>
                     </ul>
                   </div>
                 </div>
@@ -918,7 +918,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Target className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Use Cases Métier</span>
+          <span>{t('aiConfig.businessUseCases')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
@@ -928,12 +928,12 @@ const IAConfigPage: React.FC = () => {
                   <Shield className="w-5 h-5 text-[var(--color-error)]" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">1. Détection de Fraude</h4>
+                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">{t('aiConfig.useCaseFraud')}</h4>
                   <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                    Règle Anti-Fraude (flux circulaires) + Graph Analysis ML détecte un réseau de transactions suspectes A→B→C→A.
+                    {t('aiConfig.useCaseFraudDesc')}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-[var(--color-error)] bg-opacity-20 text-[var(--color-error)] text-xs rounded">Règle: 35 pts</span>
+                    <span className="px-2 py-1 bg-[var(--color-error)] bg-opacity-20 text-[var(--color-error)] text-xs rounded">{t('aiConfig.ruleShort')}: 35 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                     <span className="px-2 py-1 bg-[var(--color-error)] bg-opacity-20 text-[var(--color-error)] text-xs rounded">ML: 45 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -949,12 +949,12 @@ const IAConfigPage: React.FC = () => {
                   <Clock className="w-5 h-5 text-[var(--color-warning)]" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">2. Prévention Impayés</h4>
+                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">{t('aiConfig.useCaseUnpaid')}</h4>
                   <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                    Règles Délais (&gt;3 retards) + Gradient Boosting ML (analyse historique) identifie un client à risque élevé.
+                    {t('aiConfig.useCaseUnpaidDesc')}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-[var(--color-warning)] bg-opacity-20 text-[var(--color-warning)] text-xs rounded">Règle: 30 pts</span>
+                    <span className="px-2 py-1 bg-[var(--color-warning)] bg-opacity-20 text-[var(--color-warning)] text-xs rounded">{t('aiConfig.ruleShort')}: 30 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                     <span className="px-2 py-1 bg-[var(--color-warning)] bg-opacity-20 text-[var(--color-warning)] text-xs rounded">ML: 48 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -970,12 +970,12 @@ const IAConfigPage: React.FC = () => {
                   <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">3. Lettrage Intelligent</h4>
+                  <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">{t('aiConfig.useCaseSmartMatching')}</h4>
                   <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                    Règles Comptables (montant exact) + Random Forest ML (matching intelligent) optimise le lettrage automatique.
+                    {t('aiConfig.useCaseSmartMatchingDesc')}
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)] text-xs rounded">Règle: 40 pts</span>
+                    <span className="px-2 py-1 bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)] text-xs rounded">{t('aiConfig.ruleShort')}: 40 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                     <span className="px-2 py-1 bg-[var(--color-success)] bg-opacity-20 text-[var(--color-success)] text-xs rounded">ML: 56 pts</span>
                     <ArrowRight className="w-4 h-4 text-[var(--color-text-tertiary)]" />
@@ -991,24 +991,24 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Code className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Architecture Scalable</span>
+          <span>{t('aiConfig.scalableArchitecture')}</span>
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="flex items-center gap-2 mb-2">
                 <Activity className="w-5 h-5 text-[var(--color-primary)]" />
-                <h3 className="font-semibold text-[var(--color-text-primary)]">Pipeline Asynchrone</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.asyncPipeline')}</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Traitement parallèle règles + ML avec fusion intelligente des résultats</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.asyncPipelineDesc')}</p>
             </div>
 
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
               <div className="flex items-center gap-2 mb-2">
                 <Database className="w-5 h-5 text-[var(--color-primary)]" />
-                <h3 className="font-semibold text-[var(--color-text-primary)]">Cache Hybride</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.hybridCache')}</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Redis pour règles rapides, PostgreSQL pour historique ML</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.hybridCacheDesc')}</p>
             </div>
 
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1016,7 +1016,7 @@ const IAConfigPage: React.FC = () => {
                 <Layers className="w-5 h-5 text-[var(--color-primary)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">REST API</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)]">Endpoints unifiés /detect, /explain, /recommend pour intégration facile</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.restApiDesc')}</p>
             </div>
 
             <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1024,7 +1024,7 @@ const IAConfigPage: React.FC = () => {
                 <Gauge className="w-5 h-5 text-[var(--color-primary)]" />
                 <h3 className="font-semibold text-[var(--color-text-primary)]">{t('dashboard.performance')}</h3>
               </div>
-              <p className="text-sm text-[var(--color-text-secondary)]">&lt; 100ms latence moyenne pour détection temps réel</p>
+              <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.performanceDesc')}</p>
             </div>
           </div>
         </CardBody>
@@ -1033,7 +1033,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Zap className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Innovations Clés</span>
+          <span>{t('aiConfig.keyInnovations')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
@@ -1041,7 +1041,7 @@ const IAConfigPage: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 text-white font-bold">1</div>
               <div className="flex-1">
                 <h4 className="font-semibold text-[var(--color-text-primary)] mb-1">Correlation Scoring</h4>
-                <p className="text-sm text-[var(--color-text-secondary)]">Quand règles et ML détectent la même anomalie, le score final est boosté (x2) car la convergence renforce la confiance.</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.correlationScoringDesc')}</p>
                 <div className="mt-2 p-2 bg-white rounded border border-[var(--color-border)] font-mono text-xs">
                   <span className="text-[var(--color-text-tertiary)]">score_final = </span>
                   <span className="text-[var(--color-primary)]">0.4 * score_règles + 0.6 * score_ml + correlation_boost</span>
@@ -1053,7 +1053,7 @@ const IAConfigPage: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 text-white font-bold">2</div>
               <div className="flex-1">
                 <h4 className="font-semibold text-[var(--color-text-primary)] mb-1">Adaptive Thresholds</h4>
-                <p className="text-sm text-[var(--color-text-secondary)]">Les seuils de détection s'ajustent automatiquement selon le contexte (secteur, taille entreprise, saisonnalité) pour réduire les faux positifs.</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.adaptiveThresholdsDesc')}</p>
               </div>
             </div>
 
@@ -1061,7 +1061,7 @@ const IAConfigPage: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center flex-shrink-0 text-white font-bold">3</div>
               <div className="flex-1">
                 <h4 className="font-semibold text-[var(--color-text-primary)] mb-1">Feedback Loop</h4>
-                <p className="text-sm text-[var(--color-text-secondary)]">Les validations/corrections utilisateur aprimaryntent à la fois les règles (seuils ajustés) et le ML (réentraînement) pour amélioration continue.</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.feedbackLoopDesc')}</p>
               </div>
             </div>
           </div>
@@ -1075,52 +1075,52 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <RefreshCw className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Apprentissage Continu</span>
+          <span>{t('aiConfig.continuousLearning')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-4">
             <p className="text-[var(--color-text-secondary)]">
-              Les modèles d'IA de Atlas FnA s'améliorent constamment grâce à l'apprentissage continu basé sur vos données et votre feedback.
+              {t('aiConfig.continuousLearningDesc')}
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                 <div className="flex items-center gap-2 mb-2">
                   <Database className="w-5 h-5 text-[var(--color-primary)]" />
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Collecte de Données</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.dataCollection')}</h3>
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Les modèles collectent en continu les nouvelles transactions, factures et paiements pour enrichir leur base d'apprentissage.
+                  {t('aiConfig.dataCollectionDesc')}
                 </p>
               </div>
 
               <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-5 h-5 text-[var(--color-primary)]" />
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Feedback Utilisateur</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.userFeedback')}</h3>
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Chaque validation ou correction que vous faites permet aux modèles d'apprendre de leurs erreurs et d'améliorer leurs prédictions.
+                  {t('aiConfig.userFeedbackDesc')}
                 </p>
               </div>
 
               <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-5 h-5 text-[var(--color-primary)]" />
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Réentraînement Automatique</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.autoRetraining')}</h3>
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Les modèles sont automatiquement réentraînés toutes les semaines avec les nouvelles données pour maintenir une précision optimale.
+                  {t('aiConfig.autoRetrainingDesc')}
                 </p>
               </div>
 
               <div className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
                 <div className="flex items-center gap-2 mb-2">
                   <Shield className="w-5 h-5 text-[var(--color-primary)]" />
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Détection de Drift</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('aiConfig.driftDetection')}</h3>
                 </div>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Le système détecte automatiquement les dérives de performance et déclenche un réentraînement si nécessaire.
+                  {t('aiConfig.driftDetectionDesc')}
                 </p>
               </div>
             </div>
@@ -1131,7 +1131,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Processus de Mise à Jour</span>
+          <span>{t('aiConfig.updateProcess')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-6">
@@ -1140,10 +1140,9 @@ const IAConfigPage: React.FC = () => {
                 <span className="text-[var(--color-primary)] font-bold">1</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">Collecte des Données</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{t('aiConfig.stepDataCollection')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Les nouvelles transactions et feedbacks sont collectés et stockés dans un buffer d'apprentissage.
-                  Seuil: 1000 nouveaux échantillons minimum.
+                  {t('aiConfig.stepDataCollectionDesc')}
                 </p>
               </div>
             </div>
@@ -1153,9 +1152,9 @@ const IAConfigPage: React.FC = () => {
                 <span className="text-[var(--color-primary)] font-bold">2</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">Préparation des Features</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{t('aiConfig.stepFeaturePrep')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Les données brutes sont transformées en features exploitables par les algorithmes avec normalisation et encodage.
+                  {t('aiConfig.stepFeaturePrepDesc')}
                 </p>
               </div>
             </div>
@@ -1165,10 +1164,9 @@ const IAConfigPage: React.FC = () => {
                 <span className="text-[var(--color-primary)] font-bold">3</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">Réentraînement</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{t('aiConfig.stepRetraining')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Chaque modèle est réentraîné avec les données historiques + nouvelles données.
-                  Durée moyenne: 2-4 heures selon l'algorithme.
+                  {t('aiConfig.stepRetrainingDesc')}
                 </p>
               </div>
             </div>
@@ -1178,9 +1176,9 @@ const IAConfigPage: React.FC = () => {
                 <span className="text-[var(--color-primary)] font-bold">4</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">Validation</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{t('aiConfig.stepValidation')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Le nouveau modèle est validé sur un jeu de test. Si les métriques sont meilleures (+2% minimum), le modèle est déployé.
+                  {t('aiConfig.stepValidationDesc')}
                 </p>
               </div>
             </div>
@@ -1190,9 +1188,9 @@ const IAConfigPage: React.FC = () => {
                 <span className="text-[var(--color-primary)] font-bold">5</span>
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">Déploiement</h3>
+                <h3 className="font-semibold text-[var(--color-text-primary)] mb-1">{t('aiConfig.stepDeployment')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Le nouveau modèle remplace l'ancien de manière transparente. L'ancien est gardé en backup pendant 30 jours.
+                  {t('aiConfig.stepDeploymentDesc')}
                 </p>
               </div>
             </div>
@@ -1203,7 +1201,7 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Historique des Mises à Jour</span>
+          <span>{t('aiConfig.updateHistory')}</span>
         </CardHeader>
         <CardBody>
           <div className="space-y-3">
@@ -1212,12 +1210,12 @@ const IAConfigPage: React.FC = () => {
                 <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                 <div>
                   <p className="font-medium text-[var(--color-text-primary)]">LSTM Neural Network</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Dernière mise à jour: 15 janvier 2025</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.lastUpdateJan15')}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-[var(--color-success)]">+3.2%</p>
-                <p className="text-xs text-[var(--color-text-tertiary)]">Amélioration</p>
+                <p className="text-xs text-[var(--color-text-tertiary)]">{t('aiConfig.improvement')}</p>
               </div>
             </div>
 
@@ -1226,12 +1224,12 @@ const IAConfigPage: React.FC = () => {
                 <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                 <div>
                   <p className="font-medium text-[var(--color-text-primary)]">Random Forest</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Dernière mise à jour: 12 janvier 2025</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.lastUpdateJan12')}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-[var(--color-success)]">+2.8%</p>
-                <p className="text-xs text-[var(--color-text-tertiary)]">Amélioration</p>
+                <p className="text-xs text-[var(--color-text-tertiary)]">{t('aiConfig.improvement')}</p>
               </div>
             </div>
 
@@ -1240,12 +1238,12 @@ const IAConfigPage: React.FC = () => {
                 <RefreshCw className="w-5 h-5 text-[var(--color-warning)]" />
                 <div>
                   <p className="font-medium text-[var(--color-text-primary)]">Prophet Time Series</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Réentraînement en cours...</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.retrainingInProgress')}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-sm font-semibold text-[var(--color-warning)]">{t('status.inProgress')}</p>
-                <p className="text-xs text-[var(--color-text-tertiary)]">45% complété</p>
+                <p className="text-xs text-[var(--color-text-tertiary)]">{t('aiConfig.percentCompleted45')}</p>
               </div>
             </div>
           </div>
@@ -1255,24 +1253,24 @@ const IAConfigPage: React.FC = () => {
       <ModernCard>
         <CardHeader className="flex items-center gap-2">
           <Target className="w-5 h-5 text-[var(--color-primary)]" />
-          <span>Métriques de Performance</span>
+          <span>{t('aiConfig.performanceMetrics')}</span>
         </CardHeader>
         <CardBody>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
               <p className="text-lg font-bold text-[var(--color-primary)]">92.4%</p>
-              <p className="text-sm text-[var(--color-text-secondary)] mt-1">Précision Moyenne</p>
-              <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('aiConfig.averageAccuracy')}</p>
+              <p className="text-xs text-[var(--color-success)] mt-1">{t('aiConfig.plusThisMonth')}</p>
             </div>
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
               <p className="text-lg font-bold text-[var(--color-primary)]">15,247</p>
-              <p className="text-sm text-[var(--color-text-secondary)] mt-1">Feedbacks Collectés</p>
-              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Ce trimestre</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('aiConfig.feedbacksCollected')}</p>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('aiConfig.thisQuarter')}</p>
             </div>
             <div className="text-center p-4 bg-[var(--color-surface-hover)] rounded-lg border border-[var(--color-border)]">
               <p className="text-lg font-bold text-[var(--color-primary)]">7j</p>
-              <p className="text-sm text-[var(--color-text-secondary)] mt-1">Fréquence de Mise à Jour</p>
-              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Automatique</p>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-1">{t('aiConfig.updateFrequency')}</p>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('aiConfig.automatic')}</p>
             </div>
           </div>
         </CardBody>
@@ -1286,10 +1284,10 @@ const IAConfigPage: React.FC = () => {
         <div>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center gap-3">
             <Brain className="w-8 h-8 text-[var(--color-primary)]" />
-            Configuration IA & Algorithmes
+            {t('aiConfig.pageTitle')}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Gestion des algorithmes d'intelligence artificielle et machine learning
+            {t('aiConfig.pageSubtitle')}
           </p>
         </div>
 
@@ -1303,10 +1301,10 @@ const IAConfigPage: React.FC = () => {
                   ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
-              title="Vue liste"
+              title={t('aiConfig.viewListTooltip')}
             >
               <List className="w-4 h-4" />
-              <span className="text-sm hidden md:inline">Liste</span>
+              <span className="text-sm hidden md:inline">{t('aiConfig.viewList')}</span>
             </button>
             <button
               onClick={() => setViewMode('kanban')}
@@ -1316,7 +1314,7 @@ const IAConfigPage: React.FC = () => {
                   ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
-              title="Vue kanban"
+              title={t('aiConfig.viewKanbanTooltip')}
             >
               <LayoutGrid className="w-4 h-4" />
               <span className="text-sm hidden md:inline">Kanban</span>
@@ -1329,10 +1327,10 @@ const IAConfigPage: React.FC = () => {
                   ? "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
                   : "text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
               )}
-              title="Vue cartes"
+              title={t('aiConfig.viewCardsTooltip')}
             >
               <Grid3x3 className="w-4 h-4" />
-              <span className="text-sm hidden md:inline">Cartes</span>
+              <span className="text-sm hidden md:inline">{t('aiConfig.viewCards')}</span>
             </button>
           </div>
         )}
@@ -1349,7 +1347,7 @@ const IAConfigPage: React.FC = () => {
           )}
         >
           <Brain className="w-4 h-4" />
-          Algorithmes IA
+          {t('aiConfig.tabAlgorithms')}
         </button>
         <button
           onClick={() => setActiveTab('learning')}
@@ -1361,7 +1359,7 @@ const IAConfigPage: React.FC = () => {
           )}
         >
           <RefreshCw className="w-4 h-4" />
-          Apprentissage & Mises à Jour
+          {t('aiConfig.tabLearning')}
         </button>
         <button
           onClick={() => setActiveTab('hybrid')}
@@ -1373,7 +1371,7 @@ const IAConfigPage: React.FC = () => {
           )}
         >
           <Sparkles className="w-4 h-4" />
-          Système Hybride
+          {t('aiConfig.tabHybrid')}
         </button>
       </div>
 
@@ -1386,7 +1384,7 @@ const IAConfigPage: React.FC = () => {
               <Activity className="w-8 h-8 text-white opacity-80" />
               <span className="text-lg font-bold text-white">{activeAlgorithms.length}/{allAlgorithms.length}</span>
             </div>
-            <p className="text-sm text-white opacity-90">Modèles Actifs</p>
+            <p className="text-sm text-white opacity-90">{t('aiConfig.activeModels')}</p>
           </CardBody>
         </ModernCard>
         <ModernCard className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040]">
@@ -1395,7 +1393,7 @@ const IAConfigPage: React.FC = () => {
               <TrendingUp className="w-8 h-8 text-white opacity-80" />
               <span className="text-lg font-bold text-white">92.4%</span>
             </div>
-            <p className="text-sm text-white opacity-90">Précision Moyenne</p>
+            <p className="text-sm text-white opacity-90">{t('aiConfig.averageAccuracy')}</p>
           </CardBody>
         </ModernCard>
         <ModernCard className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)]">
@@ -1404,7 +1402,7 @@ const IAConfigPage: React.FC = () => {
               <Zap className="w-8 h-8 text-white opacity-80" />
               <span className="text-lg font-bold text-white">1,247</span>
             </div>
-            <p className="text-sm text-white opacity-90">Prédictions/jour</p>
+            <p className="text-sm text-white opacity-90">{t('aiConfig.predictionsPerDay')}</p>
           </CardBody>
         </ModernCard>
       </div>
@@ -1442,7 +1440,7 @@ const IAConfigPage: React.FC = () => {
                         <Brain className="w-6 h-6 text-white opacity-80" />
                         <span className="text-lg font-bold text-white">{algorithmDetails[selectedAlgo].type}</span>
                       </div>
-                      <p className="text-xs text-white opacity-90">Type d'Algorithme</p>
+                      <p className="text-xs text-white opacity-90">{t('aiConfig.algorithmType')}</p>
                     </CardBody>
                   </ModernCard>
                   <ModernCard className="bg-gradient-to-br from-[var(--color-text-secondary)] to-[#404040]">
@@ -1451,7 +1449,7 @@ const IAConfigPage: React.FC = () => {
                         <BarChart3 className="w-6 h-6 text-white opacity-80" />
                         <span className="text-lg font-bold text-white">{algorithmDetails[selectedAlgo].accuracy}</span>
                       </div>
-                      <p className="text-xs text-white opacity-90">Précision</p>
+                      <p className="text-xs text-white opacity-90">{t('aiConfig.precisionLabel')}</p>
                     </CardBody>
                   </ModernCard>
                   <ModernCard className="bg-gradient-to-br from-[var(--color-text-tertiary)] to-[var(--color-text-secondary)]">
@@ -1472,23 +1470,23 @@ const IAConfigPage: React.FC = () => {
                         </span>
                       </div>
                       <p className="text-xs text-white opacity-90">
-                        {selectedAlgo === 'LSTM' && 'Données d\'Entraînement'}
-                        {selectedAlgo === 'IsolationForest' && 'Anomalies Détectées'}
-                        {selectedAlgo === 'RandomForest' && 'Taux d\'Adoption'}
-                        {selectedAlgo === 'GradientBoosting' && 'Clients à Risque'}
-                        {selectedAlgo === 'DBSCAN' && 'Segments Identifiés'}
-                        {selectedAlgo === 'Prophet' && 'Horizon de Prévision'}
-                        {selectedAlgo === 'NetworkAnalysis' && 'Patterns Détectés'}
-                        {selectedAlgo === 'SYSCOHADACompliance' && 'Règles Intégrées'}
-                        {selectedAlgo === 'SVM' && 'Classes Identifiées'}
-                        {selectedAlgo === 'XGBoost' && 'Prédictions/Mois'}
+                        {selectedAlgo === 'LSTM' && t('aiConfig.trainingDataLabel')}
+                        {selectedAlgo === 'IsolationForest' && t('aiConfig.anomaliesDetected')}
+                        {selectedAlgo === 'RandomForest' && t('aiConfig.adoptionRate')}
+                        {selectedAlgo === 'GradientBoosting' && t('aiConfig.customersAtRisk')}
+                        {selectedAlgo === 'DBSCAN' && t('aiConfig.segmentsIdentified')}
+                        {selectedAlgo === 'Prophet' && t('aiConfig.forecastHorizon')}
+                        {selectedAlgo === 'NetworkAnalysis' && t('aiConfig.patternsDetected')}
+                        {selectedAlgo === 'SYSCOHADACompliance' && t('aiConfig.integratedRules')}
+                        {selectedAlgo === 'SVM' && t('aiConfig.classesIdentified')}
+                        {selectedAlgo === 'XGBoost' && t('aiConfig.predictionsPerMonth')}
                       </p>
                     </CardBody>
                   </ModernCard>
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Description</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.descriptionTitle')}</h3>
                   <p className="text-[var(--color-text-secondary)] leading-relaxed">
                     {algorithmDetails[selectedAlgo].description}
                   </p>
@@ -1496,7 +1494,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'LSTM' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1510,7 +1508,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'LSTM' && algorithmDetails[selectedAlgo].inputVariables && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Variables d'Entrée</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.inputVariablesTitle')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].inputVariables.map((variable: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1532,7 +1530,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'IsolationForest' && algorithmDetails[selectedAlgo].detectionCriteria && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Critères de Détection</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.detectionCriteriaTitle')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: AlgoDetectionCriteria, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1540,7 +1538,7 @@ const IAConfigPage: React.FC = () => {
                             <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                             <p className="font-medium text-[var(--color-text-primary)]">{criteria.name}</p>
                           </div>
-                          <p className="text-sm text-[var(--color-text-secondary)]">Seuil: <span className="font-semibold text-[var(--color-primary)]">{criteria.threshold}</span></p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.thresholdLabel')}: <span className="font-semibold text-[var(--color-primary)]">{criteria.threshold}</span></p>
                         </div>
                       ))}
                     </div>
@@ -1549,7 +1547,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'RandomForest' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1563,7 +1561,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'RandomForest' && algorithmDetails[selectedAlgo].features && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.featuresUsed')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1585,7 +1583,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'GradientBoosting' && algorithmDetails[selectedAlgo].riskIndicators && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Indicateurs de Risque</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.riskIndicatorsTitle')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].riskIndicators.map((indicator: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1607,7 +1605,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'DBSCAN' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1621,7 +1619,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'DBSCAN' && algorithmDetails[selectedAlgo].features && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Analysées</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.featuresAnalyzed')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1643,7 +1641,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'Prophet' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1657,7 +1655,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'Prophet' && algorithmDetails[selectedAlgo].inputVariables && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Variables d'Entrée</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.inputVariablesTitle')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].inputVariables.map((variable: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1679,7 +1677,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'NetworkAnalysis' && algorithmDetails[selectedAlgo].detectionCriteria && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Critères de Détection</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.detectionCriteriaTitle')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].detectionCriteria.map((criteria: AlgoDetectionCriteria, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1687,7 +1685,7 @@ const IAConfigPage: React.FC = () => {
                             <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                             <p className="font-medium text-[var(--color-text-primary)]">{criteria.name}</p>
                           </div>
-                          <p className="text-sm text-[var(--color-text-secondary)]">Seuil: <span className="font-semibold text-[var(--color-primary)]">{criteria.threshold}</span></p>
+                          <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.thresholdLabel')}: <span className="font-semibold text-[var(--color-primary)]">{criteria.threshold}</span></p>
                         </div>
                       ))}
                     </div>
@@ -1696,7 +1694,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'SYSCOHADACompliance' && algorithmDetails[selectedAlgo].ruleCategories && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Règles SYSCOHADA par Catégorie</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.syscohadaRulesByCategory')}</h3>
                     <div className="space-y-4">
                       {algorithmDetails[selectedAlgo].ruleCategories.map((category: AlgoRuleCategory, idx: number) => (
                         <div key={idx} className="border border-[var(--color-border)] rounded-lg overflow-hidden">
@@ -1725,7 +1723,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'SYSCOHADACompliance' && algorithmDetails[selectedAlgo].mlDetections && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Détections ML OHADA</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.ohadaMlDetections')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].mlDetections.map((detection: AlgoMlDetection, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1742,7 +1740,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'SVM' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1756,7 +1754,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'SVM' && algorithmDetails[selectedAlgo].features && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.featuresUsed')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1778,7 +1776,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'SVM' && algorithmDetails[selectedAlgo].classifications && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Classifications par Catégorie</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.classificationsByCategory')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].classifications.map((classification: AlgoClassification, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1794,7 +1792,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'XGBoost' && algorithmDetails[selectedAlgo].parameters && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Paramètres du Modèle</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.modelParameters')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].parameters.map((param: AlgoParam, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1808,7 +1806,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'XGBoost' && algorithmDetails[selectedAlgo].features && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Features Utilisées</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.featuresUsed')}</h3>
                     <div className="space-y-3">
                       {algorithmDetails[selectedAlgo].features.map((feature: AlgoFeature, idx: number) => (
                         <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1830,7 +1828,7 @@ const IAConfigPage: React.FC = () => {
 
                 {selectedAlgo === 'XGBoost' && algorithmDetails[selectedAlgo].useCases && (
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">Cas d'Usage</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">{t('aiConfig.useCasesTitle')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {algorithmDetails[selectedAlgo].useCases.map((useCase: AlgoUseCase, idx: number) => (
                         <div key={idx} className="bg-[var(--color-surface-hover)] rounded-lg p-4 border border-[var(--color-border)]">
@@ -1838,7 +1836,7 @@ const IAConfigPage: React.FC = () => {
                             <p className="font-medium text-[var(--color-text-primary)]">{useCase.name}</p>
                             <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
                           </div>
-                          <p className="text-sm text-[var(--color-success)] font-semibold">Précision: {useCase.accuracy}</p>
+                          <p className="text-sm text-[var(--color-success)] font-semibold">{t('aiConfig.precisionLabel')}: {useCase.accuracy}</p>
                         </div>
                       ))}
                     </div>
@@ -1850,13 +1848,13 @@ const IAConfigPage: React.FC = () => {
                     className="bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)]"
                     leftIcon={<Download className="w-4 h-4" />}
                   >
-                    Exporter Modèle
+                    {t('aiConfig.exportModel')}
                   </ModernButton>
                   <ModernButton
                     variant="outline"
                     leftIcon={<Activity className="w-4 h-4" />}
                   >
-                    Voir Performances
+                    {t('aiConfig.viewPerformance')}
                   </ModernButton>
                 </div>
               </CardBody>

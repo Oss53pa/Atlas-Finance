@@ -56,11 +56,13 @@ import { cn } from '../../lib/utils';
 
 interface AccountingSetting {
   id: string;
-  label: string;
-  description: string;
+  /** Clé i18n du libellé (namespace acctSettings) */
+  labelKey: string;
+  /** Clé i18n de la description (namespace acctSettings) */
+  descKey: string;
   value: string | number | boolean;
   type: 'select' | 'number' | 'boolean' | 'text' | 'date';
-  options?: { value: string; label: string }[];
+  options?: { value: string; labelKey: string }[];
   min?: number;
   max?: number;
   required?: boolean;
@@ -89,53 +91,53 @@ const AccountingSettingsPage: React.FC = () => {
     general: [
       {
         id: 'plan_comptable',
-        label: 'Plan comptable',
-        description: 'Type de plan comptable utilisé',
+        labelKey: 'acctSettings.sPlanComptable',
+        descKey: 'acctSettings.sPlanComptableDesc',
         value: 'SYSCOHADA',
         type: 'select',
         options: [
-          { value: 'SYSCOHADA', label: 'SYSCOHADA Révisé' },
-          { value: 'SYSCOHADA_BANQUE', label: 'SYSCOHADA Banque' },
-          { value: 'SYSCOHADA_ASSURANCE', label: 'SYSCOHADA Assurance' },
-          { value: 'CUSTOM', label: 'Plan personnalisé' }
+          { value: 'SYSCOHADA', labelKey: 'acctSettings.optSyscohadaRevise' },
+          { value: 'SYSCOHADA_BANQUE', labelKey: 'acctSettings.optSyscohadaBanque' },
+          { value: 'SYSCOHADA_ASSURANCE', labelKey: 'acctSettings.optSyscohadaAssurance' },
+          { value: 'CUSTOM', labelKey: 'acctSettings.optPlanPersonnalise' }
         ],
         required: true,
         category: 'general'
       },
       {
         id: 'exercice_fiscal',
-        label: 'Exercice fiscal',
-        description: 'Période de l\'exercice comptable',
+        labelKey: 'acctSettings.sExerciceFiscal',
+        descKey: 'acctSettings.sExerciceFiscalDesc',
         value: '01/01 - 31/12',
         type: 'select',
         options: [
-          { value: '01/01 - 31/12', label: 'Année civile (Jan - Déc)' },
-          { value: '01/07 - 30/06', label: 'Juillet - Juin' },
-          { value: '01/10 - 30/09', label: 'Octobre - Septembre' },
-          { value: 'CUSTOM', label: 'Personnalisé' }
+          { value: '01/01 - 31/12', labelKey: 'acctSettings.optAnneeCivile' },
+          { value: '01/07 - 30/06', labelKey: 'acctSettings.optJuilletJuin' },
+          { value: '01/10 - 30/09', labelKey: 'acctSettings.optOctobreSeptembre' },
+          { value: 'CUSTOM', labelKey: 'acctSettings.optPersonnalise' }
         ],
         required: true,
         category: 'general'
       },
       {
         id: 'devise_principale',
-        label: 'Devise principale',
-        description: 'Devise de référence pour la comptabilité',
+        labelKey: 'acctSettings.sDevisePrincipale',
+        descKey: 'acctSettings.sDevisePrincipaleDesc',
         value: 'XAF',
         type: 'select',
         options: [
-          { value: 'XAF', label: 'Franc CFA (XAF)' },
-          { value: 'EUR', label: 'Euro (EUR)' },
-          { value: 'USD', label: 'Dollar US (USD)' },
-          { value: 'GBP', label: 'Livre Sterling (GBP)' }
+          { value: 'XAF', labelKey: 'acctSettings.optXaf' },
+          { value: 'EUR', labelKey: 'acctSettings.optEur' },
+          { value: 'USD', labelKey: 'acctSettings.optUsd' },
+          { value: 'GBP', labelKey: 'acctSettings.optGbp' }
         ],
         required: true,
         category: 'general'
       },
       {
         id: 'multi_devise',
-        label: 'Multi-devises',
-        description: 'Activer la gestion multi-devises',
+        labelKey: 'acctSettings.sMultiDevise',
+        descKey: 'acctSettings.sMultiDeviseDesc',
         value: true,
         type: 'boolean',
         category: 'general'
@@ -144,38 +146,38 @@ const AccountingSettingsPage: React.FC = () => {
     saisie: [
       {
         id: 'methode_saisie',
-        label: 'Méthode de saisie',
-        description: 'Mode de saisie des écritures',
+        labelKey: 'acctSettings.sMethodeSaisie',
+        descKey: 'acctSettings.sMethodeSaisieDesc',
         value: 'PARTIE_DOUBLE',
         type: 'select',
         options: [
-          { value: 'PARTIE_DOUBLE', label: 'Partie double' },
-          { value: 'SIMPLIFIEE', label: 'Saisie simplifiée' },
-          { value: 'GUIDEE', label: 'Saisie guidée' }
+          { value: 'PARTIE_DOUBLE', labelKey: 'acctSettings.optPartieDouble' },
+          { value: 'SIMPLIFIEE', labelKey: 'acctSettings.optSaisieSimplifiee' },
+          { value: 'GUIDEE', labelKey: 'acctSettings.optSaisieGuidee' }
         ],
         required: true,
         category: 'saisie'
       },
       {
         id: 'controle_equilibre',
-        label: 'Contrôle d\'équilibre',
-        description: 'Vérifier l\'équilibre des écritures',
+        labelKey: 'acctSettings.sControleEquilibre',
+        descKey: 'acctSettings.sControleEquilibreDesc',
         value: true,
         type: 'boolean',
         category: 'saisie'
       },
       {
         id: 'lettrage_auto',
-        label: 'Lettrage automatique',
-        description: 'Activer le lettrage automatique des comptes',
+        labelKey: 'acctSettings.sLettrageAuto',
+        descKey: 'acctSettings.sLettrageAutoDesc',
         value: true,
         type: 'boolean',
         category: 'saisie'
       },
       {
         id: 'validation_pieces',
-        label: 'Validation des pièces',
-        description: 'Rendre obligatoire l\'ajout de pièces justificatives',
+        labelKey: 'acctSettings.sValidationPieces',
+        descKey: 'acctSettings.sValidationPiecesDesc',
         value: false,
         type: 'boolean',
         category: 'saisie'
@@ -184,8 +186,8 @@ const AccountingSettingsPage: React.FC = () => {
     affichage: [
       {
         id: 'decimales',
-        label: 'Nombre de décimales',
-        description: 'Précision des montants',
+        labelKey: 'acctSettings.sDecimales',
+        descKey: 'acctSettings.sDecimalesDesc',
         value: 2,
         type: 'number',
         min: 0,
@@ -195,35 +197,35 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'separateur_milliers',
-        label: 'Séparateur de milliers',
-        description: 'Caractère pour séparer les milliers',
+        labelKey: 'acctSettings.sSeparateurMilliers',
+        descKey: 'acctSettings.sSeparateurMilliersDesc',
         value: ' ',
         type: 'select',
         options: [
-          { value: ' ', label: 'Espace' },
-          { value: ',', label: 'Virgule' },
-          { value: '.', label: 'Point' },
-          { value: '', label: 'Aucun' }
+          { value: ' ', labelKey: 'acctSettings.optEspace' },
+          { value: ',', labelKey: 'acctSettings.optVirgule' },
+          { value: '.', labelKey: 'acctSettings.optPoint' },
+          { value: '', labelKey: 'acctSettings.optAucun' }
         ],
         category: 'affichage'
       },
       {
         id: 'format_date',
-        label: 'Format de date',
-        description: 'Format d\'affichage des dates',
+        labelKey: 'acctSettings.sFormatDate',
+        descKey: 'acctSettings.sFormatDateDesc',
         value: 'DD/MM/YYYY',
         type: 'select',
         options: [
-          { value: 'DD/MM/YYYY', label: 'JJ/MM/AAAA' },
-          { value: 'MM/DD/YYYY', label: 'MM/JJ/AAAA' },
-          { value: 'YYYY-MM-DD', label: 'AAAA-MM-JJ' }
+          { value: 'DD/MM/YYYY', labelKey: 'acctSettings.optDateDmy' },
+          { value: 'MM/DD/YYYY', labelKey: 'acctSettings.optDateMdy' },
+          { value: 'YYYY-MM-DD', labelKey: 'acctSettings.optDateYmd' }
         ],
         category: 'affichage'
       },
       {
         id: 'afficher_soldes_nuls',
-        label: 'Afficher soldes nuls',
-        description: 'Afficher les comptes avec solde nul',
+        labelKey: 'acctSettings.sAfficherSoldesNuls',
+        descKey: 'acctSettings.sAfficherSoldesNulsDesc',
         value: false,
         type: 'boolean',
         category: 'affichage'
@@ -232,31 +234,31 @@ const AccountingSettingsPage: React.FC = () => {
     cloture: [
       {
         id: 'frequence_cloture',
-        label: 'Fréquence de clôture',
-        description: 'Périodicité des clôtures comptables',
+        labelKey: 'acctSettings.sFrequenceCloture',
+        descKey: 'acctSettings.sFrequenceClotureDesc',
         value: 'MENSUELLE',
         type: 'select',
         options: [
-          { value: 'MENSUELLE', label: 'Mensuelle' },
-          { value: 'TRIMESTRIELLE', label: 'Trimestrielle' },
-          { value: 'SEMESTRIELLE', label: 'Semestrielle' },
-          { value: 'ANNUELLE', label: 'Annuelle' }
+          { value: 'MENSUELLE', labelKey: 'acctSettings.optMensuelle' },
+          { value: 'TRIMESTRIELLE', labelKey: 'acctSettings.optTrimestrielle' },
+          { value: 'SEMESTRIELLE', labelKey: 'acctSettings.optSemestrielle' },
+          { value: 'ANNUELLE', labelKey: 'acctSettings.optAnnuelle' }
         ],
         required: true,
         category: 'cloture'
       },
       {
         id: 'cloture_auto',
-        label: 'Clôture automatique',
-        description: 'Activer la clôture automatique des périodes',
+        labelKey: 'acctSettings.sClotureAuto',
+        descKey: 'acctSettings.sClotureAutoDesc',
         value: false,
         type: 'boolean',
         category: 'cloture'
       },
       {
         id: 'delai_cloture',
-        label: 'Délai de clôture (jours)',
-        description: 'Nombre de jours après la fin de période',
+        labelKey: 'acctSettings.sDelaiCloture',
+        descKey: 'acctSettings.sDelaiClotureDesc',
         value: 15,
         type: 'number',
         min: 1,
@@ -265,8 +267,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'verrouillage_periode',
-        label: 'Verrouillage des périodes',
-        description: 'Empêcher les modifications après clôture',
+        labelKey: 'acctSettings.sVerrouillagePeriode',
+        descKey: 'acctSettings.sVerrouillagePeriodeDesc',
         value: true,
         type: 'boolean',
         category: 'cloture'
@@ -275,16 +277,16 @@ const AccountingSettingsPage: React.FC = () => {
     taxes: [
       {
         id: 'tva_applicable',
-        label: 'TVA applicable',
-        description: 'Assujettissement à la TVA',
+        labelKey: 'acctSettings.sTvaApplicable',
+        descKey: 'acctSettings.sTvaApplicableDesc',
         value: true,
         type: 'boolean',
         category: 'taxes'
       },
       {
         id: 'taux_tva_normal',
-        label: 'Taux TVA normal (%)',
-        description: 'Taux de TVA par défaut',
+        labelKey: 'acctSettings.sTauxTvaNormal',
+        descKey: 'acctSettings.sTauxTvaNormalDesc',
         value: 19.25,
         type: 'number',
         min: 0,
@@ -293,8 +295,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_tva_reduit',
-        label: 'Taux TVA réduit (%)',
-        description: 'Taux de TVA réduit',
+        labelKey: 'acctSettings.sTauxTvaReduit',
+        descKey: 'acctSettings.sTauxTvaReduitDesc',
         value: 5.5,
         type: 'number',
         min: 0,
@@ -303,34 +305,34 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'regime_fiscal',
-        label: 'Régime fiscal',
-        description: 'Régime d\'imposition de l\'entreprise',
+        labelKey: 'acctSettings.sRegimeFiscal',
+        descKey: 'acctSettings.sRegimeFiscalDesc',
         value: 'REEL',
         type: 'select',
         options: [
-          { value: 'REEL', label: 'Régime réel' },
-          { value: 'SIMPLIFIE', label: 'Régime simplifié' },
-          { value: 'LIBERATOIRE', label: 'Régime libératoire' }
+          { value: 'REEL', labelKey: 'acctSettings.optRegimeReel' },
+          { value: 'SIMPLIFIE', labelKey: 'acctSettings.optRegimeSimplifie' },
+          { value: 'LIBERATOIRE', labelKey: 'acctSettings.optRegimeLiberatoire' }
         ],
         category: 'taxes'
       },
       {
         id: 'declaration_tva',
-        label: 'Déclaration TVA',
-        description: 'Périodicité de déclaration',
+        labelKey: 'acctSettings.sDeclarationTva',
+        descKey: 'acctSettings.sDeclarationTvaDesc',
         value: 'MENSUELLE',
         type: 'select',
         options: [
-          { value: 'MENSUELLE', label: 'Mensuelle' },
-          { value: 'TRIMESTRIELLE', label: 'Trimestrielle' },
-          { value: 'ANNUELLE', label: 'Annuelle' }
+          { value: 'MENSUELLE', labelKey: 'acctSettings.optMensuelle' },
+          { value: 'TRIMESTRIELLE', labelKey: 'acctSettings.optTrimestrielle' },
+          { value: 'ANNUELLE', labelKey: 'acctSettings.optAnnuelle' }
         ],
         category: 'taxes'
       },
       {
         id: 'retenue_source',
-        label: 'Retenue à la source',
-        description: 'Taux de retenue à la source (%)',
+        labelKey: 'acctSettings.sRetenueSource',
+        descKey: 'acctSettings.sRetenueSourceDesc',
         value: 5.5,
         type: 'number',
         min: 0,
@@ -341,16 +343,16 @@ const AccountingSettingsPage: React.FC = () => {
     analytique: [
       {
         id: 'comptabilite_analytique',
-        label: 'Comptabilité analytique',
-        description: 'Activer la comptabilité analytique',
+        labelKey: 'acctSettings.sComptabiliteAnalytique',
+        descKey: 'acctSettings.sComptabiliteAnalytiqueDesc',
         value: true,
         type: 'boolean',
         category: 'analytique'
       },
       {
         id: 'nb_axes_analytiques',
-        label: 'Nombre d\'axes analytiques',
-        description: 'Nombre maximum d\'axes analytiques',
+        labelKey: 'acctSettings.sNbAxesAnalytiques',
+        descKey: 'acctSettings.sNbAxesAnalytiquesDesc',
         value: 3,
         type: 'number',
         min: 1,
@@ -359,16 +361,16 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'ventilation_obligatoire',
-        label: 'Ventilation obligatoire',
-        description: 'Rendre obligatoire la ventilation analytique',
+        labelKey: 'acctSettings.sVentilationObligatoire',
+        descKey: 'acctSettings.sVentilationObligatoireDesc',
         value: false,
         type: 'boolean',
         category: 'analytique'
       },
       {
         id: 'controle_ventilation',
-        label: 'Contrôle ventilation 100%',
-        description: 'Vérifier que la ventilation totalise 100%',
+        labelKey: 'acctSettings.sControleVentilation',
+        descKey: 'acctSettings.sControleVentilationDesc',
         value: true,
         type: 'boolean',
         category: 'analytique'
@@ -377,37 +379,37 @@ const AccountingSettingsPage: React.FC = () => {
     immobilisations: [
       {
         id: 'gestion_immobilisations',
-        label: 'Gestion des immobilisations',
-        description: 'Activer le module immobilisations',
+        labelKey: 'acctSettings.sGestionImmobilisations',
+        descKey: 'acctSettings.sGestionImmobilisationsDesc',
         value: true,
         type: 'boolean',
         category: 'immobilisations'
       },
       {
         id: 'amortissement_auto',
-        label: 'Amortissement automatique',
-        description: 'Calcul automatique des amortissements',
+        labelKey: 'acctSettings.sAmortissementAuto',
+        descKey: 'acctSettings.sAmortissementAutoDesc',
         value: true,
         type: 'boolean',
         category: 'immobilisations'
       },
       {
         id: 'methode_amortissement',
-        label: 'Méthode d\'amortissement par défaut',
-        description: 'Méthode d\'amortissement par défaut',
+        labelKey: 'acctSettings.sMethodeAmortissement',
+        descKey: 'acctSettings.sMethodeAmortissementDesc',
         value: 'LINEAIRE',
         type: 'select',
         options: [
-          { value: 'LINEAIRE', label: 'Linéaire' },
-          { value: 'DEGRESSIF', label: 'Dégressif' },
-          { value: 'VARIABLE', label: 'Variable' }
+          { value: 'LINEAIRE', labelKey: 'acctSettings.optLineaire' },
+          { value: 'DEGRESSIF', labelKey: 'acctSettings.optDegressif' },
+          { value: 'VARIABLE', labelKey: 'acctSettings.optVariable' }
         ],
         category: 'immobilisations'
       },
       {
         id: 'seuil_immobilisation',
-        label: 'Seuil d\'immobilisation',
-        description: 'Montant minimum pour considérer comme immobilisation',
+        labelKey: 'acctSettings.sSeuilImmobilisation',
+        descKey: 'acctSettings.sSeuilImmobilisationDesc',
         value: 500,
         type: 'number',
         min: 0,
@@ -416,8 +418,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_amortissement_batiments',
-        label: 'Taux amortissement bâtiments (%)',
-        description: 'Taux d\'amortissement annuel pour les bâtiments',
+        labelKey: 'acctSettings.sTauxAmortBatiments',
+        descKey: 'acctSettings.sTauxAmortBatimentsDesc',
         value: 5,
         type: 'number',
         min: 1,
@@ -426,8 +428,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_amortissement_mobilier',
-        label: 'Taux amortissement mobilier (%)',
-        description: 'Taux d\'amortissement annuel pour le mobilier',
+        labelKey: 'acctSettings.sTauxAmortMobilier',
+        descKey: 'acctSettings.sTauxAmortMobilierDesc',
         value: 10,
         type: 'number',
         min: 5,
@@ -436,8 +438,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_amortissement_materiel',
-        label: 'Taux amortissement matériel (%)',
-        description: 'Taux d\'amortissement annuel pour le matériel',
+        labelKey: 'acctSettings.sTauxAmortMateriel',
+        descKey: 'acctSettings.sTauxAmortMaterielDesc',
         value: 20,
         type: 'number',
         min: 10,
@@ -446,8 +448,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_amortissement_informatique',
-        label: 'Taux amortissement informatique (%)',
-        description: 'Taux d\'amortissement annuel pour le matériel informatique',
+        labelKey: 'acctSettings.sTauxAmortInformatique',
+        descKey: 'acctSettings.sTauxAmortInformatiqueDesc',
         value: 33.33,
         type: 'number',
         min: 20,
@@ -456,8 +458,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'taux_amortissement_vehicules',
-        label: 'Taux amortissement véhicules (%)',
-        description: 'Taux d\'amortissement annuel pour les véhicules',
+        labelKey: 'acctSettings.sTauxAmortVehicules',
+        descKey: 'acctSettings.sTauxAmortVehiculesDesc',
         value: 20,
         type: 'number',
         min: 10,
@@ -466,8 +468,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'coefficient_degressif',
-        label: 'Coefficient dégressif',
-        description: 'Coefficient pour l\'amortissement dégressif',
+        labelKey: 'acctSettings.sCoefficientDegressif',
+        descKey: 'acctSettings.sCoefficientDegressifDesc',
         value: 2.5,
         type: 'number',
         min: 1.25,
@@ -476,8 +478,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'prorata_temporis',
-        label: 'Prorata temporis',
-        description: 'Appliquer le prorata temporis sur la première année',
+        labelKey: 'acctSettings.sProrataTemporis',
+        descKey: 'acctSettings.sProrataTemporisDesc',
         value: true,
         type: 'boolean',
         category: 'immobilisations'
@@ -486,32 +488,32 @@ const AccountingSettingsPage: React.FC = () => {
     tresorerie: [
       {
         id: 'rapprochement_auto',
-        label: 'Rapprochement automatique',
-        description: 'Activer le rapprochement bancaire automatique',
+        labelKey: 'acctSettings.sRapprochementAuto',
+        descKey: 'acctSettings.sRapprochementAutoDesc',
         value: true,
         type: 'boolean',
         category: 'tresorerie'
       },
       {
         id: 'controle_decouvert',
-        label: 'Contrôle découvert',
-        description: 'Alerter en cas de solde négatif',
+        labelKey: 'acctSettings.sControleDecouvert',
+        descKey: 'acctSettings.sControleDecouvertDesc',
         value: true,
         type: 'boolean',
         category: 'tresorerie'
       },
       {
         id: 'previsions_tresorerie',
-        label: 'Prévisions de trésorerie',
-        description: 'Activer les prévisions de trésorerie',
+        labelKey: 'acctSettings.sPrevisionsTresorerie',
+        descKey: 'acctSettings.sPrevisionsTresorerieDesc',
         value: true,
         type: 'boolean',
         category: 'tresorerie'
       },
       {
         id: 'horizon_prevision',
-        label: 'Horizon de prévision (mois)',
-        description: 'Nombre de mois pour les prévisions',
+        labelKey: 'acctSettings.sHorizonPrevision',
+        descKey: 'acctSettings.sHorizonPrevisionDesc',
         value: 12,
         type: 'number',
         min: 1,
@@ -522,24 +524,24 @@ const AccountingSettingsPage: React.FC = () => {
     budget: [
       {
         id: 'gestion_budget',
-        label: 'Gestion budgétaire',
-        description: 'Activer la gestion budgétaire',
+        labelKey: 'acctSettings.sGestionBudget',
+        descKey: 'acctSettings.sGestionBudgetDesc',
         value: true,
         type: 'boolean',
         category: 'budget'
       },
       {
         id: 'controle_budget',
-        label: 'Contrôle budgétaire',
-        description: 'Alerter lors du dépassement budgétaire',
+        labelKey: 'acctSettings.sControleBudget',
+        descKey: 'acctSettings.sControleBudgetDesc',
         value: true,
         type: 'boolean',
         category: 'budget'
       },
       {
         id: 'seuil_alerte_budget',
-        label: 'Seuil d\'alerte (%)',
-        description: 'Pourcentage de consommation pour alerter',
+        labelKey: 'acctSettings.sSeuilAlerteBudget',
+        descKey: 'acctSettings.sSeuilAlerteBudgetDesc',
         value: 80,
         type: 'number',
         min: 50,
@@ -548,8 +550,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'revision_budget',
-        label: 'Révision budgétaire',
-        description: 'Permettre la révision des budgets en cours',
+        labelKey: 'acctSettings.sRevisionBudget',
+        descKey: 'acctSettings.sRevisionBudgetDesc',
         value: true,
         type: 'boolean',
         category: 'budget'
@@ -558,37 +560,37 @@ const AccountingSettingsPage: React.FC = () => {
     reporting: [
       {
         id: 'etats_financiers_auto',
-        label: 'États financiers automatiques',
-        description: 'Génération automatique des états financiers',
+        labelKey: 'acctSettings.sEtatsFinanciersAuto',
+        descKey: 'acctSettings.sEtatsFinanciersAutoDesc',
         value: true,
         type: 'boolean',
         category: 'reporting'
       },
       {
         id: 'format_etats',
-        label: 'Format des états',
-        description: 'Format par défaut des états financiers',
+        labelKey: 'acctSettings.sFormatEtats',
+        descKey: 'acctSettings.sFormatEtatsDesc',
         value: 'SYSCOHADA',
         type: 'select',
         options: [
-          { value: 'SYSCOHADA', label: 'SYSCOHADA' },
-          { value: 'IFRS', label: 'IFRS' },
-          { value: 'PERSONNALISE', label: 'Personnalisé' }
+          { value: 'SYSCOHADA', labelKey: 'acctSettings.optSyscohada' },
+          { value: 'IFRS', labelKey: 'acctSettings.optIfrs' },
+          { value: 'PERSONNALISE', labelKey: 'acctSettings.optPersonnalise' }
         ],
         category: 'reporting'
       },
       {
         id: 'comparatifs_auto',
-        label: 'Comparatifs automatiques',
-        description: 'Générer automatiquement les comparatifs N-1',
+        labelKey: 'acctSettings.sComparatifsAuto',
+        descKey: 'acctSettings.sComparatifsAutoDesc',
         value: true,
         type: 'boolean',
         category: 'reporting'
       },
       {
         id: 'tableau_bord_temps_reel',
-        label: 'Tableau de bord temps réel',
-        description: 'Mise à jour en temps réel des indicateurs',
+        labelKey: 'acctSettings.sTableauBordTempsReel',
+        descKey: 'acctSettings.sTableauBordTempsReelDesc',
         value: true,
         type: 'boolean',
         category: 'reporting'
@@ -597,45 +599,45 @@ const AccountingSettingsPage: React.FC = () => {
     securite: [
       {
         id: 'audit_trail',
-        label: 'Piste d\'audit',
-        description: 'Enregistrer toutes les modifications',
+        labelKey: 'acctSettings.sAuditTrail',
+        descKey: 'acctSettings.sAuditTrailDesc',
         value: true,
         type: 'boolean',
         category: 'securite'
       },
       {
         id: 'signature_electronique',
-        label: 'Signature électronique',
-        description: 'Exiger une signature pour les documents',
+        labelKey: 'acctSettings.sSignatureElectronique',
+        descKey: 'acctSettings.sSignatureElectroniqueDesc',
         value: false,
         type: 'boolean',
         category: 'securite'
       },
       {
         id: 'sauvegarde_auto',
-        label: 'Sauvegarde automatique',
-        description: 'Sauvegarde automatique des données',
+        labelKey: 'acctSettings.sSauvegardeAuto',
+        descKey: 'acctSettings.sSauvegardeAutoDesc',
         value: true,
         type: 'boolean',
         category: 'securite'
       },
       {
         id: 'frequence_sauvegarde',
-        label: 'Fréquence de sauvegarde',
-        description: 'Fréquence des sauvegardes automatiques',
+        labelKey: 'acctSettings.sFrequenceSauvegarde',
+        descKey: 'acctSettings.sFrequenceSauvegardeDesc',
         value: 'QUOTIDIENNE',
         type: 'select',
         options: [
-          { value: 'HORAIRE', label: 'Horaire' },
-          { value: 'QUOTIDIENNE', label: 'Quotidienne' },
-          { value: 'HEBDOMADAIRE', label: 'Hebdomadaire' }
+          { value: 'HORAIRE', labelKey: 'acctSettings.optHoraire' },
+          { value: 'QUOTIDIENNE', labelKey: 'acctSettings.optQuotidienne' },
+          { value: 'HEBDOMADAIRE', labelKey: 'acctSettings.optHebdomadaire' }
         ],
         category: 'securite'
       },
       {
         id: 'acces_utilisateurs',
-        label: 'Contrôle d\'accès',
-        description: 'Activer le contrôle d\'accès par utilisateur',
+        labelKey: 'acctSettings.sAccesUtilisateurs',
+        descKey: 'acctSettings.sAccesUtilisateursDesc',
         value: true,
         type: 'boolean',
         category: 'securite'
@@ -644,38 +646,38 @@ const AccountingSettingsPage: React.FC = () => {
     avance: [
       {
         id: 'gestion_stocks',
-        label: 'Gestion des stocks',
-        description: 'Activer la gestion des stocks intégrée',
+        labelKey: 'acctSettings.sGestionStocks',
+        descKey: 'acctSettings.sGestionStocksDesc',
         value: true,
         type: 'boolean',
         category: 'avance'
       },
       {
         id: 'methode_valorisation',
-        label: 'Méthode de valorisation',
-        description: 'Méthode de valorisation des stocks',
+        labelKey: 'acctSettings.sMethodeValorisation',
+        descKey: 'acctSettings.sMethodeValorisationDesc',
         value: 'FIFO',
         type: 'select',
         options: [
-          { value: 'FIFO', label: 'FIFO (Premier Entré, Premier Sorti)' },
-          { value: 'LIFO', label: 'LIFO (Dernier Entré, Premier Sorti)' },
-          { value: 'CMP', label: 'Coût Moyen Pondéré' },
-          { value: 'STANDARD', label: 'Coût Standard' }
+          { value: 'FIFO', labelKey: 'acctSettings.optFifo' },
+          { value: 'LIFO', labelKey: 'acctSettings.optLifo' },
+          { value: 'CMP', labelKey: 'acctSettings.optCmp' },
+          { value: 'STANDARD', labelKey: 'acctSettings.optCoutStandard' }
         ],
         category: 'avance'
       },
       {
         id: 'consolidation',
-        label: 'Consolidation',
-        description: 'Activer la consolidation des comptes',
+        labelKey: 'acctSettings.sConsolidation',
+        descKey: 'acctSettings.sConsolidationDesc',
         value: false,
         type: 'boolean',
         category: 'avance'
       },
       {
         id: 'nb_societes_consolidees',
-        label: 'Nombre de sociétés à consolider',
-        description: 'Nombre maximum de sociétés dans le périmètre',
+        labelKey: 'acctSettings.sNbSocietesConsolidees',
+        descKey: 'acctSettings.sNbSocietesConsolideesDesc',
         value: 5,
         type: 'number',
         min: 1,
@@ -684,23 +686,23 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'devises_etrangeres',
-        label: 'Conversion devises',
-        description: 'Activer la conversion automatique des devises',
+        labelKey: 'acctSettings.sDevisesEtrangeres',
+        descKey: 'acctSettings.sDevisesEtrangeresDesc',
         value: true,
         type: 'boolean',
         category: 'avance'
       },
       {
         id: 'source_taux_change',
-        label: 'Source taux de change',
-        description: 'Source des taux de change',
+        labelKey: 'acctSettings.sSourceTauxChange',
+        descKey: 'acctSettings.sSourceTauxChangeDesc',
         value: 'BEAC',
         type: 'select',
         options: [
-          { value: 'BEAC', label: 'Banque Centrale (BEAC)' },
-          { value: 'ECB', label: 'Banque Centrale Européenne' },
-          { value: 'MANUEL', label: 'Saisie manuelle' },
-          { value: 'API', label: 'Service externe (API)' }
+          { value: 'BEAC', labelKey: 'acctSettings.optBeac' },
+          { value: 'ECB', labelKey: 'acctSettings.optEcb' },
+          { value: 'MANUEL', labelKey: 'acctSettings.optManuel' },
+          { value: 'API', labelKey: 'acctSettings.optApi' }
         ],
         category: 'avance'
       }
@@ -708,32 +710,32 @@ const AccountingSettingsPage: React.FC = () => {
     normes: [
       {
         id: 'conformite_syscohada',
-        label: 'Conformité SYSCOHADA',
-        description: 'Respect strict des normes SYSCOHADA',
+        labelKey: 'acctSettings.sConformiteSyscohada',
+        descKey: 'acctSettings.sConformiteSyscohadaDesc',
         value: true,
         type: 'boolean',
         category: 'normes'
       },
       {
         id: 'controles_coherence',
-        label: 'Contrôles de cohérence',
-        description: 'Activer les contrôles de cohérence automatiques',
+        labelKey: 'acctSettings.sControlesCoherence',
+        descKey: 'acctSettings.sControlesCoherenceDesc',
         value: true,
         type: 'boolean',
         category: 'normes'
       },
       {
         id: 'validation_liasse',
-        label: 'Validation liasse fiscale',
-        description: 'Validation automatique de la liasse fiscale',
+        labelKey: 'acctSettings.sValidationLiasse',
+        descKey: 'acctSettings.sValidationLiasseDesc',
         value: true,
         type: 'boolean',
         category: 'normes'
       },
       {
         id: 'archivage_legal',
-        label: 'Archivage légal',
-        description: 'Durée d\'archivage légal (années)',
+        labelKey: 'acctSettings.sArchivageLegal',
+        descKey: 'acctSettings.sArchivageLegalDesc',
         value: 10,
         type: 'number',
         min: 5,
@@ -742,8 +744,8 @@ const AccountingSettingsPage: React.FC = () => {
       },
       {
         id: 'trace_modifications',
-        label: 'Traçabilité des modifications',
-        description: 'Enregistrer toutes les modifications avec horodatage',
+        labelKey: 'acctSettings.sTraceModifications',
+        descKey: 'acctSettings.sTraceModificationsDesc',
         value: true,
         type: 'boolean',
         category: 'normes'
@@ -753,26 +755,27 @@ const AccountingSettingsPage: React.FC = () => {
 
   // Tabs configuration
   const tabs = [
-    { id: 'base', label: 'Paramètres de base', icon: Settings },
-    { id: 'advanced', label: 'Modules avancés', icon: Zap },
-    { id: 'security', label: 'Sécurité & Audit', icon: Shield },
-    { id: 'import-export', label: 'Import/Export', icon: Database }
+    { id: 'base', labelKey: 'acctSettings.tabBase', icon: Settings },
+    { id: 'advanced', labelKey: 'acctSettings.tabAdvanced', icon: Zap },
+    { id: 'security', labelKey: 'acctSettings.tabSecurity', icon: Shield },
+    { id: 'import-export', labelKey: 'acctSettings.tabImportExport', icon: Database }
   ];
 
   // Validation rules
   const validateSetting = (setting: AccountingSetting): string | null => {
+    const field = t(setting.labelKey);
     if (setting.required && (!setting.value || setting.value === '')) {
-      return `${setting.label} est obligatoire`;
+      return t('acctSettings.errRequired', { field });
     }
     if (setting.type === 'number') {
       if (typeof setting.value === 'boolean') return null; // boolean settings are never 'number' type
       const num = parseFloat(String(setting.value));
-      if (isNaN(num)) return `${setting.label} doit être un nombre`;
+      if (isNaN(num)) return t('acctSettings.errNumber', { field });
       if (setting.min !== undefined && num < setting.min) {
-        return `${setting.label} doit être supérieur ou égal à ${setting.min}`;
+        return t('acctSettings.errMin', { field, min: String(setting.min) });
       }
       if (setting.max !== undefined && num > setting.max) {
-        return `${setting.label} doit être inférieur ou égal à ${setting.max}`;
+        return t('acctSettings.errMax', { field, max: String(setting.max) });
       }
     }
     return null;
@@ -845,7 +848,7 @@ const AccountingSettingsPage: React.FC = () => {
       } catch (error) {
         setNotification({
           type: 'error',
-          message: 'Erreur lors du chargement des paramètres'
+          message: t('acctSettings.toastLoadError')
         });
         setLoading(false);
       }
@@ -864,7 +867,7 @@ const AccountingSettingsPage: React.FC = () => {
             break;
           case 'f':
             event.preventDefault();
-            (document.querySelector('input[placeholder*="Rechercher"]') as HTMLElement | null)?.focus();
+            (document.querySelector('input[data-settings-search]') as HTMLElement | null)?.focus();
             break;
           case 'r':
             event.preventDefault();
@@ -887,7 +890,7 @@ const AccountingSettingsPage: React.FC = () => {
     if (!validateAllSettings()) {
       setNotification({
         type: 'error',
-        message: 'Veuillez corriger les erreurs avant de sauvegarder'
+        message: t('acctSettings.toastFixErrors')
       });
       return;
     }
@@ -920,11 +923,11 @@ const AccountingSettingsPage: React.FC = () => {
 
       setSaving(false);
       setHasChanges(false);
-      toast.success('Les paramètres de comptabilité ont été enregistrés avec succès');
+      toast.success(t('acctSettings.toastSaved'));
     } catch (error) {
       console.error('[AccountingSettings] Erreur sauvegarde:', error);
       setSaving(false);
-      toast.error('Erreur lors de la sauvegarde des paramètres');
+      toast.error(t('acctSettings.toastSaveError'));
     }
   };
 
@@ -946,7 +949,7 @@ const AccountingSettingsPage: React.FC = () => {
         if (mounted) setAuxMappings(mappings);
       } catch (err) {
         console.error('[AccountingSettings] Erreur chargement codification tiers:', err);
-        if (mounted) toast.error('Impossible de charger la codification des tiers');
+        if (mounted) toast.error(t('acctSettings.toastAuxLoadError'));
       } finally {
         if (mounted) setAuxMappingsLoading(false);
       }
@@ -958,16 +961,16 @@ const AccountingSettingsPage: React.FC = () => {
     setAuxSaving(true);
     try {
       await saveMappings(adapter, auxMappings);
-      toast.success('Codification des tiers enregistrée');
+      toast.success(t('acctSettings.toastAuxSaved'));
     } catch {
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(t('acctSettings.toastGenericSaveError'));
     } finally {
       setAuxSaving(false);
     }
   };
 
   const handleAuxReset = () => {
-    if (!window.confirm('Réinitialiser toutes les codifications aux valeurs par défaut ? Les modifications non enregistrées seront perdues.')) return;
+    if (!window.confirm(t('acctSettings.confirmAuxReset'))) return;
     setAuxMappings(DEFAULT_MAPPINGS);
     setAuxEditingId(null);
     setAuxEditRow(null);
@@ -991,7 +994,7 @@ const AccountingSettingsPage: React.FC = () => {
   };
 
   const handleAuxDelete = (id: string) => {
-    if (!window.confirm('Supprimer cette ligne de codification ?')) return;
+    if (!window.confirm(t('acctSettings.confirmAuxDelete'))) return;
     setAuxMappings(prev => prev.filter(m => m.id !== id));
     if (auxEditingId === id) { setAuxEditingId(null); setAuxEditRow(null); }
   };
@@ -1044,7 +1047,7 @@ const AccountingSettingsPage: React.FC = () => {
 
     setNotification({
       type: 'success',
-      message: 'Paramètres exportés avec succès'
+      message: t('acctSettings.toastExported')
     });
   };
 
@@ -1057,35 +1060,38 @@ const AccountingSettingsPage: React.FC = () => {
       try {
         const importedData = JSON.parse(e.target?.result as string);
         if (!importedData || typeof importedData !== 'object') {
-          throw new Error('Format invalide : objet attendu');
+          throw new Error(t('acctSettings.errFormatObject'));
         }
         if (!importedData.settings || typeof importedData.settings !== 'object') {
-          throw new Error('Format invalide : clé "settings" manquante');
+          throw new Error(t('acctSettings.errFormatSettingsKey'));
         }
         // Structural validation: each category must be an array of objects with id/value
         for (const [category, items] of Object.entries(importedData.settings)) {
           if (!Array.isArray(items)) {
-            throw new Error(`Format invalide : la catégorie "${category}" doit être un tableau`);
+            throw new Error(t('acctSettings.errFormatCategoryArray', { category }));
           }
           for (const item of items as any[]) {
             if (typeof item !== 'object' || item === null || !('id' in item) || !('value' in item)) {
-              throw new Error(`Format invalide : entrée malformée dans la catégorie "${category}"`);
+              throw new Error(t('acctSettings.errFormatCategoryEntry', { category }));
             }
           }
         }
         setSettings(importedData.settings as Record<string, AccountingSetting[]>);
         setHasChanges(true);
-        toast.success('Paramètres importés avec succès');
+        toast.success(t('acctSettings.toastImported'));
         setNotification({
           type: 'success',
-          message: 'Paramètres importés avec succès'
+          message: t('acctSettings.toastImported')
         });
       } catch (error: any) {
         console.error('[AccountingSettings] Erreur import paramètres:', error);
-        toast.error(`Erreur lors de l'import : ${error?.message ?? 'fichier invalide'}`);
+        const importMessage = t('acctSettings.errImport', {
+          message: error?.message ?? t('acctSettings.errImportInvalidFile')
+        });
+        toast.error(importMessage);
         setNotification({
           type: 'error',
-          message: `Erreur lors de l'import : ${error?.message ?? 'fichier invalide'}`
+          message: importMessage
         });
       }
     };
@@ -1097,8 +1103,8 @@ const AccountingSettingsPage: React.FC = () => {
   const filteredSettings = searchTerm ?
     Object.entries(settings).reduce((acc, [category, categorySettings]) => {
       const filtered = categorySettings.filter(setting =>
-        setting.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        setting.description.toLowerCase().includes(searchTerm.toLowerCase())
+        t(setting.labelKey).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t(setting.descKey).toLowerCase().includes(searchTerm.toLowerCase())
       );
       if (filtered.length > 0) {
         acc[category] = filtered;
@@ -1109,21 +1115,28 @@ const AccountingSettingsPage: React.FC = () => {
   // Category configuration
   const getCategoryConfig = (category: string) => {
     const configs = {
-      general: { title: 'Paramètres généraux', icon: Settings },
-      saisie: { title: 'Saisie comptable', icon: FileCheck },
-      affichage: { title: 'Format et affichage', icon: Hash },
-      cloture: { title: 'Clôture & Périodes', icon: Calendar },
-      taxes: { title: 'Taxes & Fiscalité', icon: Percent },
-      analytique: { title: 'Comptabilité analytique', icon: TrendingUp },
+      general: { title: t('acctSettings.catGeneral'), icon: Settings },
+      saisie: { title: t('acctSettings.catSaisie'), icon: FileCheck },
+      affichage: { title: t('acctSettings.catAffichage'), icon: Hash },
+      cloture: { title: t('acctSettings.catCloture'), icon: Calendar },
+      taxes: { title: t('acctSettings.catTaxes'), icon: Percent },
+      analytique: { title: t('acctSettings.sComptabiliteAnalytique'), icon: TrendingUp },
       immobilisations: { title: t('navigation.assets'), icon: Archive },
       tresorerie: { title: t('navigation.treasury'), icon: DollarSign },
-      budget: { title: 'Gestion budgétaire', icon: FileText },
-      reporting: { title: 'États & Reporting', icon: Printer },
-      securite: { title: 'Sécurité & Audit', icon: Shield },
-      avance: { title: 'Paramètres avancés', icon: Zap },
-      normes: { title: 'Normes & Conformité', icon: FileCheck }
+      budget: { title: t('acctSettings.catBudget'), icon: FileText },
+      reporting: { title: t('acctSettings.catReporting'), icon: Printer },
+      securite: { title: t('acctSettings.catSecurite'), icon: Shield },
+      avance: { title: t('acctSettings.catAvance'), icon: Zap },
+      normes: { title: t('acctSettings.catNormes'), icon: FileCheck }
     };
     return (configs as Record<string, { title: string; icon: typeof Settings }>)[category];
+  };
+
+  /** Libellé traduit de l'option actuellement sélectionnée d'un paramètre */
+  const getSelectedOptionLabel = (category: string, settingId: string): string => {
+    const setting = settings[category]?.find(s => s.id === settingId);
+    const option = setting?.options?.find(o => o.value === setting?.value);
+    return option ? t(option.labelKey) : '';
   };
 
   const renderSetting = (setting: AccountingSetting, category: string) => {
@@ -1146,7 +1159,7 @@ const AccountingSettingsPage: React.FC = () => {
             >
               {setting.options?.map(option => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </option>
               ))}
             </select>
@@ -1195,7 +1208,7 @@ const AccountingSettingsPage: React.FC = () => {
               className="w-5 h-5 text-[var(--color-primary)] border-[var(--color-border)] rounded focus:ring-[var(--color-primary)]"
             />
             <span className="ml-2 text-sm text-[var(--color-text-secondary)]">
-              {setting.value ? 'Activé' : 'Désactivé'}
+              {setting.value ? t('acctSettings.enabled') : t('acctSettings.disabled')}
             </span>
           </label>
         );
@@ -1238,7 +1251,7 @@ const AccountingSettingsPage: React.FC = () => {
           className="flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour aux paramètres
+          {t('acctSettings.backToSettings')}
         </button>
 
         <div className="flex items-center justify-between">
@@ -1248,10 +1261,10 @@ const AccountingSettingsPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-                Paramètres de Comptabilité
+                {t('acctSettings.pageTitle')}
               </h1>
               <p className="text-[var(--color-text-secondary)]">
-                Configuration des paramètres comptables et fiscaux
+                {t('acctSettings.pageSubtitle')}
               </p>
             </div>
           </div>
@@ -1263,7 +1276,7 @@ const AccountingSettingsPage: React.FC = () => {
               onClick={handleResetClick}
               disabled={!hasChanges}
             >
-              Réinitialiser
+              {t('acctSettings.reset')}
             </ModernButton>
             <ModernButton
               variant="primary"
@@ -1271,7 +1284,7 @@ const AccountingSettingsPage: React.FC = () => {
               onClick={handleSave}
               disabled={!hasChanges || saving}
             >
-              {saving ? 'Enregistrement...' : 'Enregistrer'}
+              {saving ? t('acctSettings.savingInProgress') : t('acctSettings.save')}
             </ModernButton>
           </div>
         </div>
@@ -1320,7 +1333,7 @@ const AccountingSettingsPage: React.FC = () => {
                   )}
                 >
                   <TabIcon className="w-4 h-4" />
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               );
             })}
@@ -1334,7 +1347,8 @@ const AccountingSettingsPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)] w-4 h-4" />
           <input
             type="text"
-            placeholder="Rechercher un paramètre..."
+            data-settings-search
+            placeholder={t('acctSettings.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -1355,14 +1369,14 @@ const AccountingSettingsPage: React.FC = () => {
             className="px-3 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors cursor-pointer flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           >
             <Upload className="w-4 h-4" />
-            Importer
+            {t('acctSettings.import')}
           </button>
           <button
             onClick={() => setShowExportModal(true)}
             className="px-3 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
           >
             <Download className="w-4 h-4" />
-            Exporter
+            {t('acctSettings.export')}
           </button>
         </div>
       </div>
@@ -1390,43 +1404,43 @@ const AccountingSettingsPage: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <Database className="w-5 h-5 text-[var(--color-primary)]" />
                         <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                          Import / Export des paramètres
+                          {t('acctSettings.ieTitle')}
                         </h2>
                       </div>
                     </CardHeader>
                     <CardBody>
                       <div className="space-y-6">
                         <div>
-                          <h3 className="font-medium text-[var(--color-text-primary)] mb-3">Sauvegarde et restauration</h3>
+                          <h3 className="font-medium text-[var(--color-text-primary)] mb-3">{t('acctSettings.ieBackupRestore')}</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="p-4 border border-[var(--color-border)] rounded-lg">
                               <div className="flex items-center gap-3 mb-3">
                                 <Download className="w-5 h-5 text-blue-500" />
-                                <h4 className="font-medium">Exporter les paramètres</h4>
+                                <h4 className="font-medium">{t('acctSettings.ieExportTitle')}</h4>
                               </div>
                               <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                                Téléchargez une sauvegarde de tous vos paramètres comptables au format JSON.
+                                {t('acctSettings.ieExportDesc')}
                               </p>
                               <button
                                 onClick={handleExportSettings}
                                 className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                               >
-                                Télécharger la sauvegarde
+                                {t('acctSettings.ieDownloadBackup')}
                               </button>
                             </div>
                             <div className="p-4 border border-[var(--color-border)] rounded-lg">
                               <div className="flex items-center gap-3 mb-3">
                                 <Upload className="w-5 h-5 text-green-500" />
-                                <h4 className="font-medium">Importer les paramètres</h4>
+                                <h4 className="font-medium">{t('acctSettings.ieImportTitle')}</h4>
                               </div>
                               <p className="text-sm text-[var(--color-text-secondary)] mb-3">
-                                Restaurez vos paramètres à partir d'un fichier de sauvegarde.
+                                {t('acctSettings.ieImportDesc')}
                               </p>
                               <label
                                 htmlFor="import-settings-main"
                                 className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors cursor-pointer block text-center"
                               >
-                                Sélectionner un fichier
+                                {t('acctSettings.ieSelectFile')}
                               </label>
                               <input
                                 type="file"
@@ -1439,19 +1453,19 @@ const AccountingSettingsPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="border-t border-[var(--color-border)] pt-6">
-                          <h3 className="font-medium text-[var(--color-text-primary)] mb-3">Modèles prédéfinis</h3>
+                          <h3 className="font-medium text-[var(--color-text-primary)] mb-3">{t('acctSettings.ieTemplates')}</h3>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <button className="p-4 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors text-left">
-                              <h4 className="font-medium mb-2">PME Commerce</h4>
-                              <p className="text-sm text-[var(--color-text-secondary)]">Configuration optimisée pour les petites et moyennes entreprises commerciales</p>
+                              <h4 className="font-medium mb-2">{t('acctSettings.ieTplRetail')}</h4>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{t('acctSettings.ieTplRetailDesc')}</p>
                             </button>
                             <button className="p-4 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors text-left">
-                              <h4 className="font-medium mb-2">Industrie</h4>
-                              <p className="text-sm text-[var(--color-text-secondary)]">Paramètres adaptés aux entreprises industrielles avec gestion des stocks</p>
+                              <h4 className="font-medium mb-2">{t('acctSettings.ieTplIndustry')}</h4>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{t('acctSettings.ieTplIndustryDesc')}</p>
                             </button>
                             <button className="p-4 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors text-left">
-                              <h4 className="font-medium mb-2">Services</h4>
-                              <p className="text-sm text-[var(--color-text-secondary)]">Configuration pour les entreprises de services et prestations</p>
+                              <h4 className="font-medium mb-2">{t('acctSettings.ieTplServices')}</h4>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{t('acctSettings.ieTplServicesDesc')}</p>
                             </button>
                           </div>
                         </div>
@@ -1488,11 +1502,11 @@ const AccountingSettingsPage: React.FC = () => {
                       {categorySettings.map(setting => (
                         <div key={setting.id}>
                           <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                            {setting.label}
+                            {t(setting.labelKey)}
                             {setting.required && <span className="text-red-500 ml-1">*</span>}
                           </label>
                           <p className="text-xs text-[var(--color-text-secondary)] mb-2">
-                            {setting.description}
+                            {t(setting.descKey)}
                           </p>
                           {renderSetting(setting, category)}
                         </div>
@@ -1512,7 +1526,7 @@ const AccountingSettingsPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5 text-[var(--color-primary)]" />
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Résumé de la configuration
+              {t('acctSettings.summaryTitle')}
             </h2>
           </div>
         </CardHeader>
@@ -1521,34 +1535,34 @@ const AccountingSettingsPage: React.FC = () => {
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
               <div className="flex items-center gap-2 mb-2">
                 <BookOpen className="w-4 h-4 text-blue-600" />
-                <h4 className="font-medium text-blue-900">Plan comptable</h4>
+                <h4 className="font-medium text-blue-900">{t('acctSettings.sPlanComptable')}</h4>
               </div>
               <p className="text-blue-700 text-sm">
-                {settings.general.find(s => s.id === 'plan_comptable')?.options?.find(o => o.value === settings.general.find(s => s.id === 'plan_comptable')?.value)?.label}
+                {getSelectedOptionLabel('general', 'plan_comptable')}
               </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 mb-2">
                 <Globe className="w-4 h-4 text-green-600" />
-                <h4 className="font-medium text-green-900">Devise principale</h4>
+                <h4 className="font-medium text-green-900">{t('acctSettings.sDevisePrincipale')}</h4>
               </div>
               <p className="text-green-700 text-sm">
-                {settings.general.find(s => s.id === 'devise_principale')?.options?.find(o => o.value === settings.general.find(s => s.id === 'devise_principale')?.value)?.label}
+                {getSelectedOptionLabel('general', 'devise_principale')}
               </p>
             </div>
             <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-4 h-4 text-primary-600" />
-                <h4 className="font-medium text-primary-900">Exercice fiscal</h4>
+                <h4 className="font-medium text-primary-900">{t('acctSettings.sExerciceFiscal')}</h4>
               </div>
               <p className="text-primary-700 text-sm">
-                {settings.general.find(s => s.id === 'exercice_fiscal')?.options?.find(o => o.value === settings.general.find(s => s.id === 'exercice_fiscal')?.value)?.label}
+                {getSelectedOptionLabel('general', 'exercice_fiscal')}
               </p>
             </div>
             <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
               <div className="flex items-center gap-2 mb-2">
                 <Percent className="w-4 h-4 text-orange-600" />
-                <h4 className="font-medium text-orange-900">TVA normale</h4>
+                <h4 className="font-medium text-orange-900">{t('acctSettings.sumTva')}</h4>
               </div>
               <p className="text-orange-700 text-sm">
                 {settings.taxes.find(s => s.id === 'taux_tva_normal')?.value}%
@@ -1557,19 +1571,19 @@ const AccountingSettingsPage: React.FC = () => {
             <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
               <div className="flex items-center gap-2 mb-2">
                 <Hash className="w-4 h-4 text-primary-600" />
-                <h4 className="font-medium text-primary-900">Décimales</h4>
+                <h4 className="font-medium text-primary-900">{t('acctSettings.sumDecimales')}</h4>
               </div>
               <p className="text-primary-700 text-sm">
-                {settings.affichage.find(s => s.id === 'decimales')?.value} décimales
+                {t('acctSettings.sumDecimalesValue', { count: String(settings.affichage.find(s => s.id === 'decimales')?.value ?? '') })}
               </p>
             </div>
             <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="w-4 h-4 text-primary-600" />
-                <h4 className="font-medium text-primary-900">Clôture</h4>
+                <h4 className="font-medium text-primary-900">{t('acctSettings.sumCloture')}</h4>
               </div>
               <p className="text-primary-700 text-sm">
-                {settings.cloture.find(s => s.id === 'frequence_cloture')?.options?.find(o => o.value === settings.cloture.find(s => s.id === 'frequence_cloture')?.value)?.label}
+                {getSelectedOptionLabel('cloture', 'frequence_cloture')}
               </p>
             </div>
           </div>
@@ -1583,33 +1597,32 @@ const AccountingSettingsPage: React.FC = () => {
             <Info className="w-5 h-5 text-[var(--color-primary)] mt-0.5" />
             <div className="flex-1">
               <h3 className="font-medium text-[var(--color-text-primary)] mb-2">
-                À propos des paramètres comptables
+                {t('acctSettings.aboutTitle')}
               </h3>
               <p className="text-sm text-[var(--color-text-secondary)] mb-2">
-                Ces paramètres définissent le comportement global de votre système comptable.
-                Les modifications s'appliqueront à tous les utilisateurs et toutes les transactions futures.
+                {t('acctSettings.aboutText')}
               </p>
               <div className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 text-sm text-[var(--color-text-secondary)]">
                     <p>
-                      <strong className="text-[var(--color-text-primary)]">Configuration actuelle :</strong> Votre système est configuré selon les normes SYSCOHADA avec un exercice fiscal calqué sur l'année civile.
+                      <strong className="text-[var(--color-text-primary)]">{t('acctSettings.aboutCurrentLabel')}</strong> {t('acctSettings.aboutCurrentText')}
                     </p>
                     <p>
-                      <strong className="text-amber-600">Important :</strong> Certains paramètres (plan comptable, exercice fiscal) ne peuvent être modifiés qu'en début d'exercice ou nécessitent des droits administrateur spéciaux.
+                      <strong className="text-amber-600">{t('acctSettings.aboutImportantLabel')}</strong> {t('acctSettings.aboutImportantText')}
                     </p>
                     <p>
-                      <strong className="text-blue-600">Conseil :</strong> Il est recommandé de tester les modifications sur un environnement de test avant de les appliquer en production.
+                      <strong className="text-blue-600">{t('acctSettings.aboutTipLabel')}</strong> {t('acctSettings.aboutTipText')}
                     </p>
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-center gap-2 mb-2">
                       <HelpCircle className="w-4 h-4 text-blue-600" />
-                      <h4 className="font-medium text-blue-900">Raccourcis clavier</h4>
+                      <h4 className="font-medium text-blue-900">{t('acctSettings.shortcutsTitle')}</h4>
                     </div>
                     <div className="space-y-1 text-sm text-blue-700">
                       <div className="flex justify-between">
-                        <span>Sauvegarder</span>
+                        <span>{t('acctSettings.shortcutSave')}</span>
                         <kbd className="px-2 py-1 bg-blue-100 rounded text-xs">Ctrl + S</kbd>
                       </div>
                       <div className="flex justify-between">
@@ -1617,7 +1630,7 @@ const AccountingSettingsPage: React.FC = () => {
                         <kbd className="px-2 py-1 bg-blue-100 rounded text-xs">Ctrl + F</kbd>
                       </div>
                       <div className="flex justify-between">
-                        <span>Réinitialiser</span>
+                        <span>{t('acctSettings.reset')}</span>
                         <kbd className="px-2 py-1 bg-blue-100 rounded text-xs">Ctrl + R</kbd>
                       </div>
                     </div>
@@ -1627,7 +1640,7 @@ const AccountingSettingsPage: React.FC = () => {
                         className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
                       >
                         <ExternalLink className="w-3 h-3" />
-                        Documentation complète
+                        {t('acctSettings.docsLink')}
                       </button>
                     </div>
                   </div>
@@ -1645,7 +1658,7 @@ const AccountingSettingsPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-amber-500" />
               <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Alertes système
+                {t('acctSettings.alertsTitle')}
               </h2>
             </div>
           </CardHeader>
@@ -1654,16 +1667,16 @@ const AccountingSettingsPage: React.FC = () => {
               <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <Check className="w-4 h-4 text-green-600" />
                 <div>
-                  <p className="text-sm font-medium text-green-900">Configuration valide</p>
-                  <p className="text-xs text-green-700">Tous les paramètres obligatoires sont configurés</p>
+                  <p className="text-sm font-medium text-green-900">{t('acctSettings.alertValidTitle')}</p>
+                  <p className="text-xs text-green-700">{t('acctSettings.alertValidDesc')}</p>
                 </div>
               </div>
               {!settings.taxes.find(s => s.id === 'tva_applicable')?.value && (
                 <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                   <div>
-                    <p className="text-sm font-medium text-amber-900">TVA désactivée</p>
-                    <p className="text-xs text-amber-700">Vérifiez si votre entreprise est assujettie à la TVA</p>
+                    <p className="text-sm font-medium text-amber-900">{t('acctSettings.alertVatOffTitle')}</p>
+                    <p className="text-xs text-amber-700">{t('acctSettings.alertVatOffDesc')}</p>
                   </div>
                 </div>
               )}
@@ -1676,18 +1689,18 @@ const AccountingSettingsPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-blue-500" />
               <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Statut des modules
+                {t('acctSettings.modulesStatusTitle')}
               </h2>
             </div>
           </CardHeader>
           <CardBody>
             <div className="space-y-2">
               {[
-                { label: 'Comptabilité analytique', enabled: settings.analytique.find(s => s.id === 'comptabilite_analytique')?.value },
-                { label: 'Gestion des stocks', enabled: settings.avance.find(s => s.id === 'gestion_stocks')?.value },
+                { label: t('acctSettings.sComptabiliteAnalytique'), enabled: settings.analytique.find(s => s.id === 'comptabilite_analytique')?.value },
+                { label: t('acctSettings.sGestionStocks'), enabled: settings.avance.find(s => s.id === 'gestion_stocks')?.value },
                 { label: t('navigation.assets'), enabled: settings.immobilisations.find(s => s.id === 'gestion_immobilisations')?.value },
-                { label: 'Gestion budgétaire', enabled: settings.budget.find(s => s.id === 'gestion_budget')?.value },
-                { label: 'Prévisions trésorerie', enabled: settings.tresorerie.find(s => s.id === 'previsions_tresorerie')?.value }
+                { label: t('acctSettings.sGestionBudget'), enabled: settings.budget.find(s => s.id === 'gestion_budget')?.value },
+                { label: t('acctSettings.modPrevisionsTresorerie'), enabled: settings.tresorerie.find(s => s.id === 'previsions_tresorerie')?.value }
               ].map((module, index) => (
                 <div key={index} className="flex items-center justify-between py-2 border-b border-[var(--color-border)] last:border-b-0">
                   <span className="text-sm text-[var(--color-text-primary)]">{module.label}</span>
@@ -1697,7 +1710,7 @@ const AccountingSettingsPage: React.FC = () => {
                       ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-600'
                   )}>
-                    {module.enabled ? 'Activé' : 'Désactivé'}
+                    {module.enabled ? t('acctSettings.enabled') : t('acctSettings.disabled')}
                   </span>
                 </div>
               ))}
@@ -1711,7 +1724,7 @@ const AccountingSettingsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Importer des Paramètres</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('acctSettings.imTitle')}</h2>
               <button
                 onClick={() => setShowImportModal(false)}
                 className="text-gray-700 hover:text-gray-700"
@@ -1727,10 +1740,9 @@ const AccountingSettingsPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Instructions d'importation</p>
+                    <p className="font-medium mb-1">{t('acctSettings.imInstructionsTitle')}</p>
                     <p>
-                      Sélectionnez un fichier de configuration JSON ou Excel contenant les paramètres comptables.
-                      L'import écrasera les paramètres existants.
+                      {t('acctSettings.imInstructionsText')}
                     </p>
                   </div>
                 </div>
@@ -1738,21 +1750,21 @@ const AccountingSettingsPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type d'importation <span className="text-red-500">*</span>
+                  {t('acctSettings.imTypeLabel')} <span className="text-red-500">*</span>
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option value="">Sélectionner...</option>
-                  <option value="full">Tous les paramètres</option>
-                  <option value="accounting">Paramètres comptables uniquement</option>
-                  <option value="fiscal">Paramètres fiscaux uniquement</option>
-                  <option value="users">Utilisateurs et permissions</option>
-                  <option value="workflow">Workflows et validations</option>
+                  <option value="">{t('acctSettings.imSelectPlaceholder')}</option>
+                  <option value="full">{t('acctSettings.optAllSettings')}</option>
+                  <option value="accounting">{t('acctSettings.optAccountingOnly')}</option>
+                  <option value="fiscal">{t('acctSettings.optFiscalOnly')}</option>
+                  <option value="users">{t('acctSettings.optUsersPermissions')}</option>
+                  <option value="workflow">{t('acctSettings.optWorkflows')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fichier de configuration <span className="text-red-500">*</span>
+                  {t('acctSettings.imFileLabel')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   ref={importModalFileRef}
@@ -1780,32 +1792,32 @@ const AccountingSettingsPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
                   <p className="text-sm text-gray-600 mb-1">
-                    Cliquez pour sélectionner ou glissez-déposez
+                    {t('acctSettings.imDropzone')}
                   </p>
-                  <p className="text-xs text-gray-700">JSON - Max 5 MB</p>
+                  <p className="text-xs text-gray-700">{t('acctSettings.imDropzoneHint')}</p>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Options d'importation
+                  {t('acctSettings.imOptionsLabel')}
                 </label>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span className="text-sm text-gray-700">Créer une sauvegarde avant l'import</span>
+                    <span className="text-sm text-gray-700">{t('acctSettings.imOptBackup')}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span className="text-sm text-gray-700">Fusionner avec les paramètres existants (ne pas écraser)</span>
+                    <span className="text-sm text-gray-700">{t('acctSettings.imOptMerge')}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" defaultChecked className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span className="text-sm text-gray-700">Valider la structure avant l'import</span>
+                    <span className="text-sm text-gray-700">{t('acctSettings.imOptValidate')}</span>
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="checkbox" className="rounded text-blue-600 focus:ring-blue-500" />
-                    <span className="text-sm text-gray-700">Envoyer une notification après l'import</span>
+                    <span className="text-sm text-gray-700">{t('acctSettings.imOptNotify')}</span>
                   </label>
                 </div>
               </div>
@@ -1816,8 +1828,8 @@ const AccountingSettingsPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                   <div className="text-sm text-yellow-800">
-                    <p className="font-medium">Attention</p>
-                    <p>L'import de paramètres peut affecter l'ensemble du système. Assurez-vous d'avoir vérifié le fichier avant de procéder.</p>
+                    <p className="font-medium">{t('acctSettings.imWarningTitle')}</p>
+                    <p>{t('acctSettings.imWarningText')}</p>
                   </div>
                 </div>
               </div>
@@ -1828,7 +1840,7 @@ const AccountingSettingsPage: React.FC = () => {
                 onClick={() => setShowImportModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {t('acctSettings.cancel')}
               </button>
               <button
                 onClick={() => importModalFileRef.current?.click()}
@@ -1837,7 +1849,7 @@ const AccountingSettingsPage: React.FC = () => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-                Importer
+                {t('acctSettings.import')}
               </button>
             </div>
           </div>
@@ -1849,7 +1861,7 @@ const AccountingSettingsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-semibold text-gray-900">Exporter des Paramètres</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('acctSettings.exTitle')}</h2>
               <button
                 onClick={() => setShowExportModal(false)}
                 className="text-gray-700 hover:text-gray-700"
@@ -1865,10 +1877,9 @@ const AccountingSettingsPage: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Exportation des paramètres</p>
+                    <p className="font-medium mb-1">{t('acctSettings.exInfoTitle')}</p>
                     <p>
-                      Créez une sauvegarde complète de vos paramètres comptables au format JSON ou Excel.
-                      Vous pourrez les réimporter ultérieurement.
+                      {t('acctSettings.exInfoText')}
                     </p>
                   </div>
                 </div>
@@ -1876,35 +1887,35 @@ const AccountingSettingsPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Type d'exportation <span className="text-red-500">*</span>
+                  {t('acctSettings.exTypeLabel')} <span className="text-red-500">*</span>
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                  <option value="full">Tous les paramètres</option>
-                  <option value="accounting">Paramètres comptables uniquement</option>
-                  <option value="fiscal">Paramètres fiscaux uniquement</option>
-                  <option value="users">Utilisateurs et permissions</option>
-                  <option value="workflow">Workflows et validations</option>
-                  <option value="custom">Sélection personnalisée</option>
+                  <option value="full">{t('acctSettings.optAllSettings')}</option>
+                  <option value="accounting">{t('acctSettings.optAccountingOnly')}</option>
+                  <option value="fiscal">{t('acctSettings.optFiscalOnly')}</option>
+                  <option value="users">{t('acctSettings.optUsersPermissions')}</option>
+                  <option value="workflow">{t('acctSettings.optWorkflows')}</option>
+                  <option value="custom">{t('acctSettings.optCustomSelection')}</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Format d'exportation <span className="text-red-500">*</span>
+                  {t('acctSettings.exFormatLabel')} <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-3">
                   <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
                     <input type="radio" name="format" value="json" defaultChecked className="text-green-600 focus:ring-green-500" />
                     <div className="ml-3">
                       <div className="font-medium text-gray-900">JSON</div>
-                      <div className="text-sm text-gray-700">Format structuré, compatible système</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exJsonDesc')}</div>
                     </div>
                   </label>
                   <label className="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
                     <input type="radio" name="format" value="excel" className="text-green-600 focus:ring-green-500" />
                     <div className="ml-3">
                       <div className="font-medium text-gray-900">Excel</div>
-                      <div className="text-sm text-gray-700">Format lisible, éditable</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exExcelDesc')}</div>
                     </div>
                   </label>
                 </div>
@@ -1912,14 +1923,14 @@ const AccountingSettingsPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Sections à inclure
+                  {t('acctSettings.exSectionsLabel')}
                 </label>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   <label className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                     <input type="checkbox" defaultChecked className="rounded text-green-600 focus:ring-green-500" />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Plan comptable</div>
-                      <div className="text-sm text-gray-700">Comptes, classes, rubriques</div>
+                      <div className="font-medium text-gray-900">{t('acctSettings.sPlanComptable')}</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exSecChartDesc')}</div>
                     </div>
                     <span className="text-sm text-gray-700">2.3 MB</span>
                   </label>
@@ -1927,31 +1938,31 @@ const AccountingSettingsPage: React.FC = () => {
                     <input type="checkbox" defaultChecked className="rounded text-green-600 focus:ring-green-500" />
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">{t('navigation.journals')}</div>
-                      <div className="text-sm text-gray-700">Configuration des journaux comptables</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exSecJournalsDesc')}</div>
                     </div>
                     <span className="text-sm text-gray-700">0.5 MB</span>
                   </label>
                   <label className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                     <input type="checkbox" defaultChecked className="rounded text-green-600 focus:ring-green-500" />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Paramètres fiscaux</div>
-                      <div className="text-sm text-gray-700">Taxes, TVA, déclarations</div>
+                      <div className="font-medium text-gray-900">{t('acctSettings.exSecFiscal')}</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exSecFiscalDesc')}</div>
                     </div>
                     <span className="text-sm text-gray-700">0.8 MB</span>
                   </label>
                   <label className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                     <input type="checkbox" className="rounded text-green-600 focus:ring-green-500" />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Utilisateurs et rôles</div>
-                      <div className="text-sm text-gray-700">Permissions et droits d'accès</div>
+                      <div className="font-medium text-gray-900">{t('acctSettings.exSecUsers')}</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exSecUsersDesc')}</div>
                     </div>
                     <span className="text-sm text-gray-700">0.2 MB</span>
                   </label>
                   <label className="flex items-center gap-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                     <input type="checkbox" className="rounded text-green-600 focus:ring-green-500" />
                     <div className="flex-1">
-                      <div className="font-medium text-gray-900">Workflows</div>
-                      <div className="text-sm text-gray-700">Processus de validation et clôtures</div>
+                      <div className="font-medium text-gray-900">{t('acctSettings.exSecWorkflows')}</div>
+                      <div className="text-sm text-gray-700">{t('acctSettings.exSecWorkflowsDesc')}</div>
                     </div>
                     <span className="text-sm text-gray-700">0.4 MB</span>
                   </label>
@@ -1960,7 +1971,7 @@ const AccountingSettingsPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom du fichier
+                  {t('acctSettings.exFileNameLabel')}
                 </label>
                 <input
                   type="text"
@@ -1972,25 +1983,25 @@ const AccountingSettingsPage: React.FC = () => {
               <div className="space-y-2">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" defaultChecked className="rounded text-green-600 focus:ring-green-500" />
-                  <span className="text-sm text-gray-700">Inclure les métadonnées (date, version, auteur)</span>
+                  <span className="text-sm text-gray-700">{t('acctSettings.exOptMetadata')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded text-green-600 focus:ring-green-500" />
-                  <span className="text-sm text-gray-700">Compresser le fichier (.zip)</span>
+                  <span className="text-sm text-gray-700">{t('acctSettings.exOptCompress')}</span>
                 </label>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded text-green-600 focus:ring-green-500" />
-                  <span className="text-sm text-gray-700">Chiffrer le fichier (mot de passe requis)</span>
+                  <span className="text-sm text-gray-700">{t('acctSettings.exOptEncrypt')}</span>
                 </label>
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Taille estimée:</span>
+                  <span className="text-sm font-medium text-gray-700">{t('acctSettings.exEstimatedSize')}</span>
                   <span className="text-sm font-bold text-gray-900">3.8 MB</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Sections incluses:</span>
+                  <span className="text-sm font-medium text-gray-700">{t('acctSettings.exIncludedSections')}</span>
                   <span className="text-sm font-bold text-gray-900">3 / 5</span>
                 </div>
               </div>
@@ -2001,7 +2012,7 @@ const AccountingSettingsPage: React.FC = () => {
                 onClick={() => setShowExportModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
               >
-                Annuler
+                {t('acctSettings.cancel')}
               </button>
               <button
                 onClick={() => { handleExportSettings(); setShowExportModal(false); }}
@@ -2010,7 +2021,7 @@ const AccountingSettingsPage: React.FC = () => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                Exporter
+                {t('acctSettings.export')}
               </button>
             </div>
           </div>
@@ -2025,10 +2036,10 @@ const AccountingSettingsPage: React.FC = () => {
               <Hash className="w-5 h-5 text-[var(--color-primary)]" />
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                  Codification des Tiers
+                  {t('acctSettings.auxTitle')}
                 </h2>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  Configurez les préfixes commerciaux associés aux comptes collectifs
+                  {t('acctSettings.auxSubtitle')}
                 </p>
               </div>
             </div>
@@ -2038,7 +2049,7 @@ const AccountingSettingsPage: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Réinitialiser les valeurs par défaut
+                {t('acctSettings.auxResetDefaults')}
               </button>
               <button
                 onClick={handleAuxSave}
@@ -2046,7 +2057,7 @@ const AccountingSettingsPage: React.FC = () => {
                 className="flex items-center gap-2 px-3 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary)]/90 transition-colors disabled:opacity-60"
               >
                 <Save className="w-4 h-4" />
-                {auxSaving ? 'Enregistrement...' : 'Enregistrer'}
+                {auxSaving ? t('acctSettings.savingInProgress') : t('acctSettings.save')}
               </button>
             </div>
           </div>
@@ -2062,11 +2073,11 @@ const AccountingSettingsPage: React.FC = () => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-[var(--color-border)]">
-                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Compte collectif</th>
-                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Préfixe commercial</th>
-                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">Description</th>
-                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">Longueur séquence</th>
-                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">Actions</th>
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">{t('acctSettings.auxColAccount')}</th>
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">{t('acctSettings.auxColPrefix')}</th>
+                      <th className="text-left py-2 px-3 font-medium text-[var(--color-text-secondary)]">{t('acctSettings.auxColDescription')}</th>
+                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">{t('acctSettings.auxColSeqLength')}</th>
+                      <th className="text-center py-2 px-3 font-medium text-[var(--color-text-secondary)]">{t('acctSettings.auxColActions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2107,7 +2118,7 @@ const AccountingSettingsPage: React.FC = () => {
                                 value={auxEditRow!.description}
                                 onChange={e => setAuxEditRow(r => r ? { ...r, description: e.target.value } : r)}
                                 className="w-full px-2 py-1 border border-[var(--color-border)] rounded focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-                                placeholder="Description"
+                                placeholder={t('acctSettings.auxColDescription')}
                               />
                             ) : (
                               <span className="text-[var(--color-text-secondary)]">{mapping.description}</span>
@@ -2134,14 +2145,14 @@ const AccountingSettingsPage: React.FC = () => {
                                   <button
                                     onClick={handleAuxEditSave}
                                     className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                    title="Valider"
+                                    title={t('acctSettings.validate')}
                                   >
                                     <Check className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={handleAuxEditCancel}
                                     className="p-1 text-[var(--color-text-secondary)] hover:bg-gray-100 rounded"
-                                    title="Annuler"
+                                    title={t('acctSettings.cancel')}
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
@@ -2151,14 +2162,14 @@ const AccountingSettingsPage: React.FC = () => {
                                   <button
                                     onClick={() => handleAuxEditStart(mapping)}
                                     className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                    title="Modifier"
+                                    title={t('acctSettings.edit')}
                                   >
                                     <Pencil className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => handleAuxDelete(mapping.id)}
                                     className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                    title="Supprimer"
+                                    title={t('acctSettings.delete')}
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
@@ -2178,7 +2189,7 @@ const AccountingSettingsPage: React.FC = () => {
                   className="flex items-center gap-2 px-3 py-2 border border-dashed border-[var(--color-border)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
                 >
                   <Plus className="w-4 h-4" />
-                  Ajouter une ligne
+                  {t('acctSettings.auxAddRow')}
                 </button>
               </div>
             </>
@@ -2191,11 +2202,11 @@ const AccountingSettingsPage: React.FC = () => {
         isOpen={resetConfirm}
         onClose={() => setResetConfirm(false)}
         onConfirm={handleConfirmReset}
-        title="Réinitialiser les paramètres"
-        message="Voulez-vous vraiment réinitialiser tous les paramètres aux valeurs par défaut ? Cette action rechargera la page."
+        title={t('acctSettings.resetDialogTitle')}
+        message={t('acctSettings.resetDialogMessage')}
         variant="warning"
-        confirmText="Réinitialiser"
-        cancelText="Annuler"
+        confirmText={t('acctSettings.reset')}
+        cancelText={t('acctSettings.cancel')}
       />
     </div>
   );
