@@ -27,7 +27,31 @@ export interface DBJournalEntry {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
+  // ─── Ossature d'intégration Suite Atlas (L0) ───────────────────────────────
+  // Toute écriture sait d'où elle vient. 'manual' par défaut pour la saisie.
+  /** Système émetteur du fait de gestion à l'origine de l'écriture. */
+  sourceSystem?: SourceSystem;
+  /** Type de document source (sale_invoice, goods_receipt, payroll_run…). */
+  sourceDocType?: string;
+  /** Identifiant du document dans le système émetteur (drill-down). */
+  sourceDocId?: string;
+  /** Clé d'idempotence — unique par tenant. Un rejeu ne recrée pas l'écriture. */
+  idempotencyKey?: string;
+  /** SHA-256 du payload canonique de l'événement source (chaîne de preuve L7). */
+  sourcePayloadHash?: string;
 }
+
+/** Systèmes autorisés à alimenter le Grand Livre (miroir du CHECK Postgres). */
+export type SourceSystem =
+  | 'manual'
+  | 'atlas_trade'
+  | 'atlas_procure'
+  | 'atlas_people'
+  | 'stock'
+  | 'assets'
+  | 'closure'
+  | 'treasury'
+  | 'import';
 
 export interface DBJournalLine {
   id: string;

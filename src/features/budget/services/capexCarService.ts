@@ -11,14 +11,16 @@ function getClient(adapter: DataAdapter): any | null {
   const c = (adapter as any).client;
   return adapter.getMode() === 'saas' && c ? c : null;
 }
-// Les tables fna_capex_*/fna_car sont scopées par org_id (fna_user_orgs), et non
-// par le tenant applicatif (societe). On résout l'org d'ÉDITION de l'utilisateur
-// via la fonction RLS fna_auth_org_ids('editor').
-async function orgOf(client: any): Promise<string> {
-  const { data } = await client.rpc('fna_auth_org_ids', { required_role: 'editor' });
-  const org = Array.isArray(data) ? data[0] : (typeof data === 'string' ? data : null);
-  if (!org) throw new Error("Aucune organisation d'édition (fna_user_orgs) rattachée à votre compte.");
-  return org as string;
+/**
+ * Tenancy des tables fna_capex_* / fna_car : societe (get_user_company_id), cf.
+ * migrations 20240101000082-83. Elles étaient scopées org_id (fna_auth_org_ids)
+ * alors qu'aucun utilisateur n'a de ligne fna_user_orgs → matrice d'approbation,
+ * décisions, PIR, notes et CAR étaient inaccessibles depuis l'application.
+ */
+async function tenantOf(client: any): Promise<string> {
+  const { data } = await client.rpc('get_user_company_id');
+  if (!data) throw new Error('Société courante introuvable.');
+  return data as string;
 }
 function auditHash(input: string): string {
   let h = 0x811c9dc5;
@@ -67,8 +69,8 @@ export async function ensureDefaultMatrix(adapter: DataAdapter): Promise<Approva
   if (existing.length > 0) return existing;
   const client = getClient(adapter);
   if (!client) return [];
-  const org = await orgOf(client);
-  const { error } = await client.from('fna_capex_approval_matrix').insert(DEFAULT_MATRIX.map(b => ({ org_id: org, ...b })));
+  const tenant = await tenantOf(client);
+  const { error } = await client.from('fna_capex_approval_matrix').insert(DEFAULT_MATRIX.map(b => ({ tenant_id: tenant, ...b })));
   if (error) throw new Error(error.message);
   return listApprovalMatrix(adapter);
 }
@@ -76,7 +78,7 @@ export async function ensureDefaultMatrix(adapter: DataAdapter): Promise<Approva
 export async function upsertBracket(adapter: DataAdapter, b: { id?: string; seuil_min: number; seuil_max: number | null; niveau: number; role_requis: string }): Promise<void> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
-  const row = { org_id: await orgOf(client), seuil_min: b.seuil_min, seuil_max: b.seuil_max, niveau: b.niveau, role_requis: b.role_requis };
+  const row = { tenant_id: await tenantOf(client), seuil_min: b.seuil_min, seuil_max: b.seuil_max, niveau: b.niveau, role_requis: b.role_requis };
   const { error } = b.id
     ? await client.from('fna_capex_approval_matrix').update(row).eq('id', b.id)
     : await client.from('fna_capex_approval_matrix').insert(row);
@@ -116,7 +118,7 @@ export async function recordApproval(adapter: DataAdapter, params: {
   const decidedAt = new Date().toISOString();
   const hash = auditHash([params.requestId, params.niveau, params.role, params.statut, params.decidedBy || '', decidedAt].join('|'));
   const { error } = await client.from('fna_capex_approval').insert({
-    org_id: await orgOf(client),
+    tenant_id: await tenantOf(client),
     request_id: params.requestId,
     niveau: params.niveau,
     role: params.role,
@@ -152,7 +154,7 @@ export async function savePir(adapter: DataAdapter, requestId: string, pir: { co
   if (!client) throw new Error('Indisponible hors-ligne.');
   const existing = await getPir(adapter, requestId);
   const row = {
-    org_id: await orgOf(client), request_id: requestId,
+    tenant_id: await tenantOf(client), request_id: requestId,
     cout_final: pir.cout_final, ecart_budget: pir.ecart_budget, van_ex_post: pir.van_ex_post,
     lecons: pir.lecons || null, reviewed_by: pir.reviewedBy || null, reviewed_at: new Date().toISOString(),
   };
@@ -202,8 +204,14 @@ export async function createCar(adapter: DataAdapter, car: {
 }): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
+  // Tenancy = societe (get_user_company_id), comme le reste du module CAPEX.
+  // Avant : org_id via fna_auth_org_ids('editor') — mais aucun utilisateur n'ayant
+  // de ligne fna_user_orgs, la création échouait toujours et la RLS org bloquait
+  // même la lecture → le CAR était inaccessible. Cf. migration 20240101000082.
+  const { data: tenant } = await client.rpc('get_user_company_id');
+  if (!tenant) throw new Error('Société courante introuvable.');
   const { data, error } = await client.from('fna_car').insert({
-    org_id: await orgOf(client),
+    tenant_id: tenant,
     request_id: car.requestId,
     reference: car.reference || null,
     montant_approprie: Math.round(car.montant_approprie),
@@ -252,7 +260,7 @@ export async function addNote(adapter: DataAdapter, requestId: string, contenu: 
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const { error } = await client.from('fna_capex_note').insert({
-    org_id: await orgOf(client), request_id: requestId, type: 'note', contenu, created_by: createdBy || null,
+    tenant_id: await tenantOf(client), request_id: requestId, type: 'note', contenu, created_by: createdBy || null,
   });
   if (error) throw new Error(error.message);
 }
@@ -275,7 +283,7 @@ export async function addAttachment(adapter: DataAdapter, requestId: string, fil
   const { error: upErr } = await client.storage.from('documents').upload(path, file, { upsert: false });
   if (upErr) throw new Error(upErr.message);
   const { error } = await client.from('fna_capex_note').insert({
-    org_id: await orgOf(client), request_id: requestId, type: 'attachment', file_name: file.name, file_path: path, created_by: userId,
+    tenant_id: await tenantOf(client), request_id: requestId, type: 'attachment', file_name: file.name, file_path: path, created_by: userId,
   });
   if (error) throw new Error(error.message);
 }

@@ -200,7 +200,30 @@ const EtatsSYSCOHADA: React.FC = () => {
   };
 
   // --- Computed from real Dexie data via useEtatsFinanciers hook ---
-  const { getSolde, getSoldeDebiteur, getSoldeCrediteur, totalActif: realTotalActif, totalPassif: realTotalPassif, resultatNet: realResultat, isBalanced, totalEntries, fiscalYear } = etatsData;
+  const { getSolde, getSoldeDebiteur, getSoldeCrediteur, totalActif: realTotalActif, totalPassif: realTotalPassif, resultatNet: realResultat, isBalanced, totalEntries, fiscalYear, balances } = etatsData;
+
+  // --- Contrôles de conformité RÉELS -----------------------------------------
+  // Les états déclaraient auparavant `conformiteSYSCOHADA: true` EN DUR pour le
+  // compte de résultat et le TAFIRE — ce dernier affichant pourtant « aucune
+  // donnée » deux écrans plus bas. Le KPI « X conformes SYSCOHADA » annonçait
+  // donc 100 % sur un état non calculable.
+  const ecartBilan = Math.abs(realTotalActif - realTotalPassif);
+  const impotsClasse8 = getSolde(['8']);
+  const resultatAvantImpot = getSoldeCrediteur(['7']) - getSoldeDebiteur(['6']);
+
+  // Comptes de gestion à solde inversé (charge créditrice / produit débiteur) :
+  // signal d'erreur d'imputation qui fausse directement le compte de résultat.
+  const comptesGestionInverses = React.useMemo(() => {
+    const out: string[] = [];
+    for (const [code, bal] of balances) {
+      if (code.startsWith('6') && bal.solde < -1000) out.push(code);
+      if (code.startsWith('7') && bal.solde > 1000) out.push(code);
+    }
+    return out;
+  }, [balances]);
+
+  // Le TAFIRE exige les variations de bilan N/N-1, indisponibles à l'import.
+  const tafireCalculable = false;
 
   // Libellé de l'exercice actif (réel). Pas de données N-1 disponibles à l'import.
   const exerciceLabel = fiscalYear?.startDate
@@ -222,7 +245,18 @@ const EtatsSYSCOHADA: React.FC = () => {
       dateGeneration: new Date().toISOString().split('T')[0],
       conformiteSYSCOHADA: isBalanced,
       controlesCritiques: [
-        { nom: 'Équilibre Actif/Passif', statut: isBalanced ? 'conforme' : 'non_conforme', message: isBalanced ? 'Bilan équilibré' : 'Déséquilibre détecté' },
+        {
+          nom: 'Équilibre Actif/Passif',
+          statut: isBalanced ? 'conforme' : 'non_conforme',
+          message: isBalanced
+            ? `Bilan équilibré — Actif = Passif = ${formatCurrency(realTotalActif)}`
+            : `Déséquilibre de ${formatCurrency(ecartBilan)} (Actif ${formatCurrency(realTotalActif)} ≠ Passif ${formatCurrency(realTotalPassif)})`,
+        },
+        {
+          nom: 'Résultat porté au passif',
+          statut: 'conforme',
+          message: `Résultat net ${formatCurrency(realResultat)} inclus dans le total passif`,
+        },
       ],
     },
     {
@@ -231,19 +265,43 @@ const EtatsSYSCOHADA: React.FC = () => {
       typeEtat: 'compte_resultat', obligatoire: true, periodicite: 'annuel',
       statutGeneration: totalEntries > 0 ? 'definitif' : 'brouillon',
       dateGeneration: new Date().toISOString().split('T')[0],
-      conformiteSYSCOHADA: true,
+      conformiteSYSCOHADA: comptesGestionInverses.length === 0 && impotsClasse8 !== 0,
       controlesCritiques: [
-        { nom: 'Cohérence résultat', statut: 'conforme', message: `Résultat: ${formatCurrency(realResultat)}` },
+        {
+          nom: 'Comptes de gestion à sens normal',
+          statut: comptesGestionInverses.length === 0 ? 'conforme' : 'non_conforme',
+          message: comptesGestionInverses.length === 0
+            ? 'Charges débitrices et produits créditeurs'
+            : `${comptesGestionInverses.length} compte(s) à solde inversé : ${comptesGestionInverses.slice(0, 5).join(', ')}`,
+        },
+        {
+          // Gotcha projet : oublier la classe 89 (IMF/IS) casse l'équilibre du bilan.
+          nom: 'Impôt (classe 8) déduit',
+          statut: impotsClasse8 !== 0 ? 'conforme' : 'attention',
+          message: impotsClasse8 !== 0
+            ? `Résultat avant impôt ${formatCurrency(resultatAvantImpot)} − classe 8 ${formatCurrency(impotsClasse8)} = net ${formatCurrency(realResultat)}`
+            : 'Aucun montant en classe 8 — vérifier que l\'IMF / IS de l\'exercice a été comptabilisé',
+        },
       ],
     },
     {
       id: '3', nom: 'TAFIRE', codeSYSCOHADA: 'TAFIRE-SYS',
       description: 'Tableau Financier des Ressources et Emplois',
       typeEtat: 'tafire', obligatoire: true, periodicite: 'annuel',
-      statutGeneration: 'provisoire',
+      statutGeneration: tafireCalculable ? 'provisoire' : 'brouillon',
       dateGeneration: new Date().toISOString().split('T')[0],
-      conformiteSYSCOHADA: true,
-      controlesCritiques: [],
+      // Honnêteté : cet état affiche « aucune donnée » — le déclarer conforme
+      // gonflait artificiellement le taux de conformité à 100 %.
+      conformiteSYSCOHADA: tafireCalculable,
+      controlesCritiques: [
+        {
+          nom: 'Données de calcul disponibles',
+          statut: tafireCalculable ? 'conforme' : 'non_conforme',
+          message: tafireCalculable
+            ? 'Variations de bilan N/N-1 disponibles'
+            : 'TAFIRE non calculable ici — les variations de bilan N/N-1 ne sont pas disponibles (comparatif N-1 absent de l\'import)',
+        },
+      ],
     },
   ];
 

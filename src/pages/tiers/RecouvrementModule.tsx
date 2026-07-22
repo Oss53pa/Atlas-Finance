@@ -62,6 +62,8 @@ interface CommercialData {
 interface CreanceEnrichie extends DebtCollection {
   clientNom: string;
   clientCode: string;
+  /** Langue préférée du tiers (`languePrefere`) : la relance part dans CETTE langue. */
+  clientLangue?: string;
   crmData?: CrmData;
   commercialData?: CommercialData;
 }
@@ -270,14 +272,14 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Créances Totales</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalReceivables')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                     </p>
                     <p className="text-xs text-[var(--color-text-secondary)] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
                     <div className="flex items-center mt-2 text-xs text-blue-600">
                       <Link className="w-3 h-3 mr-1" />
-                      <span>Comptabilité sync</span>
+                      <span>{t('recovery.accountingSync')}</span>
                     </div>
                   </div>
                   <DollarSign className="w-8 h-8 text-red-600" />
@@ -286,14 +288,14 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Recouvré ce mois</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedThisMonth')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                     </p>
-                    <p className="text-xs text-green-600 mt-1">↑ +12% vs mois précédent</p>
+                    <p className="text-xs text-green-600 mt-1">{t('recovery.vsPrevMonth12')}</p>
                     <div className="flex items-center mt-2 text-xs text-green-600">
                       <Zap className="w-3 h-3 mr-1" />
-                      <span>Temps réel</span>
+                      <span>{t('recovery.realTime')}</span>
                     </div>
                   </div>
                   <CheckCircle className="w-8 h-8 text-green-600" />
@@ -302,7 +304,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.successRate')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {analyticsData.statistiques.tauxRecouvrement}%
                     </p>
@@ -318,7 +320,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Délai moyen</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.averageDelay')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {analyticsData.statistiques.delaiMoyenRecouvrement}j
                     </p>
@@ -336,10 +338,10 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Panel des intégrations en temps réel */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Flux de Données Atlas FnA</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.dataFlowAtlas')}</h3>
                 <div className="flex items-center space-x-2 text-sm text-green-600">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Synchronisation active</span>
+                  <span>{t('recovery.syncActive')}</span>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -348,7 +350,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                     <div>
                       <p className="text-sm font-medium text-blue-800">{t('accounting.title')}</p>
                       <p className="text-xs text-blue-600">156 factures sync</p>
-                      <p className="text-xs text-blue-600">23 nouveaux impayés</p>
+                      <p className="text-xs text-blue-600">{t('recovery.newUnpaid23')}</p>
                     </div>
                     <Calculator className="w-6 h-6 text-blue-600" />
                   </div>
@@ -358,7 +360,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                     <div>
                       <p className="text-sm font-medium text-green-800">CRM</p>
                       <p className="text-xs text-green-600">89 clients enrichis</p>
-                      <p className="text-xs text-green-600">Score risque mis à jour</p>
+                      <p className="text-xs text-green-600">{t('recovery.riskScoreUpdated')}</p>
                     </div>
                     <Users className="w-6 h-6 text-green-600" />
                   </div>
@@ -377,8 +379,8 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-orange-800">Finance</p>
-                      <p className="text-xs text-orange-600">Budgets à jour</p>
-                      <p className="text-xs text-orange-600">Provisions calculées</p>
+                      <p className="text-xs text-orange-600">{t('recovery.budgetsUpToDate')}</p>
+                      <p className="text-xs text-orange-600">{t('recovery.provisionsComputed')}</p>
                     </div>
                     <Package className="w-6 h-6 text-orange-600" />
                   </div>
@@ -390,7 +392,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Évolution mensuelle */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Recouvrement</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.collectionTrend')}</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={analyticsData.evolutionRecouvrement}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -405,7 +407,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 
               {/* Répartition par niveau */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Niveau</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.breakdownByLevel')}</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsPieChart>
                     <Pie
@@ -429,12 +431,12 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
 
             {/* Tableau de bord activités récentes — pas de suivi journalier en base -> "—" */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Activités du jour</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.todayActivities')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-blue-800">Nouvelles créances</p>
+                      <p className="text-sm font-medium text-blue-800">{t('recovery.newReceivables')}</p>
                       <p className="text-lg font-bold text-blue-900">—</p>
                     </div>
                     <Plus className="w-6 h-6 text-blue-600" />
@@ -443,7 +445,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                 <div className="bg-green-50 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-green-800">Recouvrements réalisés</p>
+                      <p className="text-sm font-medium text-green-800">{t('recovery.collectionsCompleted')}</p>
                       <p className="text-lg font-bold text-green-900">—</p>
                     </div>
                     <CheckCircle className="w-6 h-6 text-green-600" />
@@ -452,7 +454,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                 <div className="bg-orange-50 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-orange-800">Actions en attente</p>
+                      <p className="text-sm font-medium text-orange-800">{t('recovery.pendingActions')}</p>
                       <p className="text-lg font-bold text-orange-900">—</p>
                     </div>
                     <Clock className="w-6 h-6 text-orange-600" />
@@ -468,12 +470,12 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
           <div className="space-y-6">
             {/* Performance par agent */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Agent de Recouvrement</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.perfByAgent')}</h3>
               <div className="flex items-center justify-center py-8 text-sm text-gray-500">
                 <div className="text-center">
                   <UserCircle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                  <p>Aucune donnée de performance par agent disponible.</p>
-                  <p className="text-xs text-gray-400 mt-1">Configurez les agents dans les paramètres de recouvrement.</p>
+                  <p>{t('recovery.noAgentPerfData')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{t('recovery.configureAgents')}</p>
                 </div>
               </div>
             </div>
@@ -481,7 +483,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Graphique performance */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Taux de Succès</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.successRateTrend')}</h3>
                 {analyticsData.evolutionRecouvrement.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={analyticsData.evolutionRecouvrement.map(d => ({
@@ -497,15 +499,15 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                    Données insuffisantes pour l'affichage
+                    {t('recovery.notEnoughData')}
                   </div>
                 )}
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition du Temps</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.timeBreakdown')}</h3>
                 <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                  Aucune donnée — module non alimenté par l'import
+                  {t('recovery.noDataNotImported')}
                 </div>
               </div>
             </div>
@@ -518,23 +520,23 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Répartition géographique */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Géographique</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.geoBreakdown')}</h3>
                 <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                  Données géographiques non disponibles — les tiers ne portent pas d'information de localisation.
+                  {t('recovery.noGeoData')}
                 </div>
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Secteur</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.sectorBreakdown')}</h3>
                 <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                  Données sectorielles non disponibles — activez la classification sectorielle des tiers pour afficher ce graphique.
+                  {t('recovery.noSectorData')}
                 </div>
               </div>
             </div>
 
             {/* Ancienneté détaillée */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Ancienneté des Créances</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.receivablesAging')}</h3>
               {analyticsData.anciennete.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={analyticsData.anciennete}>
@@ -547,7 +549,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                  Aucune donnée d'ancienneté disponible.
+                  {t('recovery.noAgingData')}
                 </div>
               )}
             </div>
@@ -559,7 +561,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
           <div className="space-y-6">
             {/* Tendances temporelles */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Tendances sur 12 mois</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.trends12Months')}</h3>
               {analyticsData.evolutionRecouvrement.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
                   <AreaChart data={analyticsData.evolutionRecouvrement}>
@@ -573,7 +575,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">
-                  Aucune donnée d'évolution disponible pour le moment.
+                  {t('recovery.noTrendData')}
                 </div>
               )}
             </div>
@@ -581,14 +583,14 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Analyse des cycles */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Cycle de Recouvrement Moyen</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.avgCollectionCycle')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                     <div className="flex items-center">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-semibold text-blue-600">1</span>
                       </div>
-                      <span className="font-medium text-gray-900">Premier contact</span>
+                      <span className="font-medium text-gray-900">{t('recovery.firstContact')}</span>
                     </div>
                     <span className="text-sm font-semibold text-blue-600">0-3j</span>
                   </div>
@@ -597,7 +599,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                       <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-semibold text-yellow-600">2</span>
                       </div>
-                      <span className="font-medium text-gray-900">Relances multiples</span>
+                      <span className="font-medium text-gray-900">{t('recovery.multipleReminders')}</span>
                     </div>
                     <span className="text-sm font-semibold text-yellow-600">4-15j</span>
                   </div>
@@ -606,7 +608,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                       <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-semibold text-orange-600">3</span>
                       </div>
-                      <span className="font-medium text-gray-900">Négociation</span>
+                      <span className="font-medium text-gray-900">{t('recovery.negotiation')}</span>
                     </div>
                     <span className="text-sm font-semibold text-orange-600">16-25j</span>
                   </div>
@@ -615,7 +617,7 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                       <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
                         <span className="text-sm font-semibold text-green-600">4</span>
                       </div>
-                      <span className="font-medium text-gray-900">Résolution</span>
+                      <span className="font-medium text-gray-900">{t('recovery.resolution')}</span>
                     </div>
                     <span className="text-sm font-semibold text-green-600">26-30j</span>
                   </div>
@@ -623,9 +625,9 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Réussite</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.successFactors')}</h3>
                 <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                  Aucune donnée — module non alimenté par l'import
+                  {t('recovery.noDataNotImported')}
                 </div>
               </div>
             </div>
@@ -638,34 +640,34 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             {/* Comparaison périodes */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Comparaison Périodes</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.periodComparison')}</h3>
                 <div className="flex space-x-2">
                   <select className="px-3 py-1 border border-gray-300 rounded-lg text-sm">
-                    <option>Ce mois vs mois précédent</option>
-                    <option>Ce trimestre vs trimestre précédent</option>
-                    <option>Cette année vs année précédente</option>
+                    <option>{t('recovery.thisMonthVsPrev')}</option>
+                    <option>{t('recovery.thisQuarterVsPrev')}</option>
+                    <option>{t('recovery.thisYearVsPrev')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                Comparaison indisponible — aucun historique N-1 / mensuel n'est tracé en base.
+                {t('recovery.noComparisonHistory')}
               </div>
             </div>
 
             {/* Comparaison détaillée — pas d'historique N-1 disponible */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution Comparative</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.comparativeTrend')}</h3>
               <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                Aucune donnée comparative disponible (exercice antérieur non importé).
+                {t('recovery.noComparativeData')}
               </div>
             </div>
 
             {/* Benchmark secteur — pas de référentiel sectoriel en base */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Benchmark Sectoriel</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.sectorBenchmark')}</h3>
               <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                Aucune donnée — module non alimenté par l'import
+                {t('recovery.noDataNotImported')}
               </div>
             </div>
           </div>
@@ -676,41 +678,41 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
           <div className="space-y-6">
             {/* Prévisions financières — aucune projection fiable sans historique / scénarios paramétrés */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prévisions de Recouvrement - 6 prochains mois</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.forecastNext6Months')}</h3>
               <div className="flex items-center justify-center h-[350px] text-sm text-gray-500">
-                Aucune prévision disponible — l'historique nécessaire à une projection n'est pas tracé en base.
+                {t('recovery.noForecastData')}
               </div>
             </div>
 
             {/* Facteurs de risque / opportunités — non dérivables des données importées */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Facteurs de Risque Identifiés</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.identifiedRiskFactors')}</h3>
                 <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                  Aucune donnée — module non alimenté par l'import
+                  {t('recovery.noDataNotImported')}
                 </div>
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Opportunités d'Amélioration</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.improvementOpportunities')}</h3>
                 <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                  Aucune donnée — module non alimenté par l'import
+                  {t('recovery.noDataNotImported')}
                 </div>
               </div>
             </div>
 
             {/* Simulation scenarios — pas de modèle de projection alimenté */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Simulation de Scénarios</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.scenarioSimulation')}</h3>
               <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-                Aucune donnée — module non alimenté par l'import
+                {t('recovery.noDataNotImported')}
               </div>
             </div>
           </div>
         );
 
       default:
-        return <div>Contenu non disponible</div>;
+        return <div>{t('recovery.contentUnavailable')}</div>;
     }
   }
 
@@ -800,7 +802,7 @@ const ContentieuxTab = ({
       return newCase;
     },
     onSuccess: () => {
-      toast.success('Transfert en contentieux créé avec succès');
+      toast.success(t('recovery.toastTransferCreated'));
       queryClient.invalidateQueries({ queryKey: ['transferts-contentieux'] });
       setShowTransferContentieuxModal(false);
       resetForm();
@@ -855,9 +857,9 @@ const ContentieuxTab = ({
           fieldErrors[field] = err.message;
         });
         setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+        toast.error(t('recovery.toastFixFormErrors'));
       } else {
-        toast.error('Erreur lors de la création');
+        toast.error(t('recovery.toastCreateError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -987,7 +989,7 @@ const ContentieuxTab = ({
   // Fonction pour ajouter une dépense
   const addDepense = () => {
     if (newDepense.montant <= 0) {
-      toast.error('Le montant doit être supérieur à 0');
+      toast.error(t('recovery.toastAmountMustBePositive'));
       return;
     }
     const depense = {
@@ -1003,13 +1005,13 @@ const ContentieuxTab = ({
       reference: '',
       notes: ''
     });
-    toast.success('Dépense ajoutée');
+    toast.success(t('recovery.toastExpenseAdded'));
   };
 
   // Fonction pour supprimer une dépense
   const removeDepense = (id: number) => {
     setContentieuxDepenses(contentieuxDepenses.filter(d => d.id !== id));
-    toast.success('Dépense supprimée');
+    toast.success(t('recovery.toastExpenseDeleted'));
   };
 
   // Calcul des totaux par type
@@ -1067,7 +1069,7 @@ const ContentieuxTab = ({
   // Fonction pour ajouter une étape de suivi
   const addSuiviEtape = () => {
     if (!newSuiviEtape.date) {
-      toast.error('La date est obligatoire');
+      toast.error(t('recovery.toastDateRequired'));
       return;
     }
     const etape = {
@@ -1088,13 +1090,13 @@ const ContentieuxTab = ({
       prochainRdv: '',
       documentsJoints: ''
     });
-    toast.success('Étape de suivi ajoutée');
+    toast.success(t('recovery.toastStepAdded'));
   };
 
   // Fonction pour supprimer une étape de suivi
   const removeSuiviEtape = (id: number) => {
     setSuiviEtapes(suiviEtapes.filter(e => e.id !== id));
-    toast.success('Étape supprimée');
+    toast.success(t('recovery.toastStepDeleted'));
   };
 
   // Fonction pour mettre à jour le résultat d'une étape
@@ -1202,7 +1204,7 @@ const ContentieuxTab = ({
       // Rafraîchir la liste locale
       const updated = await adapter.getAll<any>('recoveryCases', { where: { statut: 'juridique' } });
       setDossiersContentieux(updated);
-      toast.success(`Dossier ${editContentieuxFormData.numeroRef} mis à jour avec succès`);
+      toast.success(t('recovery.toastCaseUpdated', { ref: String(editContentieuxFormData.numeroRef) }));
       setShowEditContentieuxModal(false);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde';
@@ -1234,7 +1236,7 @@ const ContentieuxTab = ({
       .then(setDossiersContentieux)
       .catch((err) => {
         console.error('[RecouvrementModule] Erreur chargement dossiers contentieux:', err);
-        toast.error('Impossible de charger les dossiers contentieux.');
+        toast.error(t('recovery.toastCasesLoadError'));
         setDossiersContentieux([]);
       });
   }, [adapter]);
@@ -1435,7 +1437,7 @@ const ContentieuxTab = ({
         )
       }
     }));
-    toast.success('Commentaire ajouté');
+    toast.success(t('recovery.toastCommentAdded'));
     setShowCommentModal(false);
     setNewComment('');
   };
@@ -1463,7 +1465,7 @@ const ContentieuxTab = ({
         etapes: [...prev[dossierId].etapes, newEtapeObj]
       }
     }));
-    toast.success('Étape personnalisée ajoutée');
+    toast.success(t('recovery.toastCustomStepAdded'));
     setShowAddEtapeModal(false);
     setNewEtape({ titre: '', description: '', datePrevu: '' });
   };
@@ -1539,29 +1541,29 @@ const ContentieuxTab = ({
       {showAssignationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Préparer l'Assignation</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.prepareSummonsTitle')}</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'assignation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.summonsType')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Assignation en référé provision</option>
-                  <option>Assignation au fond</option>
-                  <option>Assignation en injonction de payer</option>
+                  <option>{t('recovery.summonsInterim')}</option>
+                  <option>{t('recovery.summonsMerits')}</option>
+                  <option>{t('recovery.summonsPaymentOrder')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tribunal compétent</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.competentCourt')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Tribunal de Commerce d'Abidjan</option>
-                  <option>Tribunal de Première Instance d'Abidjan</option>
-                  <option>Tribunal de Commerce de Bouaké</option>
+                  <option>{t('recovery.courtAbidjanCommercial')}</option>
+                  <option>{t('recovery.courtAbidjanFirstInstance')}</option>
+                  <option>{t('recovery.courtBouakeCommercial')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Montant réclamé</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.claimedAmount')}</label>
                 <input
                   type="text"
                   value={selectedContentieux ? formatCurrency(selectedContentieux.montantTotal) : ''}
@@ -1571,32 +1573,32 @@ const ContentieuxTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Demandes accessoires</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.ancillaryClaims')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Intérêts de retard</span>
+                    <span className="text-sm">{t('recovery.lateInterest')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Pénalités contractuelles</span>
+                    <span className="text-sm">{t('recovery.contractualPenalties')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Dommages et intérêts</span>
+                    <span className="text-sm">{t('recovery.damages')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Frais de procédure</span>
+                    <span className="text-sm">{t('recovery.procedureFees')}</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Instructions spéciales</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.specialInstructions')}</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                  placeholder="Instructions particulières pour l'avocat..."
+                  placeholder={t('recovery.lawyerInstructionsPh')}
                 />
               </div>
             </div>
@@ -1606,7 +1608,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowAssignationModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1615,7 +1617,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
-                Préparer l'assignation
+                {t('recovery.prepareSummons')}
               </button>
             </div>
           </div>
@@ -1626,19 +1628,19 @@ const ContentieuxTab = ({
       {showAudienceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Planifier une Audience</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.scheduleHearingTitle')}</h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date d'audience</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.hearingDate')}</label>
                   <input
                     type="date"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Heure</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.time')}</label>
                   <input
                     type="time"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -1647,17 +1649,17 @@ const ContentieuxTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'audience</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.hearingType')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Audience de conciliation</option>
-                  <option>Audience de mise en état</option>
-                  <option>Audience de plaidoirie</option>
-                  <option>Audience de jugement</option>
+                  <option>{t('recovery.hearingConciliation')}</option>
+                  <option>{t('recovery.hearingCaseManagement')}</option>
+                  <option>{t('recovery.hearingPleadings')}</option>
+                  <option>{t('recovery.hearingJudgment')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Avocat assigné</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.assignedLawyer')}</label>
                 <input
                   type="text"
                   value={selectedContentieux ? selectedContentieux.avocat : ''}
@@ -1671,24 +1673,24 @@ const ContentieuxTab = ({
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Demandeur (notre client)</span>
+                    <span className="text-sm">{t('recovery.claimantOurClient')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Défendeur</span>
+                    <span className="text-sm">{t('recovery.defendant')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Expert judiciaire</span>
+                    <span className="text-sm">{t('recovery.courtExpert')}</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes de préparation</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.preparationNotes')}</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                  placeholder="Points à aborder, documents à présenter..."
+                  placeholder={t('recovery.pointsToAddressPh')}
                 />
               </div>
             </div>
@@ -1698,7 +1700,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowAudienceModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1707,7 +1709,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Programmer l'audience
+                {t('recovery.scheduleHearing')}
               </button>
             </div>
           </div>
@@ -1718,37 +1720,37 @@ const ContentieuxTab = ({
       {showConclusionsModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Générer les Conclusions</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.generateSubmissionsTitle')}</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type de conclusions</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.submissionsType')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Conclusions principales</option>
-                  <option>Conclusions subsidiaires</option>
-                  <option>Conclusions en duplique</option>
-                  <option>Conclusions en défense</option>
+                  <option>{t('recovery.submissionsMain')}</option>
+                  <option>{t('recovery.submissionsAlternative')}</option>
+                  <option>{t('recovery.submissionsRejoinder')}</option>
+                  <option>{t('recovery.submissionsDefence')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Points de droit à développer</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.legalPointsToDevelop')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Créance certaine, liquide et exigible</span>
+                    <span className="text-sm">{t('recovery.claimCertainLiquidDue')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Manquement contractuel du débiteur</span>
+                    <span className="text-sm">{t('recovery.debtorBreach')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Demande reconventionnelle</span>
+                    <span className="text-sm">{t('recovery.counterclaim')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Exception d'inexécution</span>
+                    <span className="text-sm">{t('recovery.nonPerformanceException')}</span>
                   </label>
                 </div>
               </div>
@@ -1761,30 +1763,30 @@ const ContentieuxTab = ({
                     <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.montantPrincipal) : ''}</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">Intérêts de retard</span>
+                    <span className="text-sm">{t('recovery.lateInterest')}</span>
                     <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.interetsRetard ?? 0) : ''}</span>
                   </div>
                   <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">Frais de procédure</span>
+                    <span className="text-sm">{t('recovery.procedureFees')}</span>
                     <span className="font-medium">{selectedContentieux ? formatCurrency(selectedContentieux.fraisProcedure ?? 0) : ''}</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à annexer</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.exhibitsToAttach')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Contrat principal</span>
+                    <span className="text-sm">{t('recovery.mainContract')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Factures impayées</span>
+                    <span className="text-sm">{t('recovery.unpaidInvoices')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Mise en demeure</span>
+                    <span className="text-sm">{t('recovery.formalNotice')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
@@ -1799,7 +1801,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowConclusionsModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1808,7 +1810,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
-                Générer les conclusions
+                {t('recovery.generateSubmissions')}
               </button>
             </div>
           </div>
@@ -1819,60 +1821,60 @@ const ContentieuxTab = ({
       {showJugementModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Enregistrer le Jugement</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.recordJudgmentTitle')}</h3>
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date du jugement</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.judgmentDate')}</label>
                   <input
                     type="date"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Numéro RG</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.caseNumber')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="N° du rôle général"
+                    placeholder={t('recovery.docketNumberPh')}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sens du jugement</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.judgmentOutcome')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Favorable (condamnation du débiteur)</option>
-                  <option>Défavorable (débouté de nos demandes)</option>
-                  <option>Partiellement favorable</option>
-                  <option>Décision avant dire droit</option>
+                  <option>{t('recovery.judgmentFavorable')}</option>
+                  <option>{t('recovery.judgmentUnfavorable')}</option>
+                  <option>{t('recovery.judgmentPartial')}</option>
+                  <option>{t('recovery.judgmentInterlocutory')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Montant accordé</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.awardedAmount')}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Montant de la condamnation"
+                  placeholder={t('recovery.awardAmountPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Exécution provisoire</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.provisionalEnforcement')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="radio" name="execution" className="mr-2" />
-                    <span className="text-sm">Oui, de droit</span>
+                    <span className="text-sm">{t('recovery.yesByLaw')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="radio" name="execution" className="mr-2" />
-                    <span className="text-sm">Oui, à hauteur de...</span>
+                    <span className="text-sm">{t('recovery.yesUpTo')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="radio" name="execution" className="mr-2" />
-                    <span className="text-sm">Non</span>
+                    <span className="text-sm">{t('recovery.no')}</span>
                   </label>
                 </div>
               </div>
@@ -1881,7 +1883,7 @@ const ContentieuxTab = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                  placeholder="Remarques sur le jugement, voies de recours..."
+                  placeholder={t('recovery.judgmentRemarksPh')}
                 />
               </div>
             </div>
@@ -1891,7 +1893,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowJugementModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1900,7 +1902,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                Enregistrer le jugement
+                {t('recovery.recordJudgment')}
               </button>
             </div>
           </div>
@@ -1911,7 +1913,7 @@ const ContentieuxTab = ({
       {showContactAvocatModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Contacter l'Avocat</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.contactLawyerTitle')}</h3>
 
             <div className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -1926,7 +1928,7 @@ const ContentieuxTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mode de contact</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.contactMode')}</label>
                 <div className="grid grid-cols-3 gap-3">
                   <button className="flex items-center justify-center space-x-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50">
                     <Phone className="w-4 h-4" />
@@ -1946,10 +1948,10 @@ const ContentieuxTab = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Objet</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Point sur la procédure</option>
-                  <option>Demande de mise à jour</option>
-                  <option>Instructions particulières</option>
-                  <option>Urgence procédurale</option>
+                  <option>{t('recovery.procedureUpdate')}</option>
+                  <option>{t('recovery.updateRequest')}</option>
+                  <option>{t('recovery.specificInstructions')}</option>
+                  <option>{t('recovery.proceduralUrgency')}</option>
                 </select>
               </div>
 
@@ -1957,15 +1959,15 @@ const ContentieuxTab = ({
                 <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                  placeholder="Votre message à l'avocat..."
+                  placeholder={t('recovery.messageToLawyerPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.attachments')}</label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                   <Upload className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">Glissez vos fichiers ici ou cliquez pour parcourir</p>
+                  <p className="text-sm text-gray-600">{t('recovery.dropFilesOrBrowse')}</p>
                 </div>
               </div>
             </div>
@@ -1975,7 +1977,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowContactAvocatModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -1984,7 +1986,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Envoyer le message
+                {t('recovery.sendMessage')}
               </button>
             </div>
           </div>
@@ -1995,50 +1997,50 @@ const ContentieuxTab = ({
       {showRetourAmiableModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Retourner en Recouvrement Amiable</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.returnToAmicableTitle')}</h3>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-yellow-800">Attention</h4>
-                  <p className="text-sm text-yellow-700">Cette action va suspendre la procédure contentieuse en cours et transférer le dossier en recouvrement amiable.</p>
+                  <p className="text-sm text-yellow-700">{t('recovery.returnToAmicableWarn')}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Motif du retour en amiable</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.returnReason')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Proposition de règlement du débiteur</option>
-                  <option>Demande d'échelonnement acceptée</option>
-                  <option>Difficultés temporaires du débiteur</option>
-                  <option>Accord transactionnel en vue</option>
-                  <option>Autres motifs</option>
+                  <option>{t('recovery.reasonSettlementOffer')}</option>
+                  <option>{t('recovery.reasonInstalmentsAccepted')}</option>
+                  <option>{t('recovery.reasonTemporaryDifficulty')}</option>
+                  <option>{t('recovery.reasonSettlementPending')}</option>
+                  <option>{t('recovery.reasonOther')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Nouvelle stratégie amiable</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.newAmicableStrategy')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Plan d'apurement négocié</span>
+                    <span className="text-sm">{t('recovery.negotiatedClearancePlan')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Remise commerciale accordée</span>
+                    <span className="text-sm">{t('recovery.commercialDiscountGranted')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Garanties supplémentaires exigées</span>
+                    <span className="text-sm">{t('recovery.additionalGuarantees')}</span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Agent assigné au suivi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.agentAssignedFollowUp')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                   <option>Marie Diallo (Senior)</option>
                   <option>Jean Kouassi (Junior)</option>
@@ -2047,15 +2049,15 @@ const ContentieuxTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Instructions particulières</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.specificInstructions')}</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                  placeholder="Instructions pour la nouvelle approche amiable..."
+                  placeholder={t('recovery.newAmicableInstructionsPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Échéance de reprise contentieuse</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.litigationResumeDeadline')}</label>
                 <input
                   type="date"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -2068,7 +2070,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowRetourAmiableModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -2077,7 +2079,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
               >
-                Confirmer le retour en amiable
+                {t('recovery.confirmReturnAmicable')}
               </button>
             </div>
           </div>
@@ -2088,47 +2090,47 @@ const ContentieuxTab = ({
       {showExpertiseModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Demander une Expertise</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.requestExpertiseTitle')}</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type d'expertise</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.expertiseType')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Expertise comptable</option>
-                  <option>Expertise technique</option>
-                  <option>Expertise de gestion</option>
-                  <option>Expertise amiable</option>
+                  <option>{t('recovery.expertiseAccounting')}</option>
+                  <option>{t('recovery.expertiseTechnical')}</option>
+                  <option>{t('recovery.expertiseManagement')}</option>
+                  <option>{t('recovery.expertiseAmicable')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Objet de l'expertise</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.expertisePurpose')}</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24"
-                  placeholder="Précisez les points à faire examiner par l'expert..."
+                  placeholder={t('recovery.expertisePurposePh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Expert suggéré</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.suggestedExpert')}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Nom de l'expert proposé (optionnel)"
+                  placeholder={t('recovery.suggestedExpertPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Budget estimé</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.estimatedBudget')}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Coût estimé de l'expertise"
+                  placeholder={t('recovery.estimatedCostPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Délai souhaité</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.desiredDeadline')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                   <option>1 mois</option>
                   <option>2 mois</option>
@@ -2138,15 +2140,15 @@ const ContentieuxTab = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pièces à transmettre à l'expert</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.documentsForExpert')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" defaultChecked />
-                    <span className="text-sm">Dossier complet du contentieux</span>
+                    <span className="text-sm">{t('recovery.fullLitigationFile')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Documents comptables</span>
+                    <span className="text-sm">{t('recovery.accountingDocuments')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
@@ -2161,7 +2163,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowExpertiseModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -2170,7 +2172,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
-                Demander l'expertise
+                {t('recovery.requestExpertise')}
               </button>
             </div>
           </div>
@@ -2181,71 +2183,71 @@ const ContentieuxTab = ({
       {showClotureModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.closeLitigationCaseTitle')}</h3>
 
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-3">
                 <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
                 <div>
-                  <h4 className="font-medium text-red-800">Action irréversible</h4>
-                  <p className="text-sm text-red-700">La clôture du dossier est définitive. Assurez-vous que toutes les actions nécessaires ont été entreprises.</p>
+                  <h4 className="font-medium text-red-800">{t('recovery.irreversibleAction')}</h4>
+                  <p className="text-sm text-red-700">{t('recovery.closingIsFinalWarn')}</p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.closingReason')}</label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                  <option>Recouvrement total</option>
-                  <option>Accord transactionnel</option>
-                  <option>Insolvabilité avérée du débiteur</option>
-                  <option>Prescription de la créance</option>
-                  <option>Abandon de créance</option>
-                  <option>Décision de justice défavorable définitive</option>
+                  <option>{t('recovery.fullRecovery')}</option>
+                  <option>{t('recovery.settlementAgreement')}</option>
+                  <option>{t('recovery.provenInsolvency')}</option>
+                  <option>{t('recovery.claimTimeBarred')}</option>
+                  <option>{t('recovery.debtWriteOff')}</option>
+                  <option>{t('recovery.finalAdverseJudgment')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Montant finalement recouvré</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.finalAmountCollected')}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Montant total récupéré"
+                  placeholder={t('recovery.totalAmountRecoveredPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Coûts totaux de la procédure</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.totalProcedureCosts')}</label>
                 <input
                   type="text"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                  placeholder="Frais d'avocat, d'huissier, de procédure..."
+                  placeholder={t('recovery.feesBreakdownPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Résumé final</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.finalSummary')}</label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                  placeholder="Bilan de la procédure, leçons apprises, recommandations..."
+                  placeholder={t('recovery.finalSummaryPh')}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Actions post-clôture</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.postClosingActions')}</label>
                 <div className="space-y-2">
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Archiver le dossier</span>
+                    <span className="text-sm">{t('recovery.archiveCase')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Mise à jour du scoring client</span>
+                    <span className="text-sm">{t('recovery.updateCustomerScoring')}</span>
                   </label>
                   <label className="flex items-center">
                     <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Notification à la direction</span>
+                    <span className="text-sm">{t('recovery.notifyManagement')}</span>
                   </label>
                 </div>
               </div>
@@ -2256,7 +2258,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowClotureModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => {
@@ -2265,7 +2267,7 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
-                Clôturer définitivement
+                {t('recovery.closeDefinitively')}
               </button>
             </div>
           </div>
@@ -2279,7 +2281,7 @@ const ContentieuxTab = ({
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                  Modifier Dossier Contentieux
+                  {t('recovery.editLitigationCase')}
                 </h2>
                 <p className="text-gray-600 mt-1">
                   {editContentieuxFormData.numeroRef} - {editContentieuxFormData.client}
@@ -2328,43 +2330,43 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-blue-900 mb-4 flex items-center">
                     <Scale className="w-5 h-5 mr-2" />
-                    Statut & Procédure
+                    {t('recovery.statusAndProcedure')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Étape actuelle *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.currentStepReq')}</label>
                       <select
                         value={editContentieuxFormData.statutJuridique}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, statutJuridique: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="reglement_amiable">1. Règlement à l'amiable</option>
-                        <option value="mise_demeure_huissier">2. Mise en demeure (Huissier)</option>
-                        <option value="saisine_tribunal">3. Saisine au tribunal</option>
-                        <option value="procedure_injonction">4. Procédure d'injonction</option>
-                        <option value="titre_executoire">5. Titre exécutoire obtenu</option>
-                        <option value="execution_forcee">6. Exécution forcée / Saisie</option>
-                        <option value="cloture">Clôturé</option>
+                        <option value="reglement_amiable">{t('recovery.step1Amicable')}</option>
+                        <option value="mise_demeure_huissier">{t('recovery.step2FormalNotice')}</option>
+                        <option value="saisine_tribunal">{t('recovery.step3CourtFiling')}</option>
+                        <option value="procedure_injonction">{t('recovery.step4Injunction')}</option>
+                        <option value="titre_executoire">{t('recovery.step5EnforceableTitle')}</option>
+                        <option value="execution_forcee">{t('recovery.step6ForcedEnforcement')}</option>
+                        <option value="cloture">{t('recovery.closed')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Type de Procédure *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.procedureTypeReq')}</label>
                       <select
                         value={editContentieuxFormData.typeProcedure}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, typeProcedure: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="injonction_payer">Injonction de payer</option>
-                        <option value="assignation_fond">Assignation au fond</option>
-                        <option value="refere">Référé provision</option>
-                        <option value="saisie_conservatoire">Saisie conservatoire</option>
+                        <option value="injonction_payer">{t('recovery.paymentOrder')}</option>
+                        <option value="assignation_fond">{t('recovery.summonsMerits')}</option>
+                        <option value="refere">{t('recovery.interimProvision')}</option>
+                        <option value="saisie_conservatoire">{t('recovery.protectiveSeizure')}</option>
                         <option value="saisie_attribution">Saisie-attribution</option>
                         <option value="saisie_vente">Saisie-vente</option>
-                        <option value="procedure_collective">Procédure collective</option>
+                        <option value="procedure_collective">{t('recovery.insolvencyProceedings')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.priority')}</label>
                       <select
                         value={editContentieuxFormData.priorite}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, priorite: e.target.value})}
@@ -2377,16 +2379,16 @@ const ContentieuxTab = ({
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Chances de succès</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.chancesOfSuccess')}</label>
                       <select
                         value={editContentieuxFormData.chancesSucces}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chancesSucces: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="faible">Faible (&lt;30%)</option>
-                        <option value="moyenne">Moyenne (30-60%)</option>
-                        <option value="elevee">Élevée (60-80%)</option>
-                        <option value="tres_elevee">Très élevée (&gt;80%)</option>
+                        <option value="faible">{t('recovery.chanceLow')}</option>
+                        <option value="moyenne">{t('recovery.chanceMedium')}</option>
+                        <option value="elevee">{t('recovery.chanceHigh')}</option>
+                        <option value="tres_elevee">{t('recovery.chanceVeryHigh')}</option>
                       </select>
                     </div>
                   </div>
@@ -2398,11 +2400,11 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
                     <Calendar className="w-5 h-5 mr-2" />
-                    Dates Clés de la Procédure
+                    {t('recovery.keyProcedureDates')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date transfert contentieux</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateLitigationTransfer')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateTransfert}
@@ -2411,7 +2413,7 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date mise en demeure</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateFormalNotice')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateMiseEnDemeure}
@@ -2420,7 +2422,7 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date assignation</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateSummons')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateAssignation}
@@ -2429,7 +2431,7 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date audience</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateHearing')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateAudience}
@@ -2438,7 +2440,7 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date titre exécutoire</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateEnforceableTitle')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateTitreExecutoire}
@@ -2447,7 +2449,7 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Date exécution</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateEnforcement')}</label>
                       <input
                         type="date"
                         value={editContentieuxFormData.dateExecution}
@@ -2457,13 +2459,13 @@ const ContentieuxTab = ({
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Prochaine échéance</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.nextDueDate')}</label>
                     <input
                       type="text"
                       value={editContentieuxFormData.prochaineEcheance}
                       onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, prochaineEcheance: e.target.value})}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                      placeholder="ex: Audience 15/02/2024 à 10h"
+                      placeholder={t('recovery.nextDueDatePh')}
                     />
                   </div>
                 </div>
@@ -2474,21 +2476,21 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
                     <Building className="w-5 h-5 mr-2" />
-                    Juridiction
+                    {t('recovery.jurisdiction')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tribunal compétent</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.competentCourt')}</label>
                       <input
                         type="text"
                         value={editContentieuxFormData.tribunal}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunal: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        placeholder="ex: Tribunal de Commerce de Brazzaville"
+                        placeholder={t('recovery.courtPh')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">N° RG (Répertoire Général)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.docketNumberLabel')}</label>
                       <input
                         type="text"
                         value={editContentieuxFormData.numeroRG}
@@ -2504,17 +2506,17 @@ const ContentieuxTab = ({
                         value={editContentieuxFormData.chambre}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, chambre: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        placeholder="ex: 1ère Chambre"
+                        placeholder={t('recovery.chamberPh')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse tribunal</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.courtAddress')}</label>
                       <input
                         type="text"
                         value={editContentieuxFormData.tribunalAdresse}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, tribunalAdresse: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                        placeholder="Adresse du tribunal"
+                        placeholder={t('recovery.courtAddressPh')}
                       />
                     </div>
                   </div>
@@ -2526,14 +2528,14 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-primary-900 mb-4 flex items-center">
                     <Users className="w-5 h-5 mr-2" />
-                    Intervenants
+                    {t('recovery.participants')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Avocat */}
                     <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
                       <h4 className="font-medium text-primary-800 mb-3 flex items-center">
                         <Briefcase className="w-4 h-4 mr-2" />
-                        Avocat
+                        {t('recovery.lawyer')}
                       </h4>
                       <div className="space-y-3">
                         <div>
@@ -2543,11 +2545,11 @@ const ContentieuxTab = ({
                             value={editContentieuxFormData.avocat}
                             onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, avocat: e.target.value})}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                            placeholder="Maître..."
+                            placeholder={t('recovery.lawyerNamePh')}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t('recovery.phone')}</label>
                           <input
                             type="tel"
                             value={editContentieuxFormData.avocatTel}
@@ -2572,11 +2574,11 @@ const ContentieuxTab = ({
                     <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
                       <h4 className="font-medium text-primary-800 mb-3 flex items-center">
                         <Gavel className="w-4 h-4 mr-2" />
-                        Huissier de Justice
+                        {t('recovery.bailiff')}
                       </h4>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Nom / Étude</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t('recovery.nameOrFirm')}</label>
                           <input
                             type="text"
                             value={editContentieuxFormData.huissier}
@@ -2586,7 +2588,7 @@ const ContentieuxTab = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t('recovery.phone')}</label>
                           <input
                             type="tel"
                             value={editContentieuxFormData.huissierTel}
@@ -2616,20 +2618,20 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-red-900 mb-4 flex items-center">
                     <UserCircle className="w-5 h-5 mr-2" />
-                    Informations Débiteur
+                    {t('recovery.debtorInfo')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.fullAddress')}</label>
                       <textarea
                         value={editContentieuxFormData.debiteurAdresse}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurAdresse: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 h-20"
-                        placeholder="Adresse du débiteur"
+                        placeholder={t('recovery.debtorAddressPh')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.phone')}</label>
                       <input
                         type="tel"
                         value={editContentieuxFormData.debiteurTel}
@@ -2649,13 +2651,13 @@ const ContentieuxTab = ({
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Représentant légal</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.legalRepresentative')}</label>
                       <input
                         type="text"
                         value={editContentieuxFormData.debiteurRepresentant}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, debiteurRepresentant: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500"
-                        placeholder="Nom du représentant"
+                        placeholder={t('recovery.representativeNamePh')}
                       />
                     </div>
                   </div>
@@ -2667,18 +2669,18 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-orange-900 mb-4 flex items-center">
                     <DollarSign className="w-5 h-5 mr-2" />
-                    Montants & Frais (FCFA)
+                    {t('recovery.amountsAndFees')}
                   </h3>
 
                   {/* Formulaire d'ajout de dépense */}
                   <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
                     <h4 className="font-medium text-orange-800 mb-3 flex items-center">
                       <Plus className="w-4 h-4 mr-2" />
-                      Ajouter une dépense
+                      {t('recovery.addExpense')}
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
                       <div className="md:col-span-2">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Type de dépense *</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('recovery.expenseTypeReq')}</label>
                         <select
                           value={newDepense.type}
                           onChange={(e) => setNewDepense({...newDepense, type: e.target.value})}
@@ -2690,7 +2692,7 @@ const ContentieuxTab = ({
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Date *</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('recovery.dateReq')}</label>
                         <input
                           type="date"
                           value={newDepense.date}
@@ -2699,7 +2701,7 @@ const ContentieuxTab = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Montant (FCFA) *</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('recovery.amountFcfaReq')}</label>
                         <input
                           type="number"
                           value={newDepense.montant || ''}
@@ -2715,7 +2717,7 @@ const ContentieuxTab = ({
                           value={newDepense.destinataire}
                           onChange={(e) => setNewDepense({...newDepense, destinataire: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                          placeholder="Bénéficiaire..."
+                          placeholder={t('recovery.payeePh')}
                         />
                       </div>
                       <div className="flex items-end">
@@ -2724,19 +2726,19 @@ const ContentieuxTab = ({
                           className="w-full bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-orange-700 transition-colors flex items-center justify-center"
                         >
                           <Plus className="w-4 h-4 mr-1" />
-                          Ajouter
+                          {t('recovery.add')}
                         </button>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Référence / N° Pièce</label>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('recovery.referenceDocNo')}</label>
                         <input
                           type="text"
                           value={newDepense.reference}
                           onChange={(e) => setNewDepense({...newDepense, reference: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
-                          placeholder="N° facture, reçu..."
+                          placeholder={t('recovery.invoiceReceiptPh')}
                         />
                       </div>
                       <div>
@@ -2757,19 +2759,19 @@ const ContentieuxTab = ({
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Montant</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('recovery.type')}</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('recovery.date')}</th>
+                          <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{t('recovery.amount')}</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Destinataire</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référence</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t('recovery.reference')}</th>
+                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">{t('recovery.actions')}</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {contentieuxDepenses.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                              Aucune dépense enregistrée. Utilisez le formulaire ci-dessus pour ajouter des dépenses.
+                              {t('recovery.noExpenseRecorded')}
                             </td>
                           </tr>
                         ) : (
@@ -2803,7 +2805,7 @@ const ContentieuxTab = ({
                                 <button
                                   onClick={() => removeDepense(dep.id)}
                                   className="text-red-600 hover:text-red-800 p-1"
-                                  title="Supprimer"
+                                  title={t('recovery.delete')}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
@@ -2820,7 +2822,7 @@ const ContentieuxTab = ({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Totaux par type */}
                       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <h4 className="font-medium text-gray-800 mb-3">Récapitulatif par type</h4>
+                        <h4 className="font-medium text-gray-800 mb-3">{t('recovery.summaryByType')}</h4>
                         <div className="space-y-2">
                           {typesDepenses.map(type => {
                             const total = getTotalByType(type.value);
@@ -2838,13 +2840,13 @@ const ContentieuxTab = ({
                       {/* Total général */}
                       <div className="bg-orange-50 p-4 rounded-lg border border-orange-300">
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-sm text-gray-600">Créance (principal + intérêts):</span>
+                          <span className="text-sm text-gray-600">{t('recovery.claimPrincipalInterest')}</span>
                           <span className="font-semibold text-orange-700">
                             {formatCurrency((getTotalByType('creance_principale') + getTotalByType('interets_retard')))}
                           </span>
                         </div>
                         <div className="flex justify-between items-center mb-3">
-                          <span className="text-sm text-gray-600">Frais de procédure:</span>
+                          <span className="text-sm text-gray-600">{t('recovery.procedureFeesColon')}</span>
                           <span className="font-semibold text-orange-700">
                             {formatCurrency((getTotalDepenses() - getTotalByType('creance_principale') - getTotalByType('interets_retard') - getTotalByType('provision')))}
                           </span>
@@ -2857,7 +2859,7 @@ const ContentieuxTab = ({
                         </div>
                         <div className="mt-3 pt-3 border-t border-orange-200">
                           <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">Provision constituée:</span>
+                            <span className="text-gray-600">{t('recovery.provisionRecorded')}</span>
                             <span className="font-medium text-yellow-700">
                               {formatCurrency(getTotalByType('provision'))}
                             </span>
@@ -2874,7 +2876,7 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-green-900 mb-4 flex items-center">
                     <Clock className="w-5 h-5 mr-2" />
-                    Historique des Étapes & Suivi
+                    {t('recovery.stepsHistoryTitle')}
                   </h3>
 
                   {/* Formulaire d'ajout d'étape */}
@@ -2883,18 +2885,18 @@ const ContentieuxTab = ({
                       <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
                         <Plus className="w-5 h-5 text-white" />
                       </div>
-                      Nouvelle étape de suivi
+                      {t('recovery.newFollowUpStep')}
                     </h4>
 
                     {/* Section 1: Informations principales */}
                     <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
                       <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
                         <Calendar className="w-3 h-3 mr-1" />
-                        Informations de l'étape
+                        {t('recovery.stepInformation')}
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="col-span-2 md:col-span-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Type d'action *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.actionTypeReq')}</label>
                           <select
                             value={newSuiviEtape.type}
                             onChange={(e) => setNewSuiviEtape({...newSuiviEtape, type: e.target.value})}
@@ -2906,7 +2908,7 @@ const ContentieuxTab = ({
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.dateReq')}</label>
                           <input
                             type="date"
                             value={newSuiviEtape.date}
@@ -2915,7 +2917,7 @@ const ContentieuxTab = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.time')}</label>
                           <input
                             type="time"
                             value={newSuiviEtape.heure}
@@ -2924,7 +2926,7 @@ const ContentieuxTab = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Résultat</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.result')}</label>
                           <select
                             value={newSuiviEtape.resultat}
                             onChange={(e) => setNewSuiviEtape({...newSuiviEtape, resultat: e.target.value})}
@@ -2947,11 +2949,11 @@ const ContentieuxTab = ({
                     <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
                       <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
                         <Users className="w-3 h-3 mr-1" />
-                        Intervenants
+                        {t('recovery.participants')}
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Qui a effectué l'action ?</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.whoPerformedAction')}</label>
                           <input
                             type="text"
                             value={newSuiviEtape.intervenant}
@@ -2961,26 +2963,26 @@ const ContentieuxTab = ({
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Fonction / Rôle</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.functionRole')}</label>
                           <select
                             value={newSuiviEtape.roleIntervenant}
                             onChange={(e) => setNewSuiviEtape({...newSuiviEtape, roleIntervenant: e.target.value})}
                             className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
                           >
-                            <option value="">-- Sélectionner --</option>
-                            <option value="responsable_recouvrement">Responsable recouvrement</option>
-                            <option value="agent_recouvrement">Agent de recouvrement</option>
+                            <option value="">{t('recovery.selectPlaceholder')}</option>
+                            <option value="responsable_recouvrement">{t('recovery.collectionsManager')}</option>
+                            <option value="agent_recouvrement">{t('recovery.collectionsAgent')}</option>
                             <option value="comptable">Comptable</option>
-                            <option value="directeur_financier">Directeur financier</option>
+                            <option value="directeur_financier">{t('recovery.financeDirector')}</option>
                             <option value="commercial">Commercial</option>
-                            <option value="avocat">Avocat</option>
-                            <option value="huissier">Huissier de justice</option>
-                            <option value="expert">Expert / Consultant</option>
+                            <option value="avocat">{t('recovery.lawyer')}</option>
+                            <option value="huissier">{t('recovery.judicialOfficer')}</option>
+                            <option value="expert">{t('recovery.expertConsultant')}</option>
                             <option value="autre">Autre</option>
                           </select>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Personne contactée (débiteur)</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.contactedPerson')}</label>
                           <input
                             type="text"
                             value={newSuiviEtape.contact}
@@ -2996,46 +2998,46 @@ const ContentieuxTab = ({
                     <div className="bg-white p-4 rounded-lg border border-green-100 mb-4">
                       <div className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center">
                         <MessageSquare className="w-3 h-3 mr-1" />
-                        Compte-rendu & Suivi
+                        {t('recovery.reportAndFollowUp')}
                       </div>
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Notes détaillées / Compte-rendu de l'échange
+                            {t('recovery.detailedNotes')}
                           </label>
                           <textarea
                             value={newSuiviEtape.notes}
                             onChange={(e) => setNewSuiviEtape({...newSuiviEtape, notes: e.target.value})}
                             className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none"
                             rows={5}
-                            placeholder="Décrivez en détail :&#10;- Le contenu de l'échange&#10;- Les engagements pris&#10;- Les difficultés rencontrées&#10;- Les décisions prises..."
+                            placeholder={t('recovery.detailedNotesPh')}
                           />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               <ArrowRight className="w-4 h-4 inline mr-1 text-orange-500" />
-                              Prochaine action à effectuer
+                              {t('recovery.nextActionToTake')}
                             </label>
                             <input
                               type="text"
                               value={newSuiviEtape.prochainRdv}
                               onChange={(e) => setNewSuiviEtape({...newSuiviEtape, prochainRdv: e.target.value})}
                               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                              placeholder="Ex: Relancer le 20/12/2025 si pas de paiement"
+                              placeholder={t('recovery.nextActionPh')}
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                               <FileText className="w-4 h-4 inline mr-1 text-blue-500" />
-                              Documents joints (références)
+                              {t('recovery.attachedDocsRefs')}
                             </label>
                             <input
                               type="text"
                               value={newSuiviEtape.documentsJoints}
                               onChange={(e) => setNewSuiviEtape({...newSuiviEtape, documentsJoints: e.target.value})}
                               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                              placeholder="Ex: Courrier ref. LR-2024-001, Email du 15/12"
+                              placeholder={t('recovery.attachedDocsPh')}
                             />
                           </div>
                         </div>
@@ -3048,7 +3050,7 @@ const ContentieuxTab = ({
                       className="w-full bg-gradient-to-r from-green-600 to-primary-600 text-white rounded-lg px-6 py-3 font-medium hover:from-green-700 hover:to-primary-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center"
                     >
                       <Plus className="w-5 h-5 mr-2" />
-                      Enregistrer cette étape de suivi
+                      {t('recovery.saveFollowUpStep')}
                     </button>
                   </div>
 
@@ -3061,8 +3063,8 @@ const ContentieuxTab = ({
                     {suiviEtapes.length === 0 ? (
                       <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                         <Clock className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                        <p>Aucune étape de suivi enregistrée</p>
-                        <p className="text-sm">Utilisez le formulaire ci-dessus pour ajouter des étapes</p>
+                        <p>{t('recovery.noFollowUpStep')}</p>
+                        <p className="text-sm">{t('recovery.useFormToAddSteps')}</p>
                       </div>
                     ) : (
                       <div className="relative">
@@ -3163,7 +3165,7 @@ const ContentieuxTab = ({
                                     <button
                                       onClick={() => removeSuiviEtape(etape.id)}
                                       className="text-red-500 hover:text-red-700 p-1"
-                                      title="Supprimer"
+                                      title={t('recovery.delete')}
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
@@ -3180,35 +3182,35 @@ const ContentieuxTab = ({
                   {/* Résumé des étapes */}
                   {suiviEtapes.length > 0 && (
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
-                      <h4 className="font-medium text-gray-800 mb-3">Résumé du suivi</h4>
+                      <h4 className="font-medium text-gray-800 mb-3">{t('recovery.followUpSummary')}</h4>
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="text-lg font-bold text-gray-700">{suiviEtapes.length}</div>
-                          <div className="text-xs text-gray-500">Total étapes</div>
+                          <div className="text-xs text-gray-500">{t('recovery.totalSteps')}</div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="text-lg font-bold text-green-600">
                             {suiviEtapes.filter(e => e.resultat === 'reussi').length}
                           </div>
-                          <div className="text-xs text-gray-500">Réussies</div>
+                          <div className="text-xs text-gray-500">{t('recovery.successful')}</div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="text-lg font-bold text-red-600">
                             {suiviEtapes.filter(e => e.resultat === 'echoue').length}
                           </div>
-                          <div className="text-xs text-gray-500">Échouées</div>
+                          <div className="text-xs text-gray-500">{t('recovery.failed')}</div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="text-lg font-bold text-yellow-600">
                             {suiviEtapes.filter(e => e.resultat === 'reporte').length}
                           </div>
-                          <div className="text-xs text-gray-500">Reportées</div>
+                          <div className="text-xs text-gray-500">{t('recovery.postponed')}</div>
                         </div>
                         <div className="bg-white p-3 rounded-lg border">
                           <div className="text-lg font-bold text-gray-500">
                             {suiviEtapes.filter(e => e.resultat === 'en_attente').length}
                           </div>
-                          <div className="text-xs text-gray-500">En attente</div>
+                          <div className="text-xs text-gray-500">{t('recovery.pending')}</div>
                         </div>
                       </div>
                     </div>
@@ -3221,44 +3223,44 @@ const ContentieuxTab = ({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
                     <MessageSquare className="w-5 h-5 mr-2" />
-                    Analyse & Notes
+                    {t('recovery.analysisAndNotes')}
                   </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Motif du transfert en contentieux</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.litigationTransferReason')}</label>
                     <textarea
                       value={editContentieuxFormData.motifTransfert}
                       onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, motifTransfert: e.target.value})}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                      placeholder="Décrivez le motif du transfert..."
+                      placeholder={t('recovery.transferReasonPh')}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Résultat attendu</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.expectedOutcome')}</label>
                       <textarea
                         value={editContentieuxFormData.resultatAttendu}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, resultatAttendu: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                        placeholder="Objectif de la procédure..."
+                        placeholder={t('recovery.procedureObjectivePh')}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Risques identifiés</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.identifiedRisks')}</label>
                       <textarea
                         value={editContentieuxFormData.risques}
                         onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, risques: e.target.value})}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-gray-500"
-                        placeholder="Risques potentiels..."
+                        placeholder={t('recovery.potentialRisksPh')}
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes complémentaires</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.additionalNotes')}</label>
                     <textarea
                       value={editContentieuxFormData.notes}
                       onChange={(e) => setEditContentieuxFormData({...editContentieuxFormData, notes: e.target.value})}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-gray-500"
-                      placeholder="Informations supplémentaires, historique, observations..."
+                      placeholder={t('recovery.additionalNotesPh')}
                     />
                   </div>
                 </div>
@@ -3275,14 +3277,14 @@ const ContentieuxTab = ({
                   onClick={() => setShowEditContentieuxModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button
                   onClick={handleSaveContentieux}
                   className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors flex items-center space-x-2"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  <span>Enregistrer les modifications</span>
+                  <span>{t('recovery.saveChanges')}</span>
                 </button>
               </div>
             </div>
@@ -3298,7 +3300,7 @@ const ContentieuxTab = ({
               <div className="text-white">
                 <h2 className="text-lg font-semibold flex items-center">
                   <Activity className="w-6 h-6 mr-2" />
-                  Workflow de Procédure Contentieux
+                  {t('recovery.litigationWorkflowTitle')}
                 </h2>
                 <p className="text-primary-100 mt-1">
                   {selectedDossierWorkflow.numeroRef} - {selectedDossierWorkflow.client}
@@ -3316,7 +3318,7 @@ const ContentieuxTab = ({
               {/* Barre de progression */}
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">Progression du dossier</span>
+                  <span className="text-sm font-medium text-gray-700">{t('recovery.caseProgress')}</span>
                   <span className="text-sm font-medium text-primary-600">
                     {workflowData[selectedDossierWorkflow.id]?.etapes.filter(e => e.statut === 'completed').length || 0} / {workflowData[selectedDossierWorkflow.id]?.etapes.length || 6} étapes
                   </span>
@@ -3360,7 +3362,7 @@ const ContentieuxTab = ({
                           <div className="flex items-center space-x-2">
                             <h4 className="font-semibold text-gray-900">{etape.titre}</h4>
                             {etape.custom && (
-                              <span className="px-2 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full">Personnalisé</span>
+                              <span className="px-2 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full">{t('recovery.custom')}</span>
                             )}
                             {etape.obligatoire && (
                               <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">Obligatoire</span>
@@ -3400,7 +3402,7 @@ const ContentieuxTab = ({
                             <button
                               onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'in_progress')}
                               className={`px-2 py-1 text-xs rounded ${etape.statut === 'in_progress' ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
-                              title="En cours"
+                              title={t('recovery.inProgress')}
                             >
                               <Clock className="w-3 h-3" />
                             </button>
@@ -3408,7 +3410,7 @@ const ContentieuxTab = ({
                           <button
                             onClick={() => updateEtapeStatus(selectedDossierWorkflow.id, etape.id, 'completed')}
                             className={`px-2 py-1 text-xs rounded ${etape.statut === 'completed' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
-                            title="Terminé"
+                            title={t('recovery.completed')}
                           >
                             <CheckCircle className="w-3 h-3" />
                           </button>
@@ -3446,7 +3448,7 @@ const ContentieuxTab = ({
                 className="mt-4 w-full py-3 border-2 border-dashed border-primary-300 rounded-lg text-primary-600 hover:bg-primary-50 flex items-center justify-center space-x-2"
               >
                 <Plus className="w-5 h-5" />
-                <span>Ajouter une étape personnalisée</span>
+                <span>{t('recovery.addCustomStep')}</span>
               </button>
             </div>
 
@@ -3456,7 +3458,7 @@ const ContentieuxTab = ({
                 onClick={() => setShowWorkflowModal(false)}
                 className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
               >
-                Fermer
+                {t('recovery.close')}
               </button>
             </div>
           </div>
@@ -3468,30 +3470,30 @@ const ContentieuxTab = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Ajouter une étape personnalisée</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('recovery.addCustomStep')}</h3>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titre de l'étape</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.stepTitle')}</label>
                 <input
                   type="text"
                   value={newEtape.titre}
                   onChange={(e) => setNewEtape({ ...newEtape, titre: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500"
-                  placeholder="Ex: Négociation complémentaire"
+                  placeholder={t('recovery.stepTitlePh')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.description')}</label>
                 <textarea
                   value={newEtape.description}
                   onChange={(e) => setNewEtape({ ...newEtape, description: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-24 focus:ring-2 focus:ring-primary-500"
-                  placeholder="Décrivez cette étape..."
+                  placeholder={t('recovery.stepDescriptionPh')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Date prévue (optionnel)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('recovery.plannedDateOptional')}</label>
                 <input
                   type="date"
                   value={newEtape.datePrevu}
@@ -3508,14 +3510,14 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => addCustomEtape(selectedDossierWorkflow.id)}
                 disabled={!newEtape.titre}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
-                Ajouter l'étape
+                {t('recovery.addStep')}
               </button>
             </div>
           </div>
@@ -3527,7 +3529,7 @@ const ContentieuxTab = ({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Ajouter un commentaire</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('recovery.addComment')}</h3>
               <p className="text-sm text-gray-600 mt-1">Étape: {selectedEtape.titre}</p>
             </div>
             <div className="p-6">
@@ -3535,7 +3537,7 @@ const ContentieuxTab = ({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32 focus:ring-2 focus:ring-primary-500"
-                placeholder="Ajoutez votre commentaire, observation ou mise à jour..."
+                placeholder={t('recovery.addCommentPh')}
               />
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
@@ -3547,14 +3549,14 @@ const ContentieuxTab = ({
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={() => addCommentToEtape(selectedDossierWorkflow.id, selectedEtape.id, newComment)}
                 disabled={!newComment}
                 className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
-                Ajouter le commentaire
+                {t('recovery.submitComment')}
               </button>
             </div>
           </div>
@@ -3584,18 +3586,18 @@ const ContentieuxTab = ({
               {/* Informations générales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Générales</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.generalInfo')}</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Référence:</span>
+                      <span className="text-gray-600">{t('recovery.referenceColon')}</span>
                       <span className="font-medium">{selectedExecutionDossier.reference}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Type d'exécution:</span>
+                      <span className="text-gray-600">{t('recovery.enforcementTypeColon')}</span>
                       <span className="font-medium">{selectedExecutionDossier.typeExecution}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Montant à recouvrer:</span>
+                      <span className="text-gray-600">{t('recovery.amountToCollectColon')}</span>
                       <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedExecutionDossier.montant)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -3612,21 +3614,21 @@ const ContentieuxTab = ({
                 </div>
 
                 <div className="bg-orange-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Dates & Délais</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.datesAndDeadlines')}</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Date de début:</span>
+                      <span className="text-gray-600">{t('recovery.startDateColon')}</span>
                       <span className="font-medium">{new Date(selectedExecutionDossier.dateDebut).toLocaleDateString()}</span>
                     </div>
                     {selectedExecutionDossier.dateFin && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Date de fin:</span>
+                        <span className="text-gray-600">{t('recovery.endDateColon')}</span>
                         <span className="font-medium">{new Date(selectedExecutionDossier.dateFin).toLocaleDateString()}</span>
                       </div>
                     )}
                     {selectedExecutionDossier.datePrevisionnelle && (
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Date prévisionnelle:</span>
+                        <span className="text-gray-600">{t('recovery.expectedDateColon')}</span>
                         <span className="font-medium">{new Date(selectedExecutionDossier.datePrevisionnelle).toLocaleDateString()}</span>
                       </div>
                     )}
@@ -3641,13 +3643,13 @@ const ContentieuxTab = ({
               {/* Détails spécifiques selon le type d'exécution */}
               <div className="bg-white border border-gray-200 rounded-lg">
                 <div className="px-4 py-3 border-b border-gray-200">
-                  <h3 className="font-semibold text-[var(--color-primary)]">Détails de l'Exécution</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)]">{t('recovery.enforcementDetails')}</h3>
                 </div>
                 <div className="p-4">
                   {selectedExecutionDossier.typeExecution === 'Saisie-attribution' && (
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Comptes saisis</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">{t('recovery.seizedAccounts')}</h4>
                         <div className="space-y-2">
                           {selectedExecutionDossier.comptesSaisis?.map((compte: string, index: number) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -3659,7 +3661,7 @@ const ContentieuxTab = ({
                       </div>
                       <div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Montant saisi:</span>
+                          <span className="text-gray-600">{t('recovery.seizedAmountColon')}</span>
                           <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantSaisi)}</span>
                         </div>
                       </div>
@@ -3669,19 +3671,19 @@ const ContentieuxTab = ({
                   {selectedExecutionDossier.typeExecution === 'Saisie-vente' && (
                     <div className="space-y-4">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Biens saisis</h4>
+                        <h4 className="font-medium text-gray-900 mb-2">{t('recovery.seizedAssets')}</h4>
                         <div className="space-y-2">
                           {selectedExecutionDossier.biensSaisis?.map((bien: string, index: number) => (
                             <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                               <span className="text-sm">{bien}</span>
-                              <span className="text-xs text-blue-600">En cours d'évaluation</span>
+                              <span className="text-xs text-blue-600">{t('recovery.underValuation')}</span>
                             </div>
                           ))}
                         </div>
                       </div>
                       <div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Valeur estimée:</span>
+                          <span className="text-gray-600">{t('recovery.estimatedValueColon')}</span>
                           <span className="font-semibold text-blue-600">{formatCurrency(selectedExecutionDossier.montantEstime)}</span>
                         </div>
                       </div>
@@ -3696,11 +3698,11 @@ const ContentieuxTab = ({
                           <span className="font-medium">{selectedExecutionDossier.employeur}</span>
                         </div>
                         <div className="flex justify-between items-center mb-2">
-                          <span className="text-gray-600">Saisie mensuelle:</span>
+                          <span className="text-gray-600">{t('recovery.monthlySeizureColon')}</span>
                           <span className="font-medium">{formatCurrency(selectedExecutionDossier.montantMensuel)}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Montant récupéré:</span>
+                          <span className="text-gray-600">{t('recovery.recoveredAmountColon')}</span>
                           <span className="font-semibold text-green-600">{formatCurrency(selectedExecutionDossier.montantRecupere)}</span>
                         </div>
                       </div>
@@ -3709,7 +3711,7 @@ const ContentieuxTab = ({
 
                   <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Frais d'huissier:</span>
+                      <span className="text-gray-600">{t('recovery.bailiffFeesColon')}</span>
                       <span className="font-medium text-red-600">{formatCurrency(selectedExecutionDossier.fraisHuissier)}</span>
                     </div>
                   </div>
@@ -3722,13 +3724,13 @@ const ContentieuxTab = ({
                   onClick={() => setShowExecutionDetailModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Fermer
+                  {t('recovery.close')}
                 </button>
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Modifier l'exécution
+                  {t('recovery.editEnforcement')}
                 </button>
                 <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                  Générer rapport
+                  {t('recovery.generateReport')}
                 </button>
               </div>
             </div>
@@ -3755,7 +3757,7 @@ const ContentieuxTab = ({
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>Retour aux dossiers contentieux</span>
+              <span>{t('recovery.backToLitigationCases')}</span>
             </button>
             <div>
               <h1 className="text-lg font-bold text-gray-900">
@@ -3768,7 +3770,7 @@ const ContentieuxTab = ({
           {/* Statut et actions rapides */}
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <div className="text-sm text-gray-700">Statut</div>
+              <div className="text-sm text-gray-700">{t('recovery.status')}</div>
               <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                 selectedContentieuxDetail.statutJuridique === 'execution' ? 'bg-primary-100 text-primary-800' :
                 selectedContentieuxDetail.statutJuridique === 'jugement' ? 'bg-green-100 text-green-800' :
@@ -3779,7 +3781,7 @@ const ContentieuxTab = ({
               </span>
             </div>
             <div className="text-right">
-              <div className="text-sm text-gray-700">Montant Total</div>
+              <div className="text-sm text-gray-700">{t('recovery.totalAmount')}</div>
               <div className="text-lg font-bold text-red-600">
                 {formatCurrency(selectedContentieuxDetail.montantTotal)}
               </div>
@@ -3852,22 +3854,22 @@ const ContentieuxTab = ({
         {/* Informations générales */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-red-50 rounded-lg p-4">
-            <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations Contentieuses</h3>
+            <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.litigationInfo')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Référence:</span>
+                <span className="text-gray-600">{t('recovery.referenceColon')}</span>
                 <span className="font-medium">{selectedContentieuxDetail.numeroRef}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Origine amiable:</span>
+                <span className="text-gray-600">{t('recovery.amicableOriginColon')}</span>
                 <span className="font-medium text-blue-600">{selectedContentieuxDetail.origineAmiable}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Date de transfert:</span>
+                <span className="text-gray-600">{t('recovery.transferDateColon')}</span>
                 <span className="font-medium">{selectedContentieuxDetail.dateTransfert}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Jours restants:</span>
+                <span className="text-gray-600">{t('recovery.daysRemainingColon')}</span>
                 <span className={`font-medium ${selectedContentieuxDetail.joursRestants <= 5 ? 'text-red-600' : 'text-orange-600'}`}>
                   {selectedContentieuxDetail.joursRestants} jours
                 </span>
@@ -3876,22 +3878,22 @@ const ContentieuxTab = ({
           </div>
 
           <div className="bg-orange-50 rounded-lg p-4">
-            <h3 className="font-semibold text-[var(--color-primary)] mb-3">Montants</h3>
+            <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.amounts')}</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Principal:</span>
                 <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantPrincipal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Intérêts de retard:</span>
+                <span className="text-gray-600">{t('recovery.lateInterestColon')}</span>
                 <span className="font-medium text-orange-600">{formatCurrency(selectedContentieuxDetail.interetsRetard ?? 0)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Frais de procédure:</span>
+                <span className="text-gray-600">{t('recovery.procedureFeesColon')}</span>
                 <span className="font-medium text-red-600">{formatCurrency(selectedContentieuxDetail.fraisProcedure ?? 0)}</span>
               </div>
               <div className="flex justify-between border-t pt-2">
-                <span className="text-gray-600 font-semibold">Montant total:</span>
+                <span className="text-gray-600 font-semibold">{t('recovery.totalAmountColon')}</span>
                 <span className="font-bold text-[var(--color-primary)]">{formatCurrency(selectedContentieuxDetail.montantTotal)}</span>
               </div>
             </div>
@@ -3900,7 +3902,7 @@ const ContentieuxTab = ({
 
         {/* Motif du transfert */}
         <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="font-semibold text-[var(--color-primary)] mb-3">Motif du Transfert en Contentieux</h3>
+          <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.litigationTransferReasonTitle')}</h3>
           <p className="text-gray-700 leading-relaxed">{selectedContentieuxDetail.motifTransfert}</p>
         </div>
 
@@ -3911,7 +3913,7 @@ const ContentieuxTab = ({
             className="p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
             <Scale className="w-6 h-6 text-blue-600 mb-2" />
-            <div className="font-medium text-blue-900">Gérer la Procédure</div>
+            <div className="font-medium text-blue-900">{t('recovery.manageProcedure')}</div>
             <div className="text-sm text-blue-600">Assignation, audiences, jugement</div>
           </button>
           <button
@@ -3920,15 +3922,15 @@ const ContentieuxTab = ({
           >
             <Archive className="w-6 h-6 text-green-600 mb-2" />
             <div className="font-medium text-green-900">Documents</div>
-            <div className="text-sm text-green-600">Pièces, actes, correspondances</div>
+            <div className="text-sm text-green-600">{t('recovery.docsActsCorrespondence')}</div>
           </button>
           <button
             onClick={() => setActiveContentieuxTab('execution')}
             className="p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
           >
             <Hammer className="w-6 h-6 text-primary-600 mb-2" />
-            <div className="font-medium text-primary-900">Exécution</div>
-            <div className="text-sm text-primary-600">Saisies, voies d'exécution</div>
+            <div className="font-medium text-primary-900">{t('recovery.enforcement')}</div>
+            <div className="text-sm text-primary-600">{t('recovery.seizuresEnforcement')}</div>
           </button>
         </div>
       </div>
@@ -3991,7 +3993,7 @@ const ContentieuxTab = ({
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Étapes de la Procédure Contentieuse</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recovery.litigationProcedureSteps')}</h3>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-700">Avocat:</span>
             <span className="font-medium">{selectedContentieuxDetail.avocat}</span>
@@ -4032,8 +4034,8 @@ const ContentieuxTab = ({
                       'text-gray-600'
                     }`}>
                       {etape.titre}
-                      {etape.prochaine && <span className="ml-2 text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">PROCHAINE ÉTAPE</span>}
-                      {etape.statut === 'current' && <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">EN COURS</span>}
+                      {etape.prochaine && <span className="ml-2 text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">{t('recovery.nextStepCaps')}</span>}
+                      {etape.statut === 'current' && <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">{t('recovery.inProgressCaps')}</span>}
                     </h4>
                     {etape.date && (
                       <span className="text-sm text-gray-700">{new Date(etape.date).toLocaleDateString()}</span>
@@ -4058,7 +4060,7 @@ const ContentieuxTab = ({
                         Programmer {etape.titre}
                       </button>
                       <button className="px-3 py-1 bg-gray-600 text-white text-sm rounded hover:bg-gray-700">
-                        Voir Modèles
+                        {t('recovery.viewTemplates')}
                       </button>
                     </div>
                   )}
@@ -4075,7 +4077,7 @@ const ContentieuxTab = ({
     if (!selectedContentieuxDetail) return null;
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">Chronologie Complète du Dossier</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('recovery.fullCaseTimeline')}</h3>
 
         {/* Timeline détaillée */}
         <div className="space-y-4">
@@ -4242,25 +4244,25 @@ const ContentieuxTab = ({
       <div className="space-y-6">
         {/* En-tête avec actions */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Documents & Pièces Juridiques</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recovery.legalDocuments')}</h3>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowUploadModal(true)}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Ajouter un document
+              {t('recovery.addDocument')}
             </button>
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <Download className="w-4 h-4 mr-2" />
-              Télécharger tout
+              {t('recovery.downloadAll')}
             </button>
           </div>
         </div>
 
         {/* Filtres */}
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
+          <label className="text-sm font-medium text-gray-700">{t('recovery.filterByTypeColon')}</label>
           <select
             value={documentFilter}
             onChange={(e) => setDocumentFilter(e.target.value)}
@@ -4281,13 +4283,13 @@ const ContentieuxTab = ({
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Document</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.document')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.type')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Auteur</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('common.date')}</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Taille</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.status')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.size')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -4336,16 +4338,16 @@ const ContentieuxTab = ({
                       <td className="px-6 py-4 text-sm text-gray-700">{doc.taille}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.viewDetailsAria')}>
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button className="text-green-600 hover:text-green-800" aria-label="Télécharger">
+                          <button className="text-green-600 hover:text-green-800" aria-label={t('recovery.download')}>
                             <Download className="w-4 h-4" />
                           </button>
                           <button className="text-gray-600 hover:text-gray-800">
                             <Edit className="w-4 h-4" />
                           </button>
-                          <button className="text-red-600 hover:text-red-800" aria-label="Supprimer">
+                          <button className="text-red-600 hover:text-red-800" aria-label={t('recovery.delete')}>
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -4363,7 +4365,7 @@ const ContentieuxTab = ({
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Actes Procédure</p>
+                <p className="text-sm text-blue-600">{t('recovery.proceduralActs')}</p>
                 <p className="text-lg font-bold text-blue-900">{documentsContentieux.filter(d => d.type === 'procedure').length}</p>
               </div>
               <Scale className="w-8 h-8 text-blue-600" />
@@ -4372,7 +4374,7 @@ const ContentieuxTab = ({
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Pièces Justificatives</p>
+                <p className="text-sm text-green-600">{t('recovery.supportingDocuments')}</p>
                 <p className="text-lg font-bold text-green-900">{documentsContentieux.filter(d => d.type === 'justificatif').length}</p>
               </div>
               <FileText className="w-8 h-8 text-green-600" />
@@ -4381,7 +4383,7 @@ const ContentieuxTab = ({
           <div className="bg-orange-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">Actes Huissier</p>
+                <p className="text-sm text-orange-600">{t('recovery.bailiffActs')}</p>
                 <p className="text-lg font-bold text-orange-900">{documentsContentieux.filter(d => d.type === 'huissier').length}</p>
               </div>
               <Gavel className="w-8 h-8 text-orange-600" />
@@ -4402,22 +4404,22 @@ const ContentieuxTab = ({
         {showUploadModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Document</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.addDocumentTitle')}</h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de document</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.documentType')}</label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Acte de procédure</option>
-                    <option>Pièce justificative</option>
+                    <option>{t('recovery.proceduralAct')}</option>
+                    <option>{t('recovery.supportingDocument')}</option>
                     <option>Correspondance</option>
                     <option>Expertise</option>
-                    <option>Acte d'huissier</option>
+                    <option>{t('recovery.bailiffAct')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom du document</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.documentName')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -4426,10 +4428,10 @@ const ContentieuxTab = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.description')}</label>
                   <textarea
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                    placeholder="Description du document..."
+                    placeholder={t('recovery.documentDescriptionPh')}
                   />
                 </div>
 
@@ -4437,8 +4439,8 @@ const ContentieuxTab = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Fichier</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <Upload className="w-8 h-8 mx-auto text-gray-700 mb-2" />
-                    <p className="text-sm text-gray-600">Glissez-déposez votre fichier ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
-                    <p className="text-xs text-gray-700 mt-1">PDF, DOC, DOCX jusqu'à 10MB</p>
+                    <p className="text-sm text-gray-600">{t('recovery.dragDropFileOr')}<span className="text-blue-600 cursor-pointer">parcourez</span></p>
+                    <p className="text-xs text-gray-700 mt-1">{t('recovery.fileFormatsUpTo10Mb')}</p>
                   </div>
                 </div>
               </div>
@@ -4448,7 +4450,7 @@ const ContentieuxTab = ({
                   onClick={() => setShowUploadModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -4457,7 +4459,7 @@ const ContentieuxTab = ({
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Ajouter le document
+                  {t('recovery.submitDocument')}
                 </button>
               </div>
             </div>
@@ -4494,7 +4496,7 @@ const ContentieuxTab = ({
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Total Frais</p>
+                <p className="text-sm text-blue-600">{t('recovery.totalFees')}</p>
                 <p className="text-lg font-bold text-blue-900">{formatCurrency((totalFrais))}</p>
               </div>
               <Wallet className="w-8 h-8 text-blue-600" />
@@ -4503,7 +4505,7 @@ const ContentieuxTab = ({
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Payés</p>
+                <p className="text-sm text-green-600">{t('recovery.paidPlural')}</p>
                 <p className="text-lg font-bold text-green-900">{formatCurrency((fraisPayes))}</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -4512,7 +4514,7 @@ const ContentieuxTab = ({
           <div className="bg-orange-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">À Payer</p>
+                <p className="text-sm text-orange-600">{t('recovery.toPay')}</p>
                 <p className="text-lg font-bold text-orange-900">{formatCurrency((fraisFactures))}</p>
               </div>
               <AlertCircle className="w-8 h-8 text-orange-600" />
@@ -4532,13 +4534,13 @@ const ContentieuxTab = ({
         {/* Actions et filtres */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-900">Détail des Frais & Coûts</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{t('recovery.feesAndCostsDetail')}</h3>
             <select
               value={fraisFilter}
               onChange={(e) => setFraisFilter(e.target.value)}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
             >
-              <option value="all">Tous les frais</option>
+              <option value="all">{t('recovery.allFees')}</option>
               <option value="avocat">Avocats</option>
               <option value="huissier">Huissiers</option>
               <option value="tribunal">Tribunal</option>
@@ -4552,11 +4554,11 @@ const ContentieuxTab = ({
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Ajouter frais
+              {t('recovery.addFee')}
             </button>
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <FileText className="w-4 h-4 mr-2" />
-              Export détaillé
+              {t('recovery.detailedExport')}
             </button>
           </div>
         </div>
@@ -4567,13 +4569,13 @@ const ContentieuxTab = ({
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.description')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.type')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Fournisseur</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.amount')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.status')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Imputable</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -4626,17 +4628,17 @@ const ContentieuxTab = ({
                       <td className="px-6 py-4">
                         {frais.imputable ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            Oui
+                            {t('recovery.yes')}
                           </span>
                         ) : (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Non
+                            {t('recovery.no')}
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.viewDetailsAria')}>
                             <Eye className="w-4 h-4" />
                           </button>
                           <button className="text-green-600 hover:text-green-800">
@@ -4661,22 +4663,22 @@ const ContentieuxTab = ({
         {showAddFraisModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ajouter un Frais</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.addFeeTitle')}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de frais</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.feeType')}</label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Frais d'avocat</option>
-                    <option>Frais d'huissier</option>
-                    <option>Frais de tribunal</option>
+                    <option>{t('recovery.lawyerFees')}</option>
+                    <option>{t('recovery.bailiffFees')}</option>
+                    <option>{t('recovery.courtFees')}</option>
                     <option>Expertise</option>
                     <option>Divers</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Montant (FCFA)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.amountFcfa')}</label>
                   <input
                     type="number"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -4685,7 +4687,7 @@ const ContentieuxTab = ({
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.description')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -4698,12 +4700,12 @@ const ContentieuxTab = ({
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Nom du fournisseur"
+                    placeholder={t('recovery.supplierNamePh')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date d'engagement</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.commitmentDate')}</label>
                   <input
                     type="date"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -4711,18 +4713,18 @@ const ContentieuxTab = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.status')}</label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option value="prevu">Prévu</option>
-                    <option value="facture">Facturé</option>
-                    <option value="paye">Payé</option>
+                    <option value="prevu">{t('recovery.planned')}</option>
+                    <option value="facture">{t('recovery.invoiced')}</option>
+                    <option value="paye">{t('recovery.paid')}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm text-gray-700">Frais imputable au débiteur</span>
+                    <span className="text-sm text-gray-700">{t('recovery.feeChargeableToDebtor')}</span>
                   </label>
                 </div>
               </div>
@@ -4732,7 +4734,7 @@ const ContentieuxTab = ({
                   onClick={() => setShowAddFraisModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -4741,7 +4743,7 @@ const ContentieuxTab = ({
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Ajouter le frais
+                  {t('recovery.submitFee')}
                 </button>
               </div>
             </div>
@@ -4754,24 +4756,24 @@ const ContentieuxTab = ({
   function renderFraisTab() {
     return (
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900">Frais & Coûts du Contentieux</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{t('recovery.litigationFeesTitle')}</h3>
         <div className="bg-red-50 rounded-lg p-4">
-          <h4 className="font-semibold text-red-900 mb-3">Récapitulatif des Coûts</h4>
+          <h4 className="font-semibold text-red-900 mb-3">{t('recovery.costsSummary')}</h4>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span>Frais d'avocat:</span>
+              <span>{t('recovery.lawyerFeesColon')}</span>
               <span className="font-medium">250,000 FCFA</span>
             </div>
             <div className="flex justify-between">
-              <span>Frais d'huissier:</span>
+              <span>{t('recovery.bailiffFeesColon')}</span>
               <span className="font-medium">75,000 FCFA</span>
             </div>
             <div className="flex justify-between">
-              <span>Frais de tribunal:</span>
+              <span>{t('recovery.courtFeesColon')}</span>
               <span className="font-medium">50,000 FCFA</span>
             </div>
             <div className="flex justify-between border-t pt-2 font-bold">
-              <span>Total frais:</span>
+              <span>{t('recovery.totalFeesColon')}</span>
               <span>375,000 FCFA</span>
             </div>
           </div>
@@ -4857,18 +4859,18 @@ const ContentieuxTab = ({
       <div className="space-y-6">
         {/* Header avec actions */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Correspondance & Communications</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recovery.correspondenceTitle')}</h3>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowNewMessageModal(true)}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <Mail className="w-4 h-4 mr-2" />
-              Nouveau message
+              {t('recovery.newMessage')}
             </button>
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <Archive className="w-4 h-4 mr-2" />
-              Archiver sélection
+              {t('recovery.archiveSelection')}
             </button>
           </div>
         </div>
@@ -4887,7 +4889,7 @@ const ContentieuxTab = ({
           <div className="bg-red-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600">Non lus</p>
+                <p className="text-sm text-red-600">{t('recovery.unread')}</p>
                 <p className="text-lg font-bold text-red-900">{correspondances.filter(c => c.statut === 'non_lu').length}</p>
               </div>
               <AlertCircle className="w-8 h-8 text-red-600" />
@@ -4896,7 +4898,7 @@ const ContentieuxTab = ({
           <div className="bg-orange-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">Haute priorité</p>
+                <p className="text-sm text-orange-600">{t('recovery.highPriority')}</p>
                 <p className="text-lg font-bold text-orange-900">{correspondances.filter(c => c.priorite === 'haute').length}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-orange-600" />
@@ -4915,16 +4917,16 @@ const ContentieuxTab = ({
 
         {/* Filtres */}
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Filtrer par type:</label>
+          <label className="text-sm font-medium text-gray-700">{t('recovery.filterByTypeColon')}</label>
           <select
             value={correspondanceFilter}
             onChange={(e) => setCorrespondanceFilter(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
-            <option value="all">Toutes les correspondances</option>
+            <option value="all">{t('recovery.allCorrespondence')}</option>
             <option value="avocat">Avocats</option>
             <option value="huissier">Huissiers</option>
-            <option value="debiteur">Débiteur</option>
+            <option value="debiteur">{t('recovery.debtor')}</option>
             <option value="tribunal">Tribunal</option>
             <option value="expert">Experts</option>
           </select>
@@ -5008,23 +5010,23 @@ const ContentieuxTab = ({
         {showNewMessageModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouveau Message</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.newMessageTitle')}</h3>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Destinataire</label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                      <option>Choisir un correspondant...</option>
+                      <option>{t('recovery.chooseRecipient')}</option>
                       <option>Me — (Avocat)</option>
                       <option>SCP Huissiers ALPHA</option>
                       <option>SARL TECH SOLUTIONS (Débiteur)</option>
                       <option>Cabinet EXPERTISE+</option>
-                      <option>Tribunal de Commerce</option>
+                      <option>{t('recovery.commercialCourt')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Priorité</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.priority')}</label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                       <option value="normale">Normale</option>
                       <option value="haute">Haute</option>
@@ -5038,7 +5040,7 @@ const ContentieuxTab = ({
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                    placeholder="Objet du message"
+                    placeholder={t('recovery.messageSubjectPh')}
                   />
                 </div>
 
@@ -5046,26 +5048,26 @@ const ContentieuxTab = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                   <textarea
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 h-32"
-                    placeholder="Votre message..."
+                    placeholder={t('recovery.yourMessagePh')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Pièces jointes</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.attachments')}</label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                     <Paperclip className="w-6 h-6 mx-auto text-gray-700 mb-2" />
-                    <p className="text-sm text-gray-600">Glissez vos fichiers ou <span className="text-blue-600 cursor-pointer">parcourez</span></p>
+                    <p className="text-sm text-gray-600">{t('recovery.dropFilesOr')}<span className="text-blue-600 cursor-pointer">parcourez</span></p>
                   </div>
                 </div>
 
                 <div className="flex items-center space-x-4">
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm text-gray-700">Marquer comme confidentiel</span>
+                    <span className="text-sm text-gray-700">{t('recovery.markConfidential')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm text-gray-700">Demander accusé de réception</span>
+                    <span className="text-sm text-gray-700">{t('recovery.requestReadReceipt')}</span>
                   </label>
                 </div>
               </div>
@@ -5075,10 +5077,10 @@ const ContentieuxTab = ({
                   onClick={() => setShowNewMessageModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                  Enregistrer brouillon
+                  {t('recovery.saveDraft')}
                 </button>
                 <button
                   onClick={() => {
@@ -5086,7 +5088,7 @@ const ContentieuxTab = ({
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Envoyer
+                  {t('recovery.send')}
                 </button>
               </div>
             </div>
@@ -5136,7 +5138,7 @@ const ContentieuxTab = ({
 
                 {selectedCorrespondant.pieces.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Pièces jointes</h4>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">{t('recovery.attachments')}</h4>
                     <div className="space-y-2">
                       {selectedCorrespondant.pieces.map((piece, index) => (
                         <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
@@ -5144,7 +5146,7 @@ const ContentieuxTab = ({
                             <FileText className="w-5 h-5 text-gray-700" />
                             <span className="text-sm text-gray-900">{piece}</span>
                           </div>
-                          <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.download')}>
                             <Download className="w-4 h-4" />
                           </button>
                         </div>
@@ -5252,18 +5254,18 @@ const ContentieuxTab = ({
       <div className="space-y-6">
         {/* En-tête et actions */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Mesures d'Exécution</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recovery.enforcementMeasures')}</h3>
           <div className="flex space-x-3">
             <button
               onClick={() => setShowNewMesureModal(true)}
               className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Nouvelle mesure
+              {t('recovery.newMeasure')}
             </button>
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <FileText className="w-4 h-4 mr-2" />
-              Rapport d'exécution
+              {t('recovery.enforcementReport')}
             </button>
           </div>
         </div>
@@ -5273,7 +5275,7 @@ const ContentieuxTab = ({
           <div className="bg-green-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Montant Recouvré</p>
+                <p className="text-sm text-green-600">{t('recovery.collectedAmount')}</p>
                 <p className="text-lg font-bold text-green-900">{formatCurrency(totalRecouvert)}</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />
@@ -5282,7 +5284,7 @@ const ContentieuxTab = ({
           <div className="bg-orange-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">Mesures Actives</p>
+                <p className="text-sm text-orange-600">{t('recovery.activeMeasures')}</p>
                 <p className="text-lg font-bold text-orange-900">{mesuresActives}</p>
               </div>
               <Activity className="w-8 h-8 text-orange-600" />
@@ -5291,7 +5293,7 @@ const ContentieuxTab = ({
           <div className="bg-blue-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Total Mesures</p>
+                <p className="text-sm text-blue-600">{t('recovery.totalMeasures')}</p>
                 <p className="text-lg font-bold text-blue-900">{mesuresExecution.length}</p>
               </div>
               <Target className="w-8 h-8 text-blue-600" />
@@ -5300,7 +5302,7 @@ const ContentieuxTab = ({
           <div className="bg-primary-50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-primary-600">Taux Succès</p>
+                <p className="text-sm text-primary-600">{t('recovery.successRateShort')}</p>
                 <p className="text-lg font-bold text-primary-900">
                   {Math.round((totalRecouvert / 2500000) * 100)}%
                 </p>
@@ -5312,16 +5314,16 @@ const ContentieuxTab = ({
 
         {/* Filtres */}
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700">Type de mesure:</label>
+          <label className="text-sm font-medium text-gray-700">{t('recovery.measureTypeColon')}</label>
           <select
             value={executionFilter}
             onChange={(e) => setExecutionFilter(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
           >
-            <option value="all">Toutes les mesures</option>
+            <option value="all">{t('recovery.allMeasures')}</option>
             <option value="saisie_attribution">Saisies-attributions</option>
             <option value="saisie_vente">Saisies-ventes</option>
-            <option value="saisie_immobiliere">Saisies immobilières</option>
+            <option value="saisie_immobiliere">{t('recovery.realEstateSeizures')}</option>
             <option value="astreinte">Astreintes</option>
             <option value="opposition">Oppositions</option>
           </select>
@@ -5334,12 +5336,12 @@ const ContentieuxTab = ({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mesure</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Exécutant</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.type')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.executor')}</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dates</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.amount')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.status')}</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.actions')}</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -5409,7 +5411,7 @@ const ContentieuxTab = ({
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" aria-label="Voir les détails">
+                          <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.viewDetailsAria')}>
                             <Eye className="w-4 h-4" />
                           </button>
                           <button className="text-green-600 hover:text-green-800">
@@ -5432,18 +5434,18 @@ const ContentieuxTab = ({
         {showNewMesureModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Nouvelle Mesure d'Exécution</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.newEnforcementMeasure')}</h3>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Type de mesure</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.measureType')}</label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                       <option>Saisie-attribution</option>
                       <option>Saisie-vente</option>
-                      <option>Saisie immobilière</option>
+                      <option>{t('recovery.realEstateSeizure')}</option>
                       <option>Astreinte</option>
-                      <option>Opposition administrative</option>
+                      <option>{t('recovery.administrativeObjection')}</option>
                     </select>
                   </div>
                   <div>
@@ -5457,7 +5459,7 @@ const ContentieuxTab = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom de la mesure</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.measureName')}</label>
                   <input
                     type="text"
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -5467,14 +5469,14 @@ const ContentieuxTab = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date ordonnance</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.orderDate')}</label>
                     <input
                       type="date"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'exécution prévue</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.plannedEnforcementDate')}</label>
                     <input
                       type="date"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -5484,7 +5486,7 @@ const ContentieuxTab = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Lieu/Établissement</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.placeEstablishment')}</label>
                     <input
                       type="text"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -5492,7 +5494,7 @@ const ContentieuxTab = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Montant estimé (FCFA)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.estimatedAmountFcfa')}</label>
                     <input
                       type="number"
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
@@ -5505,7 +5507,7 @@ const ContentieuxTab = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">Observations</label>
                   <textarea
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                    placeholder="Informations complémentaires..."
+                    placeholder={t('recovery.additionalInfoPh')}
                   />
                 </div>
               </div>
@@ -5515,7 +5517,7 @@ const ContentieuxTab = ({
                   onClick={() => setShowNewMesureModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -5523,7 +5525,7 @@ const ContentieuxTab = ({
                   }}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
-                  Programmer la mesure
+                  {t('recovery.scheduleMeasure')}
                 </button>
               </div>
             </div>
@@ -5575,7 +5577,7 @@ const ContentieuxTab = ({
       <div className="space-y-6">
         {/* En-tête avec actions */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Résultats & Bilan Contentieux</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('recovery.litigationResultsTitle')}</h3>
           <div className="flex space-x-3">
             {selectedContentieuxDetail.statutJuridique === 'execution' && (
               <button
@@ -5583,16 +5585,16 @@ const ContentieuxTab = ({
                 className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Clôturer le dossier
+                {t('recovery.closeCase')}
               </button>
             )}
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <FileText className="w-4 h-4 mr-2" />
-              Rapport final
+              {t('recovery.finalReport')}
             </button>
             <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
               <Download className="w-4 h-4 mr-2" />
-              Export données
+              {t('recovery.exportData')}
             </button>
           </div>
         </div>
@@ -5602,7 +5604,7 @@ const ContentieuxTab = ({
           <div className="bg-green-50 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600">Taux de Recouvrement</p>
+                <p className="text-sm text-green-600">{t('recovery.collectionRateTitle')}</p>
                 <p className="text-lg font-bold text-green-900">{tauxRecouvrement.toFixed(1)}%</p>
                 <p className="text-xs text-green-600 mt-1">Objectif: 80%</p>
               </div>
@@ -5612,7 +5614,7 @@ const ContentieuxTab = ({
           <div className="bg-blue-50 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600">Montant Recouvré</p>
+                <p className="text-sm text-blue-600">{t('recovery.collectedAmount')}</p>
                 <p className="text-lg font-bold text-blue-900">{formatCurrency(montantRecouvert)}</p>
                 <p className="text-xs text-blue-600 mt-1">/ {formatCurrency(montantInitial)}</p>
               </div>
@@ -5622,7 +5624,7 @@ const ContentieuxTab = ({
           <div className="bg-primary-50 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-primary-600">Rentabilité</p>
+                <p className="text-sm text-primary-600">{t('recovery.profitability')}</p>
                 <p className="text-lg font-bold text-primary-900">{rentabilite.toFixed(1)}%</p>
                 <p className="text-xs text-primary-600 mt-1">ROI excellent</p>
               </div>
@@ -5632,7 +5634,7 @@ const ContentieuxTab = ({
           <div className="bg-orange-50 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600">Durée</p>
+                <p className="text-sm text-orange-600">{t('recovery.duration')}</p>
                 <p className="text-lg font-bold text-orange-900">{analyseRentabilite.dureeRecouvrement}</p>
                 <p className="text-xs text-orange-600 mt-1">jours</p>
               </div>
@@ -5643,10 +5645,10 @@ const ContentieuxTab = ({
 
         {/* Graphique de recouvrement */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution du Recouvrement</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.collectionTrend')}</h4>
           <div className="space-y-4">
             <div className="flex items-center justify-between text-sm">
-              <span>Progression du recouvrement</span>
+              <span>{t('recovery.collectionProgress')}</span>
               <span className="font-medium">{tauxRecouvrement.toFixed(1)}% complété</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
@@ -5658,15 +5660,15 @@ const ContentieuxTab = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="text-center">
                 <p className="font-medium text-gray-900">{formatCurrency(montantRecouvert)}</p>
-                <p className="text-gray-700">Recouvré</p>
+                <p className="text-gray-700">{t('recovery.collected')}</p>
               </div>
               <div className="text-center">
                 <p className="font-medium text-red-900">{formatCurrency((montantInitial - montantRecouvert))}</p>
-                <p className="text-gray-700">Reste à recouvrer</p>
+                <p className="text-gray-700">{t('recovery.remainingToCollect')}</p>
               </div>
               <div className="text-center">
                 <p className="font-medium text-blue-900">{formatCurrency(fraisTotaux)}</p>
-                <p className="text-gray-700">Frais engagés</p>
+                <p className="text-gray-700">{t('recovery.feesIncurred')}</p>
               </div>
             </div>
           </div>
@@ -5675,10 +5677,10 @@ const ContentieuxTab = ({
         {/* Chronologie des recouvrements */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Chronologie des Recouvrements</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.collectionsTimeline')}</h4>
             <div className="space-y-4">
               {chronologieResultats.length === 0 && (
-                <p className="text-sm text-gray-500 py-6 text-center">Aucun encaissement de recouvrement enregistré.</p>
+                <p className="text-sm text-gray-500 py-6 text-center">{t('recovery.noCollectionReceipt')}</p>
               )}
               {chronologieResultats.map((item) => (
                 <div key={item.id} className="flex items-start space-x-4">
@@ -5702,11 +5704,11 @@ const ContentieuxTab = ({
 
           {/* Analyse comparative */}
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Comparative</h4>
+            <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.comparativeAnalysis')}</h4>
             <div className="space-y-6">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Taux de recouvrement</span>
+                  <span className="text-sm text-gray-600">{t('recovery.collectionRate')}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-green-600">{tauxRecouvrement.toFixed(1)}%</span>
                     <span className="text-xs text-gray-700">vs {comparaison.moyenneMarche}% (marché)</span>
@@ -5719,7 +5721,7 @@ const ContentieuxTab = ({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Durée de recouvrement</span>
+                  <span className="text-sm text-gray-600">{t('recovery.collectionDuration')}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-blue-600">{analyseRentabilite.dureeRecouvrement}j</span>
                     <span className="text-xs text-gray-700">vs {comparaison.dureeMoyenne}j (marché)</span>
@@ -5732,7 +5734,7 @@ const ContentieuxTab = ({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Taux de frais</span>
+                  <span className="text-sm text-gray-600">{t('recovery.feeRate')}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-sm font-bold text-primary-600">{(montantInitial > 0 ? (fraisTotaux/montantInitial)*100 : 0).toFixed(1)}%</span>
                     <span className="text-xs text-gray-700">vs {comparaison.fraisisMoyens}% (marché)</span>
@@ -5745,9 +5747,9 @@ const ContentieuxTab = ({
 
               <div className="pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-900">Évaluation globale</span>
+                  <span className="text-sm font-medium text-gray-900">{t('recovery.overallAssessment')}</span>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Excellent
+                    {t('recovery.excellent')}
                   </span>
                 </div>
               </div>
@@ -5757,42 +5759,42 @@ const ContentieuxTab = ({
 
         {/* Analyse financière détaillée */}
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4">Analyse Financière Détaillée</h4>
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.detailedFinancialAnalysis')}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <h5 className="font-medium text-gray-900 mb-3">Répartition des Recouvrements</h5>
+              <h5 className="font-medium text-gray-900 mb-3">{t('recovery.collectionsBreakdown')}</h5>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Paiements volontaires</span>
+                  <span className="text-sm text-gray-600">{t('recovery.voluntaryPayments')}</span>
                   <span className="text-sm font-medium text-gray-400">—</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Mesures d'exécution</span>
+                  <span className="text-sm text-gray-600">{t('recovery.enforcementMeasuresLower')}</span>
                   <span className="text-sm font-medium text-gray-400">—</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                  <span className="text-sm font-semibold text-gray-900">Total recouvré</span>
+                  <span className="text-sm font-semibold text-gray-900">{t('recovery.totalCollected')}</span>
                   <span className="text-sm font-bold text-green-600">{formatCurrency(montantRecouvert)}</span>
                 </div>
               </div>
             </div>
             <div>
-              <h5 className="font-medium text-gray-900 mb-3">Ventilation des Coûts</h5>
+              <h5 className="font-medium text-gray-900 mb-3">{t('recovery.costBreakdown')}</h5>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Frais d'avocat</span>
+                  <span className="text-sm text-gray-600">{t('recovery.lawyerFees')}</span>
                   <span className="text-sm font-medium">250,000 FCFA</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Frais d'huissier</span>
+                  <span className="text-sm text-gray-600">{t('recovery.bailiffFees')}</span>
                   <span className="text-sm font-medium">135,000 FCFA</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Frais de tribunal</span>
+                  <span className="text-sm text-gray-600">{t('recovery.courtFees')}</span>
                   <span className="text-sm font-medium">65,000 FCFA</span>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                  <span className="text-sm font-semibold text-gray-900">Total frais</span>
+                  <span className="text-sm font-semibold text-gray-900">{t('recovery.totalFeesLower')}</span>
                   <span className="text-sm font-bold text-red-600">{formatCurrency(fraisTotaux)}</span>
                 </div>
               </div>
@@ -5800,7 +5802,7 @@ const ContentieuxTab = ({
           </div>
           <div className="mt-6 pt-6 border-t border-gray-200">
             <div className="flex items-center justify-between">
-              <span className="text-lg font-semibold text-gray-900">Bénéfice Net</span>
+              <span className="text-lg font-semibold text-gray-900">{t('recovery.netProfit')}</span>
               <span className="text-lg font-bold text-green-600">{formatCurrency(beneficeNet)}</span>
             </div>
             <p className="text-sm text-gray-700 mt-1">
@@ -5813,7 +5815,7 @@ const ContentieuxTab = ({
         {showCloturerModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Clôturer le Dossier Contentieux</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.closeLitigationCaseTitle')}</h3>
 
               <div className="space-y-4">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -5822,44 +5824,44 @@ const ContentieuxTab = ({
                     <div>
                       <h4 className="text-sm font-medium text-yellow-800">Attention</h4>
                       <p className="text-sm text-yellow-700 mt-1">
-                        La clôture du dossier est définitive. Assurez-vous que toutes les actions ont été entreprises.
+                        {t('recovery.closingIsFinalShort')}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Motif de clôture</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.closingReason')}</label>
                   <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                    <option>Recouvrement total</option>
-                    <option>Recouvrement partiel - Débiteur insolvable</option>
-                    <option>Accord transactionnel</option>
+                    <option>{t('recovery.fullRecovery')}</option>
+                    <option>{t('recovery.partialRecoveryInsolvent')}</option>
+                    <option>{t('recovery.settlementAgreement')}</option>
                     <option>Prescription</option>
-                    <option>Abandon de créance</option>
+                    <option>{t('recovery.debtWriteOff')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Commentaires de clôture</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.closingComments')}</label>
                   <textarea
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                    placeholder="Bilan final et observations..."
+                    placeholder={t('recovery.finalReviewPh')}
                   />
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Récapitulatif Final</h4>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">{t('recovery.finalSummaryTitle')}</h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex justify-between">
-                      <span>Montant initial:</span>
+                      <span>{t('recovery.initialAmountColon')}</span>
                       <span>{formatCurrency(montantInitial)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Montant recouvré:</span>
+                      <span>{t('recovery.collectedAmountColon')}</span>
                       <span className="text-green-600">{formatCurrency(montantRecouvert)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Taux de recouvrement:</span>
+                      <span>{t('recovery.collectionRateColon')}</span>
                       <span className="font-medium">{tauxRecouvrement.toFixed(1)}%</span>
                     </div>
                   </div>
@@ -5871,7 +5873,7 @@ const ContentieuxTab = ({
                   onClick={() => setShowCloturerModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -5879,7 +5881,7 @@ const ContentieuxTab = ({
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 >
-                  Confirmer la clôture
+                  {t('recovery.confirmClosing')}
                 </button>
               </div>
             </div>
@@ -5904,7 +5906,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Performance Globale</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.overallPerformance')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">73%</p>
                   <p className="text-xs text-green-600">+5% vs mois dernier</p>
                 </div>
@@ -5914,9 +5916,9 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Transfert Amiable→Contentieux</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.amicableToLitigationRate')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">18%</p>
-                  <p className="text-xs text-orange-600">↑ 2% ce mois</p>
+                  <p className="text-xs text-orange-600">{t('recovery.up2PercentThisMonth')}</p>
                 </div>
                 <RefreshCw className="w-8 h-8 text-orange-600" />
               </div>
@@ -5926,7 +5928,7 @@ const ContentieuxTab = ({
                 <div>
                   <p className="text-sm text-[var(--color-text-secondary)]">ROI Contentieux</p>
                   <p className="text-lg font-bold text-green-600">3.2x</p>
-                  <p className="text-xs text-gray-600">Coût vs Recouvrement</p>
+                  <p className="text-xs text-gray-600">{t('recovery.costVsCollection')}</p>
                 </div>
                 <TrendingUp className="w-8 h-8 text-green-600" />
               </div>
@@ -5934,9 +5936,9 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.averageDelayTitle')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">127j</p>
-                  <p className="text-xs text-gray-600">Transfert → Jugement</p>
+                  <p className="text-xs text-gray-600">{t('recovery.transferToJudgment')}</p>
                 </div>
                 <Clock className="w-8 h-8 text-primary-600" />
               </div>
@@ -5948,7 +5950,7 @@ const ContentieuxTab = ({
             {/* Performance Amiable vs Contentieux */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                Comparatif Amiable vs Contentieux
+                {t('recovery.amicableVsLitigation')}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
@@ -5969,7 +5971,7 @@ const ContentieuxTab = ({
             {/* Flux entre processus */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
-                Flux mensuel Amiable → Contentieux
+                {t('recovery.monthlyFlowAmicableLitig')}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={[
@@ -5993,22 +5995,22 @@ const ContentieuxTab = ({
 
           {/* Statistiques par type de procédure */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Performance par Type de Procédure</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.perfByProcedureType')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Procédure</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Nb Dossiers</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Taux Succès</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Délai Moyen</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coût Moyen</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.procedure')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.caseCount')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.successRateShort')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.averageDelayTitle')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.averageCost')}</th>
                     <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">ROI</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="px-4 py-3 text-sm">Injonction de payer</td>
+                    <td className="px-4 py-3 text-sm">{t('recovery.paymentOrder')}</td>
                     <td className="px-4 py-3 text-sm text-center">45</td>
                     <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">78%</span></td>
                     <td className="px-4 py-3 text-sm text-center">60 jours</td>
@@ -6016,7 +6018,7 @@ const ContentieuxTab = ({
                     <td className="px-4 py-3 text-sm text-center"><span className="text-green-600 font-semibold">4.2x</span></td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm">Référé provision</td>
+                    <td className="px-4 py-3 text-sm">{t('recovery.interimProvision')}</td>
                     <td className="px-4 py-3 text-sm text-center">23</td>
                     <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">65%</span></td>
                     <td className="px-4 py-3 text-sm text-center">90 jours</td>
@@ -6024,7 +6026,7 @@ const ContentieuxTab = ({
                     <td className="px-4 py-3 text-sm text-center"><span className="text-yellow-600 font-semibold">2.8x</span></td>
                   </tr>
                   <tr>
-                    <td className="px-4 py-3 text-sm">Procédure au fond</td>
+                    <td className="px-4 py-3 text-sm">{t('recovery.mainProceedings')}</td>
                     <td className="px-4 py-3 text-sm text-center">18</td>
                     <td className="px-4 py-3 text-sm text-center"><span className="text-orange-600 font-semibold">55%</span></td>
                     <td className="px-4 py-3 text-sm text-center">180 jours</td>
@@ -6054,17 +6056,17 @@ const ContentieuxTab = ({
           {/* Sélecteur de phase */}
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)]">Workflow Complet Module Recouvrement</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.fullModuleWorkflow')}</h3>
               <select
                 value={activeWorkflowPhase}
                 onChange={(e) => setActiveWorkflowPhase(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Toutes les phases</option>
-                <option value="amiable">Phase Amiable (J+0 à J+90)</option>
-                <option value="transfert">Transfert (J+91)</option>
-                <option value="contentieux">Phase Contentieuse</option>
-                <option value="execution">Exécution & Clôture</option>
+                <option value="all">{t('recovery.allPhases')}</option>
+                <option value="amiable">{t('recovery.amicablePhaseRange')}</option>
+                <option value="transfert">{t('recovery.transferDay91')}</option>
+                <option value="contentieux">{t('recovery.litigationPhase')}</option>
+                <option value="execution">{t('recovery.enforcementAndClosing')}</option>
               </select>
             </div>
           </div>
@@ -6079,27 +6081,27 @@ const ContentieuxTab = ({
                     <span className="text-blue-600 font-bold">1</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 1: Recouvrement Amiable (J+0 à J+90)</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.phase1Title')}</h4>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Détection automatique facture impayée</span>
+                        <span className="text-sm">{t('recovery.autoDetectUnpaid')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Attribution agent de recouvrement</span>
+                        <span className="text-sm">{t('recovery.assignCollectionsAgent')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Relances téléphoniques et écrites</span>
+                        <span className="text-sm">{t('recovery.phoneAndWrittenReminders')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Négociations et propositions</span>
+                        <span className="text-sm">{t('recovery.negotiationsAndOffers')}</span>
                       </div>
                       <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
                         <span className="text-sm font-medium text-yellow-800">
-                          Point de décision: Succès amiable ou transfert contentieux
+                          {t('recovery.decisionPointAmicable')}
                         </span>
                       </div>
                     </div>
@@ -6119,23 +6121,23 @@ const ContentieuxTab = ({
                     <span className="text-orange-600 font-bold">2</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 2: Transfert vers Contentieux (J+91)</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.phase2Title')}</h4>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center space-x-2">
                         <AlertTriangle className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm">Échec constaté du recouvrement amiable</span>
+                        <span className="text-sm">{t('recovery.amicableFailureConfirmed')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <FileText className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm">Demande de transfert avec justification</span>
+                        <span className="text-sm">{t('recovery.transferRequestJustified')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <UserCheck className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm">Validation hiérarchique selon matrice</span>
+                        <span className="text-sm">{t('recovery.hierarchicalApproval')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <FolderOpen className="w-4 h-4 text-orange-500" />
-                        <span className="text-sm">Constitution automatique dossier contentieux</span>
+                        <span className="text-sm">{t('recovery.autoCaseCreation')}</span>
                       </div>
                     </div>
                   </div>
@@ -6154,27 +6156,27 @@ const ContentieuxTab = ({
                     <span className="text-red-600 font-bold">3</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 3: Procédure Contentieuse (J+91 à J+X)</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.phase3Title')}</h4>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center space-x-2">
                         <Scale className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">Analyse juridique du dossier</span>
+                        <span className="text-sm">{t('recovery.legalCaseAnalysis')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Send className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">Mise en demeure par huissier</span>
+                        <span className="text-sm">{t('recovery.formalNoticeByBailiff')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Gavel className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">Choix de la procédure adaptée</span>
+                        <span className="text-sm">{t('recovery.chooseSuitableProcedure')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Briefcase className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">Gestion du dossier judiciaire</span>
+                        <span className="text-sm">{t('recovery.manageCourtCase')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <CheckSquare className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">Obtention décision de justice</span>
+                        <span className="text-sm">{t('recovery.obtainCourtDecision')}</span>
                       </div>
                     </div>
                   </div>
@@ -6193,27 +6195,27 @@ const ContentieuxTab = ({
                     <span className="text-green-600 font-bold">4</span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Phase 4: Exécution et Clôture</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.phase4Title')}</h4>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center space-x-2">
                         <FileSignature className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Signification du jugement</span>
+                        <span className="text-sm">{t('recovery.serviceOfJudgment')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Hammer className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Mesures d'exécution forcée</span>
+                        <span className="text-sm">{t('recovery.forcedEnforcementMeasures')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Coins className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Recouvrement des sommes</span>
+                        <span className="text-sm">{t('recovery.collectionOfSums')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <BarChart3 className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Analyse ROI global (amiable + contentieux)</span>
+                        <span className="text-sm">{t('recovery.globalRoiAnalysis')}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Archive className="w-4 h-4 text-green-500" />
-                        <span className="text-sm">Clôture et archivage</span>
+                        <span className="text-sm">{t('recovery.closingAndArchiving')}</span>
                       </div>
                     </div>
                   </div>
@@ -6222,12 +6224,12 @@ const ContentieuxTab = ({
 
               {/* Points de contrôle */}
               <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-2">Points de contrôle et bascules</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">{t('recovery.controlPointsAndSwitches')}</h4>
                 <ul className="space-y-1 text-sm text-blue-800">
-                  <li>• Retour possible en amiable à tout moment si accord</li>
-                  <li>• Escalade automatique selon délais paramétrés</li>
-                  <li>• Validation obligatoire pour certains montants</li>
-                  <li>• Reporting temps réel à chaque étape</li>
+                  <li>{t('recovery.bulletReturnAmicable')}</li>
+                  <li>{t('recovery.bulletAutoEscalation')}</li>
+                  <li>{t('recovery.bulletMandatoryApproval')}</li>
+                  <li>{t('recovery.bulletRealTimeReporting')}</li>
                 </ul>
               </div>
             </div>
@@ -6301,11 +6303,11 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Budget Total Contentieux</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalLitigationBudget')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
                   </p>
-                  <p className="text-xs text-gray-600">Créances recouvrées</p>
+                  <p className="text-xs text-gray-600">{t('recovery.collectedReceivables')}</p>
                 </div>
                 <Wallet className="w-8 h-8 text-blue-600" />
               </div>
@@ -6313,7 +6315,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Dépenses Engagées</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.incurredExpenses')}</p>
                   <p className="text-lg font-bold text-orange-600">
                     {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
                   </p>
@@ -6325,7 +6327,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Montants Recouvrés</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedAmounts')}</p>
                   <p className="text-lg font-bold text-green-600">
                     {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
                   </p>
@@ -6338,11 +6340,11 @@ const ContentieuxTab = ({
 
           {/* Détail des coûts par type */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition des Coûts</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.costBreakdownTitle')}</h3>
             {costChartData.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-gray-400">
                 <PieChart className="w-12 h-12 mb-3 opacity-30" />
-                <p className="text-sm">Aucune charge enregistrée (comptes classe 6)</p>
+                <p className="text-sm">{t('recovery.noExpenseClass6')}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -6392,17 +6394,17 @@ const ContentieuxTab = ({
 
           {/* Analyse coût/bénéfice par dossier */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Coût/Bénéfice par Dossier</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.costBenefitByCase')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Dossier</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Créance</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Coûts Engagés</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Recouvré</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Bénéfice Net</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Rentabilité</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.receivable')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.incurredCosts')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.collected')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.netProfit')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.profitability')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -6441,7 +6443,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Jugements à exécuter</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.judgmentsToEnforce')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
                 </div>
                 <Gavel className="w-8 h-8 text-primary-600" />
@@ -6450,7 +6452,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Saisies en cours</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.seizuresInProgress')}</p>
                   <p className="text-lg font-bold text-orange-600">5</p>
                 </div>
                 <Lock className="w-8 h-8 text-orange-600" />
@@ -6459,7 +6461,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Montants saisis</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.seizedAmounts')}</p>
                   <p className="text-lg font-bold text-green-600">12.3M</p>
                 </div>
                 <Coins className="w-8 h-8 text-green-600" />
@@ -6468,7 +6470,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux d'exécution</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.enforcementRate')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">62%</p>
                 </div>
                 <CheckSquare className="w-8 h-8 text-blue-600" />
@@ -6478,17 +6480,17 @@ const ContentieuxTab = ({
 
           {/* Liste des exécutions */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Dossiers en Exécution</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.casesInEnforcement')}</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Référence</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Client</th>
-                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">Type Exécution</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Montant</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Statut</th>
-                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">Actions</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.reference')}</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.customer')}</th>
+                    <th className="text-left px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.enforcementType')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.amount')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.status')}</th>
+                    <th className="text-center px-4 py-2 text-xs font-medium text-gray-700 uppercase">{t('recovery.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -6515,7 +6517,7 @@ const ContentieuxTab = ({
                             setShowExecutionDetailModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-800"
-                          title="Voir détails de l'exécution"
+                          title={t('recovery.viewEnforcementDetails')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -6529,31 +6531,31 @@ const ContentieuxTab = ({
 
           {/* Types de mesures d'exécution */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Mesures d'Exécution Disponibles</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.availableEnforcementMeasures')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="font-semibold text-blue-900 mb-2">Saisie-attribution</h4>
-                <p className="text-sm text-blue-700">Saisie directe sur comptes bancaires</p>
+                <p className="text-sm text-blue-700">{t('recovery.directBankSeizure')}</p>
               </div>
               <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                 <h4 className="font-semibold text-orange-900 mb-2">Saisie-vente</h4>
-                <p className="text-sm text-orange-700">Vente forcée de biens mobiliers/immobiliers</p>
+                <p className="text-sm text-orange-700">{t('recovery.forcedSaleOfAssets')}</p>
               </div>
               <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
-                <h4 className="font-semibold text-primary-900 mb-2">Saisie sur salaire</h4>
-                <p className="text-sm text-primary-700">Prélèvement sur rémunération</p>
+                <h4 className="font-semibold text-primary-900 mb-2">{t('recovery.wageGarnishment')}</h4>
+                <p className="text-sm text-primary-700">{t('recovery.salaryDeduction')}</p>
               </div>
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-semibold text-green-900 mb-2">Hypothèque judiciaire</h4>
-                <p className="text-sm text-green-700">Garantie sur biens immobiliers</p>
+                <h4 className="font-semibold text-green-900 mb-2">{t('recovery.judicialMortgage')}</h4>
+                <p className="text-sm text-green-700">{t('recovery.realEstateGuarantee')}</p>
               </div>
               <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                 <h4 className="font-semibold text-red-900 mb-2">Astreinte</h4>
-                <p className="text-sm text-red-700">Pénalité journalière de retard</p>
+                <p className="text-sm text-red-700">{t('recovery.dailyLatePenalty')}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-gray-900 mb-2">Plan échelonné</h4>
-                <p className="text-sm text-gray-700">Paiement fractionné validé</p>
+                <h4 className="font-semibold text-gray-900 mb-2">{t('recovery.instalmentPlan')}</h4>
+                <p className="text-sm text-gray-700">{t('recovery.approvedSplitPayment')}</p>
               </div>
             </div>
           </div>
@@ -6568,15 +6570,15 @@ const ContentieuxTab = ({
         <div className="space-y-6">
           {/* KPIs consolidés */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Indicateurs de Performance - Vue Consolidée</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.kpiConsolidatedView')}</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-[var(--color-primary)]">82%</p>
-                <p className="text-sm text-gray-600 mt-1">Taux succès amiable</p>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.amicableSuccessRate')}</p>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-[var(--color-primary)]">67%</p>
-                <p className="text-sm text-gray-600 mt-1">Taux succès contentieux</p>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.litigationSuccessRate')}</p>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-green-600">3.2x</p>
@@ -6584,14 +6586,14 @@ const ContentieuxTab = ({
               </div>
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-lg font-bold text-[var(--color-primary)]">45j</p>
-                <p className="text-sm text-gray-600 mt-1">Délai moyen amiable</p>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.amicableAverageDelay')}</p>
               </div>
             </div>
           </div>
 
           {/* Évolution temporelle */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution des Performances</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.performanceTrend')}</h3>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={[
                 { mois: 'Août', amiable: 78, contentieux: 62, roi: 2.8 },
@@ -6616,32 +6618,32 @@ const ContentieuxTab = ({
 
           {/* Analyse prédictive */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Analyse Prédictive</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.predictiveAnalysis')}</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h4 className="font-semibold text-blue-900 mb-3">Prévisions Q1 2024</h4>
+                <h4 className="font-semibold text-blue-900 mb-3">{t('recovery.forecastQ1')}</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm">Transferts vers contentieux estimés</span>
+                    <span className="text-sm">{t('recovery.estimatedTransfers')}</span>
                     <span className="text-sm font-semibold">65 dossiers</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Montant en contentieux prévu</span>
+                    <span className="text-sm">{t('recovery.forecastLitigationAmount')}</span>
                     <span className="text-sm font-semibold">42M FCFA</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm">Taux de succès attendu</span>
+                    <span className="text-sm">{t('recovery.expectedSuccessRate')}</span>
                     <span className="text-sm font-semibold">69%</span>
                   </div>
                 </div>
               </div>
               <div className="p-4 bg-green-50 rounded-lg">
-                <h4 className="font-semibold text-green-900 mb-3">Recommandations IA</h4>
+                <h4 className="font-semibold text-green-900 mb-3">{t('recovery.aiRecommendations')}</h4>
                 <ul className="space-y-1 text-sm text-green-800">
-                  <li>• Augmenter les relances J+30 pour réduire transferts</li>
-                  <li>• Privilégier injonctions de payer (ROI 4.2x)</li>
-                  <li>• Focus sur dossiers 2-5M FCFA (meilleur ratio)</li>
-                  <li>• Renforcer équipe amiable zone Abidjan Nord</li>
+                  <li>{t('recovery.bulletIncreaseReminders')}</li>
+                  <li>{t('recovery.bulletPreferPaymentOrders')}</li>
+                  <li>{t('recovery.bulletFocusCases')}</li>
+                  <li>{t('recovery.bulletReinforceTeam')}</li>
                 </ul>
               </div>
             </div>
@@ -6649,38 +6651,38 @@ const ContentieuxTab = ({
 
           {/* Actions de reporting */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Rapports Disponibles</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.availableReports')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <button
                 onClick={() => setShowRapportMensuelModal(true)}
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-blue-400"
               >
                 <FileText className="w-6 h-6 text-blue-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Rapport mensuel consolidé</h4>
-                <p className="text-sm text-gray-600 mt-1">Amiable + Contentieux</p>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.consolidatedMonthlyReport')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.amicablePlusLitigation')}</p>
               </button>
               <button
                 onClick={() => setShowAnalyseROIModal(true)}
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-green-400"
               >
                 <BarChart3 className="w-6 h-6 text-green-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Analyse ROI détaillée</h4>
-                <p className="text-sm text-gray-600 mt-1">Par phase et procédure</p>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.detailedRoiAnalysis')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.byPhaseAndProcedure')}</p>
               </button>
               <button
                 onClick={() => setShowPerformanceEquipeModal(true)}
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-orange-400"
               >
                 <Users className="w-6 h-6 text-orange-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Performance équipes</h4>
-                <p className="text-sm text-gray-600 mt-1">Agents et gestionnaires</p>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.teamPerformance')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.agentsAndManagers')}</p>
               </button>
               <button
                 onClick={() => setShowPrevisionTresorerieModal(true)}
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-primary-400"
               >
                 <TrendingUp className="w-6 h-6 text-primary-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Prévisions trésorerie</h4>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.treasuryForecast')}</h4>
                 <p className="text-sm text-gray-600 mt-1">3-6 mois glissants</p>
               </button>
               <button
@@ -6688,16 +6690,16 @@ const ContentieuxTab = ({
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-red-400"
               >
                 <AlertTriangle className="w-6 h-6 text-red-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Dossiers à risque</h4>
-                <p className="text-sm text-gray-600 mt-1">Alertes et escalades</p>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.casesAtRisk')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.alertsAndEscalations')}</p>
               </button>
               <button
                 onClick={() => setShowExportPersonnaliseModal(true)}
                 className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left transition-colors hover:border-gray-500"
               >
                 <Download className="w-6 h-6 text-gray-600 mb-2" />
-                <h4 className="font-semibold text-[var(--color-primary)]">Export personnalisé</h4>
-                <p className="text-sm text-gray-600 mt-1">Excel / PDF / CSV</p>
+                <h4 className="font-semibold text-[var(--color-primary)]">{t('recovery.customExport')}</h4>
+                <p className="text-sm text-gray-600 mt-1">{t('recovery.excelPdfCsv')}</p>
               </button>
             </div>
           </div>
@@ -6714,7 +6716,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Dossiers actifs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.activeCases')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">12</p>
                 </div>
                 <Scale className="w-8 h-8 text-orange-600" />
@@ -6723,7 +6725,7 @@ const ContentieuxTab = ({
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Montant en contentieux</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.amountInLitigation')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">28.4M</p>
                 </div>
                 <DollarSign className="w-8 h-8 text-red-600" />
@@ -6732,7 +6734,7 @@ const ContentieuxTab = ({
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Taux de succès</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.successRate')}</p>
                 <p className="text-lg font-bold text-green-600">67%</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
@@ -6741,7 +6743,7 @@ const ContentieuxTab = ({
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Audiences ce mois</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.hearingsThisMonth')}</p>
                 <p className="text-lg font-bold text-[var(--color-primary)]">8</p>
               </div>
               <Calendar className="w-8 h-8 text-blue-600" />
@@ -6771,7 +6773,7 @@ const ContentieuxTab = ({
                   <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" aria-label="Télécharger">
+              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors" aria-label={t('recovery.download')}>
                 <Download className="w-4 h-4" />
                 <span>{t('common.export')}</span>
               </button>
@@ -6786,28 +6788,28 @@ const ContentieuxTab = ({
               <thead className="bg-gray-50">
                 <tr>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Référence
+                    {t('recovery.reference')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Client
+                    {t('recovery.customer')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Montant Total
+                    {t('recovery.totalAmount')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Statut Juridique
+                    {t('recovery.legalStatus')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Procédure
+                    {t('recovery.procedure')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Avocat
+                    {t('recovery.lawyer')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Prochaine Échéance
+                    {t('recovery.nextDueDateCol')}
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Actions
+                    {t('recovery.actions')}
                   </th>
                 </tr>
               </thead>
@@ -6870,7 +6872,7 @@ const ContentieuxTab = ({
                         <button
                           onClick={() => openEditContentieuxModal(dossier)}
                           className="text-orange-600 hover:text-orange-800"
-                          title="Modifier le dossier"
+                          title={t('recovery.editCase')}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -6881,7 +6883,7 @@ const ContentieuxTab = ({
                             setShowWorkflowModal(true);
                           }}
                           className="text-primary-600 hover:text-primary-800"
-                          title="Gérer le workflow"
+                          title={t('recovery.manageWorkflow')}
                         >
                           <Activity className="w-4 h-4" />
                         </button>
@@ -6892,7 +6894,7 @@ const ContentieuxTab = ({
                             setActiveContentieuxTab('general');
                           }}
                           className="text-green-600 hover:text-green-800"
-                          title="Page détaillée du dossier"
+                          title={t('recovery.caseDetailPage')}
                         >
                           <FileText className="w-4 h-4" />
                         </button>
@@ -6942,11 +6944,11 @@ const ContentieuxTab = ({
             <div className="flex space-x-2">
               <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                 <Send className="w-4 h-4" />
-                <span>Envoyer mise à jour</span>
+                <span>{t('recovery.sendUpdate')}</span>
               </button>
               <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                 <Download className="w-4 h-4" />
-                <span>Générer rapport</span>
+                <span>{t('recovery.generateReport')}</span>
               </button>
             </div>
           </div>
@@ -6957,7 +6959,7 @@ const ContentieuxTab = ({
           <div className="lg:col-span-2 space-y-6">
             {/* Timeline de la procédure */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Timeline de la procédure</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.procedureTimeline')}</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
@@ -6965,7 +6967,7 @@ const ContentieuxTab = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <span className="font-medium text-[var(--color-primary)]">Transfert en contentieux</span>
+                      <span className="font-medium text-[var(--color-primary)]">{t('recovery.transferToLitigation')}</span>
                       <span className="text-sm text-gray-700">15/01/2024</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{selectedContentieux.motifTransfert}</p>
@@ -6977,7 +6979,7 @@ const ContentieuxTab = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <span className="font-medium text-[var(--color-primary)]">Constitution du dossier</span>
+                      <span className="font-medium text-[var(--color-primary)]">{t('recovery.caseCreation')}</span>
                       <span className="text-sm text-gray-700">16/01/2024</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">Dossier complet transmis à {selectedContentieux.avocat}</p>
@@ -6989,10 +6991,10 @@ const ContentieuxTab = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <span className="font-medium text-[var(--color-primary)]">Mise en demeure envoyée</span>
+                      <span className="font-medium text-[var(--color-primary)]">{t('recovery.formalNoticeSent')}</span>
                       <span className="text-sm text-gray-700">18/01/2024</span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">En attente de réponse du débiteur</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('recovery.awaitingDebtorReply')}</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
@@ -7001,7 +7003,7 @@ const ContentieuxTab = ({
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between">
-                      <span className="font-medium text-gray-700">Assignation prévue</span>
+                      <span className="font-medium text-gray-700">{t('recovery.summonsPlanned')}</span>
                       <span className="text-sm text-gray-700">{selectedContentieux.prochaineEcheance}</span>
                     </div>
                   </div>
@@ -7011,7 +7013,7 @@ const ContentieuxTab = ({
 
             {/* Documents du dossier */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Documents juridiques</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.legalDocumentsShort')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
@@ -7021,7 +7023,7 @@ const ContentieuxTab = ({
                       <span className="text-xs text-gray-700 ml-2">2.4 MB</span>
                     </div>
                   </div>
-                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                  <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.download')}>
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
@@ -7033,7 +7035,7 @@ const ContentieuxTab = ({
                       <span className="text-xs text-gray-700 ml-2">1.2 MB</span>
                     </div>
                   </div>
-                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                  <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.download')}>
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
@@ -7045,44 +7047,44 @@ const ContentieuxTab = ({
                       <span className="text-xs text-gray-700 ml-2">450 KB</span>
                     </div>
                   </div>
-                  <button className="text-blue-600 hover:text-blue-800" aria-label="Télécharger">
+                  <button className="text-blue-600 hover:text-blue-800" aria-label={t('recovery.download')}>
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               <button className="mt-4 w-full flex items-center justify-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
                 <Upload className="w-4 h-4" />
-                <span>Ajouter un document</span>
+                <span>{t('recovery.addDocument')}</span>
               </button>
             </div>
 
             {/* Actions disponibles */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions de procédure</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.proceduralActions')}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setShowAssignationModal(true)}
                   className="flex items-center justify-center space-x-2 px-4 py-3 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200">
                   <Scale className="w-5 h-5" />
-                  <span>Préparer assignation</span>
+                  <span>{t('recovery.prepareSummonsShort')}</span>
                 </button>
                 <button
                   onClick={() => setShowAudienceModal(true)}
                   className="flex items-center justify-center space-x-2 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200">
                   <Calendar className="w-5 h-5" />
-                  <span>Planifier audience</span>
+                  <span>{t('recovery.scheduleHearingShort')}</span>
                 </button>
                 <button
                   onClick={() => setShowConclusionsModal(true)}
                   className="flex items-center justify-center space-x-2 px-4 py-3 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200">
                   <FileText className="w-5 h-5" />
-                  <span>Générer conclusions</span>
+                  <span>{t('recovery.generateSubmissionsShort')}</span>
                 </button>
                 <button
                   onClick={() => setShowJugementModal(true)}
                   className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200">
                   <CheckCircle className="w-5 h-5" />
-                  <span>Enregistrer jugement</span>
+                  <span>{t('recovery.recordJudgmentShort')}</span>
                 </button>
               </div>
             </div>
@@ -7092,29 +7094,29 @@ const ContentieuxTab = ({
           <div className="space-y-6">
             {/* Détails financiers */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détails financiers</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.financialDetails')}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Montant principal</span>
+                  <span className="text-sm text-gray-600">{t('recovery.principalAmount')}</span>
                   <span className="text-sm font-semibold text-[var(--color-primary)]">
                     {formatCurrency(selectedContentieux.montantPrincipal)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Intérêts de retard</span>
+                  <span className="text-sm text-gray-600">{t('recovery.lateInterest')}</span>
                   <span className="text-sm font-semibold text-[var(--color-primary)]">
                     {formatCurrency(selectedContentieux.interetsRetard ?? 0)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Frais de procédure</span>
+                  <span className="text-sm text-gray-600">{t('recovery.procedureFees')}</span>
                   <span className="text-sm font-semibold text-[var(--color-primary)]">
                     {formatCurrency(selectedContentieux.fraisProcedure ?? 0)}
                   </span>
                 </div>
                 <hr />
                 <div className="flex justify-between">
-                  <span className="text-sm font-semibold text-gray-700">Total à recouvrer</span>
+                  <span className="text-sm font-semibold text-gray-700">{t('recovery.totalToCollect')}</span>
                   <span className="text-lg font-bold text-[var(--color-primary)]">
                     {formatCurrency(selectedContentieux.montantTotal)}
                   </span>
@@ -7124,7 +7126,7 @@ const ContentieuxTab = ({
 
             {/* Informations avocat */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Avocat en charge</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.lawyerInCharge')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <UserCircle className="w-10 h-10 text-gray-700" />
@@ -7146,19 +7148,19 @@ const ContentieuxTab = ({
                 <button
                   onClick={() => setShowContactAvocatModal(true)}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  Contacter l'avocat
+                  {t('recovery.contactLawyer')}
                 </button>
               </div>
             </div>
 
             {/* Prochaines échéances */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Prochaines échéances</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.upcomingDeadlines')}</h3>
               <div className="space-y-3">
                 <div className="p-3 bg-red-50 rounded-lg border border-red-200">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium text-[var(--color-primary)]">Délai de réponse mise en demeure</p>
+                      <p className="font-medium text-[var(--color-primary)]">{t('recovery.formalNoticeReplyDelay')}</p>
                       <p className="text-sm text-gray-600 mt-1">01/02/2024</p>
                     </div>
                     <span className="text-xs font-semibold text-red-600">8 jours</span>
@@ -7167,7 +7169,7 @@ const ContentieuxTab = ({
                 <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="font-medium text-[var(--color-primary)]">Audience tribunal commerce</p>
+                      <p className="font-medium text-[var(--color-primary)]">{t('recovery.commercialCourtHearing')}</p>
                       <p className="text-sm text-gray-600 mt-1">15/02/2024</p>
                     </div>
                     <span className="text-xs font-semibold text-yellow-600">22 jours</span>
@@ -7178,22 +7180,22 @@ const ContentieuxTab = ({
 
             {/* Actions rapides */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Actions rapides</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.quickActions')}</h3>
               <div className="space-y-2">
                 <button
                   onClick={() => setShowRetourAmiableModal(true)}
                   className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
-                  Retourner en amiable
+                  {t('recovery.returnToAmicable')}
                 </button>
                 <button
                   onClick={() => setShowExpertiseModal(true)}
                   className="w-full px-4 py-2 text-left bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100">
-                  Demander expertise
+                  {t('recovery.requestExpertiseShort')}
                 </button>
                 <button
                   onClick={() => setShowClotureModal(true)}
                   className="w-full px-4 py-2 text-left bg-gray-50 text-red-600 rounded-lg hover:bg-red-50">
-                  Clôturer le dossier
+                  {t('recovery.closeCase')}
                 </button>
               </div>
             </div>
@@ -7218,62 +7220,18 @@ const RECOUVREMENT_PREFIXES = ['411', '421', '422', '423', '424', '425', '431', 
 const isRecouvrementAccount = (accountCode: string): boolean =>
   RECOUVREMENT_PREFIXES.some(prefix => accountCode.startsWith(prefix));
 
-const RecouvrementModule: React.FC = () => {
-  const { t } = useLanguage();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('creances');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatut, setFilterStatut] = useState('tous');
-  const [filterNiveau, setFilterNiveau] = useState('tous');
-  const [selectedCreance, setSelectedCreance] = useState<CreanceEnrichie | null>(null);
-  const [showActionModal, setShowActionModal] = useState(false);
-  const [actionFormData, setActionFormData] = useState({
-    typeAction: 'APPEL' as 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE',
-    date: new Date().toISOString().split('T')[0],
-    heure: new Date().toTimeString().slice(0, 5),
-    responsable: '',
-    details: '',
-    montantPromis: '',
-    datePromesse: ''
-  });
-  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
-  const [selectedFactures, setSelectedFactures] = useState<Set<string>>(new Set());
+/**
+ * Modèles de relance TRILINGUES (fr/en/es).
+ *
+ * ⚠️ Ce sont des DONNÉES métier (contenu de la lettre envoyée au client), pas des
+ * libellés d'interface : ils ne passent donc PAS par t(). Une lettre de relance part
+ * chez le CLIENT → elle est rédigée dans la langue du client destinataire
+ * (`languePrefere` du tiers), jamais dans la langue de l'interface.
+ */
+type RelanceLang = 'fr' | 'en' | 'es';
 
-  // États pour les modales de rapports
-  const [showRapportMensuelModal, setShowRapportMensuelModal] = useState(false);
-  const [showAnalyseROIModal, setShowAnalyseROIModal] = useState(false);
-  const [showPerformanceEquipeModal, setShowPerformanceEquipeModal] = useState(false);
-  const [showPrevisionTresorerieModal, setShowPrevisionTresorerieModal] = useState(false);
-  const [showDossiersRisqueModal, setShowDossiersRisqueModal] = useState(false);
-  const [showExportPersonnaliseModal, setShowExportPersonnaliseModal] = useState(false);
-
-  // États pour les modales des plans de remboursement
-  const [showPlanDetailModal, setShowPlanDetailModal] = useState(false);
-  const [showEnregistrerPaiementModal, setShowEnregistrerPaiementModal] = useState(false);
-  const [showRelancePlanModal, setShowRelancePlanModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanRemboursement | null>(null);
-  const [showCreateDossierModal, setShowCreateDossierModal] = useState(false);
-  const [showDossierActionModal, setShowDossierActionModal] = useState(false);
-  const [selectedDossierAction, setSelectedDossierAction] = useState<DossierRecouvrement | null>(null);
-  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const [showDossierDetail, setShowDossierDetail] = useState(false);
-  const [selectedDossierDetail, setSelectedDossierDetail] = useState<DossierRecouvrement | null>(null);
-  const [showDossierSummary, setShowDossierSummary] = useState(false);
-  const [selectedDossierSummary, setSelectedDossierSummary] = useState<DossierRecouvrement | null>(null);
-  const [activeDossierTab, setActiveDossierTab] = useState('dashboard');
-  const [activeRelanceSubTab, setActiveRelanceSubTab] = useState('historique');
-  const [activeParametresTab, setActiveParametresTab] = useState('configuration');
-  const [selectedTemplateType, setSelectedTemplateType] = useState('rappel_amical');
-  const [showEmailPreview, setShowEmailPreview] = useState(false);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [selectedTransferDossier, setSelectedTransferDossier] = useState<DossierRecouvrement | null>(null);
-  const [transferDetails, setTransferDetails] = useState({
-    destinataire: '',
-    motif: '',
-    notes: '',
-    validationStatus: 'pending' as 'pending' | 'approved' | 'rejected'
-  });
-  const [emailTemplates, setEmailTemplates] = useState({
+const RELANCE_EMAIL_TEMPLATES: Record<RelanceLang, Record<string, string>> = {
+  fr: {
     rappel_amical: `Objet: Rappel de paiement - {invoice_list}
 
 Madame, Monsieur {client_name},
@@ -7364,16 +7322,379 @@ Tel: +242 06 XXX XX XX
 Email: contentieux@{company_domain}
 
 Service Contentieux
-{company_name}`
-  });
-  const [smsTemplates, setSmsTemplates] = useState({
+{company_name}`,
+  },
+  en: {
+    rappel_amical: `Subject: Payment reminder - {invoice_list}
+
+Dear {client_name},
+
+We would like to remind you that the following invoices remain unpaid:
+{invoice_details}
+
+Total amount due: {total_amount} FCFA
+
+This is most likely an oversight on your part. We would be grateful if you could settle this matter at your earliest convenience.
+
+If payment has been made in the meantime, please disregard this message.
+
+Kind regards,
+{company_name}`,
+    relance_ferme: `Subject: 2nd Reminder - {invoice_count} unpaid invoices
+
+Dear {client_name},
+
+Despite our previous reminder, we note that the following invoices remain unpaid:
+{invoice_details}
+
+Total amount: {total_amount} FCFA
+Average overdue: {avg_days_overdue} days
+
+We request that payment be made within 48 hours.
+
+Failing a reply from you, we will be compelled to start collection proceedings.
+
+Accounting Department
+{company_name}`,
+    dernier_avis: `Subject: FINAL NOTICE before proceedings - {invoice_count} invoices
+
+Dear {client_name},
+
+FINAL NOTICE BEFORE LEGAL ACTION
+
+Despite our repeated reminders, the following invoices remain unpaid:
+{invoice_details}
+
+TOTAL DUE: {total_amount} FCFA
+
+Without payment within 72 hours, your file will be transferred to our litigation department.
+
+This is our last amicable notice.
+
+Finance Department
+{company_name}`,
+    mise_demeure: `Subject: FORMAL NOTICE - Unpaid receivables
+
+REGISTERED LETTER WITH ACKNOWLEDGEMENT OF RECEIPT
+
+Dear {client_name},
+
+FORMAL NOTICE
+
+By this letter, we formally require you to pay within EIGHT (8) days:
+
+{invoice_details}
+
+PRINCIPAL AMOUNT: {total_amount} FCFA
+LATE PAYMENT INTEREST: {interest_amount} FCFA
+COLLECTION FEES: {fees_amount} FCFA
+TOTAL PAYABLE: {grand_total} FCFA
+
+Failing payment within this period, we will start any appropriate legal proceedings.
+
+{company_name}
+Legal Department`,
+    pre_contentieux: `Subject: TRANSFER TO LITIGATION - File {client_code}
+
+Dear {client_name},
+
+Your file has been transferred to our litigation department.
+
+Outstanding receivables:
+{invoice_details}
+
+- Principal amount: {total_amount} FCFA
+- Late payment interest: {interest_amount} FCFA
+- Collection fees: {fees_amount} FCFA
+- TOTAL: {grand_total} FCFA
+
+Legal proceedings will be started within 48 hours.
+
+To avoid this action, please contact us immediately:
+Tel: +242 06 XXX XX XX
+Email: contentieux@{company_domain}
+
+Litigation Department
+{company_name}`,
+  },
+  es: {
+    rappel_amical: `Asunto: Recordatorio de pago - {invoice_list}
+
+Estimado/a {client_name}:
+
+Le recordamos que las siguientes facturas siguen pendientes de pago:
+{invoice_details}
+
+Importe total adeudado: {total_amount} FCFA
+
+Probablemente se trate de un olvido por su parte. Le agradecemos que regularice esta situación con la mayor brevedad posible.
+
+Si el pago ya se ha efectuado, le rogamos que no tenga en cuenta este mensaje.
+
+Atentamente,
+{company_name}`,
+    relance_ferme: `Asunto: 2.º Recordatorio - {invoice_count} facturas impagadas
+
+Estimado/a {client_name}:
+
+A pesar de nuestro recordatorio anterior, constatamos que las siguientes facturas siguen impagadas:
+{invoice_details}
+
+Importe total: {total_amount} FCFA
+Retraso medio: {avg_days_overdue} días
+
+Le solicitamos que efectúe el pago en un plazo de 48 horas.
+
+De no recibir respuesta por su parte, nos veremos obligados a iniciar procedimientos de cobro.
+
+Departamento de Contabilidad
+{company_name}`,
+    dernier_avis: `Asunto: ÚLTIMO AVISO antes de procedimiento - {invoice_count} facturas
+
+Estimado/a {client_name}:
+
+ÚLTIMO AVISO ANTES DE EMPRENDER ACCIONES LEGALES
+
+A pesar de nuestros múltiples recordatorios, las siguientes facturas siguen impagadas:
+{invoice_details}
+
+TOTAL ADEUDADO: {total_amount} FCFA
+
+Sin el pago en un plazo de 72 horas, su expediente será remitido a nuestro departamento de litigios.
+
+Este es nuestro último aviso amistoso.
+
+Dirección Financiera
+{company_name}`,
+    mise_demeure: `Asunto: REQUERIMIENTO FORMAL DE PAGO - Créditos impagados
+
+CARTA CERTIFICADA CON ACUSE DE RECIBO
+
+Estimado/a {client_name}:
+
+REQUERIMIENTO FORMAL DE PAGO
+
+Por la presente, le requerimos formalmente el pago en un plazo de OCHO (8) días de:
+
+{invoice_details}
+
+IMPORTE PRINCIPAL: {total_amount} FCFA
+INTERESES DE DEMORA: {interest_amount} FCFA
+GASTOS DE RECLAMACIÓN: {fees_amount} FCFA
+TOTAL A PAGAR: {grand_total} FCFA
+
+De no efectuarse el pago en dicho plazo, emprenderemos cuantas acciones judiciales resulten oportunas.
+
+{company_name}
+Departamento Jurídico`,
+    pre_contentieux: `Asunto: REMISIÓN AL DEPARTAMENTO JURÍDICO - Expediente {client_code}
+
+Estimado/a {client_name}:
+
+Su expediente ha sido remitido a nuestro departamento de litigios.
+
+Créditos pendientes:
+{invoice_details}
+
+- Importe principal: {total_amount} FCFA
+- Intereses de demora: {interest_amount} FCFA
+- Gastos de reclamación: {fees_amount} FCFA
+- TOTAL: {grand_total} FCFA
+
+Se emprenderá un procedimiento judicial en un plazo de 48 horas.
+
+Para evitar estas acciones, póngase en contacto de inmediato:
+Tel: +242 06 XXX XX XX
+Email: contentieux@{company_domain}
+
+Departamento Jurídico
+{company_name}`,
+  },
+};
+
+const RELANCE_SMS_TEMPLATES: Record<RelanceLang, Record<string, string>> = {
+  fr: {
     rappel_amical: `Rappel: {invoice_count} factures de {total_amount} FCFA en retard. Merci de régulariser.`,
     relance_ferme: `2e RAPPEL: {invoice_count} factures impayées, total {total_amount} FCFA. Règlement sous 48h. {company_name}`,
     dernier_avis: `DERNIER AVIS: {invoice_count} factures. Sans règlement sous 72h, procédure contentieux. {company_name}`,
     mise_demeure: `MISE EN DEMEURE: Règlement {grand_total} FCFA sous 8 jours. Procédure judiciaire sinon. {company_name}`,
-    pre_contentieux: `CONTENTIEUX: Dossier transmis service juridique. Total {grand_total} FCFA. Contact urgent: +242 06 XXX XX XX`
+    pre_contentieux: `CONTENTIEUX: Dossier transmis service juridique. Total {grand_total} FCFA. Contact urgent: +242 06 XXX XX XX`,
+  },
+  en: {
+    rappel_amical: `Reminder: {invoice_count} invoices for {total_amount} FCFA are overdue. Please settle them.`,
+    relance_ferme: `2nd REMINDER: {invoice_count} unpaid invoices, total {total_amount} FCFA. Payment within 48h. {company_name}`,
+    dernier_avis: `FINAL NOTICE: {invoice_count} invoices. Without payment within 72h, litigation proceedings. {company_name}`,
+    mise_demeure: `FORMAL NOTICE: Pay {grand_total} FCFA within 8 days. Legal proceedings otherwise. {company_name}`,
+    pre_contentieux: `LITIGATION: File sent to legal department. Total {grand_total} FCFA. Urgent contact: +242 06 XXX XX XX`,
+  },
+  es: {
+    rappel_amical: `Recordatorio: {invoice_count} facturas de {total_amount} FCFA vencidas. Le rogamos regularice el pago.`,
+    relance_ferme: `2.º RECORDATORIO: {invoice_count} facturas impagadas, total {total_amount} FCFA. Pago en 48h. {company_name}`,
+    dernier_avis: `ÚLTIMO AVISO: {invoice_count} facturas. Sin pago en 72h, procedimiento de litigio. {company_name}`,
+    mise_demeure: `REQUERIMIENTO FORMAL: Pago de {grand_total} FCFA en 8 días. En su defecto, acción judicial. {company_name}`,
+    pre_contentieux: `LITIGIO: Expediente remitido al departamento jurídico. Total {grand_total} FCFA. Contacto urgente: +242 06 XXX XX XX`,
+  },
+};
+
+/** Langues proposées dans l'éditeur de modèles (ordre d'affichage). */
+const RELANCE_LANGS: RelanceLang[] = ['fr', 'en', 'es'];
+
+/**
+ * Normalise la langue préférée d'un tiers (`languePrefere`) vers 'fr' | 'en' | 'es'.
+ * Accepte les libellés ('Français', 'English', 'Español', 'Anglais', 'Espagnol'…)
+ * comme les codes ISO ('fr', 'en', 'es'). Défaut : 'fr'.
+ */
+const clientLang = (v?: string): RelanceLang => {
+  // Les 2 premières lettres suffisent et sont toujours ASCII ('Français',
+  // 'Español', 'Inglés'…) : pas besoin de dépoussiérer les diacritiques.
+  const s = (v ?? '').trim().toLowerCase();
+  if (!s) return 'fr';
+  if (s.startsWith('en') || s.startsWith('an') || s.startsWith('in')) return 'en'; // en / english / anglais / ingles
+  if (s.startsWith('es') || s.startsWith('sp')) return 'es'; // es / espanol / espagnol / spanish
+  return 'fr'; // fr / francais / french / inconnu
+};
+
+/** Substitue les variables {xxx} ; une variable non disponible devient vide. */
+const applyRelanceVars = (template: string, vars: Record<string, string | number | null | undefined>): string =>
+  template.replace(/\{(\w+)\}/g, (_match, key: string) => {
+    const value = vars[key];
+    return value === undefined || value === null ? '' : String(value);
   });
+
+/** Sépare la 1ʳᵉ ligne « Objet:/Subject:/Asunto: » (objet) du reste (corps). */
+const splitRelanceSubjectBody = (template: string): { subject: string; body: string } => {
+  const lines = template.split('\n');
+  const match = lines[0]?.match(/^\s*(?:objet|subject|asunto)\s*:\s*(.*)$/i);
+  if (!match) return { subject: '', body: template };
+  return { subject: match[1].trim(), body: lines.slice(1).join('\n').replace(/^\n+/, '') };
+};
+
+/** Construit un lien mailto: pré-rempli (objet + corps) à partir d'un modèle. */
+const buildRelanceMailto = (
+  email: string,
+  template: string,
+  vars: Record<string, string | number | null | undefined>,
+): string => {
+  const { subject, body } = splitRelanceSubjectBody(applyRelanceVars(template, vars));
+  const params: string[] = [];
+  if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+  if (body) params.push(`body=${encodeURIComponent(body)}`);
+  return `mailto:${email}${params.length ? `?${params.join('&')}` : ''}`;
+};
+
+/** Étiquettes du détail des factures, dans la langue du destinataire (données). */
+const RELANCE_INVOICE_LABELS: Record<RelanceLang, { due: string; days: string }> = {
+  fr: { due: 'échéance', days: 'j de retard' },
+  en: { due: 'due', days: 'days overdue' },
+  es: { due: 'vencimiento', days: 'días de retraso' },
+};
+
+const RecouvrementModule: React.FC = () => {
+  const { t, language } = useLanguage();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('creances');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatut, setFilterStatut] = useState('tous');
+  const [filterNiveau, setFilterNiveau] = useState('tous');
+  const [selectedCreance, setSelectedCreance] = useState<CreanceEnrichie | null>(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [actionFormData, setActionFormData] = useState({
+    typeAction: 'APPEL' as 'APPEL' | 'EMAIL' | 'COURRIER' | 'SMS' | 'VISITE' | 'MISE_EN_DEMEURE',
+    date: new Date().toISOString().split('T')[0],
+    heure: new Date().toTimeString().slice(0, 5),
+    responsable: '',
+    details: '',
+    montantPromis: '',
+    datePromesse: ''
+  });
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [selectedFactures, setSelectedFactures] = useState<Set<string>>(new Set());
+
+  // États pour les modales de rapports
+  const [showRapportMensuelModal, setShowRapportMensuelModal] = useState(false);
+  const [showAnalyseROIModal, setShowAnalyseROIModal] = useState(false);
+  const [showPerformanceEquipeModal, setShowPerformanceEquipeModal] = useState(false);
+  const [showPrevisionTresorerieModal, setShowPrevisionTresorerieModal] = useState(false);
+  const [showDossiersRisqueModal, setShowDossiersRisqueModal] = useState(false);
+  const [showExportPersonnaliseModal, setShowExportPersonnaliseModal] = useState(false);
+
+  // États pour les modales des plans de remboursement
+  const [showPlanDetailModal, setShowPlanDetailModal] = useState(false);
+  const [showEnregistrerPaiementModal, setShowEnregistrerPaiementModal] = useState(false);
+  const [showRelancePlanModal, setShowRelancePlanModal] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanRemboursement | null>(null);
+  const [showCreateDossierModal, setShowCreateDossierModal] = useState(false);
+  const [showDossierActionModal, setShowDossierActionModal] = useState(false);
+  const [selectedDossierAction, setSelectedDossierAction] = useState<DossierRecouvrement | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [showDossierDetail, setShowDossierDetail] = useState(false);
+  const [selectedDossierDetail, setSelectedDossierDetail] = useState<DossierRecouvrement | null>(null);
+  const [showDossierSummary, setShowDossierSummary] = useState(false);
+  const [selectedDossierSummary, setSelectedDossierSummary] = useState<DossierRecouvrement | null>(null);
+  const [activeDossierTab, setActiveDossierTab] = useState('dashboard');
+  const [activeRelanceSubTab, setActiveRelanceSubTab] = useState('historique');
+  const [activeParametresTab, setActiveParametresTab] = useState('configuration');
+  const [selectedTemplateType, setSelectedTemplateType] = useState('rappel_amical');
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [selectedTransferDossier, setSelectedTransferDossier] = useState<DossierRecouvrement | null>(null);
+  const [transferDetails, setTransferDetails] = useState({
+    destinataire: '',
+    motif: '',
+    notes: '',
+    validationStatus: 'pending' as 'pending' | 'approved' | 'rejected'
+  });
+  // Langue d'ÉDITION des modèles (l'utilisateur peut éditer chaque langue).
+  // Défaut = langue de l'interface si supportée, sinon 'fr'.
+  const [templateLang, setTemplateLang] = useState<RelanceLang>(
+    () => (RELANCE_LANGS as string[]).includes(language) ? (language as RelanceLang) : 'fr',
+  );
+  const [emailTemplates, setEmailTemplates] = useState<Record<RelanceLang, Record<string, string>>>(
+    () => ({ fr: { ...RELANCE_EMAIL_TEMPLATES.fr }, en: { ...RELANCE_EMAIL_TEMPLATES.en }, es: { ...RELANCE_EMAIL_TEMPLATES.es } }),
+  );
+  const [smsTemplates, setSmsTemplates] = useState<Record<RelanceLang, Record<string, string>>>(
+    () => ({ fr: { ...RELANCE_SMS_TEMPLATES.fr }, en: { ...RELANCE_SMS_TEMPLATES.en }, es: { ...RELANCE_SMS_TEMPLATES.es } }),
+  );
   const [multipleInvoices, setMultipleInvoices] = useState(false);
+
+  /**
+   * Lien mailto: pré-rempli (objet + corps) pour une créance donnée.
+   * Le modèle utilisé est celui du type de relance courant, DANS LA LANGUE DU
+   * CLIENT destinataire (`clientLangue`) — pas celle de l'interface.
+   * Les variables non disponibles ici (intérêts, frais, total général…) sont
+   * remplacées par une chaîne vide plutôt que laissées en placeholder.
+   */
+  const buildCreanceMailto = React.useCallback((
+    creance: {
+      clientNom?: string;
+      clientCode?: string;
+      clientLangue?: string;
+      montantTotal?: number;
+      dsoMoyen?: number;
+      factures?: Array<{ numero: string; montantRestant: number; dateEcheance: string; joursRetard: number }>;
+    },
+    email: string,
+  ): string => {
+    const lang = clientLang(creance.clientLangue);
+    const template = emailTemplates[lang]?.[selectedTemplateType]
+      || RELANCE_EMAIL_TEMPLATES[lang][selectedTemplateType]
+      || '';
+    const factures = creance.factures ?? [];
+    const labels = RELANCE_INVOICE_LABELS[lang];
+    return buildRelanceMailto(email, template, {
+      client_name: creance.clientNom ?? '',
+      client_code: creance.clientCode ?? '',
+      company_name: user?.company ?? '',
+      invoice_count: factures.length,
+      invoice_list: factures.map(f => f.numero).join(', '),
+      invoice_details: factures
+        .map(f => `- ${f.numero} : ${formatCurrency(f.montantRestant)} FCFA (${labels.due} ${f.dateEcheance}, ${Math.max(0, f.joursRetard)} ${labels.days})`)
+        .join('\n'),
+      total_amount: formatCurrency(creance.montantTotal ?? 0),
+      avg_days_overdue: creance.dsoMoyen ?? '',
+    });
+  }, [emailTemplates, selectedTemplateType, user]);
 
   // Onglets de la page de modification du dossier
   const dossierTabs = [
@@ -7442,7 +7763,7 @@ Service Contentieux
   const createPenalite = () => {
     const creance = Number(penForm.montantCreance) || 0;
     const taux = Number(penForm.taux) || 0;
-    if (creance <= 0 || taux <= 0) { toast.error('Renseignez un montant de créance et un taux valides'); return; }
+    if (creance <= 0 || taux <= 0) { toast.error(t('recovery.toastInvalidPenaltyInput')); return; }
     const p: Penalite = {
       id: `PEN-${Date.now()}`, dateCreation: today(),
       factures: penForm.factures.trim() || '—', montantCreance: creance,
@@ -7452,7 +7773,7 @@ Service Contentieux
     };
     savePenalites([p, ...penalites]);
     setPenForm({ factures: '', montantCreance: '', joursRetard: '', taux: '5' });
-    toast.success('Pénalité créée (en attente de validation)');
+    toast.success(t('recovery.toastPenaltyCreated'));
   };
 
   // KPIs pénalités calculés depuis la liste réelle.
@@ -7657,6 +7978,8 @@ Service Contentieux
           clientId: code,
           clientNom: clientName,
           clientCode: code,
+          // Langue du destinataire : une relance se rédige dans la langue du client.
+          clientLangue: (tp?.languePrefere as string | undefined) ?? '',
           factures,
           montantTotal: solde,
           joursRetard: maxRetard,
@@ -7683,6 +8006,7 @@ Service Contentieux
         clientId: string;
         clientNom: string;
         clientCode: string;
+        clientLangue: string;
         factures: Array<{
           factureId: string;
           numero: string;
@@ -7907,7 +8231,7 @@ Service Contentieux
 
   const createDossierRecouvrement = () => {
     if (selectedFactures.size === 0) {
-      toast.error('Veuillez sélectionner au moins une facture');
+      toast.error(t('recovery.toastSelectInvoice'));
       return;
     }
     setShowCreateDossierModal(true);
@@ -7929,7 +8253,7 @@ Service Contentieux
           // Persistance RÉELLE : ajoute une action de relance au dossier (historique).
           await recoverySvc.addAction(dossier.id, { type: 'EMAIL', resultat: `Relance envoyée à ${dossier.client}`, notes: 'Relance manuelle' });
           await reloadRecovery();
-          toast.success(`Relance enregistrée pour ${dossier.client}`);
+          toast.success(t('recovery.toastReminderLogged', { client: String(dossier.client) }));
           break;
         case 'plan':
           toast(`Plan de règlement proposé pour ${dossier.client}`);
@@ -7937,12 +8261,12 @@ Service Contentieux
         case 'regle':
           await recoverySvc.updateDossier(dossier.id, { statut: 'cloture', montantPaye: dossier.montantTotal });
           await reloadRecovery();
-          toast.success(`Dossier ${dossier.numeroRef} marqué comme réglé`);
+          toast.success(t('recovery.toastCaseSettled', { ref: String(dossier.numeroRef) }));
           break;
         case 'contentieux':
           await recoverySvc.updateDossier(dossier.id, { statut: 'juridique' });
           await reloadRecovery();
-          toast.success(`Dossier ${dossier.client} passé en contentieux`);
+          toast.success(t('recovery.toastCaseToLitigation', { client: String(dossier.client) }));
           break;
         case 'transfert':
           setSelectedTransferDossier(dossier);
@@ -7955,15 +8279,15 @@ Service Contentieux
           });
           break;
         case 'supprimer':
-          if (confirm(`Êtes-vous sûr de vouloir supprimer le dossier ${dossier.numeroRef} ?`)) {
+          if (confirm(t('recovery.toastConfirmDeleteCase', { ref: String(dossier.numeroRef) }))) {
             await recoverySvc.deleteDossier(dossier.id);
             await reloadRecovery();
-            toast.success(`Dossier ${dossier.numeroRef} supprimé`);
+            toast.success(t('recovery.toastCaseDeleted', { ref: String(dossier.numeroRef) }));
           }
           break;
       }
     } catch (err) {
-      toast.error('Action impossible : ' + (err instanceof Error ? err.message : 'erreur'));
+      toast.error(t('recovery.toastActionImpossible') + (err instanceof Error ? err.message : 'erreur'));
     }
   };
 
@@ -8183,14 +8507,14 @@ Service Contentieux
               </div>
               <div>
                 <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('thirdParty.collection')}</h1>
-                <p className="text-sm text-[var(--color-text-secondary)]">Gestion des créances et processus de recouvrement</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.pageSubtitle')}</p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-3">
             <PageHeaderActions />
-            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors" aria-label="Télécharger">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--color-text-tertiary)] text-white rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors" aria-label={t('recovery.download')}>
               <Download className="w-4 h-4" />
               <span className="text-sm font-semibold">{t('common.export')}</span>
             </button>
@@ -8200,7 +8524,7 @@ Service Contentieux
               className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
             >
               <Bell className="w-4 h-4" />
-              <span className="text-sm font-semibold">Nouvelle Relance</span>
+              <span className="text-sm font-semibold">{t('recovery.newReminder')}</span>
             </button>
           </div>
         </div>
@@ -8232,7 +8556,7 @@ Service Contentieux
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Créances Totales</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalReceivables')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
                   </p>
@@ -8243,7 +8567,7 @@ Service Contentieux
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Montant Recouvré</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedAmount')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {formatCurrency(analyticsData.statistiques.montantRecouvre)}
                   </p>
@@ -8254,7 +8578,7 @@ Service Contentieux
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Taux Recouvrement</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectionRateShort')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {analyticsData.statistiques.tauxRecouvrement}%
                   </p>
@@ -8265,7 +8589,7 @@ Service Contentieux
             <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Délai Moyen</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.averageDelayTitle')}</p>
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {analyticsData.statistiques.delaiMoyenRecouvrement}j
                   </p>
@@ -8282,7 +8606,7 @@ Service Contentieux
                 <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700" />
                 <input
                   type="text"
-                  placeholder="Rechercher par nom ou code client..."
+                  placeholder={t('recovery.searchByNameOrCodePh')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)] focus:border-transparent"
@@ -8309,7 +8633,7 @@ Service Contentieux
                 ))}
               </select>
 
-              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label="Filtrer">
+              <button className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50" aria-label={t('recovery.filter')}>
                 <Filter className="w-5 h-5 text-gray-600" />
               </button>
             </div>
@@ -8328,13 +8652,13 @@ Service Contentieux
                       onClick={createDossierRecouvrement}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
                     >
-                      Créer Dossier de Recouvrement
+                      {t('recovery.createCollectionCase')}
                     </button>
                     <button
                       onClick={() => setSelectedFactures(new Set())}
                       className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 text-sm"
                     >
-                      Annuler
+                      {t('recovery.cancel')}
                     </button>
                   </div>
                 </div>
@@ -8345,14 +8669,14 @@ Service Contentieux
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-8"></th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Client</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Montant</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.customer')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.amount')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Retard</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Niveau</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dernière Relance</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Assigné à</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.lastReminder')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.assignedTo')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.status')}</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">{t('recovery.actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -8448,7 +8772,7 @@ Service Contentieux
                           <button
                             onClick={() => setSelectedCreance(creance as unknown as CreanceEnrichie)}
                             className="p-1 text-[var(--color-primary)] hover:text-[var(--color-primary)]/80 relative"
-                            title="Voir détails"
+                            title={t('recovery.viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                             {creance.crmData && creance.commercialData && (
@@ -8461,7 +8785,7 @@ Service Contentieux
                               setShowActionModal(true);
                             }}
                             className="p-1 text-orange-600 hover:text-orange-900 relative"
-                            title="Nouvelle action"
+                            title={t('recovery.newAction')}
                           >
                             <Bell className="w-4 h-4" />
                             {creance.crmData?.scoreRisque && creance.crmData.scoreRisque < 40 && (
@@ -8489,7 +8813,8 @@ Service Contentieux
                               `Email à ${creance.crmData.contactPrincipal.nom}` : 'Email'}
                             onClick={() => {
                               if (creance.crmData?.contactPrincipal?.email) {
-                                window.open(`mailto:${creance.crmData.contactPrincipal.email}`);
+                                // Relance pré-remplie (objet + corps) dans la langue DU CLIENT
+                                window.open(buildCreanceMailto(creance, creance.crmData.contactPrincipal.email));
                               }
                             }}
                           >
@@ -8598,7 +8923,7 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Informations client */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-[var(--color-primary)]">Informations Client</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.customerInfo')}</h3>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                       <div>
                         <label className="block text-sm font-medium text-gray-700">Nom</label>
@@ -8609,7 +8934,7 @@ Service Contentieux
                         <p className="text-[var(--color-primary)]">{selectedCreance.clientCode}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Assigné à</label>
+                        <label className="block text-sm font-medium text-gray-700">{t('recovery.assignedTo')}</label>
                         <p className="text-[var(--color-primary)]">{selectedCreance.assigneA}</p>
                       </div>
                     </div>
@@ -8617,20 +8942,20 @@ Service Contentieux
 
                   {/* Informations créance */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-[var(--color-primary)]">Informations Créance</h3>
+                    <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.receivableInfo')}</h3>
                     <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Montant total</label>
+                        <label className="block text-sm font-medium text-gray-700">{t('recovery.totalAmountLower')}</label>
                         <p className="text-[var(--color-primary)] font-semibold">{formatCurrency(selectedCreance.montantTotal)}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Jours de retard</label>
+                        <label className="block text-sm font-medium text-gray-700">{t('recovery.daysOverdue')}</label>
                         <p className={`font-semibold ${getUrgenceColor(selectedCreance.joursRetard)}`}>
                           {selectedCreance.joursRetard > 0 ? `${selectedCreance.joursRetard} jours` : 'À jour'}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Niveau de relance</label>
+                        <label className="block text-sm font-medium text-gray-700">{t('recovery.reminderLevel')}</label>
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getNiveauColor(selectedCreance.niveauRelance)}`}>
                           {selectedCreance.niveauRelance.replace('_', ' ')}
                         </span>
@@ -8646,11 +8971,11 @@ Service Contentieux
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-[var(--color-primary)] flex items-center">
                         <Users className="w-5 h-5 mr-2 text-blue-600" />
-                        Profil CRM
+                        {t('recovery.crmProfile')}
                       </h3>
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium text-blue-700">Score de risque</label>
+                          <label className="text-sm font-medium text-blue-700">{t('recovery.riskScore')}</label>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             selectedCreance.crmData.scoreRisque > 70 ? 'bg-green-100 text-green-800' :
                             selectedCreance.crmData.scoreRisque > 40 ? 'bg-orange-100 text-orange-800' :
@@ -8660,7 +8985,7 @@ Service Contentieux
                           </span>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-blue-700">Catégorie paiement</label>
+                          <label className="block text-sm font-medium text-blue-700">{t('recovery.paymentCategory')}</label>
                           <p className="text-blue-900">{selectedCreance.crmData.categoriePaiement}</p>
                         </div>
                         <div>
@@ -8668,11 +8993,11 @@ Service Contentieux
                           <p className="text-blue-900 font-semibold">{formatCurrency(selectedCreance.crmData.chiffreAffairesAnnuel)}</p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-blue-700">Ancienneté</label>
+                          <label className="block text-sm font-medium text-blue-700">{t('recovery.seniority')}</label>
                           <p className="text-blue-900">{selectedCreance.crmData.ancienneteClient}</p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-blue-700">Contact principal</label>
+                          <label className="block text-sm font-medium text-blue-700">{t('recovery.mainContact')}</label>
                           <div className="text-blue-900">
                             <p className="font-medium">{selectedCreance.crmData.contactPrincipal.nom}</p>
                             <p className="text-sm">{selectedCreance.crmData.contactPrincipal.fonction}</p>
@@ -8681,7 +9006,7 @@ Service Contentieux
                                  className="text-xs text-blue-600 hover:text-blue-800">
                                 {selectedCreance.crmData.contactPrincipal.telephone}
                               </a>
-                              <a href={`mailto:${selectedCreance.crmData.contactPrincipal.email}`}
+                              <a href={buildCreanceMailto(selectedCreance, selectedCreance.crmData.contactPrincipal.email)}
                                  className="text-xs text-blue-600 hover:text-blue-800">
                                 {selectedCreance.crmData.contactPrincipal.email}
                               </a>
@@ -8697,7 +9022,7 @@ Service Contentieux
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-[var(--color-primary)] flex items-center">
                         <ShoppingCart className="w-5 h-5 mr-2 text-primary-600" />
-                        Données Commerciales
+                        {t('recovery.commercialData')}
                       </h3>
                       <div className="bg-primary-50 border border-primary-200 rounded-lg p-4 space-y-3">
                         <div>
@@ -8705,11 +9030,11 @@ Service Contentieux
                           <p className="text-primary-900">{selectedCreance.commercialData.gestionnaireCom}</p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary-700">Secteur d'activité</label>
+                          <label className="block text-sm font-medium text-primary-700">{t('recovery.businessSector')}</label>
                           <p className="text-primary-900">{selectedCreance.commercialData.secteurActivite}</p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-primary-700">Conditions particulières</label>
+                          <label className="block text-sm font-medium text-primary-700">{t('recovery.specialTerms')}</label>
                           <div className="text-primary-900 space-y-1">
                             <p className="text-sm">Délai: {selectedCreance.commercialData.conditionsParticulieres.delaiPaiement}</p>
                             <p className="text-sm">Remise: {selectedCreance.commercialData.conditionsParticulieres.remiseAccordee}</p>
@@ -8736,10 +9061,10 @@ Service Contentieux
                   <table className="w-full">
                     <thead className="bg-gray-100">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Numéro</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.number')}</th>
                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
-                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Montant Original</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.dueDate')}</th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">{t('recovery.originalAmount')}</th>
                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-700 uppercase">Restant</th>
                         <th className="px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase">Retard</th>
                       </tr>
@@ -8764,7 +9089,7 @@ Service Contentieux
 
               {/* Historique des relances */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Historique des Relances</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.reminderHistory')}</h3>
                 <div className="space-y-3">
                   {selectedCreance.relances.map((relance: CollectionAction) => {
                     const IconComponent = getActionIcon(relance.type);
@@ -8784,7 +9109,7 @@ Service Contentieux
                           </p>
                           {relance.resultat && (
                             <p className="text-sm text-green-600 mt-1">
-                              <strong>Résultat:</strong> {relance.resultat}
+                              <strong>{t('recovery.resultColon')}</strong> {relance.resultat}
                             </p>
                           )}
                         </div>
@@ -8797,7 +9122,7 @@ Service Contentieux
               {/* Commentaires */}
               {selectedCreance.commentaires && (
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Commentaires</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.comments')}</h3>
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-[var(--color-primary)]">{selectedCreance.commentaires}</p>
                   </div>
@@ -8809,10 +9134,10 @@ Service Contentieux
                   onClick={() => setSelectedCreance(null)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                 >
-                  Fermer
+                  {t('recovery.close')}
                 </button>
                 <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-                  Nouvelle Action
+                  {t('recovery.newActionTitle')}
                 </button>
               </div>
             </div>
@@ -8827,35 +9152,35 @@ Service Contentieux
               Les compteurs sans source (en attente / sans réponse) restent "—". */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="bg-blue-50 rounded-lg p-4">
-              <div className="text-sm text-blue-600 font-medium">Total Relances</div>
+              <div className="text-sm text-blue-600 font-medium">{t('recovery.totalReminders')}</div>
               <div className="text-lg font-bold text-blue-900">
                 {relancesData.length > 0 ? relancesData.reduce((s, r) => s + r.nombreRelances, 0) : '—'}
               </div>
-              <div className="text-xs text-blue-600 mt-1">Toutes périodes</div>
+              <div className="text-xs text-blue-600 mt-1">{t('recovery.allPeriods')}</div>
             </div>
             <div className="bg-yellow-50 rounded-lg p-4">
-              <div className="text-sm text-yellow-600 font-medium">En Attente</div>
+              <div className="text-sm text-yellow-600 font-medium">{t('recovery.pendingTitle')}</div>
               <div className="text-lg font-bold text-yellow-900">—</div>
-              <div className="text-xs text-yellow-600 mt-1">À envoyer</div>
+              <div className="text-xs text-yellow-600 mt-1">{t('recovery.toSend')}</div>
             </div>
             <div className="bg-green-50 rounded-lg p-4">
-              <div className="text-sm text-green-600 font-medium">Taux de Réponse</div>
+              <div className="text-sm text-green-600 font-medium">{t('recovery.responseRateTitle')}</div>
               <div className="text-lg font-bold text-green-900">
                 {relancesData.length > 0
                   ? `${Math.round(relancesData.reduce((s, r) => s + r.tauxReponse, 0) / relancesData.length)}%`
                   : '—'}
               </div>
-              <div className="text-xs text-green-600 mt-1">Moyenne dossiers</div>
+              <div className="text-xs text-green-600 mt-1">{t('recovery.averageCases')}</div>
             </div>
             <div className="bg-primary-50 rounded-lg p-4">
-              <div className="text-sm text-primary-600 font-medium">Clients Relancés</div>
+              <div className="text-sm text-primary-600 font-medium">{t('recovery.customersReminded')}</div>
               <div className="text-lg font-bold text-primary-900">
                 {relancesData.length > 0 ? relancesData.length : '—'}
               </div>
-              <div className="text-xs text-primary-600 mt-1">Toutes périodes</div>
+              <div className="text-xs text-primary-600 mt-1">{t('recovery.allPeriods')}</div>
             </div>
             <div className="bg-red-50 rounded-lg p-4">
-              <div className="text-sm text-red-600 font-medium">Sans Réponse</div>
+              <div className="text-sm text-red-600 font-medium">{t('recovery.noResponse')}</div>
               <div className="text-lg font-bold text-red-900">—</div>
               <div className="text-xs text-red-600 mt-1">+3 relances</div>
             </div>
@@ -8873,7 +9198,7 @@ Service Contentieux
                       : 'text-gray-600 border-transparent hover:text-gray-900'
                   }`}
                 >
-                  Historique des Relances
+                  {t('recovery.reminderHistory')}
                 </button>
                 <button
                   onClick={() => setActiveRelanceSubTab('parametres')}
@@ -8883,7 +9208,7 @@ Service Contentieux
                       : 'text-gray-600 border-transparent hover:text-gray-900'
                   }`}
                 >
-                  Paramètres de Relance
+                  {t('recovery.reminderSettings')}
                 </button>
               </div>
             </div>
@@ -8893,18 +9218,18 @@ Service Contentieux
               <div>
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-[var(--color-primary)]">Historique des Relances par Client</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-primary)]">{t('recovery.reminderHistoryByCustomer')}</h2>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="Rechercher un client..."
+                    placeholder={t('recovery.searchCustomerPh')}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
                     <Filter className="w-4 h-4" />
-                    Filtrer
+                    {t('recovery.filter')}
                   </button>
                 </div>
               </div>
@@ -8913,7 +9238,7 @@ Service Contentieux
             <div className="divide-y divide-[var(--color-border)]">
               {relancesData.length === 0 && (
                 <div className="p-8 text-center text-gray-500 text-sm">
-                  Aucune relance enregistrée. Les relances apparaissent ici dès qu'une action est ajoutée à un dossier de recouvrement.
+                  {t('recovery.noReminderRecorded')}
                 </div>
               )}
               {relancesData.map((clientData, index) => (
@@ -8950,7 +9275,7 @@ Service Contentieux
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">Taux de réponse</div>
+                        <div className="text-sm text-gray-600">{t('recovery.responseRate')}</div>
                         <div className="text-lg font-semibold">{clientData.tauxReponse}%</div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -8967,7 +9292,7 @@ Service Contentieux
                   {expandedClients.has(`relance-${index}`) && (
                     <div className="mt-4 ml-9">
                       <div className="bg-gray-50 rounded-lg p-4">
-                        <h4 className="font-medium text-gray-900 mb-3">Historique des relances</h4>
+                        <h4 className="font-medium text-gray-900 mb-3">{t('recovery.reminderHistoryLower')}</h4>
                         <div className="space-y-2">
                           {clientData.relances.map((relance, rIndex) => (
                             <div key={rIndex} className="bg-white rounded-lg p-3 flex items-center justify-between">
@@ -9013,15 +9338,15 @@ Service Contentieux
                         <div className="flex gap-2 mt-4">
                           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-2">
                             <Bell className="w-4 h-4" />
-                            Nouvelle Relance
+                            {t('recovery.newReminder')}
                           </button>
                           <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
                             <Eye className="w-4 h-4" />
-                            Voir Dossier
+                            {t('recovery.viewCase')}
                           </button>
                           <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm flex items-center gap-2">
                             <Download className="w-4 h-4" />
-                            Exporter
+                            {t('recovery.export')}
                           </button>
                         </div>
                       </div>
@@ -9047,7 +9372,7 @@ Service Contentieux
                           : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Configuration Générale
+                      {t('recovery.generalConfiguration')}
                     </button>
                     <button
                       onClick={() => setActiveParametresTab('scenarios')}
@@ -9057,7 +9382,7 @@ Service Contentieux
                           : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Scénarios Automatiques
+                      {t('recovery.automaticScenarios')}
                     </button>
                     <button
                       onClick={() => setActiveParametresTab('templates')}
@@ -9067,7 +9392,7 @@ Service Contentieux
                           : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Templates de Messages
+                      {t('recovery.messageTemplates')}
                     </button>
                     <button
                       onClick={() => setActiveParametresTab('exclusions')}
@@ -9077,7 +9402,7 @@ Service Contentieux
                           : 'border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      Règles d'Exclusion
+                      {t('recovery.exclusionRules')}
                     </button>
                   </nav>
                 </div>
@@ -9090,12 +9415,12 @@ Service Contentieux
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                       <Settings className="w-5 h-5 text-gray-600" />
-                      Configuration Générale
+                      {t('recovery.generalConfiguration')}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Délai avant première relance
+                          {t('recovery.delayBeforeFirstReminder')}
                         </label>
                         <div className="flex items-center gap-2">
                           <input
@@ -9103,12 +9428,12 @@ Service Contentieux
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-24"
                             defaultValue="7"
                           />
-                          <span className="text-sm text-gray-600">jours après échéance</span>
+                          <span className="text-sm text-gray-600">{t('recovery.daysAfterDueDate')}</span>
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Intervalle entre relances
+                          {t('recovery.intervalBetweenReminders')}
                         </label>
                         <div className="flex items-center gap-2">
                           <input
@@ -9121,7 +9446,7 @@ Service Contentieux
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Nombre maximum de relances
+                          {t('recovery.maxNumberOfReminders')}
                         </label>
                         <input
                           type="number"
@@ -9131,7 +9456,7 @@ Service Contentieux
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Montant minimum pour relance
+                          {t('recovery.minAmountForReminder')}
                         </label>
                         <div className="flex items-center gap-2">
                           <input
@@ -9153,7 +9478,7 @@ Service Contentieux
                       <div className="bg-white rounded-lg p-6 shadow-sm">
                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                       <RefreshCw className="w-5 h-5 text-gray-600" />
-                      Scénarios de Relance Automatique
+                      {t('recovery.automaticReminderScenarios')}
                     </h3>
                     <div className="space-y-4">
                       {[
@@ -9209,7 +9534,7 @@ Service Contentieux
                           </div>
                           <div className="flex items-center gap-3">
                             <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                              Modifier
+                              {t('recovery.edit')}
                             </button>
                             <label className="relative inline-flex items-center cursor-pointer">
                               <input
@@ -9232,26 +9557,42 @@ Service Contentieux
                     <div className="space-y-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                       <MessageSquare className="w-5 h-5 text-gray-600" />
-                      Templates de Messages par Type de Relance
+                      {t('recovery.templatesByReminderType')}
                     </h3>
 
                     {/* Sélecteur de type de template */}
                     <div className="mb-6 flex gap-4 items-end">
                       <div className="flex-1">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Type de relance
+                          {t('recovery.reminderType')}
                         </label>
                         <select
                           className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
                           value={selectedTemplateType}
                           onChange={(e) => setSelectedTemplateType(e.target.value)}
                         >
-                          <option value="rappel_amical">Niveau 1 - Rappel amical</option>
-                          <option value="relance_ferme">Niveau 2 - Relance ferme</option>
-                          <option value="dernier_avis">Niveau 3 - Dernier avis</option>
-                          <option value="mise_demeure">Niveau 4 - Mise en demeure</option>
-                          <option value="pre_contentieux">Niveau 5 - Pré-contentieux</option>
+                          <option value="rappel_amical">{t('recovery.level1FriendlyReminder')}</option>
+                          <option value="relance_ferme">{t('recovery.level2FirmReminder')}</option>
+                          <option value="dernier_avis">{t('recovery.level3FinalNotice')}</option>
+                          <option value="mise_demeure">{t('recovery.level4FormalNotice')}</option>
+                          <option value="pre_contentieux">{t('recovery.level5PreLitigation')}</option>
                         </select>
+                      </div>
+                      {/* Langue du modèle : la relance part dans la langue du CLIENT */}
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t('recovery.templateLanguage')}
+                        </label>
+                        <select
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-full"
+                          value={templateLang}
+                          onChange={(e) => setTemplateLang(e.target.value as RelanceLang)}
+                        >
+                          <option value="fr">{t('recovery.languageFrench')}</option>
+                          <option value="en">{t('recovery.languageEnglish')}</option>
+                          <option value="es">{t('recovery.languageSpanish')}</option>
+                        </select>
+                        <p className="mt-1 text-xs text-gray-500">{t('recovery.templateLanguageHint')}</p>
                       </div>
                       <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 rounded-lg">
                         <input
@@ -9262,14 +9603,14 @@ Service Contentieux
                           className="rounded text-blue-600"
                         />
                         <label htmlFor="multiple-invoices" className="text-sm font-medium text-gray-700">
-                          Plusieurs factures
+                          {t('recovery.multipleInvoices')}
                         </label>
                       </div>
                     </div>
 
                     {/* Info sur les variables disponibles */}
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-800 font-medium mb-2">Variables disponibles:</p>
+                      <p className="text-sm text-blue-800 font-medium mb-2">{t('recovery.availableVariables')}</p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-blue-700">
                         <span>• {`{client_name}`} - Nom du client</span>
                         <span>• {`{company_name}`} - Nom de l'entreprise</span>
@@ -9301,16 +9642,17 @@ Service Contentieux
                         {/* Template Email */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Template Email
+                            {t('recovery.emailTemplate')}
                           </label>
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
                             rows={12}
-                            value={emailTemplates[selectedTemplateType as keyof typeof emailTemplates]}
+                            value={emailTemplates[templateLang]?.[selectedTemplateType] ?? ''}
                             onChange={(e) => {
+                              const value = e.target.value;
                               setEmailTemplates(prev => ({
                                 ...prev,
-                                [selectedTemplateType]: e.target.value
+                                [templateLang]: { ...prev[templateLang], [selectedTemplateType]: value }
                               }));
                             }}
                           />
@@ -9319,16 +9661,17 @@ Service Contentieux
                         {/* Template SMS */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Template SMS
+                            {t('recovery.smsTemplate')}
                           </label>
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             rows={3}
-                            value={smsTemplates[selectedTemplateType as keyof typeof smsTemplates]}
+                            value={smsTemplates[templateLang]?.[selectedTemplateType] ?? ''}
                             onChange={(e) => {
+                              const value = e.target.value;
                               setSmsTemplates(prev => ({
                                 ...prev,
-                                [selectedTemplateType]: e.target.value
+                                [templateLang]: { ...prev[templateLang], [selectedTemplateType]: value }
                               }));
                             }}
                           />
@@ -9337,11 +9680,11 @@ Service Contentieux
                         {/* Template Courrier */}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Template Courrier postal
+                            {t('recovery.postalTemplate')}
                           </label>
                           <div className="flex items-center gap-2 mb-2">
                             <input type="checkbox" defaultChecked={selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux'} />
-                            <span className="text-sm text-gray-600">Envoi en recommandé avec AR</span>
+                            <span className="text-sm text-gray-600">{t('recovery.sendRegisteredMail')}</span>
                           </div>
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -9360,7 +9703,7 @@ Service Contentieux
                       <div>
                         <div className="flex justify-between items-center mb-2">
                           <label className="block text-sm font-medium text-gray-700">
-                            Aperçu Email HTML
+                            {t('recovery.htmlEmailPreview')}
                           </label>
                           <button
                             onClick={() => setShowEmailPreview(!showEmailPreview)}
@@ -9392,16 +9735,16 @@ Service Contentieux
 
                                 {selectedTemplateType === 'mise_demeure' && (
                                   <div style={{ backgroundColor: '#fee', padding: '15px', borderLeft: '4px solid #C0322B', margin: '20px 0' }}>
-                                    <strong style={{ color: '#C0322B', fontSize: '16px' }}>MISE EN DEMEURE</strong>
+                                    <strong style={{ color: '#C0322B', fontSize: '16px' }}>{t('recovery.formalNoticeCaps')}</strong>
                                     <p style={{ margin: '10px 0 0 0', color: '#721c24', fontSize: '13px' }}>
-                                      Ce courrier vaut mise en demeure au sens des dispositions légales en vigueur
+                                      {t('recovery.letterIsFormalNotice')}
                                     </p>
                                   </div>
                                 )}
 
                                 {selectedTemplateType === 'pre_contentieux' && (
                                   <div style={{ backgroundColor: '#fff3cd', padding: '15px', borderLeft: '4px solid #E89A2E', margin: '20px 0' }}>
-                                    <strong style={{ color: '#856404', fontSize: '16px' }}>DOSSIER TRANSMIS AU CONTENTIEUX</strong>
+                                    <strong style={{ color: '#856404', fontSize: '16px' }}>{t('recovery.caseSentToLitigationCaps')}</strong>
                                   </div>
                                 )}
 
@@ -9415,8 +9758,8 @@ Service Contentieux
                                         <thead>
                                           <tr style={{ borderBottom: '1px solid #e5e5e5' }}>
                                             <th style={{ padding: '8px 0', textAlign: 'left', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>N° Facture</th>
-                                            <th style={{ padding: '8px 0', textAlign: 'right', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>Montant</th>
-                                            <th style={{ padding: '8px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>Échéance</th>
+                                            <th style={{ padding: '8px 0', textAlign: 'right', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>{t('recovery.amount')}</th>
+                                            <th style={{ padding: '8px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>{t('recovery.dueDate')}</th>
                                             <th style={{ padding: '8px 0', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '12px', fontWeight: 'bold' }}>Retard</th>
                                           </tr>
                                         </thead>
@@ -9445,11 +9788,11 @@ Service Contentieux
                                         <table style={{ width: '100%' }}>
                                           <tbody>
                                             <tr>
-                                              <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>Nombre de factures:</td>
+                                              <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>{t('recovery.invoiceCountColon')}</td>
                                               <td style={{ padding: '4px 0', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>3</td>
                                             </tr>
                                             <tr>
-                                              <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>Retard moyen:</td>
+                                              <td style={{ padding: '4px 0', color: '#666', fontSize: '13px', fontWeight: 'bold' }}>{t('recovery.averageDelayColon')}</td>
                                               <td style={{ padding: '4px 0', color: '#C0322B', fontSize: '13px', textAlign: 'right', fontWeight: 'bold' }}>31 jours</td>
                                             </tr>
                                             <tr>
@@ -9468,33 +9811,33 @@ Service Contentieux
                                           <td style={{ padding: '8px 0', fontWeight: 'bold', fontSize: '13px' }}>FAC-2024-089</td>
                                         </tr>
                                         <tr>
-                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Montant TTC:</td>
+                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>{t('recovery.amountInclTaxColon')}</td>
                                           <td style={{ padding: '8px 0', fontWeight: 'bold', color: '#C0322B', fontSize: '16px' }}>485,000 FCFA</td>
                                         </tr>
                                         <tr>
-                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Date d'émission:</td>
+                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>{t('recovery.issueDateColon')}</td>
                                           <td style={{ padding: '8px 0', fontSize: '13px' }}>15/11/2024</td>
                                         </tr>
                                         <tr>
-                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Date d'échéance:</td>
+                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>{t('recovery.dueDateColon')}</td>
                                           <td style={{ padding: '8px 0', fontSize: '13px' }}>15/12/2024</td>
                                         </tr>
                                         <tr>
-                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Retard de paiement:</td>
+                                          <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>{t('recovery.paymentDelayColon')}</td>
                                           <td style={{ padding: '8px 0', color: '#C0322B', fontSize: '14px' }}><strong>37 jours</strong></td>
                                         </tr>
                                         {(selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux') && (
                                           <>
                                             <tr>
-                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px', borderTop: '1px solid #e5e5e5' }}>Intérêts de retard:</td>
+                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px', borderTop: '1px solid #e5e5e5' }}>{t('recovery.lateInterestColon')}</td>
                                               <td style={{ padding: '8px 0', fontSize: '13px', borderTop: '1px solid #e5e5e5' }}>12,500 FCFA</td>
                                             </tr>
                                             <tr>
-                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>Frais de relance:</td>
+                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '13px' }}>{t('recovery.reminderFeesColon')}</td>
                                               <td style={{ padding: '8px 0', fontSize: '13px' }}>5,000 FCFA</td>
                                             </tr>
                                             <tr>
-                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>TOTAL DÛ:</td>
+                                              <td style={{ padding: '8px 0', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>{t('recovery.totalDueCaps')}</td>
                                               <td style={{ padding: '8px 0', color: '#C0322B', fontSize: '18px', fontWeight: 'bold' }}>502,500 FCFA</td>
                                             </tr>
                                           </>
@@ -9507,50 +9850,50 @@ Service Contentieux
                                 <div style={{ margin: '20px 0', fontSize: '14px', color: '#333', lineHeight: '1.8' }}>
                                   {selectedTemplateType === 'rappel_amical' && (
                                     <>
-                                      <p>Nous vous rappelons que cette facture reste impayée à ce jour. Il s'agit probablement d'un oubli de votre part.</p>
-                                      <p>Nous vous remercions de bien vouloir régulariser cette situation dans les meilleurs délais.</p>
-                                      <p style={{ fontStyle: 'italic', color: '#666', fontSize: '13px' }}>Si le règlement a été effectué entre-temps, nous vous prions de ne pas tenir compte de ce message.</p>
+                                      <p>{t('recovery.letterL1Line1')}</p>
+                                      <p>{t('recovery.letterL1Line2')}</p>
+                                      <p style={{ fontStyle: 'italic', color: '#666', fontSize: '13px' }}>{t('recovery.letterL1Line3')}</p>
                                     </>
                                   )}
                                   {selectedTemplateType === 'relance_ferme' && (
                                     <>
-                                      <p>Malgré notre précédent rappel, nous constatons que la facture référencée ci-dessus reste impayée.</p>
-                                      <p><strong>Nous vous demandons de procéder au règlement sous 48 heures.</strong></p>
-                                      <p>Sans réponse de votre part dans ce délai, nous serons contraints d'engager des procédures de recouvrement plus contraignantes.</p>
+                                      <p>{t('recovery.letterL2Line1')}</p>
+                                      <p><strong>{t('recovery.letterL2Line2')}</strong></p>
+                                      <p>{t('recovery.letterL2Line3')}</p>
                                     </>
                                   )}
                                   {selectedTemplateType === 'dernier_avis' && (
                                     <>
-                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>Ceci constitue notre DERNIER AVIS AMIABLE.</p>
-                                      <p>Malgré nos multiples relances (courriels, appels, courriers), la facture mentionnée ci-dessus demeure impayée.</p>
-                                      <p><strong>Sans règlement intégral sous 72 heures, votre dossier sera automatiquement transmis à notre service contentieux</strong> qui engagera les procédures judiciaires appropriées.</p>
+                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>{t('recovery.letterL3Line1')}</p>
+                                      <p>{t('recovery.letterL3Line2')}</p>
+                                      <p><strong>{t('recovery.letterL3Line3')}</strong>{t('recovery.letterL3Line4')}</p>
                                     </>
                                   )}
                                   {selectedTemplateType === 'mise_demeure' && (
                                     <>
-                                      <p>Par la présente, nous vous mettons formellement en demeure de régler <strong>sous HUIT (8) jours</strong> à compter de la réception de ce courrier, la totalité de la somme due.</p>
-                                      <p><strong>À défaut de règlement dans ce délai:</strong></p>
+                                      <p>{t('recovery.letterL4Line1')}<strong>sous HUIT (8) jours</strong>{t('recovery.letterL4Line2')}</p>
+                                      <p><strong>{t('recovery.letterL4Line3')}</strong></p>
                                       <ul style={{ marginLeft: '20px', color: '#333' }}>
-                                        <li>Nous engagerons une procédure judiciaire à votre encontre</li>
-                                        <li>Les frais de justice seront à votre charge</li>
-                                        <li>Votre solvabilité commerciale sera affectée</li>
-                                        <li>Une inscription au fichier des incidents de paiement pourra être effectuée</li>
+                                        <li>{t('recovery.letterL4Bullet1')}</li>
+                                        <li>{t('recovery.letterL4Bullet2')}</li>
+                                        <li>{t('recovery.letterL4Bullet3')}</li>
+                                        <li>{t('recovery.letterL4Bullet4')}</li>
                                       </ul>
-                                      <p style={{ marginTop: '15px' }}>Cette mise en demeure fait courir les intérêts légaux.</p>
+                                      <p style={{ marginTop: '15px' }}>{t('recovery.letterL4Line4')}</p>
                                     </>
                                   )}
                                   {selectedTemplateType === 'pre_contentieux' && (
                                     <>
-                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>Votre dossier a été transmis à notre service contentieux et à notre cabinet d'avocats.</p>
-                                      <p>Une procédure judiciaire sera engagée sous 48 heures comprenant:</p>
+                                      <p style={{ color: '#C0322B', fontWeight: 'bold' }}>{t('recovery.letterL5Line1')}</p>
+                                      <p>{t('recovery.letterL5Line2')}</p>
                                       <ul style={{ marginLeft: '20px', color: '#333' }}>
-                                        <li>Injonction de payer</li>
-                                        <li>Saisie conservatoire</li>
-                                        <li>Inscription privilège</li>
-                                        <li>Recouvrement forcé par huissier</li>
+                                        <li>{t('recovery.paymentOrder')}</li>
+                                        <li>{t('recovery.protectiveSeizure')}</li>
+                                        <li>{t('recovery.letterL5Bullet1')}</li>
+                                        <li>{t('recovery.letterL5Bullet2')}</li>
                                       </ul>
                                       <p style={{ backgroundColor: '#fff3cd', padding: '10px', marginTop: '15px', borderRadius: '5px' }}>
-                                        <strong>Pour éviter ces poursuites, contactez immédiatement notre service:</strong><br/>
+                                        <strong>{t('recovery.letterL5Line3')}</strong><br/>
                                         Tél: +242 06 XXX XX XX<br/>
                                         Email: contentieux@atlasfna.com
                                       </p>
@@ -9571,22 +9914,22 @@ Service Contentieux
                                     fontSize: '14px',
                                     fontWeight: 'bold'
                                   }}>
-                                    Régler maintenant en ligne
+                                    {t('recovery.payOnlineNow')}
                                   </a>
                                   <p style={{ marginTop: '10px', fontSize: '12px', color: '#666' }}>
-                                    Paiement sécurisé par carte bancaire ou virement
+                                    {t('recovery.securePayment')}
                                   </p>
                                 </div>
 
                                 {/* Historique des relances pour les niveaux avancés */}
                                 {(selectedTemplateType === 'dernier_avis' || selectedTemplateType === 'mise_demeure' || selectedTemplateType === 'pre_contentieux') && (
                                   <div style={{ backgroundColor: 'var(--color-background)', padding: '15px', borderRadius: '5px', margin: '20px 0' }}>
-                                    <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-text-secondary)', fontSize: '13px' }}>Historique des relances:</h4>
+                                    <h4 style={{ margin: '0 0 10px 0', color: 'var(--color-text-secondary)', fontSize: '13px' }}>{t('recovery.reminderHistoryColon')}</h4>
                                     <ul style={{ margin: '0', paddingLeft: '20px', fontSize: '12px', color: '#666' }}>
                                       <li>1er rappel: 22/12/2024 (Email)</li>
-                                      <li>2ème rappel: 05/01/2025 (Email + SMS)</li>
-                                      <li>Appel téléphonique: 12/01/2025</li>
-                                      <li>Dernier avis: 18/01/2025 (Courrier)</li>
+                                      <li>{t('recovery.reminderHist2nd')}</li>
+                                      <li>{t('recovery.reminderHistCall')}</li>
+                                      <li>{t('recovery.reminderHistFinal')}</li>
                                     </ul>
                                   </div>
                                 )}
@@ -9602,11 +9945,11 @@ Service Contentieux
 
                               {/* Pied de page */}
                               <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderTop: '1px solid #e5e5e5', fontSize: '11px', color: '#666' }}>
-                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas FnA</span> - Solutions de gestion d'entreprise</p>
+                                <p style={{ margin: '5px 0', fontWeight: 'bold' }}><span className="atlas-brand">Atlas FnA</span>{t('recovery.businessMgmtSolutions')}</p>
                                 <p style={{ margin: '5px 0' }}>123 Avenue de la République, Brazzaville, Congo</p>
                                 <p style={{ margin: '5px 0' }}>+242 06 XXX XX XX | contact@atlasfna.com | www.atlasfna.com</p>
                                 <p style={{ margin: '10px 0 5px 0', fontSize: '10px', color: '#999' }}>
-                                  Ce message et toutes les pièces jointes sont confidentiels et établis à l'intention exclusive de ses destinataires.
+                                  {t('recovery.confidentialityNotice')}
                                 </p>
                               </div>
                             </div>
@@ -9665,10 +10008,10 @@ Service Contentieux
 
                     <div className="flex justify-end gap-2 mt-4">
                       <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm">
-                        Réinitialiser
+                        {t('recovery.reset')}
                       </button>
                       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                        Sauvegarder le template
+                        {t('recovery.saveTemplate')}
                       </button>
                     </div>
                     </div>
@@ -9680,13 +10023,13 @@ Service Contentieux
                       <div className="bg-white rounded-lg p-6 shadow-sm">
                         <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                           <XCircle className="w-5 h-5 text-gray-600" />
-                          Règles d'Exclusion
+                          {t('recovery.exclusionRules')}
                         </h3>
 
                         <div className="space-y-4">
                           <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-r-lg">
                             <p className="text-sm text-yellow-800">
-                              Ces règles permettent d'exclure certains clients des relances automatiques selon des critères spécifiques.
+                              {t('recovery.exclusionRulesIntro')}
                             </p>
                           </div>
 
@@ -9694,48 +10037,48 @@ Service Contentieux
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" defaultChecked className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Ne pas relancer les clients en contentieux</span>
-                                <p className="text-xs text-gray-700 mt-1">Les dossiers déjà transmis au service juridique sont exclus</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.excludeLitigationCustomers')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.excludeLitigationCustomersDesc')}</p>
                               </div>
                             </label>
 
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" defaultChecked className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Ne pas relancer les clients avec plan de remboursement actif</span>
-                                <p className="text-xs text-gray-700 mt-1">Les clients qui respectent leur plan de paiement ne sont pas relancés</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.excludePlanCustomers')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.excludePlanCustomersDesc')}</p>
                               </div>
                             </label>
 
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Exclure les clients VIP des relances automatiques</span>
-                                <p className="text-xs text-gray-700 mt-1">Les relances pour clients VIP sont gérées manuellement</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.excludeVipCustomers')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.excludeVipCustomersDesc')}</p>
                               </div>
                             </label>
 
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" defaultChecked className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Ne pas relancer pendant les jours fériés</span>
-                                <p className="text-xs text-gray-700 mt-1">Suspendre automatiquement les relances durant les jours fériés nationaux</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.excludeHolidays')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.excludeHolidaysDesc')}</p>
                               </div>
                             </label>
 
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Exclure les montants inférieurs au seuil</span>
-                                <p className="text-xs text-gray-700 mt-1">Ne pas relancer pour des montants inférieurs à 10,000 FCFA</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.excludeSmallAmounts')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.excludeSmallAmountsDesc')}</p>
                               </div>
                             </label>
 
                             <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
                               <input type="checkbox" className="rounded text-blue-600" />
                               <div>
-                                <span className="text-sm font-medium text-gray-700">Respecter les heures ouvrables</span>
-                                <p className="text-xs text-gray-700 mt-1">Envoyer les relances uniquement entre 8h et 18h</p>
+                                <span className="text-sm font-medium text-gray-700">{t('recovery.respectBusinessHours')}</span>
+                                <p className="text-xs text-gray-700 mt-1">{t('recovery.respectBusinessHoursDesc')}</p>
                               </div>
                             </label>
                           </div>
@@ -9744,10 +10087,10 @@ Service Contentieux
                         {/* Boutons d'action */}
                         <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
                           <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Réinitialiser
+                            {t('recovery.reset')}
                           </button>
                           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            Enregistrer les exclusions
+                            {t('recovery.saveExclusions')}
                           </button>
                         </div>
                       </div>
@@ -9773,7 +10116,7 @@ Service Contentieux
               <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Dossiers actifs</p>
+              <p className="text-sm text-gray-600 mt-1">{t('recovery.activeCases')}</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -9784,18 +10127,18 @@ Service Contentieux
               <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.filter(d => d.typeRecouvrement === 'judiciaire').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">En procédure judiciaire</p>
+              <p className="text-sm text-gray-600 mt-1">{t('recovery.inLegalProceedings')}</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-4">
                 <DollarSign className="w-8 h-8 text-green-500" />
-                <span className="text-sm font-medium text-green-600">Montant</span>
+                <span className="text-sm font-medium text-green-600">{t('recovery.amount')}</span>
               </div>
               <p className="text-lg font-bold text-gray-900">
                 {formatCurrency(mockDossiers.reduce((sum, d) => sum + d.montantTotal, 0))}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Total en recouvrement</p>
+              <p className="text-sm text-gray-600 mt-1">{t('recovery.totalInCollection')}</p>
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
@@ -9806,14 +10149,14 @@ Service Contentieux
               <p className="text-lg font-bold text-gray-900">
                 {mockDossiers.filter(d => d.statut === 'juridique').length}
               </p>
-              <p className="text-sm text-gray-600 mt-1">Dossiers urgents</p>
+              <p className="text-sm text-gray-600 mt-1">{t('recovery.urgentCases')}</p>
             </div>
           </div>
 
           {/* Tableau des dossiers */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Dossiers en Recouvrement</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('recovery.collectionCases')}</h3>
             </div>
 
             <div className="overflow-x-auto">
@@ -9821,37 +10164,37 @@ Service Contentieux
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Référence
+                      {t('recovery.reference')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Client
+                      {t('recovery.customer')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Montants
+                      {t('recovery.amounts')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Nb Factures
+                      {t('recovery.invoiceCountCol')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      DSO Moyen
+                      {t('recovery.averageDso')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Montant Payé
+                      {t('recovery.paidAmount')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Type
+                      {t('recovery.type')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Statut
+                      {t('recovery.status')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Responsable
+                      {t('recovery.owner')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Dernière Action
+                      {t('recovery.lastAction')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Actions
+                      {t('recovery.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -9942,7 +10285,7 @@ Service Contentieux
                             setShowDossierActionModal(true);
                           }}
                           className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                          title="Voir dernière action"
+                          title={t('recovery.viewLastAction')}
                         >
                           {(() => {
                             const IconComponent = getActionIcon(dossier.typeAction);
@@ -9958,7 +10301,7 @@ Service Contentieux
                               setShowDossierSummary(true);
                             }}
                             className="text-blue-600 hover:text-blue-900"
-                            title="Voir résumé du dossier"
+                            title={t('recovery.viewCaseSummary')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -9986,7 +10329,7 @@ Service Contentieux
                             <button
                               onClick={() => toggleDropdown(dossier.id)}
                               className="text-gray-700 hover:text-gray-600 p-1 rounded"
-                              title="Plus d'actions"
+                              title={t('recovery.moreActions')}
                             >
                               <MoreVertical className="w-4 h-4" />
                             </button>
@@ -9999,35 +10342,35 @@ Service Contentieux
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   >
                                     <Bell className="w-4 h-4 mr-3" />
-                                    Envoyer une relance
+                                    {t('recovery.sendReminder')}
                                   </button>
                                   <button
                                     onClick={() => handleDossierAction('plan', dossier)}
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   >
                                     <Banknote className="w-4 h-4 mr-3" />
-                                    Proposer un plan de règlement
+                                    {t('recovery.proposeSettlementPlan')}
                                   </button>
                                   <button
                                     onClick={() => handleDossierAction('regle', dossier)}
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   >
                                     <CheckCircle className="w-4 h-4 mr-3" />
-                                    Marquer comme réglé
+                                    {t('recovery.markAsSettled')}
                                   </button>
                                   <button
                                     onClick={() => handleDossierAction('contentieux', dossier)}
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   >
                                     <Scale className="w-4 h-4 mr-3" />
-                                    Envoyer en pré-contentieux
+                                    {t('recovery.sendToPreLitigation')}
                                   </button>
                                   <button
                                     onClick={() => handleDossierAction('transfert', dossier)}
                                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                                   >
                                     <Share className="w-4 h-4 mr-3" />
-                                    Transférer au contentieux
+                                    {t('recovery.transferToLitigationAction')}
                                   </button>
                                   <hr className="my-1" />
                                   <button
@@ -10035,7 +10378,7 @@ Service Contentieux
                                     className="flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left"
                                   >
                                     <Trash2 className="w-4 h-4 mr-3" />
-                                    Supprimer
+                                    {t('recovery.delete')}
                                   </button>
                                 </div>
                               </div>
@@ -10053,7 +10396,7 @@ Service Contentieux
           {/* Statistiques par type et statut */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Par type de recouvrement</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.byCollectionType')}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Amiable</span>
@@ -10077,7 +10420,7 @@ Service Contentieux
             </div>
 
             <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Par statut</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.byStatus')}</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-gray-600">Actifs</span>
@@ -10117,7 +10460,7 @@ Service Contentieux
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span>Retour à la liste</span>
+                <span>{t('recovery.backToList')}</span>
               </button>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">
@@ -10135,7 +10478,7 @@ Service Contentieux
                   // Par exemple: await updateDossier(selectedDossierDetail.id, updatedData);
 
                   // Afficher une notification de succès
-                  toast.success('Dossier modifié avec succès !');
+                  toast.success(t('recovery.toastCaseModified'));
 
                   // Fermer la modal et retourner à la liste
                   setShowDossierDetail(false);
@@ -10143,7 +10486,7 @@ Service Contentieux
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Enregistrer
+                {t('recovery.save')}
               </button>
               <button
                 onClick={() => {
@@ -10152,7 +10495,7 @@ Service Contentieux
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
             </div>
           </div>
@@ -10191,7 +10534,7 @@ Service Contentieux
                   {/* En-tête avec informations principales */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
-                      <div className="text-sm text-gray-600">Client</div>
+                      <div className="text-sm text-gray-600">{t('recovery.customer')}</div>
                       <div className="text-lg font-semibold text-gray-900">{selectedDossierDetail.client}</div>
                     </div>
                     <div>
@@ -10266,11 +10609,11 @@ Service Contentieux
                         <div className="bg-gray-100 p-2 rounded">
                           <UserCircle className="w-5 h-5 text-gray-600" />
                         </div>
-                        <h3 className="ml-3 font-semibold text-gray-900">Client</h3>
+                        <h3 className="ml-3 font-semibold text-gray-900">{t('recovery.customer')}</h3>
                       </div>
                       <div className="space-y-3">
                         <div>
-                          <div className="text-sm text-gray-600">Nom du client</div>
+                          <div className="text-sm text-gray-600">{t('recovery.customerName')}</div>
                           <div className="text-sm font-medium">-</div>
                         </div>
                         <div>
@@ -10279,7 +10622,7 @@ Service Contentieux
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Téléphone</div>
+                            <div className="text-sm text-gray-600">{t('recovery.phone')}</div>
                             <div className="text-sm font-medium">-</div>
                           </div>
                           <div>
@@ -10316,17 +10659,17 @@ Service Contentieux
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Référence du dossier</div>
+                            <div className="text-sm text-gray-600">{t('recovery.caseReference')}</div>
                             <div className="text-sm font-medium">{selectedDossierDetail.numeroRef}</div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600">Date de création</div>
+                            <div className="text-sm text-gray-600">{t('recovery.creationDate')}</div>
                             <div className="text-sm font-medium">{new Date(selectedDossierDetail.dateOuverture).toLocaleDateString()}</div>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Statut</div>
+                            <div className="text-sm text-gray-600">{t('recovery.status')}</div>
                             <div className="text-sm font-medium">-</div>
                           </div>
                           <div>
@@ -10335,11 +10678,11 @@ Service Contentieux
                           </div>
                         </div>
                         <div>
-                          <div className="text-sm text-gray-600">Date de la dernière relance</div>
+                          <div className="text-sm text-gray-600">{t('recovery.lastReminderDate')}</div>
                           <div className="text-sm font-medium">-</div>
                         </div>
                         <div>
-                          <div className="text-sm text-gray-600">Commentaires supplémentaires</div>
+                          <div className="text-sm text-gray-600">{t('recovery.additionalComments')}</div>
                           <textarea className="w-full mt-1 text-sm border border-gray-300 rounded px-2 py-1" rows={3}></textarea>
                         </div>
                       </div>
@@ -10360,7 +10703,7 @@ Service Contentieux
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Téléphone</div>
+                            <div className="text-sm text-gray-600">{t('recovery.phone')}</div>
                             <div className="text-sm font-medium">-</div>
                           </div>
                           <div>
@@ -10382,19 +10725,19 @@ Service Contentieux
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Date de début</div>
+                            <div className="text-sm text-gray-600">{t('recovery.startDate')}</div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600">Date de fin</div>
+                            <div className="text-sm text-gray-600">{t('recovery.endDate')}</div>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
-                            <div className="text-sm text-gray-600">Montant final</div>
+                            <div className="text-sm text-gray-600">{t('recovery.finalAmount')}</div>
                             <div className="text-sm font-medium">0</div>
                           </div>
                           <div>
-                            <div className="text-sm text-gray-600">Statut</div>
+                            <div className="text-sm text-gray-600">{t('recovery.status')}</div>
                           </div>
                         </div>
                       </div>
@@ -10492,19 +10835,19 @@ Service Contentieux
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Account</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Entité légale</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('recovery.legalEntity')}</div>
                         <div className="text-sm font-medium">{selectedDossierDetail.client || '—'}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Enseigne</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('recovery.brand')}</div>
                         <div className="text-sm font-medium">{detailCreance?.clientNom || selectedDossierDetail.client || '—'}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">Code Prospect</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('recovery.prospectCode')}</div>
                         <div className="text-sm font-medium">{detailCreance?.clientCode || '—'}</div>
                       </div>
                       <div>
-                        <div className="text-sm text-gray-600 mb-1">N° de compte</div>
+                        <div className="text-sm text-gray-600 mb-1">{t('recovery.accountNumber')}</div>
                         <div className="text-sm font-medium">{detailCreance?.clientCode || '—'}</div>
                       </div>
                     </div>
@@ -10514,7 +10857,7 @@ Service Contentieux
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Créances */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Créances</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.receivables')}</h4>
 
                       <div className="flex items-center justify-center mb-4">
                         <div className="bg-gray-100 p-3 rounded-lg">
@@ -10523,19 +10866,19 @@ Service Contentieux
                       </div>
 
                       <div className="text-center mb-4">
-                        <div className="text-sm text-gray-600">Nbre de factures</div>
+                        <div className="text-sm text-gray-600">{t('recovery.invoiceCountShort')}</div>
                         <div className="text-lg font-bold text-gray-900">{selectedDossierDetail.nombreFactures}</div>
                       </div>
 
                       <div className="text-center">
-                        <div className="text-sm text-gray-600">Total créances</div>
+                        <div className="text-sm text-gray-600">{t('recovery.totalReceivablesLower')}</div>
                         <div className="text-lg font-bold text-gray-900">{formatCurrency(selectedDossierDetail.montantTotal)}</div>
                       </div>
                     </div>
 
                     {/* Notation client */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Notation client</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.customerRating')}</h4>
 
                       <div className="space-y-4">
                         <div>
@@ -10547,12 +10890,12 @@ Service Contentieux
                         </div>
 
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">Chiffre d'affaires</div>
-                          <div className="text-sm font-medium text-gray-400">— (hors périmètre)</div>
+                          <div className="text-sm text-gray-600 mb-1">{t('recovery.revenue')}</div>
+                          <div className="text-sm font-medium text-gray-400">{t('recovery.outOfScope')}</div>
                         </div>
 
                         <div>
-                          <div className="text-sm text-gray-600 mb-1">Séniorité</div>
+                          <div className="text-sm text-gray-600 mb-1">{t('recovery.seniorityAlt')}</div>
                           <div className="text-sm font-medium">{(() => {
                             const dates = detailFactures.map(f => f.date).filter(Boolean).sort();
                             return dates.length > 0 ? `depuis ${new Date(dates[0]).toLocaleDateString('fr-FR')}` : '—';
@@ -10563,7 +10906,7 @@ Service Contentieux
 
                     {/* Factures en retard */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Factures en retard</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.overdueInvoices')}</h4>
 
                       <div className="flex items-center justify-center mb-4">
                         <div className="bg-gray-100 p-3 rounded-lg">
@@ -10577,14 +10920,14 @@ Service Contentieux
                       </div>
 
                       <div className="text-center">
-                        <div className="text-sm text-gray-600">Total des retards de paiement</div>
+                        <div className="text-sm text-gray-600">{t('recovery.totalPaymentDelays')}</div>
                         <div className="text-lg font-bold text-gray-900">{detailFactures.filter(f => f.joursRetard > 0).length}</div>
                       </div>
                     </div>
 
                     {/* Analyse du CA client */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Analyse du CA client</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.customerRevenueAnalysis')}</h4>
 
                       <div className="flex items-center justify-center mb-4">
                         <div className="bg-gray-100 p-3 rounded-lg">
@@ -10593,13 +10936,13 @@ Service Contentieux
                       </div>
 
                       <div className="text-center mb-4">
-                        <div className="text-sm text-gray-600">% du chiffre d'affaires total</div>
+                        <div className="text-sm text-gray-600">{t('recovery.pctOfTotalRevenue')}</div>
                         {/* Nécessite le CA société (hors périmètre recouvrement) → non disponible ici. */}
                         <div className="text-lg font-bold text-gray-400">—</div>
                       </div>
 
                       <div className="text-center">
-                        <div className="text-sm text-gray-600">% des créances</div>
+                        <div className="text-sm text-gray-600">{t('recovery.pctOfReceivables')}</div>
                         <div className="text-lg font-bold text-gray-900">{(() => {
                           const totalAll = mockCreances.reduce((s, c) => s + (c.montantTotal || 0), 0);
                           return totalAll > 0 ? Math.round((selectedDossierDetail.montantTotal / totalAll) * 100) : 0;
@@ -10611,7 +10954,7 @@ Service Contentieux
                   {/* Section Nombre de jours d'impayés */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Nombre de jours d'impayés</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.daysUnpaid')}</h4>
 
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
@@ -10651,14 +10994,14 @@ Service Contentieux
 
                     {/* Analyse de la croissance du CA sur 5 ans */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <h4 className="text-base font-semibold text-gray-900 mb-4">Analyse de la croissance du CA sur 5 ans</h4>
+                      <h4 className="text-base font-semibold text-gray-900 mb-4">{t('recovery.revenueGrowth5Years')}</h4>
 
                       <div className="overflow-x-auto">
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-gray-200">
-                              <th className="text-left text-xs font-medium text-gray-700 py-2">Année</th>
-                              <th className="text-left text-xs font-medium text-gray-700 py-2">Montant</th>
+                              <th className="text-left text-xs font-medium text-gray-700 py-2">{t('recovery.year')}</th>
+                              <th className="text-left text-xs font-medium text-gray-700 py-2">{t('recovery.amount')}</th>
                               <th className="text-left text-xs font-medium text-gray-700 py-2">%</th>
                             </tr>
                           </thead>
@@ -10683,7 +11026,7 @@ Service Contentieux
               {/* Onglet Créances */}
               {activeDossierTab === 'creances' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Créances du client</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('recovery.customerReceivables')}</h3>
 
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
@@ -10694,28 +11037,28 @@ Service Contentieux
                               FAC #
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              N° Document
+                              {t('recovery.documentNumber')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date
+                              {t('recovery.date')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Période de facturation
+                              {t('recovery.billingPeriod')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Description
+                              {t('recovery.description')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Débit
+                              {t('recovery.debit')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Crédit
+                              {t('recovery.credit')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Solde
+                              {t('recovery.balance')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date d'échéance
+                              {t('recovery.dueDateCol')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               PS
@@ -10825,25 +11168,25 @@ Service Contentieux
                   {/* Résumé en bas */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Total Débit</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.totalDebit')}</div>
                       <div className="text-lg font-bold text-blue-900">
                         {formatCurrency(detailFactures.reduce((s, f) => s + (f.montantOriginal || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Total Crédit</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.totalCredit')}</div>
                       <div className="text-lg font-bold text-green-900">
                         {formatCurrency(detailFactures.reduce((s, f) => s + (f.credit || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">Solde Total</div>
+                      <div className="text-sm text-orange-600 font-medium">{t('recovery.totalBalance')}</div>
                       <div className="text-lg font-bold text-orange-900">
                         {formatCurrency(detailFactures.reduce((s, f) => s + (f.montantRestant || 0), 0))}
                       </div>
                     </div>
                     <div className="bg-red-50 rounded-lg p-4">
-                      <div className="text-sm text-red-600 font-medium">Factures en retard</div>
+                      <div className="text-sm text-red-600 font-medium">{t('recovery.overdueInvoices')}</div>
                       <div className="text-lg font-bold text-red-900">
                         {detailFactures.filter(f => f.joursRetard > 0).length}
                       </div>
@@ -10854,7 +11197,7 @@ Service Contentieux
 
               {activeDossierTab === 'contract' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Contrats du client</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('recovery.customerContracts')}</h3>
 
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
@@ -10862,31 +11205,31 @@ Service Contentieux
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              N° contrat
+                              {t('recovery.contractNumber')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Statut
+                              {t('recovery.status')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Locataire
+                              {t('recovery.tenant')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Enseigne
+                              {t('recovery.brand')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              N° Client
+                              {t('recovery.customerNumber')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Local
+                              {t('recovery.unit')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date début
+                              {t('recovery.startDateShort')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Durée
+                              {t('recovery.duration')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date fin
+                              {t('recovery.endDateShort')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               SLB
@@ -10895,7 +11238,7 @@ Service Contentieux
                               %SLB
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Loyer mensuel
+                              {t('recovery.monthlyRent')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                               Monthly service charge
@@ -11019,23 +11362,23 @@ Service Contentieux
                   {/* Résumé des contrats */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Contrats Actifs</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.activeContracts')}</div>
                       <div className="text-lg font-bold text-blue-900">1</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Loyer Mensuel Total</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.totalMonthlyRent')}</div>
                       <div className="text-lg font-bold text-green-900">
                         850,000 FCFA
                       </div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Charges Mensuelles</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.monthlyCharges')}</div>
                       <div className="text-lg font-bold text-primary-900">
                         125,000 FCFA
                       </div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">Total Mensuel</div>
+                      <div className="text-sm text-orange-600 font-medium">{t('recovery.monthlyTotal')}</div>
                       <div className="text-lg font-bold text-orange-900">
                         975,000 FCFA
                       </div>
@@ -11054,28 +11397,28 @@ Service Contentieux
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date
+                              {t('recovery.date')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Type
+                              {t('recovery.type')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Méthode
+                              {t('recovery.method')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Fréquence
+                              {t('recovery.frequency')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant évoqué
+                              {t('recovery.amountDiscussed')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Modèle
+                              {t('recovery.template')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Destinataire(s)
+                              {t('recovery.recipients')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Statut
+                              {t('recovery.status')}
                             </th>
                           </tr>
                         </thead>
@@ -11201,19 +11544,19 @@ Service Contentieux
                   {/* Statistiques des relances */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Total Relances</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.totalReminders')}</div>
                       <div className="text-lg font-bold text-blue-900">5</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Relances Réussies</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.successfulReminders')}</div>
                       <div className="text-lg font-bold text-green-900">4</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">Dernière Relance</div>
+                      <div className="text-sm text-orange-600 font-medium">{t('recovery.lastReminder')}</div>
                       <div className="text-lg font-bold text-orange-900">15/03/2024</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Taux de Réussite</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.successRateTitle2')}</div>
                       <div className="text-lg font-bold text-primary-900">80%</div>
                     </div>
                   </div>
@@ -11222,7 +11565,7 @@ Service Contentieux
 
               {activeDossierTab === 'payments' && (
                 <div className="space-y-6">
-                  <h3 className="text-lg font-semibold text-gray-900">Historique des Paiements</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('recovery.paymentHistory')}</h3>
 
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="overflow-x-auto">
@@ -11230,38 +11573,38 @@ Service Contentieux
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date de paiement
+                              {t('recovery.paymentDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              N° Transaction
+                              {t('recovery.transactionNumber')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Facture(s) concernée(s)
+                              {t('recovery.relatedInvoices')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant
+                              {t('recovery.amount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Méthode de paiement
+                              {t('recovery.paymentMethod')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Référence
+                              {t('recovery.reference')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Statut
+                              {t('recovery.status')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date comptabilisation
+                              {t('recovery.postingDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Commentaires
+                              {t('recovery.comments')}
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {([] as Array<{datePaiement: string; numTransaction: string; facturesConcernees: string; montant: number; methodePaiement: string; reference: string; statut: string; dateComptabilisation: string | null; commentaires: string}>).length === 0 ? (
                             <tr>
-                              <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">Aucun paiement enregistré</td>
+                              <td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">{t('recovery.noPaymentRecorded')}</td>
                             </tr>
                           ) : ([] as Array<{datePaiement: string; numTransaction: string; facturesConcernees: string; montant: number; methodePaiement: string; reference: string; statut: string; dateComptabilisation: string | null; commentaires: string}>).map((paiement, index) => (
                             <tr key={index} className="hover:bg-gray-50">
@@ -11329,22 +11672,22 @@ Service Contentieux
                   {/* Statistiques des paiements */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Total Encaissé</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.totalCollectedIn')}</div>
                       <div className="text-lg font-bold text-green-900">11,500 FCFA</div>
-                      <div className="text-xs text-green-600 mt-1">Paiements validés</div>
+                      <div className="text-xs text-green-600 mt-1">{t('recovery.validatedPayments')}</div>
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-4">
-                      <div className="text-sm text-yellow-600 font-medium">En Attente</div>
+                      <div className="text-sm text-yellow-600 font-medium">{t('recovery.pendingTitle')}</div>
                       <div className="text-lg font-bold text-yellow-900">3,000 FCFA</div>
-                      <div className="text-xs text-yellow-600 mt-1">À valider</div>
+                      <div className="text-xs text-yellow-600 mt-1">{t('recovery.toValidate')}</div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Nombre de Transactions</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.transactionCount')}</div>
                       <div className="text-lg font-bold text-blue-900">5</div>
-                      <div className="text-xs text-blue-600 mt-1">Total depuis l'ouverture</div>
+                      <div className="text-xs text-blue-600 mt-1">{t('recovery.totalSinceOpening')}</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Dernier Paiement</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.lastPayment')}</div>
                       <div className="text-lg font-bold text-primary-900">20/03/2024</div>
                       <div className="text-xs text-primary-600 mt-1">2,000 FCFA</div>
                     </div>
@@ -11352,7 +11695,7 @@ Service Contentieux
 
                   {/* Graphique des paiements par mois */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Évolution des Paiements</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.paymentsTrend')}</h4>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
                         {/* Données réelles d'échéancier de paiement non disponibles (recovery_cases vide) */}
@@ -11369,7 +11712,7 @@ Service Contentieux
 
                   {/* Répartition par méthode de paiement */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Répartition par Méthode de Paiement</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.breakdownByPaymentMethod')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="h-48">
                         <ResponsiveContainer width="100%" height="100%">
@@ -11395,28 +11738,28 @@ Service Contentieux
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-green-500 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700">Chèque</span>
+                            <span className="text-sm text-gray-700">{t('recovery.check')}</span>
                           </div>
                           <span className="text-sm font-medium">8,000 FCFA</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-blue-500 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700">Virement bancaire</span>
+                            <span className="text-sm text-gray-700">{t('recovery.bankTransfer')}</span>
                           </div>
                           <span className="text-sm font-medium">5,000 FCFA</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-yellow-500 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700">Espèces</span>
+                            <span className="text-sm text-gray-700">{t('recovery.cash')}</span>
                           </div>
                           <span className="text-sm font-medium">1,500 FCFA</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-primary-500 rounded mr-2"></div>
-                            <span className="text-sm text-gray-700">Carte bancaire</span>
+                            <span className="text-sm text-gray-700">{t('recovery.bankCard')}</span>
                           </div>
                           <span className="text-sm font-medium">0 FCFA</span>
                         </div>
@@ -11429,80 +11772,80 @@ Service Contentieux
               {activeDossierTab === 'interest' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">Gestion des Intérêts et Pénalités</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('recovery.interestAndPenalties')}</h3>
                     <button
                       onClick={() => document.getElementById('penalite-calculateur')?.scrollIntoView({ behavior: 'smooth' })}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                       <Plus className="w-4 h-4" />
-                      Nouvelle Pénalité
+                      {t('recovery.newPenalty')}
                     </button>
                   </div>
 
                   {/* Statistiques générales (calculées depuis la liste réelle) */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-red-50 rounded-lg p-4">
-                      <div className="text-sm text-red-600 font-medium">Total Pénalités</div>
+                      <div className="text-sm text-red-600 font-medium">{t('recovery.totalPenalties')}</div>
                       <div className="text-lg font-bold text-red-900">{formatCurrency(penStats.total)}</div>
-                      <div className="text-xs text-red-600 mt-1">Sur créances en retard</div>
+                      <div className="text-xs text-red-600 mt-1">{t('recovery.onOverdueReceivables')}</div>
                     </div>
                     <div className="bg-yellow-50 rounded-lg p-4">
-                      <div className="text-sm text-yellow-600 font-medium">En Attente Validation</div>
+                      <div className="text-sm text-yellow-600 font-medium">{t('recovery.pendingValidation')}</div>
                       <div className="text-lg font-bold text-yellow-900">{formatCurrency(penStats.attente)}</div>
                       <div className="text-xs text-yellow-600 mt-1">{penStats.attenteCount} dossier(s)</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Validées</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.validatedPlural')}</div>
                       <div className="text-lg font-bold text-green-900">{formatCurrency(penStats.validees)}</div>
-                      <div className="text-xs text-green-600 mt-1">Envoyées à facturation</div>
+                      <div className="text-xs text-green-600 mt-1">{t('recovery.sentToBilling')}</div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Taux Moyen</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.averageRate')}</div>
                       <div className="text-lg font-bold text-blue-900">{penStats.tauxMoyen}%</div>
-                      <div className="text-xs text-blue-600 mt-1">Taux appliqué</div>
+                      <div className="text-xs text-blue-600 mt-1">{t('recovery.appliedRate')}</div>
                     </div>
                   </div>
 
                   {/* Tableau des pénalités */}
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-900">Historique des Pénalités</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">{t('recovery.penaltyHistory')}</h4>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date création
+                              {t('recovery.creationDateShort')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Facture(s)
+                              {t('recovery.invoices')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant créance
+                              {t('recovery.receivableAmount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Jours retard
+                              {t('recovery.daysLate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Taux appliqué
+                              {t('recovery.appliedRate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant pénalité
+                              {t('recovery.penaltyAmount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Statut
+                              {t('recovery.status')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date validation
+                              {t('recovery.validationDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Actions
+                              {t('recovery.actions')}
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {penalites.length === 0 && (
-                            <tr><td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">Aucune pénalité enregistrée. Créez-en une avec le calculateur ci-dessous.</td></tr>
+                            <tr><td colSpan={9} className="px-6 py-8 text-center text-sm text-gray-500">{t('recovery.noPenaltyRecorded')}</td></tr>
                           )}
                           {penalites.map((penalite) => (
                             <tr key={penalite.id} className="hover:bg-gray-50">
@@ -11579,7 +11922,7 @@ Service Contentieux
                                     <button
                                       onClick={() => sendPenalite(penalite.id)}
                                       className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                                      title="Envoyer à facturation"
+                                      title={t('recovery.sendToBilling')}
                                     >
                                       <Send className="w-4 h-4" />
                                     </button>
@@ -11587,7 +11930,7 @@ Service Contentieux
                                   <button
                                     onClick={() => toast(`Pénalité ${penalite.factures} — créance ${formatCurrency(penalite.montantCreance)}, ${penalite.joursRetard}j, taux ${penalite.tauxApplique}% → ${formatCurrency(penalite.montantPenalite)}`, { duration: 6000 })}
                                     className="text-gray-600 hover:text-gray-900 p-1 rounded"
-                                    title="Voir détails" aria-label="Voir les détails">
+                                    title={t('recovery.viewDetails')} aria-label={t('recovery.viewDetailsAria')}>
                                     <Eye className="w-4 h-4" />
                                   </button>
                                 </div>
@@ -11601,43 +11944,43 @@ Service Contentieux
 
                   {/* Calculateur de pénalités */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Calculateur de Pénalités</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.penaltyCalculator')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6" id="penalite-calculateur">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Réf. facture / pièce</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.invoiceDocRef')}</label>
                         <input type="text" placeholder="ex. FAC001" value={penForm.factures} onChange={(e) => setPenForm(f => ({ ...f, factures: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Montant créance</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.receivableAmount')}</label>
                         <input type="number" min="0" placeholder="0" value={penForm.montantCreance} onChange={(e) => setPenForm(f => ({ ...f, montantCreance: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Jours de retard</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.daysOverdue')}</label>
                         <input type="number" min="0" placeholder="0" value={penForm.joursRetard} onChange={(e) => setPenForm(f => ({ ...f, joursRetard: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Taux de pénalité (%)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.penaltyRatePct')}</label>
                         <input type="number" step="0.1" min="0" value={penForm.taux} onChange={(e) => setPenForm(f => ({ ...f, taux: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                       </div>
                     </div>
 
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                      <h5 className="font-medium text-gray-900 mb-2">Aperçu du calcul</h5>
+                      <h5 className="font-medium text-gray-900 mb-2">{t('recovery.calculationPreview')}</h5>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <span className="text-gray-600">Montant créance:</span>
+                          <span className="text-gray-600">{t('recovery.receivableAmountColon')}</span>
                           <div className="font-medium">{formatCurrency(Number(penForm.montantCreance) || 0)}</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Jours de retard:</span>
+                          <span className="text-gray-600">{t('recovery.daysOverdueColon')}</span>
                           <div className="font-medium">{Number(penForm.joursRetard) || 0} jours</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Taux appliqué:</span>
+                          <span className="text-gray-600">{t('recovery.appliedRateColon')}</span>
                           <div className="font-medium">{Number(penForm.taux) || 0}%</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Pénalité calculée:</span>
+                          <span className="text-gray-600">{t('recovery.calculatedPenaltyColon')}</span>
                           <div className="font-bold text-red-600">{formatCurrency(Math.round((Number(penForm.montantCreance) || 0) * (Number(penForm.taux) || 0) / 100))}</div>
                         </div>
                       </div>
@@ -11645,21 +11988,21 @@ Service Contentieux
 
                     <div className="mt-4 flex gap-3">
                       <button onClick={createPenalite} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Créer la pénalité
+                        {t('recovery.createPenalty')}
                       </button>
                     </div>
                   </div>
 
                   {/* Workflow de validation */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Workflow de Validation</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.validationWorkflow')}</h4>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             <Plus className="w-4 h-4 text-blue-600" />
                           </div>
-                          <span className="ml-2 text-sm font-medium">Création</span>
+                          <span className="ml-2 text-sm font-medium">{t('recovery.creation')}</span>
                         </div>
                         <div className="w-8 h-px bg-gray-300"></div>
                         <div className="flex items-center">
@@ -11685,28 +12028,28 @@ Service Contentieux
                       </div>
                     </div>
                     <div className="mt-4 text-sm text-gray-600">
-                      <p><strong>Note:</strong> Toutes les pénalités doivent être validées par un responsable avant envoi à la facturation.</p>
+                      <p><strong>Note:</strong>{t('recovery.penaltiesNeedApproval')}</p>
                     </div>
                   </div>
 
                   {/* Configuration des taux */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Configuration des Taux</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.rateConfiguration')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="p-4 border border-gray-200 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Retard 0-30 jours</h5>
+                        <h5 className="font-medium text-gray-900 mb-2">{t('recovery.delay0to30')}</h5>
                         <div className="text-lg font-bold text-yellow-600">3.0%</div>
-                        <div className="text-sm text-gray-600">Taux standard</div>
+                        <div className="text-sm text-gray-600">{t('recovery.standardRate')}</div>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Retard 31-60 jours</h5>
+                        <h5 className="font-medium text-gray-900 mb-2">{t('recovery.delay31to60')}</h5>
                         <div className="text-lg font-bold text-orange-600">4.5%</div>
-                        <div className="text-sm text-gray-600">Taux majoré</div>
+                        <div className="text-sm text-gray-600">{t('recovery.increasedRate')}</div>
                       </div>
                       <div className="p-4 border border-gray-200 rounded-lg">
-                        <h5 className="font-medium text-gray-900 mb-2">Retard 60+ jours</h5>
+                        <h5 className="font-medium text-gray-900 mb-2">{t('recovery.delay60plus')}</h5>
                         <div className="text-lg font-bold text-red-600">6.0%</div>
-                        <div className="text-sm text-gray-600">Taux maximum</div>
+                        <div className="text-sm text-gray-600">{t('recovery.maximumRate')}</div>
                       </div>
                     </div>
                   </div>
@@ -11716,41 +12059,41 @@ Service Contentieux
               {activeDossierTab === 'repayment' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">Plans de Remboursement</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('recovery.repaymentPlans')}</h3>
                     <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                       <Plus className="w-4 h-4" />
-                      Nouveau Plan
+                      {t('recovery.newPlan')}
                     </button>
                   </div>
 
                   {/* Statistiques des plans — dérivées des plans réels (recoveryCases). Aucune donnée -> "—". */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.activePlans')}</div>
                       <div className="text-lg font-bold text-blue-900">{repaymentPlans.length > 0 ? repaymentKpis.actifs : '—'}</div>
                       <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Montant Total</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.totalAmount')}</div>
                       <div className="text-lg font-bold text-green-900">{repaymentPlans.length > 0 ? formatCurrency(repaymentKpis.montantTotal) : '—'}</div>
-                      <div className="text-xs text-green-600 mt-1">À rembourser</div>
+                      <div className="text-xs text-green-600 mt-1">{t('recovery.toRepay')}</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">En retard</div>
+                      <div className="text-sm text-orange-600 font-medium">{t('recovery.overdue')}</div>
                       <div className="text-lg font-bold text-orange-900">{repaymentPlans.length > 0 ? repaymentKpis.enRetard : '—'}</div>
-                      <div className="text-xs text-orange-600 mt-1">Plans en retard</div>
+                      <div className="text-xs text-orange-600 mt-1">{t('recovery.overduePlans')}</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Taux Respect</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.complianceRateShort')}</div>
                       <div className="text-lg font-bold text-primary-900">{repaymentPlans.length > 0 ? `${repaymentKpis.tauxRespect}%` : '—'}</div>
-                      <div className="text-xs text-primary-600 mt-1">Paiements à temps</div>
+                      <div className="text-xs text-primary-600 mt-1">{t('recovery.onTimePayments')}</div>
                     </div>
                   </div>
 
                   {/* Tableau des plans de remboursement */}
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-900">Historique des Plans de Remboursement</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">{t('recovery.repaymentPlanHistory')}</h4>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full">
@@ -11760,37 +12103,37 @@ Service Contentieux
                               Ref
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant initial
+                              {t('recovery.initialAmount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Intérêts et pénalités
+                              {t('recovery.interestAndPenaltiesShort')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Durée (Mois)
+                              {t('recovery.durationMonths')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date de début
+                              {t('recovery.startDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date de fin
+                              {t('recovery.endDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant mensuel
+                              {t('recovery.monthlyAmount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Intérêt total
+                              {t('recovery.totalInterest')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Montant total
+                              {t('recovery.totalAmountLower')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Commentaire
+                              {t('recovery.comment')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Statut
+                              {t('recovery.status')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Actions
+                              {t('recovery.actions')}
                             </th>
                           </tr>
                         </thead>
@@ -11798,7 +12141,7 @@ Service Contentieux
                           {repaymentPlans.length === 0 ? (
                             <tr>
                               <td colSpan={11} className="px-6 py-10 text-center text-sm text-gray-500">
-                                Aucune donnée — module non alimenté par l'import
+                                {t('recovery.noDataNotImported')}
                               </td>
                             </tr>
                           ) : repaymentPlans.map((plan, index) => (
@@ -11842,18 +12185,18 @@ Service Contentieux
                                 <div className="flex gap-2">
                                   <button
                                     className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                                    title="Voir échéancier" aria-label="Calendrier">
+                                    title={t('recovery.viewSchedule')} aria-label="Calendrier">
                                     <Calendar className="w-4 h-4" />
                                   </button>
                                   <button
                                     className="text-green-600 hover:text-green-900 p-1 rounded"
-                                    title="Modifier plan"
+                                    title={t('recovery.editPlan')}
                                   >
                                     <Edit className="w-4 h-4" />
                                   </button>
                                   <button
                                     className="text-gray-600 hover:text-gray-900 p-1 rounded"
-                                    title="Voir détails" aria-label="Voir les détails">
+                                    title={t('recovery.viewDetails')} aria-label={t('recovery.viewDetailsAria')}>
                                     <Eye className="w-4 h-4" />
                                   </button>
                                 </div>
@@ -11867,11 +12210,11 @@ Service Contentieux
 
                   {/* Calculateur de plan de remboursement */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Simulateur de Plan de Remboursement</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.repaymentPlanSimulator')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Montant de la dette (FCFA)
+                          {t('recovery.debtAmountFcfa')}
                         </label>
                         <input
                           type="number"
@@ -11881,7 +12224,7 @@ Service Contentieux
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Taux d'intérêt annuel (%)
+                          {t('recovery.annualInterestRate')}
                         </label>
                         <input
                           type="number"
@@ -11892,7 +12235,7 @@ Service Contentieux
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Durée souhaitée (mois)
+                          {t('recovery.desiredDurationMonths')}
                         </label>
                         <input
                           type="number"
@@ -11903,7 +12246,7 @@ Service Contentieux
                     </div>
 
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                      <h5 className="font-medium text-gray-900 mb-3">Simulation du Plan</h5>
+                      <h5 className="font-medium text-gray-900 mb-3">{t('recovery.planSimulation')}</h5>
                       {/* Résultats affichés après calcul — pas de valeurs fabriquées */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
@@ -11911,15 +12254,15 @@ Service Contentieux
                           <div className="font-medium text-gray-400">—</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Intérêts totaux:</span>
+                          <span className="text-gray-600">{t('recovery.totalInterestColon')}</span>
                           <div className="font-medium text-gray-400">—</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Montant total:</span>
+                          <span className="text-gray-600">{t('recovery.totalAmountColon')}</span>
                           <div className="font-bold text-gray-400">—</div>
                         </div>
                         <div>
-                          <span className="text-gray-600">Mensualité:</span>
+                          <span className="text-gray-600">{t('recovery.monthlyInstalmentColon')}</span>
                           <div className="font-bold text-gray-400">—</div>
                         </div>
                       </div>
@@ -11927,34 +12270,34 @@ Service Contentieux
 
                     <div className="mt-4 flex gap-3">
                       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Calculer
+                        {t('recovery.calculate')}
                       </button>
                       <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                        Créer Plan
+                        {t('recovery.createPlan')}
                       </button>
                     </div>
                   </div>
 
                   {/* Échéancier du plan actif — aucun échéancier mensuel n'est stocké en base */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Échéancier</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.schedule')}</h4>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.dueDate')}</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('common.date')}</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Capital</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Intérêts</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Mensualité</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Capital restant</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.interest')}</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.monthlyInstalment')}</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.remainingPrincipal')}</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.status')}</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 text-sm">
                           <tr>
                             <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-500">
-                              Aucune donnée — module non alimenté par l'import
+                              {t('recovery.noDataNotImported')}
                             </td>
                           </tr>
                         </tbody>
@@ -11967,18 +12310,18 @@ Service Contentieux
               {activeDossierTab === 'actions' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">Historique des Actions</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('recovery.actionHistory')}</h3>
                     <div className="flex gap-3">
                       <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="all">Toutes les actions</option>
+                        <option value="all">{t('recovery.allActions')}</option>
                         <option value="relances">Relances</option>
                         <option value="paiements">Paiements</option>
-                        <option value="penalites">Pénalités</option>
-                        <option value="plans">Plans de remboursement</option>
+                        <option value="penalites">{t('recovery.penalties')}</option>
+                        <option value="plans">{t('recovery.repaymentPlansLower')}</option>
                       </select>
                       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Nouvelle Action
+                        {t('recovery.newActionTitle')}
                       </button>
                     </div>
                   </div>
@@ -11986,33 +12329,33 @@ Service Contentieux
                   {/* Statistiques des actions — aucun historique d'actions stocké en base */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Total Actions</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.totalActions')}</div>
                       <div className="text-lg font-bold text-blue-900">—</div>
-                      <div className="text-xs text-blue-600 mt-1">Depuis ouverture</div>
+                      <div className="text-xs text-blue-600 mt-1">{t('recovery.sinceOpening')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
-                      <div className="text-sm text-green-600 font-medium">Actions Réussies</div>
+                      <div className="text-sm text-green-600 font-medium">{t('recovery.successfulActions')}</div>
                       <div className="text-lg font-bold text-green-900">—</div>
-                      <div className="text-xs text-green-600 mt-1">Taux de réussite</div>
+                      <div className="text-xs text-green-600 mt-1">{t('recovery.successRateLower')}</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
-                      <div className="text-sm text-orange-600 font-medium">Dernière Action</div>
+                      <div className="text-sm text-orange-600 font-medium">{t('recovery.lastAction')}</div>
                       <div className="text-lg font-bold text-orange-900">—</div>
                       <div className="text-xs text-orange-600 mt-1">—</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Temps Moyen</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.averageTime')}</div>
                       <div className="text-lg font-bold text-primary-900">—</div>
-                      <div className="text-xs text-primary-600 mt-1">Entre actions</div>
+                      <div className="text-xs text-primary-600 mt-1">{t('recovery.betweenActions')}</div>
                     </div>
                   </div>
 
                   {/* Timeline des actions */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-6">Chronologie des Actions</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-6">{t('recovery.actionsTimeline')}</h4>
                     <div className="flow-root">
                       <div className="py-10 text-center text-sm text-gray-500">
-                        Aucune donnée — module non alimenté par l'import
+                        {t('recovery.noDataNotImported')}
                       </div>
                     </div>
                   </div>
@@ -12020,39 +12363,39 @@ Service Contentieux
                   {/* Tableau récapitulatif par type d'action */}
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-900">Récapitulatif par Type d'Action</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">{t('recovery.summaryByActionType')}</h4>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Type d'action
+                              {t('recovery.actionType')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Nombre total
+                              {t('recovery.totalCount')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Réussies
+                              {t('recovery.successful')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              En cours
+                              {t('recovery.inProgress')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Échecs
+                              {t('recovery.failures')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Taux de réussite
+                              {t('recovery.successRateLower')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Dernière action
+                              {t('recovery.lastActionLower')}
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           <tr>
                             <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
-                              Aucune donnée — module non alimenté par l'import
+                              {t('recovery.noDataNotImported')}
                             </td>
                           </tr>
                         </tbody>
@@ -12062,9 +12405,9 @@ Service Contentieux
 
                   {/* Graphique d'activité — pas d'historique d'actions en base */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Activité du Dossier</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.caseActivity')}</h4>
                     <div className="h-64 flex items-center justify-center text-sm text-gray-500">
-                      Aucune donnée — module non alimenté par l'import
+                      {t('recovery.noDataNotImported')}
                     </div>
                   </div>
                 </div>
@@ -12074,19 +12417,19 @@ Service Contentieux
               {activeDossierTab === 'attachments' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-gray-900">Documents et Pièces Jointes</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">{t('recovery.documentsAndAttachments')}</h3>
                     <div className="flex gap-3">
                       <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="all">Tous les documents</option>
+                        <option value="all">{t('recovery.allDocuments')}</option>
                         <option value="factures">Factures</option>
                         <option value="contrats">Contrats</option>
                         <option value="correspondances">Correspondances</option>
-                        <option value="juridiques">Documents juridiques</option>
-                        <option value="paiements">Justificatifs paiements</option>
+                        <option value="juridiques">{t('recovery.legalDocumentsShort')}</option>
+                        <option value="paiements">{t('recovery.paymentSupportingDocs')}</option>
                       </select>
                       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
-                        Ajouter Document
+                        {t('recovery.addDocumentBtn')}
                       </button>
                     </div>
                   </div>
@@ -12094,14 +12437,14 @@ Service Contentieux
                   {/* Statistiques des documents — aucune pièce jointe stockée en base */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <div className="text-sm text-blue-600 font-medium">Total Documents</div>
+                      <div className="text-sm text-blue-600 font-medium">{t('recovery.totalDocuments')}</div>
                       <div className="text-lg font-bold text-blue-900">—</div>
-                      <div className="text-xs text-blue-600 mt-1">Tous types</div>
+                      <div className="text-xs text-blue-600 mt-1">{t('recovery.allTypes')}</div>
                     </div>
                     <div className="bg-green-50 rounded-lg p-4">
                       <div className="text-sm text-green-600 font-medium">Factures</div>
                       <div className="text-lg font-bold text-green-900">—</div>
-                      <div className="text-xs text-green-600 mt-1">Documents officiels</div>
+                      <div className="text-xs text-green-600 mt-1">{t('recovery.officialDocuments')}</div>
                     </div>
                     <div className="bg-orange-50 rounded-lg p-4">
                       <div className="text-sm text-orange-600 font-medium">Correspondances</div>
@@ -12109,9 +12452,9 @@ Service Contentieux
                       <div className="text-xs text-orange-600 mt-1">Emails, courriers</div>
                     </div>
                     <div className="bg-primary-50 rounded-lg p-4">
-                      <div className="text-sm text-primary-600 font-medium">Taille Totale</div>
+                      <div className="text-sm text-primary-600 font-medium">{t('recovery.totalSize')}</div>
                       <div className="text-lg font-bold text-primary-900">—</div>
-                      <div className="text-xs text-primary-600 mt-1">Espace utilisé</div>
+                      <div className="text-xs text-primary-600 mt-1">{t('recovery.usedSpace')}</div>
                     </div>
                   </div>
 
@@ -12119,51 +12462,51 @@ Service Contentieux
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
                     <div className="flex flex-col items-center">
                       <Upload className="w-12 h-12 text-gray-700 mb-4" />
-                      <h4 className="text-lg font-medium text-gray-900 mb-2">Glissez-déposez vos fichiers ici</h4>
-                      <p className="text-gray-700 mb-4">ou cliquez pour sélectionner des fichiers</p>
+                      <h4 className="text-lg font-medium text-gray-900 mb-2">{t('recovery.dragDropFilesHere')}</h4>
+                      <p className="text-gray-700 mb-4">{t('recovery.orClickToSelect')}</p>
                       <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                        Parcourir les fichiers
+                        {t('recovery.browseFiles')}
                       </button>
-                      <p className="text-xs text-gray-700 mt-2">Formats acceptés: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max 10MB)</p>
+                      <p className="text-xs text-gray-700 mt-2">{t('recovery.acceptedFormats')}</p>
                     </div>
                   </div>
 
                   {/* Liste des documents */}
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     <div className="px-6 py-4 border-b border-gray-200">
-                      <h4 className="text-lg font-semibold text-gray-900">Documents du Dossier</h4>
+                      <h4 className="text-lg font-semibold text-gray-900">{t('recovery.caseDocuments')}</h4>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Document
+                              {t('recovery.document')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Type
+                              {t('recovery.type')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Taille
+                              {t('recovery.size')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Date ajout
+                              {t('recovery.addedDate')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Ajouté par
+                              {t('recovery.addedBy')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Description
+                              {t('recovery.description')}
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                              Actions
+                              {t('recovery.actions')}
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           <tr>
                             <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
-                              Aucune donnée — module non alimenté par l'import
+                              {t('recovery.noDataNotImported')}
                             </td>
                           </tr>
                         </tbody>
@@ -12173,10 +12516,10 @@ Service Contentieux
 
                   {/* Historique des documents */}
                   <div className="bg-white rounded-lg shadow p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 mb-4">Historique des Documents</h4>
+                    <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.documentHistory')}</h4>
                     <div className="space-y-4">
                       <div className="py-10 text-center text-sm text-gray-500">
-                        Aucune donnée — module non alimenté par l'import
+                        {t('recovery.noDataNotImported')}
                       </div>
                     </div>
                   </div>
@@ -12193,30 +12536,30 @@ Service Contentieux
           {/* En-tête avec statistiques */}
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Suivi Global des Plans de Remboursement</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('recovery.globalPlanTracking')}</h2>
             </div>
 
             {/* KPIs globaux */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-sm text-blue-600 font-medium">Plans Actifs</div>
+                <div className="text-sm text-blue-600 font-medium">{t('recovery.activePlans')}</div>
                 <div className="text-lg font-bold text-blue-900">{repaymentKpis.actifs}</div>
                 <div className="text-xs text-blue-600 mt-1">{t('status.inProgress')}</div>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <div className="text-sm text-green-600 font-medium">Taux de Respect</div>
+                <div className="text-sm text-green-600 font-medium">{t('recovery.complianceRate')}</div>
                 <div className="text-lg font-bold text-green-900">{repaymentKpis.tauxRespect}%</div>
-                <div className="text-xs text-green-600 mt-1">Plans soldés</div>
+                <div className="text-xs text-green-600 mt-1">{t('recovery.settledPlans')}</div>
               </div>
               <div className="bg-orange-50 rounded-lg p-4">
-                <div className="text-sm text-orange-600 font-medium">Montant Restant</div>
+                <div className="text-sm text-orange-600 font-medium">{t('recovery.remainingAmount')}</div>
                 <div className="text-lg font-bold text-orange-900">{formatCurrency(repaymentKpis.montantTotal)}</div>
-                <div className="text-xs text-orange-600 mt-1">Sous plan</div>
+                <div className="text-xs text-orange-600 mt-1">{t('recovery.underPlan')}</div>
               </div>
               <div className="bg-red-50 rounded-lg p-4">
-                <div className="text-sm text-red-600 font-medium">En Retard</div>
+                <div className="text-sm text-red-600 font-medium">{t('recovery.overdueTitle')}</div>
                 <div className="text-lg font-bold text-red-900">{repaymentKpis.enRetard}</div>
-                <div className="text-xs text-red-600 mt-1">Aucun paiement</div>
+                <div className="text-xs text-red-600 mt-1">{t('recovery.noPayment')}</div>
               </div>
             </div>
           </div>
@@ -12224,20 +12567,20 @@ Service Contentieux
           {/* Filtres */}
           <div className="flex flex-wrap gap-3 mb-6">
             <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option value="all">Tous les statuts</option>
-              <option value="respecte">Respecté</option>
-              <option value="partiel">Partiellement respecté</option>
-              <option value="retard">En retard</option>
+              <option value="all">{t('recovery.allStatuses')}</option>
+              <option value="respecte">{t('recovery.compliant')}</option>
+              <option value="partiel">{t('recovery.partiallyCompliant')}</option>
+              <option value="retard">{t('recovery.overdue')}</option>
               <option value="suspendu">Suspendu</option>
             </select>
             <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-              <option value="all">Tous les clients</option>
+              <option value="all">{t('recovery.allCustomers')}</option>
               <option value="entreprise">Entreprises</option>
               <option value="particulier">Particuliers</option>
             </select>
             <input
               type="text"
-              placeholder="Rechercher un plan..."
+              placeholder={t('recovery.searchPlanPh')}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm flex-1"
             />
           </div>
@@ -12248,31 +12591,31 @@ Service Contentieux
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Référence Plan
+                    {t('recovery.planReference')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Client
+                    {t('recovery.customer')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Montant Total
+                    {t('recovery.totalAmount')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Mensualité
+                    {t('recovery.monthlyInstalment')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Échéances Payées
+                    {t('recovery.paidInstalments')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Progression
+                    {t('recovery.progress')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Prochaine Échéance
+                    {t('recovery.nextDueDateCol')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Statut
+                    {t('recovery.status')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Actions
+                    {t('recovery.actions')}
                   </th>
                 </tr>
               </thead>
@@ -12280,7 +12623,7 @@ Service Contentieux
                 {repaymentPlans.length === 0 && (
                   <tr>
                     <td colSpan={9} className="px-6 py-10 text-center text-gray-500">
-                      Aucun plan de remboursement. Les plans sont créés depuis les dossiers de recouvrement.
+                      {t('recovery.noRepaymentPlan')}
                     </td>
                   </tr>
                 )}
@@ -12349,7 +12692,7 @@ Service Contentieux
                             setShowPlanDetailModal(true);
                           }}
                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
-                          title="Voir détails"
+                          title={t('recovery.viewDetails')}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -12359,7 +12702,7 @@ Service Contentieux
                             setShowEnregistrerPaiementModal(true);
                           }}
                           className="text-green-600 hover:text-green-900 p-1 rounded"
-                          title="Enregistrer paiement"
+                          title={t('recovery.recordPayment')}
                         >
                           <DollarSign className="w-4 h-4" />
                         </button>
@@ -12387,7 +12730,7 @@ Service Contentieux
               <div className="flex items-start">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
                 <div className="ml-3">
-                  <h4 className="text-sm font-semibold text-yellow-800">Plans en retard</h4>
+                  <h4 className="text-sm font-semibold text-yellow-800">{t('recovery.overduePlans')}</h4>
                   <p className="text-sm text-yellow-700 mt-1">
                     {repaymentPlans.filter(p => p.statut === 'En retard').length} plan(s) sans aucun paiement enregistré. Pensez à relancer les clients concernés.
                   </p>
@@ -12406,7 +12749,7 @@ Service Contentieux
           {/* Suivi du respect des plans — instantané réel (l'évolution mensuelle nécessite un historique non encore tracé) */}
           {repaymentPlans.length > 0 && (
             <div className="mt-6 bg-white rounded-lg shadow p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Respect des Plans</h4>
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.planCompliance')}</h4>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[
@@ -12445,13 +12788,13 @@ Service Contentieux
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Créer un Dossier de Recouvrement
+              {t('recovery.createCollectionCaseTitle')}
             </h3>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type de recouvrement
+                  {t('recovery.collectionType')}
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                   <option value="amiable">Amiable</option>
@@ -12462,7 +12805,7 @@ Service Contentieux
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Responsable
+                  {t('recovery.owner')}
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                   <option value="marie_dupont">—</option>
@@ -12473,11 +12816,11 @@ Service Contentieux
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Commentaire initial
+                  {t('recovery.initialComment')}
                 </label>
                 <textarea
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 h-20"
-                  placeholder="Décrivez la situation..."
+                  placeholder={t('recovery.describeSituationPh')}
                 />
               </div>
 
@@ -12486,7 +12829,7 @@ Service Contentieux
                   {selectedFactures.size} facture{selectedFactures.size > 1 ? 's' : ''} sélectionnée{selectedFactures.size > 1 ? 's' : ''}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
-                  Ces factures seront basculées en recouvrement
+                  {t('recovery.invoicesWillMove')}
                 </p>
               </div>
             </div>
@@ -12496,7 +12839,7 @@ Service Contentieux
                 onClick={() => setShowCreateDossierModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={async () => {
@@ -12512,22 +12855,22 @@ Service Contentieux
                         byClient.set(cr.clientCode, cur);
                       }
                     }
-                    if (byClient.size === 0) { toast.error('Aucune facture sélectionnée'); return; }
+                    if (byClient.size === 0) { toast.error(t('recovery.toastNoInvoiceSelected')); return; }
                     for (const [code, info] of byClient) {
                       await recoverySvc.createDossier({ client: info.name, clientId: code, montantPrincipal: info.montant, statut: 'actif', typeRecouvrement: 'amiable' } as any);
                     }
                     await reloadRecovery();
-                    toast.success(`${byClient.size} dossier(s) de recouvrement créé(s)`);
+                    toast.success(t('recovery.toastCasesCreated', { count: String(byClient.size) }));
                     setShowCreateDossierModal(false);
                     setSelectedFactures(new Set());
                     setActiveTab('dossiers');
                   } catch (err) {
-                    toast.error('Création impossible : ' + (err instanceof Error ? err.message : 'erreur'));
+                    toast.error(t('recovery.toastCreateImpossible') + (err instanceof Error ? err.message : 'erreur'));
                   }
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Créer le Dossier
+                {t('recovery.createCase')}
               </button>
             </div>
           </div>
@@ -12570,7 +12913,7 @@ Service Contentieux
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Informations du dossier</h4>
+                <h4 className="font-medium text-gray-900 mb-2">{t('recovery.caseInformation')}</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Client:</span>
@@ -12581,7 +12924,7 @@ Service Contentieux
                     <p className="font-medium">{selectedDossierAction.responsable}</p>
                   </div>
                   <div>
-                    <span className="text-gray-600">Montant total:</span>
+                    <span className="text-gray-600">{t('recovery.totalAmountColon')}</span>
                     <p className="font-medium">{formatCurrency(selectedDossierAction.montantTotal)}</p>
                   </div>
                   <div>
@@ -12594,7 +12937,7 @@ Service Contentieux
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Prochaine étape</h4>
+                <h4 className="font-medium text-blue-900 mb-2">{t('recovery.nextStep')}</h4>
                 <p className="text-sm text-blue-800">{selectedDossierAction.prochainEtape}</p>
               </div>
             </div>
@@ -12604,10 +12947,10 @@ Service Contentieux
                 onClick={() => setShowDossierActionModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
-                Fermer
+                {t('recovery.close')}
               </button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                Nouvelle Action
+                {t('recovery.newActionTitle')}
               </button>
             </div>
           </div>
@@ -12633,7 +12976,7 @@ Service Contentieux
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Informations client */}
               <div className="space-y-4">
-                <h4 className="font-medium text-gray-900 pb-2 border-b">Informations Client</h4>
+                <h4 className="font-medium text-gray-900 pb-2 border-b">{t('recovery.customerInfo')}</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Client:</span>
@@ -12658,25 +13001,25 @@ Service Contentieux
 
               {/* Informations financières */}
               <div className="space-y-4">
-                <h4 className="font-medium text-gray-900 pb-2 border-b">Informations Financières</h4>
+                <h4 className="font-medium text-gray-900 pb-2 border-b">{t('recovery.financialInformation')}</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Montant total:</span>
+                    <span className="text-gray-600">{t('recovery.totalAmountColon')}</span>
                     <span className="font-bold text-lg">{formatCurrency(selectedDossierSummary.montantTotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Montant payé:</span>
+                    <span className="text-gray-600">{t('recovery.paidAmountColon')}</span>
                     <span className="font-medium text-green-600">{formatCurrency(selectedDossierSummary.montantPaye)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Restant à recouvrer:</span>
+                    <span className="text-gray-600">{t('recovery.remainingToCollectColon')}</span>
                     <span className="font-medium text-red-600">
                       {formatCurrency(selectedDossierSummary.montantTotal - selectedDossierSummary.montantPaye)}
                     </span>
                   </div>
                   <div className="mt-4">
                     <div className="flex justify-between text-xs text-gray-700 mb-1">
-                      <span>Progression du recouvrement</span>
+                      <span>{t('recovery.collectionProgress')}</span>
                       <span>{((selectedDossierSummary.montantPaye / selectedDossierSummary.montantTotal) * 100).toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -12692,14 +13035,14 @@ Service Contentieux
 
             {/* Détails supplémentaires */}
             <div className="mt-6 space-y-4">
-              <h4 className="font-medium text-gray-900 pb-2 border-b">Détails du Dossier</h4>
+              <h4 className="font-medium text-gray-900 pb-2 border-b">{t('recovery.caseDetails')}</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-600">Date d'ouverture:</span>
+                  <span className="text-gray-600">{t('recovery.openingDateColon')}</span>
                   <p className="font-medium">{formatDate(selectedDossierSummary.dateOuverture)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-600">Nombre de factures:</span>
+                  <span className="text-gray-600">{t('recovery.invoiceCountColon')}</span>
                   <p className="font-medium">{selectedDossierSummary.nombreFactures}</p>
                 </div>
                 <div>
@@ -12713,7 +13056,7 @@ Service Contentieux
 
             {/* Dernière action */}
             <div className="mt-6">
-              <h4 className="font-medium text-gray-900 pb-2 border-b">Dernière Action</h4>
+              <h4 className="font-medium text-gray-900 pb-2 border-b">{t('recovery.lastAction')}</h4>
               <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-2 mb-2">
                   {(() => {
@@ -12732,7 +13075,7 @@ Service Contentieux
                 onClick={() => setShowDossierSummary(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
               >
-                Fermer
+                {t('recovery.close')}
               </button>
               <button
                 onClick={() => {
@@ -12742,7 +13085,7 @@ Service Contentieux
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                Modifier ce dossier
+                {t('recovery.editThisCase')}
               </button>
             </div>
           </div>
@@ -12756,7 +13099,7 @@ Service Contentieux
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)]">
-                  Transfert vers le Contentieux
+                  {t('recovery.transferToLitigationTitle')}
                 </h2>
                 <button
                   onClick={() => {
@@ -12777,22 +13120,22 @@ Service Contentieux
 
               {/* Informations du dossier */}
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3">Dossier à transférer</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-3">{t('recovery.caseToTransfer')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Référence</label>
+                    <label className="text-sm font-medium text-gray-700">{t('recovery.reference')}</label>
                     <p className="text-[var(--color-primary)] font-semibold">{selectedTransferDossier.numeroRef}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Client</label>
+                    <label className="text-sm font-medium text-gray-700">{t('recovery.customer')}</label>
                     <p className="text-[var(--color-primary)]">{selectedTransferDossier.client}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Montant Total</label>
+                    <label className="text-sm font-medium text-gray-700">{t('recovery.totalAmount')}</label>
                     <p className="text-[var(--color-primary)] font-semibold">{formatCurrency(selectedTransferDossier.montantTotal)}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Responsable actuel</label>
+                    <label className="text-sm font-medium text-gray-700">{t('recovery.currentOwner')}</label>
                     <p className="text-[var(--color-primary)]">{selectedTransferDossier.responsable}</p>
                   </div>
                 </div>
@@ -12810,10 +13153,10 @@ Service Contentieux
                       onChange={(e) => setTransferDetails({ ...transferDetails, destinataire: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Sélectionner le service</option>
-                      <option value="contentieux">Service Contentieux - Maître KONE (Avocat)</option>
-                      <option value="huissier">Huissier de Justice - Maître DIALLO</option>
-                      <option value="juridique">Service Juridique Interne</option>
+                      <option value="">{t('recovery.selectDepartment')}</option>
+                      <option value="contentieux">{t('recovery.deptLitigationKone')}</option>
+                      <option value="huissier">{t('recovery.deptBailiffDiallo')}</option>
+                      <option value="juridique">{t('recovery.deptInternalLegal')}</option>
                     </select>
                   </div>
 
@@ -12826,27 +13169,27 @@ Service Contentieux
                       onChange={(e) => setTransferDetails({ ...transferDetails, motif: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="">Sélectionner un motif</option>
-                      <option value="echec_amiable">Échec du recouvrement amiable</option>
-                      <option value="delai_depasse">Délai de recouvrement dépassé (90 jours)</option>
-                      <option value="mauvaise_foi">Mauvaise foi manifeste du débiteur</option>
-                      <option value="montant_important">Montant important nécessitant action judiciaire</option>
-                      <option value="client_insolvable">Client potentiellement insolvable</option>
-                      <option value="litige_commercial">Litige commercial nécessitant arbitrage</option>
-                      <option value="autre">Autre motif</option>
+                      <option value="">{t('recovery.selectReason')}</option>
+                      <option value="echec_amiable">{t('recovery.reasonAmicableFailure')}</option>
+                      <option value="delai_depasse">{t('recovery.reasonDeadlineExceeded')}</option>
+                      <option value="mauvaise_foi">{t('recovery.reasonBadFaith')}</option>
+                      <option value="montant_important">{t('recovery.reasonLargeAmount')}</option>
+                      <option value="client_insolvable">{t('recovery.reasonPotentiallyInsolvent')}</option>
+                      <option value="litige_commercial">{t('recovery.reasonArbitration')}</option>
+                      <option value="autre">{t('recovery.reasonOtherSingle')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Notes complémentaires
+                      {t('recovery.additionalNotes')}
                     </label>
                     <textarea
                       value={transferDetails.notes}
                       onChange={(e) => setTransferDetails({ ...transferDetails, notes: e.target.value })}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Informations additionnelles sur le transfert..."
+                      placeholder={t('recovery.transferAdditionalInfoPh')}
                     />
                   </div>
 
@@ -12855,10 +13198,9 @@ Service Contentieux
                     <div className="flex items-start">
                       <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-gray-900 mb-1">Validation requise</h4>
+                        <h4 className="font-semibold text-gray-900 mb-1">{t('recovery.approvalRequired')}</h4>
                         <p className="text-sm text-gray-600">
-                          Le transfert vers le contentieux nécessite l'approbation du Finance Manager.
-                          Une fois validé, le dossier sera transmis au service juridique pour action.
+                          {t('recovery.transferNeedsFinanceManager')}
                         </p>
                       </div>
                     </div>
@@ -12872,20 +13214,20 @@ Service Contentieux
                       }}
                       className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
-                      Annuler
+                      {t('recovery.cancel')}
                     </button>
                     <button
                       onClick={() => {
                         if (transferDetails.destinataire && transferDetails.motif) {
                           setTransferDetails({ ...transferDetails, validationStatus: 'approved' });
                         } else {
-                          toast.error('Veuillez remplir tous les champs obligatoires');
+                          toast.error(t('recovery.toastFillRequiredFields'));
                         }
                       }}
                       disabled={!transferDetails.destinataire || !transferDetails.motif}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Soumettre pour validation
+                      {t('recovery.submitForApproval')}
                     </button>
                   </div>
                 </div>
@@ -12898,21 +13240,21 @@ Service Contentieux
                     <div className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-green-900 mb-1">Transfert au contentieux validé</h4>
+                        <h4 className="font-semibold text-green-900 mb-1">{t('recovery.transferApproved')}</h4>
                         <p className="text-sm text-gray-600">
-                          Le Finance Manager a approuvé le transfert du dossier {selectedTransferDossier.numeroRef} vers le contentieux.
+                          {t('recovery.financeManagerApproved', { ref: String(selectedTransferDossier.numeroRef) })}
                         </p>
                         <div className="mt-3 bg-white rounded p-3 space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-700">Validé par:</span>
+                            <span className="text-gray-700">{t('recovery.approvedByColon')}</span>
                             <span className="font-medium">Jean-Paul KOUAME (Finance Manager)</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-700">Date de validation:</span>
+                            <span className="text-gray-700">{t('recovery.approvalDateColon')}</span>
                             <span className="font-medium">{new Date().toLocaleDateString('fr-FR')}</span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-700">Service de destination:</span>
+                            <span className="text-gray-700">{t('recovery.destinationDeptColon')}</span>
                             <span className="font-medium">
                               {transferDetails.destinataire === 'contentieux' ? 'Service Contentieux - Maître KONE' :
                                transferDetails.destinataire === 'huissier' ? 'Huissier de Justice - Maître DIALLO' :
@@ -12920,8 +13262,8 @@ Service Contentieux
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-700">Type de procédure:</span>
-                            <span className="font-medium">Recouvrement judiciaire</span>
+                            <span className="text-gray-700">{t('recovery.procedureTypeColon')}</span>
+                            <span className="font-medium">{t('recovery.judicialCollection')}</span>
                           </div>
                         </div>
                       </div>
@@ -12931,7 +13273,7 @@ Service Contentieux
                   <div className="flex justify-end gap-3">
                     <button
                       onClick={() => {
-                        toast.success(`Dossier ${selectedTransferDossier.numeroRef} transféré avec succès`);
+                        toast.success(t('recovery.toastCaseTransferred', { ref: String(selectedTransferDossier.numeroRef) }));
                         setShowTransferModal(false);
                         setSelectedTransferDossier(null);
                         setTransferDetails({
@@ -12943,7 +13285,7 @@ Service Contentieux
                       }}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                     >
-                      Confirmer le transfert
+                      {t('recovery.confirmTransfer')}
                     </button>
                   </div>
                 </div>
@@ -12956,13 +13298,13 @@ Service Contentieux
                     <div className="flex items-start">
                       <XCircle className="w-5 h-5 text-red-600 mt-0.5 mr-3 flex-shrink-0" />
                       <div>
-                        <h4 className="font-semibold text-red-900 mb-1">Transfert refusé</h4>
+                        <h4 className="font-semibold text-red-900 mb-1">{t('recovery.transferRefused')}</h4>
                         <p className="text-sm text-gray-600">
-                          Le Finance Manager a refusé le transfert du dossier.
+                          {t('recovery.financeManagerRefused')}
                         </p>
                         <div className="mt-3 bg-white rounded p-3">
                           <p className="text-sm text-gray-700">
-                            <span className="font-medium">Motif du refus:</span> Le dossier doit rester avec l'agent actuel jusqu'à la fin du mois.
+                            <span className="font-medium">{t('recovery.refusalReasonColon')}</span> Le dossier doit rester avec l'agent actuel jusqu'à la fin du mois.
                           </p>
                         </div>
                       </div>
@@ -12983,7 +13325,7 @@ Service Contentieux
                       }}
                       className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                     >
-                      Fermer
+                      {t('recovery.close')}
                     </button>
                   </div>
                 </div>
@@ -13002,7 +13344,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <FileText className="w-6 h-6 mr-2 text-blue-600" />
-                  Rapport Mensuel Consolidé
+                  {t('recovery.consolidatedMonthlyReportTitle')}
                 </h2>
                 <button
                   onClick={() => setShowRapportMensuelModal(false)}
@@ -13015,31 +13357,31 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Période de rapport */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-900 mb-3">Paramètres du Rapport</h3>
+                  <h3 className="font-semibold text-blue-900 mb-3">{t('recovery.reportParameters')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-2">Période</label>
+                      <label className="block text-sm font-medium text-blue-700 mb-2">{t('recovery.period')}</label>
                       <select className="w-full border border-blue-300 rounded-lg px-3 py-2">
-                        <option>Janvier 2024</option>
-                        <option>Décembre 2023</option>
-                        <option>Novembre 2023</option>
-                        <option>Personnalisé...</option>
+                        <option>{t('recovery.january2024')}</option>
+                        <option>{t('recovery.december2023')}</option>
+                        <option>{t('recovery.november2023')}</option>
+                        <option>{t('recovery.customEllipsis')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-2">Périmètre</label>
+                      <label className="block text-sm font-medium text-blue-700 mb-2">{t('recovery.scope')}</label>
                       <select className="w-full border border-blue-300 rounded-lg px-3 py-2">
-                        <option>Amiable + Contentieux</option>
-                        <option>Amiable uniquement</option>
-                        <option>Contentieux uniquement</option>
+                        <option>{t('recovery.amicablePlusLitigation')}</option>
+                        <option>{t('recovery.amicableOnly')}</option>
+                        <option>{t('recovery.litigationOnly')}</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-blue-700 mb-2">Format</label>
                       <select className="w-full border border-blue-300 rounded-lg px-3 py-2">
-                        <option>PDF Détaillé</option>
-                        <option>Excel avec données</option>
-                        <option>PowerPoint exécutif</option>
+                        <option>{t('recovery.detailedPdf')}</option>
+                        <option>{t('recovery.excelWithData')}</option>
+                        <option>{t('recovery.executivePowerPoint')}</option>
                       </select>
                     </div>
                   </div>
@@ -13047,32 +13389,32 @@ Service Contentieux
 
                 {/* Aperçu des sections */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-[var(--color-primary)]">Sections du rapport</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)]">{t('recovery.reportSections')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Résumé exécutif</span>
+                        <span className="font-medium">{t('recovery.executiveSummary')}</span>
                         <input type="checkbox" defaultChecked className="rounded" />
                       </div>
-                      <p className="text-sm text-gray-600">KPIs clés, tendances, alertes</p>
+                      <p className="text-sm text-gray-600">{t('recovery.keyKpisTrendsAlerts')}</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Performance amiable</span>
+                        <span className="font-medium">{t('recovery.amicablePerformance')}</span>
                         <input type="checkbox" defaultChecked className="rounded" />
                       </div>
-                      <p className="text-sm text-gray-600">Taux de succès, délais, actions</p>
+                      <p className="text-sm text-gray-600">{t('recovery.successRatesDelaysActions')}</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Contentieux en cours</span>
+                        <span className="font-medium">{t('recovery.ongoingLitigation')}</span>
                         <input type="checkbox" defaultChecked className="rounded" />
                       </div>
-                      <p className="text-sm text-gray-600">Procédures, coûts, résultats</p>
+                      <p className="text-sm text-gray-600">{t('recovery.proceduresCostsResults')}</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Analyse financière</span>
+                        <span className="font-medium">{t('recovery.financialAnalysis')}</span>
                         <input type="checkbox" defaultChecked className="rounded" />
                       </div>
                       <p className="text-sm text-gray-600">ROI, provisions, cash impact</p>
@@ -13082,11 +13424,11 @@ Service Contentieux
                         <span className="font-medium">Recommandations</span>
                         <input type="checkbox" defaultChecked className="rounded" />
                       </div>
-                      <p className="text-sm text-gray-600">Actions prioritaires, optimisations</p>
+                      <p className="text-sm text-gray-600">{t('recovery.priorityActionsOptimizations')}</p>
                     </div>
                     <div className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium">Annexes détaillées</span>
+                        <span className="font-medium">{t('recovery.detailedAppendices')}</span>
                         <input type="checkbox" className="rounded" />
                       </div>
                       <p className="text-sm text-gray-600">Listings, correspondances</p>
@@ -13100,13 +13442,13 @@ Service Contentieux
                     onClick={() => setShowRapportMensuelModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Aperçu
+                    {t('recovery.preview')}
                   </button>
                   <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Générer le rapport
+                    {t('recovery.generateTheReport')}
                   </button>
                 </div>
               </div>
@@ -13123,7 +13465,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <BarChart3 className="w-6 h-6 mr-2 text-green-600" />
-                  Analyse ROI Détaillée
+                  {t('recovery.detailedRoiAnalysisTitle')}
                 </h2>
                 <button
                   onClick={() => setShowAnalyseROIModal(false)}
@@ -13136,37 +13478,37 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Filtres */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-green-900 mb-3">Critères d'Analyse</h3>
+                  <h3 className="font-semibold text-green-900 mb-3">{t('recovery.analysisCriteria')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-green-700 mb-2">Période</label>
+                      <label className="block text-sm font-medium text-green-700 mb-2">{t('recovery.period')}</label>
                       <select className="w-full border border-green-300 rounded-lg px-3 py-2">
                         <option>12 derniers mois</option>
                         <option>6 derniers mois</option>
-                        <option>Année en cours</option>
-                        <option>Personnalisé</option>
+                        <option>{t('recovery.currentYear')}</option>
+                        <option>{t('recovery.custom')}</option>
                       </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-green-700 mb-2">Phase</label>
                       <select className="w-full border border-green-300 rounded-lg px-3 py-2">
-                        <option>Toutes les phases</option>
-                        <option>Amiable uniquement</option>
-                        <option>Contentieux uniquement</option>
-                        <option>Exécution uniquement</option>
+                        <option>{t('recovery.allPhases')}</option>
+                        <option>{t('recovery.amicableOnly')}</option>
+                        <option>{t('recovery.litigationOnly')}</option>
+                        <option>{t('recovery.enforcementOnly')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-green-700 mb-2">Montant min.</label>
+                      <label className="block text-sm font-medium text-green-700 mb-2">{t('recovery.minAmount')}</label>
                       <input type="number" placeholder="0" className="w-full border border-green-300 rounded-lg px-3 py-2" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-green-700 mb-2">Groupement</label>
                       <select className="w-full border border-green-300 rounded-lg px-3 py-2">
-                        <option>Par procédure</option>
-                        <option>Par agent</option>
-                        <option>Par client</option>
-                        <option>Par secteur</option>
+                        <option>{t('recovery.byProcedure')}</option>
+                        <option>{t('recovery.byAgent')}</option>
+                        <option>{t('recovery.byCustomer')}</option>
+                        <option>{t('recovery.bySector')}</option>
                       </select>
                     </div>
                   </div>
@@ -13177,23 +13519,23 @@ Service Contentieux
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-[var(--color-primary)] mb-2">ROI Global</h4>
                     <p className="text-lg font-bold text-green-600">3.2x</p>
-                    <p className="text-sm text-gray-600">+15% vs période précédente</p>
+                    <p className="text-sm text-gray-600">{t('recovery.plus15VsPrevPeriod')}</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Coût par €1 recouvré</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.costPerUnitCollected')}</h4>
                     <p className="text-lg font-bold text-orange-600">0.31€</p>
                     <p className="text-sm text-gray-600">-8% vs objectif</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Break-even délai</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.breakEvenDelay')}</h4>
                     <p className="text-lg font-bold text-blue-600">45j</p>
-                    <p className="text-sm text-gray-600">Délai d'amortissement</p>
+                    <p className="text-sm text-gray-600">{t('recovery.paybackPeriod')}</p>
                   </div>
                 </div>
 
                 {/* Répartition des coûts */}
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-[var(--color-primary)] mb-4">Répartition des Coûts par Phase</h4>
+                  <h4 className="font-semibold text-[var(--color-primary)] mb-4">{t('recovery.costBreakdownByPhase')}</h4>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Amiable</span>
@@ -13205,7 +13547,7 @@ Service Contentieux
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Contentieux</span>
+                      <span className="text-sm font-medium">{t('recovery.litigation')}</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-orange-500 h-2 rounded-full" style={{width: '25%'}}></div>
@@ -13214,7 +13556,7 @@ Service Contentieux
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Exécution</span>
+                      <span className="text-sm font-medium">{t('recovery.enforcement')}</span>
                       <div className="flex items-center space-x-2">
                         <div className="w-32 bg-gray-200 rounded-full h-2">
                           <div className="bg-red-500 h-2 rounded-full" style={{width: '10%'}}></div>
@@ -13231,13 +13573,13 @@ Service Contentieux
                     onClick={() => setShowAnalyseROIModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Export Excel
+                    {t('recovery.excelExport')}
                   </button>
                   <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                    Générer l'analyse
+                    {t('recovery.generateAnalysis')}
                   </button>
                 </div>
               </div>
@@ -13254,7 +13596,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <Users className="w-6 h-6 mr-2 text-orange-600" />
-                  Performance des Équipes
+                  {t('recovery.teamPerformanceTitle')}
                 </h2>
                 <button
                   onClick={() => setShowPerformanceEquipeModal(false)}
@@ -13267,16 +13609,16 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Tableau de bord des agents */}
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-orange-900 mb-4">Performance Individuelle</h3>
+                  <h3 className="font-semibold text-orange-900 mb-4">{t('recovery.individualPerformance')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-orange-100">
                         <tr>
                           <th className="px-4 py-2 text-left text-xs font-medium text-orange-700 uppercase">Agent</th>
                           <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Dossiers</th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Recouvré</th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Taux succès</th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Délai moyen</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">{t('recovery.collected')}</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">{t('recovery.successRateShortLower')}</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">{t('recovery.averageDelay')}</th>
                           <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Note</th>
                         </tr>
                       </thead>
@@ -13319,38 +13661,38 @@ Service Contentieux
                 {/* Métriques d'équipe */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Productivité moyenne</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.averageProductivity')}</h4>
                     <p className="text-lg font-bold text-orange-600">66 dossiers/mois</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Taux succès équipe</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.teamSuccessRate')}</h4>
                     <p className="text-lg font-bold text-green-600">83.5%</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Formation requise</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.trainingRequired')}</h4>
                     <p className="text-lg font-bold text-red-600">2 agents</p>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Charge de travail</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.workload')}</h4>
                     <p className="text-lg font-bold text-blue-600">87%</p>
                   </div>
                 </div>
 
                 {/* Recommandations */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-3">Recommandations d'Amélioration</h4>
+                  <h4 className="font-semibold text-blue-900 mb-3">{t('recovery.improvementRecommendations')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-start space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-600 mt-1" />
-                      <span className="text-sm">Formation complémentaire pour Paul MBEKI sur les négociations</span>
+                      <span className="text-sm">{t('recovery.recoTrainingMbeki')}</span>
                     </div>
                     <div className="flex items-start space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-600 mt-1" />
-                      <span className="text-sm">Redistribution de charge: +15 dossiers pour Marie KOUAM</span>
+                      <span className="text-sm">{t('recovery.recoWorkloadKouam')}</span>
                     </div>
                     <div className="flex items-start space-x-2">
                       <CheckCircle className="w-4 h-4 text-green-600 mt-1" />
-                      <span className="text-sm">Mise en place d'objectifs individuels trimestriels</span>
+                      <span className="text-sm">{t('recovery.recoQuarterlyTargets')}</span>
                     </div>
                   </div>
                 </div>
@@ -13361,13 +13703,13 @@ Service Contentieux
                     onClick={() => setShowPerformanceEquipeModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Export détaillé
+                    {t('recovery.detailedExport')}
                   </button>
                   <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-                    Générer l'analyse
+                    {t('recovery.generateAnalysis')}
                   </button>
                 </div>
               </div>
@@ -13384,7 +13726,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <TrendingUp className="w-6 h-6 mr-2 text-primary-600" />
-                  Prévisions de Trésorerie
+                  {t('recovery.treasuryForecastTitle')}
                 </h2>
                 <button
                   onClick={() => setShowPrevisionTresorerieModal(false)}
@@ -13397,7 +13739,7 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Paramètres de prévision */}
                 <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-primary-900 mb-3">Paramètres de Prévision</h3>
+                  <h3 className="font-semibold text-primary-900 mb-3">{t('recovery.forecastParameters')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-primary-700 mb-2">Horizon</label>
@@ -13405,20 +13747,20 @@ Service Contentieux
                         <option>3 mois glissants</option>
                         <option>6 mois glissants</option>
                         <option>12 mois glissants</option>
-                        <option>Personnalisé</option>
+                        <option>{t('recovery.custom')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary-700 mb-2">Scénario</label>
+                      <label className="block text-sm font-medium text-primary-700 mb-2">{t('recovery.scenario')}</label>
                       <select className="w-full border border-primary-300 rounded-lg px-3 py-2">
-                        <option>Réaliste (base historique)</option>
-                        <option>Optimiste (+20%)</option>
-                        <option>Pessimiste (-15%)</option>
+                        <option>{t('recovery.scenarioRealistic')}</option>
+                        <option>{t('recovery.scenarioOptimistic')}</option>
+                        <option>{t('recovery.scenarioPessimistic')}</option>
                         <option>Conservateur</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-primary-700 mb-2">Granularité</label>
+                      <label className="block text-sm font-medium text-primary-700 mb-2">{t('recovery.granularity')}</label>
                       <select className="w-full border border-primary-300 rounded-lg px-3 py-2">
                         <option>Mensuelle</option>
                         <option>Hebdomadaire</option>
@@ -13431,9 +13773,9 @@ Service Contentieux
                 {/* Prévisions consolidées */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Mois +1</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.monthPlus1')}</h4>
                     <p className="text-lg font-bold text-green-600">2.1M€</p>
-                    <p className="text-sm text-gray-600">Encaissements prévus</p>
+                    <p className="text-sm text-gray-600">{t('recovery.expectedCollections')}</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
                         <span>Amiable: 1.4M€</span>
@@ -13442,9 +13784,9 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Mois +2</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.monthPlus2')}</h4>
                     <p className="text-lg font-bold text-blue-600">1.8M€</p>
-                    <p className="text-sm text-gray-600">Encaissements prévus</p>
+                    <p className="text-sm text-gray-600">{t('recovery.expectedCollections')}</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
                         <span>Amiable: 1.2M€</span>
@@ -13453,9 +13795,9 @@ Service Contentieux
                     </div>
                   </div>
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">Mois +3</h4>
+                    <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('recovery.monthPlus3')}</h4>
                     <p className="text-lg font-bold text-orange-600">1.5M€</p>
-                    <p className="text-sm text-gray-600">Encaissements prévus</p>
+                    <p className="text-sm text-gray-600">{t('recovery.expectedCollections')}</p>
                     <div className="mt-2">
                       <div className="flex justify-between text-xs">
                         <span>Amiable: 0.9M€</span>
@@ -13467,18 +13809,18 @@ Service Contentieux
 
                 {/* Facteurs d'impact */}
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-900 mb-3">Facteurs d'Impact sur les Prévisions</h4>
+                  <h4 className="font-semibold text-yellow-900 mb-3">{t('recovery.forecastImpactFactors')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Saisonnalité (été)</span>
+                      <span className="text-sm">{t('recovery.seasonalitySummer')}</span>
                       <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">-12%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Nouvelles procédures</span>
+                      <span className="text-sm">{t('recovery.newProcedures')}</span>
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">+8%</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Contexte économique</span>
+                      <span className="text-sm">{t('recovery.economicContext')}</span>
                       <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">-5%</span>
                     </div>
                   </div>
@@ -13490,13 +13832,13 @@ Service Contentieux
                     onClick={() => setShowPrevisionTresorerieModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Export vers Finance
+                    {t('recovery.exportToFinance')}
                   </button>
                   <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
-                    Générer les prévisions
+                    {t('recovery.generateForecasts')}
                   </button>
                 </div>
               </div>
@@ -13513,7 +13855,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <AlertTriangle className="w-6 h-6 mr-2 text-red-600" />
-                  Dossiers à Risque & Alertes
+                  {t('recovery.casesAtRiskAndAlerts')}
                 </h2>
                 <button
                   onClick={() => setShowDossiersRisqueModal(false)}
@@ -13528,31 +13870,31 @@ Service Contentieux
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h3 className="font-semibold text-red-900 mb-3 flex items-center">
                     <AlertTriangle className="w-5 h-5 mr-2" />
-                    Alertes Critiques (Action Immédiate)
+                    {t('recovery.criticalAlerts')}
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between bg-white p-3 rounded border border-red-200">
                       <div>
                         <p className="font-medium text-red-900">CAMEROUN INDUSTRIES</p>
-                        <p className="text-sm text-red-700">125k€ - 40j de retard - Pas de réponse depuis 15j</p>
+                        <p className="text-sm text-red-700">{t('recovery.alertNoReply15d')}</p>
                       </div>
                       <div className="flex space-x-2">
                         <button className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                          Escalader
+                          {t('recovery.escalate')}
                         </button>
                         <button className="px-3 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700">
-                          Contentieux
+                          {t('recovery.litigation')}
                         </button>
                       </div>
                     </div>
                     <div className="flex items-center justify-between bg-white p-3 rounded border border-red-200">
                       <div>
                         <p className="font-medium text-red-900">SARL TOGO TRADING</p>
-                        <p className="text-sm text-red-700">89k€ - Entreprise en liquidation judiciaire</p>
+                        <p className="text-sm text-red-700">{t('recovery.alertLiquidation')}</p>
                       </div>
                       <div className="flex space-x-2">
                         <button className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
-                          Déclaration
+                          {t('recovery.declaration')}
                         </button>
                       </div>
                     </div>
@@ -13561,13 +13903,13 @@ Service Contentieux
 
                 {/* Dossiers surveillés */}
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-orange-900 mb-3">Dossiers Sous Surveillance</h3>
+                  <h3 className="font-semibold text-orange-900 mb-3">{t('recovery.casesUnderWatch')}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead className="bg-orange-100">
                         <tr>
-                          <th className="px-4 py-2 text-left text-xs font-medium text-orange-700 uppercase">Client</th>
-                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Montant</th>
+                          <th className="px-4 py-2 text-left text-xs font-medium text-orange-700 uppercase">{t('recovery.customer')}</th>
+                          <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">{t('recovery.amount')}</th>
                           <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Retard</th>
                           <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Risque</th>
                           <th className="px-4 py-2 text-center text-xs font-medium text-orange-700 uppercase">Action</th>
@@ -13603,19 +13945,19 @@ Service Contentieux
 
                 {/* Recommandations */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-900 mb-3">Recommandations d'Actions</h4>
+                  <h4 className="font-semibold text-blue-900 mb-3">{t('recovery.actionRecommendations')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-start space-x-2">
                       <span className="bg-red-500 w-2 h-2 rounded-full mt-2"></span>
-                      <span className="text-sm">Passer CAMEROUN INDUSTRIES en contentieux sous 48h</span>
+                      <span className="text-sm">{t('recovery.recoMoveToLitigation48h')}</span>
                     </div>
                     <div className="flex items-start space-x-2">
                       <span className="bg-orange-500 w-2 h-2 rounded-full mt-2"></span>
-                      <span className="text-sm">Renforcer le suivi de BURKINA LOGISTICS (contact quotidien)</span>
+                      <span className="text-sm">{t('recovery.recoDailyFollowUp')}</span>
                     </div>
                     <div className="flex items-start space-x-2">
                       <span className="bg-yellow-500 w-2 h-2 rounded-full mt-2"></span>
-                      <span className="text-sm">Réviser les conditions de paiement pour les nouveaux clients à risque</span>
+                      <span className="text-sm">{t('recovery.recoReviewPaymentTerms')}</span>
                     </div>
                   </div>
                 </div>
@@ -13626,13 +13968,13 @@ Service Contentieux
                     onClick={() => setShowDossiersRisqueModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Export liste
+                    {t('recovery.exportList')}
                   </button>
                   <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                    Générer les alertes
+                    {t('recovery.generateAlerts')}
                   </button>
                 </div>
               </div>
@@ -13649,7 +13991,7 @@ Service Contentieux
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center">
                   <Download className="w-6 h-6 mr-2 text-gray-600" />
-                  Export Personnalisé
+                  {t('recovery.customExportTitle')}
                 </h2>
                 <button
                   onClick={() => setShowExportPersonnaliseModal(false)}
@@ -13662,27 +14004,27 @@ Service Contentieux
               <div className="space-y-6">
                 {/* Sélection du format */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Format d'Export</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.exportFormat')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100">
                       <input type="radio" name="format" value="excel" defaultChecked className="text-blue-600" />
                       <div>
-                        <p className="font-medium">Excel (.xlsx)</p>
-                        <p className="text-sm text-gray-600">Données brutes + graphiques</p>
+                        <p className="font-medium">{t('recovery.excelXlsx')}</p>
+                        <p className="text-sm text-gray-600">{t('recovery.rawDataPlusCharts')}</p>
                       </div>
                     </label>
                     <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100">
                       <input type="radio" name="format" value="pdf" className="text-blue-600" />
                       <div>
                         <p className="font-medium">PDF</p>
-                        <p className="text-sm text-gray-600">Rapport mis en forme</p>
+                        <p className="text-sm text-gray-600">{t('recovery.formattedReport')}</p>
                       </div>
                     </label>
                     <label className="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-100">
                       <input type="radio" name="format" value="csv" className="text-blue-600" />
                       <div>
                         <p className="font-medium">CSV</p>
-                        <p className="text-sm text-gray-600">Données uniquement</p>
+                        <p className="text-sm text-gray-600">{t('recovery.dataOnly')}</p>
                       </div>
                     </label>
                   </div>
@@ -13690,21 +14032,21 @@ Service Contentieux
 
                 {/* Sélection des données */}
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Données à Exporter</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.dataToExport')}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-gray-700">Tables principales</h4>
+                      <h4 className="font-medium text-gray-700">{t('recovery.mainTables')}</h4>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked className="rounded" />
-                        <span className="text-sm">Créances (liste complète)</span>
+                        <span className="text-sm">{t('recovery.receivablesFullList')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked className="rounded" />
-                        <span className="text-sm">Dossiers contentieux</span>
+                        <span className="text-sm">{t('recovery.litigationCases')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" className="rounded" />
-                        <span className="text-sm">Historique des relances</span>
+                        <span className="text-sm">{t('recovery.reminderHistoryLower')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" className="rounded" />
@@ -13712,22 +14054,22 @@ Service Contentieux
                       </label>
                     </div>
                     <div className="space-y-2">
-                      <h4 className="font-medium text-gray-700">Métriques & KPIs</h4>
+                      <h4 className="font-medium text-gray-700">{t('recovery.metricsAndKpis')}</h4>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked className="rounded" />
-                        <span className="text-sm">Performance par agent</span>
+                        <span className="text-sm">{t('recovery.performanceByAgent')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" defaultChecked className="rounded" />
-                        <span className="text-sm">Analyse ROI</span>
+                        <span className="text-sm">{t('recovery.roiAnalysis')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" className="rounded" />
-                        <span className="text-sm">Évolution temporelle</span>
+                        <span className="text-sm">{t('recovery.timeTrend')}</span>
                       </label>
                       <label className="flex items-center space-x-2">
                         <input type="checkbox" className="rounded" />
-                        <span className="text-sm">Prévisions</span>
+                        <span className="text-sm">{t('recovery.forecasts')}</span>
                       </label>
                     </div>
                   </div>
@@ -13738,31 +14080,31 @@ Service Contentieux
                   <h3 className="font-semibold text-[var(--color-primary)] mb-3">Filtres</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.period')}</label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option>Année en cours</option>
+                        <option>{t('recovery.currentYear')}</option>
                         <option>12 derniers mois</option>
-                        <option>Mois en cours</option>
-                        <option>Personnalisé</option>
+                        <option>{t('recovery.currentMonth')}</option>
+                        <option>{t('recovery.custom')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.status')}</label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option>Tous</option>
-                        <option>En cours uniquement</option>
-                        <option>Résolus uniquement</option>
-                        <option>Contentieux</option>
+                        <option>{t('recovery.ongoingOnly')}</option>
+                        <option>{t('recovery.resolvedOnly')}</option>
+                        <option>{t('recovery.litigation')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Montant min.</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('recovery.minAmount')}</label>
                       <input type="number" placeholder="0" className="w-full border border-gray-300 rounded-lg px-3 py-2" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Agent</label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        <option>Tous les agents</option>
+                        <option>{t('recovery.allAgents')}</option>
                         <option>Marie KOUAM</option>
                         <option>Paul MBEKI</option>
                         <option>Sophie NDONG</option>
@@ -13777,13 +14119,13 @@ Service Contentieux
                     onClick={() => setShowExportPersonnaliseModal(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
-                    Annuler
+                    {t('recovery.cancel')}
                   </button>
                   <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                    Prévisualiser
+                    {t('recovery.previewBtn')}
                   </button>
                   <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    Exporter
+                    {t('recovery.export')}
                   </button>
                 </div>
               </div>
@@ -13815,40 +14157,40 @@ Service Contentieux
               {/* Informations générales */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations du Plan</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.planInformation')}</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Référence:</span>
+                      <span className="text-gray-600">{t('recovery.referenceColon')}</span>
                       <span className="font-medium">{selectedPlan.reference}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Montant total:</span>
+                      <span className="text-gray-600">{t('recovery.totalAmountColon')}</span>
                       <span className="font-medium text-[var(--color-primary)]">{formatCurrency(selectedPlan.montantTotal)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Mensualité:</span>
+                      <span className="text-gray-600">{t('recovery.monthlyInstalmentColon')}</span>
                       <span className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Durée:</span>
+                      <span className="text-gray-600">{t('recovery.durationColon')}</span>
                       <span className="font-medium">{selectedPlan.mensualite > 0 ? `${Math.round(selectedPlan.montantTotal / selectedPlan.mensualite)} mois` : '—'}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-4">
-                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">Progression</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.progress')}</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Échéances payées:</span>
+                      <span className="text-gray-600">{t('recovery.paidInstalmentsColon')}</span>
                       <span className="font-medium text-green-600">{selectedPlan.echeancesPayees}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Montant payé:</span>
+                      <span className="text-gray-600">{t('recovery.paidAmountColon')}</span>
                       <span className="font-medium text-green-600">{formatCurrency(selectedPlan.montantPaye)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Montant restant:</span>
+                      <span className="text-gray-600">{t('recovery.remainingAmountColon')}</span>
                       <span className="font-medium text-orange-600">{formatCurrency(selectedPlan.montantRestant)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -13862,24 +14204,24 @@ Service Contentieux
               {/* Échéancier */}
               <div className="bg-white border border-gray-200 rounded-lg">
                 <div className="px-4 py-3 border-b border-gray-200">
-                  <h3 className="font-semibold text-[var(--color-primary)]">Échéancier</h3>
+                  <h3 className="font-semibold text-[var(--color-primary)]">{t('recovery.schedule')}</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Échéance</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date limite</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Montant</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Date paiement</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">Statut</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.dueDate')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.deadline')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.amount')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.paymentDateShort')}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase">{t('recovery.status')}</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {selectedPlan.mensualite <= 0 && (
                         <tr>
                           <td colSpan={5} className="px-4 py-8 text-center text-gray-500 text-sm">
-                            Échéancier non défini pour ce dossier.
+                            {t('recovery.noScheduleDefined')}
                           </td>
                         </tr>
                       )}
@@ -13920,7 +14262,7 @@ Service Contentieux
                   onClick={() => setShowPlanDetailModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Fermer
+                  {t('recovery.close')}
                 </button>
                 <button
                   onClick={() => {
@@ -13929,7 +14271,7 @@ Service Contentieux
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 >
-                  Enregistrer paiement
+                  {t('recovery.recordPayment')}
                 </button>
                 <button
                   onClick={() => {
@@ -13938,7 +14280,7 @@ Service Contentieux
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Envoyer relance
+                  {t('recovery.sendReminderShort')}
                 </button>
               </div>
             </div>
@@ -13953,7 +14295,7 @@ Service Contentieux
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                  Enregistrer un Paiement
+                  {t('recovery.recordPaymentTitle')}
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
               </div>
@@ -13968,22 +14310,22 @@ Service Contentieux
             <div className="p-6 space-y-6">
               {/* Informations du plan */}
               <div className="bg-blue-50 rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-3">Informations du Plan</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.planInformation')}</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Montant total:</span>
+                    <span className="text-gray-600">{t('recovery.totalAmountColon')}</span>
                     <div className="font-medium">{formatCurrency(selectedPlan.montantTotal)}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Montant restant:</span>
+                    <span className="text-gray-600">{t('recovery.remainingAmountColon')}</span>
                     <div className="font-medium text-orange-600">{formatCurrency(selectedPlan.montantRestant)}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Mensualité:</span>
+                    <span className="text-gray-600">{t('recovery.monthlyInstalmentColon')}</span>
                     <div className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Prochaine échéance:</span>
+                    <span className="text-gray-600">{t('recovery.nextInstalmentColon')}</span>
                     <div className="font-medium">{selectedPlan.prochaineEcheance ? new Date(selectedPlan.prochaineEcheance).toLocaleDateString() : '—'}</div>
                   </div>
                 </div>
@@ -13994,7 +14336,7 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date du paiement *
+                      {t('recovery.paymentDateReq')}
                     </label>
                     <input
                       type="date"
@@ -14005,7 +14347,7 @@ Service Contentieux
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Montant payé (FCFA) *
+                      {t('recovery.paidAmountFcfaReq')}
                     </label>
                     <input
                       type="number"
@@ -14021,24 +14363,24 @@ Service Contentieux
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mode de paiement *
+                      {t('recovery.paymentModeReq')}
                     </label>
                     <select className="w-full border border-gray-300 rounded-lg px-3 py-2" required>
-                      <option value="">Sélectionner...</option>
-                      <option value="virement">Virement bancaire</option>
-                      <option value="cheque">Chèque</option>
-                      <option value="especes">Espèces</option>
+                      <option value="">{t('recovery.selectEllipsis')}</option>
+                      <option value="virement">{t('recovery.bankTransfer')}</option>
+                      <option value="cheque">{t('recovery.check')}</option>
+                      <option value="especes">{t('recovery.cash')}</option>
                       <option value="mobile">Mobile Money</option>
-                      <option value="carte">Carte bancaire</option>
+                      <option value="carte">{t('recovery.bankCard')}</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Référence de transaction
+                      {t('recovery.transactionReference')}
                     </label>
                     <input
                       type="text"
-                      placeholder="Numéro de référence..."
+                      placeholder={t('recovery.referenceNumberPh')}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2"
                     />
                   </div>
@@ -14046,11 +14388,11 @@ Service Contentieux
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Notes / Observations
+                    {t('recovery.notesObservations')}
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="Commentaires sur ce paiement..."
+                    placeholder={t('recovery.paymentCommentsPh')}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   />
                 </div>
@@ -14061,15 +14403,15 @@ Service Contentieux
                   <div className="space-y-2">
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Envoyer accusé de réception au client</span>
+                      <span className="text-sm">{t('recovery.sendReceiptToCustomer')}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Appliquer automatiquement aux prochaines échéances si surplus</span>
+                      <span className="text-sm">{t('recovery.autoApplySurplus')}</span>
                     </label>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Mettre à jour le solde comptable immédiatement</span>
+                      <span className="text-sm">{t('recovery.updateAccountingBalance')}</span>
                     </label>
                   </div>
                 </div>
@@ -14081,13 +14423,13 @@ Service Contentieux
                   onClick={() => setShowEnregistrerPaiementModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                  Prévisualiser
+                  {t('recovery.previewBtn')}
                 </button>
                 <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                  Enregistrer le paiement
+                  {t('recovery.savePayment')}
                 </button>
               </div>
             </div>
@@ -14102,7 +14444,7 @@ Service Contentieux
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                  Relance Plan de Remboursement
+                  {t('recovery.repaymentPlanReminder')}
                 </h2>
                 <p className="text-gray-600 mt-1">Plan: {selectedPlan.reference} - {selectedPlan.client}</p>
               </div>
@@ -14117,10 +14459,10 @@ Service Contentieux
             <div className="p-6 space-y-6">
               {/* Situation actuelle */}
               <div className="bg-orange-50 rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-3">Situation du Plan</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-3">{t('recovery.planSituation')}</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">Statut actuel:</span>
+                    <span className="text-gray-600">{t('recovery.currentStatusColon')}</span>
                     <div className={`font-medium ${
                       selectedPlan.statut === 'Respecté' ? 'text-green-600' :
                       selectedPlan.statut === 'En retard' ? 'text-red-600' :
@@ -14130,11 +14472,11 @@ Service Contentieux
                     </div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Prochaine échéance:</span>
+                    <span className="text-gray-600">{t('recovery.nextInstalmentColon')}</span>
                     <div className="font-medium">{selectedPlan.prochaineEcheance ? new Date(selectedPlan.prochaineEcheance).toLocaleDateString() : '—'}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Montant attendu:</span>
+                    <span className="text-gray-600">{t('recovery.expectedAmountColon')}</span>
                     <div className="font-medium">{selectedPlan.mensualite > 0 ? formatCurrency(selectedPlan.mensualite) : '—'}</div>
                   </div>
                   <div>
@@ -14152,28 +14494,28 @@ Service Contentieux
               {/* Type de relance */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type de relance *
+                  {t('recovery.reminderTypeReq')}
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                     <input type="radio" name="typeRelance" value="email" className="mr-3" defaultChecked />
                     <div>
                       <div className="font-medium">Email</div>
-                      <div className="text-xs text-gray-700">Notification électronique</div>
+                      <div className="text-xs text-gray-700">{t('recovery.electronicNotification')}</div>
                     </div>
                   </label>
                   <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                     <input type="radio" name="typeRelance" value="sms" className="mr-3" />
                     <div>
                       <div className="font-medium">SMS</div>
-                      <div className="text-xs text-gray-700">Message texte</div>
+                      <div className="text-xs text-gray-700">{t('recovery.textMessage')}</div>
                     </div>
                   </label>
                   <label className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                     <input type="radio" name="typeRelance" value="courrier" className="mr-3" />
                     <div>
                       <div className="font-medium">Courrier</div>
-                      <div className="text-xs text-gray-700">Lettre recommandée</div>
+                      <div className="text-xs text-gray-700">{t('recovery.registeredLetter')}</div>
                     </div>
                   </label>
                 </div>
@@ -14182,13 +14524,13 @@ Service Contentieux
               {/* Template de message */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Modèle de message
+                  {t('recovery.messageTemplate')}
                 </label>
                 <select className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3">
-                  <option value="rappel_gentil">Rappel gentil - Échéance proche</option>
-                  <option value="rappel_ferme">Rappel ferme - Retard de paiement</option>
-                  <option value="mise_en_demeure">Mise en demeure - Rupture de plan</option>
-                  <option value="personnalise">Message personnalisé</option>
+                  <option value="rappel_gentil">{t('recovery.templateGentleReminder')}</option>
+                  <option value="rappel_ferme">{t('recovery.templateFirmReminder')}</option>
+                  <option value="mise_en_demeure">{t('recovery.templateFormalNotice')}</option>
+                  <option value="personnalise">{t('recovery.templateCustomMessage')}</option>
                 </select>
 
                 <textarea
@@ -14212,19 +14554,19 @@ L'équipe recouvrement`}
 
               {/* Options */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-3">Options de relance</h4>
+                <h4 className="font-medium text-gray-900 mb-3">{t('recovery.reminderOptions')}</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm">Programmer un suivi automatique dans 7 jours</span>
+                    <span className="text-sm">{t('recovery.scheduleAutoFollowUp')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Copier le responsable commercial</span>
+                    <span className="text-sm">{t('recovery.copySalesManager')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Enregistrer dans l'historique contentieux</span>
+                    <span className="text-sm">{t('recovery.saveInLitigationHistory')}</span>
                   </label>
                 </div>
               </div>
@@ -14235,13 +14577,13 @@ L'équipe recouvrement`}
                   onClick={() => setShowRelancePlanModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                 >
-                  Annuler
+                  {t('recovery.cancel')}
                 </button>
                 <button className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-                  Prévisualiser
+                  {t('recovery.previewBtn')}
                 </button>
                 <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-                  Envoyer la relance
+                  {t('recovery.sendTheReminder')}
                 </button>
               </div>
             </div>
@@ -14256,7 +14598,7 @@ L'équipe recouvrement`}
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div>
                 <h2 className="text-lg font-semibold text-[var(--color-primary)]">
-                  Nouvelle Action de Recouvrement
+                  {t('recovery.newCollectionAction')}
                 </h2>
                 {selectedCreance && (
                   <p className="text-gray-600 mt-1">
@@ -14287,7 +14629,7 @@ L'équipe recouvrement`}
               {/* Type d'action */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Type d'action *
+                  {t('recovery.actionTypeReq')}
                 </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                   {[
@@ -14324,7 +14666,7 @@ L'équipe recouvrement`}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date *
+                    {t('recovery.dateReq')}
                   </label>
                   <input
                     type="date"
@@ -14335,7 +14677,7 @@ L'équipe recouvrement`}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Heure
+                    {t('recovery.time')}
                   </label>
                   <input
                     type="time"
@@ -14349,14 +14691,14 @@ L'équipe recouvrement`}
               {/* Responsable */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Responsable *
+                  {t('recovery.ownerReq')}
                 </label>
                 <select
                   value={actionFormData.responsable}
                   onChange={(e) => setActionFormData({ ...actionFormData, responsable: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                 >
-                  <option value="">Sélectionner un responsable...</option>
+                  <option value="">{t('recovery.selectOwnerPh')}</option>
                   <option value="">—</option>
                   <option value="">—</option>
                   <option value="">—</option>
@@ -14368,24 +14710,24 @@ L'équipe recouvrement`}
               {/* Détails / Notes */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Détails / Notes *
+                  {t('recovery.detailsNotesReq')}
                 </label>
                 <textarea
                   rows={4}
                   value={actionFormData.details}
                   onChange={(e) => setActionFormData({ ...actionFormData, details: e.target.value })}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  placeholder="Décrivez l'action prévue ou effectuée..."
+                  placeholder={t('recovery.describeActionPh')}
                 />
               </div>
 
               {/* Montant promis (optionnel) */}
               <div className="bg-blue-50 rounded-lg p-4 space-y-4">
-                <h4 className="font-medium text-gray-900">Engagement de paiement (optionnel)</h4>
+                <h4 className="font-medium text-gray-900">{t('recovery.paymentCommitmentOptional')}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Montant promis (FCFA)
+                      {t('recovery.promisedAmountFcfa')}
                     </label>
                     <input
                       type="number"
@@ -14397,7 +14739,7 @@ L'équipe recouvrement`}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date de promesse
+                      {t('recovery.promiseDate')}
                     </label>
                     <input
                       type="date"
@@ -14415,15 +14757,15 @@ L'équipe recouvrement`}
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" defaultChecked />
-                    <span className="text-sm">Programmer un suivi automatique dans 7 jours</span>
+                    <span className="text-sm">{t('recovery.scheduleAutoFollowUp')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Notifier le responsable commercial</span>
+                    <span className="text-sm">{t('recovery.notifySalesManager')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Envoyer un email de confirmation au client</span>
+                    <span className="text-sm">{t('recovery.sendConfirmationEmail')}</span>
                   </label>
                 </div>
               </div>
@@ -14446,7 +14788,7 @@ L'équipe recouvrement`}
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Annuler
+                {t('recovery.cancel')}
               </button>
               <button
                 onClick={async () => {
@@ -14466,7 +14808,7 @@ L'équipe recouvrement`}
                       notes: actionFormData.montantPromis ? `Promesse: ${actionFormData.montantPromis} le ${actionFormData.datePromesse}` : '',
                     });
                     await reloadRecovery();
-                    toast.success('Action enregistrée');
+                    toast.success(t('recovery.toastActionSaved'));
                     setShowActionModal(false);
                     setActionFormData({
                       typeAction: 'APPEL',
@@ -14478,7 +14820,7 @@ L'équipe recouvrement`}
                       datePromesse: ''
                     });
                   } catch (err) {
-                    toast.error('Enregistrement impossible : ' + (err instanceof Error ? err.message : 'erreur'));
+                    toast.error(t('recovery.toastSaveImpossible') + (err instanceof Error ? err.message : 'erreur'));
                   }
                 }}
                 disabled={!actionFormData.date || !actionFormData.details}
@@ -14486,7 +14828,7 @@ L'équipe recouvrement`}
               >
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Enregistrer l'action</span>
+                  <span>{t('recovery.saveAction')}</span>
                 </div>
               </button>
             </div>

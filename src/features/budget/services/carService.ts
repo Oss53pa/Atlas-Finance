@@ -42,7 +42,10 @@ export async function emitCar(adapter: DataAdapter, requestId: string): Promise<
   const { data: bc, error: e0 } = await client
     .from('capex_requests').select('id,libelle,account_code,section_id,statut,date_prevue,montant').eq('id', requestId).single();
   if (e0) throw new Error(e0.message);
-  if (!['approuve', 'approuve_avec_conditions'].includes(bc.statut)) {
+  // 'fonds_disponibles' accepté : le formulaire CAR (CarModal) place le BC dans cet
+  // état au moment où il enregistre le document d'appropriation ; la création du
+  // projet qui suit ne doit pas être refusée pour autant.
+  if (!['approuve', 'approuve_avec_conditions', 'fonds_disponibles'].includes(bc.statut)) {
     throw new Error(`Le BC doit être approuvé pour émettre le CAR (statut actuel : ${bc.statut}).`);
   }
 

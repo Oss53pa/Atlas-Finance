@@ -254,19 +254,19 @@ const InventairePhysiquePage: React.FC = () => {
 
     return [{
       id: 'current',
-      nom: `Inventaire Annuel ${new Date().getFullYear()}`,
+      nom: `${t('assetsInventory.annualInventory')} ${new Date().getFullYear()}`,
       date_debut: `${new Date().getFullYear()}-01-01`,
       date_fin_prevue: `${new Date().getFullYear()}-12-31`,
       statut: 'en_cours' as const,
-      responsable: 'Direction Générale',
-      equipes: ['Équipe A', 'Équipe B'],
-      perimetre: 'Tous les sites',
+      responsable: t('assetsInventory.generalManagement'),
+      equipes: [t('assetsInventory.teamA'), t('assetsInventory.teamB')],
+      perimetre: t('assetsInventory.allSites'),
       nb_items_total: totalItems,
       nb_items_comptes: counted,
       nb_ecarts: ecarts,
       taux_realisation: tauxRealisation
     }];
-  }, [allInventoryItems]);
+  }, [allInventoryItems, t]);
 
   // Filter inventory items
   const inventoryItems: InventoryItem[] = useMemo(() => {
@@ -292,7 +292,7 @@ const InventairePhysiquePage: React.FC = () => {
         item_id: item.id,
         type_ecart: (item.etat_physique === 'hors_service' ? 'etat' :
                      item.etat_physique === 'mauvais' ? 'etat' : 'valeur') as InventoryDiscrepancy['type_ecart'],
-        description: `Écart détecté pour ${item.nom}`,
+        description: t('assetsInventory.discrepancyDetectedFor', { name: item.nom }),
         impact_financier: item.valeur_nette_comptable,
         // Pas de suivi de résolution réel : tout écart est ouvert par défaut
         // (au lieu d'un statut fabriqué par parité d'index).
@@ -301,7 +301,7 @@ const InventairePhysiquePage: React.FC = () => {
         date_resolution: undefined,
         action_corrective: undefined
       }));
-  }, [allInventoryItems]);
+  }, [allInventoryItems, t]);
 
   // Build team members from category groupings
   const teamMembers: TeamMember[] = useMemo(() => {
@@ -318,7 +318,7 @@ const InventairePhysiquePage: React.FC = () => {
     for (const [category, counts] of categoryMap.entries()) {
       members.push({
         id: `team-${idx}`,
-        nom: `Équipe ${category}`,
+        nom: `${t('assetsInventory.teamPrefix')} ${category}`,
         role: (idx === 0 ? 'responsable' : 'compteur') as TeamMember['role'],
         zone_affectee: category,
         nb_items_assignes: counts.total,
@@ -328,7 +328,7 @@ const InventairePhysiquePage: React.FC = () => {
       idx++;
     }
     return members;
-  }, [allInventoryItems]);
+  }, [allInventoryItems, t]);
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
@@ -401,10 +401,51 @@ const InventairePhysiquePage: React.FC = () => {
     return colors[role] || 'bg-gray-100 text-gray-800';
   };
 
+  // Libellés traduits des énumérations métier (les valeurs restent inchangées).
+  const countStatusLabel = (statut: string): string => {
+    switch (statut) {
+      case 'non_compte': return t('assetsInventory.notCounted');
+      case 'compte': return t('assetsInventory.countedStatus');
+      case 'ecart': return t('assetsInventory.variance');
+      case 'en_cours': return t('assetsInventory.inProgress');
+      default: return statut;
+    }
+  };
+
+  const physicalStateLabel = (etat: string, short = false): string => {
+    switch (etat) {
+      case 'excellent': return t('assetsInventory.condExcellent');
+      case 'bon': return t('assetsInventory.condGood');
+      case 'moyen': return t('assetsInventory.condFair');
+      case 'mauvais': return t('assetsInventory.condPoor');
+      case 'hors_service': return short ? t('assetsInventory.condOutOfServiceShort') : t('assetsInventory.condOutOfService');
+      default: return etat;
+    }
+  };
+
+  const discrepancyTypeLabel = (type: string): string => {
+    switch (type) {
+      case 'manquant': return t('assetsInventory.typeMissing');
+      case 'excedent': return t('assetsInventory.typeSurplus');
+      case 'localisation': return t('assetsInventory.typeLocation');
+      case 'etat': return t('assetsInventory.typeCondition');
+      default: return t('assetsInventory.typeValue');
+    }
+  };
+
+  const roleLabel = (role: string): string => {
+    switch (role) {
+      case 'responsable': return t('assetsInventory.roleLead');
+      case 'compteur': return t('assetsInventory.roleCounter');
+      case 'verificateur': return t('assetsInventory.roleVerifier');
+      default: return role;
+    }
+  };
+
   const handleStartScanning = () => {
     // Pas de simulation de comptage : le comptage se fait via la fiche d'item
     // (saisie réelle persistée). Un vrai scan code-barres nécessite un lecteur.
-    toast('Scan code-barres : sélectionnez un article et saisissez son comptage via « Compter ».', { icon: 'ℹ️' });
+    toast(t('assetsInventory.scanHint'), { icon: 'ℹ️' });
   };
 
   // Handlers pour les boutons d'action
@@ -431,20 +472,20 @@ const InventairePhysiquePage: React.FC = () => {
   // Crée une session d'inventaire persistée (par défaut si nécessaire).
   const ensureSessionId = async (): Promise<string> => {
     if (activeRealSessionId) return activeRealSessionId;
-    const id = await createSession(adapter, { nom: `Inventaire ${new Date().getFullYear()}` });
+    const id = await createSession(adapter, { nom: `${t('assetsInventory.inventoryPrefix')} ${new Date().getFullYear()}` });
     await reloadInventory();
     return id;
   };
 
   const handleCreateSession = async () => {
-    if (!sessionForm.nom.trim()) { toast.error('Nom de session requis'); return; }
+    if (!sessionForm.nom.trim()) { toast.error(t('assetsInventory.sessionNameRequired')); return; }
     try {
       await createSession(adapter, { nom: sessionForm.nom, date_debut: sessionForm.debut || null, date_fin_prevue: sessionForm.fin || null, perimetre: sessionForm.desc || null });
-      toast.success("Session d'inventaire créée");
+      toast.success(t('assetsInventory.sessionCreated'));
       setShowNewSessionModal(false);
       setSessionForm({ nom: '', debut: '', fin: '', desc: '' });
       await reloadInventory();
-    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    } catch (e: any) { toast.error(e?.message || t('assetsInventory.error')); }
   };
 
   const handleSaveItemCount = async () => {
@@ -457,10 +498,10 @@ const InventairePhysiquePage: React.FC = () => {
         etat_physique: editForm.etat || null,
         notes: editForm.notes || null,
       });
-      toast.success('Comptage enregistré');
+      toast.success(t('assetsInventory.countSaved'));
       setShowEditItemModal(false);
       await reloadInventory();
-    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    } catch (e: any) { toast.error(e?.message || t('assetsInventory.error')); }
   };
 
   const handleResolveDiscrepancy = async (item: InventoryItem) => {
@@ -468,26 +509,23 @@ const InventairePhysiquePage: React.FC = () => {
       const sid = await ensureSessionId();
       // Un bien constaté MANQUANT doit être SORTI du bilan (mise au rebut) : sans
       // écriture de sortie, le registre et la comptabilité divergent de la réalité.
-      const manquant = window.confirm(
-        `Le bien « ${item.nom} » est-il MANQUANT (à sortir du bilan) ?\n\n` +
-        `OK = sortie comptable (mise au rebut SYSCOHADA).\nAnnuler = simple correction d'écart (emplacement/état).`
-      );
+      const manquant = window.confirm(t('assetsInventory.confirmMissing', { name: item.nom }));
       if (manquant) {
         await createDisposal(adapter, {
           assetId: item.id,
           disposalType: 'scrap',
           disposalDate: new Date().toISOString().split('T')[0],
           disposalValue: 0,
-          reason: "Bien manquant constaté à l'inventaire physique",
+          reason: t('assetsInventory.disposalReason'),
         });
       }
       await resolveDiscrepancy(adapter, sid, item.id, {
         resolution_statut: 'resolu',
-        action_corrective: manquant ? 'Bien manquant — sortie comptable (mise au rebut) postée' : "Écart corrigé (emplacement/état)",
+        action_corrective: manquant ? t('assetsInventory.actionMissingPosted') : t('assetsInventory.actionVarianceFixed'),
       });
-      toast.success(manquant ? 'Bien manquant sorti — écriture de mise au rebut postée' : 'Écart résolu');
+      toast.success(manquant ? t('assetsInventory.toastMissingDisposed') : t('assetsInventory.toastVarianceResolved'));
       await reloadInventory();
-    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    } catch (e: any) { toast.error(e?.message || t('assetsInventory.error')); }
   };
 
   const handleQrCode = (item: InventoryItem) => {
@@ -514,10 +552,10 @@ const InventairePhysiquePage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <ClipboardList className="mr-2 h-6 w-6 text-[var(--color-primary)]" />
-              Inventaire Physique
+              {t('assetsInventory.title')}
             </h1>
             <p className="mt-1 text-sm text-gray-600">
-              Gestion complète de l'inventaire physique avec comptage et contrôle des écarts
+              {t('assetsInventory.subtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -532,18 +570,18 @@ const InventairePhysiquePage: React.FC = () => {
               ) : (
                 <Scan className="mr-2 h-4 w-4" />
               )}
-              {isScanning ? 'Scan en cours...' : 'Scanner'}
+              {isScanning ? t('assetsInventory.scanning') : t('assetsInventory.scan')}
             </Button>
             <Button
               onClick={handleNewSession}
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-white"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Session
+              {t('assetsInventory.newSession')}
             </Button>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
-              Exporter
+              {t('assetsInventory.export')}
             </Button>
           </div>
         </div>
@@ -562,17 +600,17 @@ const InventairePhysiquePage: React.FC = () => {
                 <div>
                   <h2 className="text-base font-semibold text-[#404040]">{currentSession.nom}</h2>
                   <p className="text-xs text-[var(--color-primary)]">
-                    Du {formatDate(currentSession.date_debut)} au {formatDate(currentSession.date_fin_prevue)}
+                    {t('assetsInventory.periodFromTo', { start: formatDate(currentSession.date_debut), end: formatDate(currentSession.date_fin_prevue) })}
                   </p>
                   <p className="text-xs text-[var(--color-primary)]">
-                    Responsable: {currentSession.responsable} | Périmètre: {currentSession.perimetre}
+                    {t('assetsInventory.responsibleLabel')}: {currentSession.responsable} | {t('assetsInventory.perimeterLabel')}: {currentSession.perimetre}
                   </p>
                 </div>
                 <div className="text-right">
                   <div className="flex items-center space-x-3">
                     <div className="text-center">
                       <p className="text-base font-bold text-blue-900">{formatPercentage(completionRate)}</p>
-                      <p className="text-xs text-blue-700">Progression</p>
+                      <p className="text-xs text-blue-700">{t('assetsInventory.progress')}</p>
                     </div>
                     <div className="w-24">
                       <Progress value={completionRate * 100} className="h-2" />
@@ -599,7 +637,7 @@ const InventairePhysiquePage: React.FC = () => {
                   <Package className="h-4 w-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Articles Total</p>
+                  <p className="text-xs font-medium text-gray-600">{t('assetsInventory.totalItems')}</p>
                   <p className="text-lg font-bold text-blue-700">
                     {currentSession?.nb_items_total || 0}
                   </p>
@@ -621,7 +659,7 @@ const InventairePhysiquePage: React.FC = () => {
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Comptés</p>
+                  <p className="text-xs font-medium text-gray-600">{t('assetsInventory.counted')}</p>
                   <p className="text-lg font-bold text-green-700">{countedItems}</p>
                 </div>
               </div>
@@ -641,7 +679,7 @@ const InventairePhysiquePage: React.FC = () => {
                   <AlertTriangle className="h-4 w-4 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Écarts</p>
+                  <p className="text-xs font-medium text-gray-600">{t('assetsInventory.discrepancies')}</p>
                   <p className="text-lg font-bold text-red-700">{discrepanciesCount}</p>
                 </div>
               </div>
@@ -661,7 +699,7 @@ const InventairePhysiquePage: React.FC = () => {
                   <Target className="h-4 w-4 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-600">Valeur Contrôlée</p>
+                  <p className="text-xs font-medium text-gray-600">{t('assetsInventory.controlledValue')}</p>
                   <p className="text-sm font-bold text-primary-700">
                     {formatCurrency(totalValue)}
                   </p>
@@ -682,14 +720,14 @@ const InventairePhysiquePage: React.FC = () => {
           <CardHeader className="py-2">
             <CardTitle className="flex items-center text-base">
               <Filter className="mr-2 h-4 w-4" />
-              Filtres et Recherche
+              {t('assetsInventory.filtersAndSearch')}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="grid gap-3 md:grid-cols-5">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Session
+                  {t('assetsInventory.session')}
                 </label>
                 <Select value={selectedSession} onValueChange={setSelectedSession}>
                   <SelectTrigger>
@@ -707,36 +745,36 @@ const InventairePhysiquePage: React.FC = () => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Zone/Catégorie
+                  {t('assetsInventory.zoneCategory')}
                 </label>
                 <Select value={selectedZone} onValueChange={setSelectedZone}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="toutes">Toutes les zones</SelectItem>
-                    <SelectItem value="Matériel Informatique">Matériel Informatique</SelectItem>
-                    <SelectItem value="Matériel de Transport">Matériel de Transport</SelectItem>
-                    <SelectItem value="Mobilier">Mobilier</SelectItem>
-                    <SelectItem value="Équipement Bureau">Équipement Bureau</SelectItem>
+                    <SelectItem value="toutes">{t('assetsInventory.allZones')}</SelectItem>
+                    <SelectItem value="Matériel Informatique">{t('assetsInventory.catIT')}</SelectItem>
+                    <SelectItem value="Matériel de Transport">{t('assetsInventory.catTransport')}</SelectItem>
+                    <SelectItem value="Mobilier">{t('assetsInventory.catFurniture')}</SelectItem>
+                    <SelectItem value="Équipement Bureau">{t('assetsInventory.catOffice')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Statut
+                  {t('assetsInventory.status')}
                 </label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tous">Tous statuts</SelectItem>
-                    <SelectItem value="non_compte">Non compté</SelectItem>
+                    <SelectItem value="tous">{t('assetsInventory.allStatuses')}</SelectItem>
+                    <SelectItem value="non_compte">{t('assetsInventory.notCounted')}</SelectItem>
                     <SelectItem value="en_cours">{t('status.inProgress')}</SelectItem>
-                    <SelectItem value="compte">Compté</SelectItem>
-                    <SelectItem value="ecart">Écart</SelectItem>
+                    <SelectItem value="compte">{t('assetsInventory.countedStatus')}</SelectItem>
+                    <SelectItem value="ecart">{t('assetsInventory.variance')}</SelectItem>
                     <SelectItem value="valide">{t('accounting.validated')}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -744,12 +782,12 @@ const InventairePhysiquePage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Recherche
+                  {t('assetsInventory.search')}
                 </label>
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
-                  <Input 
-                    placeholder="N° inventaire, nom..." 
+                  <Input
+                    placeholder={t('assetsInventory.searchPlaceholder')}
                     className="pl-10"
                   />
                 </div>
@@ -762,7 +800,7 @@ const InventairePhysiquePage: React.FC = () => {
                   className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
                 >
                   <QrCode className="mr-2 h-4 w-4" />
-                  Scanner QR/Code-barres
+                  {t('assetsInventory.scanQrBarcode')}
                 </Button>
               </div>
             </div>
@@ -778,26 +816,26 @@ const InventairePhysiquePage: React.FC = () => {
       >
         <Tabs defaultValue="inventory" value={activeTab} onValueChange={setActiveTab} className="space-y-3">
           <TabsList className="h-8">
-            <TabsTrigger value="inventory" className="text-sm">Articles à Compter</TabsTrigger>
-            <TabsTrigger value="discrepancies" className="text-sm">Écarts Détectés</TabsTrigger>
-            <TabsTrigger value="teams" className="text-sm">Équipes</TabsTrigger>
-            <TabsTrigger value="reports" className="text-sm">Rapports</TabsTrigger>
+            <TabsTrigger value="inventory" className="text-sm">{t('assetsInventory.tabItems')}</TabsTrigger>
+            <TabsTrigger value="discrepancies" className="text-sm">{t('assetsInventory.tabDiscrepancies')}</TabsTrigger>
+            <TabsTrigger value="teams" className="text-sm">{t('assetsInventory.tabTeams')}</TabsTrigger>
+            <TabsTrigger value="reports" className="text-sm">{t('assetsInventory.tabReports')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="inventory" className="space-y-2">
             <Card className="p-0">
               <CardHeader className="py-2 px-3">
                 <CardTitle className="flex items-center justify-between text-base">
-                  <span>Articles à Compter</span>
+                  <span>{t('assetsInventory.tabItems')}</span>
                   <div className="flex items-center space-x-2">
                     <Badge variant="outline" className="bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)]">
-                      {inventoryItems.length} articles
+                      {t('assetsInventory.itemsCount', { count: String(inventoryItems.length) })}
                     </Badge>
                     <Badge variant={inventoryItems.filter(i => i.statut_comptage === 'compte').length > 0 ? 'default' : 'secondary'}>
-                      {inventoryItems.filter(i => i.statut_comptage === 'compte').length} comptés
+                      {t('assetsInventory.countedCount', { count: String(inventoryItems.filter(i => i.statut_comptage === 'compte').length) })}
                     </Badge>
                     <Badge variant="destructive" className="bg-red-50 text-red-700">
-                      {inventoryItems.filter(i => i.statut_comptage === 'ecart').length} écarts
+                      {t('assetsInventory.variancesCount', { count: String(inventoryItems.filter(i => i.statut_comptage === 'ecart').length) })}
                     </Badge>
                   </div>
                 </CardTitle>
@@ -809,7 +847,7 @@ const InventairePhysiquePage: React.FC = () => {
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-700 h-4 w-4" />
                       <Input
-                        placeholder="Rechercher par N° inventaire, nom..."
+                        placeholder={t('assetsInventory.searchItemsPlaceholder')}
                         className="pl-10 h-8"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -818,50 +856,50 @@ const InventairePhysiquePage: React.FC = () => {
                   </div>
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                     <SelectTrigger className="w-[120px] h-8">
-                      <SelectValue placeholder="Statut" />
+                      <SelectValue placeholder={t('assetsInventory.status')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="tous">Tous</SelectItem>
-                      <SelectItem value="non_compte">Non compté</SelectItem>
-                      <SelectItem value="compte">Compté</SelectItem>
-                      <SelectItem value="ecart">Écart</SelectItem>
+                      <SelectItem value="tous">{t('assetsInventory.all')}</SelectItem>
+                      <SelectItem value="non_compte">{t('assetsInventory.notCounted')}</SelectItem>
+                      <SelectItem value="compte">{t('assetsInventory.countedStatus')}</SelectItem>
+                      <SelectItem value="ecart">{t('assetsInventory.variance')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select value={selectedZone} onValueChange={setSelectedZone}>
                     <SelectTrigger className="w-[120px] h-8">
-                      <SelectValue placeholder="Zone" />
+                      <SelectValue placeholder={t('assetsInventory.zone')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="toutes">Toutes zones</SelectItem>
-                      <SelectItem value="Matériel Informatique">Matériel Informatique</SelectItem>
-                      <SelectItem value="Matériel de Transport">Matériel de Transport</SelectItem>
-                      <SelectItem value="Mobilier">Mobilier</SelectItem>
-                      <SelectItem value="Équipement Bureau">Équipement Bureau</SelectItem>
+                      <SelectItem value="toutes">{t('assetsInventory.allZonesShort')}</SelectItem>
+                      <SelectItem value="Matériel Informatique">{t('assetsInventory.catIT')}</SelectItem>
+                      <SelectItem value="Matériel de Transport">{t('assetsInventory.catTransport')}</SelectItem>
+                      <SelectItem value="Mobilier">{t('assetsInventory.catFurniture')}</SelectItem>
+                      <SelectItem value="Équipement Bureau">{t('assetsInventory.catOffice')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button onClick={() => setIsScanning(!isScanning)} size="sm" className="h-8">
                     <QrCode className="h-4 w-4 mr-1" />
-                    Scanner
+                    {t('assetsInventory.scan')}
                   </Button>
                 </div>
 
                 {itemsLoading ? (
                   <div className="flex justify-center py-4">
-                    <LoadingSpinner size="lg" text="Chargement de l'inventaire..." />
+                    <LoadingSpinner size="lg" text={t('assetsInventory.loadingInventory')} />
                   </div>
                 ) : (
                   <div className="border rounded-lg">
                     <Table>
                       <TableHeader>
                         <TableRow className="h-8">
-                          <TableHead className="text-xs font-medium py-1">Article</TableHead>
-                          <TableHead className="text-xs font-medium py-1">Localisation</TableHead>
-                          <TableHead className="text-xs font-medium py-1">Statut</TableHead>
-                          <TableHead className="text-xs font-medium py-1">État</TableHead>
-                          <TableHead className="text-xs font-medium text-right py-1">VNC</TableHead>
-                          <TableHead className="text-xs font-medium py-1">Compteur</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('assetsInventory.thItem')}</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('assetsInventory.thLocation')}</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('assetsInventory.thStatus')}</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('assetsInventory.thCondition')}</TableHead>
+                          <TableHead className="text-xs font-medium text-right py-1">{t('assetsInventory.thNbv')}</TableHead>
+                          <TableHead className="text-xs font-medium py-1">{t('assetsInventory.thCounter')}</TableHead>
                           <TableHead className="text-xs font-medium py-1">{t('common.date')}</TableHead>
-                          <TableHead className="text-xs font-medium text-center py-1">Actions</TableHead>
+                          <TableHead className="text-xs font-medium text-center py-1">{t('assetsInventory.thActions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -886,7 +924,7 @@ const InventairePhysiquePage: React.FC = () => {
                                 </p>
                                 {item.localisation_reelle && item.localisation_reelle !== item.localisation_theorique && (
                                   <p className="text-xs text-red-600">
-                                    Réel: {item.localisation_reelle}
+                                    {t('assetsInventory.actualLocation')}: {item.localisation_reelle}
                                   </p>
                                 )}
                               </div>
@@ -897,9 +935,7 @@ const InventairePhysiquePage: React.FC = () => {
                                 variant={item.statut_comptage === 'ecart' ? 'destructive' :
                                        item.statut_comptage === 'compte' ? 'default' : 'secondary'}
                               >
-                                {item.statut_comptage === 'non_compte' ? 'Non compté' :
-                                 item.statut_comptage === 'compte' ? 'Compté' :
-                                 item.statut_comptage === 'ecart' ? 'Écart' : item.statut_comptage}
+                                {countStatusLabel(item.statut_comptage)}
                               </Badge>
                             </TableCell>
                             <TableCell className="py-1">
@@ -908,10 +944,7 @@ const InventairePhysiquePage: React.FC = () => {
                                 variant={item.etat_physique === 'excellent' ? 'default' :
                                        item.etat_physique === 'bon' ? 'secondary' : 'outline'}
                               >
-                                {item.etat_physique === 'excellent' ? 'Excellent' :
-                                 item.etat_physique === 'bon' ? 'Bon' :
-                                 item.etat_physique === 'moyen' ? 'Moyen' :
-                                 item.etat_physique === 'mauvais' ? 'Mauvais' : 'H.S.'}
+                                {physicalStateLabel(item.etat_physique, true)}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right py-2">
@@ -940,7 +973,7 @@ const InventairePhysiquePage: React.FC = () => {
                                   size="sm"
                                   className="h-5 w-5 p-0 hover:bg-gray-100"
                                   onClick={() => handleViewItem(item)}
-                                  title="Voir les détails"
+                                  title={t('assetsInventory.viewDetails')}
                                 >
                                   <Eye className="h-3 w-3 text-gray-600" />
                                 </Button>
@@ -949,7 +982,7 @@ const InventairePhysiquePage: React.FC = () => {
                                   size="sm"
                                   className="h-5 w-5 p-0 hover:bg-gray-100"
                                   onClick={() => handleEditItem(item)}
-                                  title="Modifier"
+                                  title={t('assetsInventory.edit')}
                                 >
                                   <Edit className="h-3 w-3 text-gray-600" />
                                 </Button>
@@ -958,7 +991,7 @@ const InventairePhysiquePage: React.FC = () => {
                                   size="sm"
                                   className="h-5 w-5 p-0 hover:bg-gray-100"
                                   onClick={() => handleQrCode(item)}
-                                  title="Code QR"
+                                  title={t('assetsInventory.qrCode')}
                                 >
                                   <QrCode className="h-3 w-3 text-gray-600" />
                                 </Button>
@@ -974,11 +1007,11 @@ const InventairePhysiquePage: React.FC = () => {
                 {/* Pagination info compacte */}
                 <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                   <span className="text-xs text-gray-700">
-                    Affichage de 1-{Math.min(15, inventoryItems.length)} sur {inventoryItems.length} articles
+                    {t('assetsInventory.showingRange', { shown: String(Math.min(15, inventoryItems.length)), total: String(inventoryItems.length) })}
                   </span>
                   <div className="flex space-x-1">
-                    <Button variant="outline" size="sm" className="h-5 px-2 text-xs">Précédent</Button>
-                    <Button variant="outline" size="sm" className="h-5 px-2 text-xs">Suivant</Button>
+                    <Button variant="outline" size="sm" className="h-5 px-2 text-xs">{t('assetsInventory.previous')}</Button>
+                    <Button variant="outline" size="sm" className="h-5 px-2 text-xs">{t('assetsInventory.next')}</Button>
                   </div>
                 </div>
               </CardContent>
@@ -991,14 +1024,14 @@ const InventairePhysiquePage: React.FC = () => {
                 <CardTitle className="flex items-center justify-between text-base">
                   <div className="flex items-center">
                     <AlertTriangle className="mr-2 h-5 w-5 text-red-600" />
-                    Écarts Détectés
+                    {t('assetsInventory.tabDiscrepancies')}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="destructive" className="bg-red-50 text-red-700">
-                      {discrepancies.length} écarts
+                      {t('assetsInventory.variancesCount', { count: String(discrepancies.length) })}
                     </Badge>
                     <Badge variant="secondary">
-                      {discrepancies.filter(d => d.statut_resolution === 'en_cours').length} en cours
+                      {t('assetsInventory.inProgressCount', { count: String(discrepancies.filter(d => d.statut_resolution === 'en_cours').length) })}
                     </Badge>
                   </div>
                 </CardTitle>
@@ -1008,30 +1041,30 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center mb-2">
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[140px] h-8">
-                      <SelectValue placeholder="Type d'écart" />
+                      <SelectValue placeholder={t('assetsInventory.discrepancyType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous types</SelectItem>
-                      <SelectItem value="manquant">Manquant</SelectItem>
-                      <SelectItem value="excedent">Excédent</SelectItem>
-                      <SelectItem value="localisation">Localisation</SelectItem>
-                      <SelectItem value="etat">État</SelectItem>
-                      <SelectItem value="valeur">Valeur</SelectItem>
+                      <SelectItem value="all">{t('assetsInventory.allTypes')}</SelectItem>
+                      <SelectItem value="manquant">{t('assetsInventory.typeMissing')}</SelectItem>
+                      <SelectItem value="excedent">{t('assetsInventory.typeSurplus')}</SelectItem>
+                      <SelectItem value="localisation">{t('assetsInventory.typeLocation')}</SelectItem>
+                      <SelectItem value="etat">{t('assetsInventory.typeCondition')}</SelectItem>
+                      <SelectItem value="valeur">{t('assetsInventory.typeValue')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[120px] h-8">
-                      <SelectValue placeholder="Statut" />
+                      <SelectValue placeholder={t('assetsInventory.status')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="all">{t('assetsInventory.all')}</SelectItem>
                       <SelectItem value="en_cours">{t('status.inProgress')}</SelectItem>
-                      <SelectItem value="resolu">Résolu</SelectItem>
+                      <SelectItem value="resolu">{t('assetsInventory.resolved')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button size="sm" className="h-8">
                     <Plus className="h-4 w-4 mr-1" />
-                    Nouveau
+                    {t('assetsInventory.newBtn')}
                   </Button>
                 </div>
 
@@ -1047,43 +1080,40 @@ const InventairePhysiquePage: React.FC = () => {
                             </div>
                             <div>
                               <h4 className="text-sm font-semibold text-gray-900">
-                                {item?.nom || 'Article inconnu'}
+                                {item?.nom || t('assetsInventory.unknownItem')}
                               </h4>
                               <p className="text-xs text-gray-600">{discrepancy.description}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Badge variant={discrepancy.type_ecart === 'manquant' ? 'destructive' : 'secondary'} className="text-xs px-2 py-0.5">
-                              {discrepancy.type_ecart === 'manquant' ? 'Manquant' :
-                               discrepancy.type_ecart === 'excedent' ? 'Excédent' :
-                               discrepancy.type_ecart === 'localisation' ? 'Localisation' :
-                               discrepancy.type_ecart === 'etat' ? 'État' : 'Valeur'}
+                              {discrepancyTypeLabel(discrepancy.type_ecart)}
                             </Badge>
                             <Badge variant={discrepancy.statut_resolution === 'resolu' ? 'default' : 'destructive'} className="text-xs px-2 py-0.5">
-                              {discrepancy.statut_resolution === 'resolu' ? 'Résolu' : 'En cours'}
+                              {discrepancy.statut_resolution === 'resolu' ? t('assetsInventory.resolved') : t('assetsInventory.inProgress')}
                             </Badge>
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-1">
                           <div>
-                            <p className="text-gray-700">N° Inventaire</p>
+                            <p className="text-gray-700">{t('assetsInventory.inventoryNumber')}</p>
                             <p className="font-mono text-xs">{item?.numero_inventaire}</p>
                           </div>
                           <div>
-                            <p className="text-gray-700">Impact Financier</p>
+                            <p className="text-gray-700">{t('assetsInventory.financialImpact')}</p>
                             <p className={`font-semibold text-xs ${discrepancy.impact_financier > 0 ? 'text-red-700' : 'text-gray-700'}`}>
-                              {discrepancy.impact_financier > 0 ? formatCurrency(discrepancy.impact_financier) : 'Aucun'}
+                              {discrepancy.impact_financier > 0 ? formatCurrency(discrepancy.impact_financier) : t('assetsInventory.none')}
                             </p>
                           </div>
                           <div>
-                            <p className="text-gray-700">Responsable</p>
-                            <p className="font-medium text-xs">{discrepancy.responsable_resolution || 'Non assigné'}</p>
+                            <p className="text-gray-700">{t('assetsInventory.responsible')}</p>
+                            <p className="font-medium text-xs">{discrepancy.responsable_resolution || t('assetsInventory.unassigned')}</p>
                           </div>
                           <div>
-                            <p className="text-gray-700">Date Résolution</p>
+                            <p className="text-gray-700">{t('assetsInventory.resolutionDate')}</p>
                             <p className="font-medium text-xs">
-                              {discrepancy.date_resolution ? formatDate(discrepancy.date_resolution) : 'En attente'}
+                              {discrepancy.date_resolution ? formatDate(discrepancy.date_resolution) : t('assetsInventory.pending')}
                             </p>
                           </div>
                         </div>
@@ -1091,7 +1121,7 @@ const InventairePhysiquePage: React.FC = () => {
                         {discrepancy.action_corrective && (
                           <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded p-2 mb-2">
                             <p className="text-xs text-green-800">
-                              <strong>Action:</strong> {discrepancy.action_corrective}
+                              <strong>{t('assetsInventory.actionLabel')}</strong> {discrepancy.action_corrective}
                             </p>
                           </div>
                         )}
@@ -1099,12 +1129,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <div className="flex justify-end space-x-2">
                           <Button variant="ghost" size="sm">
                             <Eye className="mr-2 h-4 w-4" />
-                            Détails
+                            {t('assetsInventory.details')}
                           </Button>
                           {discrepancy.statut_resolution !== 'resolu' && (
                             <Button size="sm" className="bg-[var(--color-text-tertiary)] hover:bg-[var(--color-text-secondary)]" onClick={() => item && handleResolveDiscrepancy(item)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Résoudre
+                              {t('assetsInventory.resolve')}
                             </Button>
                           )}
                         </div>
@@ -1122,14 +1152,14 @@ const InventairePhysiquePage: React.FC = () => {
                 <CardTitle className="flex items-center justify-between text-base">
                   <div className="flex items-center">
                     <Users className="mr-2 h-5 w-5 text-primary-600" />
-                    Équipes d'Inventaire
+                    {t('assetsInventory.inventoryTeams')}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="secondary" className="bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]">
-                      {teamMembers.length} membres
+                      {t('assetsInventory.membersCount', { count: String(teamMembers.length) })}
                     </Badge>
                     <Badge variant="default">
-                      {teamMembers.length} actifs
+                      {t('assetsInventory.activeCount', { count: String(teamMembers.length) })}
                     </Badge>
                   </div>
                 </CardTitle>
@@ -1139,21 +1169,21 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center mb-2">
                   <Button size="sm" className="h-8">
                     <Plus className="h-4 w-4 mr-1" />
-                    Ajouter Membre
+                    {t('assetsInventory.addMember')}
                   </Button>
                   <Button size="sm" variant="outline" className="h-8">
                     <Users className="h-4 w-4 mr-1" />
-                    Créer Équipe
+                    {t('assetsInventory.createTeam')}
                   </Button>
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[120px] h-8">
-                      <SelectValue placeholder="Zone" />
+                      <SelectValue placeholder={t('assetsInventory.zone')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Toutes zones</SelectItem>
-                      <SelectItem value="bureau">Bureau</SelectItem>
-                      <SelectItem value="entrepot">Entrepôt</SelectItem>
-                      <SelectItem value="production">Production</SelectItem>
+                      <SelectItem value="all">{t('assetsInventory.allZonesShort')}</SelectItem>
+                      <SelectItem value="bureau">{t('assetsInventory.zoneOffice')}</SelectItem>
+                      <SelectItem value="entrepot">{t('assetsInventory.zoneWarehouse')}</SelectItem>
+                      <SelectItem value="production">{t('assetsInventory.zoneProduction')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1169,7 +1199,7 @@ const InventairePhysiquePage: React.FC = () => {
                           <div>
                             <h4 className="text-xs font-semibold text-gray-900">{member.nom}</h4>
                             <Badge variant={member.role === 'responsable' ? 'default' : 'secondary'} className="text-xs px-1 py-0">
-                              {member.role}
+                              {roleLabel(member.role)}
                             </Badge>
                           </div>
                         </div>
@@ -1177,21 +1207,21 @@ const InventairePhysiquePage: React.FC = () => {
                           <p className="text-sm font-bold text-primary-700">
                             {formatPercentage(member.taux_completion)}
                           </p>
-                          <p className="text-xs text-gray-600">Progression</p>
+                          <p className="text-xs text-gray-600">{t('assetsInventory.progress')}</p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 mb-2 text-xs">
                         <div className="text-center">
-                          <p className="text-gray-700">Zone</p>
+                          <p className="text-gray-700">{t('assetsInventory.zone')}</p>
                           <p className="font-medium">{member.zone_affectee}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-700">Assignés</p>
+                          <p className="text-gray-700">{t('assetsInventory.assigned')}</p>
                           <p className="font-medium">{member.nb_items_assignes}</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-gray-700">Comptés</p>
+                          <p className="text-gray-700">{t('assetsInventory.counted')}</p>
                           <p className="font-medium text-green-700">{member.nb_items_comptes}</p>
                         </div>
                       </div>
@@ -1215,11 +1245,11 @@ const InventairePhysiquePage: React.FC = () => {
                 <CardTitle className="flex items-center justify-between text-base">
                   <div className="flex items-center">
                     <FileText className="mr-2 h-5 w-5 text-green-600" />
-                    Rapports d'Inventaire
+                    {t('assetsInventory.inventoryReports')}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge variant="default" className="bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                      5 rapports disponibles
+                      {t('assetsInventory.reportsAvailable')}
                     </Badge>
                   </div>
                 </CardTitle>
@@ -1229,19 +1259,19 @@ const InventairePhysiquePage: React.FC = () => {
                 <div className="flex flex-wrap gap-2 items-center mb-2">
                   <Select defaultValue="all">
                     <SelectTrigger className="w-[140px] h-8">
-                      <SelectValue placeholder="Type de rapport" />
+                      <SelectValue placeholder={t('assetsInventory.reportType')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous types</SelectItem>
-                      <SelectItem value="progression">Progression</SelectItem>
-                      <SelectItem value="ecarts">Écarts</SelectItem>
-                      <SelectItem value="equipes">Équipes</SelectItem>
-                      <SelectItem value="financier">Financier</SelectItem>
+                      <SelectItem value="all">{t('assetsInventory.allTypes')}</SelectItem>
+                      <SelectItem value="progression">{t('assetsInventory.reportProgress')}</SelectItem>
+                      <SelectItem value="ecarts">{t('assetsInventory.reportVariances')}</SelectItem>
+                      <SelectItem value="equipes">{t('assetsInventory.reportTeams')}</SelectItem>
+                      <SelectItem value="financier">{t('assetsInventory.reportFinancial')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Select defaultValue="pdf">
                     <SelectTrigger className="w-[100px] h-8">
-                      <SelectValue placeholder="Format" />
+                      <SelectValue placeholder={t('assetsInventory.format')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pdf">PDF</SelectItem>
@@ -1251,7 +1281,7 @@ const InventairePhysiquePage: React.FC = () => {
                   </Select>
                   <Button size="sm" className="h-8">
                     <Download className="h-4 w-4 mr-1" />
-                    Télécharger Tout
+                    {t('assetsInventory.downloadAll')}
                   </Button>
                 </div>
 
@@ -1262,12 +1292,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <BarChart3 className="h-4 w-4 text-blue-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Progression Globale</h4>
-                        <p className="text-xs text-gray-600">État par zone</p>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('assetsInventory.globalProgress')}</h4>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.statusByZone')}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-700">Complété à</span>
+                      <span className="text-xs text-gray-700">{t('assetsInventory.completedAt')}</span>
                       <span className="text-sm font-bold text-blue-700">67.5%</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1282,12 +1312,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <AlertTriangle className="h-4 w-4 text-red-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Écarts Détectés</h4>
-                        <p className="text-xs text-gray-600">Analyse des écarts</p>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('assetsInventory.tabDiscrepancies')}</h4>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.varianceAnalysis')}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-700">Total écarts</span>
+                      <span className="text-xs text-gray-700">{t('assetsInventory.totalVariances')}</span>
                       <span className="text-sm font-bold text-red-700">{discrepancies.length}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1302,12 +1332,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <Users className="h-4 w-4 text-primary-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Performance Équipes</h4>
-                        <p className="text-xs text-gray-600">Analyse par équipe</p>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('assetsInventory.teamPerformance')}</h4>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.analysisByTeam')}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-700">Membres actifs</span>
+                      <span className="text-xs text-gray-700">{t('assetsInventory.activeMembers')}</span>
                       <span className="text-sm font-bold text-primary-700">{teamMembers.length}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1322,12 +1352,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <Target className="h-4 w-4 text-green-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Rapport Financier</h4>
-                        <p className="text-xs text-gray-600">Impact valeur actifs</p>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('assetsInventory.financialReport')}</h4>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.assetValueImpact')}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-700">Valeur contrôlée</span>
+                      <span className="text-xs text-gray-700">{t('assetsInventory.controlledValueShort')}</span>
                       <span className="text-sm font-bold text-green-700">25,3M XAF</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1342,12 +1372,12 @@ const InventairePhysiquePage: React.FC = () => {
                         <Calendar className="h-4 w-4 text-yellow-600" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold text-gray-900">Rapport Synthèse</h4>
-                        <p className="text-xs text-gray-600">Vue d'ensemble complète</p>
+                        <h4 className="text-sm font-semibold text-gray-900">{t('assetsInventory.summaryReport')}</h4>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.fullOverview')}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-700">Dernière mise à jour</span>
+                      <span className="text-xs text-gray-700">{t('assetsInventory.lastUpdate')}</span>
                       <span className="text-sm font-bold text-yellow-700">{t('common.today')}</span>
                     </div>
                     <Button variant="outline" size="sm" className="w-full h-5 text-xs">
@@ -1360,13 +1390,13 @@ const InventairePhysiquePage: React.FC = () => {
                     <div className="flex items-center space-x-3 mb-4">
                       <Users className="h-5 w-5 text-primary-600" />
                       <div>
-                        <h3 className="text-base font-semibold text-gray-900">Rapport Équipes</h3>
-                        <p className="text-xs text-gray-600">Performance par compteur</p>
+                        <h3 className="text-base font-semibold text-gray-900">{t('assetsInventory.teamsReport')}</h3>
+                        <p className="text-xs text-gray-600">{t('assetsInventory.performanceByCounter')}</p>
                       </div>
                     </div>
                     <Button variant="outline" className="w-full">
                       <Download className="mr-2 h-4 w-4" />
-                      Générer Rapport RH
+                      {t('assetsInventory.generateHrReport')}
                     </Button>
                   </div>
                 </div>
@@ -1388,8 +1418,8 @@ const InventairePhysiquePage: React.FC = () => {
               <QrCode className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Scanner actif</p>
-              <p className="text-sm text-gray-600">Scannez un code-barres ou QR code</p>
+              <p className="font-medium text-gray-900">{t('assetsInventory.scannerActive')}</p>
+              <p className="text-sm text-gray-600">{t('assetsInventory.scanPrompt')}</p>
               <Progress value={80} className="w-48 mt-2" />
             </div>
           </div>
@@ -1402,62 +1432,62 @@ const InventairePhysiquePage: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center text-[#404040]">
               <ClipboardList className="mr-2 h-5 w-5 text-[var(--color-primary)]" />
-              Nouvelle Session d'Inventaire
+              {t('assetsInventory.newInventorySession')}
             </DialogTitle>
             <DialogDescription>
-              Créez une nouvelle session d'inventaire physique pour vérifier vos immobilisations.
+              {t('assetsInventory.newSessionDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="session-name">Nom de la session</Label>
-                <Input id="session-name" placeholder="Ex: Inventaire Q1 2024" value={sessionForm.nom} onChange={e => setSessionForm(s => ({ ...s, nom: e.target.value }))} />
+                <Label htmlFor="session-name">{t('assetsInventory.sessionName')}</Label>
+                <Input id="session-name" placeholder={t('assetsInventory.sessionNamePlaceholder')} value={sessionForm.nom} onChange={e => setSessionForm(s => ({ ...s, nom: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="session-type">Type d'inventaire</Label>
+                <Label htmlFor="session-type">{t('assetsInventory.inventoryType')}</Label>
                 <Select defaultValue="complet">
                   <SelectTrigger id="session-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="complet">Complet</SelectItem>
-                    <SelectItem value="partiel">Partiel</SelectItem>
-                    <SelectItem value="cyclique">Cyclique</SelectItem>
-                    <SelectItem value="surprise">Surprise</SelectItem>
+                    <SelectItem value="complet">{t('assetsInventory.typeFull')}</SelectItem>
+                    <SelectItem value="partiel">{t('assetsInventory.typePartial')}</SelectItem>
+                    <SelectItem value="cyclique">{t('assetsInventory.typeCyclic')}</SelectItem>
+                    <SelectItem value="surprise">{t('assetsInventory.typeSurprise')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="start-date">Date de début</Label>
+                <Label htmlFor="start-date">{t('assetsInventory.startDate')}</Label>
                 <Input id="start-date" type="date" value={sessionForm.debut} onChange={e => setSessionForm(s => ({ ...s, debut: e.target.value }))} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="end-date">Date de fin prévue</Label>
+                <Label htmlFor="end-date">{t('assetsInventory.plannedEndDate')}</Label>
                 <Input id="end-date" type="date" value={sessionForm.fin} onChange={e => setSessionForm(s => ({ ...s, fin: e.target.value }))} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="locations">Sites concernés</Label>
+              <Label htmlFor="locations">{t('assetsInventory.sitesConcerned')}</Label>
               <Select>
                 <SelectTrigger id="locations">
-                  <SelectValue placeholder="Sélectionnez les sites" />
+                  <SelectValue placeholder={t('assetsInventory.selectSites')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tous les sites</SelectItem>
-                  <SelectItem value="siege">Siège social</SelectItem>
-                  <SelectItem value="entrepot">Entrepôt principal</SelectItem>
-                  <SelectItem value="usine">Usine</SelectItem>
+                  <SelectItem value="all">{t('assetsInventory.allSites')}</SelectItem>
+                  <SelectItem value="siege">{t('assetsInventory.siteHq')}</SelectItem>
+                  <SelectItem value="entrepot">{t('assetsInventory.siteWarehouse')}</SelectItem>
+                  <SelectItem value="usine">{t('assetsInventory.sitePlant')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('assetsInventory.description')}</Label>
               <Textarea
                 id="description"
-                placeholder="Objectifs et particularités de cette session..."
+                placeholder={t('assetsInventory.descriptionPlaceholder')}
                 rows={3}
                 value={sessionForm.desc}
                 onChange={e => setSessionForm(s => ({ ...s, desc: e.target.value }))}
@@ -1466,13 +1496,13 @@ const InventairePhysiquePage: React.FC = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNewSessionModal(false)}>
-              Annuler
+              {t('assetsInventory.cancel')}
             </Button>
             <Button
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
               onClick={handleCreateSession}
             >
-              Créer la session
+              {t('assetsInventory.createSession')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1484,7 +1514,7 @@ const InventairePhysiquePage: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center text-[#404040]">
               <Eye className="mr-2 h-5 w-5 text-[var(--color-primary)]" />
-              Détails de l'Immobilisation
+              {t('assetsInventory.assetDetails')}
             </DialogTitle>
           </DialogHeader>
           {selectedItem && (
@@ -1492,50 +1522,50 @@ const InventairePhysiquePage: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-700">Code article</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.itemCode')}</p>
                     <p className="font-semibold text-[#404040]">{selectedItem.code}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">Désignation</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.designation')}</p>
                     <p className="font-semibold text-[#404040]">{selectedItem.designation}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">Catégorie</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.category')}</p>
                     <p className="font-semibold text-[var(--color-primary)]">{selectedItem.categorie}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">Localisation</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.location')}</p>
                     <p className="font-semibold">{selectedItem.localisation}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-700">Valeur nette comptable</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.netBookValue')}</p>
                     <p className="font-semibold text-[var(--color-primary)] text-lg">
                       {formatCurrency(selectedItem.valeur_nette_comptable)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">État physique</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.physicalCondition')}</p>
                     <Badge
                       className={selectedItem.etat_physique === 'excellent' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' :
                                selectedItem.etat_physique === 'bon' ? 'bg-[var(--color-text-tertiary)]/10 text-[var(--color-text-tertiary)]' :
                                'bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]'}
                     >
-                      {selectedItem.etat_physique}
+                      {physicalStateLabel(selectedItem.etat_physique)}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-700">Statut de comptage</p>
+                    <p className="text-sm text-gray-700">{t('assetsInventory.countStatus')}</p>
                     <Badge
                       variant={selectedItem.statut_comptage === 'compte' ? 'default' : 'secondary'}
                     >
-                      {selectedItem.statut_comptage === 'compte' ? 'Compté' : 'Non compté'}
+                      {selectedItem.statut_comptage === 'compte' ? t('assetsInventory.countedStatus') : t('assetsInventory.notCounted')}
                     </Badge>
                   </div>
                   {selectedItem.date_comptage && (
                     <div>
-                      <p className="text-sm text-gray-700">Date de comptage</p>
+                      <p className="text-sm text-gray-700">{t('assetsInventory.countDate')}</p>
                       <p className="font-semibold">{formatDate(selectedItem.date_comptage)}</p>
                     </div>
                   )}
@@ -1544,20 +1574,20 @@ const InventairePhysiquePage: React.FC = () => {
 
               {selectedItem.ecart && (
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold mb-3 text-red-600">Écart détecté</h3>
+                  <h3 className="font-semibold mb-3 text-red-600">{t('assetsInventory.varianceDetected')}</h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <p className="text-sm text-gray-700">Type d'écart</p>
+                      <p className="text-sm text-gray-700">{t('assetsInventory.discrepancyType')}</p>
                       <Badge variant="destructive">{selectedItem.ecart.type}</Badge>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-700">Valeur de l'écart</p>
+                      <p className="text-sm text-gray-700">{t('assetsInventory.varianceValue')}</p>
                       <p className="font-semibold text-red-600">
                         {formatCurrency(selectedItem.ecart.valeur)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-700">Description</p>
+                      <p className="text-sm text-gray-700">{t('assetsInventory.description')}</p>
                       <p className="text-sm">{selectedItem.ecart.description}</p>
                     </div>
                   </div>
@@ -1566,7 +1596,7 @@ const InventairePhysiquePage: React.FC = () => {
 
               {selectedItem.compteur && (
                 <div className="border-t pt-4">
-                  <h3 className="font-semibold mb-2 text-[#404040]">Compteur responsable</h3>
+                  <h3 className="font-semibold mb-2 text-[#404040]">{t('assetsInventory.responsibleCounter')}</h3>
                   <p className="text-[var(--color-primary)]">{selectedItem.compteur}</p>
                 </div>
               )}
@@ -1574,7 +1604,7 @@ const InventairePhysiquePage: React.FC = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowItemDetailModal(false)}>
-              Fermer
+              {t('assetsInventory.close')}
             </Button>
             <Button
               className="bg-[var(--color-text-tertiary)] hover:bg-[var(--color-text-secondary)]"
@@ -1584,7 +1614,7 @@ const InventairePhysiquePage: React.FC = () => {
               }}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Modifier
+              {t('assetsInventory.edit')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1596,55 +1626,55 @@ const InventairePhysiquePage: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center text-[#404040]">
               <Edit className="mr-2 h-5 w-5 text-[var(--color-primary)]" />
-              Modifier l'Immobilisation
+              {t('assetsInventory.editAsset')}
             </DialogTitle>
           </DialogHeader>
           {selectedItem && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-etat">État physique</Label>
+                  <Label htmlFor="edit-etat">{t('assetsInventory.physicalCondition')}</Label>
                   <Select value={editForm.etat} onValueChange={v => setEditForm(s => ({ ...s, etat: v }))}>
                     <SelectTrigger id="edit-etat">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="excellent">Excellent</SelectItem>
-                      <SelectItem value="bon">Bon</SelectItem>
-                      <SelectItem value="moyen">Moyen</SelectItem>
-                      <SelectItem value="mauvais">Mauvais</SelectItem>
-                      <SelectItem value="hors_service">Hors service</SelectItem>
+                      <SelectItem value="excellent">{t('assetsInventory.condExcellent')}</SelectItem>
+                      <SelectItem value="bon">{t('assetsInventory.condGood')}</SelectItem>
+                      <SelectItem value="moyen">{t('assetsInventory.condFair')}</SelectItem>
+                      <SelectItem value="mauvais">{t('assetsInventory.condPoor')}</SelectItem>
+                      <SelectItem value="hors_service">{t('assetsInventory.condOutOfService')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-localisation">Localisation</Label>
+                  <Label htmlFor="edit-localisation">{t('assetsInventory.location')}</Label>
                   <Input
                     id="edit-localisation"
                     value={editForm.localisation}
                     onChange={e => setEditForm(s => ({ ...s, localisation: e.target.value }))}
-                    placeholder="Ex: Bureau 201, Étage 2"
+                    placeholder={t('assetsInventory.locationPlaceholder')}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-statut">Statut de comptage</Label>
+                <Label htmlFor="edit-statut">{t('assetsInventory.countStatus')}</Label>
                 <Select value={editForm.statut} onValueChange={v => setEditForm(s => ({ ...s, statut: v }))}>
                   <SelectTrigger id="edit-statut">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="non_compte">Non compté</SelectItem>
-                    <SelectItem value="compte">Compté</SelectItem>
-                    <SelectItem value="ecart">Écart</SelectItem>
+                    <SelectItem value="non_compte">{t('assetsInventory.notCounted')}</SelectItem>
+                    <SelectItem value="compte">{t('assetsInventory.countedStatus')}</SelectItem>
+                    <SelectItem value="ecart">{t('assetsInventory.variance')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notes / Observations</Label>
+                <Label htmlFor="edit-notes">{t('assetsInventory.notesObservations')}</Label>
                 <Textarea
                   id="edit-notes"
-                  placeholder="Ajoutez vos observations..."
+                  placeholder={t('assetsInventory.notesPlaceholder')}
                   rows={3}
                   value={editForm.notes}
                   onChange={e => setEditForm(s => ({ ...s, notes: e.target.value }))}
@@ -1654,13 +1684,13 @@ const InventairePhysiquePage: React.FC = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditItemModal(false)}>
-              Annuler
+              {t('assetsInventory.cancel')}
             </Button>
             <Button
               className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
               onClick={handleSaveItemCount}
             >
-              Enregistrer les modifications
+              {t('assetsInventory.saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1672,13 +1702,13 @@ const InventairePhysiquePage: React.FC = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center text-[#404040]">
               <QrCode className="mr-2 h-5 w-5 text-[var(--color-primary)]" />
-              Code QR de l'Immobilisation
+              {t('assetsInventory.assetQrCode')}
             </DialogTitle>
           </DialogHeader>
           {selectedItem && (
             <div className="space-y-4">
               <div className="text-center">
-                <p className="text-sm text-gray-700 mb-2">Code article</p>
+                <p className="text-sm text-gray-700 mb-2">{t('assetsInventory.itemCode')}</p>
                 <p className="font-bold text-lg text-[#404040]">{selectedItem.code}</p>
               </div>
               <div className="bg-white p-8 rounded-lg border-2 border-[var(--color-primary)]/20">
@@ -1694,15 +1724,15 @@ const InventairePhysiquePage: React.FC = () => {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowQrCodeModal(false)}>
-              Fermer
+              {t('assetsInventory.close')}
             </Button>
             <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
               <Download className="mr-2 h-4 w-4" />
-              Télécharger
+              {t('assetsInventory.download')}
             </Button>
             <Button className="bg-[var(--color-text-tertiary)] hover:bg-[var(--color-text-secondary)]">
               <Camera className="mr-2 h-4 w-4" />
-              Imprimer
+              {t('assetsInventory.print')}
             </Button>
           </DialogFooter>
         </DialogContent>

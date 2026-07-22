@@ -6,19 +6,91 @@
  * 2. Validation D=C via validateJournalEntrySync (Money precision)
  * 3. Hash d'intégrité SHA-256 avec chaînage
  * 4. updatedAt toujours présent
+ * 5. Verrou de clôture (intangibilité SYSCOHADA Art. 19)
+ *
+ * ⚠️ PERFORMANCE — prérequis de l'ossature d'intégration (L0)
+ * La version précédente chargeait TOUT le journal (`getAll('journalEntries')`,
+ * lignes incluses : 10 319 lignes) à CHAQUE écriture, puis bouclait dessus pour
+ * le contrôle caisse : O(n·m) par insertion. Invisible en saisie manuelle,
+ * mur absolu dès qu'un satellite (Trade/Procure/People) déverse des centaines
+ * d'écritures par jour.
+ *
+ * Désormais : requêtes bornées et indexées uniquement.
+ *  - doublon de n° de pièce → contrainte UNIQUE(tenant_id, entry_number) en base
+ *  - solde caisse 57x       → RPC get_single_account_balance (repli borné)
+ *  - maillon de chaîne      → getAll(limit:1, orderBy date desc)
  */
 
 import type { DataAdapter } from '@atlas/data';
 import type { DBJournalEntry, DBFiscalYear } from '../lib/db';
 import { money, Money } from '../utils/money';
 import { validateJournalEntrySync, type ValidationResult } from '../validators/journalEntryValidator';
-import { hashEntry } from '../utils/integrity';
+import { hashEntry, chainSalt } from '../utils/integrity';
 import { getPeriodeStatus } from './periodeComptableService';
 
 export class EntryGuardError extends Error {
   constructor(public errors: string[]) {
     super(errors.join(' | '));
     this.name = 'EntryGuardError';
+  }
+}
+
+/**
+ * Solde d'un compte exact (débit - crédit), écritures validées/postées.
+ *
+ * Chemin nominal : RPC serveur (une requête indexée).
+ * Repli : adapter.getAccountBalance (RPC agrégée, mise en cache).
+ * Dernier repli (adapters de test / Dexie sans RPC) : lecture du journal.
+ * Le repli reste correct — il n'est simplement pas O(1).
+ */
+async function getAccountSolde(adapter: DataAdapter, accountCode: string): Promise<number> {
+  // ⚠️ Uniquement en mode serveur : en local/test, `getAccountBalance` est un
+  // stub qui renvoie 0 — s'y fier désactiverait SILENCIEUSEMENT le garde-fou
+  // caisse. En local, le journal tient en mémoire : le scan est correct et bon
+  // marché.
+  if (adapter.getMode() !== 'local') {
+    const rpc = (adapter as any).rpc;
+    if (typeof rpc === 'function') {
+      try {
+        const v = await rpc.call(adapter, 'get_single_account_balance', {
+          p_account: accountCode,
+          p_include_drafts: true,
+        });
+        if (v !== null && v !== undefined && !Number.isNaN(Number(v))) return Number(v);
+      } catch { /* RPC absente sur cet environnement → repli */ }
+    }
+  }
+
+  // Repli (local/test, ou RPC indisponible) : scan du journal.
+  // Brouillons INCLUS — même sémantique que la RPC appelée avec
+  // p_include_drafts=true, pour que le guard se comporte à l'identique
+  // en local et en SaaS.
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+  let solde = 0;
+  for (const e of entries) {
+    for (const l of e.lines ?? []) {
+      if (l.accountCode === accountCode) solde += (l.debit ?? 0) - (l.credit ?? 0);
+    }
+  }
+  return solde;
+}
+
+/**
+ * Dernier maillon de la chaîne de hash — requête bornée (1 ligne).
+ *
+ * ⚠️ L'injection des lignes de journal_lines est bornée aux ids retournés
+ * côté SupabaseAdapter : sans ce garde-fou, ce `limit: 1` rapatriait quand
+ * même les 10 319 lignes du journal.
+ */
+async function getLastEntryHash(adapter: DataAdapter): Promise<string> {
+  try {
+    const last = await adapter.getAll<DBJournalEntry>('journalEntries', {
+      orderBy: { field: 'date', direction: 'desc' },
+      limit: 1,
+    });
+    return last?.[0]?.hash ?? '';
+  } catch {
+    return '';
   }
 }
 
@@ -59,9 +131,6 @@ export async function safeAddEntry(
     }
   }
 
-  // Load all entries once — reused for duplicate check, cash check, and hash chain
-  const allEntries = await adapter.getAll<DBJournalEntry>('journalEntries');
-
   // 1. Compute totalDebit / totalCredit with Money class
   const totalDebit = Money.sum(lines.map(l => money(l.debit))).toNumber();
   const totalCredit = Money.sum(lines.map(l => money(l.credit))).toNumber();
@@ -76,38 +145,43 @@ export async function safeAddEntry(
     }
   }
 
-  // P1-7: Duplicate detection — vérifier unicité du numéro de pièce
+  // P1-7 : unicité du numéro de pièce.
+  // Le scan applicatif (getAll + find) est remplacé par une requête BORNÉE.
+  // La garantie DURE reste la contrainte UNIQUE(tenant_id, entry_number) en
+  // base : sous concurrence, seule la base peut arbitrer. Ce contrôle sert à
+  // produire un message d'erreur lisible avant l'aller-retour serveur.
   if (entry.entryNumber) {
-    const duplicate = allEntries.find(
-      (e: any) => e.entryNumber === entry.entryNumber && e.id !== entry.id
-    );
+    const sameNumber = await adapter.getAll<DBJournalEntry>('journalEntries', {
+      where: { entryNumber: entry.entryNumber },
+      limit: 2,
+    });
+    const duplicate = sameNumber.find(e => e.id !== entry.id);
     if (duplicate) {
       throw new EntryGuardError([
-        `Doublon détecté : le numéro de pièce "${entry.entryNumber}" existe déjà (écriture ${(duplicate as unknown as { id: string }).id}).`,
+        `Doublon détecté : le numéro de pièce "${entry.entryNumber}" existe déjà (écriture ${duplicate.id}).`,
       ]);
     }
   }
 
-  // P4-2: Contrôle caisse >= 0 — les comptes de caisse (57x) ne peuvent pas devenir négatifs
-  const caisseLines = lines.filter(l => l.accountCode.startsWith('57'));
-  if (caisseLines.length > 0) {
-    for (const cl of caisseLines) {
-      if (cl.credit <= 0) continue; // seules les sorties (crédit) peuvent rendre négatif
-      let solde = 0;
-      for (const e of allEntries) {
-        for (const l of e.lines) {
-          if (l.accountCode === cl.accountCode) {
-            solde += l.debit - l.credit;
-          }
-        }
-      }
-      const soldeFutur = solde - cl.credit + cl.debit;
+  // P4-2 : contrôle caisse >= 0 — les comptes 57x ne peuvent pas devenir négatifs.
+  // Un solde par compte via RPC indexée, au lieu d'une double boucle sur tout
+  // le journal. Les comptes distincts sont dédupliqués et interrogés en parallèle.
+  const caisseAccounts = [
+    ...new Set(lines.filter(l => l.accountCode.startsWith('57') && l.credit > 0).map(l => l.accountCode)),
+  ];
+  if (caisseAccounts.length > 0) {
+    const soldes = await Promise.all(caisseAccounts.map(code => getAccountSolde(adapter, code)));
+    caisseAccounts.forEach((code, i) => {
+      const impact = Money.sum(
+        lines.filter(l => l.accountCode === code).map(l => money(l.debit).subtract(l.credit)),
+      ).toNumber();
+      const soldeFutur = money(soldes[i]).add(impact).toNumber();
       if (soldeFutur < 0) {
         throw new EntryGuardError([
-          `Solde caisse négatif interdit : le compte ${cl.accountCode} aurait un solde de ${soldeFutur} après cette opération (solde actuel : ${solde}).`,
+          `Solde caisse négatif interdit : le compte ${code} aurait un solde de ${soldeFutur} après cette opération (solde actuel : ${soldes[i]}).`,
         ]);
       }
-    }
+    });
   }
 
   // 3. Build final entry
@@ -128,12 +202,18 @@ export async function safeAddEntry(
     finalEntry.lines = finalEntry.lines.map((l: any) => ({ ...l, id: l.id ?? crypto.randomUUID() }));
   }
 
-  // 4. Hash with chain — sort cached entries by date for chain ordering
-  const sortedEntries = [...allEntries].sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
-  const lastEntry = sortedEntries.length > 0 ? sortedEntries[sortedEntries.length - 1] : undefined;
-  const previousHash = lastEntry?.hash ?? '';
+  // 4. Chaîne de hash — dernier maillon récupéré par requête bornée (1 ligne),
+  // et non plus par tri applicatif de tout le journal.
+  //
+  // L7 : quand l'écriture provient d'un satellite, l'empreinte du payload de
+  // l'événement source entre dans le hash. La preuve devient opposable de bout
+  // en bout : le GL scelle le document d'origine, pas seulement son écriture.
+  const previousHash = await getLastEntryHash(adapter);
   finalEntry.previousHash = previousHash;
-  finalEntry.hash = await hashEntry(finalEntry, previousHash);
+  finalEntry.hash = await hashEntry(
+    finalEntry,
+    chainSalt(previousHash, finalEntry.sourcePayloadHash),
+  );
 
   // 5. Persist — via saveJournalEntry qui écrit l'entête ET les lignes dans la table
   // SÉPARÉE journal_lines (RPC atomique + trigger d'équilibre en SaaS). L'ancien

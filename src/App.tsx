@@ -139,6 +139,7 @@ const ContactsModule = lazyRetry(() => import('./pages/tiers/ContactsModule'));
 const LettrageModule = lazyRetry(() => import('./pages/tiers/LettrageModule'));
 const PartenairesModule = lazyRetry(() => import('./pages/tiers/PartenairesModule'));
 const ProspectsModule = lazyRetry(() => import('./pages/tiers/ProspectsModule'));
+const RattachementTiersPage = lazyRetry(() => import('./pages/tiers/RattachementTiersPage'));
 
 // Third-party (alternative)
 const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPartyDashboard'));
@@ -157,6 +158,8 @@ const BudgetAlertesPage = lazyRetry(() => import('./pages/budget/BudgetAlertesPa
 const BudgetCampagnePage = lazyRetry(() => import('./pages/budget/BudgetCampagnePage'));
 const CapexPortfolioPage = lazyRetry(() => import('./pages/budget/CapexPortfolioPage'));
 const CapexBusinessCasesPage = lazyRetry(() => import('./pages/budget/CapexBusinessCasesPage'));
+const CapexCarRegistrePage = lazyRetry(() => import('./pages/budget/CapexCarRegistrePage'));
+const CapexCarDetailPage = lazyRetry(() => import('./pages/budget/CapexCarDetailPage'));
 const BCStepperPage = lazyRetry(() => import('./pages/budget/BCStepperPage'));
 const CapexPriorisationPage = lazyRetry(() => import('./pages/budget/CapexPriorisationPage'));
 const ProjetCockpitPage = lazyRetry(() => import('./pages/budget/ProjetCockpitPage'));
@@ -247,6 +250,11 @@ const StockWarehouses = lazyRetry(() => import('./pages/stock/WarehousesPage'));
 const StockMovements = lazyRetry(() => import('./pages/stock/MovementsPage'));
 const StockValuation = lazyRetry(() => import('./pages/stock/ValuationPage'));
 const StockGlSetup = lazyRetry(() => import('./pages/stock/GlSetupPage'));
+// Ossature d'intégration Suite Atlas (Trade / Procure / People)
+const IntegrationPostingRules = lazyRetry(() => import('./pages/integration/PostingRulesPage'));
+const IntegrationReconciliation = lazyRetry(() => import('./pages/integration/SubledgerReconciliationPage'));
+const IntegrationMonitor = lazyRetry(() => import('./pages/integration/IntegrationMonitorPage'));
+const IntegrationKeys = lazyRetry(() => import('./pages/integration/IntegrationKeysPage'));
 const StockBatches = lazyRetry(() => import('./pages/stock/BatchesPage'));
 const StockPhysical = lazyRetry(() => import('./pages/stock/PhysicalInventoryPage'));
 const StockReorder = lazyRetry(() => import('./pages/stock/ReorderPage'));
@@ -456,6 +464,8 @@ function App() {
                           <Route path="/budget/cockpit-analytique" element={work(<BudgetCockpitProPage />)} />
                           <Route path="/capex" element={work(<CapexPortfolioPage />)} />
                           <Route path="/capex/business-cases" element={work(<CapexBusinessCasesPage />)} />
+                          <Route path="/capex/car" element={work(<CapexCarRegistrePage />)} />
+                          <Route path="/capex/car/:id" element={work(<CapexCarDetailPage />)} />
                           {/* Pas de route littérale « /capex/bc/new » : elle ne capture aucun
                               param `id` (useParams().id = undefined → '' par défaut), donc
                               isNew = id === 'new' était FAUX → « Business Case introuvable ».
@@ -488,6 +498,7 @@ function App() {
                           <Route path="/tiers/lettrage" element={work(<LettrageModule />)} />
                           <Route path="/tiers/partenaires" element={work(<PartenairesModule />)} />
                           <Route path="/tiers/prospects" element={work(<ProspectsModule />)} />
+                          <Route path="/tiers/rattachement" element={work(<RattachementTiersPage />)} />
                           <Route path="/third-party" element={<ThirdPartyDashboard />} />
                         </Route>
 
@@ -610,6 +621,11 @@ function App() {
                           <Route path="/stock/reporting" element={work(<StockReporting />)} />
                           <Route path="/stock/pending" element={work(<StockPending />)} />
                           <Route path="/stock/gl-setup" element={work(<StockGlSetup />)} />
+                          {/* Ossature d'intégration Suite Atlas — le GL souverain */}
+                          <Route path="/integration/posting-rules" element={work(<IntegrationPostingRules />)} />
+                          <Route path="/integration/reconciliation" element={work(<IntegrationReconciliation />)} />
+                          <Route path="/integration/monitor" element={work(<IntegrationMonitor />)} />
+                          <Route path="/integration/keys" element={work(<IntegrationKeys />)} />
                         </Route>
 
                         {/* Fiscalite */}

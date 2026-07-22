@@ -24,8 +24,12 @@ const CapexPriorisationPage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
   const [items, setItems] = useState<BcScoringInput[]>([]);
-  /** Lignes brutes (avec priorite/account_code) — nécessaires au kanban. */
-  const [candidateRows, setCandidateRows] = useState<CapexRequest[]>([]);
+  /**
+   * Kanban = TOUT le portefeuille vivant (hors rejeté/clos), pas seulement les
+   * candidats au scoring : un BC approuvé ou déjà passé en CAR garde une priorité
+   * et doit rester visible. Le tableau de score, lui, reste borné aux soumis.
+   */
+  const [portfolioRows, setPortfolioRows] = useState<CapexRequest[]>([]);
   const [vue, setVue] = useState<'tableau' | 'kanban'>('tableau');
   const [criteria, setCriteria] = useState<ScoringCritere[]>([]);
   const [enveloppe, setEnveloppe] = useState('0');
@@ -58,7 +62,8 @@ const CapexPriorisationPage: React.FC = () => {
           riskPI: riskByReq[r.id] || 0, obligatoire: !!(r as any).obligatoire, urgence: !!(r as any).urgence,
         }));
         if (cancelled) return;
-        setItems(mapped); setCandidateRows(candidates); setCriteria(crit);
+        const vivants = reqs.filter((r) => !['rejete', 'clos'].includes(r.statut as string));
+        setItems(mapped); setPortfolioRows(vivants); setCriteria(crit);
         setEnveloppe((e) => (e === '0' ? String(mapped.reduce((s, m) => s + m.montant, 0)) : e));
       } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
       finally { if (!cancelled) setLoading(false); }
@@ -75,11 +80,11 @@ const CapexPriorisationPage: React.FC = () => {
 
   /** Persiste la priorité posée au drag & drop. Optimiste, rollback si la base refuse. */
   const changePriorite = useCallback(async (id: string, priorite: CapexPriorite) => {
-    const before = candidateRows;
-    setCandidateRows((rs) => rs.map((r) => (r.id === id ? { ...r, priorite } : r)));
+    const before = portfolioRows;
+    setPortfolioRows((rs) => rs.map((r) => (r.id === id ? { ...r, priorite } : r)));
     try { await updateBcFields(adapter, id, { priorite }); }
-    catch (e) { setCandidateRows(before); throw e; }
-  }, [adapter, candidateRows]);
+    catch (e) { setPortfolioRows(before); throw e; }
+  }, [adapter, portfolioRows]);
 
   const decide = useCallback(async (id: string, statut: 'approuve' | 'ajourne' | 'rejete') => {
     setBusyId(id); setError(null); setNotice(null);
@@ -119,14 +124,20 @@ const CapexPriorisationPage: React.FC = () => {
 
       {loading ? (
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+      ) : vue === 'kanban' ? (
+        /* Le kanban a sa PROPRE condition de vide : il couvre tout le portefeuille
+           vivant, donc il ne doit pas être masqué quand aucun BC n'est « soumis ». */
+        portfolioRows.length === 0 ? (
+          <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun Business Case actif. Créez-en un depuis l'onglet Business Cases.</div>
+        ) : (
+          <CapexPrioriteKanban
+            rows={portfolioRows}
+            onChangePriorite={changePriorite}
+            onOpen={(id) => navigate(`/capex/bc/${id}`)}
+          />
+        )
       ) : ranked.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
-      ) : vue === 'kanban' ? (
-        <CapexPrioriteKanban
-          rows={candidateRows}
-          onChangePriorite={changePriorite}
-          onOpen={(id) => navigate(`/capex/bc/${id}`)}
-        />
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">

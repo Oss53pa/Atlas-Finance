@@ -215,17 +215,17 @@ const ReconciliationPage: React.FC = () => {
   }, [adapter, expandedStatementId]);
 
   const handleDeleteStatement = useCallback(async (id: string) => {
-    if (!confirm('Supprimer ce relevé et toutes ses lignes ?')) return;
+    if (!confirm(t('bankRecon.confirmDeleteStatement'))) return;
     try {
       await deleteBankStatement(adapter, id);
       if (expandedStatementId === id) { setExpandedStatementId(null); setStatementLines([]); }
       await refreshStatements();
-      toast.success('Relevé supprimé');
+      toast.success(t('bankRecon.statementDeleted'));
     } catch (error) {
       console.error('[ReconciliationPage] Erreur suppression relevé:', error);
-      toast.error('Erreur lors de la suppression du relevé');
+      toast.error(t('bankRecon.errorDeleteStatement'));
     }
-  }, [adapter, expandedStatementId, refreshStatements]);
+  }, [adapter, expandedStatementId, refreshStatements, t]);
 
   const { data: bankAccounts } = useBankAccounts({
     page: 1,
@@ -238,7 +238,7 @@ const ReconciliationPage: React.FC = () => {
         ...rapprochementResult.matches.map((m) => ({
           id: m.bankTransactionId,
           date: bankTransactions.find((tx) => tx.id === m.bankTransactionId)?.date || '',
-          type_mouvement: m.bankAmount >= 0 ? 'Crédit' : 'Débit',
+          type_mouvement: m.bankAmount >= 0 ? t('bankRecon.credit') : t('bankRecon.debit'),
           libelle: bankTransactions.find((tx) => tx.id === m.bankTransactionId)?.label || '',
           reference_comptable: m.entryIds.join(', '),
           reference_banque: m.bankTransactionId,
@@ -251,7 +251,7 @@ const ReconciliationPage: React.FC = () => {
         ...rapprochementResult.unmatchedBank.map((tx) => ({
           id: tx.id,
           date: tx.date,
-          type_mouvement: tx.amount >= 0 ? 'Crédit' : 'Débit',
+          type_mouvement: tx.amount >= 0 ? t('bankRecon.credit') : t('bankRecon.debit'),
           libelle: tx.label,
           reference_banque: tx.reference,
           montant_comptable: 0,
@@ -263,7 +263,7 @@ const ReconciliationPage: React.FC = () => {
         ...rapprochementResult.unmatchedCompta.map((cl) => ({
           id: cl.lineId,
           date: cl.date,
-          type_mouvement: cl.amount >= 0 ? 'Crédit' : 'Débit',
+          type_mouvement: cl.amount >= 0 ? t('bankRecon.credit') : t('bankRecon.debit'),
           libelle: cl.label,
           reference_comptable: cl.entryId,
           montant_comptable: cl.amount,
@@ -329,26 +329,26 @@ const ReconciliationPage: React.FC = () => {
         console.error('[ReconciliationPage] Erreur persistance relevé (best-effort):', persistError);
       }
 
-      toast.success(`Rapprochement terminé : ${result.matches.length} correspondances trouvées`);
+      toast.success(t('bankRecon.reconDoneMatchesFound', { count: String(result.matches.length) }));
     } catch (error) {
       console.error('[ReconciliationPage] Erreur rapprochement automatique:', error);
-      toast.error('Erreur lors du rapprochement automatique');
+      toast.error(t('bankRecon.errorAutoRecon'));
     } finally {
       setIsLoading(false);
       setShowImportSetup(false);
     }
-  }, [adapter, filters.compte, setupInfo, refreshStatements]);
+  }, [adapter, filters.compte, setupInfo, refreshStatements, t]);
 
   // Import CSV : parse → rapprochement.
   const handleImportCSV = useCallback(async (csvContent: string) => {
     const transactions = parseBankStatementCSV(csvContent);
     if (transactions.length === 0) {
-      toast.error('Aucune transaction trouvée dans le fichier CSV');
+      toast.error(t('bankRecon.noTransactionInCsv'));
       return;
     }
-    toast.success(`${transactions.length} transactions bancaires importées`);
+    toast.success(t('bankRecon.bankTxImported', { count: String(transactions.length) }));
     await runReconciliation(transactions);
-  }, [runReconciliation]);
+  }, [runReconciliation, t]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -376,7 +376,7 @@ const ReconciliationPage: React.FC = () => {
       const cfg = await getOCRConfig(adapter);
       const ext = await extractBankStatement(file, cfg);
       if (!ext.success || ext.lines.length === 0) {
-        toast.error(ext.error || 'Aucune ligne d\'opération détectée sur le relevé.');
+        toast.error(ext.error || t('bankRecon.noOperationLineDetected'));
         return;
       }
       const transactions: BankTransaction[] = ext.lines.map((l, i) => ({
@@ -386,14 +386,14 @@ const ReconciliationPage: React.FC = () => {
         reference: l.reference,
         amount: (l.credit || 0) - (l.debit || 0), // + = entrée, − = sortie
       }));
-      toast.success(`${transactions.length} lignes extraites du relevé (OCR)`);
+      toast.success(t('bankRecon.linesExtractedOcr', { count: String(transactions.length) }));
       await runReconciliation(transactions);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Extraction OCR du relevé échouée');
+      toast.error(err instanceof Error ? err.message : t('bankRecon.ocrExtractionFailed'));
     } finally {
       setIsLoading(false);
     }
-  }, [adapter, runReconciliation]);
+  }, [adapter, runReconciliation, t]);
 
   const handleFilterChange = (key: keyof ReconciliationFilters, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -431,10 +431,10 @@ const ReconciliationPage: React.FC = () => {
 
   const handleAutoReconciliation = async () => {
     if (bankTransactions.length === 0) {
-      toast.error('Veuillez d\'abord importer un relevé bancaire (CSV)');
+      toast.error(t('bankRecon.importStatementFirst'));
       return;
     }
-    if (!confirm('Lancer le rapprochement automatique pour ce compte ?')) return;
+    if (!confirm(t('bankRecon.confirmAutoRecon'))) return;
     setIsLoading(true);
     try {
       const result = await rapprochementAutomatique(adapter, bankTransactions);
@@ -446,10 +446,10 @@ const ReconciliationPage: React.FC = () => {
         const etat = await genererEtatRapprochement(compte, bankTransactions, result);
         setEtatRapprochement(etat);
       }
-      toast.success(`Rapprochement terminé : ${result.matches.length} correspondances`);
+      toast.success(t('bankRecon.reconDoneMatches', { count: String(result.matches.length) }));
     } catch (error) {
       console.error('[ReconciliationPage] Erreur rapprochement automatique:', error);
-      toast.error('Erreur lors du rapprochement automatique');
+      toast.error(t('bankRecon.errorAutoRecon'));
     } finally {
       setIsLoading(false);
     }
@@ -457,14 +457,14 @@ const ReconciliationPage: React.FC = () => {
 
   const handleManualReconciliation = async () => {
     if (selectedItems.size === 0) {
-      toast.error('Veuillez sélectionner au moins un élément');
+      toast.error(t('bankRecon.selectAtLeastOne'));
       return;
     }
     if (!rapprochementResult) {
-      toast.error('Aucun résultat de rapprochement disponible');
+      toast.error(t('bankRecon.noReconResult'));
       return;
     }
-    if (!confirm(`Rapprocher ${selectedItems.size} élément(s) sélectionné(s) ?`)) return;
+    if (!confirm(t('bankRecon.confirmReconcileSelected', { count: String(selectedItems.size) }))) return;
 
     // Filter matches that correspond to selected items
     const selectedMatches = rapprochementResult.matches.filter(m =>
@@ -472,13 +472,13 @@ const ReconciliationPage: React.FC = () => {
     );
 
     if (selectedMatches.length === 0) {
-      toast.error('Aucune correspondance trouvée pour les éléments sélectionnés');
+      toast.error(t('bankRecon.noMatchForSelected'));
       return;
     }
 
     try {
       const applied = await appliquerRapprochement(adapter, selectedMatches);
-      toast.success(`${applied} écritures rapprochées avec succès`);
+      toast.success(t('bankRecon.entriesReconciledSuccess', { count: String(applied) }));
       setSelectedItems(new Set());
       // Refresh rapprochement
       if (bankTransactions.length > 0) {
@@ -492,7 +492,7 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       console.error('[ReconciliationPage] Erreur rapprochement manuel:', error);
-      toast.error('Erreur lors du rapprochement');
+      toast.error(t('bankRecon.errorRecon'));
     }
   };
 
@@ -501,10 +501,10 @@ const ReconciliationPage: React.FC = () => {
   const handlePairManual = async () => {
     if (!pairBank || !pairCompta) return;
     const entryId = pairCompta.reference_comptable;
-    if (!entryId) { toast.error('Écriture comptable invalide'); return; }
+    if (!entryId) { toast.error(t('bankRecon.invalidJournalEntry')); return; }
     const ecart = pairBank.montant_banque - pairCompta.montant_comptable;
     if (Math.abs(ecart) > 0.01 && !confirm(
-      `Les montants diffèrent (écart ${formatCurrency(Math.abs(ecart))}). Rapprocher quand même ?`
+      t('bankRecon.confirmAmountsDiffer', { amount: formatCurrency(Math.abs(ecart)) })
     )) return;
     const match: RapprochementMatch = {
       bankTransactionId: pairBank.id,
@@ -518,7 +518,7 @@ const ReconciliationPage: React.FC = () => {
     };
     try {
       const applied = await appliquerRapprochement(adapter, [match]);
-      toast.success(`Rapprochement manuel appliqué (${applied} écriture(s))`);
+      toast.success(t('bankRecon.manualReconApplied', { count: String(applied) }));
       setPairBank(null);
       setPairCompta(null);
       if (bankTransactions.length > 0) {
@@ -532,7 +532,7 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       console.error('[ReconciliationPage] Erreur rapprochement manuel libre:', error);
-      toast.error('Erreur lors du rapprochement manuel');
+      toast.error(t('bankRecon.errorManualRecon'));
     }
   };
 
@@ -548,10 +548,10 @@ const ReconciliationPage: React.FC = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case 'rapproche': return 'Rapproché';
-      case 'non_rapproche': return 'Non rapproché';
-      case 'ecart': return 'Écart';
-      case 'en_attente': return 'En attente';
+      case 'rapproche': return t('bankRecon.statusReconciled');
+      case 'non_rapproche': return t('bankRecon.statusUnreconciled');
+      case 'ecart': return t('bankRecon.statusVariance');
+      case 'en_attente': return t('bankRecon.statusPending');
       default: return statut;
     }
   };
@@ -575,7 +575,7 @@ const ReconciliationPage: React.FC = () => {
 
   const handleReconcileSingle = async (item: ReconciliationItem) => {
     if (!rapprochementResult) return;
-    if (!confirm(`Confirmer le rapprochement de l'élément "${item.libelle}" ?`)) return;
+    if (!confirm(t('bankRecon.confirmReconcileItem', { label: item.libelle }))) return;
 
     // L'item peut venir de matches (rapproché) ou de unmatchedBank/unmatchedCompta (non rapproché).
     // Pour les items non rapprochés, on cherche d'abord dans les matches existants,
@@ -586,19 +586,16 @@ const ReconciliationPage: React.FC = () => {
 
     if (!matchFromMatches) {
       if (isUnmatchedBank || isUnmatchedCompta) {
-        toast.error(
-          'Cet élément est non rapproché — aucune correspondance automatique disponible. ' +
-          'Utilisez le rapprochement manuel pour l\'associer à une écriture.'
-        );
+        toast.error(t('bankRecon.itemUnreconciledHint'));
       } else {
-        toast.error('Aucune correspondance trouvée pour cet élément');
+        toast.error(t('bankRecon.noMatchForItem'));
       }
       return;
     }
 
     try {
       const applied = await appliquerRapprochement(adapter, [matchFromMatches]);
-      toast.success(`${applied} écriture(s) rapprochée(s) pour "${item.libelle}"`);
+      toast.success(t('bankRecon.entriesReconciledFor', { count: String(applied), label: item.libelle }));
       // Refresh
       if (bankTransactions.length > 0) {
         const result = await rapprochementAutomatique(adapter, bankTransactions);
@@ -611,21 +608,21 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       console.error('[ReconciliationPage] Erreur rapprochement individuel:', error);
-      toast.error('Erreur lors du rapprochement');
+      toast.error(t('bankRecon.errorRecon'));
     }
   };
 
   const handleCancelReconciliation = async (item: ReconciliationItem) => {
-    if (!confirm(`Annuler le rapprochement de l'élément "${item.libelle}" ?`)) return;
+    if (!confirm(t('bankRecon.confirmCancelReconItem', { label: item.libelle }))) return;
     if (!rapprochementResult) {
-      toast.error('Aucun résultat de rapprochement disponible');
+      toast.error(t('bankRecon.noReconResult'));
       return;
     }
 
     // Find the match for this item to know which entry/line IDs to unletter
     const match = rapprochementResult.matches.find(m => m.bankTransactionId === item.id);
     if (!match) {
-      toast.error('Correspondance introuvable — impossible d\'annuler');
+      toast.error(t('bankRecon.matchNotFoundCancel'));
       return;
     }
 
@@ -663,7 +660,7 @@ const ReconciliationPage: React.FC = () => {
         }
       }
 
-      toast.success(`Rapprochement annulé pour "${item.libelle}" (${modified} écriture(s) mise(s) à jour)`);
+      toast.success(t('bankRecon.reconCancelledFor', { label: item.libelle, count: String(modified) }));
 
       // Refresh result
       if (bankTransactions.length > 0) {
@@ -677,7 +674,7 @@ const ReconciliationPage: React.FC = () => {
       }
     } catch (error) {
       console.error('[ReconciliationPage] Erreur annulation rapprochement:', error);
-      toast.error('Erreur lors de l\'annulation du rapprochement');
+      toast.error(t('bankRecon.errorCancelRecon'));
     }
   };
 
@@ -717,10 +714,10 @@ const ReconciliationPage: React.FC = () => {
             </div>
           </div>
           <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${montant >= 0 ? 'text-green-700' : 'text-red-700'}`}>{formatCurrency(montant)}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${matched ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{matched ? 'Rapproché' : 'À rapprocher'}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${matched ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>{matched ? t('bankRecon.statusReconciled') : t('bankRecon.toReconcile')}</span>
           <div className="flex items-center shrink-0">
-            <Button variant="ghost" size="sm" aria-label="Voir les détails" onClick={stop(() => handleViewDetail(item))}><Eye className="h-4 w-4" /></Button>
-            {matched && <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" aria-label="Annuler rapprochement" onClick={stop(() => handleCancelReconciliation(item))}><X className="h-4 w-4" /></Button>}
+            <Button variant="ghost" size="sm" aria-label={t('bankRecon.viewDetails')} onClick={stop(() => handleViewDetail(item))}><Eye className="h-4 w-4" /></Button>
+            {matched && <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700" aria-label={t('bankRecon.cancelReconciliation')} onClick={stop(() => handleCancelReconciliation(item))}><X className="h-4 w-4" /></Button>}
           </div>
         </div>
       </div>
@@ -735,10 +732,10 @@ const ReconciliationPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <GitCompare className="mr-3 h-7 w-7" />
-              Rapprochement Bancaire
+              {t('bankRecon.title')}
             </h1>
             <p className="mt-2 text-[var(--color-text-secondary)]">
-              Rapprochement entre la comptabilité et les relevés bancaires
+              {t('bankRecon.subtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -750,12 +747,12 @@ const ReconciliationPage: React.FC = () => {
               {reconciliationMode === 'manual' ? (
                 <>
                   <Zap className="mr-2 h-4 w-4" />
-                  Mode Auto
+                  {t('bankRecon.modeAuto')}
                 </>
               ) : (
                 <>
                   <Check className="mr-2 h-4 w-4" />
-                  Mode Manuel
+                  {t('bankRecon.modeManual')}
                 </>
               )}
             </Button>
@@ -763,23 +760,23 @@ const ReconciliationPage: React.FC = () => {
               data={(reconciliationData?.results || []) as unknown as Record<string, unknown>[]}
               filename="rapprochement_bancaire"
               columns={{
-                date: 'Date',
-                type_mouvement: 'Type',
-                libelle: 'Libellé',
-                reference_comptable: 'Réf. Comptable',
-                reference_banque: 'Réf. Banque',
-                montant_comptable: 'Montant Comptable',
-                montant_banque: 'Montant Banque',
-                ecart_montant: 'Écart',
-                statut: 'Statut',
-                type_ecart: 'Type Écart'
+                date: t('bankRecon.colDate'),
+                type_mouvement: t('bankRecon.colType'),
+                libelle: t('bankRecon.colLabel'),
+                reference_comptable: t('bankRecon.colRefAccountingShort'),
+                reference_banque: t('bankRecon.colRefBankShort'),
+                montant_comptable: t('bankRecon.amountAccounting'),
+                montant_banque: t('bankRecon.amountBank'),
+                ecart_montant: t('bankRecon.colVariance'),
+                statut: t('bankRecon.colStatus'),
+                type_ecart: t('bankRecon.colVarianceType')
               }}
-              buttonText="Exporter"
+              buttonText={t('bankRecon.export')}
               buttonVariant="outline"
             />
             <Button variant="outline" onClick={() => { setSetupInfo(emptySetup); setShowImportSetup(true); }}>
               <Upload className="mr-2 h-4 w-4" />
-              Importer Relevé
+              {t('bankRecon.importStatement')}
             </Button>
             <input
               ref={fileInputRef}
@@ -802,9 +799,9 @@ const ReconciliationPage: React.FC = () => {
       {/* Onglets : Rapprochement / Journal des relevés / Historique rapprochés validés */}
       <div className="flex gap-1 border-b border-[var(--color-border)] mb-2 overflow-x-auto">
         {([
-          { id: 'rapprochement', label: 'Rapprochement' },
-          { id: 'releves', label: 'Journal des relevés bancaires' },
-          { id: 'historique', label: 'Historique rapprochés (validés)' },
+          { id: 'rapprochement', label: t('bankRecon.tabReconciliation') },
+          { id: 'releves', label: t('bankRecon.tabStatementsJournal') },
+          { id: 'historique', label: t('bankRecon.tabHistory') },
         ] as const).map(tb => (
           <button
             key={tb.id}
@@ -826,7 +823,7 @@ const ReconciliationPage: React.FC = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Rapprochés</p>
+                <p className="text-sm font-medium text-gray-600">{t('bankRecon.kpiReconciled')}</p>
                 <p className="text-lg font-bold text-green-700">
                   {reconciliationData?.matched_count || 0}
                 </p>
@@ -842,7 +839,7 @@ const ReconciliationPage: React.FC = () => {
                 <X className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Non rapprochés</p>
+                <p className="text-sm font-medium text-gray-600">{t('bankRecon.kpiUnreconciled')}</p>
                 <p className="text-lg font-bold text-red-700">
                   {reconciliationData?.unmatched_count || 0}
                 </p>
@@ -858,7 +855,7 @@ const ReconciliationPage: React.FC = () => {
                 <AlertCircle className="h-6 w-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Écarts</p>
+                <p className="text-sm font-medium text-gray-600">{t('bankRecon.kpiVariances')}</p>
                 <p className="text-lg font-bold text-yellow-700">
                   {formatCurrency(Math.abs(reconciliationData?.total_difference || 0))}
                 </p>
@@ -874,7 +871,7 @@ const ReconciliationPage: React.FC = () => {
                 <GitCompare className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Taux Rapprochement</p>
+                <p className="text-sm font-medium text-gray-600">{t('bankRecon.kpiMatchRate')}</p>
                 <p className="text-lg font-bold text-[var(--color-primary)]">
                   {reconciliationData?.match_rate ? `${reconciliationData.match_rate}%` : '0%'}
                 </p>
@@ -890,7 +887,7 @@ const ReconciliationPage: React.FC = () => {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center">
               <Filter className="mr-2 h-5 w-5" />
-              Filtres et Actions
+              {t('bankRecon.filtersAndActions')}
             </div>
             <div className="flex space-x-2">
               {reconciliationMode === 'auto' && (
@@ -902,12 +899,12 @@ const ReconciliationPage: React.FC = () => {
                   {isLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Rapprochement...
+                      {t('bankRecon.reconciling')}
                     </>
                   ) : (
                     <>
                       <Zap className="mr-2 h-4 w-4" />
-                      Rapprochement Auto
+                      {t('bankRecon.autoReconciliation')}
                     </>
                   )}
                 </Button>
@@ -919,7 +916,7 @@ const ReconciliationPage: React.FC = () => {
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Check className="mr-2 h-4 w-4" />
-                  Rapprocher ({selectedItems.size})
+                  {t('bankRecon.reconcileCount', { count: String(selectedItems.size) })}
                 </Button>
               )}
             </div>
@@ -929,10 +926,10 @@ const ReconciliationPage: React.FC = () => {
           <div className="grid gap-4 md:grid-cols-5">
             <Select value={filters.compte} onValueChange={(value) => handleFilterChange('compte', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un compte" />
+                <SelectValue placeholder={t('bankRecon.selectAccount')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les comptes</SelectItem>
+                <SelectItem value="">{t('bankRecon.allAccounts')}</SelectItem>
                 {treasuryAccounts.map((account) => (
                   <SelectItem key={account.code} value={account.code}>
                     {account.name ? `${account.code} — ${account.name}` : account.code}
@@ -949,43 +946,46 @@ const ReconciliationPage: React.FC = () => {
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 {dateRange.start && dateRange.end
-                  ? `Du ${new Date(dateRange.start).toLocaleDateString('fr-FR')} au ${new Date(dateRange.end).toLocaleDateString('fr-FR')}`
-                  : 'Sélectionner une période'
+                  ? t('bankRecon.dateRangeFromTo', {
+                      start: new Date(dateRange.start).toLocaleDateString('fr-FR'),
+                      end: new Date(dateRange.end).toLocaleDateString('fr-FR'),
+                    })
+                  : t('bankRecon.selectPeriod')
                 }
               </Button>
             </div>
 
             <Select value={filters.statut} onValueChange={(value) => handleFilterChange('statut', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les statuts" />
+                <SelectValue placeholder={t('bankRecon.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="rapproche">Rapproché</SelectItem>
-                <SelectItem value="non_rapproche">Non rapproché</SelectItem>
-                <SelectItem value="ecart">Écart</SelectItem>
+                <SelectItem value="">{t('bankRecon.allStatuses')}</SelectItem>
+                <SelectItem value="rapproche">{t('bankRecon.statusReconciled')}</SelectItem>
+                <SelectItem value="non_rapproche">{t('bankRecon.statusUnreconciled')}</SelectItem>
+                <SelectItem value="ecart">{t('bankRecon.statusVariance')}</SelectItem>
                 <SelectItem value="en_attente">{t('status.pending')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.type_ecart} onValueChange={(value) => handleFilterChange('type_ecart', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les écarts" />
+                <SelectValue placeholder={t('bankRecon.allVariances')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les écarts</SelectItem>
-                <SelectItem value="montant">Écart de montant</SelectItem>
-                <SelectItem value="date">Écart de date</SelectItem>
-                <SelectItem value="reference">Référence différente</SelectItem>
-                <SelectItem value="absent_comptable">Absent en comptabilité</SelectItem>
-                <SelectItem value="absent_banque">Absent en banque</SelectItem>
+                <SelectItem value="">{t('bankRecon.allVariances')}</SelectItem>
+                <SelectItem value="montant">{t('bankRecon.varianceAmount')}</SelectItem>
+                <SelectItem value="date">{t('bankRecon.varianceDate')}</SelectItem>
+                <SelectItem value="reference">{t('bankRecon.varianceReference')}</SelectItem>
+                <SelectItem value="absent_comptable">{t('bankRecon.missingInAccounting')}</SelectItem>
+                <SelectItem value="absent_banque">{t('bankRecon.missingInBank')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={resetFilters}>
-              Réinitialiser
+              {t('bankRecon.reset')}
             </Button>
           </div>
         </CardContent>
@@ -995,17 +995,17 @@ const ReconciliationPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Éléments de Rapprochement</span>
+            <span>{t('bankRecon.reconciliationItems')}</span>
             <div className="flex items-center space-x-4">
               <span className="text-xs text-gray-500 hidden md:inline">
-                Cliquez une ligne à gauche et une à droite pour les rapprocher
+                {t('bankRecon.clickHint')}
               </span>
               <span className="text-sm text-gray-600">
-                Du {formatDate(filters.periode_debut)} au {formatDate(filters.periode_fin)}
+                {t('bankRecon.dateRangeFromTo', { start: formatDate(filters.periode_debut), end: formatDate(filters.periode_fin) })}
               </span>
               {reconciliationData && (
                 <Badge variant="outline">
-                  {reconciliationData.count} élément(s)
+                  {t('bankRecon.itemsCount', { count: String(reconciliationData.count) })}
                 </Badge>
               )}
             </div>
@@ -1014,7 +1014,7 @@ const ReconciliationPage: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" text="Chargement des données de rapprochement..." />
+              <LoadingSpinner size="lg" text={t('bankRecon.loadingReconData')} />
             </div>
           ) : (
             <>
@@ -1022,21 +1022,21 @@ const ReconciliationPage: React.FC = () => {
               {(pairBank || pairCompta) && (
                 <div className="mb-3 flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/30">
                   <div className="text-sm flex items-center gap-2 flex-wrap min-w-0">
-                    <span className="truncate">Relevé : {pairBank
+                    <span className="truncate">{t('bankRecon.pairStatement')} {pairBank
                       ? <span className="font-medium">{pairBank.libelle} <span className="font-mono">({formatCurrency(pairBank.montant_banque)})</span></span>
-                      : <em className="text-gray-400">à choisir à gauche</em>}</span>
+                      : <em className="text-gray-400">{t('bankRecon.pickOnLeft')}</em>}</span>
                     <GitCompare className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
-                    <span className="truncate">Écriture : {pairCompta
+                    <span className="truncate">{t('bankRecon.pairEntry')} {pairCompta
                       ? <span className="font-medium">{pairCompta.libelle} <span className="font-mono">({formatCurrency(pairCompta.montant_comptable)})</span></span>
-                      : <em className="text-gray-400">à choisir à droite</em>}</span>
+                      : <em className="text-gray-400">{t('bankRecon.pickOnRight')}</em>}</span>
                     {pairBank && pairCompta && (() => {
                       const ecart = Math.abs(pairBank.montant_banque - pairCompta.montant_comptable);
-                      return <span className={`font-semibold shrink-0 ${ecart > 0.01 ? 'text-orange-600' : 'text-green-600'}`}>écart {formatCurrency(ecart)}</span>;
+                      return <span className={`font-semibold shrink-0 ${ecart > 0.01 ? 'text-orange-600' : 'text-green-600'}`}>{t('bankRecon.varianceInline', { amount: formatCurrency(ecart) })}</span>;
                     })()}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button variant="outline" size="sm" onClick={() => { setPairBank(null); setPairCompta(null); }}>Annuler</Button>
-                    <Button size="sm" disabled={!pairBank || !pairCompta} onClick={handlePairManual}><Check className="h-4 w-4 mr-1" />Rapprocher</Button>
+                    <Button variant="outline" size="sm" onClick={() => { setPairBank(null); setPairCompta(null); }}>{t('bankRecon.cancel')}</Button>
+                    <Button size="sm" disabled={!pairBank || !pairCompta} onClick={handlePairManual}><Check className="h-4 w-4 mr-1" />{t('bankRecon.reconcile')}</Button>
                   </div>
                 </div>
               )}
@@ -1047,12 +1047,12 @@ const ReconciliationPage: React.FC = () => {
                 {/* GAUCHE : Relevé bancaire */}
                 <div className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg overflow-hidden">
                   <div className="px-3 py-2 bg-gray-50 border-b border-[var(--color-border)] flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[var(--color-primary)]">Relevé bancaire</span>
-                    <span className="text-xs text-gray-500">{bankItems.length} ligne{bankItems.length > 1 ? 's' : ''}</span>
+                    <span className="text-sm font-semibold text-[var(--color-primary)]">{t('bankRecon.bankStatement')}</span>
+                    <span className="text-xs text-gray-500">{t('bankRecon.linesCount', { count: String(bankItems.length) })}</span>
                   </div>
                   <div className="max-h-[55vh] overflow-y-auto">
                     {bankItems.length === 0
-                      ? <div className="p-6 text-center text-sm text-gray-500">Aucune opération bancaire.</div>
+                      ? <div className="p-6 text-center text-sm text-gray-500">{t('bankRecon.noBankOperation')}</div>
                       : bankItems.map(item => renderReconRow(item, 'bank'))}
                   </div>
                 </div>
@@ -1060,21 +1060,21 @@ const ReconciliationPage: React.FC = () => {
                 {/* SÉPARATEUR centré : banque ⇄ comptabilité */}
                 <div className="flex-none w-16 relative flex flex-col items-center justify-center">
                   <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
-                  <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title="Rapprochement banque ⇄ comptabilité">
+                  <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title={t('bankRecon.separatorTitle')}>
                     <GitCompare className="h-4 w-4" />
                   </div>
-                  <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">rapprocher</span>
+                  <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">{t('bankRecon.reconcileLower')}</span>
                 </div>
 
                 {/* DROITE : Écritures comptables */}
                 <div className="flex-1 min-w-0 border border-[var(--color-border)] rounded-lg overflow-hidden">
                   <div className="px-3 py-2 bg-gray-50 border-b border-[var(--color-border)] flex items-center justify-between">
-                    <span className="text-sm font-semibold text-[var(--color-primary)]">Écritures comptables</span>
-                    <span className="text-xs text-gray-500">{comptaItems.length} ligne{comptaItems.length > 1 ? 's' : ''}</span>
+                    <span className="text-sm font-semibold text-[var(--color-primary)]">{t('bankRecon.journalEntries')}</span>
+                    <span className="text-xs text-gray-500">{t('bankRecon.linesCount', { count: String(comptaItems.length) })}</span>
                   </div>
                   <div className="max-h-[55vh] overflow-y-auto">
                     {comptaItems.length === 0
-                      ? <div className="p-6 text-center text-sm text-gray-500">Aucune écriture comptable.</div>
+                      ? <div className="p-6 text-center text-sm text-gray-500">{t('bankRecon.noJournalEntry')}</div>
                       : comptaItems.map(item => renderReconRow(item, 'compta'))}
                   </div>
                 </div>
@@ -1083,13 +1083,13 @@ const ReconciliationPage: React.FC = () => {
               {(!reconciliationData?.results || reconciliationData.results.length === 0) && (
                 <div className="text-center py-12">
                   <GitCompare className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun élément trouvé</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('bankRecon.noItemsFound')}</h3>
                   <p className="text-gray-700 mb-6">
                     {bankTransactions.length > 0 && reconciliationItems.length > 0
-                      ? 'Aucun élément ne correspond aux filtres sélectionnés.'
+                      ? t('bankRecon.noItemsMatchFilters')
                       : bankTransactions.length > 0
-                      ? 'Aucun élément de rapprochement sur cette période.'
-                      : 'Importez un relevé bancaire (CSV) pour lancer le rapprochement.'}
+                      ? t('bankRecon.noItemsInPeriod')
+                      : t('bankRecon.importCsvToStart')}
                   </p>
                 </div>
               )}
@@ -1104,22 +1104,22 @@ const ReconciliationPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <CreditCard className="mr-2 h-5 w-5" />
-              État de Rapprochement Bancaire — SYSCOHADA
+              {t('bankRecon.reconStatementTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2">
               {/* Côté Banque */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900 border-b pb-2">Relevé Bancaire</h3>
+                <h3 className="font-semibold text-gray-900 border-b pb-2">{t('bankRecon.bankStatementTitle')}</h3>
                 <div className="flex justify-between">
-                  <span>Solde du relevé</span>
+                  <span>{t('bankRecon.statementBalance')}</span>
                   <span className="font-semibold">{formatCurrency(etatRapprochement.soldeReleve)}</span>
                 </div>
                 {etatRapprochement.operationsNonComptabilisees.length > 0 && (
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium text-red-600">
-                      − Opérations non comptabilisées ({etatRapprochement.operationsNonComptabilisees.length})
+                      {t('bankRecon.unrecordedOperations', { count: String(etatRapprochement.operationsNonComptabilisees.length) })}
                     </p>
                     {etatRapprochement.operationsNonComptabilisees.map((op, i) => (
                       <div key={i} className="flex justify-between text-sm text-gray-600">
@@ -1130,35 +1130,35 @@ const ReconciliationPage: React.FC = () => {
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold">
-                  <span>Solde banque corrigé</span>
+                  <span>{t('bankRecon.correctedBankBalance')}</span>
                   <span>{formatCurrency(etatRapprochement.soldeBanqueCorrige)}</span>
                 </div>
               </div>
 
               {/* Côté Comptabilité */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900 border-b pb-2">Comptabilité</h3>
+                <h3 className="font-semibold text-gray-900 border-b pb-2">{t('bankRecon.accounting')}</h3>
                 <div className="flex justify-between">
-                  <span>Solde comptable</span>
+                  <span>{t('bankRecon.accountingBalance')}</span>
                   <span className="font-semibold">{formatCurrency(etatRapprochement.soldeComptable)}</span>
                 </div>
                 {etatRapprochement.ecrituresNonPointees.length > 0 && (
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium text-orange-600">
-                      − Écritures non pointées ({etatRapprochement.ecrituresNonPointees.length})
+                      {t('bankRecon.unmatchedEntries', { count: String(etatRapprochement.ecrituresNonPointees.length) })}
                     </p>
                     {etatRapprochement.ecrituresNonPointees.map((e, i) => (
                       <div key={i} className="flex justify-between text-sm text-gray-600">
                         <span>{formatDate(e.date)} — {e.label}</span>
                         <span>
-                          {e.debit > 0 ? `D ${formatCurrency(e.debit)}` : `C ${formatCurrency(e.credit)}`}
+                          {e.debit > 0 ? `${t('bankRecon.debitAbbr')} ${formatCurrency(e.debit)}` : `${t('bankRecon.creditAbbr')} ${formatCurrency(e.credit)}`}
                         </span>
                       </div>
                     ))}
                   </div>
                 )}
                 <div className="flex justify-between border-t pt-2 font-bold">
-                  <span>Solde compta corrigé</span>
+                  <span>{t('bankRecon.correctedAccountingBalance')}</span>
                   <span>{formatCurrency(etatRapprochement.soldeComptaCorrige)}</span>
                 </div>
               </div>
@@ -1174,19 +1174,19 @@ const ReconciliationPage: React.FC = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
                   <span className="font-semibold text-green-800">
-                    Rapprochement équilibré — les soldes corrigés sont identiques
+                    {t('bankRecon.reconBalanced')}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center space-x-2">
                   <AlertCircle className="h-5 w-5 text-red-600" />
                   <span className="font-semibold text-red-800">
-                    Écart de rapprochement : {formatCurrency(Math.abs(etatRapprochement.soldeBanqueCorrige - etatRapprochement.soldeComptaCorrige))}
+                    {t('bankRecon.reconVariance', { amount: formatCurrency(Math.abs(etatRapprochement.soldeBanqueCorrige - etatRapprochement.soldeComptaCorrige)) })}
                   </span>
                 </div>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                Date du rapprochement : {formatDate(etatRapprochement.dateRapprochement)} — Compte {fmtAccount(etatRapprochement.compte)}
+                {t('bankRecon.reconDateAccount', { date: formatDate(etatRapprochement.dateRapprochement), account: fmtAccount(etatRapprochement.compte) })}
               </p>
             </div>
           </CardContent>
@@ -1219,7 +1219,7 @@ const ReconciliationPage: React.FC = () => {
                   <GitCompare className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Détail du Rapprochement</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('bankRecon.detailTitle')}</h2>
                   <p className="text-sm text-gray-600">{selectedItem.libelle}</p>
                 </div>
               </div>
@@ -1235,52 +1235,52 @@ const ReconciliationPage: React.FC = () => {
               {/* Informations Générales */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 border-b pb-2">Informations Comptables</h3>
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">{t('bankRecon.accountingInfo')}</h3>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Date d'Opération</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.operationDate')}</p>
                     <p className="font-semibold">{formatDate(selectedItem.date)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Référence Comptable</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.refAccounting')}</p>
                     <p className="font-mono text-sm">{selectedItem.reference_comptable || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Montant Comptable</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.amountAccounting')}</p>
                     <p className={`text-lg font-bold ${selectedItem.montant_comptable >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(selectedItem.montant_comptable)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Libellé</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.colLabel')}</p>
                     <p className="text-sm">{selectedItem.libelle}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 border-b pb-2">Informations Bancaires</h3>
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">{t('bankRecon.bankInfo')}</h3>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Date Valeur Banque</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.bankValueDate')}</p>
                     <p className="font-semibold">{selectedItem.date_valeur ? formatDate(selectedItem.date_valeur) : formatDate(selectedItem.date)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Référence Banque</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.refBank')}</p>
                     <p className="font-mono text-sm">{selectedItem.reference_banque || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Montant Banque</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.amountBank')}</p>
                     <p className={`text-lg font-bold ${selectedItem.montant_banque >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {formatCurrency(selectedItem.montant_banque)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Type de Mouvement</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.movementType')}</p>
                     <div className="flex items-center space-x-2">
                       {selectedItem.montant_banque > 0 ? (
                         <ArrowUpRight className="h-4 w-4 text-green-600" />
                       ) : (
                         <ArrowDownLeft className="h-4 w-4 text-red-600" />
                       )}
-                      <span>{selectedItem.type_mouvement || 'Non spécifié'}</span>
+                      <span>{selectedItem.type_mouvement || t('bankRecon.notSpecified')}</span>
                     </div>
                   </div>
                 </div>
@@ -1296,34 +1296,34 @@ const ReconciliationPage: React.FC = () => {
                   {Math.abs(selectedItem.ecart_montant || 0) > 0.01 ? (
                     <>
                       <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-                      <span className="text-red-900">Écart Détecté</span>
+                      <span className="text-red-900">{t('bankRecon.varianceDetected')}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                      <span className="text-green-900">Aucun Écart</span>
+                      <span className="text-green-900">{t('bankRecon.noVariance')}</span>
                     </>
                   )}
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Écart de Montant</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.amountVarianceLabel')}</p>
                     <p className={`text-lg font-bold ${Math.abs(selectedItem.ecart_montant || 0) > 0.01 ? 'text-red-600' : 'text-green-600'}`}>
                       {formatCurrency(Math.abs(selectedItem.ecart_montant || 0))}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Type d'Écart</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.varianceTypeLabel')}</p>
                     {selectedItem.type_ecart ? (
                       <Badge className={getEcartTypeColor(selectedItem.type_ecart)}>
                         {selectedItem.type_ecart}
                       </Badge>
                     ) : (
-                      <span className="text-green-600">Aucun</span>
+                      <span className="text-green-600">{t('bankRecon.none')}</span>
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Statut</p>
+                    <p className="text-sm font-medium text-gray-500">{t('bankRecon.colStatus')}</p>
                     <Badge className={getStatusColor(selectedItem.statut)}>
                       {getStatusLabel(selectedItem.statut)}
                     </Badge>
@@ -1334,7 +1334,7 @@ const ReconciliationPage: React.FC = () => {
               {/* Description */}
               {selectedItem.description && (
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('bankRecon.description')}</h3>
                   <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{selectedItem.description}</p>
                 </div>
               )}
@@ -1349,7 +1349,7 @@ const ReconciliationPage: React.FC = () => {
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  Fermer
+                  {t('bankRecon.close')}
                 </button>
                 {selectedItem.statut === 'non_rapproche' && (
                   <button
@@ -1360,7 +1360,7 @@ const ReconciliationPage: React.FC = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     <Check className="w-4 h-4 inline mr-2" />
-                    Rapprocher
+                    {t('bankRecon.reconcile')}
                   </button>
                 )}
                 {selectedItem.statut === 'rapproche' && (
@@ -1372,7 +1372,7 @@ const ReconciliationPage: React.FC = () => {
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                   >
                     <X className="w-4 h-4 inline mr-2" />
-                    Annuler Rapprochement
+                    {t('bankRecon.cancelReconciliation')}
                   </button>
                 )}
               </div>
@@ -1388,31 +1388,31 @@ const ReconciliationPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Journal des relevés bancaires
+            {t('bankRecon.tabStatementsJournal')}
             <span className="ml-2 text-sm font-normal text-gray-500">
-              ({statements.length} relevé{statements.length !== 1 ? 's' : ''})
+              {t('bankRecon.statementsCount', { count: String(statements.length) })}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {statements.length === 0 ? (
             <div className="py-8 text-center text-gray-500 text-sm">
-              Aucun relevé importé. Cliquez sur « Importer Relevé » pour saisir les informations du relevé puis charger le fichier.
+              {t('bankRecon.noStatementImported')}
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-left text-xs uppercase text-gray-600">
                   <tr>
-                    <th className="px-3 py-2">Compte</th>
-                    <th className="px-3 py-2">Banque</th>
-                    <th className="px-3 py-2">Période</th>
-                    <th className="px-3 py-2 text-right">Solde ouverture</th>
-                    <th className="px-3 py-2 text-right">Solde clôture</th>
-                    <th className="px-3 py-2 text-right">Lignes</th>
-                    <th className="px-3 py-2 text-right">Débit</th>
-                    <th className="px-3 py-2 text-right">Crédit</th>
-                    <th className="px-3 py-2 text-center">Actions</th>
+                    <th className="px-3 py-2">{t('bankRecon.colAccount')}</th>
+                    <th className="px-3 py-2">{t('bankRecon.colBank')}</th>
+                    <th className="px-3 py-2">{t('bankRecon.colPeriod')}</th>
+                    <th className="px-3 py-2 text-right">{t('bankRecon.openingBalance')}</th>
+                    <th className="px-3 py-2 text-right">{t('bankRecon.closingBalance')}</th>
+                    <th className="px-3 py-2 text-right">{t('bankRecon.colLines')}</th>
+                    <th className="px-3 py-2 text-right">{t('bankRecon.colDebit')}</th>
+                    <th className="px-3 py-2 text-right">{t('bankRecon.colCredit')}</th>
+                    <th className="px-3 py-2 text-center">{t('bankRecon.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -1431,14 +1431,14 @@ const ReconciliationPage: React.FC = () => {
                           <button
                             onClick={() => toggleStatementDetail(st.id)}
                             className="text-blue-600 hover:text-blue-900 mr-3"
-                            title="Voir le détail des écritures"
+                            title={t('bankRecon.viewEntriesDetail')}
                           >
                             <Eye className="w-4 h-4 inline" />
                           </button>
                           <button
                             onClick={() => handleDeleteStatement(st.id)}
                             className="text-red-600 hover:text-red-800"
-                            title="Supprimer le relevé"
+                            title={t('bankRecon.deleteStatement')}
                           >
                             <X className="w-4 h-4 inline" />
                           </button>
@@ -1448,23 +1448,23 @@ const ReconciliationPage: React.FC = () => {
                         <tr>
                           <td colSpan={9} className="bg-gray-50 px-3 py-3">
                             <div className="text-xs font-semibold text-gray-700 mb-2">
-                              Détail des écritures du relevé {st.fileName ? `(${st.fileName})` : ''}
+                              {t('bankRecon.statementEntriesDetail', { file: st.fileName ? `(${st.fileName})` : '' })}
                             </div>
                             <div className="overflow-x-auto max-h-72 overflow-y-auto">
                               <table className="w-full text-xs">
                                 <thead className="bg-white sticky top-0 text-left text-gray-500">
                                   <tr>
-                                    <th className="px-2 py-1">Date</th>
-                                    <th className="px-2 py-1">Libellé</th>
-                                    <th className="px-2 py-1">Référence</th>
-                                    <th className="px-2 py-1 text-right">Débit</th>
-                                    <th className="px-2 py-1 text-right">Crédit</th>
-                                    <th className="px-2 py-1 text-center">Rapproché</th>
+                                    <th className="px-2 py-1">{t('bankRecon.colDate')}</th>
+                                    <th className="px-2 py-1">{t('bankRecon.colLabel')}</th>
+                                    <th className="px-2 py-1">{t('bankRecon.colReference')}</th>
+                                    <th className="px-2 py-1 text-right">{t('bankRecon.colDebit')}</th>
+                                    <th className="px-2 py-1 text-right">{t('bankRecon.colCredit')}</th>
+                                    <th className="px-2 py-1 text-center">{t('bankRecon.colReconciled')}</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                   {statementLines.length === 0 && (
-                                    <tr><td colSpan={6} className="px-2 py-3 text-center text-gray-400">Aucune ligne.</td></tr>
+                                    <tr><td colSpan={6} className="px-2 py-3 text-center text-gray-400">{t('bankRecon.noLines')}</td></tr>
                                   )}
                                   {statementLines.map((ln) => (
                                     <tr key={ln.id}>
@@ -1501,27 +1501,27 @@ const ReconciliationPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Check className="h-5 w-5 text-green-600" />
-              Historique des rapprochements validés
-              <span className="ml-2 text-sm font-normal text-gray-500">({reconciledHistory.length} ligne{reconciledHistory.length !== 1 ? 's' : ''} rapprochée{reconciledHistory.length !== 1 ? 's' : ''})</span>
+              {t('bankRecon.historyTitle')}
+              <span className="ml-2 text-sm font-normal text-gray-500">{t('bankRecon.reconciledLinesCount', { count: String(reconciledHistory.length) })}</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
             {reconciledHistory.length === 0 ? (
               <div className="py-8 text-center text-gray-500 text-sm">
-                Aucune ligne rapprochée validée. Les lignes de relevé pointées (rapprochées) apparaîtront ici comme historique à consulter.
+                {t('bankRecon.noReconciledLines')}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 text-left text-gray-500">
                     <tr>
-                      <th className="px-3 py-2">Date</th>
-                      <th className="px-3 py-2">Relevé</th>
-                      <th className="px-3 py-2">Libellé</th>
-                      <th className="px-3 py-2">Référence</th>
-                      <th className="px-3 py-2 text-right">Débit</th>
-                      <th className="px-3 py-2 text-right">Crédit</th>
-                      <th className="px-3 py-2 text-center">Statut</th>
+                      <th className="px-3 py-2">{t('bankRecon.colDate')}</th>
+                      <th className="px-3 py-2">{t('bankRecon.colStatement')}</th>
+                      <th className="px-3 py-2">{t('bankRecon.colLabel')}</th>
+                      <th className="px-3 py-2">{t('bankRecon.colReference')}</th>
+                      <th className="px-3 py-2 text-right">{t('bankRecon.colDebit')}</th>
+                      <th className="px-3 py-2 text-right">{t('bankRecon.colCredit')}</th>
+                      <th className="px-3 py-2 text-center">{t('bankRecon.colStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -1533,7 +1533,7 @@ const ReconciliationPage: React.FC = () => {
                         <td className="px-3 py-2 font-mono text-gray-500">{ln.reference || '—'}</td>
                         <td className="px-3 py-2 text-right text-red-600">{ln.debit > 0 ? formatCurrency(ln.debit) : '—'}</td>
                         <td className="px-3 py-2 text-right text-green-600">{ln.credit > 0 ? formatCurrency(ln.credit) : '—'}</td>
-                        <td className="px-3 py-2 text-center"><span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium"><Check className="w-3.5 h-3.5" /> Rapproché</span></td>
+                        <td className="px-3 py-2 text-center"><span className="inline-flex items-center gap-1 text-green-700 text-xs font-medium"><Check className="w-3.5 h-3.5" /> {t('bankRecon.statusReconciled')}</span></td>
                       </tr>
                     ))}
                   </tbody>
@@ -1549,7 +1549,7 @@ const ReconciliationPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Informations du relevé</h3>
+              <h3 className="text-lg font-semibold text-gray-900">{t('bankRecon.statementInfoTitle')}</h3>
               <button onClick={() => setShowImportSetup(false)} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
               </button>
@@ -1557,7 +1557,7 @@ const ReconciliationPage: React.FC = () => {
             <div className="px-6 py-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte trésorerie</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.treasuryAccount')}</label>
                   <input
                     type="text"
                     value={setupInfo.accountCode}
@@ -1567,29 +1567,29 @@ const ReconciliationPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Libellé compte</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.accountLabel')}</label>
                   <input
                     type="text"
                     value={setupInfo.accountLabel}
                     onChange={(e) => setSetupInfo(p => ({ ...p, accountLabel: e.target.value }))}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                    placeholder="Banque"
+                    placeholder={t('bankRecon.placeholderBank')}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Banque</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.colBank')}</label>
                 <input
                   type="text"
                   value={setupInfo.bankName}
                   onChange={(e) => setSetupInfo(p => ({ ...p, bankName: e.target.value }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
-                  placeholder="Nom de la banque"
+                  placeholder={t('bankRecon.placeholderBankName')}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Période — début</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.periodStart')}</label>
                   <input
                     type="date"
                     value={setupInfo.periodStart}
@@ -1598,7 +1598,7 @@ const ReconciliationPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Période — fin</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.periodEnd')}</label>
                   <input
                     type="date"
                     value={setupInfo.periodEnd}
@@ -1609,7 +1609,7 @@ const ReconciliationPage: React.FC = () => {
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Solde ouverture</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.openingBalance')}</label>
                   <input
                     type="number"
                     value={setupInfo.openingBalance}
@@ -1618,7 +1618,7 @@ const ReconciliationPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Solde clôture</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.closingBalance')}</label>
                   <input
                     type="number"
                     value={setupInfo.closingBalance}
@@ -1627,7 +1627,7 @@ const ReconciliationPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Devise</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('bankRecon.currency')}</label>
                   <input
                     type="text"
                     value={setupInfo.currency}
@@ -1637,18 +1637,18 @@ const ReconciliationPage: React.FC = () => {
                 </div>
               </div>
               {setupInfo.fileName && (
-                <p className="text-xs text-gray-500">Fichier sélectionné : {setupInfo.fileName}</p>
+                <p className="text-xs text-gray-500">{t('bankRecon.selectedFile', { name: setupInfo.fileName })}</p>
               )}
             </div>
             <div className="flex flex-wrap justify-end gap-3 px-6 py-4 border-t">
-              <Button variant="outline" onClick={() => setShowImportSetup(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setShowImportSetup(false)}>{t('bankRecon.cancel')}</Button>
               <Button variant="outline" onClick={() => ocrFileInputRef.current?.click()} disabled={isLoading || !setupInfo.accountCode}>
                 <ScanLine className="mr-2 h-4 w-4" />
-                {isLoading ? 'Lecture…' : 'Scanner (OCR image/PDF)'}
+                {isLoading ? t('bankRecon.reading') : t('bankRecon.scanOcr')}
               </Button>
               <Button onClick={() => fileInputRef.current?.click()} disabled={isLoading || !setupInfo.accountCode}>
                 <Upload className="mr-2 h-4 w-4" />
-                {isLoading ? 'Import en cours…' : 'Fichier CSV'}
+                {isLoading ? t('bankRecon.importing') : t('bankRecon.csvFile')}
               </Button>
             </div>
           </div>

@@ -9,12 +9,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { getClosureSessions } from '../../services/closureService';
 import { closureOrchestrator } from '../../services/cloture/closureOrchestrator';
 import type { ClotureStep, ClotureContext } from '../../services/cloture/closureOrchestrator';
-import { useControlesCoherence, MONTHLY_CONTROL_IDS, ANNUAL_BLOCKING_IDS } from './hooks/useControlesCoherence';
-import type { ControleStatut, ControleResult } from './hooks/useControlesCoherence';
+import {
+  useControlesCoherence,
+  MONTHLY_CONTROL_IDS,
+  ALL_CONTROL_IDS,
+  ANNUAL_BLOCKING_IDS,
+} from './hooks/useControlesCoherence';
+import type { ControleResult } from './hooks/useControlesCoherence';
+import { buildRemediations } from '../../services/cloture/remediationService';
 import { useFiscalPeriods } from './hooks/useFiscalPeriods';
 import type { Periodicite } from './hooks/useFiscalPeriods';
 import type { DBFiscalYear, DBClosureSession, DBFiscalPeriod } from '../../lib/db';
 import { formatCurrency } from '../../utils/formatters';
+import { logAudit } from '../../lib/db';
 import toast from 'react-hot-toast';
 import {
   Lock,
@@ -36,10 +43,10 @@ import {
   ClipboardCheck,
   ArrowRight,
   History,
+  Wand2,
 } from 'lucide-react';
 
 // Sections
-import ControlePeriodes from './sections/ControlePeriodes';
 import Immobilisations from './sections/Immobilisations';
 import RapprochementBancaire from './sections/RapprochementBancaire';
 import EtatsSYSCOHADA from './sections/EtatsSYSCOHADA';
@@ -48,6 +55,9 @@ import ValidationFinale from './sections/ValidationFinale';
 // New components
 import RegularisationsTab from './components/RegularisationsTab';
 import AffectationTab from './components/AffectationTab';
+import ControlesPanel, { StatutIcon } from './components/ControlesPanel';
+import PreflightVerrouillage from './components/PreflightVerrouillage';
+import VerificationPrerequis from './components/VerificationPrerequis';
 
 // ============================================================================
 // TYPES
@@ -76,14 +86,6 @@ const PERIODICITE_LABEL: Record<Periodicite, { noun: string; adj: string; count:
   mensuelle:     { noun: 'Mensuelle',     adj: 'mensuelles',     count: 12 },
   trimestrielle: { noun: 'Trimestrielle', adj: 'trimestrielles', count: 4 },
   semestrielle:  { noun: 'Semestrielle',  adj: 'semestrielles',  count: 2 },
-};
-
-const STATUT_BADGE: Record<ControleStatut, { bg: string; text: string; label: string }> = {
-  conforme:       { bg: 'bg-green-100', text: 'text-green-800', label: 'Conforme' },
-  non_conforme:   { bg: 'bg-red-100',   text: 'text-red-800',   label: 'Non conforme' },
-  attention:      { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Attention' },
-  non_applicable: { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'N/A' },
-  en_attente:     { bg: 'bg-gray-100',  text: 'text-gray-500',  label: 'En attente' },
 };
 
 const STEP_ICON: Record<string, React.ReactNode> = {
@@ -274,11 +276,31 @@ function CloturesPeriodiquesPage() {
     }
   };
 
-  const handleLockPeriod = async () => {
+  /**
+   * @param derogation renseignée quand l'utilisateur force le verrouillage malgré
+   *        des contrôles non conformes — l'événement est journalisé AVANT le
+   *        verrouillage pour rester opposable même si celui-ci échoue ensuite.
+   */
+  const handleLockPeriod = async (derogation?: { blockers: number; controles: string[] }) => {
     if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
     try {
+      if (derogation) {
+        const period = periods.find(p => p.id === selectedPeriodId);
+        await logAudit(
+          'CLOSURE_LOCK_OVERRIDE',
+          'fiscalPeriod',
+          selectedPeriodId,
+          JSON.stringify({
+            periode: period?.code,
+            exercice: selectedFYId,
+            controlesNonConformes: derogation.controles,
+            nombreBloquants: derogation.blockers,
+            utilisateur: user?.id ?? 'inconnu',
+          }),
+        );
+      }
       await lockPeriod(selectedPeriodId, user?.id);
-      toast.success('Période verrouillée');
+      toast.success(derogation ? 'Période verrouillée par dérogation (tracée)' : 'Période verrouillée');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Erreur');
     }
@@ -536,6 +558,7 @@ function CloturesPeriodiquesPage() {
             stats={fyStats}
             periods={periods}
             selectedPeriod={selectedPeriod}
+            onNavigateTab={setTab}
           />
         )}
 
@@ -558,7 +581,13 @@ function CloturesPeriodiquesPage() {
         )}
 
         {/* ===== MONTHLY TABS ===== */}
-        {mode === 'mensuelle' && tab === 'verification' && <ControlePeriodes />}
+        {mode === 'mensuelle' && tab === 'verification' && (
+          <VerificationPrerequis
+            fiscalYear={selectedFY}
+            periods={periods}
+            onNavigateTab={(id) => setTab(id as TabId)}
+          />
+        )}
 
         {mode === 'mensuelle' && tab === 'regularisations' && (
           <RegularisationsTab
@@ -569,12 +598,18 @@ function CloturesPeriodiquesPage() {
         )}
 
         {mode === 'mensuelle' && tab === 'controles' && (
-          <ControlesSection controlIds={MONTHLY_CONTROL_IDS} />
+          <ControlesPanel
+            controlIds={MONTHLY_CONTROL_IDS}
+            fiscalYearId={selectedFYId}
+            period={selectedPeriod}
+            onNavigateTab={(id) => setTab(id as TabId)}
+          />
         )}
 
         {mode === 'mensuelle' && tab === 'verrouillage' && (
           <VerrouillageSection
             period={selectedPeriod}
+            fiscalYearId={selectedFYId}
             onLock={handleLockPeriod}
             onUnlock={handleUnlockPeriod}
             executing={executing}
@@ -603,7 +638,9 @@ function CloturesPeriodiquesPage() {
                 </button>
               ))}
             </div>
-            {travauxSubTab === 'controle' && <ControlePeriodes />}
+            {travauxSubTab === 'controle' && (
+              <VerificationPrerequis fiscalYear={selectedFY} periods={periods} />
+            )}
             {travauxSubTab === 'immobilisations' && <Immobilisations />}
             {travauxSubTab === 'rapprochement' && <RapprochementBancaire />}
           </div>
@@ -617,7 +654,11 @@ function CloturesPeriodiquesPage() {
         )}
 
         {mode === 'annuelle' && tab === 'controles' && (
-          <ControlesSection />
+          <ControlesPanel
+            controlIds={ALL_CONTROL_IDS}
+            fiscalYearId={selectedFYId}
+            onNavigateTab={(id) => setTab(id as TabId)}
+          />
         )}
 
         {mode === 'annuelle' && tab === 'etats' && <EtatsSYSCOHADA />}
@@ -870,6 +911,7 @@ function DashboardSection({
   stats,
   periods,
   selectedPeriod,
+  onNavigateTab,
 }: {
   mode: ClotureMode;
   loading: boolean;
@@ -877,6 +919,7 @@ function DashboardSection({
   stats: FYStats | null;
   periods: DBFiscalPeriod[];
   selectedPeriod: DBFiscalPeriod | null;
+  onNavigateTab: (tab: TabId) => void;
 }) {
   if (loading) {
     return (
@@ -979,7 +1022,7 @@ function DashboardSection({
       )}
 
       {/* Sections overview — always visible */}
-      <SectionsOverview mode={mode} />
+      <SectionsOverview mode={mode} onNavigateTab={onNavigateTab} />
     </div>
   );
 }
@@ -1068,17 +1111,33 @@ function MetricCard({ label, value, subtitle, alert }: {
 // SECTIONS OVERVIEW (always visible on dashboard)
 // ============================================================================
 
-const MONTHLY_SECTIONS = [
+/**
+ * Référentiel des sections. `controlIds` rattache la section aux contrôles
+ * RÉELLEMENT exécutés par `useControlesCoherence` : c'est ce lien qui permet
+ * d'afficher un état vivant (et non un texte décoratif) sur le tableau de bord.
+ */
+interface SectionDef {
+  tab: TabId;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  details: string[];
+  controlIds?: string[];
+}
+
+const MONTHLY_SECTIONS: SectionDef[] = [
   {
     tab: 'verification' as MonthlyTabId,
     title: 'Vérification',
-    description: 'Contrôle des périodes, vérification des pré-requis, ordre chronologique, délais légaux OHADA.',
+    description: '6 règles de pré-requis évaluées sur les écritures réelles de chaque période, avec le détail des pièces bloquantes.',
     icon: <ClipboardCheck className="w-5 h-5" />,
     details: [
-      'Pré-requis de clôture (aucun brouillon)',
-      'Ordre chronologique des périodes',
-      'Délai légal (10 jours après fin de période)',
-      'Validations requises (comptable, fiscal, audit, direction)',
+      'R1 — Période terminée',
+      'R2 — Ordre chronologique des périodes',
+      'R3 — Délai légal OHADA (10 jours)',
+      'R4 — Aucune écriture en brouillon',
+      'R5 — Pièces validées équilibrées',
+      'R6 — Lettrage des comptes de tiers',
     ],
   },
   {
@@ -1092,25 +1151,27 @@ const MONTHLY_SECTIONS = [
       'FNP — Fournisseurs, factures non parvenues',
       'FAE — Clients, factures à établir',
       'Calcul prorata temporis automatique',
-      'Preview des extournes',
+      'Régularisations déjà comptabilisées (lues au grand livre)',
+      'Génération des extournes au cut-off N+1',
     ],
   },
   {
     tab: 'controles' as MonthlyTabId,
     title: 'Contrôles de cohérence',
-    description: '9 contrôles de cohérence mensuels sur les écritures, balances et comptes.',
+    description: '9 contrôles de cohérence mensuels — chacun dépliable, avec le détail des éléments fautifs et les corrections applicables.',
     icon: <Shield className="w-5 h-5" />,
     details: [
-      'C1 — Équilibre débit/crédit',
-      'C2 — Balance des comptes',
-      'C3 — Séquence chronologique',
-      'C5 — Cohérence classe 5 (trésorerie)',
-      'C6 — Lettrage des comptes tiers',
-      'C8 — TVA collectée/déductible',
-      'C10 — Comptes d\'attente soldés',
-      'C11 — Virements internes',
-      'C13 — Cohérence inter-journaux',
+      'C1 — Équilibre de la balance générale',
+      'C2 — Écritures déséquilibrées (débit ≠ crédit)',
+      'C3 — Soldes clients (411) anormalement créditeurs',
+      'C5 — Cohérence temporelle (hors exercice, date future)',
+      'C6 — Soldes fournisseurs (401) anormalement débiteurs',
+      'C8 — Écritures encore en brouillon',
+      'C10 — Résultat de l\'exercice (classes 6 et 7)',
+      'C11 — Soldes de trésorerie (classe 5 hors 58/59)',
+      'C13 — Lettrage des comptes de tiers',
     ],
+    controlIds: MONTHLY_CONTROL_IDS,
   },
   {
     tab: 'verrouillage' as MonthlyTabId,
@@ -1118,10 +1179,11 @@ const MONTHLY_SECTIONS = [
     description: 'Verrouillage/réouverture de la période. Opération réversible, tracée dans la piste d\'audit.',
     icon: <Lock className="w-5 h-5" />,
     details: [
-      'Verrouillage empêche toute modification des écritures',
-      'Réouverture possible (tracée dans l\'audit)',
+      'Pré-vol : les 9 contrôles rejoués SUR LA PÉRIODE',
+      'Verrouillage refusé tant qu\'un contrôle est non conforme',
+      'Corrections automatiques applicables depuis le pré-vol',
+      'Dérogation explicite, journalisée (CLOSURE_LOCK_OVERRIDE)',
       'Statuts: ouverte → en clôture → clôturée → rouverte',
-      'Progression de la période (0-100%)',
     ],
   },
   {
@@ -1130,16 +1192,16 @@ const MONTHLY_SECTIONS = [
     description: 'Génération des états financiers SYSCOHADA pour la période.',
     icon: <FileText className="w-5 h-5" />,
     details: [
-      'Bilan (actif/passif)',
-      'Compte de résultat',
-      'TAFIRE (Tableau Financier des Ressources et Emplois)',
+      'Bilan — équilibre Actif = Passif vérifié',
+      'Compte de résultat — sens des comptes + IS classe 8 déduit',
+      'TAFIRE — non calculable sans comparatif N-1 (annoncé comme tel)',
       'Notes annexes',
-      'Conformité SYSCOHADA révisé',
+      'Taux de conformité calculé sur des contrôles réels',
     ],
   },
 ];
 
-const ANNUAL_SECTIONS = [
+const ANNUAL_SECTIONS: SectionDef[] = [
   {
     tab: 'travaux' as AnnualTabId,
     title: 'Travaux préparatoires',
@@ -1167,16 +1229,19 @@ const ANNUAL_SECTIONS = [
   {
     tab: 'controles' as AnnualTabId,
     title: 'Contrôles de cohérence',
-    description: '17 contrôles dont 7 bloquants obligatoires pour la validation finale.',
+    description: `17 contrôles, dont ${ANNUAL_BLOCKING_IDS.length} bloquants qui interdisent la validation finale tant qu'ils sont non conformes.`,
     icon: <Shield className="w-5 h-5" />,
     details: [
-      '9 contrôles mensuels + 8 contrôles annuels spécifiques',
-      'C4 — Dotations aux amortissements complètes',
-      'C14 — Provisions conformes au calcul actuariel',
-      'C15 — Affectation du résultat N-1',
-      'C16 — Reports à nouveau cohérents',
-      '7 contrôles bloquants (empêchent la validation finale)',
+      'Les 9 contrôles mensuels + 8 contrôles annuels',
+      'C4 — Dotations aux amortissements comptabilisées',
+      'C7 / C9 / C12 — Stocks, paie, rapprochement (selon modules actifs)',
+      'C14 — Équilibre du bilan (Actif = Passif)',
+      'C15 — Cohérence TVA collectée / déductible',
+      'C16 — Comptes de régularisation (CCA, PCA, FNP, FAE)',
+      'C17 — Comptes à solde anormal',
+      `Bloquants : ${ANNUAL_BLOCKING_IDS.join(', ')}`,
     ],
+    controlIds: ALL_CONTROL_IDS,
   },
   {
     tab: 'etats' as AnnualTabId,
@@ -1221,161 +1286,104 @@ const ANNUAL_SECTIONS = [
   },
 ];
 
-function SectionsOverview({ mode }: { mode: ClotureMode }) {
+/**
+ * Vue synthèse des sections — VIVANTE : chaque carte porte l'état réel des
+ * contrôles qui lui sont rattachés (anomalies, corrections automatiques
+ * disponibles) et ouvre l'onglet correspondant.
+ */
+function SectionsOverview({ mode, onNavigateTab }: { mode: ClotureMode; onNavigateTab: (tab: TabId) => void }) {
   const sections = mode === 'mensuelle' ? MONTHLY_SECTIONS : ANNUAL_SECTIONS;
+  const { controles, loading } = useControlesCoherence(
+    mode === 'mensuelle' ? MONTHLY_CONTROL_IDS : ALL_CONTROL_IDS,
+  );
+
+  const byId = new Map(controles.map(c => [c.id, c]));
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-5">
       <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <Info className="w-5 h-5 text-blue-500" />
         Détail des sections — Clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'}
+        {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-300" />}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sections.map((section, idx) => (
-          <div
-            key={section.tab}
-            className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all"
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="text-blue-600">{section.icon}</div>
-              <h3 className="text-sm font-semibold text-gray-800">
-                {idx + 1}. {section.title}
-              </h3>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">{section.description}</p>
-            <ul className="space-y-1">
-              {section.details.map((detail, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
-                  <ChevronRight className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                  <span>{detail}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+        {sections.map((section, idx) => {
+          const sectionControls = (section.controlIds ?? [])
+            .map(id => byId.get(id))
+            .filter((c): c is ControleResult => !!c);
+          const anomalies = sectionControls.reduce((s, c) => s + (c.anomaliesTotal || 0), 0);
+          const autoFixes = sectionControls.reduce(
+            (s, c) => s + buildRemediations(c).filter(p => p.mode === 'auto').length, 0,
+          );
+          const ko = sectionControls.filter(c => c.statut === 'non_conforme').length;
+          const warn = sectionControls.filter(c => c.statut === 'attention').length;
 
-// ============================================================================
-// CONTROLES SECTION
-// ============================================================================
+          return (
+            <button
+              key={section.tab}
+              type="button"
+              onClick={() => onNavigateTab(section.tab)}
+              className="text-left border border-gray-200 rounded-lg p-4 hover:border-blue-300 hover:shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-blue-600">{section.icon}</div>
+                <h3 className="text-sm font-semibold text-gray-800 flex-1">
+                  {idx + 1}. {section.title}
+                </h3>
+                {sectionControls.length > 0 && !loading && (
+                  ko > 0
+                    ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">{ko} non conforme(s)</span>
+                    : warn > 0
+                      ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">{warn} attention</span>
+                      : <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">Conforme</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mb-3">{section.description}</p>
 
-function ControlesSection({ controlIds }: { controlIds?: string[] }) {
-  const { controles, loading, error, lastRun, refresh } = useControlesCoherence(controlIds);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">
-          Exécution des {controlIds ? controlIds.length : 17} contrôles...
-        </span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">Erreur</p>
-        <p className="text-sm">{error}</p>
-      </div>
-    );
-  }
-
-  const conformes = controles.filter(c => c.statut === 'conforme').length;
-  const nonConformes = controles.filter(c => c.statut === 'non_conforme').length;
-  const attentions = controles.filter(c => c.statut === 'attention').length;
-  const na = controles.filter(c => c.statut === 'non_applicable').length;
-  const blockingFailed = controles.filter(c => c.blocking && c.statut === 'non_conforme');
-
-  return (
-    <div className="space-y-4">
-      {/* Summary */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-sm">
-          <span className="text-green-700 font-medium">{conformes} conformes</span>
-          <span className="text-red-700 font-medium">{nonConformes} non conformes</span>
-          <span className="text-yellow-700 font-medium">{attentions} attention</span>
-          <span className="text-gray-500">{na} N/A</span>
-        </div>
-        <div className="flex items-center gap-3">
-          {lastRun && (
-            <span className="text-xs text-gray-400">
-              {new Date(lastRun).toLocaleTimeString('fr-FR')}
-            </span>
-          )}
-          <button
-            onClick={refresh}
-            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Relancer
-          </button>
-        </div>
-      </div>
-
-      {/* Blocking warning */}
-      {blockingFailed.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-sm font-medium text-red-800 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            {blockingFailed.length} contrôle(s) bloquant(s) non conforme(s) — la validation finale est bloquée
-          </p>
-          <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
-            {blockingFailed.map(c => (
-              <li key={c.id}>{c.id}: {c.nom} — {c.messageResultat}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Controls table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-gray-50 border-b text-left text-gray-500">
-              <th className="px-4 py-2 w-16">ID</th>
-              <th className="px-4 py-2">Contrôle</th>
-              <th className="px-4 py-2 w-28">Statut</th>
-              <th className="px-4 py-2 w-20">Bloquant</th>
-              <th className="px-4 py-2">Résultat</th>
-            </tr>
-          </thead>
-          <tbody>
-            {controles.map(c => {
-              const badge = STATUT_BADGE[c.statut] || STATUT_BADGE.en_attente;
-              return (
-                <tr key={c.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-2 font-mono text-gray-400">{c.id}</td>
-                  <td className="px-4 py-2">
-                    <p className="font-medium text-gray-800">{c.nom}</p>
-                    <p className="text-xs text-gray-400">{c.description}</p>
-                  </td>
-                  <td className="px-4 py-2">
-                    <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badge.bg} ${badge.text}`}>
-                      {badge.label}
+              {sectionControls.length > 0 && !loading && (
+                <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px]">
+                  <span className="text-gray-500">{anomalies} anomalie(s) détaillée(s)</span>
+                  {autoFixes > 0 && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">
+                      <Wand2 className="w-3 h-3" />
+                      {autoFixes} correction(s) automatique(s)
                     </span>
-                  </td>
-                  <td className="px-4 py-2">
-                    {c.blocking ? (
-                      <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Oui</span>
-                    ) : (
-                      <span className="text-gray-400 text-xs">Non</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 text-gray-600">{c.messageResultat}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  )}
+                </div>
+              )}
+
+              <ul className="space-y-1">
+                {section.details.map((detail, i) => {
+                  const controlId = /^(C\d+)\b/.exec(detail)?.[1];
+                  const ctrl = controlId ? byId.get(controlId) : undefined;
+                  return (
+                    <li key={i} className="flex items-start gap-1.5 text-xs text-gray-600">
+                      {ctrl
+                        ? <span className="mt-0.5 flex-shrink-0"><StatutIcon statut={ctrl.statut} /></span>
+                        : <ChevronRight className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />}
+                      <span className="flex-1">
+                        {detail}
+                        {ctrl && ctrl.anomaliesTotal > 0 && (
+                          <span className="ml-1 text-gray-400">({ctrl.anomaliesTotal})</span>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <p className="mt-3 text-[11px] text-blue-600 flex items-center gap-1">
+                Ouvrir la section
+                <ArrowRight className="w-3 h-3" />
+              </p>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 }
+
 
 // ============================================================================
 // VERROUILLAGE SECTION (MONTHLY)
@@ -1383,15 +1391,24 @@ function ControlesSection({ controlIds }: { controlIds?: string[] }) {
 
 function VerrouillageSection({
   period,
+  fiscalYearId,
   onLock,
   onUnlock,
   executing,
 }: {
   period: DBFiscalPeriod | null;
-  onLock: () => void;
+  fiscalYearId?: string;
+  onLock: (derogation?: { blockers: number; controles: string[] }) => void;
   onUnlock: () => void;
   executing: boolean;
 }) {
+  // Pré-vol : contrôles non conformes SUR LA PÉRIODE. Tant qu'il en reste,
+  // le verrouillage est refusé — sauf dérogation explicite et journalisée.
+  const [blockerIds, setBlockerIds] = useState<string[]>([]);
+  const [force, setForce] = useState(false);
+  const blockers = blockerIds.length;
+  useEffect(() => { setForce(false); }, [period?.id]);
+
   if (!period) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
@@ -1449,16 +1466,32 @@ function VerrouillageSection({
           </p>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {!isClosed && (
-            <button
-              onClick={onLock}
-              disabled={executing}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-              Verrouiller la période
-            </button>
+            <>
+              <button
+                onClick={() => onLock(blockers > 0 ? { blockers, controles: blockerIds } : undefined)}
+                disabled={executing || (blockers > 0 && !force)}
+                title={blockers > 0 && !force
+                  ? `${blockers} contrôle(s) non conforme(s) sur la période — corrigez-les ou cochez la dérogation.`
+                  : undefined}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                Verrouiller la période
+              </button>
+              {blockers > 0 && (
+                <label className="flex items-center gap-2 text-xs text-red-700">
+                  <input
+                    type="checkbox"
+                    checked={force}
+                    onChange={e => setForce(e.target.checked)}
+                    className="rounded border-red-300"
+                  />
+                  Forcer malgré {blockers} contrôle(s) non conforme(s)
+                </label>
+              )}
+            </>
           )}
           {isClosed && (
             <button
@@ -1472,6 +1505,17 @@ function VerrouillageSection({
           )}
         </div>
       </div>
+
+      {/* Pré-vol : contrôles de la période + corrections applicables */}
+      {!isClosed && (
+        <PreflightVerrouillage
+          periodStart={period.startDate}
+          periodEnd={period.endDate}
+          periodLabel={period.label}
+          fiscalYearId={fiscalYearId}
+          onBlockersChange={setBlockerIds}
+        />
+      )}
 
       {/* Warning for reopening */}
       {isClosed && (

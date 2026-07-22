@@ -416,14 +416,14 @@ const FournisseursModule: React.FC = () => {
       })),
       evolutionAchats: [] as { mois: string; achats2024: number; achats2025: number }[],
       performanceFournisseurs: [
-        { critere: 'Prix', score: 0 },
-        { critere: 'Qualité', score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.scoreQualite, 0) / fournisseurs.length) : 0 },
-        { critere: 'Délais', score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.respectDelais, 0) / fournisseurs.length) : 0 },
-        { critere: 'Service', score: 0 },
-        { critere: 'Conformité', score: fournisseurs.length > 0 ? Math.round(fournisseurs.filter(f => f.conformite).length / fournisseurs.length * 100) : 0 }
+        { critere: t('suppliers.criterionPrice'), score: 0 },
+        { critere: t('suppliers.criterionQuality'), score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.scoreQualite, 0) / fournisseurs.length) : 0 },
+        { critere: t('suppliers.criterionLeadTimes'), score: fournisseurs.length > 0 ? Math.round(fournisseurs.reduce((s, f) => s + f.respectDelais, 0) / fournisseurs.length) : 0 },
+        { critere: t('suppliers.criterionService'), score: 0 },
+        { critere: t('suppliers.criterionCompliance'), score: fournisseurs.length > 0 ? Math.round(fournisseurs.filter(f => f.conformite).length / fournisseurs.length * 100) : 0 }
       ]
     };
-  }, [fournisseurs]);
+  }, [fournisseurs, t]);
 
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
@@ -457,17 +457,17 @@ const FournisseursModule: React.FC = () => {
 
   // Data pour graphique Balance Âgée Fournisseurs
   const balanceAgeeChartData = [
-    { name: 'Non échu', value: totauxBalanceAgee.nonEchu, color: '#15803D' },
-    { name: '0-30 jours', value: totauxBalanceAgee.echu0_30, color: '#E89A2E' },
-    { name: '31-60 jours', value: totauxBalanceAgee.echu31_60, color: '#E89A2E' },
-    { name: '61-90 jours', value: totauxBalanceAgee.echu61_90, color: '#C0322B' },
-    { name: '+90 jours', value: totauxBalanceAgee.echuPlus90, color: '#C0322B' }
+    { name: 'Non échu', label: t('suppliers.notDueLower'), value: totauxBalanceAgee.nonEchu, color: '#15803D' },
+    { name: '0-30 jours', label: t('suppliers.days0_30'), value: totauxBalanceAgee.echu0_30, color: '#E89A2E' },
+    { name: '31-60 jours', label: t('suppliers.days31_60'), value: totauxBalanceAgee.echu31_60, color: '#E89A2E' },
+    { name: '61-90 jours', label: t('suppliers.days61_90'), value: totauxBalanceAgee.echu61_90, color: '#C0322B' },
+    { name: '+90 jours', label: t('suppliers.daysOver90'), value: totauxBalanceAgee.echuPlus90, color: '#C0322B' }
   ];
 
   const tabs = [
-    { id: 'liste', label: 'Liste Fournisseurs', icon: Users },
-    { id: 'balance-agee', label: 'Balance Âgée', icon: Receipt },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 }
+    { id: 'liste', label: t('suppliers.tabList'), icon: Users },
+    { id: 'balance-agee', label: t('suppliers.tabAgedBalance'), icon: Receipt },
+    { id: 'analytics', label: t('suppliers.tabAnalytics'), icon: BarChart3 }
   ];
 
   if (isLoading) {
@@ -475,7 +475,7 @@ const FournisseursModule: React.FC = () => {
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <RefreshCw className="w-8 h-8 animate-spin text-[var(--color-text-secondary)] mx-auto mb-4" />
-          <p className="text-[var(--color-text-secondary)]">Chargement des fournisseurs...</p>
+          <p className="text-[var(--color-text-secondary)]">{t('suppliers.loading')}</p>
         </div>
       </div>
     );
@@ -485,7 +485,7 @@ const FournisseursModule: React.FC = () => {
     <div className="p-6 space-y-6 ">
       {/* Header avec statistiques */}
       <div className="bg-white rounded-lg p-6 shadow-sm border border-[var(--color-border)]">
-        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-6">Gestion des Fournisseurs</h2>
+        <h2 className="text-lg font-bold text-[var(--color-primary)] mb-6">{t('suppliers.title')}</h2>
 
         {/* Navigation Tabs */}
         <div className="flex space-x-1 mt-6 bg-gray-100 rounded-lg p-1">
@@ -514,9 +514,9 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-primary-600 font-medium">Total Encours</p>
+                <p className="text-sm text-primary-600 font-medium">{t('suppliers.kpiTotalOutstanding')}</p>
                 <p className="text-lg font-bold text-primary-800">{formatCurrency(totalEncours)}</p>
-                <p className="text-xs text-primary-600 mt-1">Sur {fournisseursActifs} fournisseurs</p>
+                <p className="text-xs text-primary-600 mt-1">{t('suppliers.kpiOnSuppliers', { count: String(fournisseursActifs) })}</p>
               </div>
               <Euro className="w-8 h-8 text-primary-400" />
             </div>
@@ -525,9 +525,9 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium">Volume Achats</p>
+                <p className="text-sm text-blue-600 font-medium">{t('suppliers.kpiPurchaseVolume')}</p>
                 <p className="text-lg font-bold text-blue-800">{formatCurrency(totalAchats)}</p>
-                <p className="text-xs text-blue-600 mt-1">Année en cours</p>
+                <p className="text-xs text-blue-600 mt-1">{t('suppliers.kpiCurrentYear')}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-blue-400" />
             </div>
@@ -536,9 +536,9 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 font-medium">DPO Moyen</p>
-                <p className="text-lg font-bold text-green-800">{moyenneDPO} jours</p>
-                <p className="text-xs text-green-600 mt-1">Délai paiement</p>
+                <p className="text-sm text-green-600 font-medium">{t('suppliers.kpiAverageDpo')}</p>
+                <p className="text-lg font-bold text-green-800">{moyenneDPO} {t('suppliers.days')}</p>
+                <p className="text-xs text-green-600 mt-1">{t('suppliers.kpiPaymentTerms')}</p>
               </div>
               <Clock className="w-8 h-8 text-green-400" />
             </div>
@@ -547,9 +547,9 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-orange-600 font-medium">Alertes</p>
+                <p className="text-sm text-orange-600 font-medium">{t('suppliers.kpiAlerts')}</p>
                 <p className="text-lg font-bold text-orange-800">{fournisseurs.reduce((sum, f) => sum + f.alertes, 0)}</p>
-                <p className="text-xs text-orange-600 mt-1">À traiter</p>
+                <p className="text-xs text-orange-600 mt-1">{t('suppliers.kpiToProcess')}</p>
               </div>
               <AlertTriangle className="w-8 h-8 text-orange-400" />
             </div>
@@ -562,7 +562,7 @@ const FournisseursModule: React.FC = () => {
             <Search className="absolute left-3 top-3 w-5 h-5 text-[var(--color-text-secondary)]" />
             <input
               type="text"
-              placeholder="Rechercher un fournisseur (nom, code, secteur)..."
+              placeholder={t('suppliers.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -576,11 +576,11 @@ const FournisseursModule: React.FC = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
-            <option value="all">Toutes catégories</option>
-            <option value="STRATEGIQUE">Stratégique</option>
-            <option value="RECURRENT">Récurrent</option>
-            <option value="CRITIQUE">Critique</option>
-            <option value="PONCTUEL">Ponctuel</option>
+            <option value="all">{t('suppliers.allCategories')}</option>
+            <option value="STRATEGIQUE">{t('suppliers.categoryStrategic')}</option>
+            <option value="RECURRENT">{t('suppliers.categoryRecurring')}</option>
+            <option value="CRITIQUE">{t('suppliers.categoryCritical')}</option>
+            <option value="PONCTUEL">{t('suppliers.categoryOccasional')}</option>
           </select>
 
           <select
@@ -588,11 +588,11 @@ const FournisseursModule: React.FC = () => {
             onChange={(e) => setSelectedStatut(e.target.value)}
             className="px-4 py-3 border border-[var(--color-border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
-            <option value="all">Tous statuts</option>
-            <option value="ACTIF">Actif</option>
-            <option value="BLOQUE">Bloqué</option>
-            <option value="SUSPENDU">Suspendu</option>
-            <option value="INACTIF">Inactif</option>
+            <option value="all">{t('suppliers.allStatuses')}</option>
+            <option value="ACTIF">{t('suppliers.statusActive')}</option>
+            <option value="BLOQUE">{t('suppliers.statusBlocked')}</option>
+            <option value="SUSPENDU">{t('suppliers.statusSuspended')}</option>
+            <option value="INACTIF">{t('suppliers.statusInactive')}</option>
           </select>
           </>
           )}
@@ -619,7 +619,7 @@ const FournisseursModule: React.FC = () => {
             className="flex items-center space-x-2 px-4 py-3 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
           >
             <Plus className="w-5 h-5" />
-            <span className="font-semibold">Nouveau Fournisseur</span>
+            <span className="font-semibold">{t('suppliers.newSupplier')}</span>
           </button>
         </div>
 
@@ -628,35 +628,35 @@ const FournisseursModule: React.FC = () => {
         <div className="p-4 border-b border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <p className="text-sm text-[var(--color-text-secondary)]">
-              {filteredFournisseurs.length} fournisseur(s) trouvé(s)
+              {t('suppliers.countFound', { count: String(filteredFournisseurs.length) })}
             </p>
             <div className="flex items-center space-x-2">
               {selectedFournisseurs.length > 0 && (
                 <span className="text-sm text-[var(--color-primary)] font-medium">
-                  {selectedFournisseurs.length} sélectionné(s)
+                  {t('suppliers.countSelected', { count: String(selectedFournisseurs.length) })}
                 </span>
               )}
               <ExportMenu
                 data={filteredFournisseurs as unknown as Record<string, unknown>[]}
                 filename="fournisseurs"
                 columns={{
-                  code: 'Code',
-                  raisonSociale: 'Fournisseur',
-                  secteurActivite: 'Secteur',
-                  categorie: 'Catégorie',
-                  pays: 'Pays',
-                  encoursActuel: 'Encours',
-                  volumeAchats: 'Volume Achats',
-                  dpo: 'DPO',
-                  notationInterne: 'Note',
-                  statut: 'Statut'
+                  code: t('suppliers.colCode'),
+                  raisonSociale: t('suppliers.colSupplier'),
+                  secteurActivite: t('suppliers.colSector'),
+                  categorie: t('suppliers.colCategory'),
+                  pays: t('suppliers.colCountry'),
+                  encoursActuel: t('suppliers.colOutstanding'),
+                  volumeAchats: t('suppliers.colPurchaseVolume'),
+                  dpo: t('suppliers.colDpo'),
+                  notationInterne: t('suppliers.colRating'),
+                  statut: t('suppliers.colStatus')
                 }}
                 buttonText={t('common.export')}
                 buttonVariant="outline"
               />
               <button className="flex items-center space-x-2 px-3 py-2 text-sm border border-[var(--color-border)] rounded hover:bg-gray-50">
                 <Filter className="w-4 h-4" />
-                <span>Plus de filtres</span>
+                <span>{t('suppliers.moreFilters')}</span>
               </button>
             </div>
           </div>
@@ -674,16 +674,16 @@ const FournisseursModule: React.FC = () => {
                     className="rounded"
                   />
                 </th>
-                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Code</th>
-                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Fournisseur</th>
-                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Catégorie</th>
-                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">Pays</th>
-                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">Encours</th>
-                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">Volume Achats</th>
-                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">DPO</th>
-                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Note</th>
-                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Statut</th>
-                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colCode')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colSupplier')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colCategory')}</th>
+                <th className="text-left p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colCountry')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colOutstanding')}</th>
+                <th className="text-right p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colPurchaseVolume')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colDpo')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colRating')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colStatus')}</th>
+                <th className="text-center p-3 text-sm font-medium text-[var(--color-text-secondary)]">{t('suppliers.colActions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -721,7 +721,7 @@ const FournisseursModule: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-[var(--color-primary)]">{formatCurrency(fournisseur.encoursActuel)}</p>
                       {fournisseur.encoursActuel > fournisseur.limiteCredit * 0.8 && (
-                        <p className="text-xs text-orange-600">Proche limite</p>
+                        <p className="text-xs text-orange-600">{t('suppliers.nearLimit')}</p>
                       )}
                     </div>
                   </td>
@@ -731,7 +731,7 @@ const FournisseursModule: React.FC = () => {
                   <td className="p-3 text-center">
                     <div className="flex items-center justify-center space-x-1">
                       <Clock className="w-3 h-3 text-[var(--color-text-secondary)]" />
-                      <span className="text-sm text-[var(--color-text-secondary)]">{fournisseur.dpo}j</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">{fournisseur.dpo}{t('suppliers.daysShort')}</span>
                     </div>
                   </td>
                   <td className="p-3 text-center">
@@ -763,11 +763,11 @@ const FournisseursModule: React.FC = () => {
                       <button
                         onClick={() => handleEditFournisseur(fournisseur)}
                         className="p-1 text-blue-600 hover:bg-blue-100 rounded"
-                        title="Modifier"
+                        title={t('suppliers.edit')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="p-1 text-red-600 hover:bg-red-100 rounded" aria-label="Supprimer">
+                      <button className="p-1 text-red-600 hover:bg-red-100 rounded" aria-label={t('suppliers.delete')}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -781,15 +781,15 @@ const FournisseursModule: React.FC = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
           <span className="text-sm text-[var(--color-text-secondary)]">
-            Affichage de 1 à {filteredFournisseurs.length} sur {filteredFournisseurs.length} entrées
+            {t('suppliers.paginationInfo', { count: String(filteredFournisseurs.length), total: String(filteredFournisseurs.length) })}
           </span>
           <div className="flex items-center space-x-2">
             <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
-              Précédent
+              {t('suppliers.previous')}
             </button>
             <button className="px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">1</button>
             <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm disabled:opacity-50" disabled>
-              Suivant
+              {t('suppliers.next')}
             </button>
           </div>
         </div>
@@ -804,8 +804,8 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">Balance Âgée des Dettes Fournisseurs</h3>
-                <p className="text-sm text-[var(--color-text-secondary)]">Analyse de l'ancienneté des dettes au {new Date().toLocaleDateString('fr-FR')}</p>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('suppliers.agedBalanceTitle')}</h3>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.agedBalanceSubtitle', { date: new Date().toLocaleDateString('fr-FR') })}</p>
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -814,25 +814,25 @@ const FournisseursModule: React.FC = () => {
                   className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Date d'arrêté</span>
+                  <span>{t('suppliers.cutoffDate')}</span>
                 </button>
                 <ExportMenu
                   data={balanceAgeeData as unknown as Record<string, unknown>[]}
                   filename="balance-agee-fournisseurs"
                   columns={{
-                    fournisseurCode: 'Code Fournisseur',
-                    fournisseurNom: 'Nom Fournisseur',
-                    totalDettes: 'Total Dettes',
-                    nonEchu: 'Non Échu',
-                    echu0_30: '0-30 jours',
-                    echu31_60: '31-60 jours',
-                    echu61_90: '61-90 jours',
-                    echuPlus90: '+90 jours',
-                    provision: 'Provision'
+                    fournisseurCode: t('suppliers.colSupplierCode'),
+                    fournisseurNom: t('suppliers.colSupplierName'),
+                    totalDettes: t('suppliers.totalPayables'),
+                    nonEchu: t('suppliers.notDue'),
+                    echu0_30: t('suppliers.days0_30'),
+                    echu31_60: t('suppliers.days31_60'),
+                    echu61_90: t('suppliers.days61_90'),
+                    echuPlus90: t('suppliers.daysOver90'),
+                    provision: t('suppliers.provision')
                   }}
-                  buttonText="Exporter"
+                  buttonText={t('suppliers.export')}
                 />
-                <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title="Imprimer">
+                <button type="button" className="p-2 text-gray-600 hover:bg-gray-100 rounded" title={t('suppliers.print')}>
                   <Printer className="w-4 h-4" />
                 </button>
               </div>
@@ -846,7 +846,7 @@ const FournisseursModule: React.FC = () => {
                 <Wallet className="w-5 h-5 text-blue-600" />
               </div>
               <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-              <p className="text-xs text-[var(--color-text-secondary)]">Total Dettes</p>
+              <p className="text-xs text-[var(--color-text-secondary)]">{t('suppliers.totalPayables')}</p>
             </div>
 
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -855,7 +855,7 @@ const FournisseursModule: React.FC = () => {
                 <span className="text-xs text-green-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
               </div>
               <p className="text-lg font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
-              <p className="text-xs text-green-600">Non Échu</p>
+              <p className="text-xs text-green-600">{t('suppliers.notDue')}</p>
             </div>
 
             <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
@@ -864,7 +864,7 @@ const FournisseursModule: React.FC = () => {
                 <span className="text-xs text-yellow-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
               </div>
               <p className="text-lg font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
-              <p className="text-xs text-yellow-600">0-30 jours</p>
+              <p className="text-xs text-yellow-600">{t('suppliers.days0_30')}</p>
             </div>
 
             <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
@@ -873,7 +873,7 @@ const FournisseursModule: React.FC = () => {
                 <span className="text-xs text-orange-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
               </div>
               <p className="text-lg font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
-              <p className="text-xs text-orange-600">31-60 jours</p>
+              <p className="text-xs text-orange-600">{t('suppliers.days31_60')}</p>
             </div>
 
             <div className="bg-red-50 rounded-lg p-4 border border-red-200">
@@ -882,7 +882,7 @@ const FournisseursModule: React.FC = () => {
                 <span className="text-xs text-red-600">{totauxBalanceAgee.totalDettes > 0 ? (((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
               </div>
               <p className="text-lg font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
-              <p className="text-xs text-red-600">+60 jours</p>
+              <p className="text-xs text-red-600">{t('suppliers.daysOver60')}</p>
             </div>
 
             <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
@@ -890,7 +890,7 @@ const FournisseursModule: React.FC = () => {
                 <Shield className="w-5 h-5 text-primary-600" />
               </div>
               <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-primary-600">Provisions</p>
+              <p className="text-xs text-primary-600">{t('suppliers.provisions')}</p>
             </div>
           </div>
 
@@ -907,7 +907,7 @@ const FournisseursModule: React.FC = () => {
                 }`}
               >
                 <PieChart className="w-4 h-4" />
-                <span>Répartition par ancienneté</span>
+                <span>{t('suppliers.subTabBreakdown')}</span>
               </button>
               <button
                 type="button"
@@ -919,7 +919,7 @@ const FournisseursModule: React.FC = () => {
                 }`}
               >
                 <FileText className="w-4 h-4" />
-                <span>Détail par fournisseur</span>
+                <span>{t('suppliers.subTabDetail')}</span>
               </button>
               <button
                 type="button"
@@ -931,7 +931,7 @@ const FournisseursModule: React.FC = () => {
                 }`}
               >
                 <AlertTriangle className="w-4 h-4" />
-                <span>Paiements prioritaires & Recommandations</span>
+                <span>{t('suppliers.subTabPriorities')}</span>
               </button>
             </div>
 
@@ -941,8 +941,8 @@ const FournisseursModule: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                   {/* Graphique Donut Moderne */}
                   <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">Distribution des Dettes</h4>
-                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">Répartition par ancienneté</p>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">{t('suppliers.payablesDistribution')}</h4>
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">{t('suppliers.subTabBreakdown')}</p>
                     <div className="relative">
                       <ResponsiveContainer width="100%" height={320}>
                         <RechartsPieChart>
@@ -953,6 +953,7 @@ const FournisseursModule: React.FC = () => {
                           </defs>
                           <Pie
                             data={balanceAgeeChartData}
+                            nameKey="label"
                             cx="50%"
                             cy="50%"
                             innerRadius={70}
@@ -985,9 +986,9 @@ const FournisseursModule: React.FC = () => {
                       {/* Centre du Donut avec Total */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
-                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Total</p>
+                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('suppliers.total')}</p>
                           <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">{balanceAgeeData.length} fournisseurs</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">{t('suppliers.suppliersCount', { count: String(balanceAgeeData.length) })}</p>
                         </div>
                       </div>
                     </div>
@@ -995,7 +996,7 @@ const FournisseursModule: React.FC = () => {
 
                   {/* Légende détaillée et statistiques */}
                   <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Détail par Tranche d'Ancienneté</h4>
+                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.detailByAgeBracket')}</h4>
                     {balanceAgeeChartData.map((item, idx) => {
                       const percent = totauxBalanceAgee.totalDettes > 0
                         ? ((item.value / totauxBalanceAgee.totalDettes) * 100).toFixed(1)
@@ -1022,8 +1023,8 @@ const FournisseursModule: React.FC = () => {
                               <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
                             </div>
                             <div>
-                              <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-text-tertiary)] transition-colors">{item.name}</p>
-                              <p className="text-sm text-[var(--color-text-secondary)]">{fournisseurCount} fournisseur(s) concerné(s)</p>
+                              <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-text-tertiary)] transition-colors">{item.label}</p>
+                              <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.suppliersConcerned', { count: String(fournisseurCount) })}</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -1046,7 +1047,7 @@ const FournisseursModule: React.FC = () => {
 
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
-                  <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">Évolution par Fournisseur</h4>
+                  <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.evolutionBySupplier')}</h4>
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
                       <CartesianGrid strokeDasharray="3 3" />
@@ -1054,11 +1055,11 @@ const FournisseursModule: React.FC = () => {
                       <YAxis type="category" dataKey="fournisseurCode" width={80} />
                       <Tooltip formatter={(value) => formatCurrency(value as number)} />
                       <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name="Non Échu" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name="0-30j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name="31-60j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name="61-90j" />
-                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name="+90j" />
+                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name={t('suppliers.notDue')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name={t('suppliers.days0_30Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name={t('suppliers.days31_60Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name={t('suppliers.days61_90Short')} />
+                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name={t('suppliers.daysOver90Short')} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -1075,21 +1076,21 @@ const FournisseursModule: React.FC = () => {
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
                         type="text"
-                        placeholder="Rechercher un fournisseur..."
+                        placeholder={t('suppliers.searchSupplierPlaceholder')}
                         className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
                     </div>
                     <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                      <option value="all">Toutes les tranches</option>
-                      <option value="nonechu">Non Échu seulement</option>
-                      <option value="0-30">0-30 jours</option>
-                      <option value="31-60">31-60 jours</option>
-                      <option value="61-90">61-90 jours</option>
-                      <option value="+90">+90 jours</option>
+                      <option value="all">{t('suppliers.allBrackets')}</option>
+                      <option value="nonechu">{t('suppliers.notDueOnly')}</option>
+                      <option value="0-30">{t('suppliers.days0_30')}</option>
+                      <option value="31-60">{t('suppliers.days31_60')}</option>
+                      <option value="61-90">{t('suppliers.days61_90')}</option>
+                      <option value="+90">{t('suppliers.daysOver90')}</option>
                     </select>
                   </div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{balanceAgeeData.length} fournisseurs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.suppliersCount', { count: String(balanceAgeeData.length) })}</p>
                 </div>
 
                 {/* Tableau détaillé */}
@@ -1097,16 +1098,16 @@ const FournisseursModule: React.FC = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Code</th>
-                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">Fournisseur</th>
-                        <th className="text-right p-3 font-medium text-[var(--color-text-secondary)]">Total Dettes</th>
-                        <th className="text-right p-3 font-medium text-green-600">Non Échu</th>
-                        <th className="text-right p-3 font-medium text-yellow-600">0-30j</th>
-                        <th className="text-right p-3 font-medium text-orange-600">31-60j</th>
-                        <th className="text-right p-3 font-medium text-red-600">61-90j</th>
-                        <th className="text-right p-3 font-medium text-red-800">+90j</th>
-                        <th className="text-right p-3 font-medium text-primary-600">Provision</th>
-                        <th className="text-center p-3 font-medium text-[var(--color-text-secondary)]">Actions</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">{t('suppliers.colCode')}</th>
+                        <th className="text-left p-3 font-medium text-[var(--color-text-secondary)]">{t('suppliers.colSupplier')}</th>
+                        <th className="text-right p-3 font-medium text-[var(--color-text-secondary)]">{t('suppliers.totalPayables')}</th>
+                        <th className="text-right p-3 font-medium text-green-600">{t('suppliers.notDue')}</th>
+                        <th className="text-right p-3 font-medium text-yellow-600">{t('suppliers.days0_30Short')}</th>
+                        <th className="text-right p-3 font-medium text-orange-600">{t('suppliers.days31_60Short')}</th>
+                        <th className="text-right p-3 font-medium text-red-600">{t('suppliers.days61_90Short')}</th>
+                        <th className="text-right p-3 font-medium text-red-800">{t('suppliers.daysOver90Short')}</th>
+                        <th className="text-right p-3 font-medium text-primary-600">{t('suppliers.provision')}</th>
+                        <th className="text-center p-3 font-medium text-[var(--color-text-secondary)]">{t('suppliers.colActions')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1132,13 +1133,13 @@ const FournisseursModule: React.FC = () => {
                             <td className="p-3 text-right text-primary-600">{item.provision > 0 ? formatCurrency(item.provision) : '-'}</td>
                             <td className="p-3 text-center">
                               <div className="flex items-center justify-center space-x-1">
-                                <button type="button" className="p-1 text-gray-500 hover:text-[var(--color-text-tertiary)]" title="Voir détail">
+                                <button type="button" className="p-1 text-gray-500 hover:text-[var(--color-text-tertiary)]" title={t('suppliers.viewDetail')}>
                                   <Eye className="w-4 h-4" />
                                 </button>
-                                <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title="Planifier paiement">
+                                <button type="button" className="p-1 text-gray-500 hover:text-blue-600" title={t('suppliers.schedulePayment')}>
                                   <CreditCard className="w-4 h-4" />
                                 </button>
-                                <button type="button" className="p-1 text-gray-500 hover:text-orange-600" title="Imprimer">
+                                <button type="button" className="p-1 text-gray-500 hover:text-orange-600" title={t('suppliers.print')}>
                                   <Printer className="w-4 h-4" />
                                 </button>
                               </div>
@@ -1149,7 +1150,7 @@ const FournisseursModule: React.FC = () => {
                     </tbody>
                     <tfoot className="bg-gray-100 font-bold">
                       <tr>
-                        <td className="p-3" colSpan={2}>TOTAUX ({balanceAgeeData.length} fournisseurs)</td>
+                        <td className="p-3" colSpan={2}>{t('suppliers.totalsRow', { count: String(balanceAgeeData.length) })}</td>
                         <td className="p-3 text-right">{formatCurrency(totauxBalanceAgee.totalDettes)}</td>
                         <td className="p-3 text-right text-green-600">{formatCurrency(totauxBalanceAgee.nonEchu)}</td>
                         <td className="p-3 text-right text-yellow-600">{formatCurrency(totauxBalanceAgee.echu0_30)}</td>
@@ -1177,7 +1178,7 @@ const FournisseursModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echuPlus90 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-red-700 mt-2">Paiements critiques (+90j)</p>
+                    <p className="text-sm text-red-700 mt-2">{t('suppliers.criticalPayments')}</p>
                   </div>
                   <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                     <div className="flex items-center justify-between">
@@ -1186,7 +1187,7 @@ const FournisseursModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echu61_90 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-orange-700 mt-2">Paiements urgents (61-90j)</p>
+                    <p className="text-sm text-orange-700 mt-2">{t('suppliers.urgentPayments')}</p>
                   </div>
                   <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
                     <div className="flex items-center justify-between">
@@ -1195,7 +1196,7 @@ const FournisseursModule: React.FC = () => {
                         {balanceAgeeData.filter(i => i.echu31_60 > 0).length}
                       </span>
                     </div>
-                    <p className="text-sm text-yellow-700 mt-2">Paiements à prévoir (31-60j)</p>
+                    <p className="text-sm text-yellow-700 mt-2">{t('suppliers.upcomingPayments')}</p>
                   </div>
                   <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
                     <div className="flex items-center justify-between">
@@ -1204,7 +1205,7 @@ const FournisseursModule: React.FC = () => {
                         {formatCurrency(totauxBalanceAgee.provision)}
                       </span>
                     </div>
-                    <p className="text-sm text-primary-700 mt-2">Provisions pour litiges</p>
+                    <p className="text-sm text-primary-700 mt-2">{t('suppliers.litigationProvisions')}</p>
                   </div>
                 </div>
 
@@ -1213,12 +1214,12 @@ const FournisseursModule: React.FC = () => {
                   <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                     <div className="p-4 bg-red-50 border-b border-red-200">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-md font-semibold text-red-800">Fournisseurs Prioritaires</h4>
+                        <h4 className="text-md font-semibold text-red-800">{t('suppliers.prioritySuppliers')}</h4>
                         <span className="bg-red-600 text-white text-xs px-2 py-1 rounded-full">
-                          {balanceAgeeData.filter(item => item.echuPlus90 > 0).length} fournisseurs
+                          {t('suppliers.suppliersCount', { count: String(balanceAgeeData.filter(item => item.echuPlus90 > 0).length) })}
                         </span>
                       </div>
-                      <p className="text-xs text-red-600 mt-1">Dettes échues de plus de 90 jours - Risque de rupture</p>
+                      <p className="text-xs text-red-600 mt-1">{t('suppliers.priorityHint')}</p>
                     </div>
                     <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto">
                       {balanceAgeeData
@@ -1233,7 +1234,7 @@ const FournisseursModule: React.FC = () => {
                               </div>
                               <div className="text-right">
                                 <p className="font-bold text-red-800">{formatCurrency(item.echuPlus90)}</p>
-                                <p className="text-xs text-[var(--color-text-secondary)]">échu +90j</p>
+                                <p className="text-xs text-[var(--color-text-secondary)]">{t('suppliers.overdueOver90')}</p>
                               </div>
                             </div>
                             <div className="mt-3 flex items-center space-x-2">
@@ -1242,14 +1243,14 @@ const FournisseursModule: React.FC = () => {
                                 className="flex-1 px-3 py-1.5 text-xs bg-red-600 text-white rounded hover:bg-red-700 flex items-center justify-center space-x-1"
                               >
                                 <CreditCard className="w-3 h-3" />
-                                <span>Payer maintenant</span>
+                                <span>{t('suppliers.payNow')}</span>
                               </button>
                               <button
                                 type="button"
                                 className="flex-1 px-3 py-1.5 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 flex items-center justify-center space-x-1"
                               >
                                 <Phone className="w-3 h-3" />
-                                <span>Négocier</span>
+                                <span>{t('suppliers.negotiate')}</span>
                               </button>
                               <button
                                 type="button"
@@ -1263,7 +1264,7 @@ const FournisseursModule: React.FC = () => {
                       {balanceAgeeData.filter(item => item.echuPlus90 > 0).length === 0 && (
                         <div className="p-8 text-center text-[var(--color-text-secondary)]">
                           <CheckCircle className="w-12 h-12 mx-auto text-green-500 mb-2" />
-                          <p>Aucun paiement en retard critique</p>
+                          <p>{t('suppliers.noCriticalOverdue')}</p>
                         </div>
                       )}
                     </div>
@@ -1273,21 +1274,21 @@ const FournisseursModule: React.FC = () => {
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg border border-[var(--color-border)] overflow-hidden">
                       <div className="p-4 bg-[var(--color-text-tertiary)]/10 border-b border-[var(--color-border)]">
-                        <h4 className="text-md font-semibold text-[var(--color-primary)]">Plan de Trésorerie Recommandé</h4>
-                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">Actions prioritaires basées sur l'analyse des dettes</p>
+                        <h4 className="text-md font-semibold text-[var(--color-primary)]">{t('suppliers.treasuryPlanTitle')}</h4>
+                        <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('suppliers.treasuryPlanSubtitle')}</p>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* Action 1 */}
                         <div className="p-3 bg-red-50 rounded-lg border-l-4 border-red-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-red-800">Paiements urgents</p>
+                              <p className="font-medium text-red-800">{t('suppliers.actionUrgentPayments')}</p>
                               <p className="text-sm text-red-700">
-                                {balanceAgeeData.filter(i => i.echuPlus90 > 0).length} fournisseurs avec dettes +90 jours
+                                {t('suppliers.suppliersOver90', { count: String(balanceAgeeData.filter(i => i.echuPlus90 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">
-                              Planifier
+                              {t('suppliers.schedule')}
                             </button>
                           </div>
                         </div>
@@ -1296,13 +1297,13 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-orange-50 rounded-lg border-l-4 border-orange-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-orange-800">Négociations délais</p>
+                              <p className="font-medium text-orange-800">{t('suppliers.actionTermNegotiation')}</p>
                               <p className="text-sm text-orange-700">
-                                {balanceAgeeData.filter(i => i.echu61_90 > 0).length} fournisseurs avec dettes 61-90 jours
+                                {t('suppliers.suppliers61_90', { count: String(balanceAgeeData.filter(i => i.echu61_90 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700">
-                              Contacter
+                              {t('suppliers.contact')}
                             </button>
                           </div>
                         </div>
@@ -1311,13 +1312,13 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-yellow-800">Échéancier à établir</p>
+                              <p className="font-medium text-yellow-800">{t('suppliers.actionScheduleToSet')}</p>
                               <p className="text-sm text-yellow-700">
-                                {balanceAgeeData.filter(i => i.echu31_60 > 0).length} fournisseurs avec dettes 31-60 jours
+                                {t('suppliers.suppliers31_60', { count: String(balanceAgeeData.filter(i => i.echu31_60 > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700">
-                              Planifier
+                              {t('suppliers.schedule')}
                             </button>
                           </div>
                         </div>
@@ -1326,13 +1327,13 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-green-800">Escomptes disponibles</p>
+                              <p className="font-medium text-green-800">{t('suppliers.actionDiscountsAvailable')}</p>
                               <p className="text-sm text-green-700">
-                                {fournisseurs.filter(f => f.escompte && f.escompte > 0).length} fournisseurs avec escompte disponible
+                                {t('suppliers.suppliersWithDiscount', { count: String(fournisseurs.filter(f => f.escompte && f.escompte > 0).length) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
-                              Optimiser
+                              {t('suppliers.optimize')}
                             </button>
                           </div>
                         </div>
@@ -1341,13 +1342,13 @@ const FournisseursModule: React.FC = () => {
                         <div className="p-3 bg-primary-50 rounded-lg border-l-4 border-primary-500">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium text-primary-800">Provisions à comptabiliser</p>
+                              <p className="font-medium text-primary-800">{t('suppliers.actionProvisionsToPost')}</p>
                               <p className="text-sm text-primary-700">
-                                {formatCurrency(totauxBalanceAgee.provision)} selon règles SYSCOHADA
+                                {t('suppliers.provisionsSyscohada', { amount: formatCurrency(totauxBalanceAgee.provision) })}
                               </p>
                             </div>
                             <button type="button" className="px-3 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700">
-                              Générer OD
+                              {t('suppliers.generateJournalEntry')}
                             </button>
                           </div>
                         </div>
@@ -1358,20 +1359,20 @@ const FournisseursModule: React.FC = () => {
                     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                       <h5 className="font-medium text-blue-800 flex items-center">
                         <Info className="w-4 h-4 mr-2" />
-                        Règles de Gestion Trésorerie SYSCOHADA
+                        {t('suppliers.treasuryRulesTitle')}
                       </h5>
                       <div className="mt-3 space-y-2 text-sm text-blue-700">
                         <div className="flex justify-between">
-                          <span>Paiement stratégique</span>
-                          <span className="font-medium">Priorité haute</span>
+                          <span>{t('suppliers.ruleStrategicPayment')}</span>
+                          <span className="font-medium">{t('suppliers.ruleHighPriority')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Négociation délai +90j</span>
-                          <span className="font-medium">Risque de rupture</span>
+                          <span>{t('suppliers.ruleNegotiationOver90')}</span>
+                          <span className="font-medium">{t('suppliers.ruleDisruptionRisk')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Escompte pour paiement anticipé</span>
-                          <span className="font-medium">Économie 2-3%</span>
+                          <span>{t('suppliers.ruleEarlyPaymentDiscount')}</span>
+                          <span className="font-medium">{t('suppliers.ruleSaving2to3')}</span>
                         </div>
                       </div>
                     </div>
@@ -1394,9 +1395,9 @@ const FournisseursModule: React.FC = () => {
         const critiqueFournisseurs = fournisseurs.filter(f => f.notationInterne === 'D' || f.notationInterne === 'C');
 
         const subTabs = [
-          { key: 'kpis', label: 'Indicateurs', icon: BarChart3 },
-          { key: 'charts', label: 'Graphiques', icon: PieChart },
-          { key: 'performance', label: 'Performance', icon: Target },
+          { key: 'kpis', label: t('suppliers.subTabIndicators'), icon: BarChart3 },
+          { key: 'charts', label: t('suppliers.subTabCharts'), icon: PieChart },
+          { key: 'performance', label: t('suppliers.subTabPerformance'), icon: Target },
         ];
 
         return (
@@ -1423,42 +1424,42 @@ const FournisseursModule: React.FC = () => {
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Building className="w-5 h-5 text-[var(--color-primary)] mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{fournisseurs.length}</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Fournisseurs</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.suppliersLabel')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <ShoppingBag className="w-5 h-5 text-primary-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totalAchats)}</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Volume Achats</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.colPurchaseVolume')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Timer className="w-5 h-5 text-blue-600 mb-3" />
-                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgDPO}j</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">DPO Moyen</p>
-                  <p className="text-xs text-blue-500 mt-1">IFRS 7 — Dettes/Achats×365</p>
+                  <p className="text-lg font-bold text-[var(--color-primary)]">{avgDPO}{t('suppliers.daysShort')}</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.kpiAverageDpo')}</p>
+                  <p className="text-xs text-blue-500 mt-1">{t('suppliers.dpoFormulaHint')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Wallet className="w-5 h-5 text-orange-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totalEncours)}</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Encours Total</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.totalOutstanding')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <Shield className="w-5 h-5 text-green-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">{avgQualite}/5</p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Score Qualité</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.qualityScore')}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
                   <CheckCircle className="w-5 h-5 text-green-600 mb-3" />
                   <p className="text-lg font-bold text-[var(--color-primary)]">
                     {fournisseurs.length > 0 ? Math.round(fournisseurs.filter(f => f.conformite).length / fournisseurs.length * 100) : 0}%
                   </p>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Conformité paiements</p>
-                  <p className="text-xs text-green-500 mt-1">IFRS 7 — % dans les délais</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.paymentCompliance')}</p>
+                  <p className="text-xs text-green-500 mt-1">{t('suppliers.paymentComplianceHint')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Par Catégorie</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.byCategory')}</h3>
                   <div className="space-y-3">
                     {catData.map((cat) => (
                       <div key={cat.categorie} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -1473,10 +1474,10 @@ const FournisseursModule: React.FC = () => {
                 </div>
 
                 <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Top Fournisseurs</h3>
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.topSuppliers')}</h3>
                   <div className="space-y-3">
                     {topFournisseurs.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-4">Aucun fournisseur</p>
+                      <p className="text-sm text-gray-500 text-center py-4">{t('suppliers.noSupplier')}</p>
                     ) : topFournisseurs.map((f, idx) => (
                       <div key={f.id} className="flex items-center justify-between">
                         <div className="flex items-center flex-1">
@@ -1503,7 +1504,7 @@ const FournisseursModule: React.FC = () => {
           {analyticsSubTab === 'charts' && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition par Catégorie</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.breakdownByCategory')}</h3>
                 {catData.some(d => d.montant > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <RechartsPieChart>
@@ -1518,13 +1519,13 @@ const FournisseursModule: React.FC = () => {
                   </ResponsiveContainer>
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-gray-500">
-                    <p className="text-sm">Aucune donnée d'achats disponible</p>
+                    <p className="text-sm">{t('suppliers.noPurchaseData')}</p>
                   </div>
                 )}
               </div>
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évaluation Performance</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.performanceAssessment')}</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <RadarChart data={analyticsData.performanceFournisseurs}>
                     <PolarGrid />
@@ -1542,11 +1543,11 @@ const FournisseursModule: React.FC = () => {
           {analyticsSubTab === 'performance' && (
             <div className="space-y-6">
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Fournisseurs à surveiller</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.suppliersToWatch')}</h3>
                 {critiqueFournisseurs.length === 0 ? (
                   <div className="text-center py-8">
                     <CheckCircle className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Tous les fournisseurs ont une bonne notation</p>
+                    <p className="text-sm text-gray-600">{t('suppliers.allSuppliersGoodRating')}</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1554,7 +1555,7 @@ const FournisseursModule: React.FC = () => {
                       <div key={f.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                         <div>
                           <p className="text-sm font-medium text-gray-900">{f.raisonSociale}</p>
-                          <p className="text-xs text-gray-600">Note: {f.notationInterne} | Qualité: {f.scoreQualite}% | Délais: {f.respectDelais}%</p>
+                          <p className="text-xs text-gray-600">{t('suppliers.ratingLine', { rating: String(f.notationInterne), quality: String(f.scoreQualite), ontime: String(f.respectDelais) })}</p>
                         </div>
                         <span className="text-sm font-bold text-red-600">{formatCurrency(f.encoursActuel || 0)}</span>
                       </div>
@@ -1575,8 +1576,8 @@ const FournisseursModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? 'Modifier le fournisseur' : 'Nouveau Fournisseur'}</h3>
-                  <p className="text-sm text-[var(--color-text-secondary)]">Étape {formStep} sur 4</p>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{editingId ? t('suppliers.editSupplier') : t('suppliers.newSupplier')}</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.stepOf', { step: String(formStep) })}</p>
                 </div>
                 <button onClick={() => { setShowNewFournisseurModal(false); setFormStep(1); setEditingId(null); }} className="p-2 hover:bg-gray-100 rounded-full">
                   <X className="w-5 h-5 text-[var(--color-text-secondary)]" />
@@ -1588,10 +1589,10 @@ const FournisseursModule: React.FC = () => {
                 ))}
               </div>
               <div className="flex mt-2 text-xs text-[var(--color-text-secondary)]">
-                <span className="flex-1">Identification</span>
-                <span className="flex-1">Adresse & Contact</span>
-                <span className="flex-1">Comptabilité</span>
-                <span className="flex-1">Conditions</span>
+                <span className="flex-1">{t('suppliers.stepIdentification')}</span>
+                <span className="flex-1">{t('suppliers.stepAddressContact')}</span>
+                <span className="flex-1">{t('suppliers.stepAccounting')}</span>
+                <span className="flex-1">{t('suppliers.stepTerms')}</span>
               </div>
             </div>
 
@@ -1600,11 +1601,11 @@ const FournisseursModule: React.FC = () => {
               {formStep === 1 && (
                 <div className="space-y-4">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Identification de l'entreprise
+                    <Building className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.companyIdentification')}
                   </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code fournisseur *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.supplierCodeRequired')}</label>
                       <div className="flex space-x-2">
                         <input type="text" value={newFournisseur.code}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, code: e.target.value })}
@@ -1612,50 +1613,50 @@ const FournisseursModule: React.FC = () => {
                           placeholder="FOU001" />
                         <button type="button"
                           onClick={() => setNewFournisseur({ ...newFournisseur, code: `FOU${String(fournisseurs.length + 1).padStart(3, '0')}` })}
-                          className="px-3 py-2 bg-gray-100 text-[var(--color-text-secondary)] rounded-lg hover:bg-gray-200">Auto</button>
+                          className="px-3 py-2 bg-gray-100 text-[var(--color-text-secondary)] rounded-lg hover:bg-gray-200">{t('suppliers.auto')}</button>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Catégorie *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.categoryRequired')}</label>
                       <select value={newFournisseur.categorie}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, categorie: e.target.value as Fournisseur['categorie'] })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="STRATEGIQUE">Stratégique</option>
-                        <option value="RECURRENT">Récurrent</option>
-                        <option value="PONCTUEL">Ponctuel</option>
-                        <option value="CRITIQUE">Critique</option>
+                        <option value="STRATEGIQUE">{t('suppliers.categoryStrategic')}</option>
+                        <option value="RECURRENT">{t('suppliers.categoryRecurring')}</option>
+                        <option value="PONCTUEL">{t('suppliers.categoryOccasional')}</option>
+                        <option value="CRITIQUE">{t('suppliers.categoryCritical')}</option>
                       </select>
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Raison sociale *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.legalNameRequired')}</label>
                       <input type="text" value={newFournisseur.raisonSociale}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, raisonSociale: e.target.value })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                        placeholder="Nom légal de l'entreprise" />
+                        placeholder={t('suppliers.legalNamePlaceholder')} />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom commercial</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.tradeName')}</label>
                       <input type="text" value={newFournisseur.nomCommercial}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, nomCommercial: e.target.value })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type de dépense *</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.expenseTypeRequired')}</label>
                       <select value={newFournisseur.typeDépense}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, typeDépense: e.target.value as Fournisseur['typeDépense'] })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                        <option value="PRODUCTION">Production</option>
-                        <option value="SERVICES">Services</option>
-                        <option value="INVESTISSEMENT">Investissement</option>
-                        <option value="FRAIS_GENERAUX">Frais généraux</option>
+                        <option value="PRODUCTION">{t('suppliers.expenseProduction')}</option>
+                        <option value="SERVICES">{t('suppliers.expenseServices')}</option>
+                        <option value="INVESTISSEMENT">{t('suppliers.expenseInvestment')}</option>
+                        <option value="FRAIS_GENERAUX">{t('suppliers.expenseOverheads')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Secteur d'activité</label>
+                      <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.businessSector')}</label>
                       <input type="text" value={newFournisseur.secteurActivite}
                         onChange={(e) => setNewFournisseur({ ...newFournisseur, secteurActivite: e.target.value })}
                         className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                        placeholder="Ex: BTP, IT, Logistique..." />
+                        placeholder={t('suppliers.businessSectorPlaceholder')} />
                     </div>
                     <div>
                       <label className="block text-sm text-[var(--color-text-secondary)] mb-1">RCCM</label>
@@ -1680,82 +1681,82 @@ const FournisseursModule: React.FC = () => {
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
-                      <MapPin className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Adresse
+                      <MapPin className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.address')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Adresse *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.addressRequired')}</label>
                         <input type="text" value={newFournisseur.adresse}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, adresse: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="Rue, numéro, quartier" />
+                          placeholder={t('suppliers.addressPlaceholder')} />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Boîte Postale</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.poBox')}</label>
                         <input type="text" value={newFournisseur.codePostal}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, codePostal: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="BP 1234" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Ville *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.cityRequired')}</label>
                         <input type="text" value={newFournisseur.ville}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, ville: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Région</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.region')}</label>
                         <input type="text" value={newFournisseur.region}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, region: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Pays *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.countryRequired')}</label>
                         <select value={newFournisseur.pays}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, pays: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="Cameroun">Cameroun</option>
-                          <option value="Gabon">Gabon</option>
-                          <option value="Congo">Congo</option>
-                          <option value="Tchad">Tchad</option>
-                          <option value="Guinée Équatoriale">Guinée Équatoriale</option>
-                          <option value="République Centrafricaine">RCA</option>
+                          <option value="Cameroun">{t('suppliers.countryCameroon')}</option>
+                          <option value="Gabon">{t('suppliers.countryGabon')}</option>
+                          <option value="Congo">{t('suppliers.countryCongo')}</option>
+                          <option value="Tchad">{t('suppliers.countryChad')}</option>
+                          <option value="Guinée Équatoriale">{t('suppliers.countryEquatorialGuinea')}</option>
+                          <option value="République Centrafricaine">{t('suppliers.countryCar')}</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
-                      <Users className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Contact Principal
+                      <Users className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.mainContact')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Nom du contact *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.contactNameRequired')}</label>
                         <input type="text" value={newFournisseur.contactPrincipal}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, contactPrincipal: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Fonction</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.jobTitle')}</label>
                         <input type="text" value={newFournisseur.fonction}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, fonction: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="Directeur Commercial..." />
+                          placeholder={t('suppliers.jobTitlePlaceholder')} />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Email *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.emailRequired')}</label>
                         <input type="email" value={newFournisseur.email}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, email: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.phoneRequired')}</label>
                         <input type="tel" value={newFournisseur.telephone}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, telephone: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                           placeholder="+237 6XX XXX XXX" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone secondaire</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.secondaryPhone')}</label>
                         <input type="tel" value={newFournisseur.telephoneSecondaire}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, telephoneSecondaire: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
@@ -1770,11 +1771,11 @@ const FournisseursModule: React.FC = () => {
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
-                      <BookOpen className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Paramètres Comptables SYSCOHADA
+                      <BookOpen className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.syscohadaAccountingSettings')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type de fournisseur *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.supplierTypeRequired')}</label>
                         <select
                           value={newFournisseur.typeFournisseur}
                           onChange={async (e) => {
@@ -1789,81 +1790,81 @@ const FournisseursModule: React.FC = () => {
                           }}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                         >
-                          <option value="local">Local (compte 401 — FL)</option>
-                          <option value="etranger">Étranger (compte 404 — FE)</option>
+                          <option value="local">{t('suppliers.supplierTypeLocal')}</option>
+                          <option value="etranger">{t('suppliers.supplierTypeForeign')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte comptable fournisseur *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.supplierAccountRequired')}</label>
                         <div className="flex space-x-2">
                           <input type="text" value={newFournisseur.compteComptable}
                             onChange={(e) => setNewFournisseur({ ...newFournisseur, compteComptable: e.target.value })}
                             className="w-24 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="401" />
                           <input type="text" value={newFournisseur.compteAuxiliaire}
                             onChange={(e) => setNewFournisseur({ ...newFournisseur, compteAuxiliaire: e.target.value })}
-                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder="Compte auxiliaire (ex: 401043)" />
+                            className="flex-1 px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" placeholder={t('suppliers.subsidiaryAccountPlaceholder')} />
                         </div>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Compte 401/404 - Fournisseurs (SYSCOHADA)</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('suppliers.supplierAccountHint')}</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code commercial</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.commercialCode')}</label>
                         <input type="text" value={newFournisseur.codeCommercial}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, codeCommercial: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
-                          placeholder="Code commercial (ex: FL043 ou FE043)" />
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Dérivé du compte auxiliaire (FL = local, FE = étranger)</p>
+                          placeholder={t('suppliers.commercialCodePlaceholder')} />
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('suppliers.commercialCodeHint')}</p>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Journal d'achats *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.purchaseJournalRequired')}</label>
                         <select value={newFournisseur.journalAchats}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, journalAchats: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="AC">AC - Achats</option>
-                          <option value="AI">AI - Achats Import</option>
-                          <option value="FG">FG - Frais Généraux</option>
+                          <option value="AC">{t('suppliers.journalAc')}</option>
+                          <option value="AI">{t('suppliers.journalAi')}</option>
+                          <option value="FG">{t('suppliers.journalFg')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Taux TVA applicable (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.vatRate')}</label>
                         <select value={newFournisseur.tauxTVA}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, tauxTVA: parseFloat(e.target.value) })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value={19.25}>19,25% - Taux normal Cameroun</option>
-                          <option value={18}>18% - Taux CEMAC standard</option>
-                          <option value={0}>0% - Exonéré</option>
+                          <option value={19.25}>{t('suppliers.vatStandardCameroon')}</option>
+                          <option value={18}>{t('suppliers.vatCemacStandard')}</option>
+                          <option value={0}>{t('suppliers.vatExempt')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Devise *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.currencyRequired')}</label>
                         <select value={newFournisseur.devise}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, devise: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="XAF">XAF - Franc CFA CEMAC</option>
-                          <option value="EUR">EUR - Euro</option>
-                          <option value="USD">USD - Dollar US</option>
+                          <option value="XAF">{t('suppliers.currencyXaf')}</option>
+                          <option value="EUR">{t('suppliers.currencyEur')}</option>
+                          <option value="USD">{t('suppliers.currencyUsd')}</option>
                         </select>
                       </div>
                     </div>
                   </div>
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
-                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Coordonnées Bancaires (optionnel)
+                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.bankDetailsOptional')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Banque</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.bank')}</label>
                         <input type="text" value={newFournisseur.banque}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, banque: e.target.value })}
-                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Nom de la banque" />
+                          className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('suppliers.bankPlaceholder')} />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Code SWIFT/BIC</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.swiftCode')}</label>
                         <input type="text" value={newFournisseur.swift}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, swift: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono" />
                       </div>
                       <div className="col-span-2">
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">IBAN / RIB</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.ibanRib')}</label>
                         <input type="text" value={newFournisseur.iban}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, iban: e.target.value })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] font-mono"
@@ -1879,41 +1880,41 @@ const FournisseursModule: React.FC = () => {
                 <div className="space-y-6">
                   <div>
                     <h4 className="text-md font-semibold text-[var(--color-primary)] flex items-center mb-4">
-                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Conditions de Paiement
+                      <CreditCard className="w-5 h-5 mr-2 text-[var(--color-primary)]" />{t('suppliers.paymentTermsSection')}
                     </h4>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Mode de règlement *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.paymentMethodRequired')}</label>
                         <select value={newFournisseur.modeReglement}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, modeReglement: e.target.value as Fournisseur['modeReglement'] })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="VIREMENT">Virement bancaire</option>
-                          <option value="CHEQUE">Chèque</option>
-                          <option value="PRELEVEMENT">Prélèvement automatique</option>
-                          <option value="TRAITE">Traite / Lettre de change</option>
+                          <option value="VIREMENT">{t('suppliers.paymentTransfer')}</option>
+                          <option value="CHEQUE">{t('suppliers.paymentCheque')}</option>
+                          <option value="PRELEVEMENT">{t('suppliers.paymentDirectDebit')}</option>
+                          <option value="TRAITE">{t('suppliers.paymentDraft')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Délai de paiement (jours) *</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.paymentDelayRequired')}</label>
                         <select value={newFournisseur.delaiPaiement}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, delaiPaiement: parseInt(e.target.value) })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value={0}>Comptant</option>
-                          <option value={15}>15 jours</option>
-                          <option value={30}>30 jours</option>
-                          <option value={45}>45 jours</option>
-                          <option value={60}>60 jours fin de mois</option>
-                          <option value={90}>90 jours</option>
+                          <option value={0}>{t('suppliers.termCash')}</option>
+                          <option value={15}>{t('suppliers.term15')}</option>
+                          <option value={30}>{t('suppliers.term30')}</option>
+                          <option value={45}>{t('suppliers.term45')}</option>
+                          <option value={60}>{t('suppliers.term60Eom')}</option>
+                          <option value={90}>{t('suppliers.term90')}</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Limite de crédit (XAF)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.creditLimitXaf')}</label>
                         <input type="number" value={newFournisseur.limiteCredit}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, limiteCredit: parseInt(e.target.value) || 0 })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Escompte (%)</label>
+                        <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.discountPercent')}</label>
                         <input type="number" step="0.5" value={newFournisseur.escompte}
                           onChange={(e) => setNewFournisseur({ ...newFournisseur, escompte: parseFloat(e.target.value) || 0 })}
                           className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0" />
@@ -1923,14 +1924,14 @@ const FournisseursModule: React.FC = () => {
 
                   {/* Récapitulatif */}
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="text-md font-semibold text-[var(--color-primary)] mb-3">Récapitulatif</h4>
+                    <h4 className="text-md font-semibold text-[var(--color-primary)] mb-3">{t('suppliers.summary')}</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><span className="text-[var(--color-text-secondary)]">Code:</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">Raison sociale:</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">Compte comptable:</span> <span className="ml-2 font-mono">{fmtAccount(`${newFournisseur.compteComptable}${newFournisseur.compteAuxiliaire}`)}</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">NIU:</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">Délai paiement:</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} jours</span></div>
-                      <div><span className="text-[var(--color-text-secondary)]">Limite crédit:</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryCode')}</span> <span className="ml-2 font-medium">{newFournisseur.code || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryLegalName')}</span> <span className="ml-2 font-medium">{newFournisseur.raisonSociale || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryAccount')}</span> <span className="ml-2 font-mono">{fmtAccount(`${newFournisseur.compteComptable}${newFournisseur.compteAuxiliaire}`)}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryNiu')}</span> <span className="ml-2 font-mono">{newFournisseur.niu || '-'}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryPaymentTerms')}</span> <span className="ml-2 font-medium">{newFournisseur.delaiPaiement} {t('suppliers.days')}</span></div>
+                      <div><span className="text-[var(--color-text-secondary)]">{t('suppliers.summaryCreditLimit')}</span> <span className="ml-2 font-medium">{formatCurrency(newFournisseur.limiteCredit)}</span></div>
                     </div>
                   </div>
                 </div>
@@ -1941,12 +1942,12 @@ const FournisseursModule: React.FC = () => {
               <button type="button"
                 onClick={() => formStep > 1 ? setFormStep(formStep - 1) : (setShowNewFournisseurModal(false), setFormStep(1), setEditingId(null))}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50">
-                {formStep > 1 ? 'Précédent' : 'Annuler'}
+                {formStep > 1 ? t('suppliers.previous') : t('suppliers.cancel')}
               </button>
               <div className="flex space-x-3">
                 {formStep < 4 ? (
                   <button type="button" onClick={() => setFormStep(formStep + 1)}
-                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">Suivant</button>
+                    className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90">{t('suppliers.next')}</button>
                 ) : (
                   <button type="button"
                     onClick={async () => {
@@ -1978,7 +1979,7 @@ const FournisseursModule: React.FC = () => {
  } catch (err) { /* ignored */ }
                     }}
                     className="px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold">
-                    {editingId ? 'Enregistrer les modifications' : 'Créer le fournisseur'}
+                    {editingId ? t('suppliers.saveChanges') : t('suppliers.createSupplier')}
                   </button>
                 )}
               </div>
@@ -2001,27 +2002,27 @@ const FournisseursModule: React.FC = () => {
             </div>
             <div className="p-5 space-y-4 overflow-auto">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div><span className="text-gray-500">Statut</span><p className="font-medium">{viewingFournisseur.statut}</p></div>
-                <div><span className="text-gray-500">Téléphone</span><p className="font-medium">{viewingFournisseur.telephoneComptable || '—'}</p></div>
-                <div><span className="text-gray-500">Email</span><p className="font-medium">{viewingFournisseur.emailComptable || '—'}</p></div>
-                <div><span className="text-gray-500">Encours</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingFournisseur.encoursActuel)}</p></div>
+                <div><span className="text-gray-500">{t('suppliers.fieldStatus')}</span><p className="font-medium">{viewingFournisseur.statut}</p></div>
+                <div><span className="text-gray-500">{t('suppliers.fieldPhone')}</span><p className="font-medium">{viewingFournisseur.telephoneComptable || '—'}</p></div>
+                <div><span className="text-gray-500">{t('suppliers.fieldEmail')}</span><p className="font-medium">{viewingFournisseur.emailComptable || '—'}</p></div>
+                <div><span className="text-gray-500">{t('suppliers.fieldOutstanding')}</span><p className="font-semibold text-[var(--color-primary)]">{formatCurrency(viewingFournisseur.encoursActuel)}</p></div>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Écritures ({(fournisseurLinesMap[viewingFournisseur.id] || []).length})</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">{t('suppliers.journalEntriesCount', { count: String((fournisseurLinesMap[viewingFournisseur.id] || []).length) })}</h4>
                 <div className="border rounded-lg overflow-auto max-h-[40vh]">
                   <table className="w-full text-xs">
                     <thead className="bg-gray-50 text-gray-600 sticky top-0">
                       <tr>
-                        <th className="text-left px-3 py-2">Date</th>
-                        <th className="text-left px-3 py-2">Pièce</th>
-                        <th className="text-left px-3 py-2">Libellé</th>
-                        <th className="text-right px-3 py-2">Débit</th>
-                        <th className="text-right px-3 py-2">Crédit</th>
+                        <th className="text-left px-3 py-2">{t('suppliers.colDate')}</th>
+                        <th className="text-left px-3 py-2">{t('suppliers.colDocument')}</th>
+                        <th className="text-left px-3 py-2">{t('suppliers.colLabel')}</th>
+                        <th className="text-right px-3 py-2">{t('suppliers.colDebit')}</th>
+                        <th className="text-right px-3 py-2">{t('suppliers.colCredit')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(fournisseurLinesMap[viewingFournisseur.id] || []).length === 0 && (
-                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">Aucune écriture attribuée à ce fournisseur (tiers non rattaché dans les libellés).</td></tr>
+                        <tr><td colSpan={5} className="px-3 py-4 text-center text-gray-500">{t('suppliers.noEntriesForSupplier')}</td></tr>
                       )}
                       {(fournisseurLinesMap[viewingFournisseur.id] || []).slice(0, 300).map((l, i) => (
                         <tr key={i} className="border-t hover:bg-gray-50">
@@ -2036,7 +2037,7 @@ const FournisseursModule: React.FC = () => {
                     {(fournisseurLinesMap[viewingFournisseur.id] || []).length > 0 && (
                       <tfoot className="sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-gray-900">
                         <tr>
-                          <td className="px-3 py-2" colSpan={3}>Total ({(fournisseurLinesMap[viewingFournisseur.id] || []).length})</td>
+                          <td className="px-3 py-2" colSpan={3}>{t('suppliers.totalCount', { count: String((fournisseurLinesMap[viewingFournisseur.id] || []).length) })}</td>
                           <td className="px-3 py-2 text-right text-red-700 whitespace-nowrap">{formatCurrency((fournisseurLinesMap[viewingFournisseur.id] || []).reduce((s, l) => s + (l.debit || 0), 0))}</td>
                           <td className="px-3 py-2 text-right text-green-700 whitespace-nowrap">{formatCurrency((fournisseurLinesMap[viewingFournisseur.id] || []).reduce((s, l) => s + (l.credit || 0), 0))}</td>
                         </tr>
@@ -2047,8 +2048,8 @@ const FournisseursModule: React.FC = () => {
               </div>
             </div>
             <div className="p-4 border-t flex justify-end gap-3">
-              <button onClick={() => { const f = viewingFournisseur; setViewingFournisseur(null); if (f) handleEditFournisseur(f); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">Modifier</button>
-              <button onClick={() => setViewingFournisseur(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Fermer</button>
+              <button onClick={() => { const f = viewingFournisseur; setViewingFournisseur(null); if (f) handleEditFournisseur(f); }} className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50">{t('suppliers.edit')}</button>
+              <button onClick={() => setViewingFournisseur(null)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">{t('suppliers.close')}</button>
             </div>
           </div>
         </div>
@@ -2059,7 +2060,7 @@ const FournisseursModule: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold text-[var(--color-primary)]">Modifier le Fournisseur</h3>
+                <h3 className="text-lg font-bold text-[var(--color-primary)]">{t('suppliers.editSupplierTitle')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">{editingFournisseur.code} — {editingFournisseur.raisonSociale}</p>
               </div>
               <button onClick={() => setEditingFournisseur(null)} className="p-2 hover:bg-gray-100 rounded-full">
@@ -2071,11 +2072,11 @@ const FournisseursModule: React.FC = () => {
               {/* Identification */}
               <div>
                 <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
-                  <Building className="w-4 h-4 mr-2" />Identification
+                  <Building className="w-4 h-4 mr-2" />{t('suppliers.stepIdentification')}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="col-span-2">
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Raison sociale *</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.legalNameRequired')}</label>
                     <input
                       type="text"
                       value={editForm.raisonSociale}
@@ -2084,7 +2085,7 @@ const FournisseursModule: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">NIF / NIU</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.taxIdNif')}</label>
                     <input
                       type="text"
                       value={editForm.nif}
@@ -2094,16 +2095,16 @@ const FournisseursModule: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Catégorie</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.category')}</label>
                     <select
                       value={editForm.categorie}
                       onChange={(e) => setEditForm({ ...editForm, categorie: e.target.value as Fournisseur['categorie'] })}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="STRATEGIQUE">Stratégique</option>
-                      <option value="RECURRENT">Récurrent</option>
-                      <option value="PONCTUEL">Ponctuel</option>
-                      <option value="CRITIQUE">Critique</option>
+                      <option value="STRATEGIQUE">{t('suppliers.categoryStrategic')}</option>
+                      <option value="RECURRENT">{t('suppliers.categoryRecurring')}</option>
+                      <option value="PONCTUEL">{t('suppliers.categoryOccasional')}</option>
+                      <option value="CRITIQUE">{t('suppliers.categoryCritical')}</option>
                     </select>
                   </div>
                 </div>
@@ -2112,11 +2113,11 @@ const FournisseursModule: React.FC = () => {
               {/* Contact */}
               <div>
                 <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
-                  <Phone className="w-4 h-4 mr-2" />Contact
+                  <Phone className="w-4 h-4 mr-2" />{t('suppliers.contactSection')}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Téléphone</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.phone')}</label>
                     <input
                       type="tel"
                       value={editForm.telephone}
@@ -2126,7 +2127,7 @@ const FournisseursModule: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Email</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.email')}</label>
                     <input
                       type="email"
                       value={editForm.email}
@@ -2135,13 +2136,13 @@ const FournisseursModule: React.FC = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Adresse</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.address')}</label>
                     <input
                       type="text"
                       value={editForm.adresse}
                       onChange={(e) => setEditForm({ ...editForm, adresse: e.target.value })}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
-                      placeholder="Rue, quartier, ville"
+                      placeholder={t('suppliers.addressPlaceholderShort')}
                     />
                   </div>
                 </div>
@@ -2150,11 +2151,11 @@ const FournisseursModule: React.FC = () => {
               {/* Comptabilité */}
               <div>
                 <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
-                  <BookOpen className="w-4 h-4 mr-2" />Paramètres Comptables SYSCOHADA
+                  <BookOpen className="w-4 h-4 mr-2" />{t('suppliers.syscohadaAccountingSettings')}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Type fournisseur</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.supplierType')}</label>
                     <select
                       value={editForm.typeFournisseur}
                       onChange={(e) => {
@@ -2163,12 +2164,12 @@ const FournisseursModule: React.FC = () => {
                       }}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="local">Local (compte 401 — FL)</option>
-                      <option value="etranger">Étranger (compte 404 — FE)</option>
+                      <option value="local">{t('suppliers.supplierTypeLocal')}</option>
+                      <option value="etranger">{t('suppliers.supplierTypeForeign')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Compte collectif</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.controlAccount')}</label>
                     <input
                       type="text"
                       value={editForm.compteComptable}
@@ -2182,48 +2183,48 @@ const FournisseursModule: React.FC = () => {
               {/* Conditions commerciales */}
               <div>
                 <h4 className="text-sm font-semibold text-[var(--color-primary)] flex items-center mb-3">
-                  <CreditCard className="w-4 h-4 mr-2" />Conditions Commerciales
+                  <CreditCard className="w-4 h-4 mr-2" />{t('suppliers.commercialTerms')}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Mode de règlement</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.paymentMethod')}</label>
                     <select
                       value={editForm.modeReglement}
                       onChange={(e) => setEditForm({ ...editForm, modeReglement: e.target.value as Fournisseur['modeReglement'] })}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="VIREMENT">Virement bancaire</option>
-                      <option value="CHEQUE">Chèque</option>
-                      <option value="PRELEVEMENT">Prélèvement automatique</option>
-                      <option value="TRAITE">Traite / Lettre de change</option>
+                      <option value="VIREMENT">{t('suppliers.paymentTransfer')}</option>
+                      <option value="CHEQUE">{t('suppliers.paymentCheque')}</option>
+                      <option value="PRELEVEMENT">{t('suppliers.paymentDirectDebit')}</option>
+                      <option value="TRAITE">{t('suppliers.paymentDraft')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Délai paiement (jours)</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.paymentDelay')}</label>
                     <select
                       value={editForm.delaiPaiement}
                       onChange={(e) => setEditForm({ ...editForm, delaiPaiement: parseInt(e.target.value) })}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value={0}>Comptant</option>
-                      <option value={15}>15 jours</option>
-                      <option value={30}>30 jours</option>
-                      <option value={45}>45 jours</option>
-                      <option value={60}>60 jours fin de mois</option>
-                      <option value={90}>90 jours</option>
+                      <option value={0}>{t('suppliers.termCash')}</option>
+                      <option value={15}>{t('suppliers.term15')}</option>
+                      <option value={30}>{t('suppliers.term30')}</option>
+                      <option value={45}>{t('suppliers.term45')}</option>
+                      <option value={60}>{t('suppliers.term60Eom')}</option>
+                      <option value={90}>{t('suppliers.term90')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">Statut</label>
+                    <label className="block text-sm text-[var(--color-text-secondary)] mb-1">{t('suppliers.status')}</label>
                     <select
                       value={editForm.statut}
                       onChange={(e) => setEditForm({ ...editForm, statut: e.target.value as Fournisseur['statut'] })}
                       className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                     >
-                      <option value="ACTIF">Actif</option>
-                      <option value="BLOQUE">Bloqué</option>
-                      <option value="SUSPENDU">Suspendu</option>
-                      <option value="INACTIF">Inactif</option>
+                      <option value="ACTIF">{t('suppliers.statusActive')}</option>
+                      <option value="BLOQUE">{t('suppliers.statusBlocked')}</option>
+                      <option value="SUSPENDU">{t('suppliers.statusSuspended')}</option>
+                      <option value="INACTIF">{t('suppliers.statusInactive')}</option>
                     </select>
                   </div>
                 </div>
@@ -2236,7 +2237,7 @@ const FournisseursModule: React.FC = () => {
                 onClick={() => setEditingFournisseur(null)}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg text-[var(--color-text-secondary)] hover:bg-gray-50"
               >
-                Annuler
+                {t('suppliers.cancel')}
               </button>
               <button
                 type="button"
@@ -2244,7 +2245,7 @@ const FournisseursModule: React.FC = () => {
                 className="flex items-center space-x-2 px-6 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90 font-semibold"
               >
                 <Save className="w-4 h-4" />
-                <span>Enregistrer</span>
+                <span>{t('suppliers.save')}</span>
               </button>
             </div>
           </div>

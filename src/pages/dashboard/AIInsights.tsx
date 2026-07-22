@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Brain, TrendingUp, TrendingDown, Target, Zap, LineChart,
   AlertTriangle, CheckCircle, Info, DollarSign, Users, Package,
@@ -59,6 +60,7 @@ const DEFAULT_SCORING_BENCHMARKS = {
 
 const AIInsights: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('predictions');
   const [selectedModel, setSelectedModel] = useState('revenue_forecast');
@@ -191,16 +193,20 @@ const AIInsights: React.FC = () => {
           builtPredictions.push({
             id: 'forecast',
             type: 'revenue',
-            title: `Prévision CA (${horizonMonths} mois)`,
-            description: `Projection par régression linéaire sur ${series.length} mois réels — prochain mois : ${formatCurrency(Math.round(nextMonthForecast))}`,
+            title: t('aiInsights.forecastTitle', { count: String(horizonMonths) }),
+            description: t('aiInsights.forecastDesc', { months: String(series.length), amount: formatCurrency(Math.round(nextMonthForecast)) }),
             value: Math.round(horizonForecast),
             confidence: forecastConfidence,
             impact: 'high',
-            timeframe: `${horizonMonths} mois`,
-            factors: [`Tendance ${slope >= 0 ? 'haussière' : 'baissière'} (${formatCurrency(Math.round(slope))}/mois)`, `R² = ${(r2 * 100).toFixed(0)}%`, `${series.length} mois d'historique`],
+            timeframe: t('aiInsights.timeframeMonths', { count: String(horizonMonths) }),
+            factors: [
+              t(slope >= 0 ? 'aiInsights.factorTrendUp' : 'aiInsights.factorTrendDown', { amount: formatCurrency(Math.round(slope)) }),
+              `R² = ${(r2 * 100).toFixed(0)}%`,
+              t('aiInsights.factorHistory', { count: String(series.length) }),
+            ],
             recommendation: slope < 0
-              ? 'Tendance baissière détectée : analyser les mois en retrait et relancer l\'action commerciale.'
-              : 'Tendance saine : maintenir le rythme et surveiller la saisonnalité.',
+              ? t('aiInsights.recoTrendDown')
+              : t('aiInsights.recoTrendHealthy'),
             probability: Math.min(1, Math.max(0, r2)),
           });
         }
@@ -208,14 +214,14 @@ const AIInsights: React.FC = () => {
           builtPredictions.push({
             id: 'ca',
             type: 'revenue',
-            title: 'Chiffre d\'Affaires réalisé',
-            description: `CA de la période (hors à-nouveau) : ${formatCurrency(Math.round(totalCA))}`,
+            title: t('aiInsights.titleRevenueActual'),
+            description: t('aiInsights.descRevenueActual', { amount: formatCurrency(Math.round(totalCA)) }),
             value: Math.round(totalCA),
             confidence: 100,
             impact: 'high',
-            timeframe: 'Période',
-            factors: ['Classe 7 réelle', `${months.length} mois actifs`],
-            recommendation: `Marge nette courante : ${totalCA > 0 ? (((totalCA - totalCharges) / totalCA) * 100).toFixed(1) : 0}%`,
+            timeframe: t('aiInsights.timeframePeriod'),
+            factors: [t('aiInsights.factorClass7'), t('aiInsights.factorActiveMonths', { count: String(months.length) })],
+            recommendation: t('aiInsights.recoNetMargin', { value: String(totalCA > 0 ? (((totalCA - totalCharges) / totalCA) * 100).toFixed(1) : 0) }),
             probability: 1
           });
         }
@@ -225,26 +231,29 @@ const AIInsights: React.FC = () => {
           builtPredictions.push({
             id: 'treso',
             type: 'cashflow',
-            title: 'Situation Trésorerie',
-            description: `${totalTresorerie < 0 ? 'Trésorerie négative' : 'Trésorerie positive'} : ${formatCurrency(Math.round(totalTresorerie))}`,
+            title: t('aiInsights.titleTreasury'),
+            description: t(totalTresorerie < 0 ? 'aiInsights.descTreasuryNegative' : 'aiInsights.descTreasuryPositive', { amount: formatCurrency(Math.round(totalTresorerie)) }),
             value: Math.round(totalTresorerie),
             confidence: 100,
             impact: totalTresorerie < 0 ? 'high' : 'medium',
-            timeframe: 'Actuel',
-            factors: ['Soldes classe 5 réels', monthlyBurn > 0 ? `Runway ≈ ${runway.toFixed(0)} mois` : 'Activité génératrice de cash'],
+            timeframe: t('aiInsights.timeframeCurrent'),
+            factors: [
+              t('aiInsights.factorClass5'),
+              monthlyBurn > 0 ? t('aiInsights.factorRunway', { count: runway.toFixed(0) }) : t('aiInsights.factorCashGenerating'),
+            ],
             recommendation: totalTresorerie < 0
-              ? 'Accélérer le recouvrement ou négocier un découvert.'
-              : 'Trésorerie excédentaire : envisager des placements court terme.',
+              ? t('aiInsights.recoTreasuryNegative')
+              : t('aiInsights.recoTreasuryPositive'),
             probability: 1
           });
         }
         if (builtPredictions.length === 0) {
           builtPredictions.push({
-            id: '0', type: 'revenue', title: 'Données insuffisantes',
-            description: 'Aucune écriture comptabilisée pour générer des prévisions',
+            id: '0', type: 'revenue', title: t('aiInsights.titleInsufficientData'),
+            description: t('aiInsights.descInsufficientData'),
             value: 0, confidence: 0, impact: 'low', timeframe: '-',
-            factors: ['Données insuffisantes'],
-            recommendation: 'Saisir et comptabiliser des écritures pour activer l\'analyse',
+            factors: [t('aiInsights.titleInsufficientData')],
+            recommendation: t('aiInsights.recoInsufficientData'),
             probability: 0
           });
         }
@@ -267,23 +276,23 @@ const AIInsights: React.FC = () => {
           // 1. Déséquilibre D/C
           if (Math.abs(d - c) > 0.01) {
             push({
-              category: 'Comptabilité', severity: 'critical',
-              description: `Écriture ${entry.entryNumber || entry.id} déséquilibrée`,
+              category: t('aiInsights.catAccounting'), severity: 'critical',
+              description: t('aiInsights.anomUnbalancedDesc', { entry: String(entry.entryNumber || entry.id) }),
               detectedAt: new Date(entry.date || Date.now()),
-              pattern: `Écart D/C : ${formatCurrency(Math.abs(d - c))}`,
-              affectedMetric: 'Équilibre comptable', deviation: Math.round(Math.abs(d - c)),
-              suggestion: 'Corriger l\'écriture pour rétablir l\'équilibre débit/crédit'
+              pattern: t('aiInsights.anomUnbalancedPattern', { amount: formatCurrency(Math.abs(d - c)) }),
+              affectedMetric: t('aiInsights.metricAccountingBalance'), deviation: Math.round(Math.abs(d - c)),
+              suggestion: t('aiInsights.anomUnbalancedSuggestion')
             } as any);
           }
           // 2. Montant inhabituel (> 10× moyenne)
           if (avgAmount > 0 && totals[i] > avgAmount * 10) {
             push({
-              category: 'Montant', severity: 'warning',
-              description: `Montant inhabituel : ${entry.entryNumber || entry.id} — ${(entry.label || '').slice(0, 60)}`,
+              category: t('aiInsights.catAmount'), severity: 'warning',
+              description: t('aiInsights.anomUnusualAmountDesc', { entry: String(entry.entryNumber || entry.id), label: (entry.label || '').slice(0, 60) }),
               detectedAt: new Date(entry.date || Date.now()),
-              pattern: `${formatCurrency(totals[i])} vs moyenne ${formatCurrency(Math.round(avgAmount))} (×${(totals[i] / avgAmount).toFixed(1)})`,
-              affectedMetric: 'Montant écriture', deviation: Math.round(((totals[i]) / avgAmount - 1) * 100),
-              suggestion: 'Vérifier la pièce justificative de ce montant exceptionnel'
+              pattern: t('aiInsights.anomUnusualAmountPattern', { amount: formatCurrency(totals[i]), average: formatCurrency(Math.round(avgAmount)), ratio: (totals[i] / avgAmount).toFixed(1) }),
+              affectedMetric: t('aiInsights.metricEntryAmount'), deviation: Math.round(((totals[i]) / avgAmount - 1) * 100),
+              suggestion: t('aiInsights.anomUnusualAmountSuggestion')
             } as any);
           }
           // 3. Écriture un week-end (samedi/dimanche)
@@ -291,12 +300,12 @@ const AIInsights: React.FC = () => {
             const day = new Date(entry.date).getDay();
             if ((day === 0 || day === 6) && totals[i] > avgAmount) {
               push({
-                category: 'Calendrier', severity: 'info',
-                description: `Écriture datée d'un ${day === 0 ? 'dimanche' : 'samedi'} : ${entry.entryNumber || entry.id}`,
+                category: t('aiInsights.catCalendar'), severity: 'info',
+                description: t('aiInsights.anomWeekendDesc', { day: t(day === 0 ? 'aiInsights.daySunday' : 'aiInsights.daySaturday'), entry: String(entry.entryNumber || entry.id) }),
                 detectedAt: new Date(entry.date),
                 pattern: `${entry.date} (${formatCurrency(totals[i])})`,
-                affectedMetric: 'Date d\'écriture', deviation: 0,
-                suggestion: 'Vérifier la date réelle de l\'opération (saisie hors jours ouvrés)'
+                affectedMetric: t('aiInsights.metricEntryDate'), deviation: 0,
+                suggestion: t('aiInsights.anomWeekendSuggestion')
               } as any);
             }
           }
@@ -306,12 +315,12 @@ const AIInsights: React.FC = () => {
             const first = seenSignatures.get(sig);
             if (first && first.id !== entry.id) {
               push({
-                category: 'Doublon', severity: 'warning',
-                description: `Doublon potentiel : ${first.entryNumber || first.id} et ${entry.entryNumber || entry.id}`,
+                category: t('aiInsights.catDuplicate'), severity: 'warning',
+                description: t('aiInsights.anomDuplicateDesc', { first: String(first.entryNumber || first.id), second: String(entry.entryNumber || entry.id) }),
                 detectedAt: new Date(entry.date || Date.now()),
-                pattern: `${entry.journal} du ${entry.date} — ${formatCurrency(totals[i])} (2 écritures identiques)`,
-                affectedMetric: 'Unicité des pièces', deviation: 100,
-                suggestion: 'Vérifier qu\'il ne s\'agit pas d\'une double saisie de la même pièce'
+                pattern: t('aiInsights.anomDuplicatePattern', { journal: String(entry.journal), date: String(entry.date), amount: formatCurrency(totals[i]) }),
+                affectedMetric: t('aiInsights.metricDocumentUniqueness'), deviation: 100,
+                suggestion: t('aiInsights.anomDuplicateSuggestion')
               } as any);
             } else {
               seenSignatures.set(sig, entry);
@@ -328,20 +337,25 @@ const AIInsights: React.FC = () => {
         const marge = totalCA > 0 ? ((totalCA - totalCharges) / totalCA) * 100 : 0;
         if (totalCA > 0 && marge < 25) {
           builtInsights.push({
-            id: 'marge', category: 'risk', title: 'Marge nette sous le seuil',
-            description: `Marge nette de ${marge.toFixed(1)}% (CA ${formatCurrency(Math.round(totalCA))}, charges ${formatCurrency(Math.round(totalCharges))}) — seuil de vigilance : 25%`,
-            actionableSteps: ['Analyser les 3 premiers postes de charges ci-dessous', 'Renégocier les contrats les plus lourds', 'Revoir la politique tarifaire'],
+            id: 'marge', category: 'risk', title: t('aiInsights.insightMarginTitle'),
+            description: t('aiInsights.insightMarginDesc', { margin: marge.toFixed(1), revenue: formatCurrency(Math.round(totalCA)), expenses: formatCurrency(Math.round(totalCharges)) }),
+            actionableSteps: [t('aiInsights.insightMarginStep1'), t('aiInsights.insightMarginStep2'), t('aiInsights.insightMarginStep3')],
             potentialGain: Math.round(totalCA * 0.05), confidence: 90, priority: 'high'
           });
         }
         // Top 3 postes de charges réels
-        const CHARGE_LABELS: Record<string, string> = { '60': 'Achats', '61': 'Transports', '62': 'Services extérieurs A', '63': 'Services extérieurs B', '64': 'Impôts et taxes', '65': 'Autres charges', '66': 'Personnel', '67': 'Frais financiers', '68': 'Dotations amortissements', '69': 'Dotations provisions' };
+        const CHARGE_LABELS: Record<string, string> = {
+          '60': t('aiInsights.chargeLabel60'), '61': t('aiInsights.chargeLabel61'), '62': t('aiInsights.chargeLabel62'),
+          '63': t('aiInsights.chargeLabel63'), '64': t('aiInsights.chargeLabel64'), '65': t('aiInsights.chargeLabel65'),
+          '66': t('aiInsights.chargeLabel66'), '67': t('aiInsights.chargeLabel67'), '68': t('aiInsights.chargeLabel68'),
+          '69': t('aiInsights.chargeLabel69'),
+        };
         const topCharges = Object.entries(chargesByPrefix).sort((a, b) => b[1] - a[1]).slice(0, 3);
         if (topCharges.length > 0 && totalCharges > 0) {
           builtInsights.push({
-            id: 'charges', category: 'optimization', title: 'Concentration des charges',
+            id: 'charges', category: 'optimization', title: t('aiInsights.insightChargesTitle'),
             description: topCharges.map(([p, v]) => `${CHARGE_LABELS[p] || p} : ${formatCurrency(Math.round(v))} (${((v / totalCharges) * 100).toFixed(0)}%)`).join(' · '),
-            actionableSteps: topCharges.map(([p, v]) => `Auditer le poste ${CHARGE_LABELS[p] || p} (${((v / totalCharges) * 100).toFixed(0)}% des charges)`),
+            actionableSteps: topCharges.map(([p, v]) => t('aiInsights.insightChargesStep', { label: CHARGE_LABELS[p] || p, pct: ((v / totalCharges) * 100).toFixed(0) })),
             potentialGain: Math.round(topCharges[0][1] * 0.1), confidence: 100, priority: 'medium'
           });
         }
@@ -351,9 +365,9 @@ const AIInsights: React.FC = () => {
           const dso = Math.round((encoursClients / totalCA) * 365);
           if (ratio > 25) {
             builtInsights.push({
-              id: 'dso', category: 'risk', title: 'Encours clients élevé',
-              description: `${formatCurrency(Math.round(encoursClients))} de créances clients (${ratio.toFixed(0)}% du CA, DSO ≈ ${dso} j)`,
-              actionableSteps: ['Lancer les relances depuis le module Recouvrement', 'Prioriser les créances > 90 jours', 'Conditionner les nouvelles ventes au règlement des impayés'],
+              id: 'dso', category: 'risk', title: t('aiInsights.insightDsoTitle'),
+              description: t('aiInsights.insightDsoDesc', { amount: formatCurrency(Math.round(encoursClients)), ratio: ratio.toFixed(0), dso: String(dso) }),
+              actionableSteps: [t('aiInsights.insightDsoStep1'), t('aiInsights.insightDsoStep2'), t('aiInsights.insightDsoStep3')],
               potentialGain: Math.round(encoursClients * 0.3), confidence: 95, priority: 'high'
             });
           }
@@ -361,17 +375,17 @@ const AIInsights: React.FC = () => {
         const draftCount = entries.filter((e: any) => e.status === 'draft').length;
         if (draftCount > 5) {
           builtInsights.push({
-            id: 'drafts', category: 'optimization', title: 'Écritures en attente de validation',
-            description: `${draftCount} écritures en brouillon ralentissent le processus comptable`,
-            actionableSteps: ['Valider les écritures en attente', 'Mettre en place un processus de validation régulier'],
+            id: 'drafts', category: 'optimization', title: t('aiInsights.insightDraftsTitle'),
+            description: t('aiInsights.insightDraftsDesc', { count: String(draftCount) }),
+            actionableSteps: [t('aiInsights.insightDraftsStep1'), t('aiInsights.insightDraftsStep2')],
             potentialGain: 0, confidence: 95, priority: 'medium'
           });
         }
         if (builtInsights.length === 0 && totalCA > 0) {
           builtInsights.push({
-            id: 'ok', category: 'optimization', title: 'Aucun point de vigilance majeur',
-            description: `Marge nette ${marge.toFixed(1)}%, encours clients maîtrisé — les indicateurs analysés sont dans les normes.`,
-            actionableSteps: ['Surveiller la tendance mensuelle du CA', 'Maintenir la discipline de lettrage'],
+            id: 'ok', category: 'optimization', title: t('aiInsights.insightOkTitle'),
+            description: t('aiInsights.insightOkDesc', { margin: marge.toFixed(1) }),
+            actionableSteps: [t('aiInsights.insightOkStep1'), t('aiInsights.insightOkStep2')],
             potentialGain: 0, confidence: 80, priority: 'low'
           });
         }
@@ -397,10 +411,10 @@ const AIInsights: React.FC = () => {
             }).length / posted.length) * 100)
           : 0;
         setScoringData([
-          { metric: 'Équilibre D/C', score: balancedPct, benchmark: DEFAULT_SCORING_BENCHMARKS.equilibreDebitCredit },
-          { metric: 'Couverture', score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.couverture },
-          { metric: 'Validation', score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.validation },
-          { metric: 'Exhaustivité', score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: DEFAULT_SCORING_BENCHMARKS.exhaustivite },
+          { metric: t('aiInsights.scoreBalance'), score: balancedPct, benchmark: DEFAULT_SCORING_BENCHMARKS.equilibreDebitCredit },
+          { metric: t('aiInsights.scoreCoverage'), score: entries.length > 0 ? Math.min(100, entries.length * 2) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.couverture },
+          { metric: t('aiInsights.scoreValidation'), score: posted.length > 0 ? Math.round((posted.length / entries.length) * 100) : 0, benchmark: DEFAULT_SCORING_BENCHMARKS.validation },
+          { metric: t('aiInsights.scoreCompleteness'), score: totalCA > 0 && totalCharges > 0 ? 80 : 20, benchmark: DEFAULT_SCORING_BENCHMARKS.exhaustivite },
         ]);
 
         setCorrelationData([]);
@@ -410,11 +424,11 @@ const AIInsights: React.FC = () => {
     };
     analyzeData();
     // timeHorizon recalcule la projection ; refreshTick relance l'analyse à la demande.
-  }, [adapter, timeHorizon, refreshTick]);
+  }, [adapter, timeHorizon, refreshTick, t]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    setRefreshTick(t => t + 1); // relance l'analyse réelle (deps de l'effet)
+    setRefreshTick(prev => prev + 1); // relance l'analyse réelle (deps de l'effet)
     await new Promise(resolve => setTimeout(resolve, 600));
     setRefreshing(false);
   };
@@ -437,7 +451,7 @@ const AIInsights: React.FC = () => {
       });
       setProph3tAnswer(res.answer);
     } catch (err) {
-      setProph3tError(err instanceof Error ? err.message : 'Analyse Proph3t indisponible');
+      setProph3tError(err instanceof Error ? err.message : t('aiInsights.proph3tUnavailable'));
     } finally {
       setProph3tLoading(false);
     }
@@ -459,10 +473,10 @@ const AIInsights: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'predictions', label: 'Prédictions IA', icon: Brain },
-    { id: 'anomalies', label: 'Détection d\'Anomalies', icon: AlertTriangle },
-    { id: 'insights', label: 'Insights Actionnables', icon: Lightbulb },
-    { id: 'performance', label: 'Performance & Analyses', icon: BarChart3 }
+    { id: 'predictions', label: t('aiInsights.tabPredictions'), icon: Brain },
+    { id: 'anomalies', label: t('aiInsights.tabAnomalies'), icon: AlertTriangle },
+    { id: 'insights', label: t('aiInsights.actionableInsights'), icon: Lightbulb },
+    { id: 'performance', label: t('aiInsights.tabPerformance'), icon: BarChart3 }
   ];
 
   const renderPredictionsTab = () => (
@@ -472,34 +486,34 @@ const AIInsights: React.FC = () => {
         <div className="flex items-center gap-3 mb-4">
           <Brain className="w-8 h-8 text-white" />
           <div>
-            <h2 className="text-lg font-semibold text-white">Performance des Modèles IA</h2>
-            <p className="text-white/80">Précision et fiabilité en temps réel</p>
+            <h2 className="text-lg font-semibold text-white">{t('aiInsights.aiModelPerformance')}</h2>
+            <p className="text-white/80">{t('aiInsights.realtimeAccuracy')}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Target className="w-5 h-5 text-white" />
-              <span className="text-sm text-white/90">Écritures analysées</span>
+              <span className="text-sm text-white/90">{t('aiInsights.entriesAnalyzed')}</span>
             </div>
             <p className="text-lg font-bold text-white">{totalEntries}</p>
-            <p className="text-sm text-white/75 mt-1">Total</p>
+            <p className="text-sm text-white/75 mt-1">{t('aiInsights.total')}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="w-5 h-5 text-white" />
-              <span className="text-sm text-white/90">Anomalies détectées</span>
+              <span className="text-sm text-white/90">{t('aiInsights.anomaliesDetected')}</span>
             </div>
             <p className="text-lg font-bold text-white">{anomalies.length}</p>
-            <p className="text-sm text-white/75 mt-1">À traiter</p>
+            <p className="text-sm text-white/75 mt-1">{t('aiInsights.toProcess')}</p>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-2">
               <DollarSign className="w-5 h-5 text-white" />
-              <span className="text-sm text-white/90">Insights</span>
+              <span className="text-sm text-white/90">{t('aiInsights.insights')}</span>
             </div>
             <p className="text-lg font-bold text-white">{insights.length}</p>
-            <p className="text-sm text-white/75 mt-1">Recommandations</p>
+            <p className="text-sm text-white/75 mt-1">{t('aiInsights.recommendations')}</p>
           </div>
         </div>
       </div>
@@ -521,7 +535,7 @@ const AIInsights: React.FC = () => {
                 <span className="text-lg font-bold text-gray-900">
                   {prediction.type === 'revenue' || prediction.type === 'cashflow'
                     ? `${formatCurrency(prediction.value)}`
-                    : `${prediction.value} unités`}
+                    : t('aiInsights.units', { value: String(prediction.value) })}
                 </span>
                 <span className="text-sm text-gray-600">{prediction.timeframe}</span>
               </div>
@@ -529,7 +543,7 @@ const AIInsights: React.FC = () => {
 
             <div className="mb-4">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-900">Confiance</span>
+                <span className="text-gray-900">{t('aiInsights.confidence')}</span>
                 <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", getConfidenceColor(prediction.confidence))}>
                   {prediction.confidence}%
                 </span>
@@ -547,7 +561,7 @@ const AIInsights: React.FC = () => {
             </div>
 
             <div className="mb-4">
-              <p className="text-sm font-medium text-gray-900 mb-2">Facteurs clés:</p>
+              <p className="text-sm font-medium text-gray-900 mb-2">{t('aiInsights.keyFactors')}</p>
               <div className="flex flex-wrap gap-1">
                 {prediction.factors.map((factor, i) => (
                   <span key={i} className="px-2 py-1 bg-gray-100 text-xs rounded">
@@ -570,11 +584,10 @@ const AIInsights: React.FC = () => {
       {/* Forecast Chart — affiché seulement si l'historique mensuel est suffisant
           (≥ 2 mois réels). Sinon courbe vide → on montre un état honnête. */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Prévisions avec Intervalles de Confiance</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.forecastWithCI')}</h2>
         {forecastData.filter((d) => d && d.actual != null).length < 2 ? (
           <div className="py-12 text-center text-sm text-gray-500">
-            Historique mensuel insuffisant pour tracer une courbe de prévision
-            (au moins 2 mois d'écritures requis).
+            {t('aiInsights.insufficientHistory')}
           </div>
         ) : (
         <ResponsiveContainer width="100%" height={350}>
@@ -590,10 +603,10 @@ const AIInsights: React.FC = () => {
             <YAxis stroke="#235A6E" />
             <Tooltip />
             <Legend />
-            <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name="Limite supérieure" />
-            <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name="Limite inférieure" />
-            <Line type="monotone" dataKey="actual" stroke="#15803D" strokeWidth={2} dot={false} name="Réel" />
-            <Line type="monotone" dataKey="predicted" stroke="#235A6E" strokeWidth={2} strokeDasharray="5 5" dot={false} name="Prédiction" />
+            <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name={t('aiInsights.upperBound')} />
+            <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name={t('aiInsights.lowerBound')} />
+            <Line type="monotone" dataKey="actual" stroke="#15803D" strokeWidth={2} dot={false} name={t('aiInsights.actual')} />
+            <Line type="monotone" dataKey="predicted" stroke="#235A6E" strokeWidth={2} strokeDasharray="5 5" dot={false} name={t('aiInsights.predicted')} />
           </AreaChart>
         </ResponsiveContainer>
         )}
@@ -605,7 +618,7 @@ const AIInsights: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Détection d'Anomalies en Temps Réel</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('aiInsights.realtimeAnomalyDetection')}</h2>
           <AlertTriangle className="w-5 h-5 text-yellow-500" />
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -659,7 +672,7 @@ const AIInsights: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-[var(--color-primary)]" />
                 <h2 className="text-lg font-semibold text-gray-900">
-                  Analyse stratégique <span className="atlas-brand">Proph3t</span> · IA Core Atlas Studio
+                  {t('aiInsights.strategicAnalysis')} <span className="atlas-brand">Proph3t</span> {t('aiInsights.atlasCoreSuffix')}
                 </h2>
               </div>
               <button
@@ -668,32 +681,31 @@ const AIInsights: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
               >
                 {proph3tLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-                {proph3tLoading ? 'Analyse en cours…' : proph3tAnswer ? 'Relancer l\'analyse' : 'Lancer l\'analyse'}
+                {proph3tLoading ? t('aiInsights.analysisRunning') : proph3tAnswer ? t('aiInsights.rerunAnalysis') : t('aiInsights.runAnalysis')}
               </button>
             </div>
             <p className="text-xs text-gray-500 mb-3">
-              Les métriques réelles calculées (CA, marge, trésorerie, encours, anomalies) sont envoyées au core IA
-              en sensibilité « confidentiel » (providers sans rétention uniquement).
+              {t('aiInsights.proph3tPrivacyNote')}
             </p>
             {proph3tError && (
               /provider|configur|GROQ|BYOK|non op/i.test(proph3tError) ? (
                 <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900 space-y-2">
                   <p className="font-medium flex items-center gap-2">
-                    <Info className="w-4 h-4 flex-shrink-0" /> Core <span className="atlas-brand">Proph3t</span> (Atlas Studio) non opérationnel
+                    <Info className="w-4 h-4 flex-shrink-0" /> {t('aiInsights.coreLabel')} <span className="atlas-brand">Proph3t</span> {t('aiInsights.coreNotOperational')}
                   </p>
-                  <p>Aucun moteur LLM n'est branché côté core. Pour activer l'analyse stratégique :</p>
+                  <p>{t('aiInsights.noLlmEngine')}</p>
                   <ul className="list-disc ml-5 space-y-1">
-                    <li><b>BYOK</b> — ajoutez votre clé API (Anthropic Claude ou Google Gemini) dans les paramètres Proph3t.</li>
-                    <li><b>Groq central</b> — l'admin définit le secret <code className="px-1 bg-amber-100 rounded">GROQ_API_KEY</code> dans les <b>Edge Functions secrets</b> Supabase du core, puis déploie la fonction <code className="px-1 bg-amber-100 rounded">proph3t-ask</code>.</li>
+                    <li><b>BYOK</b> {t('aiInsights.byokHint')}</li>
+                    <li><b>{t('aiInsights.groqCentral')}</b> {t('aiInsights.groqPart1')} <code className="px-1 bg-amber-100 rounded">GROQ_API_KEY</code> {t('aiInsights.groqPart2')} <b>{t('aiInsights.edgeSecrets')}</b> {t('aiInsights.groqPart3')} <code className="px-1 bg-amber-100 rounded">proph3t-ask</code>.</li>
                   </ul>
                   <button
                     onClick={() => navigate('/settings/ia')}
                     className="mt-1 px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-xs font-medium hover:opacity-90"
                   >
-                    Configurer Proph3t
+                    {t('aiInsights.configureProph3t')}
                   </button>
                   <p className="text-xs text-amber-700 pt-1">
-                    Le moteur d'analyse local (prévisions, anomalies, insights) reste pleinement fonctionnel sans clé.
+                    {t('aiInsights.localEngineNote')}
                   </p>
                 </div>
               ) : (
@@ -707,14 +719,14 @@ const AIInsights: React.FC = () => {
             )}
             {!proph3tAnswer && !proph3tError && !proph3tLoading && (
               <div className="text-sm text-gray-400 italic">
-                Cliquez sur « Lancer l'analyse » pour obtenir la lecture stratégique de Proph3t sur vos chiffres réels.
+                {t('aiInsights.clickRunAnalysisHint')}
               </div>
             )}
           </div>
         )}
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Insights Actionnables</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.actionableInsights')}</h2>
           <div className="space-y-3">
             {insights.map((insight) => (
               <div
@@ -746,7 +758,7 @@ const AIInsights: React.FC = () => {
                     {insight.potentialGain > 0 ? '+' : ''}{formatCurrency(insight.potentialGain)}
                   </span>
                   <span className="text-xs text-gray-600">
-                    Confiance: {insight.confidence}%
+                    {t('aiInsights.confidence')}: {insight.confidence}%
                   </span>
                 </div>
               </div>
@@ -755,7 +767,7 @@ const AIInsights: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recommandations Prioritaires</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.priorityRecommendations')}</h2>
           <div className="space-y-4">
             {insights.filter(i => i.priority === 'urgent' || i.priority === 'high').map((insight) => (
               <div key={`priority-${insight.id}`} className="p-4 bg-gradient-to-r from-[var(--color-primary)]/10 to-[var(--color-text-secondary)]/10 rounded-lg border border-[var(--color-primary)]/20">
@@ -788,14 +800,14 @@ const AIInsights: React.FC = () => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Score de Performance IA</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.aiPerformanceScore')}</h2>
           <ResponsiveContainer width="100%" height={350}>
             <RadarChart data={scoringData}>
               <PolarGrid stroke="#e5e5e5" />
               <PolarAngleAxis dataKey="metric" stroke="#235A6E" />
               <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#235A6E" />
-              <Radar name="Votre Score" dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-              <Radar name="Benchmark" dataKey="benchmark" stroke="#15803D" fill="#15803D" fillOpacity={0.3} />
+              <Radar name={t('aiInsights.yourScore')} dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
+              <Radar name={t('aiInsights.benchmark')} dataKey="benchmark" stroke="#15803D" fill="#15803D" fillOpacity={0.3} />
               <Legend />
               <Tooltip />
             </RadarChart>
@@ -803,52 +815,52 @@ const AIInsights: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Analyse de Corrélations</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.correlationAnalysis')}</h2>
           <ResponsiveContainer width="100%" height={350}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-              <XAxis dataKey="x" name="Ventes" unit="kâ‚¬" stroke="#235A6E" />
-              <YAxis dataKey="y" name="Marge" unit="%" stroke="#235A6E" />
+              <XAxis dataKey="x" name={t('aiInsights.sales')} unit="kâ‚¬" stroke="#235A6E" />
+              <YAxis dataKey="y" name={t('aiInsights.margin')} unit="%" stroke="#235A6E" />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Legend />
-              <Scatter name="Produits A" data={correlationData.filter(d => d.category === 'A')} fill="#235A6E" />
-              <Scatter name="Produits B" data={correlationData.filter(d => d.category === 'B')} fill="#15803D" />
-              <Scatter name="Produits C" data={correlationData.filter(d => d.category === 'C')} fill="#4E7E8D" />
+              <Scatter name={t('aiInsights.productsA')} data={correlationData.filter(d => d.category === 'A')} fill="#235A6E" />
+              <Scatter name={t('aiInsights.productsB')} data={correlationData.filter(d => d.category === 'B')} fill="#15803D" />
+              <Scatter name={t('aiInsights.productsC')} data={correlationData.filter(d => d.category === 'C')} fill="#4E7E8D" />
             </ScatterChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Métriques de Performance Détaillées</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.detailedPerformanceMetrics')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
               <Target className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{totalEntries}</div>
-            <div className="text-sm text-gray-900">Écritures analysées</div>
+            <div className="text-sm text-gray-900">{t('aiInsights.entriesAnalyzed')}</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
               <CheckCircle className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{predictions.length}</div>
-            <div className="text-sm text-gray-900">Indicateurs suivis</div>
+            <div className="text-sm text-gray-900">{t('aiInsights.trackedIndicators')}</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[var(--color-text-secondary)]/10 to-[var(--color-text-secondary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-text-secondary)]/20 rounded-lg flex items-center justify-center mb-2">
               <AlertTriangle className="w-6 h-6 text-[var(--color-text-secondary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{anomalies.length}</div>
-            <div className="text-sm text-gray-900">Anomalies détectées</div>
+            <div className="text-sm text-gray-900">{t('aiInsights.anomaliesDetected')}</div>
           </div>
           <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
             <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center mb-2">
               <Lightbulb className="w-6 h-6 text-[var(--color-text-primary)]" />
             </div>
             <div className="text-lg font-bold text-gray-900">{insights.length}</div>
-            <div className="text-sm text-gray-900">Recommandations</div>
+            <div className="text-sm text-gray-900">{t('aiInsights.recommendations')}</div>
           </div>
         </div>
       </div>
@@ -863,7 +875,7 @@ const AIInsights: React.FC = () => {
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-[var(--color-text-secondary)]" />
             <p className="text-sm text-[var(--color-text-primary)] font-medium">
-              Aucune écriture comptable — les analyses s'activeront automatiquement dès l'import ou la saisie des premières écritures.
+              {t('aiInsights.noEntriesNotice')}
             </p>
           </div>
         </div>
@@ -871,9 +883,9 @@ const AIInsights: React.FC = () => {
         <div className="mb-4 p-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl flex items-center space-x-3">
           <Info className="w-5 h-5 text-[var(--color-text-secondary)] flex-shrink-0" />
           <div>
-            <p className="text-sm font-medium text-[var(--color-text-primary)]">Analyses calculées sur vos données réelles</p>
+            <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('aiInsights.realDataNotice')}</p>
             <p className="text-xs text-[var(--color-text-secondary)]">
-              Prévisions (régression sur le CA mensuel), anomalies (équilibre, montants, doublons, dates) et insights dérivés de {totalEntries} écritures du Grand Livre.
+              {t('aiInsights.realDataNoticeDetail', { count: String(totalEntries) })}
             </p>
           </div>
         </div>
@@ -881,8 +893,8 @@ const AIInsights: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">IA Insights & Analyses Prédictives</h1>
-          <p className="text-gray-500 mt-2">Intelligence artificielle avancée pour la prise de décision stratégique</p>
+          <h1 className="text-lg font-bold text-gray-900">{t('aiInsights.pageTitle')}</h1>
+          <p className="text-gray-500 mt-2">{t('aiInsights.pageSubtitle')}</p>
         </div>
         <div className="flex items-center gap-3">
           <select
@@ -890,10 +902,10 @@ const AIInsights: React.FC = () => {
             onChange={(e) => setSelectedModel(e.target.value)}
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
-            <option value="revenue_forecast">Prévision CA</option>
-            <option value="demand_forecast">Prévision Demande</option>
-            <option value="risk_analysis">Analyse Risques</option>
-            <option value="optimization">Optimisation</option>
+            <option value="revenue_forecast">{t('aiInsights.modelRevenueForecast')}</option>
+            <option value="demand_forecast">{t('aiInsights.modelDemandForecast')}</option>
+            <option value="risk_analysis">{t('aiInsights.modelRiskAnalysis')}</option>
+            <option value="optimization">{t('aiInsights.modelOptimization')}</option>
           </select>
 
           <select
@@ -901,10 +913,10 @@ const AIInsights: React.FC = () => {
             onChange={(e) => setTimeHorizon(e.target.value)}
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
-            <option value="1month">1 mois</option>
-            <option value="3months">3 mois</option>
-            <option value="6months">6 mois</option>
-            <option value="1year">1 an</option>
+            <option value="1month">{t('aiInsights.horizon1Month')}</option>
+            <option value="3months">{t('aiInsights.horizon3Months')}</option>
+            <option value="6months">{t('aiInsights.horizon6Months')}</option>
+            <option value="1year">{t('aiInsights.horizon1Year')}</option>
           </select>
 
           <button
@@ -913,7 +925,7 @@ const AIInsights: React.FC = () => {
               "p-2 rounded-lg border hover:bg-gray-50 transition-all",
               refreshing && "animate-spin"
             )}
-            disabled={refreshing} aria-label="Actualiser">
+            disabled={refreshing} aria-label={t('aiInsights.refresh')}>
             <RefreshCw className="w-5 h-5" />
           </button>
 
@@ -938,7 +950,7 @@ const AIInsights: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary)]/90"
           >
             <Download className="w-4 h-4" />
-            Rapport IA
+            {t('aiInsights.aiReport')}
           </button>
         </div>
       </div>

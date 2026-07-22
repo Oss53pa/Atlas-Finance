@@ -2,7 +2,7 @@
  * RegularisationsTab — Saisie et génération des régularisations mensuelles/annuelles.
  * Types: CCA, PCA, FNP, FAE (SYSCOHADA révisé).
  */
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useData } from '../../../contexts/DataContext';
 import {
   creerRegularisation,
@@ -11,7 +11,8 @@ import {
   calculerPCA,
 } from '../../../services/cloture/regularisationsService';
 import type { Regularisation, TypeRegularisation } from '../../../services/cloture/regularisationsService';
-import { previewExtournes } from '../../../services/cloture/extourneService';
+import { previewExtournes, genererExtournes } from '../../../services/cloture/extourneService';
+import type { RegularisationEntry } from '../../../services/cloture/extourneService';
 import { formatCurrency } from '../../../utils/formatters';
 import toast from 'react-hot-toast';
 import {
@@ -68,8 +69,13 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
   const [form, setForm] = useState<RegulForm>(emptyForm);
   const [showForm, setShowForm] = useState(false);
   const [executing, setExecuting] = useState(false);
-  const [extournePreview, setExtournePreview] = useState<{ count: number } | null>(null);
+  // Régularisations DÉJÀ comptabilisées sur l'exercice (source : le grand livre,
+  // via les comptes 476/477/486/487/408/418). Auparavant seul un COMPTEUR était
+  // affiché — l'écran ne montrait jamais ce qui existait déjà en base.
+  const [comptabilisees, setComptabilisees] = useState<RegularisationEntry[]>([]);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [extourneLoading, setExtourneLoading] = useState(false);
+  const [showComptabilisees, setShowComptabilisees] = useState(true);
 
   const handleAdd = useCallback(() => {
     const montant = parseFloat(form.montant);
@@ -138,17 +144,52 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
     }
   }, [adapter, exerciceId, dateClotureExercice, regularisations]);
 
-  const handlePreviewExtournes = useCallback(async () => {
+  const chargerComptabilisees = useCallback(async () => {
+    if (!exerciceId) { setComptabilisees([]); return; }
     setPreviewLoading(true);
     try {
       const result = await previewExtournes(adapter, exerciceId);
-      setExtournePreview(result);
+      setComptabilisees(result.regularisations);
     } catch (err) {
-      toast.error('Erreur preview extournes');
+      toast.error('Erreur de lecture des régularisations');
     } finally {
       setPreviewLoading(false);
     }
   }, [adapter, exerciceId]);
+
+  useEffect(() => { chargerComptabilisees(); }, [chargerComptabilisees]);
+
+  /**
+   * Génère les extournes des régularisations de l'exercice.
+   * L'extourne est datée du 1er jour de l'exercice suivant (cut-off SYSCOHADA :
+   * la charge/le produit constaté d'avance bascule sur N+1).
+   */
+  const handleGenererExtournes = useCallback(async () => {
+    if (comptabilisees.length === 0) {
+      toast.error('Aucune régularisation à extourner');
+      return;
+    }
+    const cloture = new Date(dateClotureExercice);
+    cloture.setDate(cloture.getDate() + 1);
+    const dateExtourne = cloture.toISOString().slice(0, 10);
+
+    setExtourneLoading(true);
+    try {
+      const result = await genererExtournes(adapter, { exerciceClotureId: exerciceId, dateExtourne });
+      if (result.success) {
+        toast.success(`${result.count ?? 0} extourne(s) générée(s) au ${dateExtourne}`);
+        await chargerComptabilisees();
+      } else {
+        toast.error(result.error || 'Erreur');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erreur');
+    } finally {
+      setExtourneLoading(false);
+    }
+  }, [adapter, exerciceId, dateClotureExercice, comptabilisees.length, chargerComptabilisees]);
+
+  const totalComptabilise = comptabilisees.reduce((s, r) => s + (r.entry.totalDebit || 0), 0);
 
   const totalRegul = regularisations.reduce((s, r) => s + r.montant, 0);
 
@@ -162,12 +203,12 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
         </div>
         <div className="flex gap-2">
           <button
-            onClick={handlePreviewExtournes}
+            onClick={chargerComptabilisees}
             disabled={previewLoading}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             {previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-            Preview extournes
+            Actualiser
           </button>
           <button
             onClick={() => setShowForm(true)}
@@ -179,13 +220,82 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
         </div>
       </div>
 
-      {/* Extourne preview */}
-      {extournePreview !== null && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-          <FileText className="w-4 h-4 inline mr-2" />
-          {extournePreview.count} régularisation(s) à extourner lors de la clôture.
-        </div>
-      )}
+      {/* Régularisations DÉJÀ comptabilisées — lues dans le grand livre */}
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <button
+          onClick={() => setShowComptabilisees(v => !v)}
+          className="w-full flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-gray-50 text-left"
+        >
+          <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
+            <FileText className="w-4 h-4 text-gray-400" />
+            Régularisations comptabilisées sur l'exercice
+            <span className="font-normal text-gray-400">
+              ({comptabilisees.length} — {formatCurrency(totalComptabilise)})
+            </span>
+          </span>
+          <span className="text-xs text-blue-600">{showComptabilisees ? 'Masquer' : 'Afficher'}</span>
+        </button>
+
+        {showComptabilisees && (
+          <div className="border-t border-gray-100">
+            {previewLoading ? (
+              <p className="px-4 py-6 text-sm text-gray-400 flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Lecture du grand livre…
+              </p>
+            ) : comptabilisees.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-gray-400">
+                Aucune écriture sur les comptes de régularisation (476 / 477 / 486 / 487 / 408 / 418)
+                non encore extournée sur cet exercice.
+              </p>
+            ) : (
+              <>
+                <div className="max-h-64 overflow-y-auto">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-gray-50">
+                      <tr className="text-left text-gray-500 border-b">
+                        <th className="px-4 py-1.5">Pièce</th>
+                        <th className="px-4 py-1.5 w-16">Type</th>
+                        <th className="px-4 py-1.5 w-24">Date</th>
+                        <th className="px-4 py-1.5">Libellé</th>
+                        <th className="px-4 py-1.5 w-32 text-right">Montant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {comptabilisees.map(({ entry, type }) => (
+                        <tr key={entry.id} className="border-b last:border-0">
+                          <td className="px-4 py-1.5 font-mono text-gray-600">{entry.entryNumber}</td>
+                          <td className="px-4 py-1.5">
+                            <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-medium">{type}</span>
+                          </td>
+                          <td className="px-4 py-1.5 text-gray-400">{entry.date}</td>
+                          <td className="px-4 py-1.5 text-gray-600 truncate max-w-xs">{entry.label}</td>
+                          <td className="px-4 py-1.5 text-right text-gray-700">
+                            {formatCurrency(entry.totalDebit || 0)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-4 py-2 border-t bg-gray-50 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs text-gray-500">
+                    Ces {comptabilisees.length} écriture(s) doivent être extournées au 1<sup>er</sup> jour
+                    de l'exercice suivant (cut-off SYSCOHADA).
+                  </p>
+                  <button
+                    onClick={handleGenererExtournes}
+                    disabled={extourneLoading || !exerciceId}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50"
+                  >
+                    {extourneLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                    Générer les {comptabilisees.length} extourne(s)
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Form */}
       {showForm && (

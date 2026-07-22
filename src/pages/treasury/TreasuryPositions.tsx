@@ -370,23 +370,23 @@ const TreasuryPositions: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Positions de Trésorerie"
-          subtitle="Gestion et suivi des positions bancaires en temps réel"
+          title={t('treasuryPos.title')}
+          subtitle={t('treasuryPos.subtitle')}
           icon={Banknote}
           action={
             <div className="flex gap-3">
               <ElegantButton variant="outline" icon={RefreshCw}>
-                Actualiser
+                {t('treasuryPos.refresh')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download}>
-                Exporter
+                {t('treasuryPos.export')}
               </ElegantButton>
               <ElegantButton
                 variant="primary"
                 icon={Plus}
                 onClick={() => setPositionModal({ isOpen: true, mode: 'create' })}
               >
-                Nouveau Compte
+                {t('treasuryPos.newAccount')}
               </ElegantButton>
             </div>
           }
@@ -395,10 +395,10 @@ const TreasuryPositions: React.FC = () => {
         {/* Onglets : Position temps réel | Comptes bancaires (table) */}
         <div className="flex gap-1 border-b border-neutral-200">
           {([
-            { key: 'cockpit', label: 'Cockpit trésorerie' },
-            { key: 'positions', label: 'Positions par compte' },
-            { key: 'flux', label: 'Flux en circulation' },
-            { key: 'comptes', label: 'Comptes bancaires' },
+            { key: 'cockpit', labelKey: 'treasuryPos.tabCockpit' },
+            { key: 'positions', labelKey: 'treasuryPos.tabPositions' },
+            { key: 'flux', labelKey: 'treasuryPos.tabFloat' },
+            { key: 'comptes', labelKey: 'treasuryPos.tabBankAccounts' },
           ] as const).map(tb => (
             <button
               key={tb.key}
@@ -407,7 +407,7 @@ const TreasuryPositions: React.FC = () => {
                 posTab === tb.key ? 'border-[var(--color-primary)] text-[var(--color-primary)]' : 'border-transparent text-neutral-500 hover:text-neutral-700'
               }`}
             >
-              {tb.label}
+              {t(tb.labelKey)}
             </button>
           ))}
         </div>
@@ -425,53 +425,50 @@ const TreasuryPositions: React.FC = () => {
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
-                    Aucun rapprochement bancaire n'a encore été effectué (pas de relevé pointé ni de lettrage classe 5).
-                    Les « reçus non crédités / émis non débités » ne peuvent donc pas être déterminés et sont affichés à 0 :
-                    importez et pointez vos relevés dans le module <strong>Rapprochement</strong> pour les calculer.
+                    {t('treasuryPos.reconNotStartedPos')} <strong>{t('treasuryPos.reconModule')}</strong> {t('treasuryPos.reconNotStartedPosEnd')}
                   </span>
                 </div>
               )}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-white border border-[var(--color-border)]">
-                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Solde comptable (réel)</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('treasuryPos.kpiBookBalance')}</p>
                   <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(tot.solde)}</p>
-                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Ce qui est dans les comptes (classe 5)</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('treasuryPos.kpiBookBalanceSub')}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white border border-green-200">
-                  <p className="text-xs text-green-700 uppercase tracking-wide">Reçus non crédités (+)</p>
+                  <p className="text-xs text-green-700 uppercase tracking-wide">{t('treasuryPos.kpiReceived')}</p>
                   <p className="text-2xl font-bold text-green-700 mt-1">{formatCurrency(tot.recus)}</p>
-                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Encaissements en instance</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('treasuryPos.kpiReceivedSub')}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white border border-red-200">
-                  <p className="text-xs text-red-700 uppercase tracking-wide">Émis non débités (−)</p>
+                  <p className="text-xs text-red-700 uppercase tracking-wide">{t('treasuryPos.kpiIssued')}</p>
                   <p className="text-2xl font-bold text-red-700 mt-1">{formatCurrency(tot.emis)}</p>
-                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Paiements en instance</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('treasuryPos.kpiIssuedSub')}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white border border-[var(--color-border)]">
-                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Rapproché (lettré + À-nouveau)</p>
+                  <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('treasuryPos.kpiReconciled')}</p>
                   <p className="text-2xl font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(tot.rappro)}</p>
-                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Confirmé vs banque</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('treasuryPos.kpiReconciledSub')}</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>
-                  « En circulation » = mouvements de trésorerie <span className="font-semibold">non encore pointés à un relevé bancaire</span> (hors
-                  à-nouveau). Le <span className="font-semibold">Cockpit trésorerie</span> propose une vue de pilotage
-                  (alertes, atterrissage, conseils). Rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+                  {t('treasuryPos.floatBanner1')} <span className="font-semibold">{t('treasuryPos.floatBannerBold')}</span> {t('treasuryPos.floatBanner2')}{' '}
+                  <span className="font-semibold">{t('treasuryPos.tabCockpit')}</span> {t('treasuryPos.floatBanner3')}
                 </span>
               </div>
 
               {/* Multi-affichage : Cartes / Tableau */}
               <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1 w-fit">
-                {([['cards', 'Cartes'], ['table', 'Tableau'], ['kanban', 'Kanban']] as const).map(([k, lbl]) => (
+                {([['cards', 'treasuryPos.dispCards'], ['table', 'treasuryPos.dispTable'], ['kanban', 'treasuryPos.dispKanban']] as const).map(([k, lbl]) => (
                   <button
                     key={k}
                     onClick={() => setPosDisplay(k)}
                     className={`px-3 py-1.5 text-sm rounded-md transition-all ${posDisplay === k ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium' : 'text-gray-600 hover:bg-white/50'}`}
                   >
-                    {lbl}
+                    {t(lbl)}
                   </button>
                 ))}
               </div>
@@ -479,7 +476,7 @@ const TreasuryPositions: React.FC = () => {
               {posDisplay === 'cards' && (
                 <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))' }}>
                   {glPosition.length === 0 ? (
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Aucun compte de trésorerie mouvementé.</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('treasuryPos.noTreasuryAccount')}</p>
                   ) : glPosition.map(p => {
                     const th = p.solde - p.emis + p.recus;
                     const tension = p.solde < 0;
@@ -490,7 +487,7 @@ const TreasuryPositions: React.FC = () => {
                             type="button"
                             onClick={() => openAccountLedger(p.code)}
                             className="flex items-center gap-2 text-left group"
-                            title={`Voir les écritures du compte ${p.code}`}
+                            title={t('treasuryPos.viewAccountEntries', { code: p.code })}
                           >
                             <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--color-surface-hover)', color: PETROL }}><Building2 className="h-4 w-4" /></div>
                             <div>
@@ -498,14 +495,14 @@ const TreasuryPositions: React.FC = () => {
                               <div className="text-xs font-mono text-[var(--color-text-secondary)]">{p.code}</div>
                             </div>
                           </button>
-                          {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>négatif</span>}
+                          {tension && <span className="text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(226,75,74,0.12)', color: ROUGE }}>{t('treasuryPos.badgeNegative')}</span>}
                         </div>
-                        <PosLigne label="Solde réel" value={p.solde} />
-                        <PosLigne label="Émis non débités" value={-p.emis} color={ROUGE} />
-                        <PosLigne label="Reçus non crédités" value={p.recus} color={VERT} prefixPlus />
+                        <PosLigne label={t('treasuryPos.lineRealBalance')} value={p.solde} />
+                        <PosLigne label={t('treasuryPos.lineIssued')} value={-p.emis} color={ROUGE} />
+                        <PosLigne label={t('treasuryPos.lineReceived')} value={p.recus} color={VERT} prefixPlus />
                         <div className="h-px bg-[var(--color-border)] my-2" />
-                        <PosLigne label="Solde théorique" value={th} color={AMBER} bold />
-                        <PosLigne label="Rapproché" value={p.rappro} color="var(--color-text-secondary)" />
+                        <PosLigne label={t('treasuryPos.lineTheoretical')} value={th} color={AMBER} bold />
+                        <PosLigne label={t('treasuryPos.lineReconciled')} value={p.rappro} color="var(--color-text-secondary)" />
                       </div>
                     );
                   })}
@@ -518,16 +515,16 @@ const TreasuryPositions: React.FC = () => {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
-                        <th className="text-left py-2 px-3 font-medium">Compte</th>
-                        <th className="text-right py-2 px-3 font-medium">Solde comptable</th>
-                        <th className="text-right py-2 px-3 font-medium">Reçus non crédités (+)</th>
-                        <th className="text-right py-2 px-3 font-medium">Émis non débités (−)</th>
-                        <th className="text-right py-2 px-3 font-medium">Rapproché</th>
+                        <th className="text-left py-2 px-3 font-medium">{t('treasuryPos.thAccount')}</th>
+                        <th className="text-right py-2 px-3 font-medium">{t('treasuryPos.thBookBalance')}</th>
+                        <th className="text-right py-2 px-3 font-medium">{t('treasuryPos.kpiReceived')}</th>
+                        <th className="text-right py-2 px-3 font-medium">{t('treasuryPos.kpiIssued')}</th>
+                        <th className="text-right py-2 px-3 font-medium">{t('treasuryPos.lineReconciled')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {glPosition.length === 0 ? (
-                        <tr><td colSpan={5} className="py-6 text-center text-[var(--color-text-tertiary)]">Aucun compte de trésorerie mouvementé.</td></tr>
+                        <tr><td colSpan={5} className="py-6 text-center text-[var(--color-text-tertiary)]">{t('treasuryPos.noTreasuryAccount')}</td></tr>
                       ) : glPosition.map(p => (
                         <tr key={p.code} className="border-b border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]">
                           <td className="py-2 px-3">
@@ -535,7 +532,7 @@ const TreasuryPositions: React.FC = () => {
                               type="button"
                               onClick={() => openAccountLedger(p.code)}
                               className="inline-flex items-center gap-1.5 text-left hover:underline decoration-dotted"
-                              title={`Voir les écritures du compte ${p.code}`}
+                              title={t('treasuryPos.viewAccountEntries', { code: p.code })}
                             >
                               <span className="font-mono text-xs text-[var(--color-primary)]">{p.code}</span>
                               <span>{p.name}</span>
@@ -552,7 +549,7 @@ const TreasuryPositions: React.FC = () => {
                     {glPosition.length > 0 && (
                       <tfoot>
                         <tr className="border-t-2 border-[var(--color-border)] font-bold">
-                          <td className="py-2 px-3">TOTAL</td>
+                          <td className="py-2 px-3">{t('treasuryPos.total')}</td>
                           <td className="py-2 px-3 text-right font-mono">{formatCurrency(tot.solde)}</td>
                           <td className="py-2 px-3 text-right font-mono text-green-700">{formatCurrency(tot.recus)}</td>
                           <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(tot.emis)}</td>
@@ -577,10 +574,10 @@ const TreasuryPositions: React.FC = () => {
                   else cat.a_rapprocher.push(p);                               // flottant, non entamé
                 }
                 const cols = [
-                  { key: 'a_rapprocher', title: 'À rapprocher', items: cat.a_rapprocher, color: '#E89A2E', bg: 'rgba(232,154,46,0.08)' },
-                  { key: 'en_cours', title: 'En cours', items: cat.en_cours, color: '#4E7E8D', bg: 'rgba(78,126,141,0.08)' },
-                  { key: 'rapproche', title: 'Rapproché', items: cat.rapproche, color: '#1D9E75', bg: 'rgba(29,158,117,0.08)' },
-                  { key: 'alerte', title: 'Alerte de solde', items: cat.alerte, color: '#E24B4A', bg: 'rgba(226,75,74,0.08)' },
+                  { key: 'a_rapprocher', title: t('treasuryPos.kanbanToReconcile'), items: cat.a_rapprocher, color: '#E89A2E', bg: 'rgba(232,154,46,0.08)' },
+                  { key: 'en_cours', title: t('treasuryPos.kanbanInProgress'), items: cat.en_cours, color: '#4E7E8D', bg: 'rgba(78,126,141,0.08)' },
+                  { key: 'rapproche', title: t('treasuryPos.kanbanReconciled'), items: cat.rapproche, color: '#1D9E75', bg: 'rgba(29,158,117,0.08)' },
+                  { key: 'alerte', title: t('treasuryPos.kanbanBalanceAlert'), items: cat.alerte, color: '#E24B4A', bg: 'rgba(226,75,74,0.08)' },
                 ];
                 return (
                   <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))' }}>
@@ -602,12 +599,12 @@ const TreasuryPositions: React.FC = () => {
                                   <span className="text-[10px] font-mono text-[var(--color-text-secondary)] ml-1">{p.code}</span>
                                 </div>
                                 <div className="flex items-center justify-between mt-1 text-xs">
-                                  <span className="text-[var(--color-text-secondary)]">Solde réel</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('treasuryPos.lineRealBalance')}</span>
                                   <span className={`font-mono font-semibold ${p.solde < 0 ? 'text-red-600' : 'text-[var(--color-text-primary)]'}`}>{formatCurrency(p.solde)}</span>
                                 </div>
                                 {(p.emis > 0 || p.recus > 0) && (
                                   <div className="flex items-center justify-between mt-0.5 text-[11px]">
-                                    <span className="text-[var(--color-text-tertiary)]">Solde théorique</span>
+                                    <span className="text-[var(--color-text-tertiary)]">{t('treasuryPos.lineTheoretical')}</span>
                                     <span className="font-mono" style={{ color: '#E89A2E' }}>{formatCurrency(th)}</span>
                                   </div>
                                 )}
@@ -650,16 +647,16 @@ const TreasuryPositions: React.FC = () => {
           // Moteur déterministe (données réelles) : alertes + recommandations.
           const alertes: { sev: 'critique' | 'attention' | 'info'; titre: string; banque: string; detail: string }[] = [];
           view.filter(p => p.solde < 0).forEach(p => alertes.push({
-            sev: 'critique', titre: 'Solde négatif', banque: `${p.code} ${p.name}`,
-            detail: `Position débitrice de ${formatCurrency(Math.abs(p.solde))}. Régulariser ou niveler.`,
+            sev: 'critique', titre: t('treasuryPos.alertNegativeTitle'), banque: `${p.code} ${p.name}`,
+            detail: t('treasuryPos.alertNegativeDetail', { amount: formatCurrency(Math.abs(p.solde)) }),
           }));
           if (concentration[0] && concentration[0].pct > 45) alertes.push({
-            sev: 'attention', titre: 'Concentration bancaire', banque: concentration[0].nom,
-            detail: `${concentration[0].nom} concentre ${concentration[0].pct.toFixed(0)} % de la trésorerie. Diversifier les contreparties.`,
+            sev: 'attention', titre: t('treasuryPos.alertConcentrationTitle'), banque: concentration[0].nom,
+            detail: t('treasuryPos.alertConcentrationDetail', { name: concentration[0].nom, pct: concentration[0].pct.toFixed(0) }),
           });
           if (tot.emis > 0 || tot.recus > 0) alertes.push({
-            sev: 'info', titre: 'Flottant à rapprocher', banque: 'Toutes banques',
-            detail: `${formatCurrency(tot.emis)} émis non débités et ${formatCurrency(tot.recus)} reçus non crédités en attente de rapprochement.`,
+            sev: 'info', titre: t('treasuryPos.alertFloatTitle'), banque: t('treasuryPos.allBanksShort'),
+            detail: t('treasuryPos.alertFloatDetail', { issued: formatCurrency(tot.emis), received: formatCurrency(tot.recus) }),
           });
 
           const reco: { type: 'nivellement' | 'placement'; de?: string; vers?: string; banque?: string; montant: number }[] = [];
@@ -675,7 +672,7 @@ const TreasuryPositions: React.FC = () => {
           let score = 100;
           alertes.forEach(a => { score -= a.sev === 'critique' ? 30 : a.sev === 'attention' ? 15 : 0; });
           score = Math.max(0, Math.min(100, score));
-          const sante = score >= 80 ? { label: 'Saine', color: VERT } : score >= 50 ? { label: 'Sous surveillance', color: AMBER } : { label: 'Tendue', color: ROUGE };
+          const sante = score >= 80 ? { label: t('treasuryPos.healthGood'), color: VERT } : score >= 50 ? { label: t('treasuryPos.healthWatch'), color: AMBER } : { label: t('treasuryPos.healthTight'), color: ROUGE };
 
           // Atterrissage : solde théorique + cumul des prévisions futures par date.
           const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -693,13 +690,13 @@ const TreasuryPositions: React.FC = () => {
             <div className="space-y-5">
               {/* Sélecteur de banque/compte — filtre KPIs, détail et flux. */}
               <div className="flex items-center gap-2">
-                <label className="text-sm text-[var(--color-text-secondary)]">Banque / compte</label>
+                <label className="text-sm text-[var(--color-text-secondary)]">{t('treasuryPos.bankAccountLabel')}</label>
                 <select
                   value={selectedPosBank}
                   onChange={(e) => setSelectedPosBank(e.target.value)}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white max-w-md focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
-                  <option value="all">Toutes les banques</option>
+                  <option value="all">{t('treasuryPos.allBanks')}</option>
                   {glPosition.map(p => <option key={p.code} value={p.code}>{p.code} · {p.name}</option>)}
                 </select>
               </div>
@@ -707,11 +704,11 @@ const TreasuryPositions: React.FC = () => {
               {/* KPIs — modèle de carte du projet (KPICard), montants COMPLETS avec
                   une police réduite (valueFontSize) pour tenir sur une ligne. */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <KPICard title="Solde réel" value={formatCurrency(tot.solde)} subtitle="Ce qui est dans les comptes" icon={Wallet} color="primary" withChart valueFontSize="1.125rem" />
-                <KPICard title="Émis non débités" value={formatCurrency(-tot.emis)} subtitle="Décaissements en attente" icon={ArrowDownRight} color="error" withChart valueFontSize="1.125rem" />
-                <KPICard title="Reçus non crédités" value={`+ ${formatCurrency(tot.recus)}`} subtitle="Encaissements en attente" icon={ArrowUpRight} color="success" withChart valueFontSize="1.125rem" />
-                <KPICard title="Solde théorique" value={formatCurrency(theorique)} subtitle="Flottant dénoué" icon={TrendingUp} color="primary" withChart valueFontSize="1.125rem" />
-                <KPICard title="Liquidité disponible" value={formatCurrency(theorique)} subtitle="+ découvert autorisé (non renseigné)" icon={ShieldCheck} color="neutral" withChart valueFontSize="1.125rem" />
+                <KPICard title={t('treasuryPos.lineRealBalance')} value={formatCurrency(tot.solde)} subtitle={t('treasuryPos.kpiRealSub')} icon={Wallet} color="primary" withChart valueFontSize="1.125rem" />
+                <KPICard title={t('treasuryPos.lineIssued')} value={formatCurrency(-tot.emis)} subtitle={t('treasuryPos.kpiIssuedSubCockpit')} icon={ArrowDownRight} color="error" withChart valueFontSize="1.125rem" />
+                <KPICard title={t('treasuryPos.lineReceived')} value={`+ ${formatCurrency(tot.recus)}`} subtitle={t('treasuryPos.kpiReceivedSubCockpit')} icon={ArrowUpRight} color="success" withChart valueFontSize="1.125rem" />
+                <KPICard title={t('treasuryPos.lineTheoretical')} value={formatCurrency(theorique)} subtitle={t('treasuryPos.kpiTheoreticalSub')} icon={TrendingUp} color="primary" withChart valueFontSize="1.125rem" />
+                <KPICard title={t('treasuryPos.kpiLiquidity')} value={formatCurrency(theorique)} subtitle={t('treasuryPos.kpiLiquiditySub')} icon={ShieldCheck} color="neutral" withChart valueFontSize="1.125rem" />
               </div>
 
               {/* Proph3t — conseil de trésorerie (déterministe) */}
@@ -720,10 +717,10 @@ const TreasuryPositions: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Lightbulb className="h-4 w-4" style={{ color: AMBER }} />
                     <span style={{ fontFamily: "'Grand Hotel', cursive", color: AMBER, fontSize: 22, lineHeight: 1 }}>Proph3t</span>
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">— Conseil de trésorerie</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">{t('treasuryPos.prophAdvice')}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[var(--color-text-secondary)]">Santé</span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">{t('treasuryPos.health')}</span>
                     <div style={{ width: 90, height: 7, borderRadius: 99, background: 'var(--color-surface-hover)' }}>
                       <div style={{ width: `${score}%`, height: '100%', borderRadius: 99, background: sante.color }} />
                     </div>
@@ -732,7 +729,7 @@ const TreasuryPositions: React.FC = () => {
                   </div>
                 </div>
                 {alertes.length === 0 && reco.length === 0 && (
-                  <p className="text-sm text-[var(--color-text-secondary)]">Aucune tension détectée. Trésorerie sous contrôle.</p>
+                  <p className="text-sm text-[var(--color-text-secondary)]">{t('treasuryPos.noTension')}</p>
                 )}
                 <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
                   {alertes.map((a, i) => (
@@ -752,40 +749,40 @@ const TreasuryPositions: React.FC = () => {
                       <div>
                         {r.type === 'nivellement' ? (
                           <>
-                            <div className="text-sm font-medium text-[var(--color-text-primary)]">Nivellement recommandé</div>
-                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">Virer <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> de {r.de} → {r.vers}.</div>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">{t('treasuryPos.recoLevelingTitle')}</div>
+                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">{t('treasuryPos.recoTransferVerb')} <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> {t('treasuryPos.recoFrom')} {r.de} → {r.vers}.</div>
                           </>
                         ) : (
                           <>
-                            <div className="text-sm font-medium text-[var(--color-text-primary)]">Excédent dormant — {r.banque}</div>
-                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">Jusqu'à <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> mobilisables (placement / DAT court terme).</div>
+                            <div className="text-sm font-medium text-[var(--color-text-primary)]">{t('treasuryPos.recoIdleTitle')} {r.banque}</div>
+                            <div className="text-xs mt-0.5 text-[var(--color-text-secondary)]">{t('treasuryPos.recoIdlePre')} <span className="font-mono" style={{ color: VERT }}>{formatCurrency(r.montant)}</span> {t('treasuryPos.recoIdlePost')}</div>
                           </>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs mt-3 text-[var(--color-text-tertiary)]">⚠︎ Conseils consultatifs — décision et exécution restent humaines. Calculs déterministes sur vos écritures réelles, jamais générés par IA.</p>
+                <p className="text-xs mt-3 text-[var(--color-text-tertiary)]">{t('treasuryPos.advisoryNote')}</p>
               </div>
 
               {/* Prévision d'atterrissage + Concentration bancaire (côte à côte) */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-2 bg-white rounded-xl border border-[var(--color-border)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
-                  <h3 className="font-semibold text-[var(--color-text-primary)]">Prévision d'atterrissage</h3>
+                  <h3 className="font-semibold text-[var(--color-text-primary)]">{t('treasuryPos.forecastTitle')}</h3>
                   <div className="flex gap-1">
                     {[7, 30, 90].map(h => (
                       <button key={h} onClick={() => setHorizon(h as 7 | 30 | 90)} className="text-xs px-3 py-1 rounded-lg border"
                         style={{ borderColor: horizon === h ? AMBER : 'var(--color-border)', background: horizon === h ? 'rgba(232,154,46,0.12)' : 'transparent', color: horizon === h ? AMBER : 'var(--color-text-secondary)' }}>
-                        J+{h}
+                        {t('treasuryPos.dayPlus', { n: String(h) })}
                       </button>
                     ))}
                   </div>
                 </div>
                 <p className="text-xs mb-2 text-[var(--color-text-tertiary)]">
                   {hasPlan
-                    ? "Solde théorique + échéancier prévisionnel (module Prévisions de trésorerie)."
-                    : "Aucune échéance future enregistrée — alimentez le module Prévisions de trésorerie. La ligne reflète le solde théorique constant."}
+                    ? t('treasuryPos.forecastWithPlan')
+                    : t('treasuryPos.forecastNoPlan')}
                 </p>
                 <div style={{ height: 240 }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -799,7 +796,7 @@ const TreasuryPositions: React.FC = () => {
                       <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="jour" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={{ stroke: 'var(--color-border)' }} tickLine={false} interval="preserveStartEnd" minTickGap={28} />
                       <YAxis tickFormatter={fmtCourt} tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} width={62} />
-                      <RTooltip formatter={(v: any) => [formatCurrency(Number(v)), 'Solde projeté']} />
+                      <RTooltip formatter={(v: any) => [formatCurrency(Number(v)), t('treasuryPos.projectedBalance')]} />
                       <ReferenceLine y={0} stroke={ROUGE} strokeDasharray="4 4" />
                       <Area type="monotone" dataKey="solde" stroke={AMBER} strokeWidth={2} fill="url(#atterGrad)" dot={false} />
                     </AreaChart>
@@ -808,9 +805,9 @@ const TreasuryPositions: React.FC = () => {
               </div>
               {/* Concentration bancaire — Top 5, côte à côte avec l'atterrissage. */}
               <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
-                <div className="flex items-center gap-2 mb-1"><Layers className="h-4 w-4" style={{ color: AMBER }} /><h3 className="font-semibold text-[var(--color-text-primary)]">Concentration bancaire</h3></div>
-                <p className="text-xs text-[var(--color-text-tertiary)] mb-3">Top 5 — soldes positifs</p>
-                {concentration.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">Aucune position.</p> : concentration.slice(0, 5).map((c, i) => (
+                <div className="flex items-center gap-2 mb-1"><Layers className="h-4 w-4" style={{ color: AMBER }} /><h3 className="font-semibold text-[var(--color-text-primary)]">{t('treasuryPos.alertConcentrationTitle')}</h3></div>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-3">{t('treasuryPos.top5Positive')}</p>
+                {concentration.length === 0 ? <p className="text-sm text-[var(--color-text-tertiary)]">{t('treasuryPos.noPosition')}</p> : concentration.slice(0, 5).map((c, i) => (
                   <div key={i} className="mb-2.5">
                     <div className="flex justify-between text-sm mb-1"><span className="text-[var(--color-text-primary)] truncate">{c.nom}</span><span className="font-mono" style={{ color: c.pct > 45 ? ROUGE : 'var(--color-text-secondary)' }}>{c.pct.toFixed(0)} %</span></div>
                     <div style={{ height: 6, borderRadius: 99, background: 'var(--color-surface-hover)' }}><div style={{ width: `${c.pct}%`, height: '100%', borderRadius: 99, background: c.pct > 45 ? ROUGE : AMBER }} /></div>
@@ -820,7 +817,7 @@ const TreasuryPositions: React.FC = () => {
               </div>
 
               <p className="text-xs text-[var(--color-text-tertiary)]">
-                Solde théorique = Solde réel − Émis non débités + Reçus non crédités. Le détail par compte (cartes / tableau) est dans l'onglet <span className="font-medium">Positions par compte</span>.
+                {t('treasuryPos.theoreticalFormula')} <span className="font-medium">{t('treasuryPos.tabPositions')}</span>.
               </p>
             </div>
           );
@@ -836,18 +833,17 @@ const TreasuryPositions: React.FC = () => {
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-xs">
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                   <span>
-                    Aucun rapprochement bancaire effectué : aucun flux « en circulation » ne peut être déterminé.
-                    Importez et pointez vos relevés dans le module <strong>Rapprochement</strong>.
+                    {t('treasuryPos.reconNotStartedFlux')} <strong>{t('treasuryPos.reconModule')}</strong>{t('treasuryPos.reconNotStartedFluxEnd')}
                   </span>
                 </div>
               )}
               <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">
                 <h3 className="font-semibold mb-3 text-[var(--color-text-primary)]">
-                  Flux en circulation <span className="text-xs font-normal text-[var(--color-text-secondary)]">— non rapprochés</span>
+                  {t('treasuryPos.tabFloat')} <span className="text-xs font-normal text-[var(--color-text-secondary)]">{t('treasuryPos.notReconciledSuffix')}</span>
                   {floatView.length > 0 && <span className="ml-2 text-xs font-normal text-[var(--color-text-tertiary)]">({floatView.length})</span>}
                 </h3>
                 {floatView.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucun flux en circulation (tout est rapproché, ou aucun mouvement).</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('treasuryPos.noFloat')}</p>
                 ) : (
                   <div className="flex flex-col gap-1">
                     {floatView.map((f, i) => (
@@ -863,7 +859,7 @@ const TreasuryPositions: React.FC = () => {
                 )}
               </div>
               <p className="text-xs text-[var(--color-text-tertiary)]">
-                « En circulation » = mouvements de trésorerie non encore rapprochés à un relevé bancaire. Rapprochez vos relevés (module Rapprochement) pour n'y laisser que les vrais règlements en attente.
+                {t('treasuryPos.floatFooter')}
               </p>
             </div>
           );
@@ -875,7 +871,7 @@ const TreasuryPositions: React.FC = () => {
         <UnifiedCard variant="elevated" size="md">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
+              <h3 className="text-lg font-semibold text-neutral-800">{t('treasuryPos.filtersAndSearch')}</h3>
               <div className="flex gap-2">
                 <PageHeaderActions
                   onToggleFilters={() => setShowFilters((v) => !v)}
@@ -906,7 +902,7 @@ const TreasuryPositions: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
                 <input
                   type="text"
-                  placeholder="Rechercher..."
+                  placeholder={t('treasuryPos.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -920,7 +916,7 @@ const TreasuryPositions: React.FC = () => {
                 onChange={(e) => setFilterCurrency(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Toutes les devises</option>
+                <option value="all">{t('treasuryPos.allCurrencies')}</option>
                 {uniqueCurrencies.map(currency => (
                   <option key={currency} value={currency}>{currency}</option>
                 ))}
@@ -931,10 +927,10 @@ const TreasuryPositions: React.FC = () => {
                 onChange={(e) => setFilterStatus(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Tous les statuts</option>
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-                <option value="frozen">Gelé</option>
+                <option value="all">{t('treasuryPos.allStatuses')}</option>
+                <option value="active">{t('treasuryPos.statusActive')}</option>
+                <option value="inactive">{t('treasuryPos.statusInactive')}</option>
+                <option value="frozen">{t('treasuryPos.statusFrozen')}</option>
               </select>
 
               <select
@@ -942,7 +938,7 @@ const TreasuryPositions: React.FC = () => {
                 onChange={(e) => setFilterBank(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Toutes les banques</option>
+                <option value="all">{t('treasuryPos.allBanks')}</option>
                 {uniqueBanks.map(bank => (
                   <option key={bank} value={bank}>{bank}</option>
                 ))}
@@ -958,7 +954,7 @@ const TreasuryPositions: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold text-neutral-800">
-                Positions Bancaires ({filteredPositions.length})
+                {t('treasuryPos.bankPositionsCount', { count: String(filteredPositions.length) })}
               </h3>
             </div>
 
@@ -967,13 +963,13 @@ const TreasuryPositions: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-200">
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Banque</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('treasuryPos.thBank')}</th>
                       <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('accounting.account')}</th>
                       <th className="text-right py-3 px-4 font-medium text-neutral-600">{t('accounting.balance')}</th>
-                      <th className="text-right py-3 px-4 font-medium text-neutral-600">Disponible</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Statut</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Risque</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Actions</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600">{t('treasuryPos.thAvailable')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('treasuryPos.thStatus')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('treasuryPos.thRisk')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('treasuryPos.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1016,20 +1012,20 @@ const TreasuryPositions: React.FC = () => {
                               {formatCurrency(position.availableBalance, position.currency)}
                             </p>
                             <p className="text-xs text-neutral-500">
-                              {position.balance !== position.availableBalance ? 'Bloqué' : 'Libre'}
+                              {position.balance !== position.availableBalance ? t('treasuryPos.blocked') : t('treasuryPos.free')}
                             </p>
                           </div>
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(position.status)}`}>
-                            {position.status === 'active' ? 'Actif' :
-                             position.status === 'inactive' ? 'Inactif' : 'Gelé'}
+                            {position.status === 'active' ? t('treasuryPos.statusActive') :
+                             position.status === 'inactive' ? t('treasuryPos.statusInactive') : t('treasuryPos.statusFrozen')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRiskColor(position.riskLevel)}`}>
-                            {position.riskLevel === 'low' ? 'Faible' :
-                             position.riskLevel === 'medium' ? 'Moyen' : 'Élevé'}
+                            {position.riskLevel === 'low' ? t('treasuryPos.riskLow') :
+                             position.riskLevel === 'medium' ? t('treasuryPos.riskMedium') : t('treasuryPos.riskHigh')}
                           </span>
                         </td>
                         <td className="py-4 px-4">
@@ -1070,21 +1066,21 @@ const TreasuryPositions: React.FC = () => {
                         </div>
                         <div className="flex space-x-2">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(position.status)}`}>
-                            {position.status === 'active' ? 'Actif' :
-                             position.status === 'inactive' ? 'Inactif' : 'Gelé'}
+                            {position.status === 'active' ? t('treasuryPos.statusActive') :
+                             position.status === 'inactive' ? t('treasuryPos.statusInactive') : t('treasuryPos.statusFrozen')}
                           </span>
                         </div>
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Solde:</span>
+                          <span className="text-sm text-neutral-500">{t('treasuryPos.balanceColon')}</span>
                           <span className="font-semibold text-neutral-800">
                             {formatCurrency(position.balance, position.currency)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Disponible:</span>
+                          <span className="text-sm text-neutral-500">{t('treasuryPos.availableColon')}</span>
                           <span className="font-medium text-neutral-700">
                             {formatCurrency(position.availableBalance, position.currency)}
                           </span>
@@ -1094,8 +1090,8 @@ const TreasuryPositions: React.FC = () => {
                       <div className="pt-2 border-t border-neutral-100">
                         <div className="flex justify-between items-center">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getRiskColor(position.riskLevel)}`}>
-                            Risque {position.riskLevel === 'low' ? 'Faible' :
-                                    position.riskLevel === 'medium' ? 'Moyen' : 'Élevé'}
+                            {t('treasuryPos.riskPrefix')} {position.riskLevel === 'low' ? t('treasuryPos.riskLow') :
+                                    position.riskLevel === 'medium' ? t('treasuryPos.riskMedium') : t('treasuryPos.riskHigh')}
                           </span>
                           <div className="flex space-x-2">
                             <button
@@ -1127,8 +1123,8 @@ const TreasuryPositions: React.FC = () => {
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    {positionModal.mode === 'create' ? 'Nouveau Compte' :
-                     positionModal.mode === 'edit' ? 'Modifier le Compte' : 'Détails du Compte'}
+                    {positionModal.mode === 'create' ? t('treasuryPos.newAccount') :
+                     positionModal.mode === 'edit' ? t('treasuryPos.editAccount') : t('treasuryPos.accountDetails')}
                   </h3>
                   <button
                     onClick={() => setPositionModal({ isOpen: false, mode: 'view' })}
@@ -1145,10 +1141,10 @@ const TreasuryPositions: React.FC = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Banque *</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldBankRequired')}</label>
                         <select value={newPosition.bankName} onChange={(e) => setNewPosition({ ...newPosition, bankName: e.target.value })}
                           className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="">Sélectionner...</option>
+                          <option value="">{t('treasuryPos.selectPlaceholder')}</option>
                           <option value="SGBC">Société Générale Cameroun</option>
                           <option value="Afriland">Afriland First Bank</option>
                           <option value="Ecobank">Ecobank</option>
@@ -1158,9 +1154,9 @@ const TreasuryPositions: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Agence</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldBranch')}</label>
                         <input type="text" value={newPosition.branch} onChange={(e) => setNewPosition({ ...newPosition, branch: e.target.value })}
-                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Ex: Akwa, Douala" />
+                          className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" placeholder={t('treasuryPos.branchPlaceholder')} />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -1177,7 +1173,7 @@ const TreasuryPositions: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Devise *</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldCurrencyRequired')}</label>
                         <select value={newPosition.currency} onChange={(e) => setNewPosition({ ...newPosition, currency: e.target.value })}
                           className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
                           <option value="XAF">XAF (FCFA CEMAC)</option>
@@ -1187,17 +1183,17 @@ const TreasuryPositions: React.FC = () => {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Solde initial</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldInitialBalance')}</label>
                         <input type="number" value={newPosition.balance} onChange={(e) => setNewPosition({ ...newPosition, balance: parseFloat(e.target.value) || 0 })}
                           className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Type de compte</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldAccountType')}</label>
                         <select value={newPosition.accountType} onChange={(e) => setNewPosition({ ...newPosition, accountType: e.target.value })}
                           className="w-full border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)]">
-                          <option value="courant">Courant</option>
-                          <option value="epargne">Épargne</option>
-                          <option value="depot">Dépôt à terme</option>
+                          <option value="courant">{t('treasuryPos.typeCurrent')}</option>
+                          <option value="epargne">{t('treasuryPos.typeSavings')}</option>
+                          <option value="depot">{t('treasuryPos.typeTermDeposit')}</option>
                         </select>
                       </div>
                     </div>
@@ -1209,7 +1205,7 @@ const TreasuryPositions: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Banque</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldBank')}</label>
                         <p className="text-neutral-800 font-semibold">{positionModal.position.bankName}</p>
                       </div>
                       <div>
@@ -1221,40 +1217,40 @@ const TreasuryPositions: React.FC = () => {
                         <p className="text-neutral-800">{positionModal.position.bic}</p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Agence</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldBranch')}</label>
                         <p className="text-neutral-800">{positionModal.position.branch}</p>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Solde</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldBalance')}</label>
                         <p className="text-neutral-800 font-bold text-lg">
                           {formatCurrency(positionModal.position.balance, positionModal.position.currency)}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Solde Disponible</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldAvailableBalance')}</label>
                         <p className="text-neutral-800 font-semibold">
                           {formatCurrency(positionModal.position.availableBalance, positionModal.position.currency)}
                         </p>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-1">Dernière Mise à Jour</label>
+                        <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.fieldLastUpdate')}</label>
                         <p className="text-neutral-800">{formatDate(positionModal.position.lastUpdate)}</p>
                       </div>
                       <div className="flex space-x-4">
                         <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-1">Statut</label>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.thStatus')}</label>
                           <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(positionModal.position.status)}`}>
-                            {positionModal.position.status === 'active' ? 'Actif' :
-                             positionModal.position.status === 'inactive' ? 'Inactif' : 'Gelé'}
+                            {positionModal.position.status === 'active' ? t('treasuryPos.statusActive') :
+                             positionModal.position.status === 'inactive' ? t('treasuryPos.statusInactive') : t('treasuryPos.statusFrozen')}
                           </span>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-1">Risque</label>
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">{t('treasuryPos.thRisk')}</label>
                           <span className={`px-3 py-1 text-sm font-medium rounded-full ${getRiskColor(positionModal.position.riskLevel)}`}>
-                            {positionModal.position.riskLevel === 'low' ? 'Faible' :
-                             positionModal.position.riskLevel === 'medium' ? 'Moyen' : 'Élevé'}
+                            {positionModal.position.riskLevel === 'low' ? t('treasuryPos.riskLow') :
+                             positionModal.position.riskLevel === 'medium' ? t('treasuryPos.riskMedium') : t('treasuryPos.riskHigh')}
                           </span>
                         </div>
                       </div>
@@ -1267,7 +1263,7 @@ const TreasuryPositions: React.FC = () => {
                     variant="outline"
                     onClick={() => setPositionModal({ isOpen: false, mode: 'view' })}
                   >
-                    {positionModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {positionModal.mode === 'view' ? t('treasuryPos.close') : t('treasuryPos.cancel')}
                   </ElegantButton>
                   {positionModal.mode === 'create' && (
                     <ElegantButton variant="primary"
@@ -1277,7 +1273,7 @@ const TreasuryPositions: React.FC = () => {
                         setNewPosition({ bankName: '', iban: '', bic: '', branch: '', currency: 'XAF', balance: 0, availableBalance: 0, accountType: 'courant' });
                       }}
                     >
-                      Créer le compte
+                      {t('treasuryPos.createAccount')}
                     </ElegantButton>
                   )}
                 </div>
