@@ -138,6 +138,12 @@ const CapexPriorisationPage: React.FC = () => {
         )
       ) : ranked.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
+      ) : vue === 'kanban' ? (
+        <CapexPrioriteKanban
+          rows={candidateRows}
+          onChangePriorite={changePriorite}
+          onOpen={(id) => navigate(`/capex/bc/${id}`)}
+        />
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
