@@ -91,6 +91,7 @@ export type TableName =
   | 'integrationEvents'
   | 'postingRules'
   | 'integrationDeadLetters'
+  | 'integrationApiKeys'
   | 'entrySequences'
 
 export interface QueryFilters {

@@ -83,6 +83,7 @@ const TABLE_MAP: Record<TableName, string> = {
   integrationEvents: 'integration_events',
   postingRules: 'posting_rules',
   integrationDeadLetters: 'integration_dead_letters',
+  integrationApiKeys: 'integration_api_keys',
   entrySequences: 'entry_sequences',
 }
 
@@ -287,6 +288,7 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   integration_events:        normalizeGeneric,
   posting_rules:             normalizeGeneric,
   integration_dead_letters:  normalizeGeneric,
+  integration_api_keys:      normalizeGeneric,
   entry_sequences:           normalizeGeneric,
 }
 

@@ -249,6 +249,33 @@ describe('Traçabilité et preuve', () => {
     expect(result.valid).toBe(false);
   });
 
+  it('produit la MÊME empreinte que l’Edge Function (parité client ↔ serveur)', async () => {
+    // Empreinte relevée en PRODUCTION le 2026-07-22 : réponse de
+    // `integration-ingest` (payload_hash calculé serveur) pour ce payload exact.
+    //
+    // ⚠️ Ce test verrouille la parité entre `canonicalize()` (client, ce dépôt)
+    // et sa jumelle dans supabase/functions/integration-ingest/index.ts. Si les
+    // deux divergent, les empreintes ne correspondent plus et la chaîne de
+    // preuve L7 devient INVÉRIFIABLE — sans qu'aucun autre test ne le voie.
+    const payload = {
+      docNumber: 'E2E-TRD-0001',
+      docDate: '2026-07-22',
+      currency: 'XOF',
+      thirdParty: { code: 'C0042', name: 'Client E2E' },
+      lines: [
+        { role: 'receivable', amount: 1180000, label: 'Facture E2E-TRD-0001' },
+        { role: 'revenue', amount: 1000000, label: 'Prestation' },
+        {
+          role: 'vat_collected', amount: 180000, label: 'TVA 18%',
+          tax: { code: 'TVA18', rate: 18, base: 1000000, amount: 180000, regime: 'normal' },
+        },
+      ],
+      totalExclTax: 1000000, totalTax: 180000, totalInclTax: 1180000,
+    };
+    const hash = await computePayloadHash(payload);
+    expect(hash).toBe('afe436d45f6aa194bec3acfb91632791c8f817041a8cfe4d45a5da1d27379a25');
+  });
+
   it('produit une empreinte canonique indépendante de l’ordre des clés', async () => {
     const a = await computePayloadHash({ b: 2, a: 1, nested: { y: 1, x: 2 } });
     const b = await computePayloadHash({ a: 1, nested: { x: 2, y: 1 }, b: 2 });

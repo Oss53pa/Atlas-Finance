@@ -91,11 +91,14 @@ Deno.serve(async (req) => {
       .eq("tenant_id", tenant).eq("type", type);
     const code = `${prefix}${String((count ?? 0) + 1).padStart(4, "0")}`;
 
+    // NB : on n'écrit que des colonnes garanties de `third_parties`.
+    // `external_ref` / `source_system` n'existent pas sur cette table — les
+    // ajouter ferait échouer l'insert (colonne inconnue) au lieu de créer le
+    // tiers. La corrélation avec le satellite passe par le code canonique
+    // renvoyé, que le satellite stocke de son côté.
     const { data: created, error } = await svc.from("third_parties").insert({
       tenant_id: tenant, code, name, type,
       tax_id: taxId ?? null, email: email ?? null, phone: phone ?? null,
-      external_ref: externalRef ?? null,
-      source_system: key.source_system,
     }).select("id, code").single();
 
     if (error) return json({ error: "CREATE_FAILED", detail: error.message }, 500);
