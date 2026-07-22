@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 import { logAudit } from '../../lib/db';
 import { money } from '../../utils/money';
@@ -27,6 +28,7 @@ import {
 } from '../../services/import';
 import { safeAddEntry } from '../../services/entryGuard';
 import { hashEntry } from '../../utils/integrity';
+import { formatNumber } from '../../utils/formatters';
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -34,15 +36,15 @@ type MigrationMode = 1 | 2 | 3;
 type StepId = 'mode' | 'upload' | 'analysis' | 'mapping' | 'journaux' | 'parameters' | 'simulation' | 'importing';
 
 /** Types de journaux standards SYSCOHADA (+ IPE pour les paiements électroniques). */
-const JOURNAL_TYPES: { code: string; label: string }[] = [
-  { code: 'VE', label: 'Ventes' },
-  { code: 'AC', label: 'Achats' },
-  { code: 'BQ', label: 'Banque' },
-  { code: 'CA', label: 'Caisse' },
-  { code: 'IPE', label: 'Paiement électronique (cartes)' },
-  { code: 'OD', label: 'Opérations diverses' },
-  { code: 'AN', label: 'À-Nouveau' },
-  { code: 'SAL', label: 'Paie / Salaires' },
+const JOURNAL_TYPES: { code: string; labelKey: string }[] = [
+  { code: 'VE', labelKey: 'dataMigration.jtVentes' },
+  { code: 'AC', labelKey: 'dataMigration.jtAchats' },
+  { code: 'BQ', labelKey: 'dataMigration.jtBanque' },
+  { code: 'CA', labelKey: 'dataMigration.jtCaisse' },
+  { code: 'IPE', labelKey: 'dataMigration.jtIpe' },
+  { code: 'OD', labelKey: 'dataMigration.jtOd' },
+  { code: 'AN', labelKey: 'dataMigration.jtAn' },
+  { code: 'SAL', labelKey: 'dataMigration.jtSal' },
 ];
 
 interface UploadedFile {
@@ -142,15 +144,15 @@ const findCol = (row: any, candidates: string[]): number => {
   return 0;
 };
 
-const STEPS: { id: StepId; label: string }[] = [
-  { id: 'mode', label: 'Mode' },
-  { id: 'upload', label: 'Fichiers' },
-  { id: 'analysis', label: 'Analyse' },
-  { id: 'mapping', label: 'Mapping' },
-  { id: 'journaux', label: 'Journaux' },
-  { id: 'parameters', label: 'Parametres' },
-  { id: 'simulation', label: 'Simulation' },
-  { id: 'importing', label: 'Import' },
+const STEPS: { id: StepId; labelKey: string }[] = [
+  { id: 'mode', labelKey: 'dataMigration.stepMode' },
+  { id: 'upload', labelKey: 'dataMigration.stepFiles' },
+  { id: 'analysis', labelKey: 'dataMigration.stepAnalysis' },
+  { id: 'mapping', labelKey: 'dataMigration.stepMapping' },
+  { id: 'journaux', labelKey: 'dataMigration.stepJournals' },
+  { id: 'parameters', labelKey: 'dataMigration.stepParameters' },
+  { id: 'simulation', labelKey: 'dataMigration.stepSimulation' },
+  { id: 'importing', labelKey: 'dataMigration.stepImport' },
 ];
 
 const SOURCE_SYSTEMS = ['Sage', 'Ciel/Saari', 'EBP', 'Cegid', 'Odoo', 'FEC', 'Excel', 'Autre'];
@@ -172,8 +174,10 @@ const SOURCE_SYSTEMS = ['Sage', 'Ciel/Saari', 'EBP', 'Cegid', 'Odoo', 'FEC', 'Ex
  * Atlas FnA (src/data/syscohada-referentiel.ts — OHADA révisé 2017).
  */
 type FileConfig = {
-  label: string;
-  description: string;
+  /** Clé i18n du libellé affiché */
+  labelKey: string;
+  /** Clé i18n de la description affichée */
+  descKey: string;
   icon: React.ReactNode;
   accept: string;
   /** Modes où ce fichier est OBLIGATOIRE */
@@ -186,8 +190,8 @@ type FileConfig = {
 
 const FILE_CONFIGS: Record<string, FileConfig> = {
   grandLivre: {
-    label: 'Grand Livre',
-    description: 'Contient TOUTES les écritures (AN + mouvements). ⚠️ N\'importez PAS simultanément le Grand Livre complet ET un Grand Livre des Tiers — le GL des Tiers est un sous-ensemble du GL complet (comptes 401/411) et créerait des doublons.',
+    labelKey: 'dataMigration.fileGrandLivre',
+    descKey: 'dataMigration.fileGrandLivreDesc',
     icon: <FileSpreadsheet className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls,.txt',
     requiredModes: [1, 3],
@@ -195,8 +199,8 @@ const FILE_CONFIGS: Record<string, FileConfig> = {
     templateKey: 'grand_livre',
   },
   reportAN: {
-    label: 'Balance / Reports à nouveau',
-    description: 'Soldes d\'ouverture de l\'exercice (classes 1 à 5).',
+    labelKey: 'dataMigration.fileReportAN',
+    descKey: 'dataMigration.fileReportANDesc',
     icon: <Calculator className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls',
     requiredModes: [2],
@@ -204,8 +208,8 @@ const FILE_CONFIGS: Record<string, FileConfig> = {
     templateKey: 'reports_a_nouveau',
   },
   tiers: {
-    label: 'Tiers (clients / fournisseurs)',
-    description: 'Détails NIF, RCCM, adresses — enrichit les codes tiers du GL.',
+    labelKey: 'dataMigration.fileTiers',
+    descKey: 'dataMigration.fileTiersDesc',
     icon: <Users className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls',
     requiredModes: [3],
@@ -213,8 +217,8 @@ const FILE_CONFIGS: Record<string, FileConfig> = {
     templateKey: 'tiers',
   },
   immobilisations: {
-    label: 'Immobilisations',
-    description: 'Registre complet : durée, méthode amortissement, VNC.',
+    labelKey: 'dataMigration.fileImmo',
+    descKey: 'dataMigration.fileImmoDesc',
     icon: <Package className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls',
     requiredModes: [3],
@@ -222,8 +226,8 @@ const FILE_CONFIGS: Record<string, FileConfig> = {
     templateKey: 'immobilisations',
   },
   planComptable: {
-    label: 'Plan comptable personnalisé',
-    description: 'Optionnel — Atlas embarque déjà le plan SYSCOHADA révisé 2017. À utiliser uniquement pour des comptes auxiliaires personnalisés.',
+    labelKey: 'dataMigration.filePlanComptable',
+    descKey: 'dataMigration.filePlanComptableDesc',
     icon: <BookOpen className="w-5 h-5" />,
     accept: '.csv,.xlsx,.xls',
     requiredModes: [],
@@ -232,79 +236,82 @@ const FILE_CONFIGS: Record<string, FileConfig> = {
   },
 };
 
-const TARGET_FIELDS: Record<string, { field: string; label: string; required: boolean }[]> = {
+// NB : `label` reste en français — il sert de CANDIDAT à l'auto-détection des
+// colonnes source (autoDetectColumns) et n'est jamais affiché tel quel.
+// L'affichage passe par `labelKey` (i18n).
+const TARGET_FIELDS: Record<string, { field: string; label: string; labelKey: string; required: boolean }[]> = {
   planComptable: [
-    { field: 'numero', label: 'Numero de compte', required: true },
-    { field: 'libelle', label: 'Libelle', required: true },
-    { field: 'type', label: 'Type (D/C)', required: false },
-    { field: 'classe', label: 'Classe', required: false },
+    { field: 'numero', label: 'Numero de compte', labelKey: 'dataMigration.tfNumeroCompte', required: true },
+    { field: 'libelle', label: 'Libelle', labelKey: 'dataMigration.tfLibelle', required: true },
+    { field: 'type', label: 'Type (D/C)', labelKey: 'dataMigration.tfTypeDC', required: false },
+    { field: 'classe', label: 'Classe', labelKey: 'dataMigration.tfClasse', required: false },
   ],
   tiers: [
-    { field: 'code', label: 'Code tiers', required: true },
-    { field: 'nom', label: 'Nom / Raison sociale', required: true },
-    { field: 'type', label: 'Type (client/fournisseur/personnel/autre)', required: true },
-    { field: 'compte', label: 'Numéro de compte SYSCOHADA (optionnel, déduit le type)', required: false },
-    { field: 'nif', label: 'NIF / RCCM', required: false },
-    { field: 'adresse', label: 'Adresse', required: false },
-    { field: 'telephone', label: 'Telephone', required: false },
+    { field: 'code', label: 'Code tiers', labelKey: 'dataMigration.tfCodeTiers', required: true },
+    { field: 'nom', label: 'Nom / Raison sociale', labelKey: 'dataMigration.tfNomRaisonSociale', required: true },
+    { field: 'type', label: 'Type (client/fournisseur/personnel/autre)', labelKey: 'dataMigration.tfTypeTiers', required: true },
+    { field: 'compte', label: 'Numéro de compte SYSCOHADA (optionnel, déduit le type)', labelKey: 'dataMigration.tfCompteSyscohada', required: false },
+    { field: 'nif', label: 'NIF / RCCM', labelKey: 'dataMigration.tfNifRccm', required: false },
+    { field: 'adresse', label: 'Adresse', labelKey: 'dataMigration.tfAdresse', required: false },
+    { field: 'telephone', label: 'Telephone', labelKey: 'dataMigration.tfTelephone', required: false },
   ],
   // Grand Livre : source principale recommandée (écritures + AN incluses)
   // Deux libellés distincts :
   //   - libelleCompte    : intitulé du compte SYSCOHADA (ex: "Clients")
   //   - libelleEcriture  : description de l'écriture / pièce (ex: "Facture SANGA")
   grandLivre: [
-    { field: 'date', label: 'Date', required: true },
-    { field: 'journal', label: 'Code journal', required: true },
-    { field: 'compte', label: 'Numéro de compte', required: true },
-    { field: 'libelleCompte', label: 'Libellé du compte', required: false },
-    { field: 'libelleEcriture', label: 'Libellé écriture / Description', required: true },
-    { field: 'debit', label: 'Débit', required: true },
-    { field: 'credit', label: 'Crédit', required: true },
-    { field: 'tiers', label: 'Code tiers', required: false },
-    { field: 'piece', label: 'Pièce', required: false },
-    { field: 'numeroEcriture', label: 'N° écriture / saisie', required: false },
-    { field: 'lettrage', label: 'Lettrage', required: false },
-    { field: 'echeance', label: 'Échéance', required: false },
-    { field: 'analytique', label: 'Code analytique', required: false },
+    { field: 'date', label: 'Date', labelKey: 'dataMigration.tfDate', required: true },
+    { field: 'journal', label: 'Code journal', labelKey: 'dataMigration.tfCodeJournal', required: true },
+    { field: 'compte', label: 'Numéro de compte', labelKey: 'dataMigration.tfNumeroCompte', required: true },
+    { field: 'libelleCompte', label: 'Libellé du compte', labelKey: 'dataMigration.tfLibelleCompte', required: false },
+    { field: 'libelleEcriture', label: 'Libellé écriture / Description', labelKey: 'dataMigration.tfLibelleEcriture', required: true },
+    { field: 'debit', label: 'Débit', labelKey: 'dataMigration.tfDebit', required: true },
+    { field: 'credit', label: 'Crédit', labelKey: 'dataMigration.tfCredit', required: true },
+    { field: 'tiers', label: 'Code tiers', labelKey: 'dataMigration.tfCodeTiers', required: false },
+    { field: 'piece', label: 'Pièce', labelKey: 'dataMigration.tfPiece', required: false },
+    { field: 'numeroEcriture', label: 'N° écriture / saisie', labelKey: 'dataMigration.tfNumeroEcritureSaisie', required: false },
+    { field: 'lettrage', label: 'Lettrage', labelKey: 'dataMigration.tfLettrage', required: false },
+    { field: 'echeance', label: 'Échéance', labelKey: 'dataMigration.tfEcheance', required: false },
+    { field: 'analytique', label: 'Code analytique', labelKey: 'dataMigration.tfCodeAnalytique', required: false },
   ],
   // Alias conservés pour compatibilité
   ecritures: [
-    { field: 'dateEcriture', label: 'Date ecriture', required: true },
-    { field: 'journal', label: 'Code journal', required: true },
-    { field: 'numeroCompte', label: 'Numero de compte', required: true },
-    { field: 'libelle', label: 'Libelle', required: true },
-    { field: 'debit', label: 'Montant debit', required: true },
-    { field: 'credit', label: 'Montant credit', required: true },
-    { field: 'numeroPiece', label: 'Numero de piece', required: false },
-    { field: 'lettrage', label: 'Lettrage', required: false },
+    { field: 'dateEcriture', label: 'Date ecriture', labelKey: 'dataMigration.tfDateEcriture', required: true },
+    { field: 'journal', label: 'Code journal', labelKey: 'dataMigration.tfCodeJournal', required: true },
+    { field: 'numeroCompte', label: 'Numero de compte', labelKey: 'dataMigration.tfNumeroCompte', required: true },
+    { field: 'libelle', label: 'Libelle', labelKey: 'dataMigration.tfLibelle', required: true },
+    { field: 'debit', label: 'Montant debit', labelKey: 'dataMigration.tfMontantDebit', required: true },
+    { field: 'credit', label: 'Montant credit', labelKey: 'dataMigration.tfMontantCredit', required: true },
+    { field: 'numeroPiece', label: 'Numero de piece', labelKey: 'dataMigration.tfNumeroPiece', required: false },
+    { field: 'lettrage', label: 'Lettrage', labelKey: 'dataMigration.tfLettrage', required: false },
   ],
   reportAN: [
-    { field: 'numeroCompte', label: 'Numero de compte', required: true },
-    { field: 'libelle', label: 'Libelle', required: false },
-    { field: 'debit', label: 'Solde debiteur', required: true },
-    { field: 'credit', label: 'Solde crediteur', required: true },
+    { field: 'numeroCompte', label: 'Numero de compte', labelKey: 'dataMigration.tfNumeroCompte', required: true },
+    { field: 'libelle', label: 'Libelle', labelKey: 'dataMigration.tfLibelle', required: false },
+    { field: 'debit', label: 'Solde debiteur', labelKey: 'dataMigration.tfSoldeDebiteur', required: true },
+    { field: 'credit', label: 'Solde crediteur', labelKey: 'dataMigration.tfSoldeCrediteur', required: true },
   ],
   immobilisations: [
-    { field: 'code', label: 'Code immobilisation', required: true },
-    { field: 'libelle', label: 'Designation', required: true },
-    { field: 'compteImmo', label: 'Compte immobilisation', required: true },
-    { field: 'compteAmort', label: 'Compte amortissement', required: true },
-    { field: 'dateAcquisition', label: 'Date acquisition', required: true },
-    { field: 'valeurOrigine', label: 'Valeur origine (VO)', required: true },
-    { field: 'amortCumule', label: 'Amort. cumule', required: false },
-    { field: 'vnc', label: 'VNC', required: false },
-    { field: 'duree', label: 'Duree (annees)', required: true },
+    { field: 'code', label: 'Code immobilisation', labelKey: 'dataMigration.tfCodeImmo', required: true },
+    { field: 'libelle', label: 'Designation', labelKey: 'dataMigration.tfDesignation', required: true },
+    { field: 'compteImmo', label: 'Compte immobilisation', labelKey: 'dataMigration.tfCompteImmo', required: true },
+    { field: 'compteAmort', label: 'Compte amortissement', labelKey: 'dataMigration.tfCompteAmort', required: true },
+    { field: 'dateAcquisition', label: 'Date acquisition', labelKey: 'dataMigration.tfDateAcquisition', required: true },
+    { field: 'valeurOrigine', label: 'Valeur origine (VO)', labelKey: 'dataMigration.tfValeurOrigine', required: true },
+    { field: 'amortCumule', label: 'Amort. cumule', labelKey: 'dataMigration.tfAmortCumule', required: false },
+    { field: 'vnc', label: 'VNC', labelKey: 'dataMigration.tfVnc', required: false },
+    { field: 'duree', label: 'Duree (annees)', labelKey: 'dataMigration.tfDuree', required: true },
   ],
   fec: [
-    { field: 'JournalCode', label: 'Code journal', required: true },
-    { field: 'EcritureDate', label: 'Date ecriture', required: true },
-    { field: 'CompteNum', label: 'Numero compte', required: true },
-    { field: 'CompteLib', label: 'Libelle compte', required: false },
-    { field: 'EcritureLib', label: 'Libelle ecriture', required: true },
-    { field: 'Debit', label: 'Debit', required: true },
-    { field: 'Credit', label: 'Credit', required: true },
-    { field: 'EcritureNum', label: 'Numero ecriture', required: false },
-    { field: 'PieceRef', label: 'Reference piece', required: false },
+    { field: 'JournalCode', label: 'Code journal', labelKey: 'dataMigration.tfCodeJournal', required: true },
+    { field: 'EcritureDate', label: 'Date ecriture', labelKey: 'dataMigration.tfDateEcriture', required: true },
+    { field: 'CompteNum', label: 'Numero compte', labelKey: 'dataMigration.tfNumeroCompte', required: true },
+    { field: 'CompteLib', label: 'Libelle compte', labelKey: 'dataMigration.tfLibelleCompte', required: false },
+    { field: 'EcritureLib', label: 'Libelle ecriture', labelKey: 'dataMigration.tfLibelleEcriture', required: true },
+    { field: 'Debit', label: 'Debit', labelKey: 'dataMigration.tfDebit', required: true },
+    { field: 'Credit', label: 'Credit', labelKey: 'dataMigration.tfCredit', required: true },
+    { field: 'EcritureNum', label: 'Numero ecriture', labelKey: 'dataMigration.tfNumeroEcriture', required: false },
+    { field: 'PieceRef', label: 'Reference piece', labelKey: 'dataMigration.tfReferencePiece', required: false },
   ],
 };
 
@@ -481,6 +488,7 @@ function generateId(): string {
 
 const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
   const { adapter } = useData();
+  const { t } = useLanguage();
 
   // Step navigation
   const [currentStep, setCurrentStep] = useState<StepId>('mode');
@@ -642,7 +650,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         }
       }
       if (headerRowIndex < 0) {
-        toast.error(`Aucune ligne d'en-tête détectée dans la feuille "${sheetName}"`);
+        toast.error(t('dataMigration.toastNoHeaderRow', { sheet: sheetName }));
         return;
       }
 
@@ -666,12 +674,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const columns = headers.filter(Boolean);
 
       setUploadedFiles(prev => ({ ...prev, [key]: { file, data, columns } }));
-      const sheetInfo = wb.SheetNames.length > 1 ? ` (feuille "${sheetName}")` : '';
-      toast.success(`${file.name} chargé${sheetInfo} — ${data.length} lignes, ${columns.length} colonnes`);
+      const sheetInfo = wb.SheetNames.length > 1 ? t('dataMigration.toastSheetInfo', { sheet: sheetName }) : '';
+      toast.success(t('dataMigration.toastFileLoaded', {
+        name: file.name, sheet: sheetInfo,
+        rows: String(data.length), cols: String(columns.length),
+      }));
     } catch (err) { /* silent */
-      toast.error(`Erreur de lecture du fichier ${file.name}`);
+      toast.error(t('dataMigration.toastReadError', { name: file.name }));
     }
-  }, [pickBestSheet]);
+  }, [pickBestSheet, t]);
 
   const removeFile = useCallback((key: string) => {
     setUploadedFiles(prev => {
@@ -693,10 +704,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const result = splitModeWorkbook(wb, migrationMode as MigrationModeId);
 
       if (!result.recognized) {
-        toast.error(
-          `Ce fichier ne correspond pas au modèle du Mode ${migrationMode}. ` +
-          `Téléchargez « Modèle du Mode ${migrationMode} » puis remplissez-le sans renommer les feuilles.`
-        );
+        toast.error(t('dataMigration.toastModeMismatch', { mode: String(migrationMode) }));
         return;
       }
 
@@ -709,14 +717,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       });
 
       const summary = result.matched.map(m => `${m.sheetName} (${m.rows})`).join(' · ');
-      toast.success(`Classeur Mode ${migrationMode} importé — ${summary}`);
+      toast.success(t('dataMigration.toastWorkbookImported', { mode: String(migrationMode), summary }));
       if (result.missingRequired.length > 0) {
-        toast(`⚠️ Feuille(s) obligatoire(s) vide(s) ou absente(s) : ${result.missingRequired.join(', ')}`);
+        toast(t('dataMigration.toastMissingSheets', { list: result.missingRequired.join(', ') }));
       }
     } catch {
-      toast.error(`Erreur de lecture du classeur ${file.name}`);
+      toast.error(t('dataMigration.toastWorkbookReadError', { name: file.name }));
     }
-  }, [migrationMode]);
+  }, [migrationMode, t]);
 
   // ─── Step 3: Analysis ─────────────────────────────────
 
@@ -748,15 +756,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }));
       warnings.push({
         code: 'PC_AUTO_GENERATED',
-        message: `Plan Comptable généré automatiquement à partir du Grand Livre : ${genResult.extracted} comptes`,
-        details: `${genResult.enrichedFromSyscohada} enrichis via SYSCOHADA, ${genResult.enrichedFromGL} via le GL, ${genResult.inferred} inférés`,
+        message: t('dataMigration.warnPcAutoGenerated', { count: String(genResult.extracted) }),
+        details: t('dataMigration.warnPcAutoGeneratedDetails', {
+          syscohada: String(genResult.enrichedFromSyscohada),
+          gl: String(genResult.enrichedFromGL),
+          inferred: String(genResult.inferred),
+        }),
       });
     } else {
       setGeneratedPC(null);
     }
 
     if (pcData.length === 0) {
-      errors.push({ code: 'NO_PLAN', message: 'Aucun plan comptable fourni et aucun Grand Livre pour l\'auto-générer' });
+      errors.push({ code: 'NO_PLAN', message: t('dataMigration.errNoPlan') });
     }
 
     // Check SYSCOHADA compliance
@@ -764,7 +776,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     pcData.forEach((row: any) => {
       const num = String(Object.values(row)[0] || '');
       if (num && !syscohadaClasses.includes(num[0])) {
-        warnings.push({ code: 'NON_SYSCOHADA', message: `Compte ${num} hors nomenclature SYSCOHADA` });
+        warnings.push({ code: 'NON_SYSCOHADA', message: t('dataMigration.warnNonSyscohada', { code: num }) });
       }
     });
 
@@ -773,7 +785,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const vals = Object.values(row) as string[];
       const hasNif = vals.some(v => /\d{10,}/.test(String(v)));
       if (!hasNif) {
-        warnings.push({ code: 'NO_NIF', message: `Tiers ligne ${i + 1} sans NIF detecte` });
+        warnings.push({ code: 'NO_NIF', message: t('dataMigration.warnNoNif', { line: String(i + 1) }) });
       }
     });
 
@@ -793,7 +805,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       totalC = money(totalC).add(money(findCol(row, creditAliases))).toNumber();
     });
     if (ecrituresData.length > 0 && money(totalD).subtract(money(totalC)).abs().toNumber() > 0.01) {
-      warnings.push({ code: 'UNBALANCED', message: `Ecritures desequilibrees: D=${totalD.toFixed(2)} C=${totalC.toFixed(2)}`, details: `Ecart: ${money(totalD).subtract(money(totalC)).abs().toNumber().toFixed(2)}` });
+      warnings.push({
+        code: 'UNBALANCED',
+        message: t('dataMigration.warnUnbalanced', { debit: totalD.toFixed(2), credit: totalC.toFixed(2) }),
+        details: t('dataMigration.warnUnbalancedDetails', { diff: money(totalD).subtract(money(totalC)).abs().toNumber().toFixed(2) }),
+      });
     }
 
     // AN balance check — même logique par nom de colonne
@@ -803,7 +819,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       anC = money(anC).add(money(findCol(row, [...creditAliases, 'soldecrediteur', 'soldecredit']))).toNumber();
     });
     if (anData.length > 0 && money(anD).subtract(money(anC)).abs().toNumber() > 0.01) {
-      errors.push({ code: 'AN_UNBALANCED', message: `Reports AN desequilibres: D=${anD.toFixed(2)} C=${anC.toFixed(2)}` });
+      errors.push({ code: 'AN_UNBALANCED', message: t('dataMigration.errAnUnbalanced', { debit: anD.toFixed(2), credit: anC.toFixed(2) }) });
     }
 
     // ════════════════════════════════════════════════════════════════
@@ -843,15 +859,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     if (invalidClassCount > 0) {
       errors.push({
         code: 'SYSCOHADA_INVALID_CLASS',
-        message: `${invalidClassCount} compte(s) hors classes 1-9 SYSCOHADA`,
-        details: `Exemples: ${samplesInvalid.join(', ')}. Les comptes doivent commencer par un chiffre entre 1 et 9.`,
+        message: t('dataMigration.errInvalidClass', { count: String(invalidClassCount) }),
+        details: t('dataMigration.errInvalidClassDetails', { samples: samplesInvalid.join(', ') }),
       });
     }
     if (shortCodeCount > 0) {
       warnings.push({
         code: 'SYSCOHADA_SHORT_CODE',
-        message: `${shortCodeCount} compte(s) avec longueur < 3 caractères`,
-        details: `Exemples: ${samplesShort.join(', ')}. SYSCOHADA recommande un radical minimum de 3 caractères.`,
+        message: t('dataMigration.warnShortCode', { count: String(shortCodeCount) }),
+        details: t('dataMigration.warnShortCodeDetails', { samples: samplesShort.join(', ') }),
       });
     }
 
@@ -878,8 +894,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (class67NonZero > 0) {
         errors.push({
           code: 'SYSCOHADA_CLASS67_NOT_ZERO',
-          message: `${class67NonZero} compte(s) classes 6-7 avec solde non nul en Mode 2`,
-          details: `Exemples: ${samples67.join(' · ')}. Les comptes de gestion (charges 6xx, produits 7xx) doivent être annualisés à zéro à l'ouverture de l'exercice N (le résultat N-1 ayant été soldé en clôture).`,
+          message: t('dataMigration.errClass67', { count: String(class67NonZero) }),
+          details: t('dataMigration.errClass67Details', { samples: samples67.join(' · ') }),
         });
       }
     }
@@ -894,8 +910,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         if (d > today) {
           warnings.push({
             code: 'BASCULE_FUTURE',
-            message: 'Date de bascule dans le futur',
-            details: `${params.dateBascule} est postérieure à aujourd'hui. Confirmez que c'est intentionnel.`,
+            message: t('dataMigration.warnBasculeFuture'),
+            details: t('dataMigration.warnBasculeFutureDetails', { date: params.dateBascule }),
           });
         }
         if (migrationMode === 2) {
@@ -903,8 +919,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           if (!isJan1) {
             warnings.push({
               code: 'BASCULE_NOT_FISCAL_START',
-              message: 'Date de bascule ≠ 1er janvier',
-              details: `Mode 2 (Bascule début d'exercice) attend généralement le 01/01. Date fournie : ${params.dateBascule}. Si votre exercice fiscal débute à une autre date (statuts particuliers), ignorez cet avertissement.`,
+              message: t('dataMigration.warnBasculeNotFiscalStart'),
+              details: t('dataMigration.warnBasculeNotFiscalStartDetails', { date: params.dateBascule }),
             });
           }
         }
@@ -920,8 +936,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         if (months < 6 || months > 18) {
           warnings.push({
             code: 'EXERCICE_DUREE_ATYPIQUE',
-            message: `Durée d'exercice atypique : ~${months} mois`,
-            details: 'SYSCOHADA prévoit normalement un exercice de 12 mois. Premier exercice ou clôture exceptionnelle ?',
+            message: t('dataMigration.warnExerciceDuree', { months: String(months) }),
+            details: t('dataMigration.warnExerciceDureeDetails'),
           });
         }
       }
@@ -944,8 +960,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (duplicates > ecrituresData.length * 0.05) {
         warnings.push({
           code: 'POSSIBLE_DUPLICATES',
-          message: `${duplicates} doublon(s) potentiel(s) dans le fichier`,
-          details: `Plus de 5% de lignes identiques (date+compte+montants+libellé). Vérifiez que le fichier n'a pas été concaténé deux fois.`,
+          message: t('dataMigration.warnPossibleDuplicates', { count: String(duplicates) }),
+          details: t('dataMigration.warnPossibleDuplicatesDetails'),
         });
       }
     }
@@ -980,14 +996,16 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           if (ratio > 0.3) {
             errors.push({
               code: 'CROSS_SESSION_DUPLICATES',
-              message: `⚠️ ${crossDuplicates} écritures de ce fichier existent déjà en base (${Math.round(ratio*100)}%)`,
-              details: `La base contient déjà ${existingEntries.length} écriture(s). Ce fichier semble chevaucher les données existantes. Risque élevé de doublons — vérifiez que vous n'importez pas un Grand Livre des Tiers après avoir déjà importé le Grand Livre complet.`,
+              message: t('dataMigration.errCrossSessionDuplicates', {
+                count: String(crossDuplicates), pct: String(Math.round(ratio * 100)),
+              }),
+              details: t('dataMigration.errCrossSessionDuplicatesDetails', { existing: String(existingEntries.length) }),
             });
           } else if (crossDuplicates > 0) {
             warnings.push({
               code: 'PARTIAL_OVERLAP',
-              message: `${crossDuplicates} écriture(s) de ce fichier ont déjà été importées`,
-              details: `Ces pièces seront ignorées (protection anti-doublon). Les nouvelles écritures seront ajoutées.`,
+              message: t('dataMigration.warnPartialOverlap', { count: String(crossDuplicates) }),
+              details: t('dataMigration.warnPartialOverlapDetails'),
             });
           }
         }
@@ -1003,7 +1021,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       warnings: warnings.slice(0, 50),
       errors,
     });
-  }, [uploadedFiles, migrationMode, params.dateBascule, params.exerciceStart, params.exerciceEnd]);
+  }, [uploadedFiles, migrationMode, params.dateBascule, params.exerciceStart, params.exerciceEnd, t]);
 
   // ─── Step 4: Auto-mapping ─────────────────────────────
 
@@ -1013,11 +1031,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const targets = TARGET_FIELDS[key];
       if (!targets) continue;
       const auto = autoDetectColumns(uf.columns, targets, getAliasMap(key));
-      result[key] = targets.map(t => ({
-        target: t.field,
-        targetLabel: t.label,
-        source: auto[t.field] || '',
-        required: t.required,
+      result[key] = targets.map(tf => ({
+        target: tf.field,
+        targetLabel: t(tf.labelKey),
+        source: auto[tf.field] || '',
+        required: tf.required,
       }));
     }
     setMappings(result);
@@ -1036,7 +1054,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         status: valid ? 'ok' as const : 'warning' as const,
       };
     }));
-  }, [uploadedFiles]);
+  }, [uploadedFiles, t]);
 
   // ─── Étape Journaux : détection + rapprochement ────────
   // Détecte les codes journaux SOURCE du Grand Livre, propose un type standard
@@ -1193,7 +1211,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     // B2 — mode « Annuler » : ne RIEN écrire (auparavant l'option ne faisait rien
     // et un import en fusion partait quand même).
     if (params.existingDataAction === 'cancel') {
-      toast.info('Import annulé : action « Annuler » sélectionnée — aucune donnée écrite.');
+      toast.info(t('dataMigration.toastImportCancelled'));
       return;
     }
     // B1/B3 — confirmation explicite avant toute écriture en base (production).
@@ -1201,7 +1219,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       const isSaas = adapter.getMode() === 'saas';
       const sbClient = isSaas ? (adapter as any).client : null;
       const tId = isSaas ? (adapter as any).tenantId : null;
-      let replaceLine = 'AJOUTER aux données existantes (fusion, non destructif)';
+      let replaceLine = t('dataMigration.confirmMergeLine');
       if (params.existingDataAction === 'replace') {
         // B3 — rendre la suppression DÉLIBÉRÉE : compter ce qui sera supprimé.
         let nbToDelete: number | null = null;
@@ -1213,19 +1231,28 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             nbToDelete = count ?? null;
           } catch { /* count indisponible — on affiche sans le chiffre */ }
         }
-        replaceLine = `⚠️ REMPLACER : SUPPRIMER ${nbToDelete != null ? nbToDelete + ' écriture(s)' : 'les écritures'} issues de migrations précédentes (vos saisies MANUELLES sont préservées)`;
+        const what = nbToDelete != null
+          ? t('dataMigration.confirmReplaceCount', { count: String(nbToDelete) })
+          : t('dataMigration.confirmReplaceEntries');
+        replaceLine = t('dataMigration.confirmReplaceLine', { what });
       }
       const vol = simulation?.counts
-        ? `≈ ${simulation.counts.ecritures} écritures, ${simulation.counts.comptes} comptes, ${simulation.counts.tiers} tiers, ${simulation.counts.immobilisations} immos`
-        : 'volume inconnu';
-      const statut = params.entryStatus === 'validated' ? 'VALIDÉES (verrouillées)' : 'en brouillon';
-      const msg =
-        `Lancer l'import RÉEL ?\n\n` +
-        `• Cible : ${isSaas ? 'base CLOUD (production)' : 'base locale'}\n` +
-        `• Données existantes : ${replaceLine}\n` +
-        `• Volume à importer : ${vol}\n` +
-        `• Écritures importées : ${statut}\n\n` +
-        `Cette opération écrit en base. En cas d'erreur, vous pourrez purger ce lot. Continuer ?`;
+        ? t('dataMigration.confirmVolume', {
+            entries: String(simulation.counts.ecritures),
+            accounts: String(simulation.counts.comptes),
+            tiers: String(simulation.counts.tiers),
+            assets: String(simulation.counts.immobilisations),
+          })
+        : t('dataMigration.confirmVolumeUnknown');
+      const statut = params.entryStatus === 'validated'
+        ? t('dataMigration.confirmStatusValidated')
+        : t('dataMigration.confirmStatusDraft');
+      const msg = t('dataMigration.confirmImport', {
+        target: isSaas ? t('dataMigration.confirmTargetCloud') : t('dataMigration.confirmTargetLocal'),
+        existing: replaceLine,
+        volume: vol,
+        status: statut,
+      });
       if (!window.confirm(msg)) return;
     }
     setImporting(true);
@@ -1251,7 +1278,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // (migration_batch_id NOT NULL). Les saisies manuelles (batch NULL) sont
       // PRÉSERVÉES — fini le wipe total du tenant.
       if (params.existingDataAction === 'replace' && isSaasMode && supabaseClient) {
-        setImportLabel('Suppression des précédentes migrations (données manuelles préservées)...');
+        setImportLabel(t('dataMigration.labelDeletingPrevious'));
         // Lever le verrou des écritures migrées validées
         await supabaseClient.from('journal_entries')
           .update({ status: 'draft' }).eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
@@ -1259,7 +1286,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         for (const table of ['journal_lines', 'journal_entries', 'third_parties', 'accounts', 'assets']) {
           const { error } = await supabaseClient
             .from(table).delete().eq('tenant_id', tenantId).not('migration_batch_id', 'is', null);
-          if (error) report.warnings.push(`Suppression migrée ${table} : ${error.message}`);
+          if (error) report.warnings.push(t('dataMigration.warnDeleteMigrated', { table, message: error.message }));
         }
       }
 
@@ -1270,7 +1297,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       //   c) Fallback Mode 2 : extrait du fichier Balance / Reports a nouveau
       const pcMapping = mappings.planComptable || [];
       const pcData = uploadedFiles.planComptable?.data || [];
-      setImportLabel('Import du plan comptable...');
+      setImportLabel(t('dataMigration.labelImportAccounts'));
 
       // Helper : mapping nom de colonne accounts cote Supabase
       // Schema reel : code, name, account_class, account_type, level,
@@ -1343,7 +1370,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               .upsert(chunk, { onConflict: 'code,tenant_id', ignoreDuplicates: true });
             const isDupError = error && (error.message.includes('duplicate') || error.message.includes('unique'));
             if (error && !isDupError) {
-              report.warnings.push(`Comptes batch [${b}] : ${error.message} (${chunk.length} non insérés)`);
+              report.warnings.push(t('dataMigration.warnAccountsBatch', { index: String(b), message: error.message, count: String(chunk.length) }));
             } else {
               report.accounts += chunk.length;
             }
@@ -1358,21 +1385,21 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             } catch (err) {
               const msg = err instanceof Error ? err.message : '';
               if (msg.includes('duplicate key') || msg.includes('unique constraint')) { accountsSkipped++; }
-              else { report.warnings.push(`Compte ${accountRecords[i].code} : ${msg}`); }
+              else { report.warnings.push(t('dataMigration.warnAccountError', { code: String(accountRecords[i].code), message: msg })); }
             }
             setImportProgress(Math.round((i / accountRecords.length) * 15));
           }
         }
       }
       if (accountsSkipped > 0) {
-        report.warnings.push(`${accountsSkipped} comptes deja existants (ignores)`);
+        report.warnings.push(t('dataMigration.warnAccountsSkipped', { count: String(accountsSkipped) }));
       }
       // A4 — alerter si des comptes restent sans intitulé (name === code) : le fichier
       // source devrait porter une colonne LIBELLE, ou le Plan Comptable doit l'enrichir.
       {
         const sansLibelle = accountRecords.filter(a => String(a.name) === String(a.code)).length;
         if (sansLibelle > 0) {
-          report.warnings.push(`${sansLibelle} compte(s) sans intitulé (libellé = numéro). Fournissez la colonne LIBELLE ou un Plan Comptable pour les nommer.`);
+          report.warnings.push(t('dataMigration.warnAccountsNoLabel', { count: String(sansLibelle) }));
         }
       }
       setImportProgress(15);
@@ -1408,7 +1435,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               .upsert(chunk, { onConflict: conflictCol, ignoreDuplicates: true });
             const isDup = error && (error.message.includes('duplicate') || error.message.includes('unique'));
             if (error && !isDup) {
-              report.warnings.push(`${pgTable} batch [${b}] : ${error.message} (${chunk.length} non insérés)`);
+              report.warnings.push(t('dataMigration.warnBatchTable', { table: pgTable, index: String(b), message: error.message, count: String(chunk.length) }));
             } else {
               inserted += chunk.length;
             }
@@ -1426,7 +1453,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err);
             if (!msg.includes('duplicate key') && !msg.includes('unique constraint')) {
-              report.warnings.push(`${pgTable}[${i}] : ${msg}`);
+              report.warnings.push(t('dataMigration.warnTableItem', { table: pgTable, index: String(i), message: msg }));
             }
           }
           onProgress?.(Math.round(((i + 1) / records.length) * 100));
@@ -1437,7 +1464,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // 2. Tiers — schema : code, name, type, email, phone, address, tax_id, ...
       const tiersMapping = mappings.tiers || [];
       const tiersData = uploadedFiles.tiers?.data || [];
-      setImportLabel('Import des tiers...');
+      setImportLabel(t('dataMigration.labelImportTiers'));
       const tiersRecords: Record<string, unknown>[] = [];
       /**
        * normalizeTiersType — mappe le type brut (colonne CSV/Excel) vers le type interne.
@@ -1568,7 +1595,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // 3. Assets — batch insert
       const assetMapping = mappings.immobilisations || [];
       const assetData = uploadedFiles.immobilisations?.data || [];
-      setImportLabel('Import des immobilisations...');
+      setImportLabel(t('dataMigration.labelImportAssets'));
       const assetRecords: Record<string, unknown>[] = [];
       for (const row of assetData as Record<string, any>[]) {
         const getVal = (field: string) => { const col = assetMapping.find(m => m.target === field)?.source; return col ? row[col] : ''; };
@@ -1596,7 +1623,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       // Fallback historique : ecritures puis fec.
       const ecrMapping = mappings.grandLivre || mappings.ecritures || mappings.fec || [];
       const ecrData = uploadedFiles.grandLivre?.data || uploadedFiles.ecritures?.data || uploadedFiles.fec?.data || [];
-      setImportLabel('Import des ecritures...');
+      setImportLabel(t('dataMigration.labelImportEntries'));
       const getEcrVal = (row: any, field: string) => {
         const col = ecrMapping.find(m => m.target === field)?.source;
         return col ? (row as Record<string, any>)[col] : '';
@@ -1669,7 +1696,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
       const UNBAL_THRESHOLD = 0.10; // au-delà de 10% de pièces déséquilibrées, la clé est jugée non fiable
       let groups = buildGroups(pieceKeyOf);
-      let groupingMode = 'pièce';
+      let groupingMode = t('dataMigration.groupingModePiece');
       if (unbalancedRatio(groups) > UNBAL_THRESHOLD) {
         // Le n° de pièce/saisie n'est pas fiable (ex. « NUMERO DE SAISIE » = compteur
         // de lignes). On regroupe par « journal + date » (pièces fines), PUIS on
@@ -1692,10 +1719,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         // sinon le contrôle A3 en aval la passera en brouillon, jamais en validé).
         for (const [j, lines] of unbalByJournal) consolidated.set(`${j}|regroupé`, lines);
         groups = consolidated;
-        groupingMode = 'journal + date (reliquats consolidés par journal)';
-        report.warnings.push(
-          `Regroupement par « ${groupingMode} » : la colonne n° de pièce/saisie est un compteur de lignes, pas un identifiant de pièce. Les opérations inter-dates d'un même journal ont été consolidées pour rester équilibrées.`
-        );
+        groupingMode = t('dataMigration.groupingModeJournalDate');
+        report.warnings.push(t('dataMigration.warnGroupingMode', { mode: groupingMode }));
       }
 
       let ecrIdx = 0;
@@ -1761,7 +1786,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             entryStatus = 'draft';
             imbalancedDowngraded++;
             if (report.warnings.length < 200) {
-              report.warnings.push(`Pièce ${piece} déséquilibrée (D=${totalDebit.toFixed(2)} C=${totalCredit.toFixed(2)}, écart ${money(totalDebit).subtract(money(totalCredit)).abs().toNumber().toFixed(2)}) → importée en brouillon (non validée).`);
+              report.warnings.push(t('dataMigration.warnPieceUnbalanced', {
+                piece: String(piece),
+                debit: totalDebit.toFixed(2),
+                credit: totalCredit.toFixed(2),
+                diff: money(totalDebit).subtract(money(totalCredit)).abs().toNumber().toFixed(2),
+              }));
             }
           }
 
@@ -1830,17 +1860,21 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         {
           const gEcart = money(gDebit).subtract(money(gCredit)).abs().toNumber();
           if (gEcart > 0.01) {
-            report.warnings.push(`⚠️ Déséquilibre GLOBAL d'import : D=${gDebit.toFixed(2)} C=${gCredit.toFixed(2)} (écart ${gEcart.toFixed(2)} FCFA). Vérifiez le fichier source — aucune pièce déséquilibrée n'a été validée.`);
+            report.warnings.push(t('dataMigration.warnGlobalImbalance', {
+              debit: gDebit.toFixed(2), credit: gCredit.toFixed(2), diff: gEcart.toFixed(2),
+            }));
           }
           for (const [j, s] of journalSums) {
             const e = money(s.d).subtract(money(s.c)).abs().toNumber();
-            if (e > 0.01) report.warnings.push(`Journal ${j} déséquilibré : D=${s.d.toFixed(2)} C=${s.c.toFixed(2)} (écart ${e.toFixed(2)}).`);
+            if (e > 0.01) report.warnings.push(t('dataMigration.warnJournalImbalance', {
+              journal: j, debit: s.d.toFixed(2), credit: s.c.toFixed(2), diff: e.toFixed(2),
+            }));
           }
           if (imbalancedDowngraded > 0) {
-            report.warnings.push(`${imbalancedDowngraded} pièce(s) déséquilibrée(s) importée(s) en brouillon (statut 'draft', jamais 'validated').`);
+            report.warnings.push(t('dataMigration.warnImbalancedDowngraded', { count: String(imbalancedDowngraded) }));
           }
           if (outOfPeriod > 0) {
-            report.warnings.push(`⚠️ ${outOfPeriod} écriture(s) datée(s) HORS de l'exercice [${fyStart} → ${fyEnd}] ont été importées. Vérifiez le périmètre du fichier source.`);
+            report.warnings.push(t('dataMigration.warnOutOfPeriod', { count: String(outOfPeriod), start: fyStart, end: fyEnd }));
           }
         }
 
@@ -1876,7 +1910,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             .from('journal_entries')
             .upsert(chunk, { onConflict: 'entry_number,tenant_id', ignoreDuplicates: true });
           if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
-            entryErrors.push(`Batch écritures [${b}-${b+ENTRY_BATCH}] : ${error.message}`);
+            entryErrors.push(t('dataMigration.errBatchEntries', { from: String(b), to: String(b + ENTRY_BATCH), message: error.message }));
           }
           ecrIdx += chunk.length;
           report.entries += chunk.length;
@@ -1914,7 +1948,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             .from('journal_lines')
             .upsert(chunk, { onConflict: 'id', ignoreDuplicates: true });
           if (error && !error.message.includes('duplicate') && !error.message.includes('unique')) {
-            entryErrors.push(`Batch lignes [${b}-${b+LINE_BATCH}] : ${error.message}`);
+            entryErrors.push(t('dataMigration.errBatchLines', { from: String(b), to: String(b + LINE_BATCH), message: error.message }));
           }
           report.lines += chunk.length;
           setImportProgress(70 + Math.round((b / batchLines.length) * 10));
@@ -2034,13 +2068,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           report.entries++;
           report.lines += lineRecords.length;
         } catch (err) {
-          const msg = err instanceof Error ? err.message : 'erreur inconnue';
+          const msg = err instanceof Error ? err.message : t('dataMigration.unknownError');
           if (msg.includes('duplicate key') || msg.includes('unique constraint')) {
             entriesSkipped++;
           } else {
             // Limiter a 10 erreurs detaillees pour ne pas saturer le rapport
             if (entryErrors.length < 10) {
-              entryErrors.push(`Ecriture ${piece} : ${msg}`);
+              entryErrors.push(t('dataMigration.errEntry', { piece: String(piece), message: msg }));
             }
           }
         }
@@ -2050,18 +2084,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       } // fin else Dexie
 
       if (entriesSkipped > 0) {
-        report.warnings.push(`${entriesSkipped} ecritures deja existantes (ignorees)`);
+        report.warnings.push(t('dataMigration.warnEntriesSkipped', { count: String(entriesSkipped) }));
       }
       for (const e of entryErrors) report.warnings.push(e);
       const otherErrors = (groups.size - report.entries - entriesSkipped) - entryErrors.length;
       if (otherErrors > 0) {
-        report.warnings.push(`+ ${otherErrors} autres ecritures en erreur (voir logs)`);
+        report.warnings.push(t('dataMigration.warnOtherEntryErrors', { count: String(otherErrors) }));
       }
 
       // 5. AN entries — Mode 2 (balance N-1) / fallback Mode 1 / Mode 3 (1 AN par exercice)
       const anData = uploadedFiles.reportAN?.data || [];
       if (anData.length > 0) {
-        setImportLabel('Import des reports a nouveau...');
+        setImportLabel(t('dataMigration.labelImportAN'));
         const anMapping = mappings.reportAN || [];
         const numCol = anMapping.find(m => m.target === 'numeroCompte')?.source;
         const libCol = anMapping.find(m => m.target === 'libelle')?.source;
@@ -2109,7 +2143,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               p_lines: lines,
               p_batch_id: migrationBatchId,
             });
-            if (error) { report.warnings.push(`Report AN ${entryNumber} ignoré : ${error.message}`); return; }
+            if (error) { report.warnings.push(t('dataMigration.warnAnIgnored', { entry: entryNumber, message: error.message })); return; }
           } else if (typeof adapterExtAN.saveJournalEntry === 'function') {
             await adapterExtAN.saveJournalEntry({
               entryNumber, journal: 'AN', date, label, reference: entryNumber,
@@ -2149,14 +2183,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             await saveAnEntry(buildAnLines(anData as Record<string, unknown>[]), 'AN-MIGRATION', anDate, 'Reports a nouveau — Migration');
           }
         } catch (err) {
-          const msg = err instanceof Error ? err.message : 'erreur inconnue';
-          report.warnings.push(`Report AN ignore : ${msg}`);
+          const msg = err instanceof Error ? err.message : t('dataMigration.unknownError');
+          report.warnings.push(t('dataMigration.warnAnIgnoredGeneric', { message: msg }));
         }
         setImportProgress(90);
       }
 
       // Post-import checks
-      setImportLabel('Controles post-import...');
+      setImportLabel(t('dataMigration.labelPostChecks'));
       report.journals = journals.size;
       // C2 — l'« équilibré » ne repose plus seulement sur la simulation PRÉ-import :
       // un échec d'insertion (batch en erreur) rend le résultat non fiable.
@@ -2173,7 +2207,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           if (diff >= 1) {
             report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
             report.bilanIsResult = true;
-            report.warnings.push(`Bilan en cours d'exercice : Actif − Passif = ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA = résultat de la période (classes 6-7 non affectées). Normal pour une bascule en cours d'exercice.`);
+            report.warnings.push(t('dataMigration.warnBilanEnCours', {
+              diff: diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+            }));
           }
         } else {
           // Modes 2/3 (début d'exercice / historique) : le résultat est affecté,
@@ -2181,7 +2217,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           report.bilanOk = diff < 1;
           if (diff >= 1) {
             report.bilanEcart = { actif: simulation.totalActif, passif: simulation.totalPassif, diff };
-            report.warnings.push(`Déséquilibre bilan : Actif ${simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Passif ${simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA — Écart ${diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA`);
+            report.warnings.push(t('dataMigration.warnBilanImbalance', {
+              actif: simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+              passif: simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+              diff: diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+            }));
           }
         }
       } else {
@@ -2191,7 +2231,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       report.vncOk = true;
 
       // ── Vérification réelle en base : COUNT depuis Supabase ───────────────
-      setImportLabel('Vérification en base...');
+      setImportLabel(t('dataMigration.labelDbVerification'));
       if (isSaasMode && supabaseClient) {
         const counts = await Promise.all([
           supabaseClient.from('accounts').select('*', { count: 'exact', head: true }).eq('tenant_id', tenantId),
@@ -2211,7 +2251,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
         // la base peut contenir moins que prévu → on le signale franchement.
         if (entryErrors.length > 0) {
           report.balanceOk = false;
-          report.warnings.unshift(`⚠️ ${entryErrors.length} lot(s) en erreur lors de l'insertion — la base peut être incomplète. Vérifiez puis purgez ce lot avant de relancer.`);
+          report.warnings.unshift(t('dataMigration.warnPartialBatchError', { count: String(entryErrors.length) }));
         }
       }
 
@@ -2238,10 +2278,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       }
 
       setImportReport(report);
-      toast.success('Migration terminee avec succes');
+      toast.success(t('dataMigration.toastMigrationDone'));
     } catch (err: any) {
-      toast.error(`Erreur d'import: ${err.message || 'erreur inconnue'}`);
-      report.warnings.push(`Erreur fatale: ${err.message}`);
+      toast.error(t('dataMigration.toastImportError', { message: err.message || t('dataMigration.unknownError') }));
+      report.warnings.push(t('dataMigration.warnFatalError', { message: String(err.message) }));
       // A7 — marquer la session en échec (le lot reste identifiable pour purge)
       try {
         if (adapter.getMode() === 'saas') {
@@ -2257,41 +2297,44 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
     } finally {
       setImporting(false);
     }
-  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode, journalMapping]);
+  }, [adapter, uploadedFiles, mappings, params, excludedEntries, simulation, sourceSystem, migrationMode, journalMapping, t]);
 
   // ─── A7 — Annuler/écraser un lot de migration (purge bornée + pré-flight) ───
   const handlePurgeBatch = useCallback(async (batchId: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const client = (adapter as any).client;
     if (adapter.getMode() !== 'saas' || !client) {
-      toast.error('Purge disponible uniquement en mode cloud.');
+      toast.error(t('dataMigration.toastPurgeCloudOnly'));
       return;
     }
     try {
       // 1. Pré-flight (dry-run) : compter ce qui sera supprimé
       const { data: preflight, error: e1 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: true });
-      if (e1) { toast.error(`Pré-flight échoué : ${e1.message}`); return; }
+      if (e1) { toast.error(t('dataMigration.toastPreflightFailed', { message: e1.message })); return; }
       const c = (preflight?.counts ?? {}) as Record<string, number>;
       const total = Object.values(c).reduce((s, n) => s + (Number(n) || 0), 0);
-      if (total === 0) { toast('Ce lot ne contient aucune donnée à supprimer.'); return; }
+      if (total === 0) { toast(t('dataMigration.toastBatchEmpty')); return; }
       // 2. Confirmation explicite
-      const ok = window.confirm(
-        `Supprimer DÉFINITIVEMENT ce lot de migration ?\n\n` +
-        `• Écritures : ${c.journal_entries ?? 0}\n• Lignes : ${c.journal_lines ?? 0}\n` +
-        `• Comptes : ${c.accounts ?? 0}\n• Tiers : ${c.third_parties ?? 0}\n• Immobilisations : ${c.assets ?? 0}\n\n` +
-        `Les saisies manuelles (hors migration) ne sont PAS touchées.`
-      );
+      const ok = window.confirm(t('dataMigration.confirmPurge', {
+        entries: String(c.journal_entries ?? 0),
+        lines: String(c.journal_lines ?? 0),
+        accounts: String(c.accounts ?? 0),
+        tiers: String(c.third_parties ?? 0),
+        assets: String(c.assets ?? 0),
+      }));
       if (!ok) return;
       // 3. Purge effective (bornée au lot côté serveur)
       const { error: e2 } = await client.rpc('purge_migration_batch', { p_batch_id: batchId, p_dry_run: false });
-      if (e2) { toast.error(`Purge échouée : ${e2.message}`); return; }
-      toast.success(`Lot supprimé (${total} lignes). Vous pouvez relancer la migration.`);
+      if (e2) { toast.error(t('dataMigration.toastPurgeFailed', { message: e2.message })); return; }
+      toast.success(t('dataMigration.toastPurgeDone', { count: String(total) }));
       setImportReport(null);
       setCurrentStep('mode');
     } catch (err) {
-      toast.error(`Erreur purge : ${err instanceof Error ? err.message : 'inconnue'}`);
+      toast.error(t('dataMigration.toastPurgeError', {
+        message: err instanceof Error ? err.message : t('dataMigration.unknownError'),
+      }));
     }
-  }, [adapter]);
+  }, [adapter, t]);
 
   // ─── Navigation ────────────────────────────────────────
 
@@ -2331,10 +2374,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       if (next) setCurrentStep(next.id);
     } catch (err) {
       console.error('[Migration] Échec du passage à l\'étape suivante :', err);
-      toast.error(
-        `Impossible de continuer : ${err instanceof Error ? err.message : 'erreur inconnue'}. ` +
-        `Vérifiez le fichier importé puis réessayez.`
-      );
+      toast.error(t('dataMigration.toastCannotContinue', {
+        message: err instanceof Error ? err.message : t('dataMigration.unknownError'),
+      }));
     } finally {
       setNavBusy(false);
     }
@@ -2374,24 +2416,24 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           style={{ color: 'var(--color-text-secondary)' }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-hover)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          aria-label="Retour"
+          aria-label={t('dataMigration.back')}
         >
           <ArrowLeft className="w-4 h-4" strokeWidth={1.6} />
         </button>
         <div>
-          <div className="eyebrow-gold mb-1">Atlas Studio · Migration SYSCOHADA</div>
+          <div className="eyebrow-gold mb-1">{t('dataMigration.eyebrowBrand')}</div>
           <h1 style={{ fontSize: '1.625rem', letterSpacing: 0, lineHeight: 1.15, color: 'var(--color-text-primary)' }} className="font-semibold">
-            Migration de données comptables
+            {t('dataMigration.pageTitle')}
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
-            Assistant d'import depuis un logiciel tiers (Sage, Ciel, EBP, Odoo, FEC, Excel...). Conforme OHADA · Plan SYSCOHADA révisé 2017.
+            {t('dataMigration.pageSubtitle')}
           </p>
         </div>
       </header>
 
       {/* Stepper premium — obsidien / champagne / hairlines */}
       <nav
-        aria-label="Étapes de migration"
+        aria-label={t('dataMigration.stepperAriaLabel')}
         className="surface-card flex items-center gap-1 overflow-x-auto"
         style={{ padding: '0.625rem 0.75rem' }}
       >
@@ -2436,7 +2478,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 >
                   {isDone ? '✓' : i + 1}
                 </span>
-                <span>{step.label}</span>
+                <span>{t(step.labelKey)}</span>
               </button>
             </React.Fragment>
           );
@@ -2452,53 +2494,53 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             style={{ padding: '1.25rem 1.5rem', position: 'relative', overflow: 'hidden' }}
           >
             <div aria-hidden style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: 'linear-gradient(90deg, transparent, var(--color-accent), transparent)', opacity: 0.55 }} />
-            <div className="eyebrow-gold mb-2">Étape 1 · Mode de migration</div>
+            <div className="eyebrow-gold mb-2">{t('dataMigration.step1Eyebrow')}</div>
             <h2 className="font-medium" style={{ fontSize: '1.125rem', color: 'var(--color-text-primary)', letterSpacing: 0 }}>
-              À quelle date effectuez-vous la bascule vers <span className="atlas-brand" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)' }}>Atlas FnA</span> ?
+              {t('dataMigration.step1QuestionBefore')}<span className="atlas-brand" style={{ fontSize: '1.15em', color: 'var(--color-accent-deep)' }}>Atlas FnA</span>{t('dataMigration.step1QuestionAfter')}
             </h2>
             <p className="text-sm mt-1.5" style={{ color: 'var(--color-text-tertiary)' }}>
-              Le mode détermine le périmètre des fichiers à importer et la stratégie de reprise comptable selon SYSCOHADA révisé 2017.
+              {t('dataMigration.step1Intro')}
             </p>
           </section>
 
           <section className="surface-card" style={{ padding: '1.5rem 1.5rem 1.375rem' }}>
             <header className="flex items-baseline justify-between mb-4">
-              <h2 className="font-medium" style={{ fontSize: '1rem', color: 'var(--color-text-primary)' }}>Sélectionnez un mode</h2>
-              <span className="eyebrow" style={{ color: 'var(--color-text-tertiary)' }}>3 options · 1 choix obligatoire</span>
+              <h2 className="font-medium" style={{ fontSize: '1rem', color: 'var(--color-text-primary)' }}>{t('dataMigration.step1SelectMode')}</h2>
+              <span className="eyebrow" style={{ color: 'var(--color-text-tertiary)' }}>{t('dataMigration.step1Options')}</span>
             </header>
             <div className="space-y-3">
             {([
               {
                 mode: 2 as MigrationMode,
-                title: 'Bascule début d\'exercice',
-                badge: 'RECOMMANDÉ',
-                desc: 'Au 01/01/N, juste après avoir clôturé l\'exercice précédent. Reprise minimale via la Balance de clôture N-1 (À Nouveau).',
-                detail: 'Standard SYSCOHADA pour les changements de logiciel comptable. Un seul fichier requis : la Balance au 31/12/N-1, qui devient automatiquement le journal AN (À Nouveau) d\'ouverture. Comptes de classe 1-5 (bilan) reportés en soldes d\'ouverture ; classes 6-7 (gestion) annualisées à zéro. Tiers et immobilisations facultatifs pour enrichir le référentiel. L\'historique des écritures détaillées reste consultable dans l\'ancien logiciel.',
-                files: '1 fichier obligatoire',
-                duration: '< 5 min',
-                risk: 'Faible',
+                title: t('dataMigration.mode2Title'),
+                badge: t('dataMigration.badgeRecommendedUpper'),
+                desc: t('dataMigration.mode2Desc'),
+                detail: t('dataMigration.mode2Detail'),
+                files: t('dataMigration.files1Required'),
+                duration: t('dataMigration.mode2Duration'),
+                risk: t('dataMigration.riskLow'),
                 riskTone: 'success' as const,
               },
               {
                 mode: 1 as MigrationMode,
-                title: 'Bascule en cours d\'exercice',
+                title: t('dataMigration.mode1Title'),
                 badge: '',
-                desc: 'L\'exercice N est déjà commencé. Reprise via Grand Livre (À Nouveau + mouvements du 01/01/N à la date de bascule).',
-                detail: 'À utiliser quand vous changez de logiciel en milieu d\'année. Un seul fichier obligatoire : le Grand Livre de l\'exercice en cours, contenant les écritures d\'ouverture AN et tous les mouvements jusqu\'à la date de bascule. La numérotation des pièces continue à partir du dernier numéro de l\'ancien logiciel. Plan comptable SYSCOHADA déjà embarqué — pas besoin de l\'importer. Tiers et immobilisations restent optionnels.',
-                files: '1 fichier obligatoire',
-                duration: '5 à 30 min',
-                risk: 'Moyen',
+                desc: t('dataMigration.mode1Desc'),
+                detail: t('dataMigration.mode1Detail'),
+                files: t('dataMigration.files1Required'),
+                duration: t('dataMigration.mode1Duration'),
+                risk: t('dataMigration.riskMedium'),
                 riskTone: 'warning' as const,
               },
               {
                 mode: 3 as MigrationMode,
-                title: 'Migration historique complète',
+                title: t('dataMigration.mode3Title'),
                 badge: '',
-                desc: 'Tout l\'historique des exercices clos est repris dans Atlas. Réservé aux cas d\'audit, fusion, ou obligation légale OHADA.',
-                detail: 'Reprise lourde : un fichier Grand Livre par exercice à migrer + Tiers + Immobilisations obligatoires. Peut représenter 200 000 à 500 000 écritures. Chaque exercice migré génère une entrée distincte dans la piste d\'audit SHA-256 (conformité OHADA art. 24). Déconseillé hors besoin réglementaire — préférez Mode 2 et conservez l\'archive dans l\'ancien logiciel.',
-                files: '3+ fichiers obligatoires',
-                duration: '1 à 8 heures',
-                risk: 'Élevé',
+                desc: t('dataMigration.mode3Desc'),
+                detail: t('dataMigration.mode3Detail'),
+                files: t('dataMigration.files3Required'),
+                duration: t('dataMigration.mode3Duration'),
+                risk: t('dataMigration.riskHigh'),
                 riskTone: 'danger' as const,
               },
             ]).map(({ mode, title, badge, desc, detail, files, duration, risk, riskTone }) => {
@@ -2538,7 +2580,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <p className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>
-                        Mode {mode} — {title}
+                        {t('dataMigration.modePrefix')} {mode} — {title}
                       </p>
                       {badge && (
                         <span
@@ -2566,7 +2608,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                         </p>
                         <div className="flex items-center gap-2 flex-wrap text-xs">
                           <span className="chip" style={{ padding: '0.25rem 0.625rem' }}>{files}</span>
-                          <span className="chip" style={{ padding: '0.25rem 0.625rem' }}>Durée · {duration}</span>
+                          <span className="chip" style={{ padding: '0.25rem 0.625rem' }}>{t('dataMigration.durationPrefix')} · {duration}</span>
                           <span
                             className="inline-flex items-center gap-1.5"
                             style={{
@@ -2578,7 +2620,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                               color: riskColors.color,
                             }}
                           >
-                            Risque · {risk}
+                            {t('dataMigration.riskPrefix')} · {risk}
                           </span>
                         </div>
                       </>
@@ -2592,74 +2634,74 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
           {/* Recap fichiers par mode */}
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">Fichiers requis — Mode {migrationMode}</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('dataMigration.recapTitle', { mode: String(migrationMode) })}</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left">
                     <th className="pb-2 pr-4 font-medium text-gray-500">#</th>
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Bloc</th>
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Etat a exporter depuis Sage</th>
-                    <th className="pb-2 font-medium text-gray-500">Statut</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500">{t('dataMigration.thBloc')}</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500">{t('dataMigration.thExportState')}</th>
+                    <th className="pb-2 font-medium text-gray-500">{t('dataMigration.thStatus')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  <tr><td className="py-2 pr-4 text-gray-400">1</td><td className="py-2 pr-4 font-medium">Plan comptable</td><td className="py-2 pr-4 text-gray-600">Liste des comptes generaux</td><td className="py-2"><span className="text-green-600 font-medium text-xs">Requis</span></td></tr>
-                  <tr><td className="py-2 pr-4 text-gray-400">2</td><td className="py-2 pr-4 font-medium">Fichier tiers</td><td className="py-2 pr-4 text-gray-600">Clients et fournisseurs</td><td className="py-2"><span className="text-green-600 font-medium text-xs">Requis</span></td></tr>
-                  <tr><td className="py-2 pr-4 text-gray-400">3</td><td className="py-2 pr-4 font-medium">Reports a nouveau</td><td className="py-2 pr-4 text-gray-600">Balance generale au 31/12/N-1 (soldes uniquement)</td><td className="py-2"><span className="text-green-600 font-medium text-xs">Requis</span></td></tr>
+                  <tr><td className="py-2 pr-4 text-gray-400">1</td><td className="py-2 pr-4 font-medium">{t('dataMigration.rowPlanComptable')}</td><td className="py-2 pr-4 text-gray-600">{t('dataMigration.rowPlanComptableDesc')}</td><td className="py-2"><span className="text-green-600 font-medium text-xs">{t('dataMigration.statusRequired')}</span></td></tr>
+                  <tr><td className="py-2 pr-4 text-gray-400">2</td><td className="py-2 pr-4 font-medium">{t('dataMigration.rowTiers')}</td><td className="py-2 pr-4 text-gray-600">{t('dataMigration.rowTiersDesc')}</td><td className="py-2"><span className="text-green-600 font-medium text-xs">{t('dataMigration.statusRequired')}</span></td></tr>
+                  <tr><td className="py-2 pr-4 text-gray-400">3</td><td className="py-2 pr-4 font-medium">{t('dataMigration.rowReportAN')}</td><td className="py-2 pr-4 text-gray-600">{t('dataMigration.rowReportANDesc')}</td><td className="py-2"><span className="text-green-600 font-medium text-xs">{t('dataMigration.statusRequired')}</span></td></tr>
                   {(migrationMode === 1 || migrationMode === 3) && (
                     <tr className="bg-amber-50">
                       <td className="py-2 pr-4 text-amber-600 font-bold">4</td>
-                      <td className="py-2 pr-4 font-semibold text-amber-900">Ecritures exercice {migrationMode === 1 ? 'en cours' : '(1 par exercice)'}</td>
-                      <td className="py-2 pr-4 text-amber-700">Grand Livre {migrationMode === 1 ? 'du 01/01/N a la date de bascule' : 'complet de chaque exercice'}</td>
-                      <td className="py-2"><span className="text-amber-700 font-bold text-xs">REQUIS</span></td>
+                      <td className="py-2 pr-4 font-semibold text-amber-900">{migrationMode === 1 ? t('dataMigration.rowEntriesCurrent') : t('dataMigration.rowEntriesPerYear')}</td>
+                      <td className="py-2 pr-4 text-amber-700">{migrationMode === 1 ? t('dataMigration.rowGlCurrentDesc') : t('dataMigration.rowGlAllDesc')}</td>
+                      <td className="py-2"><span className="text-amber-700 font-bold text-xs">{t('dataMigration.statusRequiredUpper')}</span></td>
                     </tr>
                   )}
                   {migrationMode === 2 && (
                     <tr className="bg-gray-50">
                       <td className="py-2 pr-4 text-gray-400">—</td>
-                      <td className="py-2 pr-4 text-gray-400 line-through">Grand Livre / Ecritures</td>
-                      <td className="py-2 pr-4 text-gray-400">Pas necessaire en Mode 2</td>
-                      <td className="py-2"><span className="text-gray-400 text-xs">Non requis</span></td>
+                      <td className="py-2 pr-4 text-gray-400 line-through">{t('dataMigration.rowGlLabel')}</td>
+                      <td className="py-2 pr-4 text-gray-400">{t('dataMigration.rowGlNotNeeded')}</td>
+                      <td className="py-2"><span className="text-gray-400 text-xs">{t('dataMigration.statusNotRequired')}</span></td>
                     </tr>
                   )}
-                  <tr><td className="py-2 pr-4 text-gray-400">{migrationMode === 2 ? '4' : migrationMode === 1 ? '5' : '8'}</td><td className="py-2 pr-4 font-medium">Immobilisations</td><td className="py-2 pr-4 text-gray-600">Plan d'amortissement au 31/12/N-1</td><td className="py-2"><span className="text-green-600 font-medium text-xs">Requis</span></td></tr>
+                  <tr><td className="py-2 pr-4 text-gray-400">{migrationMode === 2 ? '4' : migrationMode === 1 ? '5' : '8'}</td><td className="py-2 pr-4 font-medium">{t('dataMigration.rowImmo')}</td><td className="py-2 pr-4 text-gray-600">{t('dataMigration.rowImmoDesc')}</td><td className="py-2"><span className="text-green-600 font-medium text-xs">{t('dataMigration.statusRequired')}</span></td></tr>
                 </tbody>
               </table>
             </div>
 
             {migrationMode === 2 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800"><strong>Pourquoi la Balance et pas le Grand Livre ?</strong> La Balance condense tout en une seule ligne par compte (le solde final au 31/12/N-1). C'est exactement ce dont Atlas FnA a besoin pour ouvrir l'exercice N — ni plus, ni moins.</p>
+                <p className="text-xs text-blue-800"><strong>{t('dataMigration.infoMode2Title')}</strong> {t('dataMigration.infoMode2Text')}</p>
               </div>
             )}
             {migrationMode === 1 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-xs text-blue-800"><strong>Pourquoi le Grand Livre ici ?</strong> Les ecritures de janvier a la date de bascule existent dans Sage mais pas encore dans Atlas. Sans elles, la balance serait fausse, les soldes tiers faux, les declarations TVA impossibles. Exporter le Grand Livre filtre sur l'exercice N uniquement (exclure le journal AN).</p>
+                <p className="text-xs text-blue-800"><strong>{t('dataMigration.infoMode1Title')}</strong> {t('dataMigration.infoMode1Text')}</p>
               </div>
             )}
             {migrationMode === 3 && (
               <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-xs text-red-800"><strong>Attention :</strong> Un fichier Grand Livre par exercice. Ne pas fusionner plusieurs exercices dans un seul fichier. Atlas FnA verifie la coherence inter-exercices : Bilan cloture N-3 = Bilan ouverture N-2, etc.</p>
+                <p className="text-xs text-red-800"><strong>{t('dataMigration.infoMode3Title')}</strong> {t('dataMigration.infoMode3Text')}</p>
               </div>
             )}
           </div>
 
           {/* Regles de format */}
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-3">Regles de format des fichiers</h2>
+            <h2 className="text-lg font-semibold mb-3">{t('dataMigration.formatRulesTitle')}</h2>
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Separateur de colonnes</span><span className="font-mono font-medium">point-virgule ( ; )</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Encodage</span><span className="font-mono font-medium">UTF-8</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Premiere ligne</span><span className="font-medium">En-tetes de colonnes</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Dates</span><span className="font-mono font-medium">JJ/MM/AAAA</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Montants</span><span className="font-mono font-medium">18000000 (sans espace)</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Decimales</span><span className="font-mono font-medium">point ( . )</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtSeparator')}</span><span className="font-mono font-medium">{t('dataMigration.fmtSeparatorValue')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtEncoding')}</span><span className="font-mono font-medium">UTF-8</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtFirstRow')}</span><span className="font-medium">{t('dataMigration.fmtFirstRowValue')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtDates')}</span><span className="font-mono font-medium">{t('dataMigration.fmtDatesValue')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtAmounts')}</span><span className="font-mono font-medium">{t('dataMigration.fmtAmountsValue')}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">{t('dataMigration.fmtDecimals')}</span><span className="font-mono font-medium">{t('dataMigration.fmtDecimalsValue')}</span></div>
             </div>
           </div>
 
           <div className="bg-white border rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-semibold">Logiciel source</h2>
+            <h2 className="text-lg font-semibold">{t('dataMigration.sourceSoftwareTitle')}</h2>
             <div className="grid grid-cols-4 gap-3">
               {SOURCE_SYSTEMS.map(sys => (
                 <button
@@ -2686,17 +2728,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               <div className="flex-1 min-w-[260px]">
                 <h2 className="text-lg font-semibold mb-1 flex items-center gap-2 flex-wrap">
                   <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-                  Classeur du Mode {migrationMode} — {getModeTemplate(migrationMode as MigrationModeId).title}
+                  {t('dataMigration.workbookTitle', { mode: String(migrationMode) })} — {getModeTemplate(migrationMode as MigrationModeId).title}
                   {getModeTemplate(migrationMode as MigrationModeId).recommended && (
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
-                      Recommandé
+                      {t('dataMigration.badgeRecommended')}
                     </span>
                   )}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  Le flux le plus simple : <strong>un seul fichier Excel</strong> regroupant toutes les feuilles du mode.
-                  Téléchargez le modèle, remplissez-le sans renommer les feuilles, puis ré-importez-le ici —
-                  les feuilles (Grand Livre, Balance, Tiers, Immobilisations…) sont réparties automatiquement.
+                  {t('dataMigration.workbookIntro1')}<strong>{t('dataMigration.workbookIntroStrong')}</strong>{t('dataMigration.workbookIntro2')}
                 </p>
               </div>
               <button
@@ -2704,7 +2744,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 onClick={() => downloadModeTemplate(migrationMode as MigrationModeId)}
                 className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors shrink-0"
               >
-                <Download className="w-4 h-4" /> Télécharger le modèle du Mode {migrationMode}
+                <Download className="w-4 h-4" /> {t('dataMigration.downloadModeTemplate', { mode: String(migrationMode) })}
               </button>
             </div>
 
@@ -2723,11 +2763,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               className="w-full py-8 border-2 border-dashed border-emerald-300 rounded-lg text-center text-sm text-emerald-700 hover:bg-emerald-50 transition-colors"
             >
               <Upload className="w-6 h-6 mx-auto mb-2 text-emerald-500" />
-              Glissez le classeur rempli ici, ou cliquez pour le sélectionner
+              {t('dataMigration.dropWorkbook')}
             </button>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-              <span className="font-medium text-gray-600">Feuilles du modèle :</span>
+              <span className="font-medium text-gray-600">{t('dataMigration.templateSheets')}</span>
               {getModeTemplate(migrationMode as MigrationModeId).sheets.map(s => (
                 <span
                   key={s.sheetName}
@@ -2740,7 +2780,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   {s.sheetName}{s.required ? ' *' : ''}
                 </span>
               ))}
-              <span className="text-gray-400">(* obligatoire)</span>
+              <span className="text-gray-400">{t('dataMigration.requiredMarkerNote')}</span>
             </div>
 
             {/* Confirmation persistante : feuilles effectivement chargées (le toast
@@ -2748,12 +2788,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {Object.keys(uploadedFiles).length > 0 && (
               <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3">
                 <div className="flex items-center gap-2 text-sm font-medium text-green-800 mb-1">
-                  <CheckCircle className="w-4 h-4" /> Données chargées et prêtes
+                  <CheckCircle className="w-4 h-4" /> {t('dataMigration.dataLoadedReady')}
                 </div>
                 <ul className="flex flex-wrap gap-2 text-xs">
                   {Object.entries(uploadedFiles).map(([key, uf]) => (
                     <li key={key} className="px-2 py-1 rounded bg-white border border-green-200 text-green-700">
-                      {FILE_CONFIGS[key]?.label ?? key} — <strong>{uf.data.length}</strong> ligne(s)
+                      {FILE_CONFIGS[key] ? t(FILE_CONFIGS[key].labelKey) : key} — <strong>{uf.data.length}</strong> {t('dataMigration.rowsSuffix')}
                     </li>
                   ))}
                 </ul>
@@ -2764,7 +2804,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           {/* Repli : préparation fichier-par-fichier (sources externes hétérogènes) */}
           <details className="bg-white border rounded-xl">
             <summary className="cursor-pointer px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-900">
-              Vous préférez importer des fichiers séparés (export Sage, FEC…) ? Cliquez ici.
+              {t('dataMigration.separateFilesSummary')}
             </summary>
             <div className="px-6 pb-6 pt-2 space-y-4">
           {/* Bandeau téléchargement des modèles Excel */}
@@ -2772,8 +2812,8 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="flex items-start gap-3">
               <Download className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="font-semibold text-amber-800 mb-1">Téléchargez les modèles Excel Atlas FnA avant de préparer vos fichiers</p>
-                <p className="text-xs text-amber-700 mb-3">Chaque modèle contient les colonnes exactes attendues + des exemples de données. Respectez le format pour éviter les erreurs de mapping.</p>
+                <p className="font-semibold text-amber-800 mb-1">{t('dataMigration.templatesBannerTitle')}</p>
+                <p className="text-xs text-amber-700 mb-3">{t('dataMigration.templatesBannerText')}</p>
                 <div className="flex flex-wrap gap-2">
                   {availableFileKeys.map(key => {
                     const config = FILE_CONFIGS[key];
@@ -2788,7 +2828,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-300 hover:bg-amber-100 rounded-lg text-xs font-medium text-amber-800 transition-colors"
                       >
                         <FileSpreadsheet className="w-3.5 h-3.5" />
-                        {config.label}
+                        {t(config.labelKey)}
                       </button>
                     );
                   })}
@@ -2798,7 +2838,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           </div>
 
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">Fichiers à importer — Mode {migrationMode} ({sourceSystem})</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('dataMigration.filesToImportTitle', { mode: String(migrationMode), system: sourceSystem })}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableFileKeys.map(key => {
                 const config = FILE_CONFIGS[key];
@@ -2815,14 +2855,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2 text-gray-700">
                         {config.icon}
-                        <span className="font-medium text-sm">{config.label}</span>
+                        <span className="font-medium text-sm">{t(config.labelKey)}</span>
                         {required ? (
                           <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-100 text-red-700 border border-red-200">
-                            Obligatoire
+                            {t('dataMigration.badgeRequired')}
                           </span>
                         ) : (
                           <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200">
-                            Recommandé
+                            {t('dataMigration.badgeRecommended')}
                           </span>
                         )}
                       </div>
@@ -2839,19 +2879,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                             }
                           }}
                           className="text-xs text-red-600 hover:underline flex items-center gap-1 cursor-pointer"
-                          title="Télécharger le modèle Atlas FnA pré-rempli"
+                          title={t('dataMigration.downloadTemplateTitle')}
                         >
-                          <Download className="w-3 h-3" /> Télécharger le modèle
+                          <Download className="w-3 h-3" /> {t('dataMigration.downloadTemplate')}
                         </button>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mb-3">{config.description}</p>
+                    <p className="text-xs text-gray-500 mb-3">{t(config.descKey)}</p>
 
                     {uf ? (
                       <div className="flex items-center justify-between bg-white rounded p-2 border">
                         <div className="text-sm">
                           <p className="font-medium text-gray-900">{uf.file.name}</p>
-                          <p className="text-gray-500">{formatSize(uf.file.size)} — {uf.data.length} lignes — {uf.columns.length} colonnes</p>
+                          <p className="text-gray-500">{t('dataMigration.fileStats', { size: formatSize(uf.file.size), rows: String(uf.data.length), cols: String(uf.columns.length) })}</p>
                         </div>
                         <button onClick={() => removeFile(key)} className="p-1 hover:bg-red-50 rounded text-red-500">
                           <Trash2 className="w-4 h-4" />
@@ -2865,7 +2905,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                         className="w-full py-6 text-center text-sm text-gray-400 hover:text-gray-600"
                       >
                         <Upload className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                        Glisser-deposer ou cliquer pour parcourir
+                        {t('dataMigration.dropOrBrowse')}
                         <input
                           ref={el => { fileInputRefs.current[key] = el; }}
                           type="file"
@@ -2897,25 +2937,25 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-base font-bold text-green-900 mb-1">
-                    Plan Comptable généré automatiquement depuis le Grand Livre
+                    {t('dataMigration.pcGeneratedTitle')}
                   </h3>
                   <p className="text-xs text-green-800 mb-3">
-                    Atlas a extrait <strong>{generatedPC.extracted} comptes distincts</strong> du Grand Livre
-                    et les a enrichis avec le référentiel SYSCOHADA révisé 2017.
-                    Vous n'avez pas besoin d'importer un fichier Plan Comptable séparé.
+                    {t('dataMigration.pcGeneratedText1')}
+                    <strong>{t('dataMigration.pcGeneratedCount', { count: String(generatedPC.extracted) })}</strong>
+                    {t('dataMigration.pcGeneratedText2')}
                   </p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
                     <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
                       <p className="text-lg font-bold text-green-900">{generatedPC.enrichedFromSyscohada}</p>
-                      <p className="text-[10px] text-green-700">Enrichis via SYSCOHADA</p>
+                      <p className="text-[10px] text-green-700">{t('dataMigration.pcEnrichedSyscohada')}</p>
                     </div>
                     <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
                       <p className="text-lg font-bold text-green-900">{generatedPC.enrichedFromGL}</p>
-                      <p className="text-[10px] text-green-700">Enrichis via GL</p>
+                      <p className="text-[10px] text-green-700">{t('dataMigration.pcEnrichedGl')}</p>
                     </div>
                     <div className="bg-white rounded-lg p-2 border border-green-100 text-center">
                       <p className="text-lg font-bold text-green-900">{generatedPC.inferred}</p>
-                      <p className="text-[10px] text-green-700">Inférés (à vérifier)</p>
+                      <p className="text-[10px] text-green-700">{t('dataMigration.pcInferred')}</p>
                     </div>
                   </div>
                   <button
@@ -2936,14 +2976,14 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                         a.download = `plan_comptable_genere_${new Date().toISOString().slice(0, 10)}.xlsx`;
                         a.click();
                         setTimeout(() => URL.revokeObjectURL(url), 1000);
-                        toast.success('Plan Comptable téléchargé');
+                        toast.success(t('dataMigration.toastPcDownloaded'));
                       } catch (e) { /* silent */
-                        toast.error('Erreur lors du téléchargement');
+                        toast.error(t('dataMigration.toastDownloadError'));
                       }
                     }}
                     className="text-xs font-semibold px-3 py-1.5 bg-white border border-green-300 text-green-700 rounded-lg hover:bg-green-100 inline-flex items-center gap-1.5"
                   >
-                    <Download className="w-3 h-3" /> Télécharger le Plan Comptable généré
+                    <Download className="w-3 h-3" /> {t('dataMigration.pcDownloadBtn')}
                   </button>
                 </div>
               </div>
@@ -2953,18 +2993,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 <div className="mt-4 bg-white rounded-lg border border-green-100 overflow-hidden">
                   <div className="px-3 py-2 bg-green-100/50 border-b border-green-100">
                     <p className="text-[11px] font-semibold text-green-900">
-                      Aperçu — {Math.min(10, generatedPC.accounts.length)} premiers comptes
+                      {t('dataMigration.pcPreview', { count: String(Math.min(10, generatedPC.accounts.length)) })}
                     </p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs">
                       <thead className="bg-green-50 text-green-900">
                         <tr>
-                          <th className="text-left px-3 py-1.5 font-semibold">Numéro</th>
-                          <th className="text-left px-3 py-1.5 font-semibold">Libellé</th>
-                          <th className="text-center px-2 py-1.5 font-semibold">Classe</th>
-                          <th className="text-center px-2 py-1.5 font-semibold">Sens</th>
-                          <th className="text-center px-2 py-1.5 font-semibold">Source</th>
+                          <th className="text-left px-3 py-1.5 font-semibold">{t('dataMigration.thNumero')}</th>
+                          <th className="text-left px-3 py-1.5 font-semibold">{t('dataMigration.thLibelle')}</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">{t('dataMigration.thClasse')}</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">{t('dataMigration.thSens')}</th>
+                          <th className="text-center px-2 py-1.5 font-semibold">{t('dataMigration.thSource')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2986,7 +3026,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                                 acc.source === 'gl' ? 'bg-blue-100 text-blue-700' :
                                 'bg-orange-100 text-orange-700'
                               }`}>
-                                {acc.source === 'syscohada' ? 'SYSCOHADA' : acc.source === 'gl' ? 'GL' : 'Inféré'}
+                                {acc.source === 'syscohada' ? 'SYSCOHADA' : acc.source === 'gl' ? 'GL' : t('dataMigration.srcInferred')}
                               </span>
                             </td>
                           </tr>
@@ -2996,7 +3036,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   </div>
                   {generatedPC.accounts.length > 10 && (
                     <div className="px-3 py-1.5 bg-green-50/50 border-t border-green-100 text-[10px] text-green-700 text-center">
-                      + {generatedPC.accounts.length - 10} autres comptes — téléchargez le fichier complet pour tout voir
+                      {t('dataMigration.pcMoreAccounts', { count: String(generatedPC.accounts.length - 10) })}
                     </div>
                   )}
                 </div>
@@ -3005,18 +3045,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           )}
 
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">Rapport d'analyse pre-import</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('dataMigration.analysisTitle')}</h2>
             <div className="grid grid-cols-5 gap-4 mb-6">
               {[
-                { label: 'Comptes', value: analysisReport.accounts, icon: <BookOpen className="w-5 h-5" /> },
-                { label: 'Tiers', value: analysisReport.tiers, icon: <Users className="w-5 h-5" /> },
-                { label: 'Ecritures', value: analysisReport.entries, icon: <FileText className="w-5 h-5" /> },
-                { label: 'Lignes', value: analysisReport.lines, icon: <BarChart3 className="w-5 h-5" /> },
-                { label: 'Immobilisations', value: analysisReport.assets, icon: <Package className="w-5 h-5" /> },
+                { label: t('dataMigration.kpiAccounts'), value: analysisReport.accounts, icon: <BookOpen className="w-5 h-5" /> },
+                { label: t('dataMigration.kpiTiers'), value: analysisReport.tiers, icon: <Users className="w-5 h-5" /> },
+                { label: t('dataMigration.kpiEntries'), value: analysisReport.entries, icon: <FileText className="w-5 h-5" /> },
+                { label: t('dataMigration.kpiLines'), value: analysisReport.lines, icon: <BarChart3 className="w-5 h-5" /> },
+                { label: t('dataMigration.kpiAssets'), value: analysisReport.assets, icon: <Package className="w-5 h-5" /> },
               ].map(item => (
                 <div key={item.label} className="bg-gray-50 rounded-lg p-3 text-center">
                   <div className="flex justify-center text-gray-400 mb-1">{item.icon}</div>
-                  <p className="text-2xl font-bold text-gray-900">{item.value}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(item.value)}</p>
                   <p className="text-xs text-gray-500">{item.label}</p>
                 </div>
               ))}
@@ -3025,7 +3065,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {analysisReport.errors.length > 0 && (
               <div className="mb-4">
                 <h3 className="flex items-center gap-2 text-red-700 font-semibold mb-2">
-                  <XCircle className="w-5 h-5" /> Erreurs bloquantes ({analysisReport.errors.length})
+                  <XCircle className="w-5 h-5" /> {t('dataMigration.blockingErrors', { count: String(analysisReport.errors.length) })}
                 </h3>
                 <div className="space-y-2">
                   {analysisReport.errors.map((err, i) => (
@@ -3044,7 +3084,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {analysisReport.warnings.length > 0 && (
               <div>
                 <h3 className="flex items-center gap-2 text-amber-700 font-semibold mb-2">
-                  <AlertTriangle className="w-5 h-5" /> Avertissements ({analysisReport.warnings.length})
+                  <AlertTriangle className="w-5 h-5" /> {t('dataMigration.warningsTitle', { count: String(analysisReport.warnings.length) })}
                 </h3>
                 <div className="space-y-2 max-h-60 overflow-y-auto">
                   {analysisReport.warnings.map((w, i) => (
@@ -3063,7 +3103,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {analysisReport.errors.length === 0 && analysisReport.warnings.length === 0 && (
               <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg p-4">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <p className="text-green-800 font-medium">Toutes les verifications ont reussi. Vous pouvez poursuivre.</p>
+                <p className="text-green-800 font-medium">{t('dataMigration.allChecksPassed')}</p>
               </div>
             )}
           </div>
@@ -3079,15 +3119,15 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             return (
               <div key={fileKey} className="bg-white border rounded-xl p-6">
                 <h3 className="font-semibold text-gray-900 mb-3">
-                  {FILE_CONFIGS[fileKey]?.label || fileKey} — Mapping des colonnes
+                  {FILE_CONFIGS[fileKey] ? t(FILE_CONFIGS[fileKey].labelKey) : fileKey} — {t('dataMigration.mappingTitleSuffix')}
                 </h3>
                 <div className="space-y-2">
                   {cols.map((col, ci) => (
                     <div key={ci} className="flex items-center gap-4">
                       <div className="w-1/3 flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-700">{col.targetLabel}</span>
-                        {col.required && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">requis</span>}
-                        {!col.required && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">optionnel</span>}
+                        {col.required && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-semibold">{t('dataMigration.tagRequired')}</span>}
+                        {!col.required && <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{t('dataMigration.tagOptional')}</span>}
                       </div>
                       <ChevronRight className="w-4 h-4 text-gray-300" />
                       <select
@@ -3099,7 +3139,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                         }}
                         className="flex-1 border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                       >
-                        <option value="">— Selectionner —</option>
+                        <option value="">{t('dataMigration.selectPlaceholder')}</option>
                         {uf.columns.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
                     </div>
@@ -3111,7 +3151,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
           {accountMappings.length > 0 && (
             <div className="bg-white border rounded-xl p-6">
-              <h3 className="font-semibold text-gray-900 mb-3">Verification des comptes SYSCOHADA</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">{t('dataMigration.accountCheckTitle')}</h3>
               <div className="max-h-60 overflow-y-auto space-y-1">
                 {accountMappings.map((am, i) => (
                   <div key={i} className={`flex items-center gap-3 px-3 py-1.5 rounded text-sm ${
@@ -3130,7 +3170,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                           setAccountMappings(updated);
                         }}
                         className="ml-auto w-28 border rounded px-2 py-0.5 text-sm font-mono"
-                        placeholder="Nouveau no."
+                        placeholder={t('dataMigration.newNumberPlaceholder')}
                       />
                     )}
                   </div>
@@ -3145,26 +3185,24 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {currentStep === 'journaux' && (
         <div className="space-y-4">
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-1">Rapprochement des journaux</h2>
+            <h2 className="text-lg font-semibold mb-1">{t('dataMigration.journalsTitle')}</h2>
             <p className="text-sm text-gray-500 mb-4">
-              Chaque entreprise nomme ses journaux librement. Nous proposons un type standard pour chaque
-              journal détecté (d'après son nom et les comptes mouvementés). Vérifiez et ajustez si besoin —
-              le code d'origine reste conservé dans le numéro de pièce.
+              {t('dataMigration.journalsIntro')}
             </p>
 
             {detectedJournals.length === 0 ? (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
-                Aucun journal détecté. Vérifiez que la colonne « Journal » est bien mappée à l'étape précédente.
+                {t('dataMigration.noJournalsDetected')}
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left text-gray-500 border-b">
-                      <th className="py-2 pr-4">Journal source</th>
-                      <th className="py-2 pr-4 text-center">Écritures</th>
-                      <th className="py-2 pr-4">Comptes (échantillon)</th>
-                      <th className="py-2 pr-4">Type standard</th>
+                      <th className="py-2 pr-4">{t('dataMigration.thJournalSource')}</th>
+                      <th className="py-2 pr-4 text-center">{t('dataMigration.thEntries')}</th>
+                      <th className="py-2 pr-4">{t('dataMigration.thAccountsSample')}</th>
+                      <th className="py-2 pr-4">{t('dataMigration.thStandardType')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3182,13 +3220,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                                 onChange={e => setJournalMapping(prev => ({ ...prev, [j.code]: e.target.value }))}
                                 className="border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                               >
-                                {JOURNAL_TYPES.map(t => (
-                                  <option key={t.code} value={t.code}>{t.code} — {t.label}</option>
+                                {JOURNAL_TYPES.map(jt => (
+                                  <option key={jt.code} value={jt.code}>{jt.code} — {t(jt.labelKey)}</option>
                                 ))}
                               </select>
                               {isAuto && (
                                 <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  auto
+                                  {t('dataMigration.tagAuto')}
                                 </span>
                               )}
                             </div>
@@ -3200,12 +3238,12 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 </table>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                  {JOURNAL_TYPES.map(t => {
-                    const n = detectedJournals.filter(j => (journalMapping[j.code] ?? j.proposed) === t.code).length;
+                  {JOURNAL_TYPES.map(jt => {
+                    const n = detectedJournals.filter(j => (journalMapping[j.code] ?? j.proposed) === jt.code).length;
                     if (n === 0) return null;
                     return (
-                      <span key={t.code} className="px-2 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600">
-                        {t.label} : <strong>{n}</strong>
+                      <span key={jt.code} className="px-2 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600">
+                        {t(jt.labelKey)} : <strong>{n}</strong>
                       </span>
                     );
                   })}
@@ -3220,24 +3258,24 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {currentStep === 'parameters' && (
         <div className="bg-white border rounded-xl p-6 space-y-6">
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Settings className="w-5 h-5" /> Parametres de migration
+            <Settings className="w-5 h-5" /> {t('dataMigration.paramsTitle')}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date de bascule</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('dataMigration.labelDateBascule')}</label>
               <input type="date" value={params.dateBascule}
                 onChange={e => setParams(p => ({ ...p, dateBascule: e.target.value }))}
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Debut exercice Atlas</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('dataMigration.labelFyStart')}</label>
               <input type="date" value={params.exerciceStart}
                 onChange={e => setParams(p => ({ ...p, exerciceStart: e.target.value }))}
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Fin exercice Atlas</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('dataMigration.labelFyEnd')}</label>
               <input type="date" value={params.exerciceEnd}
                 onChange={e => setParams(p => ({ ...p, exerciceEnd: e.target.value }))}
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500" />
@@ -3245,11 +3283,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Statut des ecritures importees</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('dataMigration.labelEntryStatus')}</label>
             <div className="flex gap-4">
               {[
-                { val: 'validated' as const, label: 'Validees (recommande)' },
-                { val: 'draft' as const, label: 'Brouillons' },
+                { val: 'validated' as const, label: t('dataMigration.optValidated') },
+                { val: 'draft' as const, label: t('dataMigration.optDraft') },
               ].map(opt => (
                 <button key={opt.val} onClick={() => setParams(p => ({ ...p, entryStatus: opt.val }))}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium ${
@@ -3268,11 +3306,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Gestion du lettrage</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t('dataMigration.labelLettrage')}</label>
             <div className="flex gap-4">
               {[
-                { val: true, label: 'Recreer les lettrages' },
-                { val: false, label: 'Sans lettrage' },
+                { val: true, label: t('dataMigration.optLettrageYes') },
+                { val: false, label: t('dataMigration.optLettrageNo') },
               ].map(opt => (
                 <button key={String(opt.val)} onClick={() => setParams(p => ({ ...p, lettrage: opt.val }))}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-sm font-medium ${
@@ -3293,13 +3331,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">Donnees existantes</p>
-              <p className="text-sm text-amber-700 mt-1">Si des ecritures existent deja pour cet exercice, choisissez l'action :</p>
+              <p className="text-sm font-medium text-amber-800">{t('dataMigration.existingDataTitle')}</p>
+              <p className="text-sm text-amber-700 mt-1">{t('dataMigration.existingDataText')}</p>
               <div className="flex gap-3 mt-2">
                 {[
-                  { val: 'merge' as const, label: 'Fusionner' },
-                  { val: 'replace' as const, label: 'Remplacer' },
-                  { val: 'cancel' as const, label: 'Annuler' },
+                  { val: 'merge' as const, label: t('dataMigration.optMerge') },
+                  { val: 'replace' as const, label: t('dataMigration.optReplace') },
+                  { val: 'cancel' as const, label: t('dataMigration.optCancel') },
                 ].map(opt => (
                   <button key={opt.val} onClick={() => setParams(p => ({ ...p, existingDataAction: opt.val }))}
                     className={`px-3 py-1 rounded text-sm font-medium ${
@@ -3317,23 +3355,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
       {currentStep === 'simulation' && simulation && (
         <div className="space-y-4">
           <div className="bg-white border rounded-xl p-6">
-            <h2 className="text-lg font-semibold mb-4">Resultats de la simulation</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('dataMigration.simTitle')}</h2>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className={`rounded-lg p-4 text-center ${simulation.balanced ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                <p className="text-xs text-gray-500 mb-1">Total debits</p>
+                <p className="text-xs text-gray-500 mb-1">{t('dataMigration.simTotalDebit')}</p>
                 <p className="text-lg font-bold">{simulation.totalDebit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className={`rounded-lg p-4 text-center ${simulation.balanced ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                <p className="text-xs text-gray-500 mb-1">Total credits</p>
+                <p className="text-xs text-gray-500 mb-1">{t('dataMigration.simTotalCredit')}</p>
                 <p className="text-lg font-bold">{simulation.totalCredit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className="rounded-lg p-4 text-center bg-blue-50 border border-blue-200">
-                <p className="text-xs text-gray-500 mb-1">Actif estime</p>
+                <p className="text-xs text-gray-500 mb-1">{t('dataMigration.simEstActif')}</p>
                 <p className="text-lg font-bold">{simulation.totalActif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className="rounded-lg p-4 text-center bg-blue-50 border border-blue-200">
-                <p className="text-xs text-gray-500 mb-1">Passif estime</p>
+                <p className="text-xs text-gray-500 mb-1">{t('dataMigration.simEstPassif')}</p>
                 <p className="text-lg font-bold">{simulation.totalPassif.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
               </div>
             </div>
@@ -3341,8 +3379,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
               {Object.entries(simulation.counts).map(([key, val]) => {
                 const COUNT_LABELS: Record<string, string> = {
-                  comptes: 'comptes', tiers: 'tiers', ecritures: 'écritures',
-                  reportAN: 'RAN (À Nouveau)', immobilisations: 'immobilisations',
+                  comptes: t('dataMigration.cntAccounts'),
+                  tiers: t('dataMigration.cntTiers'),
+                  ecritures: t('dataMigration.cntEntries'),
+                  reportAN: t('dataMigration.cntRan'),
+                  immobilisations: t('dataMigration.cntAssets'),
                 };
                 return (
                   <div key={key} className="bg-gray-50 rounded-lg p-3 text-center">
@@ -3359,10 +3400,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   <CheckCircle className="w-5 h-5 text-green-600" /> :
                   <XCircle className="w-5 h-5 text-red-600" />}
                 <span className={`font-medium ${simulation.balanced ? 'text-green-700' : 'text-red-700'}`}>
-                  {simulation.balanced ? 'Équilibre vérifié — prêt pour l\'import' : 'DÉSÉQUILIBRE DÉTECTÉ — import bloqué'}
+                  {simulation.balanced ? t('dataMigration.simBalancedOk') : t('dataMigration.simUnbalanced')}
                 </span>
               </div>
-              <span className="text-sm text-gray-500">Durée estimée : ~{simulation.estimatedTime}s</span>
+              <span className="text-sm text-gray-500">{t('dataMigration.simEstimatedTime', { seconds: String(simulation.estimatedTime) })}</span>
             </div>
 
             {!simulation.balanced && (
@@ -3370,28 +3411,28 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="font-semibold text-red-800 mb-1">Détail du déséquilibre</p>
+                    <p className="font-semibold text-red-800 mb-1">{t('dataMigration.simImbalanceDetail')}</p>
                     <div className="grid grid-cols-3 gap-3 text-sm mb-3">
                       <div className="bg-white rounded p-2 border border-red-100 text-center">
-                        <p className="text-xs text-gray-500 mb-0.5">Total débits</p>
+                        <p className="text-xs text-gray-500 mb-0.5">{t('dataMigration.simTotalDebit')}</p>
                         <p className="font-mono font-semibold text-gray-900">{simulation.totalDebit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
                       </div>
                       <div className="bg-white rounded p-2 border border-red-100 text-center">
-                        <p className="text-xs text-gray-500 mb-0.5">Total crédits</p>
+                        <p className="text-xs text-gray-500 mb-0.5">{t('dataMigration.simTotalCredit')}</p>
                         <p className="font-mono font-semibold text-gray-900">{simulation.totalCredit.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
                       </div>
                       <div className="bg-red-100 rounded p-2 border border-red-300 text-center">
-                        <p className="text-xs text-red-700 mb-0.5">Écart</p>
+                        <p className="text-xs text-red-700 mb-0.5">{t('dataMigration.simVariance')}</p>
                         <p className="font-mono font-bold text-red-800">{Math.abs(simulation.totalDebit - simulation.totalCredit).toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</p>
-                        <p className="text-[10px] text-red-600">{simulation.totalDebit > simulation.totalCredit ? 'Débits excédentaires' : 'Crédits excédentaires'}</p>
+                        <p className="text-[10px] text-red-600">{simulation.totalDebit > simulation.totalCredit ? t('dataMigration.simDebitExcess') : t('dataMigration.simCreditExcess')}</p>
                       </div>
                     </div>
-                    <p className="text-sm font-medium text-red-700 mb-2">Comment corriger :</p>
+                    <p className="text-sm font-medium text-red-700 mb-2">{t('dataMigration.simHowToFix')}</p>
                     <ul className="text-sm text-red-700 space-y-1.5 list-none">
-                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">1.</span><span>Dans votre fichier Grand Livre, vérifiez que <strong>chaque écriture</strong> a bien Σ débit = Σ crédit. Filtrez sur le journal concerné.</span></li>
-                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">2.</span><span>L'écart de <strong>{Math.abs(simulation.totalDebit - simulation.totalCredit).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA</strong> peut provenir d'une ligne manquante ou d'une valeur mal saisie.</span></li>
-                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">3.</span><span>Téléchargez le modèle Excel ci-dessous, corrigez les données sources, puis re-uploadez le fichier corrigé.</span></li>
-                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">4.</span><span>Si votre logiciel source (Sage, Ciel…) exporte le FEC, utilisez plutôt le mode import <strong>FEC</strong> — il garantit l'équilibre.</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">1.</span><span>{t('dataMigration.simFix1a')}<strong>{t('dataMigration.simFix1Strong')}</strong>{t('dataMigration.simFix1b')}</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">2.</span><span>{t('dataMigration.simFix2a')}<strong>{Math.abs(simulation.totalDebit - simulation.totalCredit).toLocaleString('fr-FR', { minimumFractionDigits: 2 })} FCFA</strong>{t('dataMigration.simFix2b')}</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">3.</span><span>{t('dataMigration.simFix3')}</span></li>
+                      <li className="flex items-start gap-2"><span className="text-red-500 font-bold mt-0.5">4.</span><span>{t('dataMigration.simFix4a')}<strong>FEC</strong>{t('dataMigration.simFix4b')}</span></li>
                     </ul>
                   </div>
                 </div>
@@ -3400,7 +3441,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
             {simulation.assetVNC > 0 && (
               <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <span className="font-medium text-blue-800">VNC immobilisations : </span>
+                <span className="font-medium text-blue-800">{t('dataMigration.simAssetVnc')}</span>
                 <span className="text-blue-700">{simulation.assetVNC.toLocaleString('fr-FR', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
@@ -3414,19 +3455,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           {!importing ? (
             <div className="text-center space-y-4">
               <Play className="w-12 h-12 text-red-500 mx-auto" />
-              <h2 className="text-xl font-semibold text-gray-900">Pret a importer</h2>
-              <p className="text-gray-500">L'import va creer les enregistrements dans votre base Atlas FnA.</p>
+              <h2 className="text-xl font-semibold text-gray-900">{t('dataMigration.readyToImport')}</h2>
+              <p className="text-gray-500">{t('dataMigration.readyToImportText')}</p>
               <button onClick={runImport}
                 className="px-6 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors"
               >
-                Lancer l'import reel
+                {t('dataMigration.runRealImport')}
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex items-center gap-3">
                 <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
-                <h2 className="text-lg font-semibold text-gray-900">Import en cours...</h2>
+                <h2 className="text-lg font-semibold text-gray-900">{t('dataMigration.importInProgress')}</h2>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
                 <div className="bg-red-500 h-full rounded-full transition-all duration-300"
@@ -3447,30 +3488,30 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             <div className="flex items-center gap-3 mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Migration terminee</h2>
-                <p className="text-sm text-gray-500">Voici le rapport de migration</p>
+                <h2 className="text-xl font-semibold text-gray-900">{t('dataMigration.migrationDone')}</h2>
+                <p className="text-sm text-gray-500">{t('dataMigration.migrationReportSubtitle')}</p>
               </div>
             </div>
 
             {/* Bandeau de confirmation comptable */}
             {(() => {
-              const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk && importReport.warnings.filter(w => w.startsWith('Erreur')).length === 0;
+              const allOk = importReport.balanceOk && importReport.bilanOk && importReport.tiersOk && importReport.vncOk && importReport.warnings.filter(w => w.startsWith(t('dataMigration.warnFatalErrorPrefix'))).length === 0;
               const db = importReport.dbCounts;
               return allOk ? (
                 <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-6 h-6 text-green-600 mt-0.5 shrink-0" />
                     <div className="flex-1">
-                      <p className="font-semibold text-green-800 text-base">✓ Données confirmées dans les livres comptables</p>
-                      <p className="text-sm text-green-700 mt-1 mb-3">Tous les contrôles SYSCOHADA sont validés. Vous pouvez accéder au Grand Livre et à la Balance.</p>
+                      <p className="font-semibold text-green-800 text-base">{t('dataMigration.dataConfirmed')}</p>
+                      <p className="text-sm text-green-700 mt-1 mb-3">{t('dataMigration.allControlsOk')}</p>
                       {db && (
                         <div className="grid grid-cols-5 gap-2">
                           {[
-                            { label: 'Comptes en base',    value: db.accounts },
-                            { label: 'Écritures en base',  value: db.entries },
-                            { label: 'Lignes en base',     value: db.lines },
-                            { label: 'Tiers en base',      value: db.tiers },
-                            { label: 'Immobilis. en base', value: db.assets },
+                            { label: t('dataMigration.dbAccounts'), value: db.accounts },
+                            { label: t('dataMigration.dbEntries'),  value: db.entries },
+                            { label: t('dataMigration.dbLines'),    value: db.lines },
+                            { label: t('dataMigration.dbTiers'),    value: db.tiers },
+                            { label: t('dataMigration.dbAssets'),   value: db.assets },
                           ].map(({ label, value }) => (
                             <div key={label} className="bg-white rounded-lg p-2 text-center border border-green-200">
                               <p className="text-lg font-bold text-green-800">{value.toLocaleString('fr-FR')}</p>
@@ -3487,18 +3528,18 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-6 h-6 text-amber-600 mt-0.5 shrink-0" />
                     <div className="flex-1">
-                      <p className="font-semibold text-amber-800">Migration terminée avec des points d'attention</p>
+                      <p className="font-semibold text-amber-800">{t('dataMigration.migrationDoneWithWarnings')}</p>
                       <p className="text-sm text-amber-700 mt-1 mb-3">
-                        Les données ont été enregistrées dans les livres. Corrigez les anomalies ci-dessous avant de produire vos états financiers.
+                        {t('dataMigration.migrationWarningsText')}
                       </p>
                       {db && (
                         <div className="grid grid-cols-5 gap-2">
                           {[
-                            { label: 'Comptes en base',    value: db.accounts },
-                            { label: 'Écritures en base',  value: db.entries },
-                            { label: 'Lignes en base',     value: db.lines },
-                            { label: 'Tiers en base',      value: db.tiers },
-                            { label: 'Immobilis. en base', value: db.assets },
+                            { label: t('dataMigration.dbAccounts'), value: db.accounts },
+                            { label: t('dataMigration.dbEntries'),  value: db.entries },
+                            { label: t('dataMigration.dbLines'),    value: db.lines },
+                            { label: t('dataMigration.dbTiers'),    value: db.tiers },
+                            { label: t('dataMigration.dbAssets'),   value: db.assets },
                           ].map(({ label, value }) => (
                             <div key={label} className="bg-white rounded-lg p-2 text-center border border-amber-200">
                               <p className="text-lg font-bold text-amber-800">{value.toLocaleString('fr-FR')}</p>
@@ -3515,33 +3556,41 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
               {[
-                { label: 'Comptes', value: importReport.accounts },
-                { label: 'Journaux', value: importReport.journals },
-                { label: 'Tiers', value: importReport.tiers },
-                { label: 'Ecritures', value: importReport.entries },
-                { label: 'Lignes', value: importReport.lines },
-                { label: 'Immobilisations', value: importReport.assets },
-                { label: 'Lettrages', value: importReport.lettrages },
+                { label: t('dataMigration.kpiAccounts'), value: importReport.accounts },
+                { label: t('dataMigration.kpiJournals'), value: importReport.journals },
+                { label: t('dataMigration.kpiTiers'), value: importReport.tiers },
+                { label: t('dataMigration.kpiEntries'), value: importReport.entries },
+                { label: t('dataMigration.kpiLines'), value: importReport.lines },
+                { label: t('dataMigration.kpiAssets'), value: importReport.assets },
+                { label: t('dataMigration.kpiLettrages'), value: importReport.lettrages },
               ].map(item => (
                 <div key={item.label} className="bg-gray-50 rounded-lg p-3 text-center">
-                  <p className="text-xl font-bold text-gray-900">{item.value}</p>
+                  <p className="text-xl font-bold text-gray-900">{formatNumber(item.value)}</p>
                   <p className="text-xs text-gray-500">{item.label}</p>
                 </div>
               ))}
             </div>
 
-            <h3 className="font-semibold text-gray-900 mb-2">Controles post-import</h3>
+            <h3 className="font-semibold text-gray-900 mb-2">{t('dataMigration.postImportChecks')}</h3>
             <div className="space-y-2 mb-6">
               {[
-                { label: 'Equilibre debit/credit', ok: importReport.balanceOk },
+                { label: t('dataMigration.chkBalance'), ok: importReport.balanceOk },
                 { label: importReport.bilanIsResult && importReport.bilanEcart
-                    ? `Bilan en cours d'exercice — Résultat de la période : ${importReport.bilanEcart.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA (Actif ${importReport.bilanEcart.actif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Passif ${importReport.bilanEcart.passif.toLocaleString('fr-FR',{minimumFractionDigits:2})})`
+                    ? t('dataMigration.chkBilanResult', {
+                        diff: importReport.bilanEcart.diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                        actif: importReport.bilanEcart.actif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                        passif: importReport.bilanEcart.passif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                      })
                     : importReport.bilanEcart
-                    ? `Equilibre bilan actif/passif — Actif ${importReport.bilanEcart.actif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Passif ${importReport.bilanEcart.passif.toLocaleString('fr-FR',{minimumFractionDigits:2})} / Écart ${importReport.bilanEcart.diff.toLocaleString('fr-FR',{minimumFractionDigits:2})} FCFA`
-                    : 'Equilibre bilan actif/passif',
+                    ? t('dataMigration.chkBilanEcart', {
+                        actif: importReport.bilanEcart.actif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                        passif: importReport.bilanEcart.passif.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                        diff: importReport.bilanEcart.diff.toLocaleString('fr-FR', { minimumFractionDigits: 2 }),
+                      })
+                    : t('dataMigration.chkBilan'),
                   ok: importReport.bilanOk },
-                { label: 'Reconciliation tiers', ok: importReport.tiersOk },
-                { label: 'Coherence VNC immobilisations', ok: importReport.vncOk },
+                { label: t('dataMigration.chkTiers'), ok: importReport.tiersOk },
+                { label: t('dataMigration.chkVnc'), ok: importReport.vncOk },
               ].map(check => (
                 <div key={check.label} className={`flex items-center gap-2 p-2 rounded ${check.ok ? 'bg-green-50' : 'bg-red-50'}`}>
                   {check.ok ? <CheckCircle className="w-4 h-4 text-green-600" /> : <XCircle className="w-4 h-4 text-red-600" />}
@@ -3553,23 +3602,23 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             {importReport.migrationBatchId && (
               <div className="mb-6 flex items-center justify-between gap-3 flex-wrap bg-slate-50 border border-slate-200 rounded-lg p-3">
                 <div className="text-sm text-slate-600">
-                  <span className="font-medium text-slate-700">Lot de migration :</span>{' '}
+                  <span className="font-medium text-slate-700">{t('dataMigration.batchLabel')}</span>{' '}
                   <code className="text-xs bg-white px-1.5 py-0.5 rounded border">{importReport.migrationBatchId}</code>
-                  <p className="text-xs text-slate-400 mt-1">La ré-migration écrase ce lot ; les saisies manuelles ne sont jamais supprimées.</p>
+                  <p className="text-xs text-slate-400 mt-1">{t('dataMigration.batchNote')}</p>
                 </div>
                 <button
                   onClick={() => handlePurgeBatch(importReport.migrationBatchId!)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                  title="Pré-flight + confirmation avant suppression"
+                  title={t('dataMigration.purgeBtnTitle')}
                 >
-                  <Trash2 className="w-4 h-4" /> Annuler ce lot
+                  <Trash2 className="w-4 h-4" /> {t('dataMigration.purgeBtn')}
                 </button>
               </div>
             )}
 
             {importReport.warnings.length > 0 && (
               <div className="mb-6">
-                <h3 className="font-semibold text-amber-700 mb-2">Points d'attention ({importReport.warnings.length})</h3>
+                <h3 className="font-semibold text-amber-700 mb-2">{t('dataMigration.attentionPoints', { count: String(importReport.warnings.length) })}</h3>
                 <div className="space-y-1 max-h-40 overflow-y-auto">
                   {importReport.warnings.map((w, i) => (
                     <div key={i} className="flex items-center gap-2 bg-amber-50 p-2 rounded text-sm text-amber-800">
@@ -3585,11 +3634,11 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
               <button onClick={onBack}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
               >
-                Retour a l'administration
+                {t('dataMigration.backToAdmin')}
               </button>
               <button onClick={async () => {
                 if (!importReport) return;
-                toast.info('Génération du rapport PDF...');
+                toast.info(t('dataMigration.toastGeneratingPdf'));
                 try {
                   const { default: jsPDF } = await import('jspdf');
                   const { default: autoTable } = await import('jspdf-autotable');
@@ -3613,7 +3662,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   const fmt = (n: number) => clean(n.toLocaleString('fr-FR'));
                   const fmtF = (n: number) => clean(n.toLocaleString('fr-FR', { minimumFractionDigits: 2 })) + ' FCFA';
                   // Anomalies réelles (hors note d'équilibre bilan en cours d'exercice, qui est normale).
-                  const realWarnings = importReport.warnings.filter(w => !w.startsWith('Déséquilibre bilan'));
+                  const realWarnings = importReport.warnings.filter(w => !w.startsWith(t('dataMigration.warnBilanImbalancePrefix')));
                   // Perte de données : moins d'enregistrements confirmés en base qu'importés.
                   const countLoss = !!db && (
                     db.accounts < importReport.accounts || db.tiers < importReport.tiers ||
@@ -3626,13 +3675,13 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
 
                   // Humaniser les messages techniques
                   const humanize = (w: string): { msg: string; action: string } => {
-                    if (w.includes('validated') || w.includes('Suppression interdite')) return { msg: 'Des écritures validées existaient et n\'ont pas pu être supprimées automatiquement.', action: 'Contrepasser ces écritures manuellement dans le Grand Livre avant de relancer.' };
-                    if (w.includes('duplicate key') || w.includes('unique constraint')) return { msg: 'Certains enregistrements existaient déjà et ont été ignorés (doublon).', action: 'Vérifier que les données sources n\'ont pas déjà été importées partiellement.' };
-                    if (w.includes('foreign key') || w.includes('fkey')) return { msg: 'Des lignes d\'écriture référencent des écritures qui n\'ont pas pu être créées.', action: 'Relancer la migration en mode Remplacer pour repartir d\'une base propre.' };
-                    if (w.includes('Déséquilibre bilan') || w.includes('bilanEcart')) return { msg: w, action: 'Identifier les comptes mal classifiés dans votre plan comptable et corriger les soldes.' };
-                    if (w.includes('non insérés') || w.includes('batch')) { const m = w.match(/(\d+) non insérés/); return { msg: `${m?.[1] || 'Certains'} enregistrements n\'ont pas pu être importés (erreur de format ou contrainte de données).`, action: 'Vérifier le mapping des colonnes et le format des données sources.' }; }
-                    if (w.includes('Report AN')) return { msg: 'Le report à nouveau n\'a pas pu être créé (écriture déjà existante).', action: 'Si vous relancez la migration, utiliser le mode Remplacer.' };
-                    return { msg: w, action: 'Contacter le support si le problème persiste.' };
+                    if (w.includes('validated') || w.includes('Suppression interdite')) return { msg: t('dataMigration.pdfHumValidatedMsg'), action: t('dataMigration.pdfHumValidatedAction') };
+                    if (w.includes('duplicate key') || w.includes('unique constraint')) return { msg: t('dataMigration.pdfHumDuplicateMsg'), action: t('dataMigration.pdfHumDuplicateAction') };
+                    if (w.includes('foreign key') || w.includes('fkey')) return { msg: t('dataMigration.pdfHumForeignKeyMsg'), action: t('dataMigration.pdfHumForeignKeyAction') };
+                    if (w.includes(t('dataMigration.warnBilanImbalancePrefix')) || w.includes('bilanEcart')) return { msg: w, action: t('dataMigration.pdfHumBilanAction') };
+                    if (w.includes('non insérés') || w.includes('batch')) { const m = w.match(/(\d+) non insérés/); return { msg: t('dataMigration.pdfHumBatchMsg', { count: m?.[1] || t('dataMigration.pdfHumSome') }), action: t('dataMigration.pdfHumBatchAction') }; }
+                    if (w.includes(t('dataMigration.warnAnIgnoredMarker'))) return { msg: t('dataMigration.pdfHumAnMsg'), action: t('dataMigration.pdfHumAnAction') };
+                    return { msg: w, action: t('dataMigration.pdfHumDefaultAction') };
                   };
 
                   // ── BANNIÈRE STATUT ──────────────────────────────────────
@@ -3640,27 +3689,29 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   doc.rect(0, 0, W, 28, 'F');
                   doc.setTextColor(255, 255, 255);
                   doc.setFontSize(17); doc.setFont('helvetica', 'bold');
-                  doc.text('RAPPORT DE MIGRATION COMPTABLE', M, 11);
+                  doc.text(clean(t('dataMigration.pdfTitle')), M, 11);
                   doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-                  doc.text(`Logiciel : Atlas Finance & Accounting  |  Norme : SYSCOHADA révisé 2017  |  Généré le ${now}`, M, 18);
-                  doc.text(clean(`Statut : ${allOk ? '✓ MIGRATION VALIDÉE — Données enregistrées dans les livres comptables' : '⚠ MIGRATION AVEC RÉSERVES — Corrections requises avant production des états financiers'}`), M, 24);
+                  doc.text(clean(t('dataMigration.pdfMeta', { date: now })), M, 18);
+                  doc.text(clean(t('dataMigration.pdfStatus', {
+                    status: allOk ? t('dataMigration.pdfStatusOk') : t('dataMigration.pdfStatusWarn'),
+                  })), M, 24);
                   doc.setTextColor(0, 0, 0);
 
                   // ── DONNÉES EN BASE (vrais counts) ───────────────────────
                   let y = 36;
                   doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
-                  doc.text('1. Données enregistrées dans les livres', M, y); y += 5;
+                  doc.text(clean(t('dataMigration.pdfSection1')), M, y); y += 5;
                   autoTable(doc, {
                     startY: y,
-                    head: [['Livre comptable', 'Enregistrements importés', 'Confirmé en base']],
+                    head: [[clean(t('dataMigration.pdfThBook')), clean(t('dataMigration.pdfThImported')), clean(t('dataMigration.pdfThConfirmed'))]],
                     body: [
-                      ['Plan comptable (comptes)',      fmt(importReport.accounts),  db ? fmt(db.accounts) : '—'],
-                      ['Journaux comptables',            fmt(importReport.journals),  '—'],
-                      ['Tiers (clients / fournisseurs)', fmt(importReport.tiers),     db ? fmt(db.tiers) : '—'],
-                      ['Écritures comptables',           fmt(importReport.entries),   db ? fmt(db.entries) : '—'],
-                      ['Lignes d\'écriture',             fmt(importReport.lines),     db ? fmt(db.lines) : '—'],
-                      ['Immobilisations',                fmt(importReport.assets),    db ? fmt(db.assets) : '—'],
-                      ['Lettrages',                      fmt(importReport.lettrages), '—'],
+                      [clean(t('dataMigration.pdfRowAccounts')),   fmt(importReport.accounts),  db ? fmt(db.accounts) : '—'],
+                      [clean(t('dataMigration.pdfRowJournals')),   fmt(importReport.journals),  '—'],
+                      [clean(t('dataMigration.pdfRowTiers')),      fmt(importReport.tiers),     db ? fmt(db.tiers) : '—'],
+                      [clean(t('dataMigration.pdfRowEntries')),    fmt(importReport.entries),   db ? fmt(db.entries) : '—'],
+                      [clean(t('dataMigration.pdfRowLines')),      fmt(importReport.lines),     db ? fmt(db.lines) : '—'],
+                      [clean(t('dataMigration.pdfRowAssets')),     fmt(importReport.assets),    db ? fmt(db.assets) : '—'],
+                      [clean(t('dataMigration.pdfRowLettrages')),  fmt(importReport.lettrages), '—'],
                     ],
                     styles: { fontSize: 9, cellPadding: 2.5 },
                     headStyles: { fillColor: PETROL, textColor: [255,255,255], fontStyle: 'bold' },
@@ -3672,27 +3723,33 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   // ── CONTRÔLES SYSCOHADA ──────────────────────────────────
                   y = (doc as any).lastAutoTable.finalY + 8;
                   doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
-                  doc.text('2. Contrôles de conformité SYSCOHADA', M, y); y += 5;
+                  doc.text(clean(t('dataMigration.pdfSection2')), M, y); y += 5;
                   const controls = [
-                    { label: 'Équilibre débit / crédit', ok: importReport.balanceOk, detail: importReport.balanceOk ? 'Toutes les écritures sont équilibrées.' : 'Des écritures ont un débit ≠ crédit. Vérifier les pièces concernées.', action: importReport.balanceOk ? '' : 'Grand Livre → filtrer les écritures déséquilibrées et corriger.' },
-                    { label: 'Équilibre bilan actif / passif', ok: importReport.bilanOk,
+                    { label: t('dataMigration.pdfCtrlBalance'), ok: importReport.balanceOk, detail: importReport.balanceOk ? t('dataMigration.pdfCtrlBalanceOk') : t('dataMigration.pdfCtrlBalanceKo'), action: importReport.balanceOk ? '' : t('dataMigration.pdfCtrlBalanceAction') },
+                    { label: t('dataMigration.pdfCtrlBilan'), ok: importReport.bilanOk,
                       detail: importReport.bilanIsResult
-                        ? `Bascule en cours d'exercice : Actif − Passif = ${fmtF(importReport.bilanEcart?.diff ?? 0)} = résultat de la période (classes 6-7 non affectées). Équilibre comptable garanti par débit = crédit.`
-                        : importReport.bilanOk ? 'Le bilan est équilibré (Actif = Passif).' : `Actif : ${fmtF(importReport.bilanEcart?.actif ?? 0)}  |  Passif : ${fmtF(importReport.bilanEcart?.passif ?? 0)}  |  Écart : ${fmtF(importReport.bilanEcart?.diff ?? 0)}`,
-                      action: importReport.bilanOk ? '' : 'Identifier les comptes mal classés (classe 1-5) et ajuster les soldes d\'ouverture.' },
-                    { label: 'Réconciliation tiers', ok: importReport.tiersOk, detail: importReport.tiersOk ? 'Tous les tiers sont réconciliés avec les écritures.' : 'Des comptes de tiers (401/411) n\'ont pas de fiche tiers associée.', action: importReport.tiersOk ? '' : 'Créer les fiches tiers manquantes depuis le module Tiers.' },
-                    { label: 'Cohérence VNC immobilisations', ok: importReport.vncOk, detail: importReport.vncOk ? 'La valeur nette comptable des immobilisations est cohérente.' : 'Des immobilisations ont une VNC négative ou incohérente.', action: importReport.vncOk ? '' : 'Vérifier les durées et taux d\'amortissement dans le fichier source.' },
+                        ? t('dataMigration.pdfCtrlBilanResult', { diff: fmtF(importReport.bilanEcart?.diff ?? 0) })
+                        : importReport.bilanOk
+                          ? t('dataMigration.pdfCtrlBilanOk')
+                          : t('dataMigration.pdfCtrlBilanKo', {
+                              actif: fmtF(importReport.bilanEcart?.actif ?? 0),
+                              passif: fmtF(importReport.bilanEcart?.passif ?? 0),
+                              diff: fmtF(importReport.bilanEcart?.diff ?? 0),
+                            }),
+                      action: importReport.bilanOk ? '' : t('dataMigration.pdfCtrlBilanAction') },
+                    { label: t('dataMigration.pdfCtrlTiers'), ok: importReport.tiersOk, detail: importReport.tiersOk ? t('dataMigration.pdfCtrlTiersOk') : t('dataMigration.pdfCtrlTiersKo'), action: importReport.tiersOk ? '' : t('dataMigration.pdfCtrlTiersAction') },
+                    { label: t('dataMigration.pdfCtrlVnc'), ok: importReport.vncOk, detail: importReport.vncOk ? t('dataMigration.pdfCtrlVncOk') : t('dataMigration.pdfCtrlVncKo'), action: importReport.vncOk ? '' : t('dataMigration.pdfCtrlVncAction') },
                   ];
                   autoTable(doc, {
                     startY: y,
-                    head: [['Contrôle', 'Résultat', 'Détail', 'Action requise']],
-                    body: controls.map(c => [clean(c.label), c.ok ? 'Valide' : 'Anomalie', clean(c.detail), clean(c.action)]),
+                    head: [[clean(t('dataMigration.pdfThControl')), clean(t('dataMigration.pdfThResult')), clean(t('dataMigration.pdfThDetail')), clean(t('dataMigration.pdfThAction'))]],
+                    body: controls.map(c => [clean(c.label), c.ok ? clean(t('dataMigration.pdfValid')) : clean(t('dataMigration.pdfAnomaly')), clean(c.detail), clean(c.action)]),
                     styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
                     headStyles: { fillColor: PETROL, textColor: [255,255,255], fontStyle: 'bold' },
                     columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 18, halign: 'center' }, 2: { cellWidth: 68 }, 3: { cellWidth: 50 } },
                     didParseCell: (data: any) => {
                       if (data.column.index === 1) {
-                        data.cell.styles.textColor = data.cell.text[0] === 'Valide' ? GREEN : RED;
+                        data.cell.styles.textColor = data.cell.text[0] === clean(t('dataMigration.pdfValid')) ? GREEN : RED;
                         data.cell.styles.fontStyle = 'bold';
                       }
                     },
@@ -3705,10 +3762,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                     y = (doc as any).lastAutoTable.finalY + 8;
                     if (y > 250) { doc.addPage(); y = 14; }
                     doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
-                    doc.text('3. Anomalies détectées et actions correctives', M, y); y += 5;
+                    doc.text(clean(t('dataMigration.pdfSection3')), M, y); y += 5;
                     autoTable(doc, {
                       startY: y,
-                      head: [['#', 'Anomalie constatée', 'Action corrective']],
+                      head: [['#', clean(t('dataMigration.pdfThAnomaly')), clean(t('dataMigration.pdfThCorrective'))]],
                       body: realWarnings.map((w, i) => { const h = humanize(w); return [String(i+1), clean(h.msg), clean(h.action)]; }),
                       styles: { fontSize: 8, cellPadding: 2.5, overflow: 'linebreak' },
                       headStyles: { fillColor: [146, 64, 14], textColor: [255,255,255], fontStyle: 'bold' },
@@ -3722,10 +3779,10 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   y = (doc as any).lastAutoTable.finalY + 8;
                   if (y > 240) { doc.addPage(); y = 14; }
                   doc.setFontSize(11); doc.setFont('helvetica', 'bold'); doc.setTextColor(...PETROL);
-                  doc.text(`${realWarnings.length > 0 ? '4' : '3'}. Prochaines étapes recommandées`, M, y); y += 6;
+                  doc.text(clean(t('dataMigration.pdfSectionNext', { number: realWarnings.length > 0 ? '4' : '3' })), M, y); y += 6;
                   const steps = allOk
-                    ? ['Accéder au Grand Livre pour consulter les écritures importées.', 'Consulter la Balance générale pour vérifier les soldes par compte.', 'Générer le Bilan et le Compte de Résultat pour valider les états financiers.', 'Procéder à la clôture de l\'exercice si toutes les vérifications sont satisfaisantes.']
-                    : ['Corriger les anomalies listées dans la section 3 ci-dessus.', 'Une fois les corrections effectuées, vérifier la Balance pour confirmer l\'équilibre.', 'Ne pas produire d\'états financiers (Bilan, CDR, TAFIRE) avant résolution complète des anomalies.', 'En cas de doute, contacter votre expert-comptable avant toute validation définitive.'];
+                    ? [t('dataMigration.pdfNextOk1'), t('dataMigration.pdfNextOk2'), t('dataMigration.pdfNextOk3'), t('dataMigration.pdfNextOk4')]
+                    : [t('dataMigration.pdfNextKo1'), t('dataMigration.pdfNextKo2'), t('dataMigration.pdfNextKo3'), t('dataMigration.pdfNextKo4')];
                   doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
                   steps.forEach((s, i) => { doc.text(clean(`${i+1}.  ${s}`), M + 3, y); y += 6; });
 
@@ -3734,19 +3791,19 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
                   for (let p = 1; p <= pages; p++) {
                     doc.setPage(p);
                     doc.setFontSize(7); doc.setTextColor(150, 150, 150);
-                    doc.text(`Atlas Finance & Accounting  |  Rapport de Migration  |  ${now}  |  Page ${p}/${pages}`, M, 290);
+                    doc.text(clean(t('dataMigration.pdfFooter', { date: now, page: String(p), pages: String(pages) })), M, 290);
                     doc.line(M, 287, W - M, 287);
                   }
 
                   doc.save(`rapport-migration-${new Date().toISOString().slice(0,10)}.pdf`);
-                  toast.success('Rapport PDF téléchargé');
+                  toast.success(t('dataMigration.toastPdfDownloaded'));
                 } catch (e: any) {
-                  toast.error(`Erreur PDF : ${e.message}`);
+                  toast.error(t('dataMigration.toastPdfError', { message: String(e.message) }));
                 }
               }}
                 className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2"
               >
-                <Download className="w-4 h-4" /> Telecharger le rapport PDF
+                <Download className="w-4 h-4" /> {t('dataMigration.downloadPdf')}
               </button>
             </div>
           </div>
@@ -3759,7 +3816,7 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
           <button onClick={stepIndex === 0 ? onBack : goPrev}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
           >
-            <ArrowLeft className="w-4 h-4" /> {stepIndex === 0 ? 'Retour' : 'Precedent'}
+            <ArrowLeft className="w-4 h-4" /> {stepIndex === 0 ? t('dataMigration.back') : t('dataMigration.previous')}
           </button>
           <button onClick={goNext} disabled={!canNext || navBusy}
             className={`flex items-center gap-2 px-6 py-2 rounded-lg font-medium transition-colors ${
@@ -3767,9 +3824,9 @@ const DataMigrationImport: React.FC<Props> = ({ onBack }) => {
             }`}
           >
             {navBusy ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Analyse en cours…</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t('dataMigration.analysisRunning')}</>
             ) : (
-              <>Suivant <ChevronRight className="w-4 h-4" /></>
+              <>{t('dataMigration.next')} <ChevronRight className="w-4 h-4" /></>
             )}
           </button>
         </div>

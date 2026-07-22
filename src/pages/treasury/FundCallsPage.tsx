@@ -415,7 +415,7 @@ const FundCallsPage: React.FC = () => {
   // comptabilisées), puis marque l'appel PAYÉ + EXECUTION. Fini le cycle sans écriture GL.
   const handleExecuteFundCall = async (call: FundCall) => {
     const reals = call.items.filter(it => !it.provisional && String(it.account || '').startsWith('40'));
-    if (reals.length === 0) { toast.error('Aucun poste réel à décaisser (les dépenses prévisionnelles ne sont pas comptabilisées).'); return; }
+    if (reals.length === 0) { toast.error(t('fundCalls.noRealLineToDisburse')); return; }
     const bank = call.bankAccount || '521100';
     const total = reals.reduce((s, it) => s + (it.outstanding || 0), 0);
     try {
@@ -440,13 +440,13 @@ const FundCallsPage: React.FC = () => {
       await adapter.update('settings', 'fund_calls', { value });
       setFundCallsSetting({ key: 'fund_calls', value });
       (adapter as any).invalidateCache?.();
-      toast.success(`Décaissement de ${formatCurrency(total)} comptabilisé (D 401 / C ${bank})`);
-    } catch (e: any) { toast.error(e?.message || 'Échec de l’exécution'); }
+      toast.success(t('fundCalls.disbursementPosted', { amount: formatCurrency(total), bank: String(bank) }));
+    } catch (e: any) { toast.error(e?.message || t('fundCalls.executionFailed')); }
   };
 
   // Persiste l'appel de fonds dans settings.fund_calls (brouillon ou soumis).
   const persistFundCall = async (statut: 'brouillon' | 'soumis') => {
-    if (proposedPayments.length === 0) { toast.error('Aucun paiement sélectionné pour l’appel de fonds.'); return; }
+    if (proposedPayments.length === 0) { toast.error(t('fundCalls.noPaymentSelected')); return; }
     try {
       const raw: any = (fundCallsSetting as any)?.value ?? fundCallsSetting;
       const existing: any[] = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw || '[]') : []);
@@ -469,21 +469,21 @@ const FundCallsPage: React.FC = () => {
       if (fundCallsSetting) await adapter.update('settings', 'fund_calls', { value });
       else await adapter.create('settings', { key: 'fund_calls', value } as any);
       setFundCallsSetting({ key: 'fund_calls', value });
-      toast.success(statut === 'brouillon' ? 'Appel de fonds enregistré (brouillon)' : `Appel de fonds soumis · ${formatCurrency(selectedAmount)}`);
-    } catch (e: any) { toast.error(e?.message || 'Échec de l’enregistrement'); }
+      toast.success(statut === 'brouillon' ? t('fundCalls.draftSaved') : t('fundCalls.submitted', { amount: formatCurrency(selectedAmount) }));
+    } catch (e: any) { toast.error(e?.message || t('fundCalls.saveFailed')); }
   };
 
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'CRITICAL':
-        return <Badge className="bg-red-100 text-red-800 border-red-200">Critique</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">{t('fundCalls.priorityCritical')}</Badge>;
       case 'HIGH':
-        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Haute</Badge>;
+        return <Badge className="bg-orange-100 text-orange-800 border-orange-200">{t('fundCalls.priorityHigh')}</Badge>;
       case 'MEDIUM':
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Moyenne</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">{t('fundCalls.priorityMedium')}</Badge>;
       case 'LOW':
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Basse</Badge>;
+        return <Badge className="bg-green-100 text-green-800 border-green-200">{t('fundCalls.priorityLow')}</Badge>;
       default:
         return null;
     }
@@ -494,13 +494,13 @@ const FundCallsPage: React.FC = () => {
       case 'BROUILLON':
         return <Badge className="bg-gray-100 text-gray-800">{t('accounting.draft')}</Badge>;
       case 'SOUMIS':
-        return <Badge className="bg-[var(--color-primary)]/10 text-[var(--color-primary)]">Soumis</Badge>;
+        return <Badge className="bg-[var(--color-primary)]/10 text-[var(--color-primary)]">{t('fundCalls.statusSubmitted')}</Badge>;
       case 'APPROUVE':
-        return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
+        return <Badge className="bg-green-100 text-green-800">{t('fundCalls.statusApproved')}</Badge>;
       case 'REJETE':
-        return <Badge className="bg-red-100 text-red-800">Rejeté</Badge>;
+        return <Badge className="bg-red-100 text-red-800">{t('fundCalls.statusRejected')}</Badge>;
       case 'PAYE':
-        return <Badge className="bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]">Payé</Badge>;
+        return <Badge className="bg-[var(--color-text-secondary)]/10 text-[var(--color-text-secondary)]">{t('fundCalls.statusPaid')}</Badge>;
       default:
         return null;
     }
@@ -514,11 +514,11 @@ const FundCallsPage: React.FC = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total à Payer</p>
+                <p className="text-sm text-gray-600">{t('fundCalls.totalToPay')}</p>
                 <p className="text-lg font-bold text-red-600">
                   {formatCurrency(totalOutstanding)}
                 </p>
-                <p className="text-sm text-gray-700">{payables?.length} factures</p>
+                <p className="text-sm text-gray-700">{t('fundCalls.invoicesCount', { count: String(payables?.length ?? 0) })}</p>
               </div>
               <CreditCard className="h-5 w-5 text-red-600" />
             </div>
@@ -529,11 +529,11 @@ const FundCallsPage: React.FC = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Sélectionné</p>
+                <p className="text-sm text-gray-600">{t('fundCalls.selected')}</p>
                 <p className="text-lg font-bold text-[var(--color-primary)]">
                   {formatCurrency(selectedAmount)}
                 </p>
-                <p className="text-sm text-gray-700">{proposedPayments.length} éléments</p>
+                <p className="text-sm text-gray-700">{t('fundCalls.itemsCount', { count: String(proposedPayments.length) })}</p>
               </div>
               <ArrowDownToLine className="h-5 w-5 text-[var(--color-primary)]" />
             </div>
@@ -544,7 +544,7 @@ const FundCallsPage: React.FC = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">En Retard</p>
+                <p className="text-sm text-gray-600">{t('fundCalls.overdue')}</p>
                 <p className="text-lg font-bold text-orange-600">
                   {payables?.filter(p => p.arrearsAging > 0).length || 0}
                 </p>
@@ -562,11 +562,11 @@ const FundCallsPage: React.FC = () => {
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Critiques</p>
+                <p className="text-sm text-gray-600">{t('fundCalls.criticals')}</p>
                 <p className="text-lg font-bold text-red-600">
                   {payables?.filter(p => p.priority === 'CRITICAL').length || 0}
                 </p>
-                <p className="text-sm text-gray-700">Paiement urgent</p>
+                <p className="text-sm text-gray-700">{t('fundCalls.urgentPayment')}</p>
               </div>
               <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
@@ -582,7 +582,7 @@ const FundCallsPage: React.FC = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-700" />
                 <Input
-                  placeholder="Rechercher fournisseur ou facture..."
+                  placeholder={t('fundCalls.searchPlaceholder')}
                   className="pl-10 w-80"
                 />
               </div>
@@ -596,7 +596,7 @@ const FundCallsPage: React.FC = () => {
                 onChange={(e) => setShowFutureTransactions(e.target.checked)}
               />
               <Label htmlFor="futureTransactions" className="text-sm">
-                Inclure transactions futures
+                {t('fundCalls.includeFutureTransactions')}
               </Label>
             </div>
           </div>
@@ -614,14 +614,14 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <FileText className="h-5 w-5" />
-                Comptes à Payer
+                {t('fundCalls.payablesTitle')}
               </CardTitle>
               <span className="text-xs text-[var(--color-text-tertiary)]">
-                {(payables || []).length} dette{(payables || []).length > 1 ? 's' : ''} · {formatCurrency(totalOutstanding)}
+                {(payables || []).length} {(payables || []).length > 1 ? t('fundCalls.debts') : t('fundCalls.debt')} · {formatCurrency(totalOutstanding)}
               </span>
             </div>
             <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
-              Comptabilisé · Grand Livre — cochez pour alimenter la sélection →
+              {t('fundCalls.payablesHint')}
             </p>
           </CardHeader>
           <CardContent className="p-0">
@@ -640,11 +640,11 @@ const FundCallsPage: React.FC = () => {
                     }
                   }}
                 />
-                <span>Tout sélectionner</span>
+                <span>{t('fundCalls.selectAll')}</span>
               </div>
 
               {payablesBySupplier.length === 0 ? (
-                <div className="p-6 text-center text-sm text-gray-500">Aucune dette comptabilisée.</div>
+                <div className="p-6 text-center text-sm text-gray-500">{t('fundCalls.noPostedDebt')}</div>
               ) : payablesBySupplier.map((group) => {
                 const open = expandedSupplier === group.key;
                 const allSel = group.invoices.every(inv => selectedItems.has(inv.id));
@@ -660,10 +660,10 @@ const FundCallsPage: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium truncate">{group.vendor}</div>
                           <div className="text-xs text-gray-500">
-                            {group.invoices.length} facture{group.invoices.length > 1 ? 's' : ''}{group.maxAging > 0 ? ` · retard max +${group.maxAging}j` : ''}
+                            {group.invoices.length} {group.invoices.length > 1 ? t('fundCalls.invoices') : t('fundCalls.invoice')}{group.maxAging > 0 ? ` · ${t('fundCalls.maxDelay', { days: String(group.maxAging) })}` : ''}
                           </div>
                         </div>
-                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{group.account}</span>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title={t('fundCalls.accountNumber')}>{group.account}</span>
                         <span className="text-sm font-mono font-semibold whitespace-nowrap shrink-0">{formatCurrency(group.total)}</span>
                       </button>
                     </div>
@@ -678,7 +678,7 @@ const FundCallsPage: React.FC = () => {
                               <div className="text-gray-500 truncate">{inv.description}</div>
                             </div>
                             <div className="text-gray-500 whitespace-nowrap">{inv.documentDate.toLocaleDateString('fr-FR')}</div>
-                            {inv.arrearsAging > 0 && <span className="text-red-600 whitespace-nowrap" title="Retard">+{inv.arrearsAging}j</span>}
+                            {inv.arrearsAging > 0 && <span className="text-red-600 whitespace-nowrap" title={t('fundCalls.delay')}>+{inv.arrearsAging}{t('fundCalls.daySuffix')}</span>}
                             <span className={`font-mono font-semibold whitespace-nowrap ${inv.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(inv.outstanding)}</span>
                           </div>
                         ))}
@@ -694,10 +694,10 @@ const FundCallsPage: React.FC = () => {
         {/* ── SÉPARATEUR centré : pioché à gauche → alimente à droite ── */}
         <div className="flex-none w-16 relative flex flex-col items-center justify-center">
           <div className="absolute top-6 bottom-6 w-px bg-[var(--color-border)]" />
-          <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title="Alimente la sélection">
+          <div className="z-10 w-9 h-9 rounded-full bg-[var(--color-primary)] text-white flex items-center justify-center shadow-sm" title={t('fundCalls.feedsSelection')}>
             <ArrowUpFromLine className="h-4 w-4 rotate-90" />
           </div>
-          <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">alimente</span>
+          <span className="z-10 mt-1.5 text-[10px] text-gray-500 bg-[var(--color-background)] px-1">{t('fundCalls.feeds')}</span>
         </div>
 
         {/* ── DROITE : Paiements proposés (sélection pour l'appel de fonds) ── */}
@@ -706,18 +706,18 @@ const FundCallsPage: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <ArrowUpFromLine className="h-5 w-5" />
-                Paiements Proposés
+                {t('fundCalls.proposedPayments')}
               </CardTitle>
               <span className="text-base font-bold font-mono text-[var(--color-primary)]">{formatCurrency(selectedAmount)}</span>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <Button size="sm" variant="outline" onClick={() => setShowAddExpense(true)} className="flex-1 flex items-center justify-center gap-1.5">
                 <Plus className="h-4 w-4" />
-                Dépense non comptabilisée
+                {t('fundCalls.unpostedExpense')}
               </Button>
               <Button size="sm" onClick={() => setViewMode('workflow')} disabled={proposedPayments.length === 0} className="flex items-center gap-1.5">
                 <Send className="h-4 w-4" />
-                Créer Appel de Fonds
+                {t('fundCalls.createFundCall')}
               </Button>
             </div>
           </CardHeader>
@@ -725,8 +725,7 @@ const FundCallsPage: React.FC = () => {
             <div className="max-h-[55vh] overflow-y-auto">
               {proposedPayments.length === 0 ? (
                 <div className="p-6 text-center text-sm text-gray-500">
-                  Cochez des dettes à gauche, ou ajoutez une{' '}
-                  <span className="font-semibold">dépense non comptabilisée</span>.
+                  {t('fundCalls.emptySelection')}
                 </div>
               ) : proposedPayments.map((item) => {
                 const expanded = expandedPayable === `p-${item.id}`;
@@ -738,39 +737,39 @@ const FundCallsPage: React.FC = () => {
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium truncate flex items-center gap-1.5">
                             {item.vendor}
-                            {item.provisional && <span className="text-[9px] uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300 rounded px-1 shrink-0">Prévisionnel</span>}
+                            {item.provisional && <span className="text-[9px] uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300 rounded px-1 shrink-0">{t('fundCalls.provisional')}</span>}
                           </div>
                           <div className="text-xs text-gray-500 truncate">{item.description}</div>
                         </div>
-                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title="Numéro de compte">{item.account}</span>
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded shrink-0" title={t('fundCalls.accountNumber')}>{item.account}</span>
                         <span className={`text-sm font-mono font-semibold whitespace-nowrap shrink-0 ${item.provisional ? 'text-amber-700' : ''}`}>{formatCurrency(item.outstanding)}</span>
                       </button>
-                      <button type="button" onClick={() => item.provisional ? removeProvisionalExpense(item.id) : handleItemSelect(item.id)} title="Retirer de la sélection" className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0">
+                      <button type="button" onClick={() => item.provisional ? removeProvisionalExpense(item.id) : handleItemSelect(item.id)} title={t('fundCalls.removeFromSelection')} className="p-1 text-red-500 hover:bg-red-50 rounded shrink-0">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                     {expanded && (
                       <div className="mt-2 ml-7 grid grid-cols-2 gap-x-4 gap-y-1 text-xs bg-white rounded p-2 border border-[var(--color-border)]">
-                        <Detail label="Date document" value={item.documentDate.toLocaleDateString('fr-FR')} />
-                        <Detail label="N° document" value={item.documentNumber || '—'} mono />
-                        <Detail label="Référence" value={item.reference || '—'} mono />
-                        <Detail label="Compte" value={item.account} mono />
-                        <Detail label="Description" value={item.description} span />
-                        <Detail label="Montant" value={formatCurrency(item.outstanding)} mono />
-                        <Detail label="Retard (jours)" value={item.provisional ? '—' : (item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0')} />
-                        <div className="flex items-center gap-1"><span className="text-gray-500">Priorité :</span> {getPriorityBadge(item.priority)}</div>
+                        <Detail label={t('fundCalls.documentDate')} value={item.documentDate.toLocaleDateString('fr-FR')} />
+                        <Detail label={t('fundCalls.documentNumber')} value={item.documentNumber || '—'} mono />
+                        <Detail label={t('fundCalls.reference')} value={item.reference || '—'} mono />
+                        <Detail label={t('fundCalls.account')} value={item.account} mono />
+                        <Detail label={t('fundCalls.description')} value={item.description} span />
+                        <Detail label={t('fundCalls.amount')} value={formatCurrency(item.outstanding)} mono />
+                        <Detail label={t('fundCalls.delayDays')} value={item.provisional ? '—' : (item.arrearsAging > 0 ? `+${item.arrearsAging}` : '0')} />
+                        <div className="flex items-center gap-1"><span className="text-gray-500">{t('fundCalls.priorityLabel')}</span> {getPriorityBadge(item.priority)}</div>
                         <div className="col-span-2 flex items-center gap-2 mt-1">
-                          <span className="text-gray-500">Recommandation :</span>
+                          <span className="text-gray-500">{t('fundCalls.recommendationLabel')}</span>
                           <select
                             value={item.recommendation || ''}
                             onChange={(e) => setProposedPayments(prev => prev.map(p => p.id === item.id ? { ...p, recommendation: (e.target.value || undefined) as PayableItem['recommendation'] } : p))}
                             className="border border-[var(--color-border)] rounded px-2 py-1 text-xs bg-white"
                           >
                             <option value="">—</option>
-                            <option value="PAIEMENT_COMPLET">Paiement complet</option>
-                            <option value="PAIEMENT_PARTIEL">Paiement partiel</option>
-                            <option value="REPORTER">Reporter</option>
-                            <option value="URGENT">Urgent</option>
+                            <option value="PAIEMENT_COMPLET">{t('fundCalls.recFull')}</option>
+                            <option value="PAIEMENT_PARTIEL">{t('fundCalls.recPartial')}</option>
+                            <option value="REPORTER">{t('fundCalls.recPostpone')}</option>
+                            <option value="URGENT">{t('fundCalls.recUrgent')}</option>
                           </select>
                         </div>
                       </div>
@@ -790,21 +789,21 @@ const FundCallsPage: React.FC = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Send className="h-5 w-5" />
-          Historique des Appels de Fonds
+          {t('fundCalls.historyTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Référence</TableHead>
+              <TableHead>{t('fundCalls.colReference')}</TableHead>
               <TableHead>{t('common.date')}</TableHead>
-              <TableHead>Demandeur</TableHead>
-              <TableHead className="text-right">Montant</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Étape Workflow</TableHead>
-              <TableHead>Date Paiement</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t('fundCalls.colRequester')}</TableHead>
+              <TableHead className="text-right">{t('fundCalls.colAmount')}</TableHead>
+              <TableHead>{t('fundCalls.colStatus')}</TableHead>
+              <TableHead>{t('fundCalls.colWorkflowStep')}</TableHead>
+              <TableHead>{t('fundCalls.colPaymentDate')}</TableHead>
+              <TableHead>{t('fundCalls.colActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -812,7 +811,7 @@ const FundCallsPage: React.FC = () => {
               <TableRow key={fundCall.id} className="hover:bg-primary-50">
                 <TableCell>
                   <div className="font-mono font-medium">{fundCall.reference}</div>
-                  <div className="text-sm text-gray-700">{fundCall.items.length} éléments</div>
+                  <div className="text-sm text-gray-700">{t('fundCalls.itemsCount', { count: String(fundCall.items.length) })}</div>
                 </TableCell>
                 <TableCell>{fundCall.date.toLocaleDateString('fr-FR')}</TableCell>
                 <TableCell>
@@ -841,17 +840,17 @@ const FundCallsPage: React.FC = () => {
                 <TableCell>
                   <div className="flex items-center gap-1">
                     {fundCall.status !== 'PAYE' && fundCall.status !== 'REJETE' && (
-                      <Button variant="ghost" size="sm" title="Exécuter le paiement (comptabiliser le décaissement)" onClick={() => handleExecuteFundCall(fundCall)}>
+                      <Button variant="ghost" size="sm" title={t('fundCalls.executePaymentTitle')} onClick={() => handleExecuteFundCall(fundCall)}>
                         <Send className="h-4 w-4 text-blue-600" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm" title="Voir le détail"
-                      onClick={() => toast(`${fundCall.reference} — ${fundCall.items.length} poste(s) · ${formatCurrency(fundCall.totalAmount)} · ${fundCall.workflowStep.replace('_', ' ')}`, { duration: 6000 })}>
+                    <Button variant="ghost" size="sm" title={t('fundCalls.viewDetail')}
+                      onClick={() => toast(`${fundCall.reference} — ${t('fundCalls.linesCount', { count: String(fundCall.items.length) })} · ${formatCurrency(fundCall.totalAmount)} · ${fundCall.workflowStep.replace('_', ' ')}`, { duration: 6000 })}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" title="Exporter (CSV)"
+                    <Button variant="ghost" size="sm" title={t('fundCalls.exportCsv')}
                       onClick={() => {
-                        const rows = [['Reference', fundCall.reference], ['Total', String(fundCall.totalAmount)], ['Statut', fundCall.status], [], ['Compte', 'Libelle', 'Montant'],
+                        const rows = [[t('fundCalls.colReference'), fundCall.reference], [t('fundCalls.csvTotal'), String(fundCall.totalAmount)], [t('fundCalls.colStatus'), fundCall.status], [], [t('fundCalls.account'), t('fundCalls.csvLabel'), t('fundCalls.amount')],
                           ...fundCall.items.map(it => [String(it.account || ''), String((it as any).supplier || (it as any).reference || ''), String(it.outstanding || 0)])];
                         const csv = '﻿' + rows.map(r => r.join(';')).join('\r\n');
                         const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
@@ -874,7 +873,7 @@ const FundCallsPage: React.FC = () => {
       <Alert>
         <Send className="h-4 w-4" />
         <AlertDescription>
-          Le workflow d'approbation garantit le contrôle des paiements selon la matrice de délégation définie.
+          {t('fundCalls.workflowAlert')}
         </AlertDescription>
       </Alert>
 
@@ -882,42 +881,42 @@ const FundCallsPage: React.FC = () => {
         {/* Résumé de l'appel de fonds */}
         <Card>
           <CardHeader>
-            <CardTitle>Résumé de l'Appel de Fonds</CardTitle>
+            <CardTitle>{t('fundCalls.summaryTitle')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm text-gray-600">Date de demande</Label>
+                <Label className="text-sm text-gray-600">{t('fundCalls.requestDate')}</Label>
                 <p className="font-medium">{new Date().toLocaleDateString('fr-FR')}</p>
               </div>
               <div>
-                <Label className="text-sm text-gray-600">Nombre de paiements</Label>
+                <Label className="text-sm text-gray-600">{t('fundCalls.paymentsCount')}</Label>
                 <p className="font-medium">{proposedPayments.length}</p>
               </div>
               <div>
-                <Label className="text-sm text-gray-600">Montant total</Label>
+                <Label className="text-sm text-gray-600">{t('fundCalls.totalAmount')}</Label>
                 <p className="font-mono font-bold text-[var(--color-primary)]">
                   {formatCurrency(selectedAmount)}
                 </p>
               </div>
               <div>
-                <Label className="text-sm text-gray-600">Priorité moyenne</Label>
-                <p className="font-medium">Haute</p>
+                <Label className="text-sm text-gray-600">{t('fundCalls.averagePriority')}</Label>
+                <p className="font-medium">{t('fundCalls.priorityHigh')}</p>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="justification">Justification *</Label>
+              <Label htmlFor="justification">{t('fundCalls.justificationRequired')}</Label>
               <Textarea
                 id="justification"
-                placeholder="Motif de l'appel de fonds et justification des paiements..."
+                placeholder={t('fundCalls.justificationPlaceholder')}
                 className="mt-1"
                 rows={3}
               />
             </div>
 
             <div>
-              <Label className="text-sm text-gray-600">Répartition par type</Label>
+              <Label className="text-sm text-gray-600">{t('fundCalls.breakdownByType')}</Label>
               <div className="space-y-2 mt-2">
                 {['ACHAT', 'PRESTATION', 'IMMOBILISATION', 'AUTRE'].map(type => {
                   const items = proposedPayments.filter(p => p.invoiceType === type);
@@ -939,43 +938,43 @@ const FundCallsPage: React.FC = () => {
         {/* Workflow de validation */}
         <Card>
           <CardHeader>
-            <CardTitle>Workflow de Validation</CardTitle>
+            <CardTitle>{t('fundCalls.validationWorkflow')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[
                 {
                   step: 'CREATION',
-                  label: 'Création',
-                  user: 'Demandeur',
+                  label: t('fundCalls.stepCreation'),
+                  user: t('fundCalls.roleRequester'),
                   status: 'completed',
                   icon: FileText
                 },
                 {
                   step: 'VALIDATION_COMPTABLE',
-                  label: 'Validation Comptable',
-                  user: 'Chef Comptable',
+                  label: t('fundCalls.stepAccountingValidation'),
+                  user: t('fundCalls.roleChiefAccountant'),
                   status: 'pending',
                   icon: Calculator
                 },
                 {
                   step: 'VALIDATION_FINANCIERE',
-                  label: 'Validation Financière',
-                  user: 'Directeur Financier',
+                  label: t('fundCalls.stepFinancialValidation'),
+                  user: t('fundCalls.roleCFO'),
                   status: 'waiting',
                   icon: DollarSign
                 },
                 {
                   step: 'VALIDATION_DIRECTION',
-                  label: 'Validation Direction',
-                  user: 'Directeur Général',
+                  label: t('fundCalls.stepManagementValidation'),
+                  user: t('fundCalls.roleCEO'),
                   status: 'waiting',
                   icon: Building2
                 },
                 {
                   step: 'EXECUTION',
-                  label: 'Exécution Paiement',
-                  user: 'Trésorier',
+                  label: t('fundCalls.stepPaymentExecution'),
+                  user: t('fundCalls.roleTreasurer'),
                   status: 'waiting',
                   icon: Send
                 }
@@ -1017,11 +1016,11 @@ const FundCallsPage: React.FC = () => {
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => persistFundCall('brouillon')}>
                   <Edit3 className="h-4 w-4 mr-2" />
-                  Enregistrer Brouillon
+                  {t('fundCalls.saveDraft')}
                 </Button>
                 <Button onClick={() => persistFundCall('soumis')} disabled={proposedPayments.length === 0}>
                   <Send className="h-4 w-4 mr-2" />
-                  Soumettre Appel de Fonds
+                  {t('fundCalls.submitFundCall')}
                 </Button>
               </div>
             </div>
@@ -1039,21 +1038,21 @@ const FundCallsPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-white flex items-center gap-3">
               <CreditCard className="h-6 w-6" />
-              Appels de Fonds
+              {t('fundCalls.title')}
             </h1>
             <p className="text-white/85 text-xs mt-0.5">
-              Gestion des demandes de paiement avec workflow de validation
+              {t('fundCalls.subtitle')}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <PageHeaderActions />
             <Button className="bg-white text-primary-800 hover:bg-primary-100">
               <Plus className="h-4 w-4 mr-2" />
-              Nouveau
+              {t('fundCalls.new')}
             </Button>
             <Button variant="outline" className="border-white !bg-transparent text-white hover:!bg-white hover:text-primary-800">
               <Download className="h-4 w-4 mr-2" />
-              Templates
+              {t('fundCalls.templates')}
             </Button>
           </div>
         </div>
@@ -1063,9 +1062,9 @@ const FundCallsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm mb-3 p-1">
         <div className="flex gap-1">
           {[
-            { key: 'payables', label: 'Comptes à Payer', icon: FileText },
-            { key: 'fund-calls', label: 'Historique', icon: Send },
-            { key: 'workflow', label: 'Workflow', icon: Target },
+            { key: 'payables', label: t('fundCalls.tabPayables'), icon: FileText },
+            { key: 'fund-calls', label: t('fundCalls.tabHistory'), icon: Send },
+            { key: 'workflow', label: t('fundCalls.tabWorkflow'), icon: Target },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -1095,86 +1094,84 @@ const FundCallsPage: React.FC = () => {
       <Dialog open={showAddExpense} onOpenChange={setShowAddExpense} containerClassName="max-w-2xl">
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter une dépense non comptabilisée</DialogTitle>
+            <DialogTitle>{t('fundCalls.addExpenseTitle')}</DialogTitle>
             <DialogDescription>
-              Dépense <span className="font-semibold">prévisionnelle</span> à inclure dans un
-              appel de fonds avant son enregistrement comptable. Elle n'est PAS écrite au
-              Grand Livre et reste distinguée des dettes réelles.
+              {t('fundCalls.addExpenseDescription')}
             </DialogDescription>
           </DialogHeader>
 
           {/* Repère couleur : tout ce qui est saisi ici est « Prévisionnel » (ambre). */}
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-            <span className="text-[10px] uppercase tracking-wide bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-semibold">Prévisionnel</span>
-            <span>Enregistré et affiché en <span className="font-semibold">ambre</span>, distinct des dettes comptabilisées.</span>
+            <span className="text-[10px] uppercase tracking-wide bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-semibold">{t('fundCalls.provisional')}</span>
+            <span>{t('fundCalls.provisionalNotice')}</span>
           </div>
 
           <div className="space-y-3.5 py-2">
             <div>
-              <Label htmlFor="exp-vendor">Bénéficiaire / Fournisseur *</Label>
+              <Label htmlFor="exp-vendor">{t('fundCalls.beneficiarySupplier')}</Label>
               <Input id="exp-vendor" className="w-full" value={expenseForm.vendor} list="fund-suppliers"
                 onChange={(e) => setExpenseForm(f => ({ ...f, vendor: e.target.value }))}
-                placeholder="Choisir un fournisseur existant ou saisir un nom…" />
+                placeholder={t('fundCalls.supplierPlaceholder')} />
               <datalist id="fund-suppliers">
                 {Array.from(new Set([...supplierNames, ...payablesBySupplier.map(g => g.vendor)]))
                   .filter(Boolean).sort().map((name) => <option key={name} value={name} />)}
               </datalist>
-              <p className="text-[11px] text-gray-400 mt-1">Sélectionnez un fournisseur existant dans la liste, ou tapez un nouveau nom.</p>
+              <p className="text-[11px] text-gray-400 mt-1">{t('fundCalls.supplierHint')}</p>
             </div>
             <div>
-              <Label htmlFor="exp-desc">Description</Label>
+              <Label htmlFor="exp-desc">{t('fundCalls.description')}</Label>
               <Input id="exp-desc" className="w-full" value={expenseForm.description}
                 onChange={(e) => setExpenseForm(f => ({ ...f, description: e.target.value }))}
-                placeholder="Ex. Acompte travaux toiture niveau 3" />
+                placeholder={t('fundCalls.descriptionPlaceholder')} />
             </div>
             <div>
-              <Label htmlFor="exp-charge">Compte de charge (à titre indicatif)</Label>
+              <Label htmlFor="exp-charge">{t('fundCalls.chargeAccountLabel')}</Label>
               <select id="exp-charge" value={expenseForm.chargeAccount}
                 onChange={(e) => setExpenseForm(f => ({ ...f, chargeAccount: e.target.value }))}
                 className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
-                <option value="">— Aucun (à imputer plus tard) —</option>
+                <option value="">{t('fundCalls.chargeAccountNone')}</option>
                 {chargeAccounts.map(c => (
                   <option key={c.code} value={c.code}>{c.code} — {c.name}</option>
                 ))}
               </select>
               <p className="text-[11px] text-[var(--color-text-tertiary)] mt-1">
-                Classe 6 du plan comptable. Sert de repère pour l'imputation — aucune écriture n'est générée.
+                {t('fundCalls.chargeAccountHint')}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="exp-amount">Montant (FCFA) *</Label>
+                <Label htmlFor="exp-amount">{t('fundCalls.amountFcfa')}</Label>
                 <Input id="exp-amount" className="w-full" inputMode="decimal" value={expenseForm.amount}
                   onChange={(e) => setExpenseForm(f => ({ ...f, amount: e.target.value }))}
                   placeholder="0" />
               </div>
               <div>
-                <Label htmlFor="exp-due">Échéance prévue</Label>
+                <Label htmlFor="exp-due">{t('fundCalls.expectedDueDate')}</Label>
                 <Input id="exp-due" className="w-full" type="date" value={expenseForm.dueDate}
                   onChange={(e) => setExpenseForm(f => ({ ...f, dueDate: e.target.value }))} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="exp-type">Type</Label>
+                <Label htmlFor="exp-type">{t('fundCalls.type')}</Label>
                 <select id="exp-type" value={expenseForm.invoiceType}
                   onChange={(e) => setExpenseForm(f => ({ ...f, invoiceType: e.target.value as PayableItem['invoiceType'] }))}
                   className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
-                  <option value="ACHAT">Achat</option>
-                  <option value="PRESTATION">Prestation</option>
-                  <option value="IMMOBILISATION">Immobilisation</option>
-                  <option value="AUTRE">Autre</option>
+                  <option value="ACHAT">{t('fundCalls.typePurchase')}</option>
+                  <option value="PRESTATION">{t('fundCalls.typeService')}</option>
+                  <option value="IMMOBILISATION">{t('fundCalls.typeFixedAsset')}</option>
+                  <option value="AUTRE">{t('fundCalls.typeOther')}</option>
                 </select>
               </div>
               <div>
-                <Label htmlFor="exp-prio">Priorité</Label>
+                <Label htmlFor="exp-prio">{t('fundCalls.priority')}</Label>
                 <select id="exp-prio" value={expenseForm.priority}
                   onChange={(e) => setExpenseForm(f => ({ ...f, priority: e.target.value as PayableItem['priority'] }))}
                   className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm bg-white">
-                  <option value="LOW">Basse</option>
-                  <option value="MEDIUM">Moyenne</option>
-                  <option value="HIGH">Haute</option>
-                  <option value="CRITICAL">Critique</option>
+                  <option value="LOW">{t('fundCalls.priorityLow')}</option>
+                  <option value="MEDIUM">{t('fundCalls.priorityMedium')}</option>
+                  <option value="HIGH">{t('fundCalls.priorityHigh')}</option>
+                  <option value="CRITICAL">{t('fundCalls.priorityCritical')}</option>
                 </select>
               </div>
             </div>
@@ -1182,14 +1179,14 @@ const FundCallsPage: React.FC = () => {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => { setExpenseForm(emptyForm); setShowAddExpense(false); }}>
-              Annuler
+              {t('fundCalls.cancel')}
             </Button>
             <Button
               onClick={addProvisionalExpense}
               disabled={!expenseForm.vendor.trim() || !(parseFloat(String(expenseForm.amount).replace(/\s/g, '').replace(',', '.')) > 0)}
             >
               <Plus className="h-4 w-4 mr-1.5" />
-              Ajouter la dépense
+              {t('fundCalls.addExpense')}
             </Button>
           </DialogFooter>
         </DialogContent>
