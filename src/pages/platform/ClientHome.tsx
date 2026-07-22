@@ -8,6 +8,7 @@ import {
   BarChart3, TrendingUp
 } from 'lucide-react';
 import { getTeamMembers, getInvoices } from '../../features/platform/services/tenantService';
+import { formatNumber } from '../../utils/formatters';
 
 const ClientHome: React.FC = () => {
   const navigate = useNavigate();
@@ -67,7 +68,7 @@ const ClientHome: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <kpi.icon className="w-5 h-5" style={{ color: kpi.color }} />
             </div>
-            <div className="text-2xl font-bold text-[var(--color-primary)]">{kpi.value}</div>
+            <div className="text-2xl font-bold text-[var(--color-primary)]">{typeof kpi.value === 'number' ? formatNumber(kpi.value) : kpi.value}</div>
             <div className="text-xs text-gray-500 mt-1">{kpi.label}</div>
           </div>
         ))}

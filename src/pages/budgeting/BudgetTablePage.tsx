@@ -12,7 +12,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useAccountNames } from '../../hooks/useAccountNames';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import DataTable, { type Column } from '../../components/ui/DataTable';
 import BudgetImportPanel from '../budget/BudgetImportPanel';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
@@ -222,7 +222,7 @@ const BudgetTablePage: React.FC = () => {
           {/* KPI totaux */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Lignes', value: String(totals.count) },
+              { label: 'Lignes', value: formatNumber(totals.count) },
               { label: 'Budgété', value: fmt(totals.budget) },
               { label: 'Réel', value: fmt(totals.realise) },
               { label: 'Écart', value: fmt(totals.ecart), red: totals.ecart < 0 },

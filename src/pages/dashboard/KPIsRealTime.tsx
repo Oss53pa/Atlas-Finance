@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { useActivityType } from '../../hooks/useActivityType';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import {
   Activity, TrendingUp, Users, DollarSign, Package, Clock,
   Target, Zap, BarChart3, PieChart, AlertCircle, CheckCircle,
@@ -547,7 +547,9 @@ const KPIsRealTime: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-medium text-gray-600">{kpi.name}</h3>
                     <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-lg font-bold text-gray-900">{kpi.value}</span>
+                      <span className="text-lg font-bold text-gray-900">
+                        {kpi.unit === '%' ? formatNumber(kpi.value, 1) : formatNumber(kpi.value)}
+                      </span>
                       <span className="text-sm text-gray-700">{kpi.unit}</span>
                     </div>
                   </div>
@@ -570,7 +572,9 @@ const KPIsRealTime: React.FC = () => {
 
                 <div className="mb-3">
                   <div className="flex justify-between text-xs text-gray-700 mb-1">
-                    <span>Objectif: {kpi.target}{kpi.unit}</span>
+                    <span>
+                      Objectif: {kpi.unit === '%' ? formatNumber(kpi.target, 1) : formatNumber(kpi.target)}{kpi.unit}
+                    </span>
                     <span>{((kpi.value / kpi.target) * 100).toFixed(1)}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -682,8 +686,12 @@ const KPIsRealTime: React.FC = () => {
                       #{index + 1}
                     </div>
                   </div>
-                  <p className="font-semibold text-gray-900">{kpi.value}{kpi.unit}</p>
-                  <p className="text-sm text-gray-700">Objectif: {kpi.target}{kpi.unit}</p>
+                  <p className="font-semibold text-gray-900">
+                    {kpi.unit === '%' ? formatNumber(kpi.value, 1) : formatNumber(kpi.value)}{kpi.unit}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    Objectif: {kpi.unit === '%' ? formatNumber(kpi.target, 1) : formatNumber(kpi.target)}{kpi.unit}
+                  </p>
                 </div>
               ))}
             </div>
@@ -729,10 +737,10 @@ const KPIsRealTime: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {alertKpis.map(kpi => {
                     const formattedValue = kpi.unit === '%'
-                      ? `${kpi.value}%`
+                      ? `${formatNumber(kpi.value, 1)}%`
                       : formatCurrency(kpi.value);
                     const formattedTarget = kpi.unit === '%'
-                      ? `${kpi.target}%`
+                      ? `${formatNumber(kpi.target, 1)}%`
                       : formatCurrency(kpi.target);
                     const pct = kpi.target > 0 ? Math.round((kpi.value / kpi.target) * 100) : 0;
 

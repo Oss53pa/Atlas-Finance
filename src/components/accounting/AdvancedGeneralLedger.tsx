@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import PrintableArea from '../ui/PrintableArea';
 import './AdvancedBalance.css';
-import { formatCurrency } from '@/utils/formatters';
+import { formatCurrency, formatNumber } from '@/utils/formatters';
 import { buildPieceNumbers, pieceNumberOf } from '../../utils/pieceNumber';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
@@ -1413,7 +1413,7 @@ const AdvancedGeneralLedger: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">{t('gl.avgEntries')}</p>
-                  <p className="text-lg font-bold text-orange-600">{indicators.moyenneEcritures.toFixed(0)}</p>
+                  <p className="text-lg font-bold text-orange-600">{formatNumber(indicators.moyenneEcritures)}</p>
                   <p className="text-xs text-gray-700">{t('gl.perActiveAccount')}</p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">

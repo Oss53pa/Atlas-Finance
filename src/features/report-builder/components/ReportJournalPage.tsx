@@ -14,6 +14,7 @@ import { useData } from '@/contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import { listReports, deleteReport, duplicateReport, loadReport } from '../services/reportPersistenceService';
 import { exportToPDF } from '../services/pdfExportService';
+import { formatNumber } from '../../../utils/formatters';
 
 // ============================================================================
 // Types
@@ -68,7 +69,7 @@ const KPICards: React.FC<{ reports: ReportEntry[] }> = ({ reports }) => {
           <div className="flex items-center justify-between mb-2">
             <span className={`${card.color}`}>{card.icon}</span>
           </div>
-          <div className="text-2xl font-bold text-neutral-900">{card.value}</div>
+          <div className="text-2xl font-bold text-neutral-900">{formatNumber(card.value)}</div>
           <div className="text-xs text-neutral-500 mt-0.5">{card.label}</div>
         </div>
       ))}

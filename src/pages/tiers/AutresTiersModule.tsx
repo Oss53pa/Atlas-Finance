@@ -7,7 +7,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import {
   Database, Search, Plus, Trash2, X, Save, Eye, Edit,
   BarChart3, PieChart, TrendingUp, TrendingDown, Users,
@@ -580,7 +580,7 @@ const AutresTiersModule: React.FC = () => {
             <span className="text-xs font-medium text-gray-500 uppercase">{tr('otherTp.total')}</span>
             <Users className="w-4 h-4 text-purple-500" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">{kpis.total}</p>
+          <p className="text-2xl font-bold text-gray-900">{formatNumber(kpis.total)}</p>
           <p className="text-xs text-gray-400 mt-0.5">{tr('otherTp.activeCount', { count: String(kpis.actifs) })}</p>
         </div>
 
