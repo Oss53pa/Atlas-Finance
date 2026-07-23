@@ -230,6 +230,7 @@ const CashFlowStatementPage = lazyRetry(() => import('./components/financial/Cas
 const TaxationDashboard = lazyRetry(() => import('./pages/taxation/TaxationDashboard'));
 const TaxDeclarationsPage = lazyRetry(() => import('./pages/taxation/TaxDeclarationsPage'));
 const LiasseFiscalePage = lazyRetry(() => import('./pages/taxation/LiasseFiscalePage'));
+const DSFPage = lazyRetry(() => import('./pages/taxation/DSFPage'));
 const EcheancesFiscalesPage = lazyRetry(() => import('./pages/taxation/EcheancesFiscalesPage'));
 const FiscalDashboard = lazyRetry(() => import('./pages/fiscal/FiscalDashboard'));
 
@@ -633,6 +634,7 @@ function App() {
                           <Route path="/taxation" element={<TaxationDashboard />} />
                           <Route path="/taxation/declarations" element={work(<TaxDeclarationsPage />)} />
                           <Route path="/taxation/liasse" element={<LiasseFiscalePage />} />
+                          <Route path="/taxation/dsf" element={work(<DSFPage />)} />
                           <Route path="/taxation/echeances" element={work(<EcheancesFiscalesPage />)} />
                           <Route path="/taxation/fiscal-dashboard" element={<FiscalDashboard />} />
                         </Route>
