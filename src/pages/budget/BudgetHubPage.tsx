@@ -11,6 +11,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getDefaultAnnee, getActiveBudgetVersion, listBudgetVersions, verifyVersionChain, getActiveFiscalYear,
   type BudgetVersion, type BudgetVersionFull,
@@ -25,24 +26,24 @@ import {
 } from 'lucide-react';
 
 const CAMPAGNE_STEPS: CampagneStatut[] = ['preparation', 'ouverte', 'consolidation', 'arbitrage', 'votee', 'cloturee'];
-const CAMPAGNE_LABEL: Record<CampagneStatut, string> = {
-  preparation: 'Préparation', ouverte: 'Ouverte', consolidation: 'Consolidation',
-  arbitrage: 'Arbitrage', votee: 'Votée', cloturee: 'Clôturée',
+const CAMPAGNE_LABEL_KEY: Record<CampagneStatut, string> = {
+  preparation: 'budgetHub.statutPreparation', ouverte: 'budgetHub.statutOuverte', consolidation: 'budgetHub.statutConsolidation',
+  arbitrage: 'budgetHub.statutArbitrage', votee: 'budgetHub.statutVotee', cloturee: 'budgetHub.statutCloturee',
 };
 
 const NAV_TILES = [
-  { path: '/budget/campagne', label: 'Campagne', desc: 'Cycle & complétude de saisie', icon: Calendar },
-  { path: '/budget/cockpit', label: 'Cockpit budgétaire', desc: 'Budgété vs réalisé, top écarts', icon: Activity },
-  { path: '/budget/exploitation', label: 'Budget vs Réalisé', desc: 'Pivot OPEX par maille', icon: BarChart3 },
-  { path: '/budget/revenus', label: 'Budget des revenus', desc: 'Classe 7, volumes × prix', icon: TrendingUp },
-  { path: '/budget/engagements', label: 'Engagements', desc: 'Registre + lettrage', icon: FileCheck },
-  { path: '/capex', label: 'Investissement (CAPEX)', desc: 'BC, priorisation, CAR, projets', icon: Package },
-  { path: '/budget/pnl', label: 'Résultat budgétaire', desc: 'P&L de gestion SYSCOHADA', icon: Calculator },
-  { path: '/budget/ecarts', label: 'Analyse des écarts', desc: 'Waterfall, heatmap', icon: Target },
-  { path: '/budget/alertes', label: 'Alertes budgétaires', desc: 'Dépassements & seuils', icon: Bell },
-  { path: '/budget/versions', label: 'Versions & validation', desc: 'Verrouillage immuable', icon: Lock },
-  { path: '/analytique', label: 'Comptabilité analytique', desc: 'Axes & sections (org)', icon: PieChart },
-  { path: '/budget/ventilation', label: 'Moteur de ventilation', desc: 'Attribution du réel aux sections', icon: Split },
+  { path: '/budget/campagne', labelKey: 'budgetHub.navCampagneLabel', descKey: 'budgetHub.navCampagneDesc', icon: Calendar },
+  { path: '/budget/cockpit', labelKey: 'budgetHub.navCockpitLabel', descKey: 'budgetHub.navCockpitDesc', icon: Activity },
+  { path: '/budget/exploitation', labelKey: 'budgetHub.navExploitationLabel', descKey: 'budgetHub.navExploitationDesc', icon: BarChart3 },
+  { path: '/budget/revenus', labelKey: 'budgetHub.navRevenusLabel', descKey: 'budgetHub.navRevenusDesc', icon: TrendingUp },
+  { path: '/budget/engagements', labelKey: 'budgetHub.navEngagementsLabel', descKey: 'budgetHub.navEngagementsDesc', icon: FileCheck },
+  { path: '/capex', labelKey: 'budgetHub.navCapexLabel', descKey: 'budgetHub.navCapexDesc', icon: Package },
+  { path: '/budget/pnl', labelKey: 'budgetHub.navPnlLabel', descKey: 'budgetHub.navPnlDesc', icon: Calculator },
+  { path: '/budget/ecarts', labelKey: 'budgetHub.navEcartsLabel', descKey: 'budgetHub.navEcartsDesc', icon: Target },
+  { path: '/budget/alertes', labelKey: 'budgetHub.navAlertesLabel', descKey: 'budgetHub.navAlertesDesc', icon: Bell },
+  { path: '/budget/versions', labelKey: 'budgetHub.navVersionsLabel', descKey: 'budgetHub.navVersionsDesc', icon: Lock },
+  { path: '/analytique', labelKey: 'budgetHub.navAnalytiqueLabel', descKey: 'budgetHub.navAnalytiqueDesc', icon: PieChart },
+  { path: '/budget/ventilation', labelKey: 'budgetHub.navVentilationLabel', descKey: 'budgetHub.navVentilationDesc', icon: Split },
 ];
 
 const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
@@ -53,6 +54,7 @@ const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ chi
 
 const BudgetHubPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const [annee, setAnnee] = useState('');
@@ -87,7 +89,7 @@ const BudgetHubPage: React.FC = () => {
         if (cancelled) return;
         setAnnee(a); setActive(act); setVersions(vers); setCampagnes(camps); setOrg(tree); setChain(ch);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetHub.errLoading'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -109,10 +111,10 @@ const BudgetHubPage: React.FC = () => {
     setSeeding(true); setNotice(null); setError(null);
     try {
       const res = await seedStandardAnalyticalStructure(adapter, STANDARD_ANALYTICAL_STRUCTURE);
-      setNotice(`Structure analytique initialisée : ${res.axesCreated} axe(s), ${res.sectionsCreated} section(s) créés.`);
+      setNotice(t('budgetHub.structureInitialized', { axes: String(res.axesCreated), sections: String(res.sectionsCreated) }));
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
-      setError(e?.message || "Échec de l'initialisation de la structure analytique.");
+      setError(e?.message || t('budgetHub.errInitStructure'));
     } finally {
       setSeeding(false);
     }
@@ -122,12 +124,12 @@ const BudgetHubPage: React.FC = () => {
     setNotice(null); setError(null);
     try {
       const fy = await getActiveFiscalYear(adapter);
-      if (!fy?.id) { setError('Aucun exercice actif : créez un exercice avant la campagne.'); return; }
-      await createCampagne(adapter, { fiscalYearId: fy.id, libelle: `Campagne budgétaire ${fy.code ?? annee}` });
-      setNotice('Campagne créée (statut : Préparation).');
+      if (!fy?.id) { setError(t('budgetHub.errNoFiscalYear')); return; }
+      await createCampagne(adapter, { fiscalYearId: fy.id, libelle: t('budgetHub.campaignLibelle', { code: String(fy.code ?? annee) }) });
+      setNotice(t('budgetHub.campaignCreated'));
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
-      setError(e?.message || 'Échec de création de la campagne.');
+      setError(e?.message || t('budgetHub.errCreateCampaign'));
     }
   }, [adapter, annee]);
 
@@ -135,16 +137,16 @@ const BudgetHubPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Hub budgétaire</h1>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">{t('budgetHub.title')}</h1>
           <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
-            Contrôle de gestion — OPEX &amp; CAPEX · exercice {annee || '—'}
+            {t('budgetHub.subtitle', { year: String(annee || '—') })}
           </p>
         </div>
         <button
           onClick={() => navigate('/budget/versions')}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition"
         >
-          <GitBranch className="w-4 h-4" /> Versions &amp; validation
+          <GitBranch className="w-4 h-4" /> {t('budgetHub.navVersionsLabel')}
         </button>
       </header>
 
@@ -161,7 +163,7 @@ const BudgetHubPage: React.FC = () => {
 
       {loading ? (
         <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center">
-          <Loader2 className="w-5 h-5 animate-spin" /> Chargement…
+          <Loader2 className="w-5 h-5 animate-spin" /> {t('budgetHub.loading')}
         </div>
       ) : (
         <>
@@ -169,7 +171,7 @@ const BudgetHubPage: React.FC = () => {
             {/* Version en vigueur */}
             <Card className="p-5">
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] mb-3">
-                <Calendar className="w-4 h-4" /> Version en vigueur
+                <Calendar className="w-4 h-4" /> {t('budgetHub.versionInForce')}
               </div>
               {activeFull ? (
                 <>
@@ -178,14 +180,14 @@ const BudgetHubPage: React.FC = () => {
                     <span className="px-2 py-0.5 rounded-full bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] capitalize">{activeFull.type}</span>
                     {activeFull.statut === 'verrouille' ? (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]">
-                        <Lock className="w-3 h-3" /> Verrouillée
+                        <Lock className="w-3 h-3" /> {t('budgetHub.locked')}
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
                         <Unlock className="w-3 h-3" /> {activeFull.statut}
                       </span>
                     )}
-                    <span className="text-[var(--color-text-tertiary)]">v{activeFull.numero ?? 1} · {activeFull.nb_lignes ?? 0} lignes</span>
+                    <span className="text-[var(--color-text-tertiary)]">v{activeFull.numero ?? 1} · {activeFull.nb_lignes ?? 0} {t('budgetHub.linesWord')}</span>
                   </div>
                   {activeFull.hash_sha256 && (
                     <div className="mt-3 text-[11px] font-mono text-[var(--color-text-tertiary)] truncate" title={activeFull.hash_sha256}>
@@ -195,26 +197,28 @@ const BudgetHubPage: React.FC = () => {
                   {chain && (
                     <div className={`mt-2 inline-flex items-center gap-1 text-xs ${chain.valid ? 'text-emerald-600' : 'text-red-600'}`}>
                       {chain.valid ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-                      Chaîne d'intégrité {chain.valid ? 'vérifiée' : 'ROMPUE'} ({chain.checked} version{chain.checked > 1 ? 's' : ''})
+                      {chain.valid
+                        ? t('budgetHub.integrityVerified', { count: String(chain.checked) })
+                        : t('budgetHub.integrityBroken', { count: String(chain.checked) })}
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-sm text-[var(--color-text-secondary)]">Aucune version en vigueur pour cet exercice.</div>
+                <div className="text-sm text-[var(--color-text-secondary)]">{t('budgetHub.noActiveVersion')}</div>
               )}
             </Card>
 
             {/* Fondation analytique / organisation */}
             <Card className="p-5">
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] mb-3">
-                <Layers className="w-4 h-4" /> Organisation analytique
+                <Layers className="w-4 h-4" /> {t('budgetHub.analyticalOrg')}
               </div>
               {costCenters.length > 0 ? (
                 <>
                   <div className="text-lg font-semibold text-[var(--color-text-primary)]">
-                    {costCenters.length} centre{costCenters.length > 1 ? 's' : ''} de coût
+                    {t('budgetHub.costCentersCount', { count: String(costCenters.length) })}
                   </div>
-                  <div className="text-xs text-[var(--color-text-secondary)] mt-1 mb-2">Saisir le budget OPEX d'un centre :</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-1 mb-2">{t('budgetHub.enterOpexPrompt')}</div>
                   <div className="flex flex-wrap gap-1.5">
                     {costCenters.slice(0, 8).map((c) => (
                       <button key={c.id} onClick={() => navigate(`/budget/saisie/${c.id}`)}
@@ -227,13 +231,13 @@ const BudgetHubPage: React.FC = () => {
                     onClick={() => navigate('/analytique')}
                     className="mt-3 inline-flex items-center gap-1 text-sm text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:underline"
                   >
-                    Gérer l'organisation <ArrowRight className="w-4 h-4" />
+                    {t('budgetHub.manageOrg')} <ArrowRight className="w-4 h-4" />
                   </button>
                 </>
               ) : (
                 <>
                   <div className="text-sm text-[var(--color-text-secondary)]">
-                    Aucun centre de coût. Le budget a besoin d'une structure analytique pour s'imputer.
+                    {t('budgetHub.noCostCenter')}
                   </div>
                   <button
                     onClick={initOrg}
@@ -241,7 +245,7 @@ const BudgetHubPage: React.FC = () => {
                     className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-secondary)] text-white text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
                   >
                     {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    Initialiser la structure standard
+                    {t('budgetHub.initStandardStructure')}
                   </button>
                 </>
               )}
@@ -252,11 +256,11 @@ const BudgetHubPage: React.FC = () => {
           <Card className="p-5">
             <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
               <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)]">
-                <Target className="w-4 h-4" /> Campagne budgétaire
+                <Target className="w-4 h-4" /> {t('budgetHub.budgetCampaign')}
               </div>
               {!currentCampagne && (
                 <button onClick={createCampaign} className="text-sm text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:underline">
-                  + Nouvelle campagne
+                  {t('budgetHub.newCampaign')}
                 </button>
               )}
             </div>
@@ -273,7 +277,7 @@ const BudgetHubPage: React.FC = () => {
                           cur ? 'bg-[var(--color-primary)] text-white'
                           : done ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] dark:text-[var(--color-primary)]'
                           : 'bg-[var(--color-surface-hover)] text-[var(--color-text-tertiary)]'
-                        }`}>{CAMPAGNE_LABEL[step]}</span>
+                        }`}>{t(CAMPAGNE_LABEL_KEY[step])}</span>
                         {i < CAMPAGNE_STEPS.length - 1 && <span className="text-neutral-300">·</span>}
                       </React.Fragment>
                     );
@@ -281,18 +285,18 @@ const BudgetHubPage: React.FC = () => {
                 </div>
               </>
             ) : (
-              <div className="text-sm text-[var(--color-text-secondary)]">Aucune campagne. Lancez une campagne pour cadrer l'élaboration budgétaire.</div>
+              <div className="text-sm text-[var(--color-text-secondary)]">{t('budgetHub.noCampaign')}</div>
             )}
           </Card>
 
           {/* Navigation sous-modules */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {NAV_TILES.map((t) => {
-              const Icon = t.icon;
+            {NAV_TILES.map((tile) => {
+              const Icon = tile.icon;
               return (
                 <button
-                  key={t.path}
-                  onClick={() => navigate(t.path)}
+                  key={tile.path}
+                  onClick={() => navigate(tile.path)}
                   className="group text-left bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 hover:border-[var(--color-primary)] hover:shadow-md transition"
                 >
                   <div className="flex items-center justify-between mb-3">
@@ -301,8 +305,8 @@ const BudgetHubPage: React.FC = () => {
                     </div>
                     <ArrowRight className="w-4 h-4 text-neutral-300 group-hover:text-[var(--color-primary)] transition" />
                   </div>
-                  <div className="font-medium text-[var(--color-text-primary)]">{t.label}</div>
-                  <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{t.desc}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{t(tile.labelKey)}</div>
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-0.5">{t(tile.descKey)}</div>
                 </button>
               );
             })}
