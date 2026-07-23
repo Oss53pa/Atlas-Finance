@@ -7,14 +7,14 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import {
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, AreaChart, LabelList
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, LabelList
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Eye,
   Printer, Settings, Filter, Search, Calendar, BarChart3, PieChart as PieChartIcon,
   FileText, Users, Building, CreditCard, AlertCircle, RefreshCw, Save,
-  ChevronDown, ChevronRight, Grid3X3, Columns, ZoomIn, Mail, FileSpreadsheet
+  ChevronDown, ChevronRight, Grid3X3, Columns, Mail, FileSpreadsheet
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
@@ -37,14 +37,6 @@ interface BalanceData {
   type: 'actif' | 'passif' | 'charges' | 'produits';
   centreCout?: string;
   dernierMouvement?: Date;
-}
-
-interface ChartData {
-  periode: string;
-  actif: number;
-  passif: number;
-  charges: number;
-  produits: number;
 }
 
 const AdvancedBalance: React.FC = () => {
@@ -259,18 +251,6 @@ const AdvancedBalance: React.FC = () => {
       }));
   }, [periodEntries, granularity]);
 
-  /** Comparaison des masses — magnitudes, pas parts d'un tout (voir plus bas). */
-  const chartData: ChartData[] = useMemo(() => {
-    if (!balanceData.length) return [];
-    return [{
-      periode: `${dateRange.start} - ${dateRange.end}`,
-      actif: balanceData.filter(i => i.type === 'actif').reduce((s, i) => s + i.debitSolde, 0),
-      passif: balanceData.filter(i => i.type === 'passif').reduce((s, i) => s + i.creditSolde, 0),
-      charges: balanceData.filter(i => i.type === 'charges').reduce((s, i) => s + i.debitSolde, 0),
-      produits: balanceData.filter(i => i.type === 'produits').reduce((s, i) => s + i.creditSolde, 0),
-    }];
-  }, [balanceData, dateRange]);
-
   // Calculs des indicateurs
   const indicators = useMemo(() => {
     // Contrôle d'équilibre = Σ débits mouvements vs Σ crédits mouvements (doivent être
@@ -336,8 +316,6 @@ const AdvancedBalance: React.FC = () => {
     queryFn: () => verifyTrialBalance(adapter, dateRange.start?.substring(0, 4)),
     enabled: balanceData.length > 0,
   });
-
-  const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
 
   /**
    * Palette des graphiques — teintes VALIDÉES (scripts/validate_palette.js).
@@ -970,15 +948,23 @@ const AdvancedBalance: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
                             {fmt(item.debitMouvement + item.creditMouvement)}
                           </td>
+                          {/* Sens du solde — un compte QUI PORTE un solde n'est pas
+                              « déséquilibré » (l'ancien libellé alarmait à tort 9
+                              lignes sur 10). On indique soldé / débiteur / créditeur. */}
                           <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              (item.debitSolde - item.creditSolde) === 0 ? 'bg-green-100 text-green-800' : 
-                              Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? 'bg-red-100 text-red-800' : 
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {(item.debitSolde - item.creditSolde) === 0 ? t('advBalance.balanced') :
-                               Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? t('advBalance.unbalanced') : t('advBalance.active')}
-                            </span>
+                            {(() => {
+                              const net = item.debitSolde - item.creditSolde;
+                              const solde = Math.abs(net) < 1;
+                              return (
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  solde ? 'bg-[var(--color-border)] text-[var(--color-primary)]/70'
+                                    : net > 0 ? 'bg-blue-50 text-blue-700'
+                                    : 'bg-emerald-50 text-emerald-700'
+                                }`}>
+                                  {solde ? t('advBalance.settled') : net > 0 ? t('advBalance.debitBalance') : t('advBalance.creditBalance')}
+                                </span>
+                              );
+                            })()}
                           </td>
                         </tr>
                       ))}
