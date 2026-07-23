@@ -8,7 +8,7 @@ import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, AreaChart
+  Tooltip, Legend, ResponsiveContainer, ComposedChart, Area, AreaChart, LabelList
 } from 'recharts';
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Eye,
@@ -19,6 +19,7 @@ import {
 import { formatCurrency } from '@/utils/formatters';
 import { useMoneyFormat } from '@/hooks/useMoneyFormat';
 import { money } from '../../utils/money';
+import { getAccountLabel } from '../../utils/accountLabels';
 import './AdvancedBalance.css';
 import Balance from './Balance';
 import PrintableArea from '../ui/PrintableArea';
@@ -51,7 +52,10 @@ const AdvancedBalance: React.FC = () => {
   const fmt = useMoneyFormat();
   const { adapter } = useData();
   // États principaux
-  const [activeView, setActiveView] = useState<'dashboard' | 'generale' | 'analytique'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'top' | 'generale' | 'analytique'>('dashboard');
+  // Granularité du graphique d'évolution — le sélecteur existait mais n'était
+  // relié à rien (aucun state) : il ne changeait jamais le graphique.
+  const [granularity, setGranularity] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
   const [filteredData, setFilteredData] = useState<BalanceData[]>([]);
@@ -130,7 +134,10 @@ const AdvancedBalance: React.FC = () => {
         for (const line of (entry.lines || [])) {
           const existing = movements.get(line.accountCode) || {
             debit: 0, credit: 0,
-            name: line.accountName || accountNames.get(line.accountCode) || line.accountCode,
+            // Dernier recours : le référentiel SYSCOHADA plutôt que le code nu
+            // (une ligne sans accountName affichait « 411100 » en guise de libellé).
+            name: line.accountName || accountNames.get(line.accountCode)
+              || getAccountLabel(line.accountCode) || line.accountCode,
             centreCout: line.analyticalCode,
           };
           existing.debit = money(existing.debit).add(money(line.debit)).toNumber();
@@ -155,7 +162,7 @@ const AdvancedBalance: React.FC = () => {
 
       const allCodes = new Set<string>([...movements.keys(), ...opening.keys()]);
       return Array.from(allCodes).map((code): BalanceData => {
-        const mov = movements.get(code) || { debit: 0, credit: 0, name: accountNames.get(code) || code, centreCout: undefined };
+        const mov = movements.get(code) || { debit: 0, credit: 0, name: accountNames.get(code) || getAccountLabel(code) || code, centreCout: undefined };
         const opn = opening.get(code) || { debit: 0, credit: 0 };
         const soldeOuv = money(opn.debit).subtract(money(opn.credit)).toNumber();
         const solde = money(soldeOuv).add(money(mov.debit)).subtract(money(mov.credit)).toNumber();
@@ -172,6 +179,22 @@ const AdvancedBalance: React.FC = () => {
           centreCout: mov.centreCout,
         };
       }).sort((a, b) => a.compte.localeCompare(b.compte));
+    },
+  });
+
+  // Écritures de la période (hors brouillons et hors À-Nouveau) — base de la
+  // série temporelle des flux. Requête séparée du calcul de balance, qui lui
+  // agrège tout sur l'intervalle sans conserver la dimension temps.
+  const { data: periodEntries = [] } = useQuery<DBJournalEntry[]>({
+    queryKey: ['advanced-balance-flows', dateRange.start, dateRange.end],
+    queryFn: async () => {
+      const all = await adapter.getAll<DBJournalEntry>('journalEntries');
+      return all.filter(e => {
+        if (e.status === 'draft') return false;
+        const j = String((e as any).journal || '').toUpperCase();
+        if (j === 'AN' || j === 'RAN') return false;
+        return e.date >= dateRange.start && e.date <= dateRange.end;
+      });
     },
   });
 
@@ -196,7 +219,47 @@ const AdvancedBalance: React.FC = () => {
     },
   });
 
-  // Graphique évolution — calculé depuis les données
+  /**
+   * Évolution des FLUX de gestion, période par période.
+   *
+   * L'ancienne version renvoyait UN SEUL point (« 2026-01-01 - 2026-12-31 ») :
+   * l'« évolution » ne pouvait donc rien montrer, et les deux séries en courbe
+   * étaient invisibles (une ligne a besoin d'au moins deux points).
+   *
+   * On ne mélange pas non plus stocks (Actif/Passif, en milliards) et flux
+   * mensuels sur un même axe : l'échelle des stocks écrase les flux. Ce
+   * graphique porte donc les seuls flux comparables — charges (cl. 6) et
+   * produits (cl. 7) — et la répartition Actif/Passif est traitée à côté.
+   */
+  const flowSeries = useMemo(() => {
+    const buckets = new Map<string, { charges: number; produits: number }>();
+    const keyOf = (date: string) => {
+      const [y, m] = date.split('-');
+      if (granularity === 'yearly') return y;
+      if (granularity === 'quarterly') return `${y}-T${Math.floor((Number(m) - 1) / 3) + 1}`;
+      return `${y}-${m}`;
+    };
+    for (const entry of periodEntries) {
+      const key = keyOf(entry.date);
+      const b = buckets.get(key) || { charges: 0, produits: 0 };
+      for (const line of (entry.lines || [])) {
+        const cls = (line.accountCode || '').charAt(0);
+        if (cls === '6') b.charges += (line.debit || 0) - (line.credit || 0);
+        else if (cls === '7') b.produits += (line.credit || 0) - (line.debit || 0);
+      }
+      buckets.set(key, b);
+    }
+    return [...buckets.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([periode, v]) => ({
+        periode,
+        charges: Math.round(v.charges),
+        produits: Math.round(v.produits),
+        resultat: Math.round(v.produits - v.charges),
+      }));
+  }, [periodEntries, granularity]);
+
+  /** Comparaison des masses — magnitudes, pas parts d'un tout (voir plus bas). */
   const chartData: ChartData[] = useMemo(() => {
     if (!balanceData.length) return [];
     return [{
@@ -225,6 +288,14 @@ const AdvancedBalance: React.FC = () => {
     
     return { totalDebit, totalCredit, equilibre, tauxEquilibre, actif, passif, charges, produits };
   }, [balanceData]);
+
+  // Masses de la balance — comparaison de magnitudes (barres), pas parts d'un tout.
+  const masses = useMemo(() => ([
+    { name: t('advBalance.assets'),      value: Math.round(Math.abs(indicators.actif)) },
+    { name: t('advBalance.liabilities'), value: Math.round(Math.abs(indicators.passif)) },
+    { name: t('advBalance.revenues'),    value: Math.round(Math.abs(indicators.produits)) },
+    { name: t('advBalance.expenses'),    value: Math.round(Math.abs(indicators.charges)) },
+  ].sort((a, b) => b.value - a.value)), [indicators, t]);
 
   // Top 3 comptes par mouvement (variations importantes) — calculés
   const topVariations = useMemo(() => {
@@ -267,6 +338,20 @@ const AdvancedBalance: React.FC = () => {
   });
 
   const COLORS = ['#235A6E', '#E89A2E', '#15803D', '#4E7E8D', '#C77E2C', '#7FA3AF'];
+
+  /**
+   * Palette des graphiques — teintes VALIDÉES (scripts/validate_palette.js).
+   * Le petrol de marque #235A6E a une chroma de 0,066 : il est lu comme un gris
+   * et échoue le contrôle daltonisme. Ces deux teintes passent tous les tests
+   * (séparation CVD ΔE ~20, contraste ≥ 3:1) tout en restant dans la famille
+   * bleu-sarcelle / ambre de l'identité.
+   *   produits (positif) = sarcelle ; charges (négatif) = ambre foncé.
+   */
+  const CHART_SERIES = {
+    produits: '#0C7BA6',
+    charges: '#B45309',
+    mass: '#0C7BA6',
+  };
 
   return (
     <div className="min-h-screen bg-[var(--color-surface-hover)]">
@@ -355,12 +440,13 @@ const AdvancedBalance: React.FC = () => {
         <div className="flex space-x-1 mt-4">
           {[
             { id: 'dashboard', label: t('advBalance.tabDashboard'), icon: BarChart3 },
+            { id: 'top', label: t('advBalance.tabTop'), icon: TrendingUp },
             { id: 'generale', label: t('advBalance.tabGeneral'), icon: Grid3X3 },
             { id: 'analytique', label: t('advBalance.tabAnalytic'), icon: PieChartIcon }
           ].map((view) => (
             <button
               key={view.id}
-              onClick={() => setActiveView(view.id as 'dashboard' | 'generale' | 'analytique')}
+              onClick={() => setActiveView(view.id as typeof activeView)}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeView === view.id 
                   ? 'bg-[var(--color-primary)] text-[var(--color-surface-hover)]'
@@ -617,145 +703,127 @@ const AdvancedBalance: React.FC = () => {
 
           {/* Graphiques principaux */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            {/* Évolution par période */}
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.evolutionByPeriod')}</h3>
-                <div className="flex items-center space-x-2">
-                  <select className="px-3 py-1 border border-[var(--color-border)] rounded text-sm">
-                    <option>{t('advBalance.monthly')}</option>
-                    <option>{t('advBalance.quarterly')}</option>
-                    <option>{t('advBalance.yearly')}</option>
-                  </select>
-                  <button className="p-2 text-[var(--color-primary)]/50 hover:text-[var(--color-primary)]/70">
-                    <ZoomIn className="w-4 h-4" />
-                  </button>
+
+            {/* Évolution des flux de gestion */}
+            <div className="bg-[var(--color-surface)] p-6 rounded-xl shadow-sm border border-[var(--color-border)]">
+              <div className="flex items-start justify-between mb-1">
+                <div>
+                  <h3 className="text-base font-semibold text-[var(--color-primary)]">{t('advBalance.evolutionByPeriod')}</h3>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+                    {t('advBalance.flowsSubtitle')}
+                  </p>
                 </div>
+                <select
+                  value={granularity}
+                  onChange={(e) => setGranularity(e.target.value as typeof granularity)}
+                  className="px-2.5 py-1 border border-[var(--color-border)] rounded-lg text-xs bg-[var(--color-surface)]"
+                  aria-label={t('advBalance.evolutionByPeriod')}
+                >
+                  <option value="monthly">{t('advBalance.monthly')}</option>
+                  <option value="quarterly">{t('advBalance.quarterly')}</option>
+                  <option value="yearly">{t('advBalance.yearly')}</option>
+                </select>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => fmt(value)} />
-                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                  <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="actif" fill="url(#gradPetrol)" name={t('advBalance.assets')} />
-                  <Bar radius={[6,6,0,0]} dataKey="passif" fill="url(#gradPetrolLight)" name={t('advBalance.liabilities')} />
-                  <Line type="monotone" dataKey="charges" stroke="#C0322B" name={t('advBalance.expenses')} />
-                  <Line type="monotone" dataKey="produits" stroke="#15803D" name={t('advBalance.revenues')} />
-                </ComposedChart>
-              </ResponsiveContainer>
+
+              {flowSeries.length < 2 ? (
+                <div className="h-[300px] flex flex-col items-center justify-center text-center px-6">
+                  <p className="text-sm text-[var(--color-text-secondary)]">
+                    {t('advBalance.flowsNotEnough')}
+                  </p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+                    {flowSeries.length === 1
+                      ? t('advBalance.flowsSinglePeriod', { periode: flowSeries[0].periode })
+                      : t('advBalance.flowsNoData')}
+                  </p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={320}>
+                  <LineChart data={flowSeries} margin={{ top: 16, right: 16, bottom: 8, left: 8 }}>
+                    <CartesianGrid stroke="#EAE6DC" vertical={false} />
+                    <XAxis
+                      dataKey="periode"
+                      tick={{ fontSize: 11, fill: '#8A8375' }}
+                      tickLine={false}
+                      axisLine={{ stroke: '#EAE6DC' }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: '#8A8375' }}
+                      tickLine={false}
+                      axisLine={false}
+                      width={72}
+                      tickFormatter={(value) => fmt(value)}
+                    />
+                    <Tooltip
+                      formatter={(value, name) => [fmt(value as number), name as string]}
+                      contentStyle={{
+                        borderRadius: 10,
+                        border: '1px solid #EAE6DC',
+                        boxShadow: '0 6px 20px rgba(38,30,21,.08)',
+                        fontSize: 12,
+                      }}
+                    />
+                    <Legend iconType="plainline" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                    {/* Deux flux comparables sur UN axe (jamais deux échelles). */}
+                    <Line
+                      type="monotone" dataKey="produits" name={t('advBalance.revenues')}
+                      stroke={CHART_SERIES.produits} strokeWidth={2}
+                      dot={{ r: 3, strokeWidth: 2, stroke: 'var(--color-surface)' }}
+                      activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--color-surface)' }}
+                    />
+                    <Line
+                      type="monotone" dataKey="charges" name={t('advBalance.expenses')}
+                      stroke={CHART_SERIES.charges} strokeWidth={2}
+                      dot={{ r: 3, strokeWidth: 2, stroke: 'var(--color-surface)' }}
+                      activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--color-surface)' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
 
-            {/* Répartition par type */}
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.breakdownByType')}</h3>
-                <button className="p-2 text-gray-700 hover:text-gray-600" aria-label={t('advBalance.viewDetails')}>
-                  <Eye className="w-4 h-4" />
-                </button>
-              </div>
+            {/* Masses de la balance — comparaison de magnitudes */}
+            <div className="bg-[var(--color-surface)] p-6 rounded-xl shadow-sm border border-[var(--color-border)]">
+              <h3 className="text-base font-semibold text-[var(--color-primary)]">{t('advBalance.breakdownByType')}</h3>
+              <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5 mb-2">
+                {t('advBalance.massesSubtitle')}
+              </p>
+              {/* Un camembert impliquait qu'Actif + Passif + Charges + Produits
+                  forment un tout — ce qui n'a aucun sens comptable — et opposait
+                  des parts trop proches (43 % vs 37 %) pour être comparées à l'œil.
+                  Barres horizontales : une seule teinte, la longueur porte la mesure. */}
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: t('advBalance.assets'), value: indicators.actif },
-                      { name: t('advBalance.liabilities'), value: indicators.passif },
-                      { name: t('advBalance.expenses'), value: indicators.charges },
-                      { name: t('advBalance.revenues'), value: indicators.produits }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#235A6E"
-                    dataKey="value"
-                  >
-                    {chartData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                  <Legend />
-                </PieChart>
+                <BarChart
+                  data={masses}
+                  layout="vertical"
+                  margin={{ top: 8, right: 96, bottom: 8, left: 8 }}
+                  barCategoryGap={14}
+                >
+                  <CartesianGrid stroke="#EAE6DC" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category" dataKey="name" width={92}
+                    tick={{ fontSize: 12, fill: '#4A4438' }}
+                    tickLine={false} axisLine={false}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(12,123,166,.06)' }}
+                    formatter={(value) => [fmt(value as number), '']}
+                    contentStyle={{
+                      borderRadius: 10,
+                      border: '1px solid #EAE6DC',
+                      boxShadow: '0 6px 20px rgba(38,30,21,.08)',
+                      fontSize: 12,
+                    }}
+                  />
+                  <Bar dataKey="value" fill={CHART_SERIES.mass} radius={[0, 4, 4, 0]} barSize={22}>
+                    <LabelList
+                      dataKey="value" position="right"
+                      formatter={(v: number) => fmt(v)}
+                      style={{ fontSize: 11, fill: '#4A4438' }}
+                    />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Top comptes mouvementés */}
-          <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)]">
-            <div className="p-6 border-b border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.topAccounts')}</h3>
-                <div className="flex items-center space-x-2">
-                  <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
-                    {t('advBalance.debit')}
-                  </button>
-                  <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
-                    {t('advBalance.credit')}
-                  </button>
-                  <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">
-                    {t('advBalance.movement')}
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-[var(--color-primary)]">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.rank')}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.account')}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.label')}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementDebit')}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementCredit')}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.totalMovement')}</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.status')}</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-[var(--color-surface-hover)] divide-y divide-[var(--color-border)]">
-                  {balanceData
-                    .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
-                    .slice(0, 10)
-                    .map((item, index) => (
-                      <tr key={item.compte} className="hover:bg-[var(--color-border)]">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                              index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-[var(--color-border)] text-[var(--color-primary)]/70'
-                            }`}>
-                              {index + 1}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[var(--color-primary)]">{item.compte}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-primary)]">{item.libelle}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
-                          {fmt(item.debitMouvement)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-green-600">
-                          {fmt(item.creditMouvement)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
-                          {fmt(item.debitMouvement + item.creditMouvement)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            (item.debitSolde - item.creditSolde) === 0 ? 'bg-green-100 text-green-800' : 
-                            Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? 'bg-red-100 text-red-800' : 
-                            'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {(item.debitSolde - item.creditSolde) === 0 ? t('advBalance.balanced') :
-                             Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? t('advBalance.unbalanced') : t('advBalance.active')}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
             </div>
           </div>
 
@@ -840,6 +908,86 @@ const AdvancedBalance: React.FC = () => {
         </div>
       )}
 
+
+      {/* Top 10 des comptes les plus mouvementés — onglet dédié */}
+      {activeView === 'top' && (
+        <div className="p-6 space-y-6">
+            {/* Top comptes mouvementés */}
+            <div className="bg-[var(--color-surface-hover)] rounded-lg shadow-sm border border-[var(--color-border)]">
+              <div className="p-6 border-b border-[var(--color-border)]">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-[var(--color-primary)]">{t('advBalance.topAccounts')}</h3>
+                  <div className="flex items-center space-x-2">
+                    <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
+                      {t('advBalance.debit')}
+                    </button>
+                    <button className="px-3 py-1 text-sm border border-[var(--color-border)] rounded hover:bg-[var(--color-border)]">
+                      {t('advBalance.credit')}
+                    </button>
+                    <button className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded">
+                      {t('advBalance.movement')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[var(--color-primary)]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.rank')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.account')}</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('accounting.label')}</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementDebit')}</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.movementCredit')}</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.totalMovement')}</th>
+                      <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-surface-hover)] uppercase tracking-wider">{t('advBalance.status')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[var(--color-surface-hover)] divide-y divide-[var(--color-border)]">
+                    {balanceData
+                      .sort((a, b) => (b.debitMouvement + b.creditMouvement) - (a.debitMouvement + a.creditMouvement))
+                      .slice(0, 10)
+                      .map((item, index) => (
+                        <tr key={item.compte} className="hover:bg-[var(--color-border)]">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                                index < 3 ? 'bg-yellow-100 text-yellow-800' : 'bg-[var(--color-border)] text-[var(--color-primary)]/70'
+                              }`}>
+                                {index + 1}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-[var(--color-primary)]">{item.compte}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-primary)]">{item.libelle}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-blue-600">
+                            {fmt(item.debitMouvement)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right text-green-600">
+                            {fmt(item.creditMouvement)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-right font-medium text-gray-900">
+                            {fmt(item.debitMouvement + item.creditMouvement)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              (item.debitSolde - item.creditSolde) === 0 ? 'bg-green-100 text-green-800' : 
+                              Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? 'bg-red-100 text-red-800' : 
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {(item.debitSolde - item.creditSolde) === 0 ? t('advBalance.balanced') :
+                               Math.abs(item.debitSolde - item.creditSolde) > 1000000 ? t('advBalance.unbalanced') : t('advBalance.active')}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+      )}
       {/* Balance Générale */}
       {activeView === 'generale' && (
         <Balance />

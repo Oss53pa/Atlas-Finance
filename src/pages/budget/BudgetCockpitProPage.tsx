@@ -10,15 +10,17 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getMonthlyPnL, monthCard, getExpenseAnalysis, getRevenueAnalysis, getBudgetAnalysis, type PnLMonth, type ExpenseAnalysis, type RevenueAnalysis, type BudgetAnalysis, type BudgetLineAgg } from '../../features/budget/services/cockpitService';
 import { useAccountNames } from '../../hooks/useAccountNames';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2, Coins, Users, Scale, GitCompareArrows, ChevronRight } from 'lucide-react';
 
-const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-const MOIS_COURT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+// Clés i18n des mois (les tableaux sont hors composant : résolution au rendu via tr()).
+const MOIS_KEYS = ['cockpit.monthJanuary', 'cockpit.monthFebruary', 'cockpit.monthMarch', 'cockpit.monthApril', 'cockpit.monthMay', 'cockpit.monthJune', 'cockpit.monthJuly', 'cockpit.monthAugust', 'cockpit.monthSeptember', 'cockpit.monthOctober', 'cockpit.monthNovember', 'cockpit.monthDecember'];
+const MOIS_COURT_KEYS = ['cockpit.monthShortJan', 'cockpit.monthShortFeb', 'cockpit.monthShortMar', 'cockpit.monthShortApr', 'cockpit.monthShortMay', 'cockpit.monthShortJun', 'cockpit.monthShortJul', 'cockpit.monthShortAug', 'cockpit.monthShortSep', 'cockpit.monthShortOct', 'cockpit.monthShortNov', 'cockpit.monthShortDec'];
 type Tab = 'overview' | 'budget' | 'depenses' | 'variance' | 'revenus';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'overview', label: 'Overview' }, { id: 'budget', label: 'Budget' },
-  { id: 'depenses', label: 'Dépenses' },
-  { id: 'variance', label: 'Variance Analysis' }, { id: 'revenus', label: 'Revenus' },
+const TABS: { id: Tab; labelKey: string }[] = [
+  { id: 'overview', labelKey: 'cockpit.tabOverview' }, { id: 'budget', labelKey: 'cockpit.tabBudget' },
+  { id: 'depenses', labelKey: 'cockpit.tabExpenses' },
+  { id: 'variance', labelKey: 'cockpit.tabVariance' }, { id: 'revenus', labelKey: 'cockpit.tabRevenue' },
 ];
 
 const fmt = (n: number) => formatCurrency(Math.round(n));
@@ -27,6 +29,7 @@ const pct = (num: number, den: number) => (den ? Math.round((num / den) * 100) :
 const BudgetCockpitProPage: React.FC = () => {
   const { adapter } = useData();
   const { label: acctLabel } = useAccountNames();
+  const { t: tr } = useLanguage();
   const [tab, setTab] = useState<Tab>('overview');
   const [annee, setAnnee] = useState(String(new Date().getFullYear()));
   const [months, setMonths] = useState<PnLMonth[]>([]);
@@ -45,7 +48,7 @@ const BudgetCockpitProPage: React.FC = () => {
     (async () => {
       setLoading(true); setError(null);
       try { const m = await getMonthlyPnL(adapter, annee); if (!cancelled) setMonths(m); }
-      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      catch (e: any) { if (!cancelled) setError(e?.message || tr('cockpit.error')); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -58,7 +61,7 @@ const BudgetCockpitProPage: React.FC = () => {
     (async () => {
       setExpLoading(true); setError(null);
       try { const e = await getExpenseAnalysis(adapter, annee); if (!cancelled) setExp(e); }
-      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      catch (e: any) { if (!cancelled) setError(e?.message || tr('cockpit.error')); }
       finally { if (!cancelled) setExpLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -71,7 +74,7 @@ const BudgetCockpitProPage: React.FC = () => {
     (async () => {
       setRevLoading(true); setError(null);
       try { const r = await getRevenueAnalysis(adapter, annee); if (!cancelled) setRev(r); }
-      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      catch (e: any) { if (!cancelled) setError(e?.message || tr('cockpit.error')); }
       finally { if (!cancelled) setRevLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -84,7 +87,7 @@ const BudgetCockpitProPage: React.FC = () => {
     (async () => {
       setBudLoading(true); setError(null);
       try { const b = await getBudgetAnalysis(adapter, annee); if (!cancelled) setBud(b); }
-      catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      catch (e: any) { if (!cancelled) setError(e?.message || tr('cockpit.error')); }
       finally { if (!cancelled) setBudLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -112,16 +115,16 @@ const BudgetCockpitProPage: React.FC = () => {
 
   // Lignes du P&L (label, accès budget/actual). NOI Margin & % traités à part.
   const ROWS: { key: string; label: string; get: (l: PnLMonth['budget']) => number; strong?: boolean; percent?: boolean }[] = [
-    { key: 'goi', label: 'Gross Operating Income', get: (l) => l.goi },
-    { key: 'opex', label: 'Operating Expenses', get: (l) => l.opex },
-    { key: 'noi', label: 'Net Operating Income (NOI)', get: (l) => l.noi, strong: true },
-    { key: 'margin', label: 'NOI Margin', get: () => 0, percent: true },
-    { key: 'finInc', label: 'Financial Incomes', get: (l) => l.finInc },
-    { key: 'finExp', label: 'Financial Expenses', get: (l) => l.finExp },
-    { key: 'resFin', label: 'Résultat Financier', get: (l) => l.resFin, strong: true },
-    { key: 'tax', label: 'Tax', get: (l) => l.tax },
-    { key: 'net', label: 'Net income / loss', get: (l) => l.netIncome, strong: true },
-    { key: 'div', label: 'Dividends paid', get: () => 0 },
+    { key: 'goi', label: tr('cockpit.rowGoi'), get: (l) => l.goi },
+    { key: 'opex', label: tr('cockpit.rowOpex'), get: (l) => l.opex },
+    { key: 'noi', label: tr('cockpit.rowNoi'), get: (l) => l.noi, strong: true },
+    { key: 'margin', label: tr('cockpit.rowNoiMargin'), get: () => 0, percent: true },
+    { key: 'finInc', label: tr('cockpit.rowFinInc'), get: (l) => l.finInc },
+    { key: 'finExp', label: tr('cockpit.rowFinExp'), get: (l) => l.finExp },
+    { key: 'resFin', label: tr('cockpit.rowResFin'), get: (l) => l.resFin, strong: true },
+    { key: 'tax', label: tr('cockpit.rowTax'), get: (l) => l.tax },
+    { key: 'net', label: tr('cockpit.rowNetIncome'), get: (l) => l.netIncome, strong: true },
+    { key: 'div', label: tr('cockpit.rowDividends'), get: () => 0 },
   ];
 
   const cell = (m: PnLMonth, r: typeof ROWS[number], col: 'budget' | 'actual' | 'balance') => {
@@ -140,7 +143,7 @@ const BudgetCockpitProPage: React.FC = () => {
         {TABS.map((tt) => (
           <button key={tt.id} onClick={() => setTab(tt.id)}
             className={`px-4 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition ${tab === tt.id ? 'border-[var(--color-primary)] text-[var(--color-primary)] dark:text-[var(--color-primary)] font-medium' : 'border-transparent text-[var(--color-text-secondary)] hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
-            {tt.label}
+            {tr(tt.labelKey)}
           </button>
         ))}
       </div>
@@ -156,25 +159,25 @@ const BudgetCockpitProPage: React.FC = () => {
       ) : tab === 'variance' ? (
         <VarianceTab bud={bud} loading={budLoading} annee={annee} setAnnee={setAnnee} acctLabel={acctLabel} />
       ) : loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {tr('cockpit.loading')}</div>
       ) : (
         <>
           <header className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><LayoutDashboard className="w-5 h-5 text-[var(--color-primary)]" /> Overview</h1>
+            <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><LayoutDashboard className="w-5 h-5 text-[var(--color-primary)]" /> {tr('cockpit.overviewTitle')}</h1>
             <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
               {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
             </select>
-            <span className="text-xs text-[var(--color-text-tertiary)]">Sélectionnez des mois (max 3)</span>
+            <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.selectMonthsHint')}</span>
           </header>
 
           {/* Bande des mois */}
           <div className="flex items-center gap-1 flex-wrap">
-            {MOIS.map((mo, i) => {
+            {MOIS_KEYS.map((mo, i) => {
               const p = i + 1; const on = selected.includes(p);
               return (
                 <button key={mo} onClick={() => toggleMonth(p)}
                   className={`px-3 py-1.5 rounded-lg text-xs whitespace-nowrap ${on ? 'bg-[var(--color-primary)] text-white' : 'bg-[var(--color-surface-hover)] text-[var(--color-text-secondary)] hover:text-neutral-800'}`}>
-                  {mo}
+                  {tr(mo)}
                 </button>
               );
             })}
@@ -189,12 +192,12 @@ const BudgetCockpitProPage: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[var(--color-warning-light)] flex items-center justify-center text-[var(--color-secondary)] shrink-0"><Banknote className="w-5 h-5" /></div>
                     <div className="flex-1">
-                      <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{MOIS[m.period - 1]} · {annee}</div>
-                      <Row label={`No budgeted`} value={c.noBudget} />
-                      <Row label={`Overspent`} value={c.overspent} tone={c.overspent > 0 ? 'danger' : undefined} />
-                      <Row label={`Incoming`} value={c.incoming} />
-                      <Row label={`Budgeted`} value={c.budgeted} />
-                      <div className="border-t border-neutral-100 dark:border-neutral-700 mt-1 pt-1"><Row label="Available to budget" value={c.available} strong /></div>
+                      <div className="text-sm font-semibold text-[var(--color-text-primary)] mb-1">{tr(MOIS_KEYS[m.period - 1])} · {annee}</div>
+                      <Row label={tr('cockpit.cardNoBudget')} value={c.noBudget} />
+                      <Row label={tr('cockpit.cardOverspent')} value={c.overspent} tone={c.overspent > 0 ? 'danger' : undefined} />
+                      <Row label={tr('cockpit.cardIncoming')} value={c.incoming} />
+                      <Row label={tr('cockpit.cardBudgeted')} value={c.budgeted} />
+                      <div className="border-t border-neutral-100 dark:border-neutral-700 mt-1 pt-1"><Row label={tr('cockpit.cardAvailable')} value={c.available} strong /></div>
                     </div>
                   </div>
                 </div>
@@ -209,16 +212,16 @@ const BudgetCockpitProPage: React.FC = () => {
                 <tr>
                   <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">&nbsp;</th>
                   {selMonths.map((m) => (
-                    <th key={m.period} colSpan={3} className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">{MOIS[m.period - 1]}</th>
+                    <th key={m.period} colSpan={3} className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">{tr(MOIS_KEYS[m.period - 1])}</th>
                   ))}
                 </tr>
                 <tr className="border-b border-[var(--color-border)]">
                   <th className="px-4 py-2 text-left" />
                   {selMonths.map((m) => (
                     <React.Fragment key={m.period}>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">Budgeted</th>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Actual</th>
-                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Balance</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600 border-l border-[var(--color-border)]">{tr('cockpit.colBudgeted')}</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colActualCol')}</th>
+                      <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colBalance')}</th>
                     </React.Fragment>
                   ))}
                 </tr>
@@ -239,7 +242,7 @@ const BudgetCockpitProPage: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
-                  <td className="px-4 py-3">Net Income (YTD)</td>
+                  <td className="px-4 py-3">{tr('cockpit.netIncomeYtd')}</td>
                   {selMonths.map((m) => {
                     const y = ytdByPeriod.get(m.period) ?? { actual: 0, goiA: 0 };
                     return (
@@ -252,7 +255,7 @@ const BudgetCockpitProPage: React.FC = () => {
               </tfoot>
             </table>
           </div>
-          <p className="text-xs text-[var(--color-text-tertiary)]">Mapping SYSCOHADA : GOI = produits d'exploitation (70-76, 78-79) · OpEx = charges d'exploitation (60-66, 68, personnel 66 inclus) · Résultat financier = 77 − 67 · Tax = impôt sur le résultat (89). Réalisé issu du GL (écritures validées), budget de la version en vigueur. Les valeurs négatives de janvier sont de vraies extournes de provisions (cut-off de clôture).</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.overviewFootnote')}</p>
         </>
       )}
     </div>
@@ -262,6 +265,7 @@ const BudgetCockpitProPage: React.FC = () => {
 // --- Onglet Dépenses -------------------------------------------------------
 
 const MonthlyBars: React.FC<{ values: number[] }> = ({ values }) => {
+  const { t: tr } = useLanguage();
   const max = Math.max(1, ...values.map((v) => Math.max(0, v)));
   return (
     <div className="flex items-stretch gap-2 h-40 pt-2">
@@ -270,9 +274,9 @@ const MonthlyBars: React.FC<{ values: number[] }> = ({ values }) => {
         return (
           <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
             <div className="flex-1 w-full flex items-end">
-              <div className="w-full rounded-t-md bg-[var(--color-primary)] transition-all" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.15 }} title={`${MOIS[i]} : ${fmt(v)}`} />
+              <div className="w-full rounded-t-md bg-[var(--color-primary)] transition-all" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.15 }} title={`${tr(MOIS_KEYS[i])} : ${fmt(v)}`} />
             </div>
-            <span className="text-[10px] text-[var(--color-text-tertiary)]">{MOIS_COURT[i]}</span>
+            <span className="text-[10px] text-[var(--color-text-tertiary)]">{tr(MOIS_COURT_KEYS[i])}</span>
           </div>
         );
       })}
@@ -297,9 +301,10 @@ const DepKpi: React.FC<{ label: string; value: string; accent?: string; icon: Re
 );
 
 const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void; acctLabel: (c: string) => string }> = ({ exp, loading, annee, setAnnee, acctLabel }) => {
+  const { t: tr } = useLanguage();
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (r: string) => setOpen((s) => { const n = new Set(s); n.has(r) ? n.delete(r) : n.add(r); return n; });
-  if (loading && !exp) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (loading && !exp) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {tr('cockpit.loading')}</div>;
   if (!exp) return null;
   const dispo = exp.budget - exp.total;
   const maxNat = exp.byNature[0]?.total || 1;
@@ -308,26 +313,26 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Receipt className="w-5 h-5 text-[var(--color-primary)]" /> Dépenses</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Receipt className="w-5 h-5 text-[var(--color-primary)]" /> {tr('cockpit.expensesTitle')}</h1>
         <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
           {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
         </select>
-        <span className="text-xs text-[var(--color-text-tertiary)]">Charges réelles (classe 6) issues du Grand Livre</span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.expensesSubtitle')}</span>
       </header>
 
       {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <DepKpi label="Charges réalisées" value={fmt(exp.total)} icon={<Receipt className="w-5 h-5" />} />
-        <DepKpi label="Budget charges" value={exp.budget > 0 ? fmt(exp.budget) : '—'} icon={<Wallet className="w-5 h-5" />} />
-        <DepKpi label="Disponible" value={exp.budget > 0 ? fmt(dispo) : '—'} accent={dispo < 0 ? 'text-red-600' : 'text-emerald-600'} icon={<TrendingUp className="w-5 h-5" />} />
-        <DepKpi label="Fournisseurs" value={String(exp.bySupplier.length)} icon={<Building2 className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiActualExpenses')} value={fmt(exp.total)} icon={<Receipt className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiExpenseBudget')} value={exp.budget > 0 ? fmt(exp.budget) : '—'} icon={<Wallet className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.colAvailable')} value={exp.budget > 0 ? fmt(dispo) : '—'} accent={dispo < 0 ? 'text-red-600' : 'text-emerald-600'} icon={<TrendingUp className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiSuppliers')} value={String(exp.bySupplier.length)} icon={<Building2 className="w-5 h-5" />} />
       </div>
 
       {/* Évolution mensuelle */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-medium text-gray-700">Évolution mensuelle des charges · {annee}</h2>
-          <span className="text-xs text-[var(--color-text-tertiary)]">Total {fmt(exp.total)}</span>
+          <h2 className="text-sm font-medium text-gray-700">{tr('cockpit.expMonthlyTrend')} · {annee}</h2>
+          <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.total')} {fmt(exp.total)}</span>
         </div>
         <MonthlyBars values={exp.byMonth} />
       </div>
@@ -335,13 +340,13 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Par nature (dépliable jusqu'aux comptes) */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Dépenses par nature <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic pour déplier les comptes</span></h2></div>
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{tr('cockpit.expensesByNature')} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· {tr('cockpit.clickToExpandAccounts')}</span></h2></div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-[var(--color-border)]">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Montant</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-40">Part</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colCategoryAccount')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colAmount')}</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-40">{tr('cockpit.colShare')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -364,7 +369,7 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
                   </React.Fragment>
                 );
               })}
-              {exp.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucune charge sur {annee}.</td></tr>}
+              {exp.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{tr('cockpit.noExpenseForYear', { year: annee })}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -372,15 +377,15 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
         {/* Top fournisseurs */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-700">Top fournisseurs</h2>
+            <h2 className="text-sm font-medium text-gray-700">{tr('cockpit.topSuppliers')}</h2>
             <span className="text-xs text-[var(--color-text-tertiary)]">Σ top {exp.bySupplier.length} : {fmt(totalSup)}</span>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-[var(--color-border)]">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Fournisseur</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Dépense</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">Part</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colSupplier')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colExpense')}</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">{tr('cockpit.colShare')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -391,13 +396,13 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
                   <td className="px-4 py-2.5"><ShareBar ratio={s.total / maxSup} /></td>
                 </tr>
               ))}
-              {exp.bySupplier.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun mouvement fournisseur sur {annee}.</td></tr>}
+              {exp.bySupplier.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{tr('cockpit.noSupplierMovementForYear', { year: annee })}</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
 
-      <p className="text-xs text-[var(--color-text-tertiary)]">Par nature & par mois : GL classe 6 (écritures validées). Par fournisseur : contrepartie 40x du tiers (vue <span className="font-mono">v_expense_by_supplier</span>). Budget des charges : version en vigueur.</p>
+      <p className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.expensesFootnoteA')} <span className="font-mono">v_expense_by_supplier</span>{tr('cockpit.expensesFootnoteB')}</p>
     </div>
   );
 };
@@ -405,9 +410,10 @@ const DepensesTab: React.FC<{ exp: ExpenseAnalysis | null; loading: boolean; ann
 // --- Onglet Revenus --------------------------------------------------------
 
 const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void; acctLabel: (c: string) => string }> = ({ rev, loading, annee, setAnnee, acctLabel }) => {
+  const { t: tr } = useLanguage();
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (r: string) => setOpen((s) => { const n = new Set(s); n.has(r) ? n.delete(r) : n.add(r); return n; });
-  if (loading && !rev) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (loading && !rev) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {tr('cockpit.loading')}</div>;
   if (!rev) return null;
   const ventes = rev.byNature.find((n) => n.rubrique === '70')?.total || 0;
   const autres = rev.total - ventes;
@@ -417,26 +423,26 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Coins className="w-5 h-5 text-[var(--color-primary)]" /> Revenus</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Coins className="w-5 h-5 text-[var(--color-primary)]" /> {tr('cockpit.revenueTitle')}</h1>
         <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
           {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
         </select>
-        <span className="text-xs text-[var(--color-text-tertiary)]">Produits réels (classe 7) issus du Grand Livre</span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.revenueSubtitle')}</span>
       </header>
 
       {/* KPI */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <DepKpi label="Produits réalisés" value={fmt(rev.total)} icon={<Coins className="w-5 h-5" />} />
-        <DepKpi label="Ventes (70)" value={fmt(ventes)} icon={<Banknote className="w-5 h-5" />} />
-        <DepKpi label="Autres produits" value={fmt(autres)} icon={<TrendingUp className="w-5 h-5" />} />
-        <DepKpi label="Clients" value={String(rev.byClient.length)} icon={<Users className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiActualRevenue')} value={fmt(rev.total)} icon={<Coins className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiSales70')} value={fmt(ventes)} icon={<Banknote className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiOtherRevenue')} value={fmt(autres)} icon={<TrendingUp className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiCustomers')} value={String(rev.byClient.length)} icon={<Users className="w-5 h-5" />} />
       </div>
 
       {/* Évolution mensuelle */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-medium text-gray-700">Évolution mensuelle des revenus · {annee}</h2>
-          <span className="text-xs text-[var(--color-text-tertiary)]">Total {fmt(rev.total)}</span>
+          <h2 className="text-sm font-medium text-gray-700">{tr('cockpit.revMonthlyTrend')} · {annee}</h2>
+          <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.total')} {fmt(rev.total)}</span>
         </div>
         <MonthlyBars values={rev.byMonth} />
       </div>
@@ -444,13 +450,13 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Par nature (dépliable jusqu'aux comptes) */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Revenus par nature <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic pour déplier les comptes</span></h2></div>
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{tr('cockpit.revenueByNature')} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· {tr('cockpit.clickToExpandAccounts')}</span></h2></div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-[var(--color-border)]">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Montant</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-40">Part</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colCategoryAccount')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colAmount')}</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-40">{tr('cockpit.colShare')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -473,7 +479,7 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
                   </React.Fragment>
                 );
               })}
-              {rev.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun produit sur {annee}.</td></tr>}
+              {rev.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{tr('cockpit.noRevenueForYear', { year: annee })}</td></tr>}
             </tbody>
           </table>
         </div>
@@ -481,15 +487,15 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
         {/* Top clients */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <div className="px-4 py-3 border-b border-[var(--color-border)] flex items-center justify-between">
-            <h2 className="text-sm font-medium text-gray-700">Top clients</h2>
+            <h2 className="text-sm font-medium text-gray-700">{tr('cockpit.topCustomers')}</h2>
             <span className="text-xs text-[var(--color-text-tertiary)]">Σ top {rev.byClient.length} : {fmt(totalCli)}</span>
           </div>
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-[var(--color-border)]">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Client</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Revenu</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">Part</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colCustomer')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colRevenue')}</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">{tr('cockpit.colShare')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -500,13 +506,13 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
                   <td className="px-4 py-2.5"><ShareBar ratio={c.total / maxCli} /></td>
                 </tr>
               ))}
-              {rev.byClient.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun mouvement client sur {annee}.</td></tr>}
+              {rev.byClient.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{tr('cockpit.noCustomerMovementForYear', { year: annee })}</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
 
-      <p className="text-xs text-[var(--color-text-tertiary)]">Par nature & par mois : GL classe 7 (écritures validées). Par client : contrepartie 41x du tiers (vue <span className="font-mono">v_revenue_by_client</span>).</p>
+      <p className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.revenueFootnoteA')} <span className="font-mono">v_revenue_by_client</span>{tr('cockpit.revenueFootnoteB')}</p>
     </div>
   );
 };
@@ -514,16 +520,17 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
 // --- Onglets Budget & Variance ---------------------------------------------
 
 const GroupBars: React.FC<{ data: { b: number; r: number }[] }> = ({ data }) => {
+  const { t: tr } = useLanguage();
   const max = Math.max(1, ...data.flatMap((d) => [d.b, d.r]));
   return (
     <div className="flex items-stretch gap-2 h-40 pt-2">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
           <div className="flex-1 w-full flex items-end justify-center gap-0.5">
-            <div className="w-1/2 rounded-t bg-[var(--color-border)]" style={{ height: `${Math.max(2, (d.b / max) * 100)}%` }} title={`${MOIS[i]} · Budget ${fmt(d.b)}`} />
-            <div className="w-1/2 rounded-t bg-[var(--color-primary)]" style={{ height: `${Math.max(2, (d.r / max) * 100)}%` }} title={`${MOIS[i]} · Réalisé ${fmt(d.r)}`} />
+            <div className="w-1/2 rounded-t bg-[var(--color-border)]" style={{ height: `${Math.max(2, (d.b / max) * 100)}%` }} title={`${tr(MOIS_KEYS[i])} · ${tr('cockpit.colBudget')} ${fmt(d.b)}`} />
+            <div className="w-1/2 rounded-t bg-[var(--color-primary)]" style={{ height: `${Math.max(2, (d.r / max) * 100)}%` }} title={`${tr(MOIS_KEYS[i])} · ${tr('cockpit.colActual')} ${fmt(d.r)}`} />
           </div>
-          <span className="text-[10px] text-[var(--color-text-tertiary)]">{MOIS_COURT[i]}</span>
+          <span className="text-[10px] text-[var(--color-text-tertiary)]">{tr(MOIS_COURT_KEYS[i])}</span>
         </div>
       ))}
     </div>
@@ -547,57 +554,58 @@ const Ecart: React.FC<{ value: number; goodWhenNegative?: boolean }> = ({ value,
 };
 
 const BudgetTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void; acctLabel: (c: string) => string }> = ({ bud, loading, annee, setAnnee, acctLabel }) => {
+  const { t: tr } = useLanguage();
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (r: string) => setOpen((s) => { const n = new Set(s); n.has(r) ? n.delete(r) : n.add(r); return n; });
-  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {tr('cockpit.loading')}</div>;
   if (!bud) return null;
   const c = bud.charges;
   if (c.budget === 0) return (
     <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
       <div className="flex justify-center mb-3 text-neutral-300"><Wallet className="w-8 h-8" /></div>
-      Aucune ligne budgétaire sur {annee}. Élaborez ou importez un budget (écran Élaboration) pour activer cet onglet.
+      {tr('cockpit.noBudgetLineForYear', { year: annee })}
     </div>
   );
   const taux = c.budget ? c.realise / c.budget : 0;
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Scale className="w-5 h-5 text-[var(--color-primary)]" /> Budget</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Scale className="w-5 h-5 text-[var(--color-primary)]" /> {tr('cockpit.budgetTitle')}</h1>
         <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
           {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
         </select>
-        <span className="text-xs text-[var(--color-text-tertiary)]">Consommation du budget de charges (classe 6) · version en vigueur</span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.budgetSubtitle')}</span>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <DepKpi label="Budget charges" value={fmt(c.budget)} icon={<Scale className="w-5 h-5" />} />
-        <DepKpi label="Engagé" value={fmt(c.engage)} icon={<Receipt className="w-5 h-5" />} />
-        <DepKpi label="Réalisé" value={fmt(c.realise)} icon={<Wallet className="w-5 h-5" />} accent="text-[var(--color-primary)]" />
-        <DepKpi label="Disponible" value={fmt(c.disponible)} icon={<TrendingUp className="w-5 h-5" />} accent={c.disponible < 0 ? 'text-red-600' : 'text-emerald-600'} />
-        <DepKpi label="Taux de consommation" value={`${pct(c.realise, c.budget)}%`} icon={<PieChart className="w-5 h-5" />} accent={taux > 1 ? 'text-red-600' : taux >= 0.9 ? 'text-amber-600' : 'text-gray-900'} />
+        <DepKpi label={tr('cockpit.kpiExpenseBudget')} value={fmt(c.budget)} icon={<Scale className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiCommitted')} value={fmt(c.engage)} icon={<Receipt className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiActual')} value={fmt(c.realise)} icon={<Wallet className="w-5 h-5" />} accent="text-[var(--color-primary)]" />
+        <DepKpi label={tr('cockpit.colAvailable')} value={fmt(c.disponible)} icon={<TrendingUp className="w-5 h-5" />} accent={c.disponible < 0 ? 'text-red-600' : 'text-emerald-600'} />
+        <DepKpi label={tr('cockpit.kpiConsumptionRate')} value={`${pct(c.realise, c.budget)}%`} icon={<PieChart className="w-5 h-5" />} accent={taux > 1 ? 'text-red-600' : taux >= 0.9 ? 'text-amber-600' : 'text-gray-900'} />
       </div>
 
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-medium text-gray-700">Budget vs réalisé par mois · charges · {annee}</h2>
+          <h2 className="text-sm font-medium text-gray-700">{tr('cockpit.budgetVsActualByMonth')} · {annee}</h2>
           <span className="inline-flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-border)] inline-block" /> Budget</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-primary)] inline-block" /> Réalisé</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-border)] inline-block" /> {tr('cockpit.colBudget')}</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-2 rounded-sm bg-[var(--color-primary)] inline-block" /> {tr('cockpit.colActual')}</span>
           </span>
         </div>
         <GroupBars data={bud.byMonth.map((m) => ({ b: m.budgetCharges, r: m.realiseCharges }))} />
       </div>
 
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-        <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Consommation par rubrique <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic pour déplier les comptes</span></h2></div>
+        <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{tr('cockpit.consumptionByCategory')} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· {tr('cockpit.clickToExpandAccounts')}</span></h2></div>
         <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-gray-50 border-b border-[var(--color-border)]">
             <tr>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Disponible</th>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-44">Taux consommé</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colCategoryAccount')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colBudget')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colActual')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colAvailable')}</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-44">{tr('cockpit.colConsumptionRate')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -631,25 +639,26 @@ const BudgetTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; annee:
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-[var(--color-text-tertiary)]">Budget = version en vigueur (<span className="font-mono">v_budget_execution</span>) · Engagé = registre des engagements · Réalisé = GL · Disponible = Budget − Engagé − Réalisé.</p>
+      <p className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.budgetFootnoteA')}<span className="font-mono">v_budget_execution</span>{tr('cockpit.budgetFootnoteB')}</p>
     </div>
   );
 };
 
 // Table d'écart par rubrique, dépliable jusqu'aux comptes.
 const EcartRubriqueTable: React.FC<{ title: string; rows: BudgetLineAgg[]; goodWhenNegative?: boolean; annee: string; acctLabel: (c: string) => string }> = ({ title, rows, goodWhenNegative, annee, acctLabel }) => {
+  const { t: tr } = useLanguage();
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (r: string) => setOpen((s) => { const n = new Set(s); n.has(r) ? n.delete(r) : n.add(r); return n; });
   return (
     <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-      <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{title} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic pour déplier</span></h2></div>
+      <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{title} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· {tr('cockpit.clickToExpand')}</span></h2></div>
       <table className="w-full text-sm">
         <thead className="bg-gray-50 border-b border-[var(--color-border)]">
           <tr>
-            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
-            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
-            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
-            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colCategoryAccount')}</th>
+            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colBudget')}</th>
+            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colActual')}</th>
+            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colVariance')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -674,7 +683,7 @@ const EcartRubriqueTable: React.FC<{ title: string; rows: BudgetLineAgg[]; goodW
               </React.Fragment>
             );
           })}
-          {rows.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucun budget sur {annee}.</td></tr>}
+          {rows.length === 0 && <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{tr('cockpit.noBudgetForYear', { year: annee })}</td></tr>}
         </tbody>
       </table>
     </div>
@@ -682,33 +691,34 @@ const EcartRubriqueTable: React.FC<{ title: string; rows: BudgetLineAgg[]; goodW
 };
 
 const VarianceTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; annee: string; setAnnee: (v: string) => void; acctLabel: (c: string) => string }> = ({ bud, loading, annee, setAnnee, acctLabel }) => {
+  const { t: tr } = useLanguage();
   const [sub, setSub] = useState<'mois' | 'rubrique'>('mois');
-  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (loading && !bud) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {tr('cockpit.loading')}</div>;
   if (!bud) return null;
   if (bud.charges.budget === 0 && bud.produits.budget === 0) return (
     <div className="rounded-2xl border border-[var(--color-border)] px-6 py-16 text-center text-sm text-[var(--color-text-secondary)]">
       <div className="flex justify-center mb-3 text-neutral-300"><GitCompareArrows className="w-8 h-8" /></div>
-      Aucun budget sur {annee}. Élaborez ou importez un budget pour l'analyse d'écart.
+      {tr('cockpit.noBudgetForYearVariance', { year: annee })}
     </div>
   );
   const ecartCharges = bud.charges.realise - bud.charges.budget;   // >0 = dépassement (défavorable)
   const ecartProduits = bud.produits.realise - bud.produits.budget; // >0 = surperformance (favorable)
-  const SUBS: { id: 'mois' | 'rubrique'; label: string }[] = [{ id: 'mois', label: 'Par mois' }, { id: 'rubrique', label: 'Par rubrique' }];
+  const SUBS: { id: 'mois' | 'rubrique'; label: string }[] = [{ id: 'mois', label: tr('cockpit.subByMonth') }, { id: 'rubrique', label: tr('cockpit.subByCategory') }];
   return (
     <div className="space-y-5">
       <header className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><GitCompareArrows className="w-5 h-5 text-[var(--color-primary)]" /> Analyse d'écart</h1>
+        <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><GitCompareArrows className="w-5 h-5 text-[var(--color-primary)]" /> {tr('cockpit.varianceTitle')}</h1>
         <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
           {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
         </select>
-        <span className="text-xs text-[var(--color-text-tertiary)]">Écart budget vs réalisé (favorable en vert)</span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.varianceSubtitle')}</span>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <DepKpi label="Écart charges" value={fmt(ecartCharges)} icon={<Receipt className="w-5 h-5" />} accent={ecartCharges <= 0 ? 'text-emerald-600' : 'text-red-600'} />
-        <DepKpi label="Écart produits" value={fmt(ecartProduits)} icon={<Coins className="w-5 h-5" />} accent={ecartProduits >= 0 ? 'text-emerald-600' : 'text-red-600'} />
-        <DepKpi label="Budget charges" value={fmt(bud.charges.budget)} icon={<Scale className="w-5 h-5" />} />
-        <DepKpi label="Budget produits" value={fmt(bud.produits.budget)} icon={<Scale className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiExpenseVariance')} value={fmt(ecartCharges)} icon={<Receipt className="w-5 h-5" />} accent={ecartCharges <= 0 ? 'text-emerald-600' : 'text-red-600'} />
+        <DepKpi label={tr('cockpit.kpiRevenueVariance')} value={fmt(ecartProduits)} icon={<Coins className="w-5 h-5" />} accent={ecartProduits >= 0 ? 'text-emerald-600' : 'text-red-600'} />
+        <DepKpi label={tr('cockpit.kpiExpenseBudget')} value={fmt(bud.charges.budget)} icon={<Scale className="w-5 h-5" />} />
+        <DepKpi label={tr('cockpit.kpiRevenueBudget')} value={fmt(bud.produits.budget)} icon={<Scale className="w-5 h-5" />} />
       </div>
 
       {/* Sous-onglets */}
@@ -723,23 +733,23 @@ const VarianceTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; anne
 
       {sub === 'mois' ? (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">Écart par mois</h2></div>
+          <div className="px-4 py-3 border-b border-[var(--color-border)]"><h2 className="text-sm font-medium text-gray-700">{tr('cockpit.varianceByMonth')}</h2></div>
           <table className="w-full text-sm min-w-[720px]">
             <thead className="bg-gray-50 border-b border-[var(--color-border)]">
               <tr>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Mois</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget charges</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé charges</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart charges</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget produits</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé produits</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart produits</th>
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('cockpit.colMonth')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.kpiExpenseBudget')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colActualExpenses')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.kpiExpenseVariance')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.kpiRevenueBudget')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.colActualRevenue')}</th>
+                <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('cockpit.kpiRevenueVariance')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {bud.byMonth.map((m) => (
                 <tr key={m.period} className="hover:bg-gray-50">
-                  <td className="px-4 py-2.5 text-gray-700">{MOIS[m.period - 1]}</td>
+                  <td className="px-4 py-2.5 text-gray-700">{tr(MOIS_KEYS[m.period - 1])}</td>
                   <td className="px-4 py-2.5 text-right text-gray-500">{fmt(m.budgetCharges)}</td>
                   <td className="px-4 py-2.5 text-right font-medium text-gray-900">{fmt(m.realiseCharges)}</td>
                   <td className="px-4 py-2.5 text-right font-medium"><Ecart value={m.realiseCharges - m.budgetCharges} goodWhenNegative /></td>
@@ -753,11 +763,11 @@ const VarianceTab: React.FC<{ bud: BudgetAnalysis | null; loading: boolean; anne
         </div>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <EcartRubriqueTable title="Écart par rubrique · charges" rows={bud.byRubriqueCharges} goodWhenNegative annee={annee} acctLabel={acctLabel} />
-          <EcartRubriqueTable title="Écart par rubrique · produits" rows={bud.byRubriqueProduits} annee={annee} acctLabel={acctLabel} />
+          <EcartRubriqueTable title={tr('cockpit.varianceByCategoryExpenses')} rows={bud.byRubriqueCharges} goodWhenNegative annee={annee} acctLabel={acctLabel} />
+          <EcartRubriqueTable title={tr('cockpit.varianceByCategoryRevenue')} rows={bud.byRubriqueProduits} annee={annee} acctLabel={acctLabel} />
         </div>
       )}
-      <p className="text-xs text-[var(--color-text-tertiary)]">Écart = Réalisé − Budget. Charges : favorable (vert) si réalisé ≤ budget. Produits : favorable si réalisé ≥ budget. Source : <span className="font-mono">v_budget_execution</span>.</p>
+      <p className="text-xs text-[var(--color-text-tertiary)]">{tr('cockpit.varianceFootnoteA')} <span className="font-mono">v_budget_execution</span>{tr('cockpit.varianceFootnoteB')}</p>
     </div>
   );
 };
