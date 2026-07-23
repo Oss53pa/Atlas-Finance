@@ -140,6 +140,7 @@ const LettrageModule = lazyRetry(() => import('./pages/tiers/LettrageModule'));
 const PartenairesModule = lazyRetry(() => import('./pages/tiers/PartenairesModule'));
 const ProspectsModule = lazyRetry(() => import('./pages/tiers/ProspectsModule'));
 const RattachementTiersPage = lazyRetry(() => import('./pages/tiers/RattachementTiersPage'));
+const RentabiliteClientPage = lazyRetry(() => import('./pages/tiers/RentabiliteClientPage'));
 
 // Third-party (alternative)
 const ThirdPartyDashboard = lazyRetry(() => import('./pages/third-party/ThirdPartyDashboard'));
@@ -500,6 +501,7 @@ function App() {
                           <Route path="/tiers/partenaires" element={work(<PartenairesModule />)} />
                           <Route path="/tiers/prospects" element={work(<ProspectsModule />)} />
                           <Route path="/tiers/rattachement" element={work(<RattachementTiersPage />)} />
+                          <Route path="/tiers/rentabilite" element={work(<RentabiliteClientPage />)} />
                           <Route path="/third-party" element={<ThirdPartyDashboard />} />
                         </Route>
 
