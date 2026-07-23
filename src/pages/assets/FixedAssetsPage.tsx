@@ -144,10 +144,10 @@ const FixedAssetsPage: React.FC = () => {
       // Validation : unicité du code + valeurs cohérentes.
       const existing = await adapter.getAll<any>('assets');
       if (existing.some(a => String(a.code || '').trim().toLowerCase() === code.toLowerCase())) {
-        throw new Error(`Le code immobilisation « ${code} » existe déjà.`);
+        throw new Error(t('fixedAssets.codeExists', { code }));
       }
-      if (montant <= 0) throw new Error("La valeur d'acquisition doit être positive.");
-      if (dateAcq && new Date(dateAcq).getTime() > Date.now()) throw new Error("La date d'acquisition ne peut pas être future.");
+      if (montant <= 0) throw new Error(t('fixedAssets.valuePositive'));
+      if (dateAcq && new Date(dateAcq).getTime() > Date.now()) throw new Error(t('fixedAssets.dateNotFuture'));
 
       // Comptes SYSCOHADA dérivés de la catégorie (jamais vides).
       const cat = String(data.categorie || '').trim();
@@ -197,19 +197,19 @@ const FixedAssetsPage: React.FC = () => {
       } catch (e) {
         // L'immo est créée ; on remonte l'échec d'écriture sans bloquer la fiche.
         console.error('Écriture d\'acquisition non postée', e);
-        throw new Error("Immobilisation créée mais l'écriture d'acquisition a échoué : " + ((e as Error).message || ''));
+        throw new Error(t('fixedAssets.acqEntryFailed', { error: (e as Error).message || '' }));
       }
       return dbData;
     },
     onSuccess: () => {
-      toast.success('Immobilisation créée (fiche + écriture d\'acquisition)');
+      toast.success(t('fixedAssets.createdSuccess'));
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
       queryClient.invalidateQueries({ queryKey: ['journalEntries'] });
       setShowCreateModal(false);
       resetForm();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création');
+      toast.error(error.message || t('fixedAssets.createError'));
     },
   });
 
@@ -238,13 +238,13 @@ const FixedAssetsPage: React.FC = () => {
       return adapter.update('assets', id, updates);
     },
     onSuccess: () => {
-      toast.success('Immobilisation mise à jour avec succès');
+      toast.success(t('fixedAssets.updatedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
       setShowEditModal(false);
       setAssetToEdit(null);
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la mise à jour');
+      toast.error(error.message || t('fixedAssets.updateError'));
     },
   });
 
@@ -329,27 +329,27 @@ const FixedAssetsPage: React.FC = () => {
       // Blocage : un bien amorti, sorti ou mouvementé ne se supprime pas (piste
       // d'audit). Il doit être CÉDÉ (écriture de sortie), pas effacé.
       const asset = await adapter.getById<any>('assets', assetId);
-      if (!asset) throw new Error('Immobilisation introuvable.');
+      if (!asset) throw new Error(t('fixedAssets.assetNotFound'));
       if ((Number(asset.cumulDepreciation) || 0) > 0) {
-        throw new Error('Suppression interdite : ce bien est amorti. Utilisez une cession/sortie.');
+        throw new Error(t('fixedAssets.deleteForbiddenDepreciated'));
       }
       if (asset.status && asset.status !== 'active') {
-        throw new Error('Suppression interdite : ce bien est déjà sorti/inactif.');
+        throw new Error(t('fixedAssets.deleteForbiddenInactive'));
       }
       // Refus si des écritures comptables référencent l'actif.
       const entries = await adapter.getAll<any>('journalEntries');
       const referenced = entries.some(e => String(e.reference || '').includes(assetId));
       if (referenced) {
-        throw new Error('Suppression interdite : des écritures comptables sont liées à ce bien.');
+        throw new Error(t('fixedAssets.deleteForbiddenLinked'));
       }
       return adapter.delete('assets', assetId);
     },
     onSuccess: () => {
-      toast.success('Actif supprimé avec succès');
+      toast.success(t('fixedAssets.deletedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['fixed-assets'] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la suppression');
+      toast.error(error.message || t('fixedAssets.deleteError'));
     }
   });
 
@@ -426,9 +426,9 @@ const FixedAssetsPage: React.FC = () => {
           fieldErrors[field] = err.message;
         });
         setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+        toast.error(t('fixedAssets.fixFormErrors'));
       } else {
-        toast.error('Erreur lors de la création');
+        toast.error(t('fixedAssets.createError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -469,11 +469,11 @@ const FixedAssetsPage: React.FC = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case 'en_service': return 'En service';
-      case 'en_maintenance': return 'Maintenance';
-      case 'hors_service': return 'Hors service';
-      case 'cede': return 'Cédé';
-      case 'reforme': return 'Réformé';
+      case 'en_service': return t('fixedAssets.statusInService');
+      case 'en_maintenance': return t('fixedAssets.maintenanceLabel');
+      case 'hors_service': return t('fixedAssets.statusOutOfService');
+      case 'cede': return t('fixedAssets.statusDisposed');
+      case 'reforme': return t('fixedAssets.statusRetired');
       default: return statut;
     }
   };
@@ -487,7 +487,7 @@ const FixedAssetsPage: React.FC = () => {
 
   const generateQRCode = async (assetId: string) => {
     // QR Code generation requires a third-party integration — not yet implemented.
-    toast('QR Code : fonctionnalité disponible en intégration tierce (ex: QR Monkey, ZXing).', { icon: 'ℹ️' });
+    toast(t('fixedAssets.qrCodeInfo'), { icon: 'ℹ️' });
     void assetId;
   };
 
@@ -529,8 +529,8 @@ const FixedAssetsPage: React.FC = () => {
     try {
       setIsEditSubmitting(true);
       setEditErrors({});
-      if (!editFormData.code) { setEditErrors({ code: 'Code requis' }); setIsEditSubmitting(false); return; }
-      if (!editFormData.designation) { setEditErrors({ designation: 'Désignation requise' }); setIsEditSubmitting(false); return; }
+      if (!editFormData.code) { setEditErrors({ code: t('fixedAssets.codeRequired') }); setIsEditSubmitting(false); return; }
+      if (!editFormData.designation) { setEditErrors({ designation: t('fixedAssets.designationRequired') }); setIsEditSubmitting(false); return; }
       await updateMutation.mutateAsync({ id: String(assetToEdit.id), data: editFormData as unknown as Record<string, unknown> });
     } catch (error) {
       console.error('[FixedAssetsPage] edit submit error:', error);
@@ -541,9 +541,9 @@ const FixedAssetsPage: React.FC = () => {
           fieldErrors[field] = err.message;
         });
         setEditErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+        toast.error(t('fixedAssets.fixFormErrors'));
       } else {
-        toast.error((error as Error).message || 'Erreur lors de la mise à jour');
+        toast.error((error as Error).message || t('fixedAssets.updateError'));
       }
     } finally {
       setIsEditSubmitting(false);
@@ -558,10 +558,10 @@ const FixedAssetsPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Building className="mr-3 h-7 w-7" />
-              Immobilisations Corporelles
+              {t('fixedAssets.pageTitle')}
             </h1>
             <p className="mt-2 text-[var(--color-text-secondary)]">
-              Gestion des actifs immobilisés et suivi des amortissements
+              {t('fixedAssets.pageSubtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -570,28 +570,28 @@ const FixedAssetsPage: React.FC = () => {
               data={assetsData?.results || []}
               filename="immobilisations"
               columns={{
-                code_immobilisation: 'Code',
-                designation: 'Désignation',
-                nom_categorie: 'Catégorie',
-                date_acquisition: 'Date Acquisition',
-                localisation: 'Localisation',
-                valeur_acquisition: 'Valeur Acquisition',
-                amortissements_cumules: 'Amortissements',
-                valeur_nette: 'Valeur Nette',
-                pourcentage_amortissement: '% Amorti',
-                statut: 'Statut'
+                code_immobilisation: t('fixedAssets.colCode'),
+                designation: t('fixedAssets.colDesignation'),
+                nom_categorie: t('fixedAssets.colCategory'),
+                date_acquisition: t('fixedAssets.colAcquisitionDate'),
+                localisation: t('fixedAssets.colLocation'),
+                valeur_acquisition: t('fixedAssets.colAcquisitionValue'),
+                amortissements_cumules: t('fixedAssets.depreciation'),
+                valeur_nette: t('fixedAssets.colNetValue'),
+                pourcentage_amortissement: t('fixedAssets.colPctDepreciated'),
+                statut: t('fixedAssets.colStatus')
               }}
             />
             <Button variant="outline">
               <Upload className="mr-2 h-4 w-4" />
-              Importer
+              {t('fixedAssets.import')}
             </Button>
             <Button
               className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nouvel Actif
+              {t('fixedAssets.newAsset')}
             </Button>
           </div>
         </div>
@@ -606,7 +606,7 @@ const FixedAssetsPage: React.FC = () => {
                 <Building className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Actifs</p>
+                <p className="text-sm font-medium text-gray-600">{t('fixedAssets.statTotalAssets')}</p>
                 <p className="text-lg font-bold text-gray-900">
                   {assetsData?.count || 0}
                 </p>
@@ -622,7 +622,7 @@ const FixedAssetsPage: React.FC = () => {
                 <DollarSign className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Valeur Totale</p>
+                <p className="text-sm font-medium text-gray-600">{t('fixedAssets.statTotalValue')}</p>
                 <p className="text-lg font-bold text-green-700">
                   {formatCurrency(assetsData?.total_value || 0)}
                 </p>
@@ -638,7 +638,7 @@ const FixedAssetsPage: React.FC = () => {
                 <TrendingDown className="h-6 w-6 text-primary-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Amortissements</p>
+                <p className="text-sm font-medium text-gray-600">{t('fixedAssets.depreciation')}</p>
                 <p className="text-lg font-bold text-primary-700">
                   {formatCurrency(assetsData?.total_depreciation || 0)}
                 </p>
@@ -654,7 +654,7 @@ const FixedAssetsPage: React.FC = () => {
                 <AlertCircle className="h-6 w-6 text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">En Maintenance</p>
+                <p className="text-sm font-medium text-gray-600">{t('fixedAssets.statInMaintenance')}</p>
                 <p className="text-lg font-bold text-red-700">
                   {assetsData?.maintenance_count || 0}
                 </p>
@@ -669,7 +669,7 @@ const FixedAssetsPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="mr-2 h-5 w-5" />
-            Filtres
+            {t('fixedAssets.filtersTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -677,7 +677,7 @@ const FixedAssetsPage: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
-                placeholder="Rechercher..."
+                placeholder={t('fixedAssets.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="pl-10"
@@ -686,10 +686,10 @@ const FixedAssetsPage: React.FC = () => {
             
             <Select value={filters.categorie} onValueChange={(value) => handleFilterChange('categorie', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Toutes catégories" />
+                <SelectValue placeholder={t('fixedAssets.allCategoriesPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Toutes les catégories</SelectItem>
+                <SelectItem value="">{t('fixedAssets.allCategoriesItem')}</SelectItem>
                 {categories?.map((category) => (
                   <SelectItem key={category.id} value={category.code}>
                     {category.nom}
@@ -700,20 +700,20 @@ const FixedAssetsPage: React.FC = () => {
 
             <Select value={filters.statut} onValueChange={(value) => handleFilterChange('statut', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous statuts" />
+                <SelectValue placeholder={t('fixedAssets.allStatusesPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="en_service">En service</SelectItem>
-                <SelectItem value="en_maintenance">En maintenance</SelectItem>
-                <SelectItem value="hors_service">Hors service</SelectItem>
-                <SelectItem value="cede">Cédé</SelectItem>
-                <SelectItem value="reforme">Réformé</SelectItem>
+                <SelectItem value="">{t('fixedAssets.allStatusesItem')}</SelectItem>
+                <SelectItem value="en_service">{t('fixedAssets.statusInService')}</SelectItem>
+                <SelectItem value="en_maintenance">{t('fixedAssets.statusInMaintenance')}</SelectItem>
+                <SelectItem value="hors_service">{t('fixedAssets.statusOutOfService')}</SelectItem>
+                <SelectItem value="cede">{t('fixedAssets.statusDisposed')}</SelectItem>
+                <SelectItem value="reforme">{t('fixedAssets.statusRetired')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Input
-              placeholder="Localisation"
+              placeholder={t('fixedAssets.locationPlaceholder')}
               value={filters.localisation}
               onChange={(e) => handleFilterChange('localisation', e.target.value)}
             />
@@ -724,19 +724,19 @@ const FixedAssetsPage: React.FC = () => {
               className="flex items-center gap-2"
             >
               <Calendar className="w-4 h-4" />
-              Sélectionner période
+              {t('fixedAssets.selectPeriod')}
             </Button>
 
             <Input
               type="number"
-              placeholder="Valeur min"
+              placeholder={t('fixedAssets.valueMinPlaceholder')}
               value={filters.valeur_min}
               onChange={(e) => handleFilterChange('valeur_min', e.target.value)}
             />
 
             <Input
               type="number"
-              placeholder="Valeur max"
+              placeholder={t('fixedAssets.valueMaxPlaceholder')}
               value={filters.valeur_max}
               onChange={(e) => handleFilterChange('valeur_max', e.target.value)}
             />
@@ -744,7 +744,7 @@ const FixedAssetsPage: React.FC = () => {
           
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={resetFilters}>
-              Réinitialiser
+              {t('fixedAssets.reset')}
             </Button>
           </div>
         </CardContent>
@@ -754,10 +754,10 @@ const FixedAssetsPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Liste des Immobilisations</span>
+            <span>{t('fixedAssets.listTitle')}</span>
             {assetsData && (
               <Badge variant="outline">
-                {assetsData.count} actif(s)
+                {t('fixedAssets.assetsCount', { count: String(assetsData.count) })}
               </Badge>
             )}
           </CardTitle>
@@ -765,7 +765,7 @@ const FixedAssetsPage: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" text="Chargement des actifs..." />
+              <LoadingSpinner size="lg" text={t('fixedAssets.loadingAssets')} />
             </div>
           ) : (
             <>
@@ -773,16 +773,16 @@ const FixedAssetsPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Code/Désignation</TableHead>
-                      <TableHead>Catégorie</TableHead>
-                      <TableHead>Date Acquisition</TableHead>
-                      <TableHead>Localisation</TableHead>
-                      <TableHead className="text-right">Val. Acquisition</TableHead>
-                      <TableHead className="text-right">Amortissements</TableHead>
-                      <TableHead className="text-right">Valeur Nette</TableHead>
-                      <TableHead>% Amorti</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('fixedAssets.thCodeDesignation')}</TableHead>
+                      <TableHead>{t('fixedAssets.colCategory')}</TableHead>
+                      <TableHead>{t('fixedAssets.colAcquisitionDate')}</TableHead>
+                      <TableHead>{t('fixedAssets.colLocation')}</TableHead>
+                      <TableHead className="text-right">{t('fixedAssets.thAcquisitionValueShort')}</TableHead>
+                      <TableHead className="text-right">{t('fixedAssets.depreciation')}</TableHead>
+                      <TableHead className="text-right">{t('fixedAssets.colNetValue')}</TableHead>
+                      <TableHead>{t('fixedAssets.colPctDepreciated')}</TableHead>
+                      <TableHead>{t('fixedAssets.colStatus')}</TableHead>
+                      <TableHead className="text-right">{t('fixedAssets.thActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -800,7 +800,7 @@ const FixedAssetsPage: React.FC = () => {
                               </p>
                               {asset.numero_serie && (
                                 <p className="text-xs text-gray-700">
-                                  S/N: {asset.numero_serie}
+                                  {t('fixedAssets.snPrefix')} {asset.numero_serie}
                                 </p>
                               )}
                             </div>
@@ -858,7 +858,7 @@ const FixedAssetsPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => setSelectedAsset(asset)}
-                              aria-label="Voir les détails"
+                              aria-label={t('fixedAssets.viewDetails')}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -866,7 +866,7 @@ const FixedAssetsPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => generateQRCode(asset.id)}
-                              aria-label="QR Code"
+                              aria-label={t('fixedAssets.qrCode')}
                             >
                               <QrCode className="h-4 w-4" />
                             </Button>
@@ -874,7 +874,7 @@ const FixedAssetsPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleOpenEditModal(asset)}
-                              aria-label="Modifier"
+                              aria-label={t('fixedAssets.edit')}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -883,7 +883,7 @@ const FixedAssetsPage: React.FC = () => {
                               size="sm"
                               onClick={() => handleDeleteAsset(asset.id)}
                               className="text-red-600 hover:text-red-700"
-                              aria-label="Supprimer"
+                              aria-label={t('fixedAssets.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -909,18 +909,18 @@ const FixedAssetsPage: React.FC = () => {
               {(!assetsData?.results || assetsData.results.length === 0) && (
                 <div className="text-center py-12">
                   <Building className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun actif trouvé</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('fixedAssets.noAssetsFound')}</h3>
                   <p className="text-gray-700 mb-6">
                     {Object.values(filters).some(f => f)
-                      ? 'Aucun actif ne correspond aux critères de recherche.'
-                      : 'Commencez par créer votre premier actif immobilisé.'}
+                      ? t('fixedAssets.noAssetsMatch')
+                      : t('fixedAssets.noAssetsStart')}
                   </p>
                   <Button 
                     className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Créer un actif
+                    {t('fixedAssets.createAsset')}
                   </Button>
                 </div>
               )}
@@ -939,7 +939,7 @@ const FixedAssetsPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Building className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Nouvel Actif Immobilisé</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('fixedAssets.createModalTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -961,18 +961,18 @@ const FixedAssetsPage: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-blue-900 mb-1">Nouvelle Immobilisation</h4>
-                      <p className="text-sm text-blue-800">Enregistrez un nouvel actif immobilisé avec ses informations comptables et de gestion.</p>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">{t('fixedAssets.infoAlertTitle')}</h4>
+                      <p className="text-sm text-blue-800">{t('fixedAssets.infoAlertText')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Basic Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations Générales</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fixedAssets.sectionGeneral')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Code immobilisation *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldCodeRequired')}</label>
                       <Input
                         placeholder="IMM-2024-001"
                         value={formData.code}
@@ -984,9 +984,9 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Désignation *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldDesignationRequired')}</label>
                       <Input
-                        placeholder="Ordinateur portable Dell..."
+                        placeholder={t('fixedAssets.designationPlaceholder')}
                         value={formData.designation}
                         onChange={(e) => handleInputChange('designation', e.target.value)}
                         disabled={isSubmitting}
@@ -996,13 +996,13 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldCategoryRequired')}</label>
                       <Select
                         value={formData.categorie}
                         onValueChange={(value) => handleInputChange('categorie', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
+                          <SelectValue placeholder={t('fixedAssets.selectCategoryPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {categories?.map((category) => (
@@ -1017,7 +1017,7 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de série</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldSerialNumber')}</label>
                       <Input
                         placeholder="ABC123XYZ..."
                         value={formData.numero_serie}
@@ -1033,10 +1033,10 @@ const FixedAssetsPage: React.FC = () => {
 
                 {/* Financial Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations Financières</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fixedAssets.sectionFinancial')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Valeur d'acquisition (XOF) *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldAcquisitionValueRequired')}</label>
                       <Input
                         type="number"
                         step="0.01"
@@ -1051,7 +1051,7 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Date d'acquisition *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldAcquisitionDateRequired')}</label>
                       <Input
                         type="date"
                         value={formData.date_acquisition}
@@ -1063,7 +1063,7 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Durée d'amortissement (années) *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldDurationRequired')}</label>
                       <Input
                         type="number"
                         min="1"
@@ -1078,19 +1078,19 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Méthode d'amortissement *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldMethodRequired')}</label>
                       <Select
                         value={formData.methode_amortissement}
                         onValueChange={(value) => handleInputChange('methode_amortissement', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner la méthode" />
+                          <SelectValue placeholder={t('fixedAssets.selectMethodPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="lineaire">Linéaire</SelectItem>
-                          <SelectItem value="degressive">Dégressive</SelectItem>
-                          <SelectItem value="unites_oeuvre">Unités d'œuvre</SelectItem>
-                          <SelectItem value="exceptionnelle">Exceptionnelle</SelectItem>
+                          <SelectItem value="lineaire">{t('fixedAssets.methodLinear')}</SelectItem>
+                          <SelectItem value="degressive">{t('fixedAssets.methodDeclining')}</SelectItem>
+                          <SelectItem value="unites_oeuvre">{t('fixedAssets.methodUnits')}</SelectItem>
+                          <SelectItem value="exceptionnelle">{t('fixedAssets.methodExceptional')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.methode_amortissement && (
@@ -1102,12 +1102,12 @@ const FixedAssetsPage: React.FC = () => {
 
                 {/* Location and Status */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Localisation et Statut</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fixedAssets.sectionLocationStatus')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldLocation')}</label>
                       <Input
-                        placeholder="Bureau 201, Bâtiment A"
+                        placeholder={t('fixedAssets.locationExamplePlaceholder')}
                         value={formData.localisation}
                         onChange={(e) => handleInputChange('localisation', e.target.value)}
                         disabled={isSubmitting}
@@ -1117,9 +1117,9 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldSupplier')}</label>
                       <Input
-                        placeholder="Nom du fournisseur"
+                        placeholder={t('fixedAssets.supplierPlaceholder')}
                         value={formData.fournisseur}
                         onChange={(e) => handleInputChange('fournisseur', e.target.value)}
                         disabled={isSubmitting}
@@ -1129,19 +1129,19 @@ const FixedAssetsPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldStatus')}</label>
                       <Select
                         value={formData.statut}
                         onValueChange={(value) => handleInputChange('statut', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le statut" />
+                          <SelectValue placeholder={t('fixedAssets.selectStatusPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="en_service">En service</SelectItem>
-                          <SelectItem value="en_maintenance">En maintenance</SelectItem>
-                          <SelectItem value="hors_service">Hors service</SelectItem>
-                          <SelectItem value="cede">Cédé</SelectItem>
+                          <SelectItem value="en_service">{t('fixedAssets.statusInService')}</SelectItem>
+                          <SelectItem value="en_maintenance">{t('fixedAssets.statusInMaintenance')}</SelectItem>
+                          <SelectItem value="hors_service">{t('fixedAssets.statusOutOfService')}</SelectItem>
+                          <SelectItem value="cede">{t('fixedAssets.statusDisposed')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.statut && (
@@ -1153,14 +1153,14 @@ const FixedAssetsPage: React.FC = () => {
 
                 {/* Additional Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations Complémentaires</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fixedAssets.sectionAdditional')}</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description détaillée</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldDescription')}</label>
                       <textarea
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         rows={3}
-                        placeholder="Description détaillée de l'actif..."
+                        placeholder={t('fixedAssets.descriptionPlaceholder')}
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         disabled={isSubmitting}
@@ -1184,16 +1184,16 @@ const FixedAssetsPage: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('fixedAssets.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={t('fixedAssets.validate')}>
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    <span>Création...</span>
+                    <span>{t('fixedAssets.creating')}</span>
                   </>
                 ) : (
                   <>
@@ -1216,7 +1216,7 @@ const FixedAssetsPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Edit className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Modifier l'Actif Immobilisé</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('fixedAssets.editModalTitle')}</h2>
               </div>
               <button onClick={() => { setShowEditModal(false); setAssetToEdit(null); }} disabled={isEditSubmitting} className="text-gray-700 hover:text-gray-700">
                 <X className="w-6 h-6" />
@@ -1226,23 +1226,23 @@ const FixedAssetsPage: React.FC = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Code immobilisation *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldCodeRequired')}</label>
                     <Input value={editFormData.code} onChange={(e) => handleEditInputChange('code', e.target.value)} disabled={isEditSubmitting} />
                     {editErrors.code && <p className="mt-1 text-sm text-red-600">{editErrors.code}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Désignation *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldDesignationRequired')}</label>
                     <Input value={editFormData.designation} onChange={(e) => handleEditInputChange('designation', e.target.value)} disabled={isEditSubmitting} />
                     {editErrors.designation && <p className="mt-1 text-sm text-red-600">{editErrors.designation}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.colCategory')}</label>
                     <Select
                       value={editFormData.categorie}
                       onValueChange={(value) => handleEditInputChange('categorie', value)}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une catégorie" />
+                        <SelectValue placeholder={t('fixedAssets.selectCategoryPlaceholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {categories?.map((category) => (
@@ -1251,38 +1251,38 @@ const FixedAssetsPage: React.FC = () => {
                           </SelectItem>
                         ))}
                         {/* Fallback options always present */}
-                        <SelectItem value="materiel_informatique">Matériel informatique</SelectItem>
-                        <SelectItem value="vehicules">Véhicules</SelectItem>
-                        <SelectItem value="mobilier">Mobilier</SelectItem>
-                        <SelectItem value="equipements">Équipements</SelectItem>
-                        <SelectItem value="immobilier">Immobilier</SelectItem>
-                        <SelectItem value="AUTRE">Autre</SelectItem>
+                        <SelectItem value="materiel_informatique">{t('fixedAssets.catMaterielInfo')}</SelectItem>
+                        <SelectItem value="vehicules">{t('fixedAssets.catVehicules')}</SelectItem>
+                        <SelectItem value="mobilier">{t('fixedAssets.catMobilier')}</SelectItem>
+                        <SelectItem value="equipements">{t('fixedAssets.catEquipements')}</SelectItem>
+                        <SelectItem value="immobilier">{t('fixedAssets.catImmobilier')}</SelectItem>
+                        <SelectItem value="AUTRE">{t('fixedAssets.catAutre')}</SelectItem>
                       </SelectContent>
                     </Select>
                     {editErrors.categorie && <p className="mt-1 text-sm text-red-600">{editErrors.categorie}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de série</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldSerialNumber')}</label>
                     <Input value={editFormData.numero_serie} onChange={(e) => handleEditInputChange('numero_serie', e.target.value)} disabled={isEditSubmitting} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Valeur d'acquisition (XOF)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldAcquisitionValue')}</label>
                     <Input type="number" step="0.01" min="0" value={editFormData.montant_acquisition} onChange={(e) => handleEditInputChange('montant_acquisition', parseFloat(e.target.value) || 0)} disabled={isEditSubmitting} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date d'acquisition</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldAcquisitionDate')}</label>
                     <Input type="date" value={editFormData.date_acquisition} onChange={(e) => handleEditInputChange('date_acquisition', e.target.value)} disabled={isEditSubmitting} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Durée d'amortissement (années)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldDuration')}</label>
                     <Input type="number" min="1" max="50" value={editFormData.duree_amortissement} onChange={(e) => handleEditInputChange('duree_amortissement', parseInt(e.target.value) || 1)} disabled={isEditSubmitting} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Localisation</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldLocation')}</label>
                     <Input value={editFormData.localisation} onChange={(e) => handleEditInputChange('localisation', e.target.value)} disabled={isEditSubmitting} />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fournisseur</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">{t('fixedAssets.fieldSupplier')}</label>
                     <Input value={editFormData.fournisseur} onChange={(e) => handleEditInputChange('fournisseur', e.target.value)} disabled={isEditSubmitting} />
                   </div>
                 </div>
@@ -1290,10 +1290,10 @@ const FixedAssetsPage: React.FC = () => {
             </div>
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-end space-x-3">
               <button onClick={() => { setShowEditModal(false); setAssetToEdit(null); }} disabled={isEditSubmitting} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50">
-                Annuler
+                {t('fixedAssets.cancel')}
               </button>
               <button onClick={handleEditSubmit} disabled={isEditSubmitting} className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50">
-                {isEditSubmitting ? <><LoadingSpinner size="sm" /><span>Enregistrement...</span></> : <><CheckCircle className="w-4 h-4" /><span>Enregistrer</span></>}
+                {isEditSubmitting ? <><LoadingSpinner size="sm" /><span>{t('fixedAssets.saving')}</span></> : <><CheckCircle className="w-4 h-4" /><span>{t('fixedAssets.save')}</span></>}
               </button>
             </div>
           </div>
@@ -1320,11 +1320,11 @@ const FixedAssetsPage: React.FC = () => {
           if (deleteConfirm.assetId) deleteAssetMutation.mutate(deleteConfirm.assetId);
           setDeleteConfirm({ isOpen: false, assetId: null });
         }}
-        title="Confirmer la suppression"
-        message="Êtes-vous sûr de vouloir supprimer cet actif ? Cette action est irréversible."
+        title={t('fixedAssets.deleteConfirmTitle')}
+        message={t('fixedAssets.deleteConfirmMessage')}
         variant="danger"
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        confirmText={t('fixedAssets.delete')}
+        cancelText={t('fixedAssets.cancel')}
         confirmLoading={deleteAssetMutation.isPending}
       />
     </div>

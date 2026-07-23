@@ -97,10 +97,10 @@ const APIIntegrationsPage: React.FC = () => {
   });
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
-    { id: 'api-keys', label: 'Clés API', icon: Key },
+    { id: 'overview', label: t('apiIntegrations.tabOverview'), icon: BarChart3 },
+    { id: 'api-keys', label: t('apiIntegrations.tabApiKeys'), icon: Key },
     { id: 'webhooks', label: 'Webhooks', icon: Link },
-    { id: 'integrations', label: 'Intégrations', icon: Cloud },
+    { id: 'integrations', label: t('apiIntegrations.tabIntegrations'), icon: Cloud },
     { id: 'documentation', label: 'Documentation', icon: Code },
     { id: 'logs', label: t('navigation.journals'), icon: Activity }
   ];
@@ -113,12 +113,12 @@ const APIIntegrationsPage: React.FC = () => {
 
   // Catalogue d'intégrations disponibles (toutes déconnectées par défaut)
   const integrations: IntegrationData[] = [
-    { id: 1, name: 'Salesforce', category: 'CRM', status: 'disconnected', icon: '🔗', description: 'Synchronisation bidirectionnelle des données clients', lastSync: null, dataPoints: 0 },
-    { id: 2, name: 'Stripe', category: 'Paiements', status: 'disconnected', icon: '💳', description: 'Traitement des paiements en ligne', lastSync: null, dataPoints: 0 },
-    { id: 3, name: 'Google Workspace', category: 'Productivité', status: 'disconnected', icon: '📧', description: 'Intégration email et calendrier', lastSync: null, dataPoints: 0 },
-    { id: 4, name: 'Slack', category: 'Communication', status: 'disconnected', icon: '💬', description: 'Notifications et alertes en temps réel', lastSync: null, dataPoints: 0 },
-    { id: 5, name: 'QuickBooks', category: 'Comptabilité', status: 'disconnected', icon: '📊', description: 'Synchronisation des données comptables', lastSync: null, dataPoints: 0 },
-    { id: 6, name: 'Microsoft Teams', category: 'Communication', status: 'disconnected', icon: '👥', description: 'Collaboration et messagerie d\'équipe', lastSync: null, dataPoints: 0 },
+    { id: 1, name: 'Salesforce', category: t('apiIntegrations.catCRM'), status: 'disconnected', icon: '🔗', description: t('apiIntegrations.integSalesforceDesc'), lastSync: null, dataPoints: 0 },
+    { id: 2, name: 'Stripe', category: t('apiIntegrations.catPayments'), status: 'disconnected', icon: '💳', description: t('apiIntegrations.integStripeDesc'), lastSync: null, dataPoints: 0 },
+    { id: 3, name: 'Google Workspace', category: t('apiIntegrations.catProductivity'), status: 'disconnected', icon: '📧', description: t('apiIntegrations.integGoogleDesc'), lastSync: null, dataPoints: 0 },
+    { id: 4, name: 'Slack', category: t('apiIntegrations.catCommunication'), status: 'disconnected', icon: '💬', description: t('apiIntegrations.integSlackDesc'), lastSync: null, dataPoints: 0 },
+    { id: 5, name: 'QuickBooks', category: t('apiIntegrations.catAccounting'), status: 'disconnected', icon: '📊', description: t('apiIntegrations.integQuickBooksDesc'), lastSync: null, dataPoints: 0 },
+    { id: 6, name: 'Microsoft Teams', category: t('apiIntegrations.catCommunication'), status: 'disconnected', icon: '👥', description: t('apiIntegrations.integTeamsDesc'), lastSync: null, dataPoints: 0 },
   ];
 
   // Logs API — depuis la table auditLogs de l'adaptateur
@@ -143,7 +143,7 @@ const APIIntegrationsPage: React.FC = () => {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copié dans le presse-papier !');
+    toast.success(t('apiIntegrations.copiedToClipboard'));
   };
 
   // Handler functions
@@ -153,7 +153,7 @@ const APIIntegrationsPage: React.FC = () => {
 
   const handleCreateAPI = () => {
     if (!newAPIForm.name) {
-      toast.error('Veuillez entrer un nom pour la clé API');
+      toast.error(t('apiIntegrations.enterKeyName'));
       return;
     }
 
@@ -171,14 +171,14 @@ const APIIntegrationsPage: React.FC = () => {
       permissions: newAPIForm.permissions,
       rateLimit: `${newAPIForm.rateLimit} req/hour`,
     }]);
-    toast.success(`Clé API "${newAPIForm.name}" créée avec succès !`);
+    toast.success(t('apiIntegrations.apiKeyCreated', { name: newAPIForm.name }));
     setShowNewAPIModal(false);
     setNewAPIForm({ name: '', environment: 'Test', permissions: [], rateLimit: '5000' });
   };
 
   const handleCreateWebhook = () => {
     if (!newWebhookForm.url || newWebhookForm.events.length === 0) {
-      toast.error('Veuillez remplir tous les champs requis');
+      toast.error(t('apiIntegrations.fillRequiredFields'));
       return;
     }
 
@@ -191,7 +191,7 @@ const APIIntegrationsPage: React.FC = () => {
       lastTriggered: '-',
       successRate: 100,
     }]);
-    toast.success('Webhook créé avec succès !');
+    toast.success(t('apiIntegrations.webhookCreated'));
     setShowNewWebhookModal(false);
     setNewWebhookForm({ url: '', events: [] });
   };
@@ -205,10 +205,10 @@ const APIIntegrationsPage: React.FC = () => {
   };
 
   const handleConnectIntegration = (integration: IntegrationData) => {
-    toast.success(`Connexion à ${integration.name} initiée...`);
+    toast.success(t('apiIntegrations.connectionInitiated', { name: integration.name }));
     // Simulate connection process
     setTimeout(() => {
-      toast.success(`${integration.name} connecté avec succès !`);
+      toast.success(t('apiIntegrations.connectedSuccess', { name: integration.name }));
     }, 2000);
   };
 
@@ -222,16 +222,16 @@ const APIIntegrationsPage: React.FC = () => {
 
   const confirmDelete = () => {
     if (showDeleteConfirm) {
-      toast.success(`${(showDeleteConfirm as any).name || (showDeleteConfirm as any).url || 'Élément'} supprimé avec succès`);
+      toast.success(t('apiIntegrations.itemDeleted', { name: (showDeleteConfirm as any).name || (showDeleteConfirm as any).url || t('apiIntegrations.deleteItemFallback') }));
       setShowDeleteConfirm(null);
     }
   };
 
   const handleDownload = (type: string) => {
-    toast.success(`Téléchargement de ${type} démarré...`);
+    toast.success(t('apiIntegrations.downloadStarted', { type }));
     // Simulate download
     setTimeout(() => {
-      toast.success(`${type} téléchargé avec succès !`);
+      toast.success(t('apiIntegrations.downloadSuccess', { type }));
     }, 1000);
   };
 
@@ -276,7 +276,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <span className="text-xs text-green-500 font-medium">+12%</span>
                 </div>
                 <div className="text-lg font-bold">{apiLogs.length}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Logs API enregistrés</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.statApiLogs')}</div>
               </motion.div>
 
               <motion.div
@@ -290,7 +290,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <span className="text-xs text-green-500 font-medium">99.9%</span>
                 </div>
                 <div className="text-lg font-bold">{apiLogs.length > 0 ? `${Math.round(apiLogs.reduce((s, l) => s + (parseInt(l.duration) || 0), 0) / apiLogs.length)}ms` : '—'}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Temps de réponse moyen</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.statAvgResponse')}</div>
               </motion.div>
 
               <motion.div
@@ -304,7 +304,7 @@ const APIIntegrationsPage: React.FC = () => {
                   <span className="text-xs text-green-500 font-medium">Active</span>
                 </div>
                 <div className="text-lg font-bold">{integrations.filter(i => i.status === 'connected').length}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Intégrations actives</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.statActiveIntegrations')}</div>
               </motion.div>
 
               <motion.div
@@ -315,21 +315,21 @@ const APIIntegrationsPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Shield className="w-8 h-8 text-[var(--color-warning)]" />
-                  <span className="text-xs text-green-500 font-medium">Sécurisé</span>
+                  <span className="text-xs text-green-500 font-medium">{t('apiIntegrations.secured')}</span>
                 </div>
                 <div className="text-lg font-bold">{apiKeys.filter(k => k.status === 'active').length}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Clés API actives</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.statActiveKeys')}</div>
               </motion.div>
             </div>
 
             {/* Usage Graph */}
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold mb-4">Utilisation API (7 derniers jours)</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('apiIntegrations.usageTitle')}</h3>
               <div className="h-64 flex items-end space-x-2">
                 {[65, 78, 82, 91, 85, 73, 88].map((height, index) => (
                   <div key={index} className="flex-1">
                     <div className="text-xs text-center text-[var(--color-text-tertiary)] mb-1">
-                      {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][index]}
+                      {[t('apiIntegrations.dayMon'), t('apiIntegrations.dayTue'), t('apiIntegrations.dayWed'), t('apiIntegrations.dayThu'), t('apiIntegrations.dayFri'), t('apiIntegrations.daySat'), t('apiIntegrations.daySun')][index]}
                     </div>
                     <div
                       className="bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary)] rounded-t"
@@ -343,14 +343,14 @@ const APIIntegrationsPage: React.FC = () => {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3">Actions rapides</h3>
+                <h3 className="font-semibold mb-3">{t('apiIntegrations.quickActions')}</h3>
                 <div className="space-y-2">
                   <button
                     onClick={handleGenerateNewAPI}
                     className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <span className="flex items-center gap-2">
                       <Key className="w-4 h-4" />
-                      Générer une nouvelle clé API
+                      {t('apiIntegrations.generateNewKey')}
                     </span>
                     <Plus className="w-4 h-4" />
                   </button>
@@ -359,7 +359,7 @@ const APIIntegrationsPage: React.FC = () => {
                     className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <span className="flex items-center gap-2">
                       <Link className="w-4 h-4" />
-                      Configurer un webhook
+                      {t('apiIntegrations.configureWebhook')}
                     </span>
                     <Plus className="w-4 h-4" />
                   </button>
@@ -368,7 +368,7 @@ const APIIntegrationsPage: React.FC = () => {
                     className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <span className="flex items-center gap-2">
                       <Cloud className="w-4 h-4" />
-                      Ajouter une intégration
+                      {t('apiIntegrations.addIntegration')}
                     </span>
                     <Plus className="w-4 h-4" />
                   </button>
@@ -376,34 +376,34 @@ const APIIntegrationsPage: React.FC = () => {
               </div>
 
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-                <h3 className="font-semibold mb-3">État du système</h3>
+                <h3 className="font-semibold mb-3">{t('apiIntegrations.systemStatus')}</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">API REST</span>
                     <span className="flex items-center gap-1">
                       <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
-                      <span className="text-xs text-[var(--color-success)]">Opérationnel</span>
+                      <span className="text-xs text-[var(--color-success)]">{t('apiIntegrations.operational')}</span>
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">Webhooks</span>
                     <span className="flex items-center gap-1">
                       <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
-                      <span className="text-xs text-[var(--color-success)]">Opérationnel</span>
+                      <span className="text-xs text-[var(--color-success)]">{t('apiIntegrations.operational')}</span>
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">OAuth 2.0</span>
                     <span className="flex items-center gap-1">
                       <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
-                      <span className="text-xs text-[var(--color-success)]">Opérationnel</span>
+                      <span className="text-xs text-[var(--color-success)]">{t('apiIntegrations.operational')}</span>
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-[var(--color-text-secondary)]">GraphQL</span>
                     <span className="flex items-center gap-1">
                       <AlertCircle className="w-4 h-4 text-[var(--color-warning)]" />
-                      <span className="text-xs text-[var(--color-warning)]">Maintenance</span>
+                      <span className="text-xs text-[var(--color-warning)]">{t('apiIntegrations.maintenance')}</span>
                     </span>
                   </div>
                 </div>
@@ -416,20 +416,20 @@ const APIIntegrationsPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Gestion des clés API</h3>
+              <h3 className="text-lg font-semibold">{t('apiIntegrations.manageKeys')}</h3>
               <button
                 onClick={handleGenerateNewAPI}
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
                 <Plus className="w-4 h-4" />
-                Nouvelle clé
+                {t('apiIntegrations.newKey')}
               </button>
             </div>
 
             <div className="space-y-4">
               {apiKeys.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                  <p className="text-sm">Aucune clé API configurée.</p>
-                  <p className="text-xs mt-1">Cliquez sur "Nouvelle Clé API" pour en créer une.</p>
+                  <p className="text-sm">{t('apiIntegrations.noKeys')}</p>
+                  <p className="text-xs mt-1">{t('apiIntegrations.noKeysHint')}</p>
                 </div>
               )}
               {apiKeys.map((apiKey) => (
@@ -448,7 +448,7 @@ const APIIntegrationsPage: React.FC = () => {
                             ? 'bg-[var(--color-success-light)] text-[var(--color-success)]'
                             : 'bg-[var(--color-error-light)] text-[var(--color-error)]'
                         }`}>
-                          {apiKey.status === 'active' ? 'Active' : 'Inactive'}
+                          {apiKey.status === 'active' ? t('apiIntegrations.statusActive') : t('apiIntegrations.statusInactive')}
                         </span>
                         <span className={`px-2 py-1 text-xs rounded-full ${
                           apiKey.environment === 'Production'
@@ -478,15 +478,15 @@ const APIIntegrationsPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-[var(--color-text-tertiary)]">
-                        <span>Créée le {apiKey.created}</span>
+                        <span>{t('apiIntegrations.createdOn', { date: apiKey.created })}</span>
                         <span>•</span>
-                        <span>Dernière utilisation: {apiKey.lastUsed}</span>
+                        <span>{t('apiIntegrations.keyLastUsed', { date: apiKey.lastUsed })}</span>
                         <span>•</span>
-                        <span>Limite: {apiKey.rateLimit}</span>
+                        <span>{t('apiIntegrations.keyLimit', { limit: apiKey.rateLimit })}</span>
                       </div>
 
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-[var(--color-text-tertiary)]">Permissions:</span>
+                        <span className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.permissionsLabel')}</span>
                         {apiKey.permissions.map((perm) => (
                           <span key={perm} className="px-2 py-0.5 text-xs bg-[var(--color-border-light)] rounded">
                             {perm}
@@ -503,7 +503,7 @@ const APIIntegrationsPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => {
-                          toast.success('Clé API régénérée avec succès !');
+                          toast.success(t('apiIntegrations.keyRegenerated'));
                         }}
                         className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
                         <RefreshCw className="w-4 h-4" />
@@ -525,20 +525,20 @@ const APIIntegrationsPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Configuration des webhooks</h3>
+              <h3 className="text-lg font-semibold">{t('apiIntegrations.webhookConfig')}</h3>
               <button
                 onClick={() => setShowNewWebhookModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
                 <Plus className="w-4 h-4" />
-                Nouveau webhook
+                {t('apiIntegrations.newWebhook')}
               </button>
             </div>
 
             <div className="space-y-4">
               {webhooks.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                  <p className="text-sm">Aucun webhook configuré.</p>
-                  <p className="text-xs mt-1">Cliquez sur "Nouveau Webhook" pour en créer un.</p>
+                  <p className="text-sm">{t('apiIntegrations.noWebhooks')}</p>
+                  <p className="text-xs mt-1">{t('apiIntegrations.noWebhooksHint')}</p>
                 </div>
               )}
               {webhooks.map((webhook) => (
@@ -558,7 +558,7 @@ const APIIntegrationsPage: React.FC = () => {
                             ? 'bg-[var(--color-success-light)] text-[var(--color-success)]'
                             : 'bg-[var(--color-error-light)] text-[var(--color-error)]'
                         }`}>
-                          {webhook.status === 'active' ? 'Actif' : 'Inactif'}
+                          {webhook.status === 'active' ? t('apiIntegrations.webhookActive') : t('apiIntegrations.webhookInactive')}
                         </span>
                       </div>
 
@@ -571,19 +571,19 @@ const APIIntegrationsPage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-[var(--color-text-tertiary)]">
-                        <span>Créé le {webhook.created}</span>
+                        <span>{t('apiIntegrations.webhookCreatedOn', { date: webhook.created })}</span>
                         <span>•</span>
-                        <span>Dernier déclenchement: {webhook.lastTriggered}</span>
+                        <span>{t('apiIntegrations.lastTriggered', { date: webhook.lastTriggered })}</span>
                         <span>•</span>
                         <span className={`${webhook.successRate > 95 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]'}`}>
-                          Taux de succès: {webhook.successRate}%
+                          {t('apiIntegrations.successRate', { rate: String(webhook.successRate) })}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => toast('Test du webhook en cours...')}
+                        onClick={() => toast(t('apiIntegrations.testingWebhook'))}
                         className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
                         <Activity className="w-4 h-4" />
                       </button>
@@ -609,16 +609,16 @@ const APIIntegrationsPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Intégrations tierces</h3>
+              <h3 className="text-lg font-semibold">{t('apiIntegrations.thirdPartyIntegrations')}</h3>
               <div className="flex items-center gap-2">
                 <input
                   type="search"
-                  placeholder="Rechercher une intégration..."
+                  placeholder={t('apiIntegrations.searchIntegration')}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 />
                 <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
                   <Plus className="w-4 h-4" />
-                  Explorer
+                  {t('apiIntegrations.explore')}
                 </button>
               </div>
             </div>
@@ -646,8 +646,8 @@ const APIIntegrationsPage: React.FC = () => {
                         ? 'bg-[var(--color-warning-light)] text-[var(--color-warning)]'
                         : 'bg-[var(--color-border-light)] text-[var(--color-text-secondary)]'
                     }`}>
-                      {integration.status === 'connected' ? 'Connecté' :
-                       integration.status === 'pending' ? 'En attente' : 'Déconnecté'}
+                      {integration.status === 'connected' ? t('apiIntegrations.statusConnected') :
+                       integration.status === 'pending' ? t('apiIntegrations.statusPending') : t('apiIntegrations.statusDisconnected')}
                     </span>
                   </div>
 
@@ -656,11 +656,11 @@ const APIIntegrationsPage: React.FC = () => {
                   {integration.status === 'connected' && (
                     <div className="space-y-2 mb-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-[var(--color-text-tertiary)]">Dernière sync:</span>
+                        <span className="text-[var(--color-text-tertiary)]">{t('apiIntegrations.lastSync')}</span>
                         <span>{integration.lastSync}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-[var(--color-text-tertiary)]">Points de données:</span>
+                        <span className="text-[var(--color-text-tertiary)]">{t('apiIntegrations.dataPoints')}</span>
                         <span className="font-semibold">{integration.dataPoints.toLocaleString()}</span>
                       </div>
                     </div>
@@ -672,19 +672,19 @@ const APIIntegrationsPage: React.FC = () => {
                         <button
                           onClick={() => handleConfigureIntegration(integration)}
                           className="flex-1 px-3 py-2 bg-[var(--color-border-light)] text-[var(--color-text-secondary)] rounded-lg text-sm hover:bg-[var(--color-border)] transition-colors">
-                          Configurer
+                          {t('apiIntegrations.configure')}
                         </button>
                         <button
                           onClick={() => handleDisconnectIntegration(integration)}
                           className="px-3 py-2 bg-[var(--color-error-light)] text-[var(--color-error)] rounded-lg text-sm hover:bg-[var(--color-error-light)] hover:bg-opacity-75 transition-colors">
-                          Déconnecter
+                          {t('apiIntegrations.disconnect')}
                         </button>
                       </>
                     ) : (
                       <button
                         onClick={() => handleConnectIntegration(integration)}
                         className="flex-1 px-3 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg text-sm hover:bg-[var(--color-primary-hover)] transition-colors">
-                        Connecter
+                        {t('apiIntegrations.connect')}
                       </button>
                     )}
                   </div>
@@ -697,26 +697,26 @@ const APIIntegrationsPage: React.FC = () => {
       case 'documentation':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Documentation API</h3>
+            <h3 className="text-lg font-semibold">{t('apiIntegrations.apiDocumentation')}</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Code className="w-5 h-5 text-[var(--color-primary)]" />
-                  Démarrage rapide
+                  {t('apiIntegrations.quickStart')}
                 </h4>
                 <div className="space-y-2">
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">Authentication</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Apprendre à s'authentifier avec l'API</div>
+                    <div className="font-medium text-sm">{t('apiIntegrations.authentication')}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.authenticationDesc')}</div>
                   </a>
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">Première requête</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Faire votre première requête API</div>
+                    <div className="font-medium text-sm">{t('apiIntegrations.firstRequest')}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.firstRequestDesc')}</div>
                   </a>
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
                     <div className="font-medium text-sm">SDKs</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Utiliser nos SDKs officiels</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.sdksDesc')}</div>
                   </a>
                 </div>
               </div>
@@ -724,20 +724,20 @@ const APIIntegrationsPage: React.FC = () => {
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Database className="w-5 h-5 text-[var(--color-secondary)]" />
-                  Ressources
+                  {t('apiIntegrations.resources')}
                 </h4>
                 <div className="space-y-2">
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
                     <div className="font-medium text-sm">{t('navigation.clients')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Gérer les données clients</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.manageCustomerData')}</div>
                   </a>
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">Factures</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Créer et gérer les factures</div>
+                    <div className="font-medium text-sm">{t('apiIntegrations.invoices')}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.invoicesDesc')}</div>
                   </a>
                   <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">Paiements</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Traiter les paiements</div>
+                    <div className="font-medium text-sm">{t('apiIntegrations.payments')}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.paymentsDesc')}</div>
                   </a>
                 </div>
               </div>
@@ -745,32 +745,32 @@ const APIIntegrationsPage: React.FC = () => {
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <GitBranch className="w-5 h-5 text-[var(--color-success)]" />
-                  Exemples de code
+                  {t('apiIntegrations.codeExamples')}
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Node.js</span>
                     <button
                       onClick={() => handleViewCode('Node.js')}
-                      className="text-xs text-[var(--color-primary)] hover:underline">Voir →</button>
+                      className="text-xs text-[var(--color-primary)] hover:underline">{t('apiIntegrations.view')}</button>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Python</span>
                     <button
                       onClick={() => handleViewCode('Python')}
-                      className="text-xs text-[var(--color-primary)] hover:underline">Voir →</button>
+                      className="text-xs text-[var(--color-primary)] hover:underline">{t('apiIntegrations.view')}</button>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">PHP</span>
                     <button
                       onClick={() => handleViewCode('PHP')}
-                      className="text-xs text-[var(--color-primary)] hover:underline">Voir →</button>
+                      className="text-xs text-[var(--color-primary)] hover:underline">{t('apiIntegrations.view')}</button>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Ruby</span>
                     <button
                       onClick={() => handleViewCode('Ruby')}
-                      className="text-xs text-[var(--color-primary)] hover:underline">Voir →</button>
+                      className="text-xs text-[var(--color-primary)] hover:underline">{t('apiIntegrations.view')}</button>
                   </div>
                 </div>
               </div>
@@ -778,7 +778,7 @@ const APIIntegrationsPage: React.FC = () => {
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Globe className="w-5 h-5 text-[var(--color-warning)]" />
-                  Outils
+                  {t('apiIntegrations.tools')}
                 </h4>
                 <div className="space-y-3">
                   <button
@@ -809,15 +809,15 @@ const APIIntegrationsPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Journaux d'activité API</h3>
+              <h3 className="text-lg font-semibold">{t('apiIntegrations.apiLogsTitle')}</h3>
               <div className="flex items-center gap-2">
                 <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm">
-                  <option>Tous les statuts</option>
-                  <option>Succès (2xx)</option>
-                  <option>Erreurs client (4xx)</option>
-                  <option>Erreurs serveur (5xx)</option>
+                  <option>{t('apiIntegrations.allStatuses')}</option>
+                  <option>{t('apiIntegrations.successStatus')}</option>
+                  <option>{t('apiIntegrations.clientErrors')}</option>
+                  <option>{t('apiIntegrations.serverErrors')}</option>
                 </select>
-                <button className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-surface-hover)]" aria-label="Actualiser">
+                <button className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-surface-hover)]" aria-label={t('apiIntegrations.refresh')}>
                   <RefreshCw className="w-4 h-4" />
                 </button>
               </div>
@@ -827,17 +827,17 @@ const APIIntegrationsPage: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Timestamp</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Méthode</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">{t('apiIntegrations.colTimestamp')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">{t('apiIntegrations.colMethod')}</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Endpoint</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">Durée</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">{t('apiIntegrations.colStatus')}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">{t('apiIntegrations.colDuration')}</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-[var(--color-text-tertiary)] uppercase">IP</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border-light)]">
                   {apiLogs.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">Aucun log disponible</td></tr>
+                    <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">{t('apiIntegrations.noLogs')}</td></tr>
                   )}
                   {apiLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50">
@@ -869,14 +869,14 @@ const APIIntegrationsPage: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div className="text-sm text-[var(--color-text-tertiary)]">
-                {apiLogs.length === 0 ? 'Aucune entrée' : `Affichage de 1-${apiLogs.length} sur ${apiLogs.length} entrées`}
+                {apiLogs.length === 0 ? t('apiIntegrations.noEntries') : t('apiIntegrations.logsShowing', { count: String(apiLogs.length) })}
               </div>
               <div className="flex items-center gap-2">
                 <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm hover:bg-[var(--color-surface-hover)]">
-                  Précédent
+                  {t('apiIntegrations.previous')}
                 </button>
                 <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm hover:bg-[var(--color-surface-hover)]">
-                  Suivant
+                  {t('apiIntegrations.next')}
                 </button>
               </div>
             </div>
@@ -900,8 +900,8 @@ const APIIntegrationsPage: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">API & Intégrations</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Gérez vos clés API, webhooks et intégrations tierces</p>
+        <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('apiIntegrations.pageTitle')}</h1>
+        <p className="text-[var(--color-text-secondary)] mt-1">{t('apiIntegrations.pageSubtitle')}</p>
       </div>
 
       {/* Tabs */}
@@ -941,24 +941,24 @@ const APIIntegrationsPage: React.FC = () => {
       <Dialog open={showNewAPIModal} onOpenChange={setShowNewAPIModal}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Créer une nouvelle clé API</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t('apiIntegrations.createNewKeyTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nom de la clé
+                {t('apiIntegrations.keyNameLabel')}
               </label>
               <input
                 type="text"
                 value={newAPIForm.name}
                 onChange={(e) => setNewAPIForm(prev => ({ ...prev, name: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                placeholder="Ex: Production API"
+                placeholder={t('apiIntegrations.keyNamePlaceholder')}
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Environnement
+                {t('apiIntegrations.environment')}
               </label>
               <select
                 value={newAPIForm.environment}
@@ -971,7 +971,7 @@ const APIIntegrationsPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Permissions
+                {t('apiIntegrations.permissions')}
               </label>
               <div className="space-y-2">
                 {['read', 'write', 'delete'].map(perm => (
@@ -995,7 +995,7 @@ const APIIntegrationsPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Limite de requêtes (par heure)
+                {t('apiIntegrations.rateLimitLabel')}
               </label>
               <input
                 type="number"
@@ -1009,13 +1009,13 @@ const APIIntegrationsPage: React.FC = () => {
                 onClick={() => setShowNewAPIModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('apiIntegrations.cancel')}
               </button>
               <button
                 onClick={handleCreateAPI}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Créer la clé
+                {t('apiIntegrations.createKey')}
               </button>
             </div>
           </div>
@@ -1026,12 +1026,12 @@ const APIIntegrationsPage: React.FC = () => {
       <Dialog open={showNewWebhookModal} onOpenChange={setShowNewWebhookModal}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Configurer un nouveau webhook</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t('apiIntegrations.configureNewWebhookTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                URL du webhook
+                {t('apiIntegrations.webhookUrlLabel')}
               </label>
               <input
                 type="url"
@@ -1043,7 +1043,7 @@ const APIIntegrationsPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Événements à écouter
+                {t('apiIntegrations.eventsToListen')}
               </label>
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {[
@@ -1075,13 +1075,13 @@ const APIIntegrationsPage: React.FC = () => {
                 onClick={() => setShowNewWebhookModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('apiIntegrations.cancel')}
               </button>
               <button
                 onClick={handleCreateWebhook}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Créer le webhook
+                {t('apiIntegrations.createWebhook')}
               </button>
             </div>
           </div>
@@ -1093,22 +1093,22 @@ const APIIntegrationsPage: React.FC = () => {
         <DialogContent className="bg-white max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
-              Configuration de {showConfigModal?.name}
+              {t('apiIntegrations.configOf', { name: showConfigModal?.name || '' })}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">Paramètres de synchronisation</h4>
+              <h4 className="font-medium mb-2">{t('apiIntegrations.syncSettings')}</h4>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Synchronisation automatique</span>
+                  <span className="text-sm">{t('apiIntegrations.autoSync')}</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">Notifications en temps réel</span>
+                  <span className="text-sm">{t('apiIntegrations.realtimeNotifications')}</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
@@ -1116,13 +1116,13 @@ const APIIntegrationsPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Fréquence de synchronisation
+                    {t('apiIntegrations.syncFrequency')}
                   </label>
                   <select className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
-                    <option>Toutes les 5 minutes</option>
-                    <option>Toutes les 15 minutes</option>
-                    <option>Toutes les heures</option>
-                    <option>Quotidiennement</option>
+                    <option>{t('apiIntegrations.every5min')}</option>
+                    <option>{t('apiIntegrations.every15min')}</option>
+                    <option>{t('apiIntegrations.everyHour')}</option>
+                    <option>{t('apiIntegrations.daily')}</option>
                   </select>
                 </div>
               </div>
@@ -1132,16 +1132,16 @@ const APIIntegrationsPage: React.FC = () => {
                 onClick={() => setShowConfigModal(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('apiIntegrations.cancel')}
               </button>
               <button
                 onClick={() => {
-                  toast.success('Configuration sauvegardée !');
+                  toast.success(t('apiIntegrations.configSaved'));
                   setShowConfigModal(null);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Enregistrer
+                {t('apiIntegrations.save')}
               </button>
             </div>
           </div>
@@ -1152,27 +1152,27 @@ const APIIntegrationsPage: React.FC = () => {
       <Dialog open={!!showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(null)}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Confirmer la suppression</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t('apiIntegrations.confirmDeleteTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-gray-600">
-              Êtes-vous sûr de vouloir supprimer <strong>{(showDeleteConfirm as any)?.name || (showDeleteConfirm as any)?.url || 'cet élément'}</strong> ?
+              {t('apiIntegrations.confirmDeletePrefix')} <strong>{(showDeleteConfirm as any)?.name || (showDeleteConfirm as any)?.url || t('apiIntegrations.confirmDeleteFallback')}</strong> ?
             </p>
             <p className="text-sm text-gray-700">
-              Cette action est irréversible et toutes les données associées seront perdues.
+              {t('apiIntegrations.deleteIrreversible')}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('apiIntegrations.cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
               >
-                Supprimer
+                {t('apiIntegrations.delete')}
               </button>
             </div>
           </div>
@@ -1183,7 +1183,7 @@ const APIIntegrationsPage: React.FC = () => {
       <Dialog open={!!showCodeExamples} onOpenChange={() => setShowCodeExamples(null)}>
         <DialogContent className="bg-white max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Exemple de code - {showCodeExamples}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t('apiIntegrations.codeExampleTitle', { lang: showCodeExamples || '' })}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
@@ -1277,18 +1277,18 @@ end`}</code>
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(document.querySelector('pre code')?.textContent || '');
-                  toast.success('Code copié !');
+                  toast.success(t('apiIntegrations.codeCopied'));
                 }}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <Copy className="w-4 h-4" />
-                Copier le code
+                {t('apiIntegrations.copyCode')}
               </button>
               <button
                 onClick={() => setShowCodeExamples(null)}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Fermer
+                {t('apiIntegrations.close')}
               </button>
             </div>
           </div>
