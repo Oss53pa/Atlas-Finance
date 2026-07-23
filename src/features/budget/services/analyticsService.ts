@@ -208,13 +208,50 @@ export async function applyVentilationRule(adapter: DataAdapter, rule: Ventilati
 }
 
 /** Couverture de ventilation : nb de lignes ventilées sur le total (classes 6/7/2). */
-export async function getVentilationCoverage(adapter: DataAdapter): Promise<{ ventilated: number }> {
+export interface VentilationCoverage {
+  /** Lignes de ventilation explicite (table ventilations_analytiques). */
+  ventilated: number;
+  /** Lignes du GL portant directement un code analytique (saisie/import). */
+  tagged: number;
+  /** Total des lignes attribuables (classes 6 et 7, hors brouillons). */
+  attribuables: number;
+  /** Part du GL réellement rattachée à une section (0-100). */
+  pct: number;
+}
+
+/**
+ * Couverture analytique RÉELLE.
+ *
+ * Comptait auparavant les seules ventilations, sans dénominateur : « 0 » ne
+ * disait pas si l'analytique couvrait tout ou rien. Or la performance par
+ * section n'a de sens que rapportée à la part du grand livre effectivement
+ * affectée — 0 % de couverture rend le compte de résultat par section vide et
+ * non pas « à l'équilibre ».
+ */
+export async function getVentilationCoverage(adapter: DataAdapter): Promise<VentilationCoverage> {
   const client = getClient(adapter);
-  if (!client) return { ventilated: 0 };
-  const { count } = await client
-    .from('ventilations_analytiques')
-    .select('id', { count: 'exact', head: true });
-  return { ventilated: count ?? 0 };
+  if (!client) return { ventilated: 0, tagged: 0, attribuables: 0, pct: 0 };
+
+  const attribuablesQuery = () => client
+    .from('journal_lines')
+    .select('id, journal_entries!inner(status)', { count: 'exact', head: true })
+    .neq('journal_entries.status', 'draft')
+    .or('account_code.like.6%,account_code.like.7%');
+
+  const [{ count: vent }, { count: total }, { count: tagged }] = await Promise.all([
+    client.from('ventilations_analytiques').select('id', { count: 'exact', head: true }),
+    attribuablesQuery(),
+    attribuablesQuery().not('analytical_code', 'is', null).neq('analytical_code', ''),
+  ]);
+
+  const attribuables = total ?? 0;
+  const couvertes = Math.min((vent ?? 0) + (tagged ?? 0), attribuables);
+  return {
+    ventilated: vent ?? 0,
+    tagged: tagged ?? 0,
+    attribuables,
+    pct: attribuables > 0 ? Math.round((couvertes / attribuables) * 100) : 0,
+  };
 }
 
 /** Ventilation agrégée par section : nb de lignes + montant net attribué. */

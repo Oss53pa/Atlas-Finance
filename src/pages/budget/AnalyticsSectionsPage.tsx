@@ -12,11 +12,12 @@ import {
   listAxes, createAxe, updateAxe, deleteAxe, createSection, updateSection, deleteSection,
   getSectionPerformance, applyVentilationRule, getVentilationCoverage,
   listVentilationBySection, clearSectionVentilation, getSectionAccountBreakdown,
-  type Axe, type SectionPerformance,
+  type Axe, type SectionPerformance, type VentilationCoverage,
 } from '../../features/budget/services/analyticsService';
 import { KPICard } from '../../components/ui/DesignSystem';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
-import { PieChart, Plus, Save, Layers, Target, Split, TrendingUp, TrendingDown, Percent, Search, Pencil, Trash2, X, RotateCcw, ChevronRight, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { PieChart, Plus, Save, Layers, Target, Split, TrendingUp, TrendingDown, Percent, Search, Pencil, Trash2, X, RotateCcw, ChevronRight, ChevronDown, AlertTriangle } from 'lucide-react';
 
 const AXE_TYPES = [
   { v: '', l: '— Type —' },
@@ -31,6 +32,7 @@ const AXE_TYPES = [
 const AnalyticsSectionsPage: React.FC = () => {
   const { adapter } = useData();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
   const [axes, setAxes] = useState<Axe[]>([]);
   const [perf, setPerf] = useState<SectionPerformance[]>([]);
@@ -41,6 +43,10 @@ const AnalyticsSectionsPage: React.FC = () => {
   const [anaTab, setAnaTab] = useState<'gestion' | 'performance'>('gestion');
   const [vent, setVent] = useState({ sectionId: '', accountPrefix: '', journal: '', tiersCode: '' });
   const [ventCoverage, setVentCoverage] = useState(0);
+  // Couverture analytique complète (avec dénominateur) : sans elle, un tableau
+  // de performance intégralement à zéro se lit à tort comme « tout est à
+  // l'équilibre » alors qu'il signifie « rien n'est affecté ».
+  const [coverage, setCoverage] = useState<VentilationCoverage | null>(null);
   // Édition en ligne / drill-down
   const [editAxe, setEditAxe] = useState<Record<string, { libelle: string; type_axe: string }>>({});
   const [editSec, setEditSec] = useState<Record<string, { libelle: string; axe_id: string }>>({});
@@ -61,7 +67,7 @@ const AnalyticsSectionsPage: React.FC = () => {
       const [ax, p, cov, vbs] = await Promise.all([
         listAxes(adapter), getSectionPerformance(adapter, a), getVentilationCoverage(adapter), listVentilationBySection(adapter),
       ]);
-      setAnnee(a); setAxes(ax); setPerf(p); setVentCoverage(cov.ventilated); setVentBySection(vbs);
+      setAnnee(a); setAxes(ax); setPerf(p); setVentCoverage(cov.ventilated); setCoverage(cov); setVentBySection(vbs);
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
   };
@@ -361,6 +367,44 @@ const AnalyticsSectionsPage: React.FC = () => {
         <KPICard title="Sections actives" value={String(kpi.sections)} icon={Target} color="primary" />
         <KPICard title="Lignes ventilées" value={String(ventCoverage)} icon={Split} color="neutral" />
       </div>
+
+      {/* Couverture analytique — sans elle le tableau ci-dessous est vide, pas « à l'équilibre ». */}
+      {coverage && coverage.attribuables > 0 && coverage.pct < 100 && (
+        <div className={`flex items-start gap-2 px-4 py-3 rounded-lg border text-sm ${
+          coverage.pct === 0
+            ? 'bg-amber-50 border-amber-200 text-amber-900'
+            : 'bg-blue-50 border-blue-200 text-blue-900'
+        }`}>
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div>
+            {coverage.pct === 0 ? (
+              <>
+                <span className="font-semibold">Aucune écriture n'est affectée à une section.</span>{' '}
+                Sur {coverage.attribuables.toLocaleString('fr-FR')} lignes de charges et de produits,
+                0 porte un code analytique et aucune ventilation n'existe :
+                <span className="font-semibold"> la rentabilité par section n'est pas calculable</span> en
+                l'état, et les zéros du tableau ci-dessous ne sont pas des équilibres.
+              </>
+            ) : (
+              <>
+                <span className="font-semibold">Couverture analytique partielle : {coverage.pct} %.</span>{' '}
+                {(coverage.attribuables - coverage.ventilated - coverage.tagged).toLocaleString('fr-FR')} lignes
+                de charges/produits sur {coverage.attribuables.toLocaleString('fr-FR')} ne sont rattachées à
+                aucune section — le résultat par section est donc partiel.
+              </>
+            )}
+            <p className="mt-1 text-[12.5px]">
+              Deux façons d'alimenter l'analytique : saisir la section sur la ligne d'écriture
+              (champ « Code analytique » de la saisie), ou reconstituer l'historique avec le{' '}
+              <button onClick={() => navigate('/budget/ventilation')} className="underline font-medium">
+                moteur de ventilation
+              </button>{' '}
+              ({coverage.ventilated.toLocaleString('fr-FR')} ligne(s) ventilée(s),
+              {' '}{coverage.tagged.toLocaleString('fr-FR')} ligne(s) codée(s) à la saisie).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Performance par section */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
