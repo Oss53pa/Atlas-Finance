@@ -17,13 +17,21 @@ import { listSections, type Section } from '../../features/budget/services/analy
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import {
   listRules, createRule, deleteRule, toggleRule, runVentilation, listRuns, getReconciliation,
-  listKeys, createKey, deleteKey, listKeyValues, setKeyValue, getSecondaryTransfers,
+  listKeys, createKey, deleteKey, listKeyValues, setKeyValue, getSecondaryTransfers, setRuleComportement,
   type AllocationRule, type AllocationRun, type ReconciliationClasse, type RunReport,
-  type AllocationKey, type RuleType, type SecondaryTransfer,
+  type AllocationKey, type RuleType, type SecondaryTransfer, type Comportement,
 } from '../../features/budget/services/ventilationRunService';
+import { listControls, type ControlResult } from '../../features/budget/services/controlsService';
+import { countQueue } from '../../features/budget/services/qualificationService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox,
 } from 'lucide-react';
+
+const CONTROL_LABEL: Record<string, string> = {
+  C1: 'Réconciliation Σ ventilé = Σ GL', C2: 'Couverture (reliquat qualifié)', C3: 'Cohérence sémantique axe/classe',
+  C4: 'Sections auxiliaires soldées', C5: 'Section close/gelée', C6: 'Σ % règle multi-sections',
+  C7: 'Clé variable rafraîchie', C8: 'Variation vs M-1/budget', C9: 'Ligne > seuil double validation', C10: 'Axe Projet renseigné',
+};
 
 // Mapping dual-GAAP (CDC §3) — référence posée V1, lecture seule.
 const IFRS_MAPPING: Array<{ theme: string; syscohada: string; ifrs: string }> = [
@@ -49,7 +57,9 @@ const VentilationRunPage: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [nr, setNr] = useState<{ type: RuleType; compte_pattern: string; journal_pattern: string; libelle_pattern: string; tiers_pattern: string; section_id: string; key_id: string; source_section_id: string }>({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '' });
+  const [nr, setNr] = useState<{ type: RuleType; compte_pattern: string; journal_pattern: string; libelle_pattern: string; tiers_pattern: string; section_id: string; key_id: string; source_section_id: string; comportement: '' | Comportement }>({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '', comportement: '' });
+  const [controls, setControls] = useState<ControlResult[]>([]);
+  const [queueCount, setQueueCount] = useState(0);
   const [transfers, setTransfers] = useState<SecondaryTransfer[]>([]);
   const [keys, setKeys] = useState<AllocationKey[]>([]);
   const [nk, setNk] = useState({ code: '', libelle: '', unite: '' });
@@ -62,11 +72,13 @@ const VentilationRunPage: React.FC = () => {
     setLoading(true);
     try {
       const a = annee || await getDefaultAnnee(adapter);
-      const [secs, rl, rn, rc, ks, tr] = await Promise.all([
+      const [secs, rl, rn, rc, ks, tr, qc] = await Promise.all([
         listSections(adapter), listRules(adapter), listRuns(adapter), getReconciliation(adapter, a), listKeys(adapter),
-        getSecondaryTransfers(adapter, parseInt(a, 10)),
+        getSecondaryTransfers(adapter, parseInt(a, 10)), countQueue(adapter),
       ]);
-      setAnnee(a); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc); setKeys(ks); setTransfers(tr);
+      setAnnee(a); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc); setKeys(ks); setTransfers(tr); setQueueCount(qc);
+      // Contrôles du dernier run (rapport persisté), si un run existe.
+      if (rn[0]?.id) { try { setControls(await listControls(adapter, rn[0].id)); } catch { /* table absente : ignore */ } }
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
   };
@@ -94,8 +106,9 @@ const VentilationRunPage: React.FC = () => {
         section_id: nr.type === 'DIRECT' ? nr.section_id : (nr.source_section_id || sections[0]?.id || ''), // NOT NULL
         key_id: nr.type === 'DIRECT' ? null : nr.key_id,
         source_section_id: nr.type === 'SECONDAIRE' ? nr.source_section_id : null,
+        comportement: nr.type === 'SECONDAIRE' ? null : (nr.comportement || null),
       });
-      setNr({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '' });
+      setNr({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '', comportement: '' });
       toast.success('Règle ajoutée'); load();
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
   };
@@ -133,7 +146,10 @@ const VentilationRunPage: React.FC = () => {
     try {
       const rep = await runVentilation(adapter, parseInt(annee, 10));
       setReport(rep);
-      toast.success(`Run terminé · couverture ${rep.couverture_pct}%${rep.reconcilie ? ' · réconcilié' : ' · NON réconcilié'}`);
+      setControls(rep.controls);
+      const blocking = rep.controls.filter(c => c.severite === 'bloquant' && c.resultat === 'ko').length;
+      if (blocking > 0) toast.error(`Run terminé avec ${blocking} contrôle(s) bloquant(s) en échec · reliquat ${rep.reliquatCount}`);
+      else toast.success(`Run terminé · couverture ${rep.couverture_pct}%${rep.reconcilie ? ' · réconcilié' : ' · NON réconcilié'}`);
       load();
     } catch (e: any) { toast.error('Run échoué : ' + (e?.message || 'erreur')); }
     finally { setRunning(false); }
@@ -211,6 +227,53 @@ const VentilationRunPage: React.FC = () => {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 flex items-center justify-between">
           <span>Aucune section analytique. Créez vos centres / sections avant de ventiler.</span>
           <button onClick={() => navigate('/analytique')} className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs">Aller à la Comptabilité Analytique</button>
+        </div>
+      )}
+
+      {/* File de qualification (reliquat non fléché) */}
+      {queueCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800 flex items-center justify-between flex-wrap gap-2">
+          <span className="flex items-center gap-2"><Inbox className="w-4 h-4" /><b>{queueCount}</b> ligne(s) de charge/produit en attente de qualification (non couvertes par une règle).</span>
+          <button onClick={() => navigate('/analytique/qualification')} className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs flex items-center gap-1"><ListChecks className="w-3.5 h-3.5" />Ouvrir la file de qualification</button>
+        </div>
+      )}
+
+      {/* Rapport de contrôles C1..C10 */}
+      {controls.length > 0 && (
+        <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-[var(--color-border)] flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-[var(--color-primary)]" />
+            <div className="flex-1">
+              <h2 className="font-semibold text-[var(--color-primary)]">Rapport de contrôles</h2>
+              <p className="text-xs text-[var(--color-text-tertiary)]">Contrôles C1..C10 du dernier run · un contrôle bloquant en échec interdit la publication.</p>
+            </div>
+            {controls.some(c => c.severite === 'bloquant' && c.resultat === 'ko')
+              ? <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" />Bloquant</span>
+              : <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" />Conforme</span>}
+          </div>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-[var(--color-border)]"><tr>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-16">Code</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Contrôle</th>
+              <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Sévérité</th>
+              <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Résultat</th>
+            </tr></thead>
+            <tbody className="divide-y divide-gray-100">
+              {controls.map(c => {
+                const cnt = Number(c.detail?.count ?? c.detail?.reliquat ?? (c.detail?.aux_non_soldees?.length) ?? 0);
+                return (
+                  <tr key={c.code} className="hover:bg-gray-50">
+                    <td className="px-4 py-2.5 font-mono text-gray-500">{c.code}</td>
+                    <td className="px-4 py-2.5 text-gray-800">{CONTROL_LABEL[c.code] || c.code}{c.resultat === 'ko' && cnt > 0 && <span className="ml-2 text-xs text-red-600">({cnt})</span>}{c.resultat === 'na' && <span className="ml-2 text-[10px] text-gray-400">{c.detail?.note || 'n/a'}</span>}</td>
+                    <td className="px-4 py-2.5 text-center"><span className={`text-[10px] px-1.5 py-0.5 rounded ${c.severite === 'bloquant' ? 'bg-gray-100 text-gray-600' : 'bg-blue-50 text-blue-600'}`}>{c.severite === 'bloquant' ? 'Bloquant' : 'Avert.'}</span></td>
+                    <td className="px-4 py-2.5 text-center">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c.resultat === 'ok' ? 'bg-green-100 text-green-700' : c.resultat === 'ko' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'}`}>{c.resultat === 'ok' ? 'OK' : c.resultat === 'ko' ? 'Échec' : 'N/A'}</span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -361,7 +424,7 @@ const VentilationRunPage: React.FC = () => {
           <p className="text-xs text-[var(--color-text-tertiary)]">Direct : compte/journal/libellé/tiers → section. Primaire : résidu réparti par clé. Appliquées dans l’ordre.</p>
         </div>
         {/* Ajout */}
-        <div className="p-4 grid grid-cols-1 md:grid-cols-7 gap-2 border-b border-[var(--color-border)] bg-gray-50/50">
+        <div className="p-4 grid grid-cols-1 md:grid-cols-8 gap-2 border-b border-[var(--color-border)] bg-gray-50/50">
           <select value={nr.type} onChange={e => setNr(s => ({ ...s, type: e.target.value as RuleType }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
             <option value="DIRECT">Direct</option>
             <option value="PRIMAIRE">Primaire (clé)</option>
@@ -392,6 +455,12 @@ const VentilationRunPage: React.FC = () => {
                 {keys.map(k => <option key={k.id} value={k.id}>{k.code} · {k.libelle}</option>)}
               </select>
             )}
+            <select value={nr.comportement} onChange={e => setNr(s => ({ ...s, comportement: e.target.value as '' | Comportement }))} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" title="Comportement de charge (vide = déduit du compte)">
+              <option value="">Comport. (auto)</option>
+              <option value="fixe">Fixe</option>
+              <option value="variable">Variable</option>
+              <option value="mixte">Mixte</option>
+            </select>
           </>)}
           <button onClick={addRule} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm flex items-center justify-center gap-1"><Plus className="w-4 h-4" />Ajouter</button>
         </div>
@@ -400,11 +469,12 @@ const VentilationRunPage: React.FC = () => {
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Ordre</th>
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Critères</th>
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">→ Section</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Comport.</th>
             <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Actif</th>
             <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600"></th>
           </tr></thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredRules.length === 0 && <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400">{rules.length === 0 ? 'Aucune règle. Ajoutez-en une ci-dessus.' : 'Aucune règle ne correspond.'}</td></tr>}
+            {filteredRules.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">{rules.length === 0 ? 'Aucune règle. Ajoutez-en une ci-dessus.' : 'Aucune règle ne correspond.'}</td></tr>}
             {filteredRules.map(r => (
               <tr key={r.id} className={`hover:bg-gray-50 ${!r.actif ? 'opacity-50' : ''}`}>
                 <td className="px-4 py-2.5 text-gray-500">
@@ -415,6 +485,16 @@ const VentilationRunPage: React.FC = () => {
                   {[r.compte_pattern && `compte ${r.compte_pattern}*`, r.journal_pattern && `journal ${r.journal_pattern}`, r.libelle_pattern && `libellé « ${r.libelle_pattern} »`, r.tiers_pattern && `tiers ${r.tiers_pattern}`].filter(Boolean).join(' · ')}
                 </td>
                 <td className="px-4 py-2.5 text-gray-800">{r.type === 'SECONDAIRE' ? <>{sectionLabel(r.source_section_id || '')} <span className="text-gray-400">→</span> {keyLabel(r.key_id)}</> : r.type === 'PRIMAIRE' ? keyLabel(r.key_id) : sectionLabel(r.section_id)}</td>
+                <td className="px-4 py-2.5">
+                  {r.type === 'SECONDAIRE' ? <span className="text-gray-300 text-xs">—</span> : (
+                    <select value={r.comportement || ''} onChange={e => setRuleComportement(adapter, r.id, (e.target.value || null) as Comportement | null).then(load)} className="border border-gray-200 rounded px-1.5 py-1 text-xs bg-white" title="Comportement (vide = déduit du compte par nature)">
+                      <option value="">auto</option>
+                      <option value="fixe">Fixe</option>
+                      <option value="variable">Variable</option>
+                      <option value="mixte">Mixte</option>
+                    </select>
+                  )}
+                </td>
                 <td className="px-4 py-2.5 text-center"><input type="checkbox" checked={r.actif} onChange={e => toggleRule(adapter, r.id, e.target.checked).then(load)} /></td>
                 <td className="px-4 py-2.5 text-right"><button onClick={() => deleteRule(adapter, r.id).then(load)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button></td>
               </tr>
