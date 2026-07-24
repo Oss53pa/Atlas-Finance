@@ -13,6 +13,7 @@ import type { DataAdapter } from '@atlas/data';
 import { sha256Hex } from '../../utils/integrity';
 import { postEvent, type PostEventOptions } from './postingEngine';
 import { autoLettrerPayment, PAYMENT_EVENT_ACCOUNTS } from './paymentLettrage';
+import { recordPurchaseEngagement } from './procurementEngagement';
 import type {
   IntegrationEvent,
   IntegrationEventPayload,
@@ -162,6 +163,12 @@ export async function processPendingEvents(
 
     if (outcome.status === 'ignored') {
       result.ignored++;
+      // Cycle achat : une commande approuvée ne produit pas d'écriture (ce n'est
+      // pas une charge) mais réserve du budget → engagement budgétaire. Idempotent
+      // et non bloquant (best-effort) : un échec ne remet pas l'événement en cause.
+      if (event.eventType === 'purchase.order.approved') {
+        try { await recordPurchaseEngagement(adapter, event); } catch { /* laissé au manuel */ }
+      }
       await adapter.update('integrationEvents', event.id, {
         status: 'ignored',
         attempts,
