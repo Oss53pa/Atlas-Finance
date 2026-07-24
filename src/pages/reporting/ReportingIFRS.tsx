@@ -122,11 +122,11 @@ const ReportingIFRS: React.FC = () => {
   // Build IFRS reports from fiscal years
   const ifrsReports: IFRSReport[] = useMemo(() => {
     const types: Array<{ type: IFRSReport['reportType']; label: string; standards: string[] }> = [
-      { type: 'balance_sheet', label: 'État de la Situation Financière (IAS 1)', standards: ['IAS 1', 'IFRS 7', 'IFRS 13'] },
-      { type: 'income_statement', label: 'État du Résultat Global (IAS 1)', standards: ['IAS 1', 'IFRS 15'] },
-      { type: 'cash_flow', label: 'Tableau des Flux de Trésorerie (IAS 7)', standards: ['IAS 7'] },
-      { type: 'equity_changes', label: 'État des Variations des Capitaux Propres', standards: ['IAS 1'] },
-      { type: 'notes', label: 'Notes aux États Financiers IFRS', standards: ['IFRS 7', 'IFRS 13', 'IAS 24', 'IAS 36'] },
+      { type: 'balance_sheet', label: t('reportingIfrs.reportBalanceSheetLabel'), standards: ['IAS 1', 'IFRS 7', 'IFRS 13'] },
+      { type: 'income_statement', label: t('reportingIfrs.reportIncomeStatementLabel'), standards: ['IAS 1', 'IFRS 15'] },
+      { type: 'cash_flow', label: t('reportingIfrs.reportCashFlowLabel'), standards: ['IAS 7'] },
+      { type: 'equity_changes', label: t('reportingIfrs.reportEquityChangesLabel'), standards: ['IAS 1'] },
+      { type: 'notes', label: t('reportingIfrs.reportNotesLabel'), standards: ['IFRS 7', 'IFRS 13', 'IAS 24', 'IAS 36'] },
     ];
     const result: IFRSReport[] = [];
     for (const fy of fiscalYears) {
@@ -180,18 +180,18 @@ const ReportingIFRS: React.FC = () => {
 
   // Static IFRS standards compliance (reference data)
   const IFRS_STANDARDS: IFRSStandard[] = [
-    { code: 'IFRS 15', title: 'Produits des activités ordinaires tirés de contrats avec des clients', category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Implémentation complète pour les contrats clients' },
-    { code: 'IFRS 16', title: 'Contrats de location', category: 'measurement', compliance: 'partial', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: "En cours d'adaptation pour nouveaux contrats" },
-    { code: 'IAS 36', title: "Dépréciation d'actifs", category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Tests de dépréciation réguliers effectués' },
-    { code: 'IFRS 7', title: 'Instruments financiers: Informations à fournir', category: 'disclosure', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Divulgations complètes sur risques financiers' },
-    { code: 'IFRS 13', title: 'Évaluation de la juste valeur', category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Hiérarchie des justes valeurs respectée' },
+    { code: 'IFRS 15', title: t('reportingIfrs.std15Title'), category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingIfrs.std15Notes') },
+    { code: 'IFRS 16', title: t('reportingIfrs.std16Title'), category: 'measurement', compliance: 'partial', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingIfrs.std16Notes') },
+    { code: 'IAS 36', title: t('reportingIfrs.std36Title'), category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: t('reportingIfrs.std36Notes') },
+    { code: 'IFRS 7', title: t('reportingIfrs.std7Title'), category: 'disclosure', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingIfrs.std7Notes') },
+    { code: 'IFRS 13', title: t('reportingIfrs.std13Title'), category: 'measurement', compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: t('reportingIfrs.std13Notes') },
   ];
 
   // Consolidation entity built from real data
   const consolidationEntities: ConsolidationEntity[] = useMemo(() => {
     return [{
       id: 'local-entity',
-      name: 'Entité Principale',
+      name: t('reportingIfrs.mainEntityName'),
       country: 'Zone OHADA',
       currency: 'XAF',
       ownership: 100,
@@ -273,17 +273,17 @@ const ReportingIFRS: React.FC = () => {
   };
 
   const reportTypeLabels = {
-    balance_sheet: 'Bilan',
-    income_statement: 'Compte de Résultat',
-    cash_flow: 'Flux de Trésorerie',
-    equity_changes: 'Variation Capitaux',
-    notes: 'Notes'
+    balance_sheet: t('reportingIfrs.typeBalanceSheet'),
+    income_statement: t('reportingIfrs.typeIncomeStatement'),
+    cash_flow: t('reportingIfrs.typeCashFlow'),
+    equity_changes: t('reportingIfrs.typeEquityChanges'),
+    notes: t('reportingIfrs.typeNotes')
   };
 
   const chartData = [
-    { label: 'Approuvés', value: aggregatedData.approvedReports, color: 'bg-green-500' },
-    { label: 'En révision', value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
-    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[var(--color-primary)]' }
+    { label: t('reportingIfrs.chartApproved'), value: aggregatedData.approvedReports, color: 'bg-green-500' },
+    { label: t('reportingIfrs.chartInReview'), value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
+    { label: t('reportingIfrs.chartDrafts'), value: aggregatedData.draftReports, color: 'bg-[var(--color-primary)]' }
   ];
 
   return (
@@ -291,8 +291,8 @@ const ReportingIFRS: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Reporting IFRS"
-          subtitle="États financiers conformes aux normes internationales d'information financière"
+          title={t('reportingIfrs.pageTitle')}
+          subtitle={t('reportingIfrs.pageSubtitle')}
           icon={FileText}
           action={
             <div className="flex gap-3">
@@ -304,14 +304,14 @@ const ReportingIFRS: React.FC = () => {
                   queryClient.invalidateQueries({ queryKey: ['ifrs-journal-entries'] });
                 }}
               >
-                Actualiser
+                {t('reportingIfrs.refresh')}
               </ElegantButton>
               <ElegantButton
                 variant="primary"
                 icon={Plus}
                 onClick={() => setReportModal({ isOpen: true, mode: 'create' })}
               >
-                Nouveau Rapport
+                {t('reportingIfrs.newReport')}
               </ElegantButton>
             </div>
           }
@@ -320,9 +320,9 @@ const ReportingIFRS: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Rapports IFRS"
+            title={t('reportingIfrs.kpiReportsTitle')}
             value={aggregatedData.totalReports.toString()}
-            subtitle={`${aggregatedData.approvedReports} approuvés`}
+            subtitle={t('reportingIfrs.approvedCount', { count: String(aggregatedData.approvedReports) })}
             icon={FileText}
             color="primary"
             delay={0.1}
@@ -330,9 +330,9 @@ const ReportingIFRS: React.FC = () => {
           />
 
           <KPICard
-            title="Conformité Normes"
+            title={t('reportingIfrs.kpiComplianceTitle')}
             value={formatPercentage(aggregatedData.complianceRate * 100)}
-            subtitle={`${IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length}/${IFRS_STANDARDS.length} normes (indicatif)`}
+            subtitle={t('reportingIfrs.compliantStandardsSubtitle', { compliant: String(IFRS_STANDARDS.filter(s => s.compliance === 'compliant').length), total: String(IFRS_STANDARDS.length) })}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -340,9 +340,9 @@ const ReportingIFRS: React.FC = () => {
           />
 
           <KPICard
-            title="Entités Consolidées"
+            title={t('reportingIfrs.kpiEntitiesTitle')}
             value={aggregatedData.consolidatedEntities.toString()}
-            subtitle="Périmètre de consolidation"
+            subtitle={t('reportingIfrs.kpiEntitiesSubtitle')}
             icon={Building}
             color="neutral"
             delay={0.3}
@@ -350,9 +350,9 @@ const ReportingIFRS: React.FC = () => {
           />
 
           <KPICard
-            title="CA Consolidé"
+            title={t('reportingIfrs.kpiRevenueTitle')}
             value={`${(aggregatedData.totalRevenue / 1000000).toFixed(0)}M XAF`}
-            subtitle="Chiffre d'affaires groupe"
+            subtitle={t('reportingIfrs.kpiRevenueSubtitle')}
             icon={TrendingUp}
             color="warning"
             delay={0.4}
@@ -371,7 +371,7 @@ const ReportingIFRS: React.FC = () => {
                     key={mode}
                     onClick={() => { if (!isLocked) setViewMode(mode); }}
                     disabled={isLocked}
-                    title={isLocked ? 'Consolidation de groupe — Premium' : undefined}
+                    title={isLocked ? t('reportingIfrs.consolidationPremiumTooltip') : undefined}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
                       viewMode === mode
                         ? 'bg-[var(--color-primary)] text-white shadow-md'
@@ -380,8 +380,8 @@ const ReportingIFRS: React.FC = () => {
                           : 'text-neutral-600 hover:text-[var(--color-primary)]'
                     }`}
                   >
-                    {mode === 'reports' ? 'Rapports' :
-                     mode === 'standards' ? 'Normes IFRS' : 'Consolidation'}
+                    {mode === 'reports' ? t('reportingIfrs.tabReports') :
+                     mode === 'standards' ? t('reportingIfrs.tabStandards') : t('reportingIfrs.tabConsolidation')}
                     {isLocked && (
                       <span
                         className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
@@ -396,7 +396,7 @@ const ReportingIFRS: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-neutral-700">Période:</label>
+              <label className="text-sm font-medium text-neutral-700">{t('reportingIfrs.periodLabel')}</label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -424,8 +424,8 @@ const ReportingIFRS: React.FC = () => {
               transition={{ delay: 0.5 }}
             >
               <ModernChartCard
-                title="État des Rapports IFRS"
-                subtitle="Répartition par statut de validation"
+                title={t('reportingIfrs.chartCardTitle')}
+                subtitle={t('reportingIfrs.chartCardSubtitle')}
                 icon={PieChart}
               >
                 <ColorfulBarChart
@@ -438,14 +438,14 @@ const ReportingIFRS: React.FC = () => {
             {/* Filters */}
             <UnifiedCard variant="elevated" size="md">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
+                <h3 className="text-lg font-semibold text-neutral-800">{t('reportingIfrs.filtersTitle')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
                     <input
                       type="text"
-                      placeholder="Rechercher..."
+                      placeholder={t('reportingIfrs.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
@@ -457,11 +457,11 @@ const ReportingIFRS: React.FC = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="all">Tous les statuts</option>
+                    <option value="all">{t('reportingIfrs.allStatuses')}</option>
                     <option value="draft">{t('accounting.draft')}</option>
-                    <option value="review">En révision</option>
-                    <option value="approved">Approuvé</option>
-                    <option value="published">Publié</option>
+                    <option value="review">{t('reportingIfrs.statusInReview')}</option>
+                    <option value="approved">{t('reportingIfrs.statusApproved')}</option>
+                    <option value="published">{t('reportingIfrs.statusPublished')}</option>
                   </select>
 
                   <select
@@ -469,12 +469,12 @@ const ReportingIFRS: React.FC = () => {
                     onChange={(e) => setFilterType(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="all">Tous les types</option>
-                    <option value="balance_sheet">Bilan</option>
-                    <option value="income_statement">Compte de Résultat</option>
-                    <option value="cash_flow">Flux de Trésorerie</option>
-                    <option value="equity_changes">Variation Capitaux</option>
-                    <option value="notes">Notes</option>
+                    <option value="all">{t('reportingIfrs.allTypes')}</option>
+                    <option value="balance_sheet">{t('reportingIfrs.typeBalanceSheet')}</option>
+                    <option value="income_statement">{t('reportingIfrs.typeIncomeStatement')}</option>
+                    <option value="cash_flow">{t('reportingIfrs.typeCashFlow')}</option>
+                    <option value="equity_changes">{t('reportingIfrs.typeEquityChanges')}</option>
+                    <option value="notes">{t('reportingIfrs.typeNotes')}</option>
                   </select>
 
                   <select
@@ -482,7 +482,7 @@ const ReportingIFRS: React.FC = () => {
                     onChange={(e) => setFilterPeriod(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="all">Toutes les périodes</option>
+                    <option value="all">{t('reportingIfrs.allPeriods')}</option>
                     {fiscalYears.map(fy => {
                       const year = fy.startDate?.substring(0, 4) || '';
                       return <option key={fy.id} value={year}>{year}</option>;
@@ -496,7 +496,7 @@ const ReportingIFRS: React.FC = () => {
             <UnifiedCard variant="elevated" size="lg">
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-neutral-800">
-                  Rapports IFRS ({filteredReports.length})
+                  {t('reportingIfrs.reportsListTitle', { count: String(filteredReports.length) })}
                 </h3>
 
                 <div className="space-y-4">
@@ -536,7 +536,7 @@ const ReportingIFRS: React.FC = () => {
                                 ))}
                                 {report.consolidation && (
                                   <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-600">
-                                    Consolidé
+                                    {t('reportingIfrs.consolidatedBadge')}
                                   </span>
                                 )}
                               </div>
@@ -547,16 +547,16 @@ const ReportingIFRS: React.FC = () => {
                             <span className={`px-3 py-1 text-sm font-medium rounded-full flex items-center space-x-1 ${getStatusColor(report.status)}`}>
                               {getStatusIcon(report.status)}
                               <span>
-                                {report.status === 'draft' ? 'Brouillon' :
-                                 report.status === 'review' ? 'En révision' :
-                                 report.status === 'approved' ? 'Approuvé' : 'Publié'}
+                                {report.status === 'draft' ? t('reportingIfrs.statusDraft') :
+                                 report.status === 'review' ? t('reportingIfrs.statusInReview') :
+                                 report.status === 'approved' ? t('reportingIfrs.statusApproved') : t('reportingIfrs.statusPublished')}
                               </span>
                             </span>
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
                                 className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
-                                aria-label="Consulter"
+                                aria-label={t('reportingIfrs.viewAction')}
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -566,17 +566,17 @@ const ReportingIFRS: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-neutral-100">
                           <div>
-                            <p className="text-sm text-neutral-500">Créé par:</p>
+                            <p className="text-sm text-neutral-500">{t('reportingIfrs.createdByLabel')}</p>
                             <p className="font-medium text-neutral-800">{report.createdBy}</p>
                           </div>
                           {report.reviewedBy && (
                             <div>
-                              <p className="text-sm text-neutral-500">Révisé par:</p>
+                              <p className="text-sm text-neutral-500">{t('reportingIfrs.reviewedByLabel')}</p>
                               <p className="font-medium text-neutral-800">{report.reviewedBy}</p>
                             </div>
                           )}
                           <div>
-                            <p className="text-sm text-neutral-500">Dernière modification:</p>
+                            <p className="text-sm text-neutral-500">{t('reportingIfrs.lastModifiedLabel')}</p>
                             <p className="font-medium text-neutral-800">{formatDate(report.lastModified)}</p>
                           </div>
                         </div>
@@ -593,14 +593,13 @@ const ReportingIFRS: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-neutral-800">
-                Conformité aux Normes IFRS
+                {t('reportingIfrs.standardsComplianceTitle')}
               </h3>
 
               <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                 <span>
-                  Référentiel indicatif : liste des normes IFRS applicables. Les statuts de conformité
-                  et dates de revue sont fournis à titre de repère et ne constituent pas une évaluation auditée.
+                  {t('reportingIfrs.standardsDisclaimer')}
                 </span>
               </div>
 
@@ -608,12 +607,12 @@ const ReportingIFRS: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-200">
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Norme</th>
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Titre</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Catégorie</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Conformité</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Impact</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Dernière Révision</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thStandard')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thTitle')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thCategory')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thCompliance')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thImpact')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingIfrs.thLastReview')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -634,16 +633,16 @@ const ReportingIFRS: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                            {standard.category === 'measurement' ? 'Évaluation' :
-                             standard.category === 'presentation' ? 'Présentation' :
-                             standard.category === 'disclosure' ? 'Information' : 'Consolidation'}
+                            {standard.category === 'measurement' ? t('reportingIfrs.categoryMeasurement') :
+                             standard.category === 'presentation' ? t('reportingIfrs.categoryPresentation') :
+                             standard.category === 'disclosure' ? t('reportingIfrs.categoryDisclosure') : t('reportingIfrs.categoryConsolidation')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getComplianceColor(standard.compliance)}`}>
-                            {standard.compliance === 'compliant' ? 'Conforme' :
-                             standard.compliance === 'partial' ? 'Partiel' :
-                             standard.compliance === 'non_compliant' ? 'Non conforme' : 'N/A'}
+                            {standard.compliance === 'compliant' ? t('reportingIfrs.complianceCompliant') :
+                             standard.compliance === 'partial' ? t('reportingIfrs.compliancePartial') :
+                             standard.compliance === 'non_compliant' ? t('reportingIfrs.complianceNonCompliant') : t('reportingIfrs.complianceNA')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
@@ -652,8 +651,8 @@ const ReportingIFRS: React.FC = () => {
                             standard.impact === 'medium' ? 'bg-yellow-50 text-yellow-600' :
                             'bg-green-50 text-green-600'
                           }`}>
-                            {standard.impact === 'high' ? 'Élevé' :
-                             standard.impact === 'medium' ? 'Moyen' : 'Faible'}
+                            {standard.impact === 'high' ? t('reportingIfrs.impactHigh') :
+                             standard.impact === 'medium' ? t('reportingIfrs.impactMedium') : t('reportingIfrs.impactLow')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
@@ -679,10 +678,10 @@ const ReportingIFRS: React.FC = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-neutral-800">
-                  Périmètre de Consolidation
+                  {t('reportingIfrs.consolidationScopeTitle')}
                 </h3>
                 <ElegantButton variant="primary" icon={Plus} onClick={() => navigate('/config/multi-societes')}>
-                  Ajouter Entité
+                  {t('reportingIfrs.addEntity')}
                 </ElegantButton>
               </div>
 
@@ -709,31 +708,31 @@ const ReportingIFRS: React.FC = () => {
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                           entity.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-600'
                         }`}>
-                          {entity.status === 'active' ? 'Actif' : 'Inactif'}
+                          {entity.status === 'active' ? t('reportingIfrs.entityActive') : t('reportingIfrs.entityInactive')}
                         </span>
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Participation:</span>
+                          <span className="text-sm text-neutral-500">{t('reportingIfrs.ownershipLabel')}</span>
                           <span className="font-semibold text-neutral-800">{entity.ownership}%</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Méthode:</span>
+                          <span className="text-sm text-neutral-500">{t('reportingIfrs.methodLabel')}</span>
                           <span className="font-medium text-neutral-700">
-                            {entity.method === 'full' ? 'Intégration globale' :
-                             entity.method === 'proportional' ? 'Intégration proportionnelle' :
-                             'Mise en équivalence'}
+                            {entity.method === 'full' ? t('reportingIfrs.methodFull') :
+                             entity.method === 'proportional' ? t('reportingIfrs.methodProportional') :
+                             t('reportingIfrs.methodEquity')}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">CA:</span>
+                          <span className="text-sm text-neutral-500">{t('reportingIfrs.revenueLabel')}</span>
                           <span className="font-medium text-neutral-700">
                             {formatCurrency(entity.revenue, entity.currency)}
                           </span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-sm text-neutral-500">Actifs:</span>
+                          <span className="text-sm text-neutral-500">{t('reportingIfrs.assetsLabel')}</span>
                           <span className="font-medium text-neutral-700">
                             {formatCurrency(entity.assets, entity.currency)}
                           </span>
@@ -742,7 +741,7 @@ const ReportingIFRS: React.FC = () => {
 
                       <div className="pt-2 border-t border-neutral-100">
                         <p className="text-xs text-neutral-500">
-                          Consolidé au: {formatDate(entity.consolidationDate)}
+                          {t('reportingIfrs.consolidatedAtLabel')} {formatDate(entity.consolidationDate)}
                         </p>
                       </div>
                     </div>
@@ -765,8 +764,8 @@ const ReportingIFRS: React.FC = () => {
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    {reportModal.mode === 'create' ? 'Nouveau Rapport IFRS' :
-                     reportModal.mode === 'edit' ? 'Modifier le Rapport' : 'Détails du Rapport'}
+                    {reportModal.mode === 'create' ? t('reportingIfrs.modalCreateTitle') :
+                     reportModal.mode === 'edit' ? t('reportingIfrs.modalEditTitle') : t('reportingIfrs.modalViewTitle')}
                   </h3>
                   <button
                     onClick={() => setReportModal({ isOpen: false, mode: 'view' })}
@@ -783,28 +782,28 @@ const ReportingIFRS: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Titre du Rapport
+                          {t('reportingIfrs.fieldReportTitle')}
                         </label>
                         <p className="text-neutral-800 font-semibold">{reportModal.report.title}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Type de Rapport
+                          {t('reportingIfrs.fieldReportType')}
                         </label>
                         <p className="text-neutral-800">{reportTypeLabels[reportModal.report.reportType]}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Période
+                          {t('reportingIfrs.fieldPeriod')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.period}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Normes IFRS Appliquées
+                          {t('reportingIfrs.fieldStandardsApplied')}
                         </label>
                         <div className="flex flex-wrap gap-2">
                           {reportModal.report.standards.map(standard => (
@@ -822,25 +821,25 @@ const ReportingIFRS: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Statut
+                          {t('reportingIfrs.fieldStatus')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(reportModal.report.status)}`}>
-                          {reportModal.report.status === 'draft' ? 'Brouillon' :
-                           reportModal.report.status === 'review' ? 'En révision' :
-                           reportModal.report.status === 'approved' ? 'Approuvé' : 'Publié'}
+                          {reportModal.report.status === 'draft' ? t('reportingIfrs.statusDraft') :
+                           reportModal.report.status === 'review' ? t('reportingIfrs.statusInReview') :
+                           reportModal.report.status === 'approved' ? t('reportingIfrs.statusApproved') : t('reportingIfrs.statusPublished')}
                         </span>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Version
+                          {t('reportingIfrs.fieldVersion')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.version}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Créé par
+                          {t('reportingIfrs.fieldCreatedBy')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.createdBy}</p>
                       </div>
@@ -848,7 +847,7 @@ const ReportingIFRS: React.FC = () => {
                       {reportModal.report.approvedBy && (
                         <div>
                           <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Approuvé par
+                            {t('reportingIfrs.fieldApprovedBy')}
                           </label>
                           <p className="text-neutral-800">{reportModal.report.approvedBy}</p>
                         </div>
@@ -857,8 +856,8 @@ const ReportingIFRS: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center text-neutral-600">
-                    <p>Formulaire de création de rapport...</p>
-                    <p className="text-sm mt-2">Interface de création en développement</p>
+                    <p>{t('reportingIfrs.createFormPlaceholder')}</p>
+                    <p className="text-sm mt-2">{t('reportingIfrs.createFormSubtext')}</p>
                   </div>
                 )}
 
@@ -867,11 +866,11 @@ const ReportingIFRS: React.FC = () => {
                     variant="outline"
                     onClick={() => setReportModal({ isOpen: false, mode: 'view' })}
                   >
-                    {reportModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {reportModal.mode === 'view' ? t('reportingIfrs.close') : t('reportingIfrs.cancel')}
                   </ElegantButton>
                   {reportModal.mode !== 'view' && (
                     <ElegantButton variant="primary" onClick={() => navigate('/reporting/builder')}>
-                      Ouvrir le générateur de rapports
+                      {t('reportingIfrs.openReportBuilder')}
                     </ElegantButton>
                   )}
                 </div>

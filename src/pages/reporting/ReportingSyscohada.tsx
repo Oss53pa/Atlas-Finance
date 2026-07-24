@@ -132,12 +132,14 @@ const ReportingSyscohada: React.FC = () => {
 
   const syscohadaReports: SyscohadaReport[] = useMemo(() => {
     const types: Array<{ type: SyscohadaReport['reportType']; label: string }> = [
-      { type: 'bilan_syscohada', label: 'Bilan SYSCOHADA' },
-      { type: 'compte_resultat_syscohada', label: 'Compte de Résultat SYSCOHADA' },
+      { type: 'bilan_syscohada', label: t('reportingSyscohada.typeBalanceSheet') },
+      { type: 'compte_resultat_syscohada', label: t('reportingSyscohada.reportIncomeStatement') },
       { type: 'tafire', label: 'TAFIRE' },
-      { type: 'notes_annexes', label: 'Notes Annexes SYSCOHADA' },
-      { type: 'tableau_tresorerie', label: 'Tableau de Trésorerie SYSCOHADA' },
+      { type: 'notes_annexes', label: t('reportingSyscohada.reportNotes') },
+      { type: 'tableau_tresorerie', label: t('reportingSyscohada.reportTreasuryTable') },
     ];
+    const zoneLabel = t('reportingSyscohada.zoneOhada');
+    const regulatoryRefLabel = t('reportingSyscohada.syscohadaRevised2017');
     const result: SyscohadaReport[] = [];
     for (const fy of fiscalYears) {
       // Le modèle d'exercice expose `isClosed` (booléen), pas un champ `status` string.
@@ -152,23 +154,23 @@ const ReportingSyscohada: React.FC = () => {
           lastModified: fy.endDate || new Date().toISOString().split('T')[0],
           createdBy: 'system',
           version: '1.0',
-          country: 'Zone OHADA',
-          regulatoryRef: 'SYSCOHADA Révisé 2017',
+          country: zoneLabel,
+          regulatoryRef: regulatoryRefLabel,
           currency: 'XAF',
           fileSize: '-',
         });
       }
     }
     return result;
-  }, [fiscalYears]);
+  }, [fiscalYears, t]);
 
   // Static SYSCOHADA standards (reference data)
   const SYSCOHADA_STANDARDS: SyscohadaStandard[] = [
-    { code: 'SYSCOHADA-ART-8', title: 'Principes comptables fondamentaux', category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Prudence, continuité, coût historique, permanence des méthodes' },
-    { code: 'SYSCOHADA-ART-11', title: 'Présentation du Bilan', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Structure Actif immobilisé / Circulant / Trésorerie' },
-    { code: 'SYSCOHADA-ART-25', title: 'Compte de Résultat par Nature', category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Classification charges (6) et produits (7) par nature' },
-    { code: 'SYSCOHADA-ART-35', title: 'Évaluation des Immobilisations', category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: 'Amortissement linéaire et dégressif, réévaluation légale' },
-    { code: 'SYSCOHADA-ART-75', title: 'États Annexes et Notes', category: 'disclosure', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: 'Informations complémentaires obligatoires' },
+    { code: 'SYSCOHADA-ART-8', title: t('reportingSyscohada.std8Title'), category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingSyscohada.std8Notes') },
+    { code: 'SYSCOHADA-ART-11', title: t('reportingSyscohada.std11Title'), category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingSyscohada.std11Notes') },
+    { code: 'SYSCOHADA-ART-25', title: t('reportingSyscohada.std25Title'), category: 'presentation', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingSyscohada.std25Notes') },
+    { code: 'SYSCOHADA-ART-35', title: t('reportingSyscohada.std35Title'), category: 'measurement', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'medium', notes: t('reportingSyscohada.std35Notes') },
+    { code: 'SYSCOHADA-ART-75', title: t('reportingSyscohada.std75Title'), category: 'disclosure', applicableCountries: ['CI','SN','ML','BF','NE','TG','BJ','GW','CM','GA','TD','CF','CG','GQ','KM','CD','GN'], compliance: 'compliant', lastReview: new Date().toISOString().split('T')[0], impact: 'high', notes: t('reportingSyscohada.std75Notes') },
   ];
 
   // Load companies to determine entities per country
@@ -193,23 +195,23 @@ const ReportingSyscohada: React.FC = () => {
     const defaultCountry = Object.keys(entitiesByCountry)[0] || 'CI';
 
     const countries: Array<{ code: string; name: string; currency: string; deadline: string; reqs: string[] }> = [
-      { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNPS', 'Chambre de Commerce'] },
-      { code: 'SN', name: 'Sénégal', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'IPRES', 'CSS'] },
-      { code: 'CM', name: 'Cameroun', currency: 'XAF', deadline: '15 mars', reqs: ['DGI', 'CNPS'] },
-      { code: 'GA', name: 'Gabon', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNSS'] },
-      { code: 'ML', name: 'Mali', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'INPS'] },
-      { code: 'BF', name: 'Burkina Faso', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
-      { code: 'BJ', name: 'Bénin', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
-      { code: 'TG', name: 'Togo', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
-      { code: 'NE', name: 'Niger', currency: 'XOF', deadline: '30 avril', reqs: ['DGI', 'CNSS'] },
-      { code: 'TD', name: 'Tchad', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNPS'] },
-      { code: 'CF', name: 'Centrafrique', currency: 'XAF', deadline: '31 mars', reqs: ['DGI'] },
-      { code: 'CG', name: 'Congo', currency: 'XAF', deadline: '31 mars', reqs: ['DGI', 'CNSS'] },
-      { code: 'GQ', name: 'Guinée Équatoriale', currency: 'XAF', deadline: '31 mars', reqs: ['DGI'] },
-      { code: 'GW', name: 'Guinée-Bissau', currency: 'XOF', deadline: '30 avril', reqs: ['DGI'] },
-      { code: 'KM', name: 'Comores', currency: 'KMF', deadline: '30 avril', reqs: ['DGI'] },
-      { code: 'CD', name: 'RD Congo', currency: 'CDF', deadline: '30 avril', reqs: ['DGI'] },
-      { code: 'GN', name: 'Guinée', currency: 'GNF', deadline: '30 avril', reqs: ['DGI'] },
+      { code: 'CI', name: t('reportingSyscohada.countryCI'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'CNPS', t('reportingSyscohada.reqChamberCommerce')] },
+      { code: 'SN', name: t('reportingSyscohada.countrySN'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'IPRES', 'CSS'] },
+      { code: 'CM', name: t('reportingSyscohada.countryCM'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar15'), reqs: ['DGI', 'CNPS'] },
+      { code: 'GA', name: t('reportingSyscohada.countryGA'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar31'), reqs: ['DGI', 'CNSS'] },
+      { code: 'ML', name: t('reportingSyscohada.countryML'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'INPS'] },
+      { code: 'BF', name: t('reportingSyscohada.countryBF'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'CNSS'] },
+      { code: 'BJ', name: t('reportingSyscohada.countryBJ'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'CNSS'] },
+      { code: 'TG', name: t('reportingSyscohada.countryTG'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'CNSS'] },
+      { code: 'NE', name: t('reportingSyscohada.countryNE'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI', 'CNSS'] },
+      { code: 'TD', name: t('reportingSyscohada.countryTD'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar31'), reqs: ['DGI', 'CNPS'] },
+      { code: 'CF', name: t('reportingSyscohada.countryCF'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar31'), reqs: ['DGI'] },
+      { code: 'CG', name: t('reportingSyscohada.countryCG'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar31'), reqs: ['DGI', 'CNSS'] },
+      { code: 'GQ', name: t('reportingSyscohada.countryGQ'), currency: 'XAF', deadline: t('reportingSyscohada.deadlineMar31'), reqs: ['DGI'] },
+      { code: 'GW', name: t('reportingSyscohada.countryGW'), currency: 'XOF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI'] },
+      { code: 'KM', name: t('reportingSyscohada.countryKM'), currency: 'KMF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI'] },
+      { code: 'CD', name: t('reportingSyscohada.countryCD'), currency: 'CDF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI'] },
+      { code: 'GN', name: t('reportingSyscohada.countryGN'), currency: 'GNF', deadline: t('reportingSyscohada.deadlineApr30'), reqs: ['DGI'] },
     ];
 
     // On n'affiche QUE les pays où une entité est réellement enregistrée (pas les 17 pays
@@ -226,7 +228,7 @@ const ReportingSyscohada: React.FC = () => {
         entities: entitiesByCountry[c.code] || 0,
       }))
       .filter(c => c.entities > 0);
-  }, [companies, totalCA]);
+  }, [companies, totalCA, t]);
 
   // Filter reports based on search and filters
   const filteredReports = useMemo(() => {
@@ -298,11 +300,11 @@ const ReportingSyscohada: React.FC = () => {
   };
 
   const reportTypeLabels = {
-    bilan_syscohada: 'Bilan SYSCOHADA',
-    compte_resultat_syscohada: 'Compte de Résultat',
+    bilan_syscohada: t('reportingSyscohada.typeBalanceSheet'),
+    compte_resultat_syscohada: t('reportingSyscohada.typeIncomeStatement'),
     tafire: 'TAFIRE',
-    tableau_tresorerie: 'Tableau Trésorerie',
-    notes_annexes: 'Notes Annexes'
+    tableau_tresorerie: t('reportingSyscohada.typeTreasuryTable'),
+    notes_annexes: t('reportingSyscohada.typeNotes')
   };
 
   const countryCodes = {
@@ -314,9 +316,9 @@ const ReportingSyscohada: React.FC = () => {
   };
 
   const chartData = [
-    { label: 'Déposés', value: aggregatedData.approvedReports, color: 'bg-green-500' },
-    { label: 'En révision', value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
-    { label: 'Brouillons', value: aggregatedData.draftReports, color: 'bg-[var(--color-primary)]' }
+    { label: t('reportingSyscohada.chartLabelFiled'), value: aggregatedData.approvedReports, color: 'bg-green-500' },
+    { label: t('reportingSyscohada.chartLabelReview'), value: aggregatedData.reviewReports, color: 'bg-yellow-500' },
+    { label: t('reportingSyscohada.chartLabelDrafts'), value: aggregatedData.draftReports, color: 'bg-[var(--color-primary)]' }
   ];
 
   const countryChartData = MEMBER_COUNTRIES.map(country => ({
@@ -331,8 +333,8 @@ const ReportingSyscohada: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Reporting SYSCOHADA"
-          subtitle="États financiers conformes au système comptable OHADA"
+          title={t('reportingSyscohada.title')}
+          subtitle={t('reportingSyscohada.subtitle')}
           icon={Globe}
           action={
             <div className="flex gap-3">
@@ -344,14 +346,14 @@ const ReportingSyscohada: React.FC = () => {
                   queryClient.invalidateQueries({ queryKey: ['syscohada-journal-entries'] });
                 }}
               >
-                Actualiser
+                {t('reportingSyscohada.refresh')}
               </ElegantButton>
               <ElegantButton
                 variant="primary"
                 icon={Plus}
                 onClick={() => setReportModal({ isOpen: true, mode: 'create' })}
               >
-                Nouveau Rapport
+                {t('reportingSyscohada.newReport')}
               </ElegantButton>
             </div>
           }
@@ -360,9 +362,9 @@ const ReportingSyscohada: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Rapports SYSCOHADA"
+            title={t('reportingSyscohada.kpiReports')}
             value={aggregatedData.totalReports.toString()}
-            subtitle={`${aggregatedData.approvedReports} déposés`}
+            subtitle={t('reportingSyscohada.filedCount', { count: String(aggregatedData.approvedReports) })}
             icon={FileText}
             color="primary"
             delay={0.1}
@@ -370,9 +372,9 @@ const ReportingSyscohada: React.FC = () => {
           />
 
           <KPICard
-            title="Conformité OHADA"
+            title={t('reportingSyscohada.kpiCompliance')}
             value={formatPercentage(aggregatedData.complianceRate * 100)}
-            subtitle={`${SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length}/${SYSCOHADA_STANDARDS.length} articles (indicatif)`}
+            subtitle={t('reportingSyscohada.articlesIndicative', { compliant: String(SYSCOHADA_STANDARDS.filter(s => s.compliance === 'compliant').length), total: String(SYSCOHADA_STANDARDS.length) })}
             icon={Shield}
             color="success"
             delay={0.2}
@@ -380,9 +382,9 @@ const ReportingSyscohada: React.FC = () => {
           />
 
           <KPICard
-            title="Pays Actifs"
+            title={t('reportingSyscohada.kpiActiveCountries')}
             value={aggregatedData.activeCountries.toString()}
-            subtitle="Zone OHADA couverte"
+            subtitle={t('reportingSyscohada.kpiActiveCountriesSub')}
             icon={Flag}
             color="neutral"
             delay={0.3}
@@ -390,9 +392,9 @@ const ReportingSyscohada: React.FC = () => {
           />
 
           <KPICard
-            title="CA Zone OHADA"
+            title={t('reportingSyscohada.kpiRevenue')}
             value={`${(aggregatedData.totalRevenue / 1000000).toFixed(0)}M`}
-            subtitle="Chiffre d'affaires total"
+            subtitle={t('reportingSyscohada.kpiRevenueSub')}
             icon={TrendingUp}
             color="warning"
             delay={0.4}
@@ -414,14 +416,14 @@ const ReportingSyscohada: React.FC = () => {
                       : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
-                  {mode === 'reports' ? 'Rapports' :
-                   mode === 'standards' ? 'Articles SYSCOHADA' : 'Pays OHADA'}
+                  {mode === 'reports' ? t('reportingSyscohada.tabReports') :
+                   mode === 'standards' ? t('reportingSyscohada.tabStandards') : t('reportingSyscohada.tabCountries')}
                 </button>
               ))}
             </div>
 
             <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-neutral-700">Exercice:</label>
+              <label className="text-sm font-medium text-neutral-700">{t('reportingSyscohada.fiscalYearLabel')}</label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -449,8 +451,8 @@ const ReportingSyscohada: React.FC = () => {
               transition={{ delay: 0.5 }}
             >
               <ModernChartCard
-                title="État des Rapports SYSCOHADA"
-                subtitle="Répartition par statut de traitement"
+                title={t('reportingSyscohada.chartReportsTitle')}
+                subtitle={t('reportingSyscohada.chartReportsSubtitle')}
                 icon={PieChart}
               >
                 <ColorfulBarChart
@@ -463,14 +465,14 @@ const ReportingSyscohada: React.FC = () => {
             {/* Filters */}
             <UnifiedCard variant="elevated" size="md">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
+                <h3 className="text-lg font-semibold text-neutral-800">{t('reportingSyscohada.filtersTitle')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
                     <input
                       type="text"
-                      placeholder="Rechercher..."
+                      placeholder={t('reportingSyscohada.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -482,11 +484,11 @@ const ReportingSyscohada: React.FC = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les statuts</option>
+                    <option value="all">{t('reportingSyscohada.allStatuses')}</option>
                     <option value="draft">{t('accounting.draft')}</option>
-                    <option value="review">En révision</option>
-                    <option value="approved">Approuvé</option>
-                    <option value="filed">Déposé</option>
+                    <option value="review">{t('reportingSyscohada.statusReview')}</option>
+                    <option value="approved">{t('reportingSyscohada.statusApproved')}</option>
+                    <option value="filed">{t('reportingSyscohada.statusFiled')}</option>
                   </select>
 
                   <select
@@ -494,12 +496,12 @@ const ReportingSyscohada: React.FC = () => {
                     onChange={(e) => setFilterType(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les types</option>
-                    <option value="bilan_syscohada">Bilan SYSCOHADA</option>
-                    <option value="compte_resultat_syscohada">Compte de Résultat</option>
+                    <option value="all">{t('reportingSyscohada.allTypes')}</option>
+                    <option value="bilan_syscohada">{t('reportingSyscohada.typeBalanceSheet')}</option>
+                    <option value="compte_resultat_syscohada">{t('reportingSyscohada.typeIncomeStatement')}</option>
                     <option value="tafire">TAFIRE</option>
-                    <option value="tableau_tresorerie">Tableau Trésorerie</option>
-                    <option value="notes_annexes">Notes Annexes</option>
+                    <option value="tableau_tresorerie">{t('reportingSyscohada.typeTreasuryTable')}</option>
+                    <option value="notes_annexes">{t('reportingSyscohada.typeNotes')}</option>
                   </select>
 
                   <select
@@ -507,12 +509,12 @@ const ReportingSyscohada: React.FC = () => {
                     onChange={(e) => setFilterCountry(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les pays</option>
-                    <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-                    <option value="Sénégal">Sénégal</option>
-                    <option value="Gabon">Gabon</option>
-                    <option value="Mali">Mali</option>
-                    <option value="Burkina Faso">Burkina Faso</option>
+                    <option value="all">{t('reportingSyscohada.allCountries')}</option>
+                    <option value="Côte d'Ivoire">{t('reportingSyscohada.countryCI')}</option>
+                    <option value="Sénégal">{t('reportingSyscohada.countrySN')}</option>
+                    <option value="Gabon">{t('reportingSyscohada.countryGA')}</option>
+                    <option value="Mali">{t('reportingSyscohada.countryML')}</option>
+                    <option value="Burkina Faso">{t('reportingSyscohada.countryBF')}</option>
                   </select>
                 </div>
               </div>
@@ -522,7 +524,7 @@ const ReportingSyscohada: React.FC = () => {
             <UnifiedCard variant="elevated" size="lg">
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-neutral-800">
-                  Rapports SYSCOHADA ({filteredReports.length})
+                  {t('reportingSyscohada.reportsListTitle', { count: String(filteredReports.length) })}
                 </h3>
 
                 <div className="space-y-4">
@@ -568,16 +570,16 @@ const ReportingSyscohada: React.FC = () => {
                             <span className={`px-3 py-1 text-sm font-medium rounded-full flex items-center space-x-1 ${getStatusColor(report.status)}`}>
                               {getStatusIcon(report.status)}
                               <span>
-                                {report.status === 'draft' ? 'Brouillon' :
-                                 report.status === 'review' ? 'En révision' :
-                                 report.status === 'approved' ? 'Approuvé' : 'Déposé'}
+                                {report.status === 'draft' ? t('reportingSyscohada.statusDraft') :
+                                 report.status === 'review' ? t('reportingSyscohada.statusReview') :
+                                 report.status === 'approved' ? t('reportingSyscohada.statusApproved') : t('reportingSyscohada.statusFiled')}
                               </span>
                             </span>
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setReportModal({ isOpen: true, mode: 'view', report })}
                                 className="p-2 text-neutral-400 hover:text-[var(--color-primary)] transition-colors"
-                                aria-label="Consulter"
+                                aria-label={t('reportingSyscohada.viewAria')}
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
@@ -587,17 +589,17 @@ const ReportingSyscohada: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-neutral-100">
                           <div>
-                            <p className="text-sm text-neutral-500">Créé par:</p>
+                            <p className="text-sm text-neutral-500">{t('reportingSyscohada.createdBy')}</p>
                             <p className="font-medium text-neutral-800">{report.createdBy}</p>
                           </div>
                           {report.reviewedBy && (
                             <div>
-                              <p className="text-sm text-neutral-500">Révisé par:</p>
+                              <p className="text-sm text-neutral-500">{t('reportingSyscohada.reviewedBy')}</p>
                               <p className="font-medium text-neutral-800">{report.reviewedBy}</p>
                             </div>
                           )}
                           <div>
-                            <p className="text-sm text-neutral-500">Dernière modification:</p>
+                            <p className="text-sm text-neutral-500">{t('reportingSyscohada.lastModified')}</p>
                             <p className="font-medium text-neutral-800">{formatDate(report.lastModified)}</p>
                           </div>
                         </div>
@@ -614,14 +616,13 @@ const ReportingSyscohada: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-neutral-800">
-                Conformité aux Articles SYSCOHADA
+                {t('reportingSyscohada.standardsTitle')}
               </h3>
 
               <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
                 <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
                 <span>
-                  Référentiel indicatif : articles du SYSCOHADA révisé applicables. Les statuts de conformité
-                  sont fournis à titre de repère et ne constituent pas une évaluation auditée.
+                  {t('reportingSyscohada.standardsDisclaimer')}
                 </span>
               </div>
 
@@ -629,12 +630,12 @@ const ReportingSyscohada: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-200">
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Article</th>
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Titre</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Catégorie</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Conformité</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Impact</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Pays Applicables</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thArticle')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thTitle')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thCategory')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thCompliance')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thImpact')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('reportingSyscohada.thApplicableCountries')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -655,15 +656,15 @@ const ReportingSyscohada: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-50 text-orange-600">
-                            {standard.category === 'measurement' ? 'Évaluation' :
-                             standard.category === 'presentation' ? 'Présentation' : 'Information'}
+                            {standard.category === 'measurement' ? t('reportingSyscohada.catMeasurement') :
+                             standard.category === 'presentation' ? t('reportingSyscohada.catPresentation') : t('reportingSyscohada.catDisclosure')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getComplianceColor(standard.compliance)}`}>
-                            {standard.compliance === 'compliant' ? 'Conforme' :
-                             standard.compliance === 'partial' ? 'Partiel' :
-                             standard.compliance === 'non_compliant' ? 'Non conforme' : 'N/A'}
+                            {standard.compliance === 'compliant' ? t('reportingSyscohada.complianceCompliant') :
+                             standard.compliance === 'partial' ? t('reportingSyscohada.compliancePartial') :
+                             standard.compliance === 'non_compliant' ? t('reportingSyscohada.complianceNonCompliant') : t('reportingSyscohada.complianceNA')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
@@ -672,8 +673,8 @@ const ReportingSyscohada: React.FC = () => {
                             standard.impact === 'medium' ? 'bg-yellow-50 text-yellow-600' :
                             'bg-green-50 text-green-600'
                           }`}>
-                            {standard.impact === 'high' ? 'Élevé' :
-                             standard.impact === 'medium' ? 'Moyen' : 'Faible'}
+                            {standard.impact === 'high' ? t('reportingSyscohada.impactHigh') :
+                             standard.impact === 'medium' ? t('reportingSyscohada.impactMedium') : t('reportingSyscohada.impactLow')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
@@ -711,8 +712,8 @@ const ReportingSyscohada: React.FC = () => {
               transition={{ delay: 0.5 }}
             >
               <ModernChartCard
-                title="Chiffre d'Affaires par Pays OHADA"
-                subtitle="Répartition du CA en millions d'unités locales"
+                title={t('reportingSyscohada.chartCountryTitle')}
+                subtitle={t('reportingSyscohada.chartCountrySubtitle')}
                 icon={MapPin}
               >
                 <ColorfulBarChart
@@ -726,7 +727,7 @@ const ReportingSyscohada: React.FC = () => {
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    Pays OHADA - Périmètre de Reporting
+                    {t('reportingSyscohada.countriesScopeTitle')}
                   </h3>
                 </div>
 
@@ -747,7 +748,7 @@ const ReportingSyscohada: React.FC = () => {
                             </div>
                             <div>
                               <h4 className="font-semibold text-neutral-800">{country.name}</h4>
-                              <p className="text-sm text-neutral-500">Code: {country.code}</p>
+                              <p className="text-sm text-neutral-500">{t('reportingSyscohada.codeLabel')} {country.code}</p>
                             </div>
                           </div>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -755,28 +756,28 @@ const ReportingSyscohada: React.FC = () => {
                             country.status === 'pending' ? 'bg-yellow-50 text-yellow-600' :
                             'bg-gray-50 text-gray-600'
                           }`}>
-                            {country.status === 'active' ? 'Actif' :
-                             country.status === 'pending' ? 'En attente' : 'Exempté'}
+                            {country.status === 'active' ? t('reportingSyscohada.statusActive') :
+                             country.status === 'pending' ? t('reportingSyscohada.statusPending') : t('reportingSyscohada.statusExempted')}
                           </span>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-sm text-neutral-500">Devise:</span>
+                            <span className="text-sm text-neutral-500">{t('reportingSyscohada.currencyLabel')}</span>
                             <span className="font-semibold text-neutral-800">{country.currency}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-neutral-500">Entités:</span>
+                            <span className="text-sm text-neutral-500">{t('reportingSyscohada.entitiesLabel')}</span>
                             <span className="font-medium text-neutral-700">{country.entities}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-neutral-500">CA Local:</span>
+                            <span className="text-sm text-neutral-500">{t('reportingSyscohada.localRevenueLabel')}</span>
                             <span className="font-medium text-neutral-700">
                               {formatCurrency(country.revenue, country.currency)}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-sm text-neutral-500">Échéance:</span>
+                            <span className="text-sm text-neutral-500">{t('reportingSyscohada.deadlineLabel')}</span>
                             <span className="font-medium text-neutral-700">
                               {country.filingDeadline}
                             </span>
@@ -784,7 +785,7 @@ const ReportingSyscohada: React.FC = () => {
                         </div>
 
                         <div className="pt-2 border-t border-neutral-100">
-                          <p className="text-sm text-neutral-500 mb-2">Obligations locales:</p>
+                          <p className="text-sm text-neutral-500 mb-2">{t('reportingSyscohada.localRequirementsLabel')}</p>
                           <div className="flex flex-wrap gap-1">
                             {country.localRequirements.map(req => (
                               <span
@@ -816,8 +817,8 @@ const ReportingSyscohada: React.FC = () => {
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    {reportModal.mode === 'create' ? 'Nouveau Rapport SYSCOHADA' :
-                     reportModal.mode === 'edit' ? 'Modifier le Rapport' : 'Détails du Rapport'}
+                    {reportModal.mode === 'create' ? t('reportingSyscohada.modalCreateTitle') :
+                     reportModal.mode === 'edit' ? t('reportingSyscohada.modalEditTitle') : t('reportingSyscohada.modalViewTitle')}
                   </h3>
                   <button
                     onClick={() => setReportModal({ isOpen: false, mode: 'view' })}
@@ -834,21 +835,21 @@ const ReportingSyscohada: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Titre du Rapport
+                          {t('reportingSyscohada.fieldReportTitle')}
                         </label>
                         <p className="text-neutral-800 font-semibold">{reportModal.report.title}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Type de Rapport
+                          {t('reportingSyscohada.fieldReportType')}
                         </label>
                         <p className="text-neutral-800">{reportTypeLabels[reportModal.report.reportType]}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Pays
+                          {t('reportingSyscohada.fieldCountry')}
                         </label>
                         <div className="flex items-center space-x-2">
                           <Flag className="h-4 w-4 text-neutral-500" />
@@ -858,7 +859,7 @@ const ReportingSyscohada: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Référence Réglementaire
+                          {t('reportingSyscohada.fieldRegulatoryRef')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.regulatoryRef}</p>
                       </div>
@@ -867,32 +868,32 @@ const ReportingSyscohada: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Statut
+                          {t('reportingSyscohada.fieldStatus')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(reportModal.report.status)}`}>
-                          {reportModal.report.status === 'draft' ? 'Brouillon' :
-                           reportModal.report.status === 'review' ? 'En révision' :
-                           reportModal.report.status === 'approved' ? 'Approuvé' : 'Déposé'}
+                          {reportModal.report.status === 'draft' ? t('reportingSyscohada.statusDraft') :
+                           reportModal.report.status === 'review' ? t('reportingSyscohada.statusReview') :
+                           reportModal.report.status === 'approved' ? t('reportingSyscohada.statusApproved') : t('reportingSyscohada.statusFiled')}
                         </span>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Devise
+                          {t('reportingSyscohada.fieldCurrency')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.currency}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Période
+                          {t('reportingSyscohada.fieldPeriod')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.period}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Version
+                          {t('reportingSyscohada.fieldVersion')}
                         </label>
                         <p className="text-neutral-800">{reportModal.report.version}</p>
                       </div>
@@ -900,8 +901,8 @@ const ReportingSyscohada: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center text-neutral-600">
-                    <p>Formulaire de création de rapport SYSCOHADA...</p>
-                    <p className="text-sm mt-2">Interface de création en développement</p>
+                    <p>{t('reportingSyscohada.createFormPlaceholder')}</p>
+                    <p className="text-sm mt-2">{t('reportingSyscohada.createFormDev')}</p>
                   </div>
                 )}
 
@@ -910,11 +911,11 @@ const ReportingSyscohada: React.FC = () => {
                     variant="outline"
                     onClick={() => setReportModal({ isOpen: false, mode: 'view' })}
                   >
-                    {reportModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {reportModal.mode === 'view' ? t('reportingSyscohada.close') : t('reportingSyscohada.cancel')}
                   </ElegantButton>
                   {reportModal.mode !== 'view' && (
                     <ElegantButton variant="primary" onClick={() => navigate('/reporting/builder')}>
-                      Ouvrir le générateur de rapports
+                      {t('reportingSyscohada.openBuilder')}
                     </ElegantButton>
                   )}
                 </div>
