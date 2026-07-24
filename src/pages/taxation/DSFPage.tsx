@@ -29,6 +29,17 @@ import {
   isTaxPosted,
   type TaxEntryPreview,
 } from '../../services/fiscal/taxPostingService';
+import {
+  buildTeledeclarationPackage,
+  packageToCSV,
+  markPrepared,
+  recordSubmitted,
+  recordPaid,
+  getTeledeclarationRecord,
+  STATUS_LABELS,
+  type TeledeclarationPackage,
+  type TeledeclarationRecord,
+} from '../../services/fiscal/teledeclarationService';
 
 const LIASS_PILOT_URL = 'https://liass-pilot.atlas-studio.org';
 
@@ -56,6 +67,9 @@ const DSFPage: React.FC = () => {
   const [taxPreview, setTaxPreview] = useState<TaxEntryPreview | null>(null);
   const [taxBusy, setTaxBusy] = useState(false);
   const [taxDone, setTaxDone] = useState(false);
+  // Télédéclaration (B5) : préparation + suivi, JAMAIS de soumission auto.
+  const [telePkg, setTelePkg] = useState<TeledeclarationPackage | null>(null);
+  const [teleRec, setTeleRec] = useState<TeledeclarationRecord | null>(null);
 
   // Exercices comptables réels du tenant.
   useEffect(() => {
@@ -107,6 +121,20 @@ const DSFPage: React.FC = () => {
         setTaxPreview(preview);
         setTaxDone(posted);
       }
+      // Télédéclaration : bordereau (pur) + statut existant.
+      const pkg = await buildTeledeclarationPackage({
+        countryCode: result.countryCode,
+        type: 'IS',
+        period: String(fiscalYearNumber),
+        lines: [
+          { label: 'Impôt dû (max IS / IMF)', amount: result.impotDu },
+          { label: 'Acomptes versés', amount: -result.acomptesVerses },
+        ],
+        totalAPayer: result.impotNet,
+        currencyOverride: result.currency,
+      });
+      setTelePkg(pkg);
+      setTeleRec(await getTeledeclarationRecord(adapter, pkg.reference));
       if (result.parametersFallback || result.parametersProvisional) {
         toast(result.parametersWarning ?? 'Paramètres fiscaux à valider', { icon: '⚠️' });
       }
@@ -140,6 +168,48 @@ const DSFPage: React.FC = () => {
       setTaxBusy(false);
     }
   }, [adapter, determination, selectedYear]);
+
+  // ── Télédéclaration IS (préparation + suivi ; aucune soumission auto) ──────
+  const preparerTeledeclaration = useCallback(async () => {
+    if (!determination) return;
+    const period = String(fiscalYearNumber);
+    const pkg = await buildTeledeclarationPackage({
+      countryCode: determination.countryCode,
+      type: 'IS',
+      period,
+      lines: [
+        { label: 'Impôt dû (max IS / IMF)', amount: determination.impotDu },
+        { label: 'Acomptes versés', amount: -determination.acomptesVerses },
+      ],
+      totalAPayer: determination.impotNet,
+      currencyOverride: determination.currency,
+    });
+    setTelePkg(pkg);
+    const rec = await markPrepared(adapter, pkg, new Date().toISOString());
+    setTeleRec(rec);
+    // Export du bordereau.
+    const blob = new Blob(['﻿' + packageToCSV(pkg)], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `bordereau-${pkg.reference}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast.success('Bordereau préparé et exporté — à télédéclarer sur le portail');
+  }, [adapter, determination, fiscalYearNumber]);
+
+  const marquerTeledeclare = useCallback(async () => {
+    if (!telePkg) return;
+    const ref = window.prompt('Référence de télédéclaration fournie par le portail DGI :');
+    if (!ref) return;
+    setTeleRec(await recordSubmitted(adapter, telePkg.reference, ref.trim(), new Date().toISOString()));
+    toast.success('Télédéclaration consignée');
+  }, [adapter, telePkg]);
+
+  const marquerPaye = useCallback(async () => {
+    if (!telePkg) return;
+    setTeleRec(await recordPaid(adapter, telePkg.reference, new Date().toISOString()));
+    toast.success('Paiement consigné');
+  }, [adapter, telePkg]);
 
   const runFec = async () => {
     if (!selectedYear) return;
@@ -328,6 +398,87 @@ const DSFPage: React.FC = () => {
                     </span>
                   </div>
                 </>
+              )}
+            </div>
+          )}
+
+          {/* Télédéclaration (B5) — préparation + suivi, jamais de soumission auto */}
+          {telePkg && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
+                  <ExternalLink className="w-4 h-4 text-[#235A6E]" /> Télédéclaration de l'impôt
+                </div>
+                <span className={`px-2 py-0.5 rounded text-xs ${
+                  teleRec?.status === 'paye' ? 'bg-emerald-50 text-emerald-700'
+                  : teleRec?.status === 'teledeclare' ? 'bg-blue-50 text-blue-700'
+                  : teleRec?.status === 'pret' ? 'bg-amber-50 text-amber-700'
+                  : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {STATUS_LABELS[teleRec?.status ?? 'a_preparer']}
+                </span>
+              </div>
+
+              <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3 text-xs text-blue-900">
+                Atlas <strong>prépare</strong> le bordereau et <strong>suit</strong> son statut.
+                La télédéclaration et le paiement se font sur le portail{' '}
+                <strong>{telePkg.portal.name}</strong> — Atlas ne soumet rien à votre place.
+              </div>
+
+              <div className="overflow-x-auto border border-gray-200 rounded">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {telePkg.lines.map((l, i) => (
+                      <tr key={i} className="border-b border-gray-100 last:border-0">
+                        <td className="px-3 py-1.5 text-gray-700">{l.label}</td>
+                        <td className="px-3 py-1.5 text-right tabular-nums">{fmt(l.amount, telePkg.currency)}</td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-50 font-semibold">
+                      <td className="px-3 py-2">Net à payer</td>
+                      <td className="px-3 py-2 text-right tabular-nums">{fmt(telePkg.totalAPayer, telePkg.currency)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={preparerTeledeclaration}
+                  className="flex items-center gap-2 px-3 py-2 text-sm bg-[#235A6E] text-white rounded-lg hover:bg-[#1c4a5b]"
+                >
+                  <Download className="w-4 h-4" /> Préparer le bordereau
+                </button>
+                {telePkg.portal.url && (
+                  <button
+                    onClick={() => window.open(telePkg.portal.url, '_blank', 'noopener,noreferrer')}
+                    className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Ouvrir le portail
+                  </button>
+                )}
+                <button
+                  onClick={marquerTeledeclare}
+                  disabled={teleRec?.status === 'a_preparer'}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Marquer télédéclaré
+                </button>
+                <button
+                  onClick={marquerPaye}
+                  disabled={!teleRec || teleRec.status === 'a_preparer'}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Marquer payé
+                </button>
+              </div>
+
+              {teleRec?.portalReference && (
+                <p className="text-xs text-gray-500">
+                  Référence portail : <code>{teleRec.portalReference}</code>
+                  {teleRec.submittedAt ? ` — télédéclaré le ${teleRec.submittedAt.slice(0, 10)}` : ''}
+                  {teleRec.paidAt ? ` — payé le ${teleRec.paidAt.slice(0, 10)}` : ''}
+                </p>
               )}
             </div>
           )}
