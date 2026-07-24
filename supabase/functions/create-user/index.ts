@@ -76,6 +76,36 @@ Deno.serve(async (req: Request) => {
     return json(corsHeaders, 400, { success: false, error: 'Format email invalide' });
   }
 
+  // ── (SEC-02) Autorisation de l'appelant — DOIT être Administrateur ──────────
+  // Avant ce contrôle, tout membre authentifié pouvait provisionner un compte
+  // dans son tenant, y compris avec role='Administrateur' → escalade de
+  // privilège (le rôle du nouvel utilisateur vient du body client). On exige
+  // désormais que l'appelant soit Administrateur de SA société (table
+  // autoritative user_companies), et on borne le rôle assignable à l'énumération
+  // WiseBook — jamais un rôle plateforme (superadmin) via cette fonction.
+  const ALLOWED_ROLES = ['Administrateur', 'Manager', 'Comptable', 'Lecteur'];
+
+  const { data: callerMembership, error: membershipErr } = await supabase
+    .from('user_companies')
+    .select('company_id, role')
+    .eq('user_id', caller.id);
+
+  if (membershipErr) {
+    return json(corsHeaders, 500, { success: false, error: 'Vérification des droits impossible' });
+  }
+  const isCallerAdmin = (callerMembership ?? []).some(
+    (m: { role?: string }) => m.role === 'Administrateur',
+  );
+  if (!isCallerAdmin) {
+    return json(corsHeaders, 403, {
+      success: false,
+      error: 'Droits insuffisants : seul un Administrateur peut créer des utilisateurs.',
+    });
+  }
+
+  // Rôle demandé : normalisé et borné. Défaut prudent = Lecteur (lecture seule).
+  const requestedRole = ALLOWED_ROLES.includes(String(role)) ? String(role) : 'Lecteur';
+
   const redirectTo = `${SITE_URL.replace(/\/$/, '')}/premier-connexion`;
 
   // ── Génération du lien anti-prefetch ─────────────────────────────────────
@@ -121,7 +151,7 @@ Deno.serve(async (req: Request) => {
           data: {
             first_name: prenom,
             last_name: nom,
-            role,
+            role: requestedRole,
             invited_at: new Date().toISOString(),
             invited_by: 'atlas-fna',
           },
@@ -179,13 +209,24 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Créer/mettre à jour les tables d'appartenance ────────────────────────
+  // Le tenant du nouvel utilisateur = une société où l'appelant est
+  // Administrateur (source autoritative user_companies), recoupée avec son
+  // profil. On NE fait PAS confiance à un company_id fourni par le client.
+  const adminCompanyIds = new Set(
+    (callerMembership ?? [])
+      .filter((m: { role?: string }) => m.role === 'Administrateur')
+      .map((m: { company_id?: string }) => m.company_id),
+  );
   const { data: callerProfile } = await supabase
     .from('profiles')
     .select('company_id')
     .eq('id', caller.id)
     .single();
 
-  const companyId = callerProfile?.company_id ?? null;
+  const profileCompany = callerProfile?.company_id ?? null;
+  const companyId = profileCompany && adminCompanyIds.has(profileCompany)
+    ? profileCompany
+    : ([...adminCompanyIds][0] ?? null);
 
   if (userId) {
     // profiles — données de base utilisateur
@@ -205,7 +246,7 @@ Deno.serve(async (req: Request) => {
       await supabase.from('user_companies').upsert({
         user_id: userId,
         company_id: companyId,
-        role,
+        role: requestedRole,
         added_at: new Date().toISOString(),
       }, { onConflict: 'user_id,company_id' });
     }
@@ -219,7 +260,7 @@ Deno.serve(async (req: Request) => {
       email,
       first_name: prenom,
       last_name: nom,
-      role,
+      role: requestedRole,
       departement: departement ?? null,
       telephone: telephone ?? null,
       user_id: userId,

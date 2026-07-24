@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { useNavigate, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { AtlasStudioBrand } from '../../components/common/AtlasStudioBrand';
 import {
@@ -24,6 +24,17 @@ const AdminConsoleLayout: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [search, setSearch] = useState('');
+
+  // ── Garde d'accès (défense en profondeur) ──────────────────────────────────
+  // Cette console d'administration PLATEFORME n'avait AUCUN garde : n'importe
+  // quel utilisateur authentifié (même 'viewer') pouvait l'afficher. La vraie
+  // barrière reste la RLS serveur (is_atlas_superadmin sur les tables tenants/
+  // invoices/…), qui ne renvoie aucune donnée à un non-superadmin. Ce garde
+  // client empêche simplement le rendu de la console pour un compte non habilité.
+  // NB : le modèle de rôle client plafonne à 'admin' (pas de 'superadmin'), donc
+  // on gate sur 'admin' — l'opérateur plateforme réel est 'admin' côté profiles.
+  if (!user) return <Navigate to="/admin-login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/unauthorized" replace />;
 
   return (
     <div className="min-h-screen flex bg-gray-100">
