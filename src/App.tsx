@@ -176,6 +176,10 @@ const BudgetVersionsPage = lazyRetry(() => import('./pages/budget/BudgetVersions
 const BudgetVersionDetailPage = lazyRetry(() => import('./pages/budget/BudgetVersionDetailPage'));
 const AnalyticsSectionsPage = lazyRetry(() => import('./pages/budget/AnalyticsSectionsPage'));
 const VentilationRunPage = lazyRetry(() => import('./pages/budget/VentilationRunPage'));
+const QualificationPage = lazyRetry(() => import('./pages/budget/QualificationPage'));
+const DependanceTiersPage = lazyRetry(() => import('./pages/budget/DependanceTiersPage'));
+const MargePointMortPage = lazyRetry(() => import('./pages/budget/MargePointMortPage'));
+const ManuelReglesPage = lazyRetry(() => import('./pages/budget/ManuelReglesPage'));
 const TresoreriePrevisionLFTPage = lazyRetry(() => import('./pages/budget/TresoreriePrevisionLFTPage'));
 const BankAccountsPage = lazyRetry(() => import('./pages/treasury/BankAccountsPage'));
 const FundCallsPage = lazyRetry(() => import('./pages/treasury/FundCallsPage'));
@@ -297,6 +301,7 @@ const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettes
 
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
+const FrameworkPage = lazyRetry(() => import('./pages/framework/FrameworkPage'));
 const TVATaxesPage = lazyRetry(() => import('./pages/config/TVATaxesPage'));
 const MultiSocietesPage = lazyRetry(() => import('./pages/config/MultiSocietesPage'));
 const AssistantDemarragePage = lazyRetry(() => import('./pages/config/AssistantDemarragePage'));
@@ -483,6 +488,10 @@ function App() {
                           <Route path="/budget/versions/:id" element={work(<BudgetVersionDetailPage />)} />
                           <Route path="/analytique" element={work(<AnalyticsSectionsPage />)} />
                           <Route path="/budget/ventilation" element={work(<VentilationRunPage />)} />
+                          <Route path="/analytique/qualification" element={work(<QualificationPage />)} />
+                          <Route path="/analytique/dependance" element={work(<DependanceTiersPage />)} />
+                          <Route path="/analytique/point-mort" element={work(<MargePointMortPage />)} />
+                          <Route path="/analytique/manuel" element={work(<ManuelReglesPage />)} />
                           <Route path="/tresorerie/prevision-lft" element={work(<TresoreriePrevisionLFTPage />)} />
                         </Route>
 
@@ -670,6 +679,7 @@ function App() {
                         {/* Config */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
+                          <Route path="/config/referentiel" element={work(<FrameworkPage />)} />
                           <Route path="/config/tva" element={<TVATaxesPage />} />
                           <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
                           <Route path="/config/multi-sites" element={<MultiSitesPage />} />

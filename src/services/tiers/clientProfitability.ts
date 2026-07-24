@@ -22,6 +22,7 @@
  * Périmètre : écritures NON brouillon.
  */
 import type { DataAdapter } from '@atlas/data';
+import { largestRemainderAllocate } from '../../utils/allocation';
 
 export interface ClientRevenue {
   code: string;                 // code tiers (411…) ; '' = non affecté
@@ -42,11 +43,17 @@ export interface ClientRevenueReport {
   pctAffecte: number;           // part du CA rattachée à un client (0-100)
   /** Nb d'écritures de vente sans client identifiable (à rattacher). */
   ecrituresSansClient: number;
+  /** Total des charges de classe 6 de la période (base du cost-to-serve). */
+  totalCharges6: number;
 }
 
-interface EntryRow {
+/** Fenêtre de lecture (vision cumulée). from/to au format ISO 'YYYY-MM-DD'. */
+export interface DateRange { from?: string; to?: string }
+
+export interface EntryRow {
   id: string;
   status?: string;
+  date?: string | null;
   lines?: Array<{ accountCode?: string; debit?: number; credit?: number; thirdPartyCode?: string | null; thirdPartyName?: string | null; analyticalCode?: string | null }>;
 }
 
@@ -57,21 +64,22 @@ const PAGE = 1000;
  * En SaaS on lit journal_lines paginé (les lignes vivent dans la table séparée) ;
  * en local, getAll réinjecte déjà les lignes.
  */
-async function loadEntriesWithLines(adapter: DataAdapter): Promise<EntryRow[]> {
+export async function loadEntriesWithLines(adapter: DataAdapter, range?: DateRange): Promise<EntryRow[]> {
   const client = (adapter as any).client;
   if (adapter.getMode?.() === 'saas' && client) {
     const byEntry = new Map<string, EntryRow>();
     for (let from = 0; ; from += PAGE) {
-      const { data, error } = await client
+      let q = client
         .from('journal_lines')
-        .select('entry_id,account_code,debit,credit,third_party_code,third_party_name,analytical_code,journal_entries!inner(status)')
-        .neq('journal_entries.status', 'draft')
-        .order('id', { ascending: true })
-        .range(from, from + PAGE - 1);
+        .select('entry_id,account_code,debit,credit,third_party_code,third_party_name,analytical_code,journal_entries!inner(status,date)')
+        .neq('journal_entries.status', 'draft');
+      if (range?.from) q = q.gte('journal_entries.date', range.from);
+      if (range?.to) q = q.lte('journal_entries.date', range.to);
+      const { data, error } = await q.order('id', { ascending: true }).range(from, from + PAGE - 1);
       if (error) throw new Error(error.message);
       const rows = data ?? [];
       for (const r of rows) {
-        const e: EntryRow = byEntry.get(r.entry_id) || { id: r.entry_id, lines: [] };
+        const e: EntryRow = byEntry.get(r.entry_id) || { id: r.entry_id, date: r.journal_entries?.date ?? null, lines: [] };
         e.lines!.push({
           accountCode: r.account_code,
           debit: Number(r.debit) || 0,
@@ -87,7 +95,13 @@ async function loadEntriesWithLines(adapter: DataAdapter): Promise<EntryRow[]> {
     return Array.from(byEntry.values());
   }
   const entries = await adapter.getAll<EntryRow>('journalEntries');
-  return entries.filter(e => e.status !== 'draft');
+  return entries.filter(e => {
+    if (e.status === 'draft') return false;
+    const d = e.date ? String(e.date).slice(0, 10) : null;
+    if (range?.from && (!d || d < range.from)) return false;
+    if (range?.to && (!d || d > range.to)) return false;
+    return true;
+  });
 }
 
 /** Client d'une écriture = tiers porté par sa (première) ligne 41x. */
@@ -107,8 +121,9 @@ function clientOfEntry(e: EntryRow): { code: string; name: string } | null {
 export async function getClientRevenue(
   adapter: DataAdapter,
   preloaded?: EntryRow[],
+  range?: DateRange,
 ): Promise<ClientRevenueReport> {
-  const entries = preloaded ?? (await loadEntriesWithLines(adapter));
+  const entries = preloaded ?? (await loadEntriesWithLines(adapter, range));
 
   const acc = new Map<string, ClientRevenue>();
   const get = (code: string, name: string): ClientRevenue => {
@@ -117,10 +132,16 @@ export async function getClientRevenue(
     return cur;
   };
 
-  let caTotal = 0, caAffecte = 0, ecrituresSansClient = 0;
+  let caTotal = 0, caAffecte = 0, ecrituresSansClient = 0, totalCharges6 = 0;
 
   for (const e of entries) {
     const lines = e.lines || [];
+    // Total des charges cl.6 (toutes écritures, base du cost-to-serve) — AVANT le
+    // filtre « écriture de produit » pour capter aussi les OD de charges pures.
+    totalCharges6 += lines
+      .filter(l => String(l.accountCode || '').startsWith('6'))
+      .reduce((s, l) => s + ((l.debit || 0) - (l.credit || 0)), 0);
+
     const ca70 = lines
       .filter(l => String(l.accountCode || '').startsWith('70'))
       .reduce((s, l) => s + ((l.credit || 0) - (l.debit || 0)), 0);
@@ -168,5 +189,78 @@ export async function getClientRevenue(
     caNonAffecte,
     pctAffecte: caTotal !== 0 ? Math.round((caAffecte / caTotal) * 100) : 0,
     ecrituresSansClient,
+    totalCharges6,
   };
+}
+
+// ── Cost-to-serve : marge nette client (CDC §8.1) ────────────────────────────
+export type CumulView = 'exercice' | 'ytd' | 'glissant12';
+export type ClientStatut = 'RENTABLE' | 'A_SURVEILLER' | 'DEFICITAIRE';
+
+export interface ClientNet extends ClientRevenue {
+  quotePartIndirecte: number;   // cost-to-serve alloué (part des charges indirectes)
+  margeNette: number;           // margeBrute − quotePartIndirecte
+  margeNettePct: number;
+  statut: ClientStatut;
+}
+
+export interface CostToServeResult {
+  clients: ClientNet[];
+  indirectPool: number;         // charges cl.6 non directement affectées, réparties
+}
+
+/**
+ * Statut de rentabilité (CDC §8.1) : une marge négative n'est DÉFICITAIRE (statut
+ * officiel) qu'en vue 12 mois glissants ; en vue période/exercice, elle ne
+ * déclenche qu'un signal À SURVEILLER (elle peut être un accident ponctuel).
+ * Une marge positive mais faible (< 5 %) est aussi À SURVEILLER.
+ */
+export function clientStatut(margeNette: number, margeNettePct: number, view: CumulView): ClientStatut {
+  if (margeNette < 0) return view === 'glissant12' ? 'DEFICITAIRE' : 'A_SURVEILLER';
+  if (margeNettePct < 5) return 'A_SURVEILLER';
+  return 'RENTABLE';
+}
+
+/**
+ * Applique le cost-to-serve : répartit le pool de charges cl.6 NON directement
+ * attribuées au prorata du CA de chaque client (clé V1 = % CA), en plus fort
+ * reste (Σ quote-part = pool). Calcule marge nette et statut. Fonction pure.
+ */
+export function withCostToServe(report: ClientRevenueReport, view: CumulView): CostToServeResult {
+  const directAttribue = report.clients.reduce((s, c) => s + (c.code ? c.coutDirect : 0), 0);
+  const indirectPool = Math.max(0, report.totalCharges6 - directAttribue);
+  const coded = report.clients.filter(c => c.code);
+  const parts = largestRemainderAllocate(indirectPool, coded.map(c => Math.max(0, c.ca)));
+  const quoteByCode = new Map<string, number>();
+  coded.forEach((c, i) => quoteByCode.set(c.code, parts[i] || 0));
+
+  const clients: ClientNet[] = report.clients.map(c => {
+    const quote = c.code ? (quoteByCode.get(c.code) || 0) : 0;
+    const margeNette = c.margeBrute - quote;
+    const margeNettePct = c.ca !== 0 ? Math.round((margeNette / c.ca) * 100) : 0;
+    const statut: ClientStatut = c.code ? clientStatut(margeNette, margeNettePct, view) : 'RENTABLE';
+    return { ...c, quotePartIndirecte: quote, margeNette, margeNettePct, statut };
+  });
+  return { clients, indirectPool };
+}
+
+export interface WhalePoint {
+  code: string; name: string; margeNette: number;
+  cumulMarge: number;           // marge cumulée (monte puis redescend avec les destructeurs)
+  cumulPct: number;             // cumul / marge positive totale (%), le pic > 100 %
+}
+
+/**
+ * Courbe en baleine : clients triés par marge nette décroissante, marge cumulée.
+ * Le sommet dépasse 100 % puis redescend — la zone descendante = clients qui
+ * DÉTRUISENT de la marge. Fonction pure.
+ */
+export function buildWhaleCurve(clients: ClientNet[]): WhalePoint[] {
+  const coded = clients.filter(c => c.code).slice().sort((a, b) => b.margeNette - a.margeNette);
+  const totalPositive = coded.filter(c => c.margeNette > 0).reduce((s, c) => s + c.margeNette, 0) || 1;
+  let cum = 0;
+  return coded.map(c => {
+    cum += c.margeNette;
+    return { code: c.code, name: c.name, margeNette: c.margeNette, cumulMarge: cum, cumulPct: Math.round((cum / totalPositive) * 100) };
+  });
 }

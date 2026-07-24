@@ -85,6 +85,7 @@ const TABLE_MAP: Record<TableName, string> = {
   integrationDeadLetters: 'integration_dead_letters',
   integrationApiKeys: 'integration_api_keys',
   entrySequences: 'entry_sequences',
+  budgetEngagements: 'budget_engagements',
 }
 
 // ─── Normaliseurs snake_case → camelCase ─────────────────────────────────────
@@ -290,6 +291,7 @@ const TABLE_NORMALIZERS: Record<string, (r: any) => any> = {
   integration_dead_letters:  normalizeGeneric,
   integration_api_keys:      normalizeGeneric,
   entry_sequences:           normalizeGeneric,
+  budget_engagements:        normalizeGeneric,
 }
 
 export class SupabaseAdapter implements DataAdapter {

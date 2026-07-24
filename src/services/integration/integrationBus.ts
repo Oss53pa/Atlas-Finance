@@ -12,6 +12,8 @@
 import type { DataAdapter } from '@atlas/data';
 import { sha256Hex } from '../../utils/integrity';
 import { postEvent, type PostEventOptions } from './postingEngine';
+import { autoLettrerPayment, PAYMENT_EVENT_ACCOUNTS } from './paymentLettrage';
+import { recordPurchaseEngagement } from './procurementEngagement';
 import type {
   IntegrationEvent,
   IntegrationEventPayload,
@@ -140,11 +142,33 @@ export async function processPendingEvents(
         errorCode: null,
         errorDetail: null,
       } as any);
+      // Cycle vente/achat : un règlement lettre automatiquement sa (ses)
+      // facture(s) au collectif (411/401) → la créance sort des créances âgées.
+      // Non bloquant : un échec de lettrage ne remet pas l'écriture en cause.
+      const lettrageAccount = PAYMENT_EVENT_ACCOUNTS[event.eventType];
+      if (lettrageAccount && outcome.journalEntryId) {
+        const tp = event.payload?.thirdParty?.code;
+        if (tp) {
+          try {
+            await autoLettrerPayment(adapter, {
+              paymentEntryId: outcome.journalEntryId,
+              thirdPartyCode: tp,
+              accountPrefix: lettrageAccount,
+            });
+          } catch { /* lettrage auto best-effort — laissé au manuel si échec */ }
+        }
+      }
       continue;
     }
 
     if (outcome.status === 'ignored') {
       result.ignored++;
+      // Cycle achat : une commande approuvée ne produit pas d'écriture (ce n'est
+      // pas une charge) mais réserve du budget → engagement budgétaire. Idempotent
+      // et non bloquant (best-effort) : un échec ne remet pas l'événement en cause.
+      if (event.eventType === 'purchase.order.approved') {
+        try { await recordPurchaseEngagement(adapter, event); } catch { /* laissé au manuel */ }
+      }
       await adapter.update('integrationEvents', event.id, {
         status: 'ignored',
         attempts,

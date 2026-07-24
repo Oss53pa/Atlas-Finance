@@ -16,6 +16,7 @@
  */
 import type { DataAdapter } from '@atlas/data';
 import { largestRemainderAllocate } from '../../../utils/allocation';
+import { evaluateControls, type ControlResult } from './controlsService';
 
 function getClient(adapter: DataAdapter): any | null {
   const c = (adapter as any).client;
@@ -26,6 +27,7 @@ function tenantOf(adapter: DataAdapter): string {
 }
 
 export type RuleType = 'DIRECT' | 'PRIMAIRE' | 'SECONDAIRE';
+export type Comportement = 'fixe' | 'variable' | 'mixte';
 
 export interface AllocationRule {
   id: string;
@@ -39,6 +41,20 @@ export interface AllocationRule {
   key_id: string | null;
   source_section_id: string | null;
   actif: boolean;
+  comportement: Comportement | null;   // null = dériver du compte par nature
+  pct_variable: number | null;         // part variable si comportement='mixte'
+}
+
+/**
+ * Comportement de charge par défaut selon la nature du compte SYSCOHADA
+ * (préchargé plateforme, cf. CDC §5.1) : 60x variable, 61x/62x mixte,
+ * 63x/64x/66x/68x fixe. Toute autre nature → fixe. Une règle peut surcharger.
+ */
+export function defaultComportement(accountCode: string): Comportement {
+  const c = String(accountCode || '');
+  if (c.startsWith('60')) return 'variable';
+  if (c.startsWith('61') || c.startsWith('62')) return 'mixte';
+  return 'fixe';
 }
 
 export interface AllocationKey {
@@ -70,6 +86,8 @@ export interface AllocationRun {
   id: string;
   exercice: number;
   statut: string;
+  phase: 'brouillon' | 'simule' | 'controle' | 'publie';
+  version_run: number;
   hash_audit: string | null;
   couverture_pct: number;
   montant_gl: number;
@@ -79,6 +97,8 @@ export interface AllocationRun {
   reconcilie: boolean;
   detail: { classes: ReconciliationClasse[] } | null;
   executed_at: string;
+  publie_le: string | null;
+  publie_par: string | null;
 }
 
 export interface SecondaryTransfer {
@@ -97,6 +117,9 @@ export interface RunReport {
   topNonFleches: Array<{ account_code: string; account_name: string; montant: number }>;
   secondaryTransfers: SecondaryTransfer[];
   secondaryTotal: number;
+  runId: string;
+  reliquatCount: number;
+  controls: ControlResult[];
 }
 
 const chunk = <T,>(arr: T[], n: number): T[][] => {
@@ -128,10 +151,11 @@ export async function createRule(adapter: DataAdapter, rule: {
   type?: RuleType; ordre?: number; compte_pattern?: string; journal_pattern?: string;
   libelle_pattern?: string; tiers_pattern?: string; section_id: string;
   key_id?: string | null; source_section_id?: string | null;
-}): Promise<void> {
+  comportement?: Comportement | null; pct_variable?: number | null;
+}): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
-  const { error } = await client.from('fna_allocation_rule').insert({
+  const { data, error } = await client.from('fna_allocation_rule').insert({
     tenant_id: tenantOf(adapter),
     type: rule.type || 'DIRECT',
     ordre: rule.ordre ?? 100,
@@ -142,8 +166,23 @@ export async function createRule(adapter: DataAdapter, rule: {
     section_id: rule.section_id,
     key_id: rule.key_id || null,
     source_section_id: rule.source_section_id || null,
+    comportement: rule.comportement || null,
+    pct_variable: rule.comportement === 'mixte' ? (rule.pct_variable ?? null) : null,
     actif: true,
-  });
+  }).select('id').single();
+  if (error) throw new Error(error.message);
+  return (data as any).id as string;
+}
+
+/** Met à jour le comportement d'une règle (fixe/variable/mixte + part variable). */
+export async function setRuleComportement(
+  adapter: DataAdapter, id: string, comportement: Comportement | null, pctVariable?: number | null,
+): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('fna_allocation_rule')
+    .update({ comportement: comportement || null, pct_variable: comportement === 'mixte' ? (pctVariable ?? null) : null })
+    .eq('id', id);
   if (error) throw new Error(error.message);
 }
 
@@ -214,6 +253,22 @@ export async function listRuns(adapter: DataAdapter, limit = 10): Promise<Alloca
   })) as AllocationRun[];
 }
 
+/**
+ * Publie un run : le fige (immuable via RLS). Refusé si un contrôle BLOQUANT est
+ * en échec (CDC §5.4/§7). Après publication, tout nouveau run exige justification.
+ */
+export async function publishRun(adapter: DataAdapter, runId: string, publishedBy?: string | null): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { data: ctrls } = await client.from('ana_controle').select('severite,resultat').eq('run_id', runId);
+  const blocking = (ctrls ?? []).some((c: any) => c.severite === 'bloquant' && c.resultat === 'ko');
+  if (blocking) throw new Error('Publication interdite : au moins un contrôle bloquant est en échec.');
+  const { error } = await client.from('fna_allocation_run')
+    .update({ phase: 'publie', publie_le: new Date().toISOString(), publie_par: publishedBy || null })
+    .eq('id', runId);
+  if (error) throw new Error(error.message);
+}
+
 // Lecture des lignes de GL analytiques (classes 2/6/7) de l'exercice, paginée
 // (PostgREST tronque à 1000 → on boucle en .range).
 async function loadGlLines(client: any, exercice: number): Promise<any[]> {
@@ -261,21 +316,47 @@ function matchRuleOfType(line: any, rules: AllocationRule[], type: RuleType): Al
  * réel, écrit les ventilations (idempotent), calcule couverture & réconciliation,
  * trace le run (immuable). Renvoie le rapport.
  */
-export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null): Promise<RunReport> {
+export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null): Promise<RunReport> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = tenantOf(adapter);
 
+  // Versionnage & garde de re-run : après publication, un nouveau run exige une
+  // justification (le run publié reste immuable). Version incrémentée par exercice.
+  const { data: priorRuns } = await client.from('fna_allocation_run')
+    .select('version_run,phase').eq('exercice', exercice).order('version_run', { ascending: false }).limit(1);
+  const versionRun = ((priorRuns?.[0]?.version_run as number) || 0) + 1;
+  const { data: publishedRuns } = await client.from('fna_allocation_run')
+    .select('id').eq('exercice', exercice).eq('phase', 'publie').limit(1);
+  if ((publishedRuns?.length ?? 0) > 0 && !(justification && justification.trim())) {
+    throw new Error('Une version publiée existe pour cet exercice : une justification est requise pour lancer un nouveau run.');
+  }
+  // Id de run généré côté client : fna_allocation_run est INSERT-ONLY en RLS (pas
+  // d'UPDATE possible), donc on calcule tout en mémoire puis on insère le run
+  // AVANT les ventilations (contrainte FK ventilations.run_id → run).
+  const runId: string = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+
   const [rules, lines] = await Promise.all([listRules(adapter), loadGlLines(client, exercice)]);
+
+  // Affectations manuelles persistées (file de qualification) : ré-appliquées à
+  // chaque run tant qu'aucune règle ne couvre la ligne. Clé = ligne_gl_id.
+  const { data: qData } = await client.from('ana_qualification')
+    .select('ligne_gl_id,section_id').eq('statut', 'affecte').not('section_id', 'is', null);
+  const manualMap = new Map<string, string>((qData ?? []).map((q: any) => [q.ligne_gl_id, q.section_id]));
+
+  // Méta sections (nature, statut) + axes (type sémantique) pour C3/C4/C5.
+  const [{ data: secData }, { data: axeData }] = await Promise.all([
+    client.from('sections_analytiques').select('id,axe_id,nature,statut'),
+    client.from('axes_analytiques').select('id,type_axe'),
+  ]);
+  const axeType = new Map<string, string | null>((axeData ?? []).map((a: any) => [a.id, a.type_axe ?? null]));
+  const sectionMeta = new Map<string, { nature: string | null; type_axe: string | null; statut?: string | null }>(
+    (secData ?? []).map((s: any) => [s.id, { nature: s.nature ?? null, type_axe: axeType.get(s.axe_id) ?? null, statut: s.statut ?? null }]));
 
   // Montant analytique en centimes entiers (debit - credit).
   const cents = (l: any) => Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100);
 
-  // Idempotence : on efface les ventilations des lignes de ce périmètre.
   const lineIds = lines.map(l => l.id);
-  for (const c of chunk(lineIds, 200)) {
-    await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
-  }
 
   // Charge les valeurs des clés utilisées par les règles PRIMAIRE et SECONDAIRE.
   const primaireRules = rules.filter(r => r.actif && r.type === 'PRIMAIRE' && r.key_id);
@@ -286,6 +367,11 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   }
 
   const lineFcfa = (l: any) => Math.round((Number(l.debit) || 0) - (Number(l.credit) || 0));
+  // Comportement résolu : override de règle sinon nature du compte.
+  const compOf = (l: any, r: AllocationRule | null): { comportement: Comportement; pct_variable: number | null } => {
+    const comp = (r?.comportement as Comportement | null) || defaultComportement(l.account_code);
+    return { comportement: comp, pct_variable: comp === 'mixte' ? (r?.pct_variable ?? null) : null };
+  };
   const ventRows: any[] = [];
   const assigned = new Set<string>();
 
@@ -294,7 +380,8 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     const r = matchRuleOfType(l, rules, 'DIRECT');
     if (!r) continue;
     assigned.add(l.id);
-    ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: r.section_id, pourcentage: 100, montant: lineFcfa(l) });
+    const { comportement, pct_variable } = compOf(l, r);
+    ventRows.push({ tenant_id: tenantId, run_id: runId, ligne_ecriture_id: l.id, section_id: r.section_id, pourcentage: 100, montant: lineFcfa(l), etage: 'direct', regle_id: r.id, comportement, pct_variable });
   }
 
   // Stage 2 — répartition PRIMAIRE du résidu (charges indirectes) par clé,
@@ -306,6 +393,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     const weights = keyWeightsMap.get(r.key_id) || [];
     if (weights.length === 0) continue;
     const fcfa = lineFcfa(l);
+    const { comportement, pct_variable } = compOf(l, r);
     const parts = largestRemainderAllocate(fcfa, weights.map(w => w.valeur));
     weights.forEach((w, i) => {
       if (parts[i] === 0) return;
@@ -314,15 +402,26 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
       // 0,00) ferait ÉCHOUER l'insert. On clampe en [0,01 ; 100] (valeur absolue). Le `montant`
       // signé reste la source de vérité ; le pourcentage n'est qu'indicatif.
       const pct = fcfa !== 0 ? Math.abs((parts[i] / fcfa) * 100) : 100;
-      ventRows.push({ tenant_id: tenantId, ligne_ecriture_id: l.id, section_id: w.section_id, pourcentage: Math.min(100, Math.max(0.01, Math.round(pct * 100) / 100)), montant: parts[i] });
+      ventRows.push({ tenant_id: tenantId, run_id: runId, ligne_ecriture_id: l.id, section_id: w.section_id, pourcentage: Math.min(100, Math.max(0.01, Math.round(pct * 100) / 100)), montant: parts[i], etage: 'primaire', regle_id: r.id, comportement, pct_variable });
     });
     assigned.add(l.id);
   }
 
-  for (const c of chunk(ventRows, 500)) {
-    const { error } = await client.from('ventilations_analytiques').insert(c);
-    if (error) throw new Error(error.message);
+  // Stage 2bis — affectation MANUELLE persistée : les lignes non couvertes par une
+  // règle mais déjà qualifiées à la main sont ré-appliquées (100 % sur la section).
+  for (const l of lines) {
+    if (assigned.has(l.id)) continue;
+    const sectionId = manualMap.get(l.id);
+    if (!sectionId) continue;
+    assigned.add(l.id);
+    const { comportement, pct_variable } = compOf(l, null);
+    ventRows.push({ tenant_id: tenantId, run_id: runId, ligne_ecriture_id: l.id, section_id: sectionId, pourcentage: 100, montant: lineFcfa(l), etage: 'manuel', regle_id: null, comportement, pct_variable });
   }
+
+  // Reliquat : lignes attribuables (cl. 6/7) ni fléchées ni qualifiées → file.
+  const reliquatRows = lines
+    .filter(l => !assigned.has(l.id) && /^[67]/.test(String(l.account_code || '')))
+    .map(l => ({ tenant_id: tenantId, run_id: runId, ligne_gl_id: l.id, statut: 'en_attente' }));
 
   // Stage 3 — SECONDAIRE (méthode step-down) : déverse le pool de coûts de chaque
   // section auxiliaire sur les principales par clé. Transferts section→section de
@@ -342,13 +441,6 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
       poolBySection.set(w.section_id, (poolBySection.get(w.section_id) || 0) + parts[i]);
     });
     poolBySection.set(r.source_section_id!, 0); // auxiliaire vidée
-  }
-  // Idempotence : remplace les transferts de l'exercice (RLS limite au tenant).
-  await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
-  for (const c of chunk(transferRows, 500)) {
-    if (!c.length) continue;
-    const { error } = await client.from('fna_secondary_transfer').insert(c);
-    if (error) throw new Error(error.message);
   }
 
   // Réconciliation par classe (centimes entiers, valeurs absolues pour la couverture).
@@ -392,20 +484,68 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   const hash = auditHash([exercice, totGlCents, totVentCents, ventRows.length, rules.filter(r => r.actif).length].join('|'));
 
   const detail = { classes };
-  await client.from('fna_allocation_run').insert({
-    tenant_id: tenantId,
-    exercice,
-    statut: reconcilie ? 'success' : 'failed',
-    hash_audit: hash,
-    couverture_pct: couverture,
-    montant_gl: totGlCents,
-    montant_ventile: totVentCents,
-    nb_lignes_gl: lines.length,
-    nb_lignes_ventilees: assigned.size,
-    reconcilie,
-    detail,
-    executed_by: executedBy || null,
+
+  // ── Persistance ordonnée ───────────────────────────────────────────────────
+  // 1) Idempotence : purge du périmètre (ventilations + reliquat en_attente ; les
+  //    affectations manuelles 'affecte' sont conservées). Transferts de l'exercice.
+  for (const c of chunk(lineIds, 200)) {
+    await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
+    await client.from('ana_qualification').delete().eq('statut', 'en_attente').in('ligne_gl_id', c);
+  }
+  await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
+
+  // 2) Run inséré AVANT les ventilations (FK ventilations.run_id → run). Id explicite.
+  {
+    const { error } = await client.from('fna_allocation_run').insert({
+      id: runId,
+      tenant_id: tenantId,
+      exercice,
+      statut: reconcilie ? 'success' : 'failed',
+      phase: 'simule',
+      version_run: versionRun,
+      justification_rerun: justification?.trim() || null,
+      hash_audit: hash,
+      couverture_pct: couverture,
+      montant_gl: totGlCents,
+      montant_ventile: totVentCents,
+      nb_lignes_gl: lines.length,
+      nb_lignes_ventilees: assigned.size,
+      reconcilie,
+      detail,
+      executed_by: executedBy || null,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  // 3) Ventilations, transferts, reliquat.
+  for (const c of chunk(ventRows, 500)) {
+    const { error } = await client.from('ventilations_analytiques').insert(c);
+    if (error) throw new Error(error.message);
+  }
+  for (const c of chunk(transferRows, 500)) {
+    if (!c.length) continue;
+    const { error } = await client.from('fna_secondary_transfer').insert(c);
+    if (error) throw new Error(error.message);
+  }
+  for (const c of chunk(reliquatRows, 500)) {
+    if (!c.length) continue;
+    // ignoreDuplicates : ne pas écraser une éventuelle affectation manuelle existante.
+    const { error } = await client.from('ana_qualification')
+      .upsert(c, { onConflict: 'tenant_id,ligne_gl_id', ignoreDuplicates: true });
+    if (error) throw new Error(error.message);
+  }
+
+  // 4) Contrôles typés C1..C10 (rapport attaché au run).
+  const lineCode = new Map<string, string>(lines.map(l => [l.id, String(l.account_code || '')]));
+  const controls = evaluateControls({
+    reconcilie, couverturePct: couverture, reliquatCount: reliquatRows.length,
+    ventRows, transferRows, lineCode, sectionMeta, hasSecondaire: secondaireRules.length > 0,
   });
+  {
+    const rows = controls.map(c => ({ tenant_id: tenantId, run_id: runId, code: c.code, severite: c.severite, resultat: c.resultat, detail: c.detail }));
+    const { error } = await client.from('ana_controle').insert(rows);
+    if (error) throw new Error(error.message);
+  }
 
   const topNonFleches = Array.from(nonFleches.values()).sort((a, b) => b.montant - a.montant).slice(0, 12);
   const secondaryTransfers: SecondaryTransfer[] = transferRows.map(t => ({ from_section_id: t.from_section_id, to_section_id: t.to_section_id, montant: t.montant }));
@@ -419,6 +559,9 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     topNonFleches,
     secondaryTransfers,
     secondaryTotal: secondaryTransfers.reduce((s, t) => s + t.montant, 0),
+    runId,
+    reliquatCount: reliquatRows.length,
+    controls,
   };
 }
 

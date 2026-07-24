@@ -198,7 +198,10 @@ begin
 
         -- ── Atlas People — paie ───────────────────────────────────────────
         ('payroll.run.validated',    'gross_salary',      '',       '661000', null,     false, true ),
-        ('payroll.run.validated',    'social_employer',   '',       '664000', null,     false, true ),
+        -- Charge patronale : 664 D (charge) ET 431 C (dette envers l'organisme
+        -- social) — deux lignes auto-équilibrées, sinon l'écriture de paie serait
+        -- déséquilibrée du montant patronal.
+        ('payroll.run.validated',    'social_employer',   '',       '664000', '431000', false, true ),
         ('payroll.run.validated',    'social_employee',   '',       null,     '431000', false, false),
         ('payroll.run.validated',    'income_tax_withheld','',      null,     '447000', false, false),
         ('payroll.run.validated',    'other_deductions',  '',       null,     '427000', true,  false),
