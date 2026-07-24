@@ -297,6 +297,7 @@ const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettes
 
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
+const FrameworkPage = lazyRetry(() => import('./pages/framework/FrameworkPage'));
 const TVATaxesPage = lazyRetry(() => import('./pages/config/TVATaxesPage'));
 const MultiSocietesPage = lazyRetry(() => import('./pages/config/MultiSocietesPage'));
 const AssistantDemarragePage = lazyRetry(() => import('./pages/config/AssistantDemarragePage'));
@@ -670,6 +671,7 @@ function App() {
                         {/* Config */}
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
+                          <Route path="/config/referentiel" element={work(<FrameworkPage />)} />
                           <Route path="/config/tva" element={<TVATaxesPage />} />
                           <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
                           <Route path="/config/multi-sites" element={<MultiSitesPage />} />
