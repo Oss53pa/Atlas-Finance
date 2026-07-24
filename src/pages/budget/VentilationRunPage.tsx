@@ -24,7 +24,7 @@ import {
 import { listControls, type ControlResult } from '../../features/budget/services/controlsService';
 import { countQueue } from '../../features/budget/services/qualificationService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox, Network, Gauge,
 } from 'lucide-react';
 
 const CONTROL_LABEL: Record<string, string> = {
@@ -195,6 +195,12 @@ const VentilationRunPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Moteur de Ventilation</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Reconstruction analytique du grand livre · Exercice {annee} · déterministe & réconcilié</p>
         </div>
+        <button onClick={() => navigate('/analytique/dependance')} className="px-3 py-2 text-sm border border-[var(--color-border)] text-gray-600 rounded-lg hover:bg-gray-50 flex items-center gap-2" title="Concentration & dépendance tiers">
+          <Network className="w-4 h-4" />Dépendance
+        </button>
+        <button onClick={() => navigate('/analytique/point-mort')} className="px-3 py-2 text-sm border border-[var(--color-border)] text-gray-600 rounded-lg hover:bg-gray-50 flex items-center gap-2" title="Marge sur coûts variables & point mort">
+          <Gauge className="w-4 h-4" />Point mort
+        </button>
         {isProph3tCoreConfigured() && (
           <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
             <Bot className="w-4 h-4" />{prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
