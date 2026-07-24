@@ -76,6 +76,50 @@ Deno.serve(async (req: Request) => {
     return json(corsHeaders, 400, { success: false, error: 'Format email invalide' });
   }
 
+  // ── (SEC-02) Autorisation de l'appelant — DOIT être Administrateur ──────────
+  // Avant : la fonction n'exigeait que l'AUTHENTIFICATION → tout membre pouvait
+  // provisionner un compte, y compris role='Administrateur' (le rôle vient du
+  // body client) = escalade de privilège via service_role.
+  //
+  // La qualité « admin » est reconnue par DEUX sources (audit base live 2026-07-24) :
+  //   - profiles.role = 'admin'                          (source peuplée, 2 admins)
+  //   - user_companies.role = 'Administrateur'           (table autoritative, 1 membre)
+  // On accepte l'UNION : sinon on verrouillerait un admin réel présent dans
+  // profiles mais absent de user_companies (cas atokounafamily@gmail.com).
+  const ALLOWED_ROLES = ['Administrateur', 'Manager', 'Comptable', 'Lecteur'];
+
+  const [{ data: callerProfileRow }, { data: callerMemberships, error: membershipErr }] =
+    await Promise.all([
+      supabase.from('profiles').select('company_id, role').eq('id', caller.id).maybeSingle(),
+      supabase.from('user_companies').select('company_id, role').eq('user_id', caller.id),
+    ]);
+
+  if (membershipErr) {
+    return json(corsHeaders, 500, { success: false, error: 'Vérification des droits impossible' });
+  }
+
+  // Valeurs admin réelles (base live) : profiles.role ∈ (admin, super_admin) ;
+  // on tolère aussi 'administrateur' (orthographe WiseBook) par robustesse.
+  const profileRole = String(callerProfileRow?.role ?? '').toLowerCase();
+  const isProfileAdmin = ['admin', 'super_admin', 'administrateur'].includes(profileRole);
+  const adminCompanyIds = new Set(
+    (callerMemberships ?? [])
+      .filter((m: { role?: string }) => m.role === 'Administrateur')
+      .map((m: { company_id?: string }) => m.company_id),
+  );
+  const isCallerAdmin = isProfileAdmin || adminCompanyIds.size > 0;
+
+  if (!isCallerAdmin) {
+    return json(corsHeaders, 403, {
+      success: false,
+      error: 'Droits insuffisants : seul un Administrateur peut créer des utilisateurs.',
+    });
+  }
+
+  // Rôle assigné : borné à l'énumération WiseBook (jamais un rôle plateforme via
+  // cette fonction). Défaut prudent = Lecteur (lecture seule).
+  const requestedRole = ALLOWED_ROLES.includes(String(role)) ? String(role) : 'Lecteur';
+
   const redirectTo = `${SITE_URL.replace(/\/$/, '')}/premier-connexion`;
 
   // ── Génération du lien anti-prefetch ─────────────────────────────────────
@@ -121,7 +165,7 @@ Deno.serve(async (req: Request) => {
           data: {
             first_name: prenom,
             last_name: nom,
-            role,
+            role: requestedRole,
             invited_at: new Date().toISOString(),
             invited_by: 'atlas-fna',
           },
@@ -179,13 +223,14 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Créer/mettre à jour les tables d'appartenance ────────────────────────
-  const { data: callerProfile } = await supabase
-    .from('profiles')
-    .select('company_id')
-    .eq('id', caller.id)
-    .single();
-
-  const companyId = callerProfile?.company_id ?? null;
+  // Tenant du nouvel utilisateur = la société de l'appelant. Si l'appelant est
+  // admin via user_companies, on privilégie une société où il l'est réellement
+  // (recoupée avec son profil) ; sinon on retombe sur son company_id de profil.
+  // On NE fait JAMAIS confiance à un company_id fourni par le client.
+  const companyId =
+    (callerProfileRow?.company_id && adminCompanyIds.has(callerProfileRow.company_id)
+      ? callerProfileRow.company_id
+      : ([...adminCompanyIds][0] ?? callerProfileRow?.company_id)) ?? null;
 
   if (userId) {
     // profiles — données de base utilisateur
@@ -205,7 +250,7 @@ Deno.serve(async (req: Request) => {
       await supabase.from('user_companies').upsert({
         user_id: userId,
         company_id: companyId,
-        role,
+        role: requestedRole,
         added_at: new Date().toISOString(),
       }, { onConflict: 'user_id,company_id' });
     }
@@ -219,7 +264,7 @@ Deno.serve(async (req: Request) => {
       email,
       first_name: prenom,
       last_name: nom,
-      role,
+      role: requestedRole,
       departement: departement ?? null,
       telephone: telephone ?? null,
       user_id: userId,
