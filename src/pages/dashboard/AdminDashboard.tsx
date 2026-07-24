@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { formatNumber } from '../../utils/formatters';
 import {
   Settings,
   Users,
@@ -146,7 +147,7 @@ const AdminDashboard: React.FC = () => {
   const systemMetrics = [
     {
       title: 'Ecritures comptables',
-      value: liveMetrics ? String(liveMetrics.entries) : '...',
+      value: liveMetrics ? formatNumber(liveMetrics.entries) : '...',
       change: 'Ecritures enregistrees',
       color: 'blue',
       icon: Database,
@@ -154,7 +155,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: 'Comptes du plan',
-      value: liveMetrics ? String(liveMetrics.accounts) : '...',
+      value: liveMetrics ? formatNumber(liveMetrics.accounts) : '...',
       change: 'Plan comptable SYSCOHADA',
       color: 'green',
       icon: Activity,
@@ -162,7 +163,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: 'Tiers',
-      value: liveMetrics ? String(liveMetrics.thirdParties) : '...',
+      value: liveMetrics ? formatNumber(liveMetrics.thirdParties) : '...',
       change: 'Clients et fournisseurs',
       color: 'orange',
       icon: Users,
@@ -170,7 +171,7 @@ const AdminDashboard: React.FC = () => {
     },
     {
       title: 'Immobilisations',
-      value: liveMetrics ? String(liveMetrics.assets) : '...',
+      value: liveMetrics ? formatNumber(liveMetrics.assets) : '...',
       change: 'Actifs enregistres',
       color: 'green',
       icon: HardDrive,
@@ -289,7 +290,7 @@ const AdminDashboard: React.FC = () => {
                   { label: 'Immobilisations', value: liveMetrics?.assets },
                 ].map((item) => (
                   <div key={item.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] text-center">
-                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value != null ? item.value : '…'}</p>
+                    <p className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value != null ? formatNumber(item.value) : '…'}</p>
                     <p className="text-sm text-[var(--color-text-secondary)]">{item.label}</p>
                   </div>
                 ))}

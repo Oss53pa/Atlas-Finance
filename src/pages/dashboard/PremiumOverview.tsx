@@ -26,8 +26,12 @@ import {
 } from '../../components/premium';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const MONTHS_SHORT = ['mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.', 'janv.', 'févr.', 'mars', 'avr.', 'mai'];
+const MONTHS_SHORT_KEYS = [
+  'monMay', 'monJun', 'monJul', 'monAug', 'monSep', 'monOct',
+  'monNov', 'monDec', 'monJan', 'monFeb', 'monMar', 'monApr', 'monMay',
+] as const;
 
 interface AccountingStats {
   ecritures: number;
@@ -46,6 +50,7 @@ const PremiumOverview: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [stats, setStats] = useState<AccountingStats>({
     ecritures: 0, comptes: 0, tiers: 0, immobilisations: 0, exercice: '—',
     totalDebit: 0, totalCredit: 0, classCount: {}, journauxOuverts: 0,
@@ -126,8 +131,9 @@ const PremiumOverview: React.FC = () => {
   }, [adapter]);
 
   // ─── Computed / derived ───
-  const firstName = user?.first_name || user?.name?.split(' ')[0] || 'Bienvenue';
-  const companyName = user?.company || 'Mon entreprise';
+  const firstName = user?.first_name || user?.name?.split(' ')[0] || t('premiumOverview.welcome');
+  const companyName = user?.company || t('premiumOverview.myCompany');
+  const monthsShort = useMemo(() => MONTHS_SHORT_KEYS.map((k) => t(`premiumOverview.${k}`)), [t]);
   const periodLabel = useMemo(
     () => new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }).replace(/^\w/, c => c.toUpperCase()),
     [],
@@ -142,12 +148,12 @@ const PremiumOverview: React.FC = () => {
     const classesValides = Object.keys(stats.classCount).length >= 5 ? 100 : Math.round((Object.keys(stats.classCount).length / 5) * 100);
     const ecrituresExist = stats.ecritures > 0 ? 100 : 0;
     return [
-      { label: 'Plan comptable', score: planComplet },
-      { label: 'Équilibre D = C', score: equilibre },
-      { label: 'Classes 1-9 valides', score: classesValides },
-      { label: 'Écritures saisies', score: ecrituresExist },
+      { label: t('premiumOverview.chartOfAccounts'), score: planComplet },
+      { label: t('premiumOverview.axisBalance'), score: equilibre },
+      { label: t('premiumOverview.axisClasses'), score: classesValides },
+      { label: t('premiumOverview.entriesRecorded'), score: ecrituresExist },
     ];
-  }, [stats, isBalanced, ecart]);
+  }, [stats, isBalanced, ecart, t]);
 
   const scoreGlobal = useMemo(() => {
     if (conformityAxes.length === 0) return 0;
@@ -158,11 +164,11 @@ const PremiumOverview: React.FC = () => {
   const chartSeries = useMemo(() => ([
     {
       key: 'ecritures',
-      label: 'Écritures saisies',
+      label: t('premiumOverview.entriesRecorded'),
       tone: 'gold' as const,
       data: stats.ecrituresMensuelles,
     },
-  ]), [stats.ecrituresMensuelles]);
+  ]), [stats.ecrituresMensuelles, t]);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -180,7 +186,7 @@ const PremiumOverview: React.FC = () => {
             items={[
               { label: 'Atlas Studio', onClick: () => navigate('/home') },
               { label: 'Atlas FnA', onClick: () => navigate('/home') },
-              { label: 'Vue exécutive' },
+              { label: t('premiumOverview.breadcrumbExecutive') },
             ]}
             rootIcon={null}
           />
@@ -190,7 +196,7 @@ const PremiumOverview: React.FC = () => {
               style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
             >
               <SearchIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span className="hidden md:inline" style={{ color: 'var(--color-text-tertiary)' }}>Rechercher un compte, tiers, écriture…</span>
+              <span className="hidden md:inline" style={{ color: 'var(--color-text-tertiary)' }}>{t('premiumOverview.searchPlaceholder')}</span>
               <kbd
                 className="hidden md:inline-flex items-center justify-center text-[10px] num-tabular font-medium"
                 style={{ background: 'var(--color-surface-hover)', padding: '0.125rem 0.375rem', borderRadius: 4, color: 'var(--color-text-tertiary)', border: '1px solid var(--color-border-light)' }}
@@ -198,10 +204,10 @@ const PremiumOverview: React.FC = () => {
                 ⌘K
               </kbd>
             </button>
-            <button className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-secondary)' }} aria-label="Notifications">
+            <button className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-secondary)' }} aria-label={t('premiumOverview.notifications')}>
               <Bell className="w-4 h-4" strokeWidth={1.5} />
             </button>
-            <button className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-secondary)' }} aria-label="Paramètres">
+            <button className="p-2 rounded-lg transition-colors" style={{ color: 'var(--color-text-secondary)' }} aria-label={t('premiumOverview.settings')}>
               <Settings className="w-4 h-4" strokeWidth={1.5} />
             </button>
           </div>
@@ -219,17 +225,17 @@ const PremiumOverview: React.FC = () => {
       >
         {/* ═════ Hero ═════ */}
         <HeroBrandHeader
-          eyebrow={`VUE EXÉCUTIVE · ${periodLabel.toUpperCase()}`}
+          eyebrow={`${t('premiumOverview.eyebrowExecutive')} · ${periodLabel.toUpperCase()}`}
           titleObsidian="Atlas"
           titleChampagne="FnA"
           subtitle={
             <>
-              ERP comptable conforme <strong style={{ color: 'var(--color-text-primary)' }}>SYSCOHADA révisé 2017</strong>.
-              Pilotage de la saisie, des journaux, du grand livre et des états financiers — pour {companyName}.
+              {t('premiumOverview.subtitlePre')} <strong style={{ color: 'var(--color-text-primary)' }}>{t('premiumOverview.syscohadaRevised')}</strong>
+              {t('premiumOverview.subtitlePost', { company: companyName })}
             </>
           }
           chips={[
-            { label: `Live · ${periodLabel}`, tone: 'live' },
+            { label: t('premiumOverview.chipLive', { period: periodLabel }), tone: 'live' },
             { label: companyName, tone: 'neutral' },
             { label: 'FCFA · XOF', tone: 'neutral' },
             { label: 'SYSCOHADA 2017', tone: 'gold' },
@@ -242,7 +248,7 @@ const PremiumOverview: React.FC = () => {
                 style={{ gap: '0.5rem', display: 'inline-flex', alignItems: 'center' }}
               >
                 <Download className="w-3.5 h-3.5" strokeWidth={1.6} />
-                <span>États financiers</span>
+                <span>{t('premiumOverview.btnFinancialStatements')}</span>
               </button>
               <button
                 onClick={() => navigate('/accounting/entries')}
@@ -250,7 +256,7 @@ const PremiumOverview: React.FC = () => {
                 style={{ background: 'var(--color-primary)', color: 'var(--color-text-inverse)', gap: '0.5rem', display: 'inline-flex', alignItems: 'center' }}
               >
                 <Plus className="w-3.5 h-3.5" strokeWidth={1.75} />
-                <span>Nouvelle écriture</span>
+                <span>{t('premiumOverview.btnNewEntry')}</span>
               </button>
             </>
           }
@@ -262,40 +268,40 @@ const PremiumOverview: React.FC = () => {
           style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
         >
           <KpiCardPremium
-            eyebrow="Écritures"
+            eyebrow={t('premiumOverview.kpiEntriesEyebrow')}
             value={stats.ecritures.toLocaleString('fr-FR')}
-            unit="pièces"
-            meta={`${stats.journauxOuverts || 0} journal(aux) ouvert(s)`}
+            unit={t('premiumOverview.kpiEntriesUnit')}
+            meta={t('premiumOverview.kpiJournalsOpen', { count: String(stats.journauxOuverts || 0) })}
             series={stats.ecrituresMensuelles.length > 0 ? stats.ecrituresMensuelles : [0, 0, 0, 0, 0, 0, 0, 0]}
             tone="gold"
             icon={<BookOpen className="w-3.5 h-3.5" />}
             onClick={() => navigate('/accounting/entries')}
           />
           <KpiCardPremium
-            eyebrow="Plan comptable"
+            eyebrow={t('premiumOverview.chartOfAccounts')}
             value={stats.comptes.toLocaleString('fr-FR')}
-            unit="comptes"
-            meta={`${Object.keys(stats.classCount).length} classe(s) SYSCOHADA`}
+            unit={t('premiumOverview.kpiAccountsUnit')}
+            meta={t('premiumOverview.kpiClassesMeta', { count: String(Object.keys(stats.classCount).length) })}
             series={[0, 0, 0, 0, 0, 0, 0, 0]}
             tone="neutral"
             icon={<Database className="w-3.5 h-3.5" />}
             onClick={() => navigate('/accounting/chart-of-accounts')}
           />
           <KpiCardPremium
-            eyebrow="Tiers"
+            eyebrow={t('premiumOverview.kpiTiersEyebrow')}
             value={stats.tiers.toLocaleString('fr-FR')}
-            unit="fiches"
-            meta="clients · fournisseurs · partenaires"
+            unit={t('premiumOverview.kpiTiersUnit')}
+            meta={t('premiumOverview.kpiTiersMeta')}
             series={[0, 0, 0, 0, 0, 0, 0, 0]}
             tone="success"
             icon={<Users className="w-3.5 h-3.5" />}
             onClick={() => navigate('/tiers')}
           />
           <KpiCardPremium
-            eyebrow="Immobilisations"
+            eyebrow={t('premiumOverview.kpiAssetsEyebrow')}
             value={stats.immobilisations.toLocaleString('fr-FR')}
-            unit="biens"
-            meta="amortissements en cours"
+            unit={t('premiumOverview.kpiAssetsUnit')}
+            meta={t('premiumOverview.kpiAssetsMeta')}
             series={[0, 0, 0, 0, 0, 0, 0, 0]}
             tone="warning"
             icon={<Package className="w-3.5 h-3.5" />}
@@ -322,18 +328,18 @@ const PremiumOverview: React.FC = () => {
                 <div className="flex items-center gap-2 mb-1.5">
                   <BarChart3 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} strokeWidth={1.6} />
                   <h3 className="font-medium" style={{ fontSize: '0.9375rem', letterSpacing: 0, color: 'var(--color-text-primary)' }}>
-                    Activité comptable — 13 mois glissants
+                    {t('premiumOverview.chartTitle')}
                   </h3>
                 </div>
                 <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
-                  Nombre d'écritures saisies par mois · indicateur de volume
+                  {t('premiumOverview.chartSubtitle')}
                 </p>
               </div>
-              <span className="chip chip-gold" style={{ padding: '0.25rem 0.5rem' }}>● Écritures</span>
+              <span className="chip chip-gold" style={{ padding: '0.25rem 0.5rem' }}>{t('premiumOverview.chartChipEntries')}</span>
             </header>
 
             <PremiumChart
-              xLabels={MONTHS_SHORT}
+              xLabels={monthsShort}
               series={chartSeries}
               height={260}
               yFormatter={(v) => `${v}`}
@@ -346,14 +352,14 @@ const PremiumOverview: React.FC = () => {
             >
               <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
                 <span>
-                  Total Débit{' '}
+                  {t('premiumOverview.footerTotalDebit')}{' '}
                   <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
                     {stats.totalDebit.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA
                   </strong>
                 </span>
                 <span>·</span>
                 <span>
-                  Total Crédit{' '}
+                  {t('premiumOverview.footerTotalCredit')}{' '}
                   <strong className="num-tabular" style={{ color: 'var(--color-text-primary)', fontWeight: 500 }}>
                     {stats.totalCredit.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA
                   </strong>
@@ -367,7 +373,7 @@ const PremiumOverview: React.FC = () => {
                 }}
               >
                 {isBalanced ? <CheckCircle2 className="w-3 h-3" strokeWidth={1.75} /> : <AlertTriangle className="w-3 h-3" strokeWidth={1.75} />}
-                {isBalanced ? 'Balance équilibrée' : `Écart : ${Math.abs(ecart).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA`}
+                {isBalanced ? t('premiumOverview.balanceBalanced') : t('premiumOverview.balanceVariance', { amount: Math.abs(ecart).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) })}
               </span>
             </footer>
           </div>
@@ -379,34 +385,34 @@ const PremiumOverview: React.FC = () => {
               insight={
                 stats.ecritures > 0 ? (
                   <>
-                    <strong>{Object.keys(stats.classCount).length}/9 classes SYSCOHADA</strong> utilisées sur{' '}
-                    <strong className="num-tabular">{stats.comptes.toLocaleString('fr-FR')}</strong> comptes.
-                    {isBalanced ? ' Balance équilibrée.' : ' Écart D ≠ C détecté.'}
+                    <strong>{t('premiumOverview.classesUsedFragment', { count: String(Object.keys(stats.classCount).length) })}</strong> {t('premiumOverview.usedAcross')}{' '}
+                    <strong className="num-tabular">{stats.comptes.toLocaleString('fr-FR')}</strong> {t('premiumOverview.accountsSuffix')}
+                    {isBalanced ? t('premiumOverview.balanceOkSentence') : t('premiumOverview.varianceSentence')}
                   </>
                 ) : (
                   <>
-                    Aucune écriture saisie. <strong>Proph3t</strong> vous guide pour configurer votre plan comptable SYSCOHADA et créer votre première pièce.
+                    {t('premiumOverview.noEntriesPre')}<strong>Proph3t</strong>{t('premiumOverview.noEntriesPost')}
                   </>
                 )
               }
               detail={
                 stats.ecritures > 0
-                  ? `Contrôle d'équilibre D=C en continu · piste d'audit chaînée SHA-256 · plan comptable OHADA conforme. Exercice ${stats.exercice}.`
-                  : 'Importez votre plan comptable depuis Sage, Ciel, EBP ou Odoo, ou utilisez l\'assistant de migration intégré.'
+                  ? t('premiumOverview.insightDetail', { exercice: stats.exercice })
+                  : t('premiumOverview.insightDetailEmpty')
               }
               primaryAction={{
-                label: stats.ecritures > 0 ? 'Voir le grand livre' : 'Démarrer la saisie',
+                label: stats.ecritures > 0 ? t('premiumOverview.primaryViewLedger') : t('premiumOverview.primaryStartEntry'),
                 onClick: () => navigate(stats.ecritures > 0 ? '/accounting/general-ledger' : '/accounting/entries'),
               }}
               secondaryAction={{
-                label: 'Détails conformité',
+                label: t('premiumOverview.secondaryConformity'),
                 onClick: () => navigate('/dashboard/ai-insights'),
               }}
             />
 
             <AuditScoreRing
-              title="Conformité SYSCOHADA"
-              subtitle={`Mai ${new Date().getFullYear()}`}
+              title={t('premiumOverview.auditTitle')}
+              subtitle={t('premiumOverview.auditSubtitleMay', { year: String(new Date().getFullYear()) })}
               score={scoreGlobal}
               outOf={100}
               axes={conformityAxes}
@@ -418,7 +424,7 @@ const PremiumOverview: React.FC = () => {
         <section>
           <header className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <span className="eyebrow-gold">Opérations comptables · vue rapide</span>
+              <span className="eyebrow-gold">{t('premiumOverview.opsQuickView')}</span>
             </div>
             <button
               onClick={() => navigate('/financial-statements/balance')}
@@ -427,52 +433,52 @@ const PremiumOverview: React.FC = () => {
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-accent-deep)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
             >
-              Voir tous les états financiers <ArrowUpRight className="w-3 h-3" strokeWidth={1.6} />
+              {t('premiumOverview.viewAllStatements')} <ArrowUpRight className="w-3 h-3" strokeWidth={1.6} />
             </button>
           </header>
           <MiniMetricStack
             columns={3}
             items={[
               {
-                eyebrow: 'JOURNAUX',
+                eyebrow: t('premiumOverview.miniJournals'),
                 value: stats.journauxOuverts.toString(),
-                unit: 'ouverts',
-                hint: 'ventes · achats · banque · OD',
+                unit: t('premiumOverview.miniJournalsUnit'),
+                hint: t('premiumOverview.miniJournalsHint'),
                 icon: <BookOpen className="w-3.5 h-3.5" />,
                 tone: 'gold',
               },
               {
-                eyebrow: 'BALANCE',
-                value: isBalanced ? 'D = C' : 'Écart',
-                hint: isBalanced ? 'contrôle en continu' : `${Math.abs(ecart).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA`,
+                eyebrow: t('premiumOverview.miniBalance'),
+                value: isBalanced ? 'D = C' : t('premiumOverview.miniBalanceVariance'),
+                hint: isBalanced ? t('premiumOverview.miniBalanceHintOk') : `${Math.abs(ecart).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA`,
                 icon: <CheckCircle2 className="w-3.5 h-3.5" />,
                 tone: isBalanced ? 'success' : 'danger',
               },
               {
-                eyebrow: 'EXERCICE',
+                eyebrow: t('premiumOverview.miniExercice'),
                 value: stats.exercice,
-                hint: 'fiscal en cours',
+                hint: t('premiumOverview.miniExerciceHint'),
                 icon: <Calendar className="w-3.5 h-3.5" />,
                 tone: 'obsidian',
               },
               {
-                eyebrow: 'CLASSES SYSCOHADA',
+                eyebrow: t('premiumOverview.miniClasses'),
                 value: `${Object.keys(stats.classCount).length} / 9`,
-                hint: 'plan comptable activé',
+                hint: t('premiumOverview.miniClassesHint'),
                 icon: <Database className="w-3.5 h-3.5" />,
                 tone: 'gold',
               },
               {
-                eyebrow: 'INTÉGRITÉ',
+                eyebrow: t('premiumOverview.miniIntegrity'),
                 value: 'SHA-256',
-                hint: 'audit chaîné OHADA',
+                hint: t('premiumOverview.miniIntegrityHint'),
                 icon: <Lock className="w-3.5 h-3.5" />,
                 tone: 'success',
               },
               {
-                eyebrow: 'CLÔTURE',
+                eyebrow: t('premiumOverview.miniClosing'),
                 value: '—',
-                hint: 'aucune clôture en cours',
+                hint: t('premiumOverview.miniClosingHint'),
                 icon: <ScrollText className="w-3.5 h-3.5" />,
                 tone: 'neutral',
               },
@@ -489,11 +495,11 @@ const PremiumOverview: React.FC = () => {
             <span className="gold-dot" />
             <span className="eyebrow-gold">
               <span className="atlas-brand" style={{ fontSize: '1.1em', letterSpacing: 'normal', textTransform: 'none' }}>Atlas FnA</span>
-              {' · v3.0 · SYSCOHADA révisé 2017 · OHADA 17 pays'}
+              {t('premiumOverview.footerVersion')}
             </span>
           </div>
           <span className="eyebrow num-tabular" style={{ color: 'var(--color-text-quaternary)' }}>
-            Score conformité · <strong style={{ color: 'var(--color-text-primary)' }}>{scoreGlobal}</strong>/100
+            {t('premiumOverview.footerScoreLabel')}<strong style={{ color: 'var(--color-text-primary)' }}>{scoreGlobal}</strong>/100
           </span>
         </footer>
       </div>

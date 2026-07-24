@@ -8,6 +8,7 @@ import { useData } from '../../contexts/DataContext';
 import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
 import SecurityActions from '../../components/security/SecurityActions';
+import { formatNumber } from '../../utils/formatters';
 import { toast } from 'sonner';
 
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
@@ -225,7 +226,7 @@ const AdminWorkspace: React.FC = () => {
   const renderWorkspace = () => (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-4 gap-4">
-        {[{title:'Ecritures',value:String(adminStats.entries),icon:FileText,color:'var(--color-accent)',change:'',up:true},{title:'Plan comptable',value:String(adminStats.accounts),icon:BarChart3,color:'var(--color-primary)',change:'',up:true},{title:'Tiers',value:String(adminStats.thirdParties),icon:Users,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Brouillons',value:String(adminStats.drafts),icon:AlertTriangle,color:'var(--color-warning)',change:adminStats.drafts > 0 ? `${adminStats.drafts} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
+        {[{title:'Ecritures',value:formatNumber(adminStats.entries),icon:FileText,color:'var(--color-accent)',change:'',up:true},{title:'Plan comptable',value:formatNumber(adminStats.accounts),icon:BarChart3,color:'var(--color-primary)',change:'',up:true},{title:'Tiers',value:formatNumber(adminStats.thirdParties),icon:Users,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Brouillons',value:formatNumber(adminStats.drafts),icon:AlertTriangle,color:'var(--color-warning)',change:adminStats.drafts > 0 ? `${formatNumber(adminStats.drafts)} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
           <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
             <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-[var(--color-error)] text-xs'}>{m.change}</span></div>
             <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>

@@ -17,6 +17,7 @@ import { usePrintReport } from '../../hooks/usePrint';
 import { formatCurrency } from '../../utils/formatters';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { money } from '../../utils/money';
+import { getAccountLabel } from '../../utils/accountLabels';
 import { getAgedReceivables, type AgedReceivable } from '../../features/balance/services/balanceService';
 
 interface BalanceAccount {
@@ -151,6 +152,19 @@ const Balance: React.FC = () => {
           }
         }
 
+        /**
+         * Libellé affichable d'un compte.
+         * Les nœuds intermédiaires de l'arbre (2 chiffres) n'existent pas toujours
+         * comme comptes réels : leur libellé retombait alors sur LE CODE LUI-MÊME
+         * (« 16 » libellé « 16 »). On complète par le référentiel SYSCOHADA, sans
+         * jamais écraser un libellé tenant existant.
+         */
+        const resolveLabel = (code: string, name?: string): string => {
+          const n = (name || '').trim();
+          if (n && n !== code) return n;
+          return getAccountLabel(code) || code;
+        };
+
         // Build hierarchical structure: Class > 2-digit > 3-digit
         const classeMap: Record<string, BalanceAccount> = {};
 
@@ -179,7 +193,7 @@ const Balance: React.FC = () => {
           if (!parent2 && acc.code.length >= 2) {
             parent2 = {
               code: code2,
-              libelle: acc.code.length === 2 ? acc.name : code2,
+              libelle: acc.code.length === 2 ? resolveLabel(acc.code, acc.name) : resolveLabel(code2),
               niveau: 2,
               parent: cls,
               soldeDebiteurAN: 0, soldeCrediteurAN: 0,
@@ -202,7 +216,7 @@ const Balance: React.FC = () => {
             const soldeNet = money(acc.debit).subtract(money(acc.credit)).add(money(anNetAcc)).toNumber();
             const leaf: BalanceAccount = {
               code: acc.code,
-              libelle: acc.name,
+              libelle: resolveLabel(acc.code, acc.name),
               niveau: 3,
               parent: code2,
               soldeDebiteurAN: accAnD, soldeCrediteurAN: accAnC,
@@ -225,7 +239,7 @@ const Balance: React.FC = () => {
             parent2.soldeCrediteur = p2Net < 0 ? Math.abs(p2Net) : 0;
           } else if (acc.code.length === 2 && parent2) {
             // 2-digit account: update its own name + À-Nouveau propre
-            parent2.libelle = acc.name;
+            parent2.libelle = resolveLabel(acc.code, acc.name);
             parent2.mouvementsDebit = money(parent2.mouvementsDebit).add(money(acc.debit)).toNumber();
             parent2.mouvementsCredit = money(parent2.mouvementsCredit).add(money(acc.credit)).toNumber();
             parent2.soldeDebiteurAN = money(parent2.soldeDebiteurAN).add(money(accAnD)).toNumber();

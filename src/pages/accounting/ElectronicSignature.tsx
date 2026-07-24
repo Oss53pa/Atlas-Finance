@@ -10,6 +10,7 @@ import {
   Filter, ChevronRight, PenTool, FileCheck, Award
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { formatNumber } from '../../utils/formatters';
 
 interface Document {
   id: string;
@@ -238,7 +239,7 @@ const ElectronicSignature: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Total Documents</span>
             <FileText className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-lg font-bold text-gray-900">{stats.total}</p>
+          <p className="text-lg font-bold text-gray-900">{formatNumber(stats.total)}</p>
         </div>
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">

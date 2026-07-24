@@ -217,7 +217,7 @@ const ChartOfAccountsPage: React.FC = () => {
             className="flex flex-col items-center space-y-4 bg-white/90 backdrop-blur-sm p-8 rounded-xl shadow-sm"
           >
             <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-lg font-medium text-neutral-700">Chargement du plan SYSCOHADA...</p>
+            <p className="text-lg font-medium text-neutral-700">{t('chartAccounts.loading')}</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -229,30 +229,30 @@ const ChartOfAccountsPage: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Plan Comptable SYSCOHADA"
-          subtitle="Plan comptable harmonisé à 9 positions selon l'Acte Uniforme OHADA 2017"
+          title={t('chartAccounts.title')}
+          subtitle={t('chartAccounts.subtitle')}
           icon={Book}
           action={
             <div className="flex gap-3 items-center">
-              <PageHeaderActions printTitle="Plan Comptable SYSCOHADA" />
+              <PageHeaderActions printTitle={t('chartAccounts.title')} />
               <ElegantButton variant="outline" icon={Upload} onClick={() => setShowImportModal(true)}>
-                Importer Plan
+                {t('chartAccounts.importPlan')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download} onClick={() => {
                 // Export Excel functionality
                 const csvContent = syscohadaPlan.map(acc =>
                   `${acc.code};${acc.libelle};${acc.classe};${acc.nature};${acc.sens_normal}`
                 ).join('\n');
-                const blob = new Blob([`Code;Libellé;Classe;Nature;Sens\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob([`${t('chartAccounts.csvHeader')}\n${csvContent}`], { type: 'text/csv;charset=utf-8;' });
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = `plan_comptable_syscohada_${new Date().toISOString().split('T')[0]}.csv`;
                 link.click();
               }}>
-                Exporter Excel
+                {t('chartAccounts.exportExcel')}
               </ElegantButton>
               <ElegantButton variant="primary" icon={Plus} onClick={() => setShowNewAccountModal(true)}>
-                Nouveau Compte
+                {t('chartAccounts.newAccount')}
               </ElegantButton>
             </div>
           }
@@ -261,9 +261,9 @@ const ChartOfAccountsPage: React.FC = () => {
         {/* KPI Cards - Statistiques du plan */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Total Comptes"
+            title={t('chartAccounts.kpiTotalAccounts')}
             value={planStats.total_comptes.toString()}
-            subtitle="Plan SYSCOHADA complet"
+            subtitle={t('chartAccounts.kpiTotalAccountsSub')}
             icon={Book}
             color="primary"
             delay={0.1}
@@ -271,9 +271,9 @@ const ChartOfAccountsPage: React.FC = () => {
           />
           
           <KPICard
-            title="Comptes Actifs"
+            title={t('chartAccounts.kpiActiveAccounts')}
             value={planStats.comptes_actifs.toString()}
-            subtitle={`${Math.round(planStats.comptes_actifs / planStats.total_comptes * 100)}% du plan`}
+            subtitle={t('chartAccounts.kpiActiveAccountsSub', { percent: String(Math.round(planStats.comptes_actifs / planStats.total_comptes * 100)) })}
             icon={CheckCircle}
             color="success"
             delay={0.2}
@@ -281,9 +281,9 @@ const ChartOfAccountsPage: React.FC = () => {
           />
           
           <KPICard
-            title="Comptes Collectifs"
+            title={t('chartAccounts.kpiCollectiveAccounts')}
             value={planStats.comptes_collectifs.toString()}
-            subtitle="Comptes de regroupement"
+            subtitle={t('chartAccounts.kpiCollectiveAccountsSub')}
             icon={FolderOpen}
             color="warning"
             delay={0.3}
@@ -291,9 +291,9 @@ const ChartOfAccountsPage: React.FC = () => {
           />
           
           <KPICard
-            title="Comptes Détail"
+            title={t('chartAccounts.kpiDetailAccounts')}
             value={planStats.comptes_detail.toString()}
-            subtitle="Comptes de saisie"
+            subtitle={t('chartAccounts.kpiDetailAccountsSub')}
             icon={FileText}
             color="neutral"
             delay={0.4}
@@ -309,7 +309,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher un compte (code ou libellé)..."
+                  placeholder={t('chartAccounts.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -321,16 +321,16 @@ const ChartOfAccountsPage: React.FC = () => {
                 onChange={(e) => setSelectedClass(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                 className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Toutes les classes</option>
-                <option value={1}>Classe 1 - Ressources Durables</option>
-                <option value={2}>Classe 2 - Actif Immobilisé</option>
-                <option value={3}>Classe 3 - Stocks</option>
-                <option value={4}>Classe 4 - Tiers</option>
-                <option value={5}>Classe 5 - Trésorerie</option>
-                <option value={6}>Classe 6 - Charges</option>
-                <option value={7}>Classe 7 - Produits</option>
-                <option value={8}>Classe 8 - Résultats</option>
-                <option value={9}>Classe 9 - Analytique</option>
+                <option value="all">{t('chartAccounts.allClasses')}</option>
+                <option value={1}>{t('chartAccounts.class1')}</option>
+                <option value={2}>{t('chartAccounts.class2')}</option>
+                <option value={3}>{t('chartAccounts.class3')}</option>
+                <option value={4}>{t('chartAccounts.class4')}</option>
+                <option value={5}>{t('chartAccounts.class5')}</option>
+                <option value={6}>{t('chartAccounts.class6')}</option>
+                <option value={7}>{t('chartAccounts.class7')}</option>
+                <option value={8}>{t('chartAccounts.class8')}</option>
+                <option value={9}>{t('chartAccounts.class9')}</option>
               </select>
 
               <select
@@ -338,11 +338,11 @@ const ChartOfAccountsPage: React.FC = () => {
                 onChange={(e) => setSelectedLevel(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                 className="px-4 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">Tous les niveaux</option>
-                <option value={1}>Niveau 1 - Comptes principaux</option>
-                <option value={2}>Niveau 2 - Sous-comptes</option>
-                <option value={3}>Niveau 3 - Détail</option>
-                <option value={4}>Niveau 4 - Analytique</option>
+                <option value="all">{t('chartAccounts.allLevels')}</option>
+                <option value={1}>{t('chartAccounts.level1')}</option>
+                <option value={2}>{t('chartAccounts.level2')}</option>
+                <option value={3}>{t('chartAccounts.level3')}</option>
+                <option value={4}>{t('chartAccounts.level4')}</option>
               </select>
             </div>
             
@@ -354,10 +354,10 @@ const ChartOfAccountsPage: React.FC = () => {
                   onChange={(e) => setShowInactive(e.target.checked)}
                   className="rounded border-neutral-300 text-blue-600 focus:ring-blue-500"
                 />
-                <span>Comptes inactifs</span>
+                <span>{t('chartAccounts.inactiveAccounts')}</span>
               </label>
               <ElegantButton variant="outline" icon={Filter} size="sm" onClick={() => setShowAdvancedFiltersModal(true)}>
-                Filtres Avancés
+                {t('chartAccounts.advancedFilters')}
               </ElegantButton>
             </div>
           </div>
@@ -372,13 +372,13 @@ const ChartOfAccountsPage: React.FC = () => {
           <UnifiedCard variant="elevated" size="lg">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-neutral-800">Plan Comptable SYSCOHADA - Structure Hiérarchique</h2>
+                <h2 className="text-lg font-bold text-neutral-800">{t('chartAccounts.hierarchicalStructure')}</h2>
                 <div className="flex gap-2">
                   <ElegantButton variant="outline" size="sm" icon={TreePine}>
-                    Vue Arbre
+                    {t('chartAccounts.treeView')}
                   </ElegantButton>
                   <ElegantButton variant="outline" size="sm" icon={Calculator}>
-                    Validation
+                    {t('chartAccounts.validation')}
                   </ElegantButton>
                 </div>
               </div>
@@ -387,15 +387,15 @@ const ChartOfAccountsPage: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gradient-to-r from-neutral-100 to-neutral-50">
                     <tr>
-                      <th className="text-left p-4 font-bold text-neutral-800">Code SYSCOHADA</th>
+                      <th className="text-left p-4 font-bold text-neutral-800">{t('chartAccounts.thCode')}</th>
                       <th className="text-left p-4 font-bold text-neutral-800">{t('accounting.label')}</th>
-                      <th className="text-center p-4 font-bold text-neutral-800">Classe</th>
-                      <th className="text-center p-4 font-bold text-neutral-800">Nature</th>
-                      <th className="text-center p-4 font-bold text-neutral-800">Sens</th>
-                      <th className="text-right p-4 font-bold text-neutral-800">Solde Débit</th>
-                      <th className="text-right p-4 font-bold text-neutral-800">Solde Crédit</th>
-                      <th className="text-center p-4 font-bold text-neutral-800">Mvts</th>
-                      <th className="text-center p-4 font-bold text-neutral-800">Actions</th>
+                      <th className="text-center p-4 font-bold text-neutral-800">{t('chartAccounts.thClass')}</th>
+                      <th className="text-center p-4 font-bold text-neutral-800">{t('chartAccounts.thNature')}</th>
+                      <th className="text-center p-4 font-bold text-neutral-800">{t('chartAccounts.thSens')}</th>
+                      <th className="text-right p-4 font-bold text-neutral-800">{t('chartAccounts.thDebitBalance')}</th>
+                      <th className="text-right p-4 font-bold text-neutral-800">{t('chartAccounts.thCreditBalance')}</th>
+                      <th className="text-center p-4 font-bold text-neutral-800">{t('chartAccounts.thMovements')}</th>
+                      <th className="text-center p-4 font-bold text-neutral-800">{t('chartAccounts.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-100">
@@ -433,7 +433,7 @@ const ChartOfAccountsPage: React.FC = () => {
                                   </div>
                                   {account.compte_parent && (
                                     <div className="text-xs text-neutral-500">
-                                      Parent: {account.compte_parent}
+                                      {t('chartAccounts.parentLabel')}: {account.compte_parent}
                                     </div>
                                   )}
                                 </div>
@@ -490,7 +490,7 @@ const ChartOfAccountsPage: React.FC = () => {
                               <div className="flex justify-center gap-1">
                                 <button
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                  aria-label="Voir les détails"
+                                  aria-label={t('chartAccounts.viewDetails')}
                                   onClick={() => {
                                     setSelectedAccount(account);
                                     setShowViewAccountModal(true);
@@ -518,7 +518,7 @@ const ChartOfAccountsPage: React.FC = () => {
                                 {!account.is_collectif && account.nb_mouvements === 0 && (
                                   <button
                                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                                    aria-label="Supprimer"
+                                    aria-label={t('chartAccounts.delete')}
                                     onClick={() => {
                                       setSelectedAccount(account);
                                       setShowDeleteConfirmModal(true);
@@ -546,8 +546,8 @@ const ChartOfAccountsPage: React.FC = () => {
           transition={{ delay: 0.6 }}
         >
           <ModernChartCard
-            title="Répartition des Comptes par Classe SYSCOHADA"
-            subtitle="Nombre de comptes actifs par classe"
+            title={t('chartAccounts.chartTitle')}
+            subtitle={t('chartAccounts.chartSubtitle')}
             icon={BarChart3}
           >
             <ColorfulBarChart
@@ -573,28 +573,28 @@ const ChartOfAccountsPage: React.FC = () => {
         >
           <UnifiedCard variant="glass" size="md">
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-neutral-800">Validation Plan Comptable SYSCOHADA</h3>
+              <h3 className="text-lg font-bold text-neutral-800">{t('chartAccounts.validationTitle')}</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-neutral-700">Contrôles Obligatoires:</h4>
+                  <h4 className="font-semibold text-neutral-700">{t('chartAccounts.mandatoryChecks')}</h4>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                      <span className="text-sm">Codes 9 positions</span>
+                      <span className="text-sm">{t('chartAccounts.check9Digits')}</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
                         {syscohadaPlan.filter(c => validateSyscohadaCode(c.code)).length}/{syscohadaPlan.length}
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                      <span className="text-sm">Classes 1-9 présentes</span>
+                      <span className="text-sm">{t('chartAccounts.checkClasses')}</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
                         9/9
                       </span>
                     </div>
                     
                     <div className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                      <span className="text-sm">Hiérarchie respectée</span>
+                      <span className="text-sm">{t('chartAccounts.checkHierarchy')}</span>
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">
                         OK
                       </span>
@@ -603,52 +603,52 @@ const ChartOfAccountsPage: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-neutral-700">Structure SYSCOHADA:</h4>
+                  <h4 className="font-semibold text-neutral-700">{t('chartAccounts.structureTitle')}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-blue-400 rounded"></div>
-                      <span>Classes 1-2: Bilan (Passif-Actif immobilisé)</span>
+                      <span>{t('chartAccounts.struct12')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-primary-400 rounded"></div>
-                      <span>Classes 3-5: Bilan (Actif circulant)</span>
+                      <span>{t('chartAccounts.struct35')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-red-400 rounded"></div>
-                      <span>Classe 6: Charges (Gestion)</span>
+                      <span>{t('chartAccounts.struct6')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-primary-400 rounded"></div>
-                      <span>Classe 7: Produits (Gestion)</span>
+                      <span>{t('chartAccounts.struct7')}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 bg-gray-400 rounded"></div>
-                      <span>Classes 8-9: Spéciales</span>
+                      <span>{t('chartAccounts.struct89')}</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-neutral-700">Actions Rapides:</h4>
+                  <h4 className="font-semibold text-neutral-700">{t('chartAccounts.quickActions')}</h4>
                   <div className="space-y-2">
                     <ElegantButton variant="outline" size="sm" icon={Download} className="w-full" onClick={() => {
                       // Télécharger un template Excel
-                      const template = `Code;Libellé;Classe;Nature;Sens Normal;Niveau;Collectif;Description
-100000000;CAPITAL;1;PASSIF;CREDITEUR;1;false;Compte de capital
-110000000;RESERVES;1;PASSIF;CREDITEUR;1;true;Compte collectif de réserves`;
+                      const template = `${t('chartAccounts.templateHeader')}
+100000000;CAPITAL;1;PASSIF;CREDITEUR;1;false;${t('chartAccounts.templateDesc1')}
+110000000;RESERVES;1;PASSIF;CREDITEUR;1;true;${t('chartAccounts.templateDesc2')}`;
                       const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
                       const link = document.createElement('a');
                       link.href = URL.createObjectURL(blob);
                       link.download = 'template_plan_comptable_syscohada.csv';
                       link.click();
                     }}>
-                      Template Excel
+                      {t('chartAccounts.templateExcel')}
                     </ElegantButton>
                     <ElegantButton variant="outline" size="sm" icon={Upload} className="w-full" onClick={() => setShowImportModal(true)}>
-                      Importer Comptes
+                      {t('chartAccounts.importAccounts')}
                     </ElegantButton>
                     <ElegantButton variant="primary" size="sm" icon={Plus} className="w-full" onClick={() => setShowNewAccountModal(true)}>
-                      Nouveau Compte
+                      {t('chartAccounts.newAccount')}
                     </ElegantButton>
                   </div>
                 </div>
@@ -699,11 +699,11 @@ const ChartOfAccountsPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Nature</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.thNature')}</p>
                     <p className="text-lg font-semibold text-neutral-800">{selectedAccount.nature}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Sens Normal</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.fieldSensNormal')}</p>
                     <span className={`px-3 py-1 rounded-full text-sm font-bold ${
                       selectedAccount.sens_normal === 'DEBITEUR' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
                     }`}>
@@ -711,29 +711,29 @@ const ChartOfAccountsPage: React.FC = () => {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Type</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.fieldType')}</p>
                     <p className="text-lg font-semibold text-neutral-800">
-                      {selectedAccount.is_collectif ? 'Compte Collectif' : 'Compte de Détail'}
+                      {selectedAccount.is_collectif ? t('chartAccounts.collectiveAccount') : t('chartAccounts.detailAccount')}
                     </p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Solde Débit</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.thDebitBalance')}</p>
                     <p className="text-lg font-bold text-blue-600">{formatCurrency(selectedAccount.solde_debit)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Solde Crédit</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.thCreditBalance')}</p>
                     <p className="text-lg font-bold text-green-600">{formatCurrency(selectedAccount.solde_credit)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-neutral-500">Mouvements</p>
-                    <p className="text-lg font-semibold text-neutral-800">{selectedAccount.nb_mouvements} écritures</p>
+                    <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.fieldMovements')}</p>
+                    <p className="text-lg font-semibold text-neutral-800">{t('chartAccounts.entriesCount', { count: String(selectedAccount.nb_mouvements) })}</p>
                   </div>
                 </div>
               </div>
               <div className="border-t pt-4">
-                <p className="text-sm font-medium text-neutral-500">Date de création</p>
+                <p className="text-sm font-medium text-neutral-500">{t('chartAccounts.creationDate')}</p>
                 <p className="text-neutral-800">{selectedAccount.date_creation}</p>
               </div>
             </div>
@@ -742,7 +742,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 onClick={() => setShowViewAccountModal(false)}
                 className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
               >
-                Fermer
+                {t('chartAccounts.close')}
               </button>
               <button
                 onClick={() => {
@@ -761,7 +761,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 }}
                 className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600"
               >
-                Modifier
+                {t('chartAccounts.edit')}
               </button>
             </div>
           </motion.div>
@@ -778,7 +778,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-neutral-800">Modifier le Compte</h2>
+                <h2 className="text-lg font-bold text-neutral-800">{t('chartAccounts.editAccountTitle')}</h2>
                 <button
                   onClick={() => setShowEditAccountModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -805,10 +805,10 @@ const ChartOfAccountsPage: React.FC = () => {
                   isActive: editForm.is_active,
                 });
                 await reloadAccounts();
-                toast.success('Compte modifié avec succès !');
+                toast.success(t('chartAccounts.accountUpdated'));
                 setShowEditAccountModal(false);
               } catch (err) {
-                toast.error('Erreur lors de la modification : ' + ((err instanceof Error) ? err.message : String(err)));
+                toast.error(t('chartAccounts.updateError') + ((err instanceof Error) ? err.message : String(err)));
               } finally {
                 setIsSavingAccount(false);
               }
@@ -816,7 +816,7 @@ const ChartOfAccountsPage: React.FC = () => {
               <div className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Code Compte</label>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.accountCode')}</label>
                     <input
                       type="text"
                       value={selectedAccount.code}
@@ -824,27 +824,27 @@ const ChartOfAccountsPage: React.FC = () => {
                       disabled
                       readOnly
                     />
-                    <p className="text-xs text-neutral-500 mt-1">Le code ne peut pas être modifié</p>
+                    <p className="text-xs text-neutral-500 mt-1">{t('chartAccounts.codeNotEditable')}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Classe</label>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.thClass')}</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={editForm.classe}
                       onChange={e => setEditForm(prev => ({ ...prev, classe: parseInt(e.target.value) }))}
                     >
-                      <option value={1}>Classe 1 - Ressources Durables</option>
-                      <option value={2}>Classe 2 - Actif Immobilisé</option>
-                      <option value={3}>Classe 3 - Stocks</option>
-                      <option value={4}>Classe 4 - Tiers</option>
-                      <option value={5}>Classe 5 - Trésorerie</option>
-                      <option value={6}>Classe 6 - Charges</option>
-                      <option value={7}>Classe 7 - Produits</option>
+                      <option value={1}>{t('chartAccounts.class1')}</option>
+                      <option value={2}>{t('chartAccounts.class2')}</option>
+                      <option value={3}>{t('chartAccounts.class3')}</option>
+                      <option value={4}>{t('chartAccounts.class4')}</option>
+                      <option value={5}>{t('chartAccounts.class5')}</option>
+                      <option value={6}>{t('chartAccounts.class6')}</option>
+                      <option value={7}>{t('chartAccounts.class7')}</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">Libellé *</label>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.labelRequired')}</label>
                   <input
                     type="text"
                     value={editForm.libelle}
@@ -855,7 +855,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Nature</label>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.thNature')}</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={editForm.nature}
@@ -868,7 +868,7 @@ const ChartOfAccountsPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">Sens Normal</label>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.fieldSensNormal')}</label>
                     <select
                       className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       value={editForm.sens_normal}
@@ -887,7 +887,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       checked={editForm.is_collectif}
                       onChange={e => setEditForm(prev => ({ ...prev, is_collectif: e.target.checked }))}
                     />
-                    <span className="text-sm text-neutral-700">Compte collectif</span>
+                    <span className="text-sm text-neutral-700">{t('chartAccounts.collectiveCheckbox')}</span>
                   </label>
                   <label className="flex items-center space-x-2">
                     <input
@@ -896,7 +896,7 @@ const ChartOfAccountsPage: React.FC = () => {
                       checked={editForm.is_active}
                       onChange={e => setEditForm(prev => ({ ...prev, is_active: e.target.checked }))}
                     />
-                    <span className="text-sm text-neutral-700">Compte actif</span>
+                    <span className="text-sm text-neutral-700">{t('chartAccounts.activeCheckbox')}</span>
                   </label>
                 </div>
               </div>
@@ -906,14 +906,14 @@ const ChartOfAccountsPage: React.FC = () => {
                   onClick={() => setShowEditAccountModal(false)}
                   className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
                 >
-                  Annuler
+                  {t('chartAccounts.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingAccount}
                   className="px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-60"
                 >
-                  {isSavingAccount ? 'Enregistrement...' : 'Enregistrer'}
+                  {isSavingAccount ? t('chartAccounts.saving') : t('chartAccounts.save')}
                 </button>
               </div>
             </form>
@@ -935,13 +935,13 @@ const ChartOfAccountsPage: React.FC = () => {
                   <Trash2 className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-neutral-800">Supprimer le compte ?</h3>
+                  <h3 className="text-lg font-bold text-neutral-800">{t('chartAccounts.deleteConfirmTitle')}</h3>
                   <p className="text-sm text-neutral-600">{selectedAccount.code} - {selectedAccount.libelle}</p>
                 </div>
               </div>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                 <p className="text-sm text-red-700">
-                  Cette action est irréversible. Le compte sera définitivement supprimé du plan comptable.
+                  {t('chartAccounts.deleteWarning')}
                 </p>
               </div>
             </div>
@@ -950,7 +950,7 @@ const ChartOfAccountsPage: React.FC = () => {
                 onClick={() => setShowDeleteConfirmModal(false)}
                 className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
               >
-                Annuler
+                {t('chartAccounts.cancel')}
               </button>
               <button
                 disabled={isDeletingAccount}
@@ -963,18 +963,18 @@ const ChartOfAccountsPage: React.FC = () => {
                     const accountId = dbAcc?.id || selectedAccount.code;
                     await adapter.delete('accounts', accountId);
                     await reloadAccounts();
-                    toast.success(`Compte ${selectedAccount.code} supprimé !`);
+                    toast.success(t('chartAccounts.accountDeleted', { code: selectedAccount.code }));
                     setShowDeleteConfirmModal(false);
                     setSelectedAccount(null);
                   } catch (err) {
-                    toast.error('Erreur lors de la suppression : ' + ((err instanceof Error) ? err.message : String(err)));
+                    toast.error(t('chartAccounts.deleteError') + ((err instanceof Error) ? err.message : String(err)));
                   } finally {
                     setIsDeletingAccount(false);
                   }
                 }}
                 className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60"
               >
-                {isDeletingAccount ? 'Suppression...' : 'Supprimer'}
+                {isDeletingAccount ? t('chartAccounts.deleting') : t('chartAccounts.delete')}
               </button>
             </div>
           </motion.div>
@@ -986,7 +986,7 @@ const ChartOfAccountsPage: React.FC = () => {
         <ImportPlanComptable
           onClose={() => setShowImportModal(false)}
           onSuccess={() => {
-            toast.success('Import termine avec succes');
+            toast.success(t('chartAccounts.importSuccess'));
           }}
         />
       )}
@@ -1001,7 +1001,7 @@ const ChartOfAccountsPage: React.FC = () => {
           >
             <div className="p-6 border-b border-neutral-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-neutral-800">Filtres Avancés</h2>
+                <h2 className="text-lg font-bold text-neutral-800">{t('chartAccounts.advancedFilters')}</h2>
                 <button
                   onClick={() => setShowAdvancedFiltersModal(false)}
                   className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
@@ -1012,49 +1012,49 @@ const ChartOfAccountsPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Plage de codes</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.codeRange')}</label>
                 <div className="flex space-x-2">
                   <input
                     type="text"
-                    placeholder="De"
+                    placeholder={t('chartAccounts.from')}
                     className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg font-mono"
                   />
                   <input
                     type="text"
-                    placeholder="À"
+                    placeholder={t('chartAccounts.to')}
                     className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg font-mono"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Solde</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.balance')}</label>
                 <div className="flex space-x-2">
                   <select className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg">
-                    <option value="all">Tous les soldes</option>
-                    <option value="debit">Solde débiteur</option>
-                    <option value="credit">Solde créditeur</option>
-                    <option value="zero">Solde nul</option>
+                    <option value="all">{t('chartAccounts.allBalances')}</option>
+                    <option value="debit">{t('chartAccounts.debitBalance')}</option>
+                    <option value="credit">{t('chartAccounts.creditBalance')}</option>
+                    <option value="zero">{t('chartAccounts.zeroBalance')}</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">Mouvements</label>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">{t('chartAccounts.fieldMovements')}</label>
                 <div className="flex space-x-2">
                   <select className="flex-1 px-3 py-2 border border-neutral-300 rounded-lg">
-                    <option value="all">Tous</option>
-                    <option value="with">Avec mouvements</option>
-                    <option value="without">Sans mouvement</option>
+                    <option value="all">{t('chartAccounts.all')}</option>
+                    <option value="with">{t('chartAccounts.withMovements')}</option>
+                    <option value="without">{t('chartAccounts.withoutMovements')}</option>
                   </select>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <label className="flex items-center space-x-2">
                   <input type="checkbox" className="rounded border-neutral-300 text-blue-600" />
-                  <span className="text-sm">Comptes collectifs uniquement</span>
+                  <span className="text-sm">{t('chartAccounts.onlyCollective')}</span>
                 </label>
                 <label className="flex items-center space-x-2">
                   <input type="checkbox" className="rounded border-neutral-300 text-blue-600" />
-                  <span className="text-sm">Comptes de détail uniquement</span>
+                  <span className="text-sm">{t('chartAccounts.onlyDetail')}</span>
                 </label>
               </div>
             </div>
@@ -1069,14 +1069,14 @@ const ChartOfAccountsPage: React.FC = () => {
                 }}
                 className="px-4 py-2 text-neutral-600 hover:text-neutral-800"
               >
-                Réinitialiser
+                {t('chartAccounts.reset')}
               </button>
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowAdvancedFiltersModal(false)}
                   className="px-4 py-2 text-neutral-600 border border-neutral-300 rounded-lg hover:bg-neutral-50"
                 >
-                  Annuler
+                  {t('chartAccounts.cancel')}
                 </button>
                 <button
                   onClick={() => {
@@ -1084,7 +1084,7 @@ const ChartOfAccountsPage: React.FC = () => {
                   }}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >
-                  Appliquer
+                  {t('chartAccounts.apply')}
                 </button>
               </div>
             </div>

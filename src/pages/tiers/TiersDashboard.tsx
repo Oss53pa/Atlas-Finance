@@ -320,12 +320,20 @@ const TiersDashboard: React.FC = () => {
                     </li>
                   )}
                 </ul>
-                <button
-                  onClick={() => navigate('/tiers/rattachement')}
-                  className="mt-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-[12.5px] font-medium hover:bg-amber-700"
-                >
-                  Rattacher ces lignes à un tiers
-                </button>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => navigate('/tiers/rattachement')}
+                    className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-[12.5px] font-medium hover:bg-amber-700"
+                  >
+                    Rattacher ces lignes à un tiers
+                  </button>
+                  <button
+                    onClick={() => navigate('/tiers/rentabilite')}
+                    className="px-3 py-1.5 rounded-lg border border-amber-400 text-amber-800 text-[12.5px] font-medium hover:bg-amber-100"
+                  >
+                    Voir la rentabilité par client
+                  </button>
+                </div>
               </div>
             </div>
           )}

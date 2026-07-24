@@ -819,7 +819,7 @@ const AIInsights: React.FC = () => {
           <ResponsiveContainer width="100%" height={350}>
             <ScatterChart>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-              <XAxis dataKey="x" name={t('aiInsights.sales')} unit="kâ‚¬" stroke="#235A6E" />
+              <XAxis dataKey="x" name={t('aiInsights.sales')} unit={t('aiInsights.unitThousands')} stroke="#235A6E" />
               <YAxis dataKey="y" name={t('aiInsights.margin')} unit="%" stroke="#235A6E" />
               <Tooltip cursor={{ strokeDasharray: '3 3' }} />
               <Legend />

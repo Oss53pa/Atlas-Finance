@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { formatNumber } from '../../utils/formatters';
 import {
   Plus,
   CheckCircle2,
@@ -773,7 +774,7 @@ const CompleteTasksModule: React.FC = () => {
         <div className="bg-white border-b px-6 py-4">
           <div className="grid grid-cols-8 gap-4">
             <div className="text-center">
-              <div className="text-lg font-bold text-gray-900">{statistics.total}</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(statistics.total)}</div>
               <div className="text-xs text-gray-700">Total</div>
             </div>
             <div className="text-center">

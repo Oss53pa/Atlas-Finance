@@ -39,6 +39,7 @@ import { validateJournalEntry, getNextPieceNumber } from '../../validators/journ
 import { useData } from '../../contexts/DataContext';
 import { useAccountNames } from '../../hooks/useAccountNames';
 import { safeAddEntry } from '../../services/entryGuard';
+import { listSections } from '../../features/budget/services/analyticsService';
 import { analyzeEntryPostSave, type PostSaveAnalysisResult } from '../../services/prophet/postSaveAnalysis';
 import PostSaveAnalysisToast from './PostSaveAnalysisToast';
 import { validerEcriture, comptabiliserEcriture, retourBrouillon, allowedTransitions, transitionLabel } from '../../services/entryWorkflow';
@@ -252,18 +253,33 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
     }
   }, [isOpen, mode, initialData?.id]);
 
-  // Codes analytiques
-  const codesAnalytiques = [
-    { code: 'CC001', libelle: 'CC001 - Commercial' },
-    { code: 'CC002', libelle: 'CC002 - Production' },
-    { code: 'CC003', libelle: 'CC003 - Administration' },
-    { code: 'CC004', libelle: 'CC004 - Marketing' },
-    { code: 'CC005', libelle: 'CC005 - R&D' },
-    { code: 'PRJ001', libelle: 'PRJ001 - Projet Alpha' },
-    { code: 'PRJ002', libelle: 'PRJ002 - Projet Beta' },
-    { code: 'REG01', libelle: 'REG01 - Région Nord' },
-    { code: 'REG02', libelle: 'REG02 - Région Sud' },
-  ];
+  /**
+   * Sections analytiques RÉELLES (table `sections_analytiques`).
+   *
+   * Cette liste était auparavant inventée en dur (CC001 Commercial, PRJ001
+   * Projet Alpha, REG01 Région Nord…) : aucune de ces sections n'existe en base,
+   * et le sélecteur stockait le LIBELLÉ au lieu du code. Le champ
+   * `analytical_code` recevait donc une chaîne qui ne correspondait à aucune
+   * section ⇒ la vue `v_actual_by_section` (qui rapproche par CODE) n'attribuait
+   * jamais rien, et la performance par section restait à zéro quoi qu'on saisisse.
+   */
+  const [codesAnalytiques, setCodesAnalytiques] = useState<Array<{ code: string; libelle: string }>>([]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const sections = await listSections(adapter);
+        if (cancelled) return;
+        setCodesAnalytiques(
+          sections
+            .filter(s => s.actif !== false && s.code)
+            .map(s => ({ code: s.code, libelle: `${s.code} — ${s.libelle}` }))
+            .sort((a, b) => a.code.localeCompare(b.code)),
+        );
+      } catch { /* sections indisponibles → sélecteur vide, pas de faux choix */ }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter]);
 
   // Fonction pour obtenir le journal selon le type
   const getJournalByType = (type: TransactionType, compteBank?: string) => {
@@ -1778,12 +1794,19 @@ const JournalEntryModal: React.FC<JournalEntryModalProps> = ({
                                 >
                                   {t('journalEntry.none')}
                                 </button>
+                                {codesAnalytiques.length === 0 && (
+                                  <p className="px-3 py-2 text-xs text-gray-500 italic">
+                                    Aucune section analytique. Créez-en dans Contrôle de gestion › Analytique.
+                                  </p>
+                                )}
                                 {getFilteredAnalytiques(index).map((code) => (
                                   <button
                                     key={code.code}
                                     onMouseDown={(e) => {
                                       e.preventDefault();
-                                      modifierLigne(index, 'codeAnalytique', code.libelle);
+                                      // Le CODE, jamais le libellé : c'est lui que
+                                      // `analytical_code` doit porter pour être rapproché.
+                                      modifierLigne(index, 'codeAnalytique', code.code);
                                       setShowAnalytiqueDropdown(null);
                                       setSearchAnalytique({ ...searchAnalytique, [index]: '' });
                                     }}

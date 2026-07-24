@@ -3,6 +3,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { computeDashboardMetrics, periodRange, type DashboardPeriod } from '../../utils/dashboardMetrics';
+import { formatNumber } from '../../utils/formatters';
 import {
   TrendingUp,
   BarChart3,
@@ -93,7 +94,7 @@ const ManagerDashboard: React.FC = () => {
     },
     {
       title: 'Écritures en attente',
-      value: `${liveKpiData.pendingCount}`,
+      value: formatNumber(liveKpiData.pendingCount),
       color: 'orange',
       icon: Target,
       description: 'Brouillons à valider',

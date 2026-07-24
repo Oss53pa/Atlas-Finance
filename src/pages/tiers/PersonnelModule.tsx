@@ -7,7 +7,7 @@ import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAccountNames } from '../../hooks/useAccountNames';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import {
   Users, Search, Plus, Trash2, X, UserCheck, UserX,
   Mail, Phone, MapPin, Eye, Edit, DollarSign, BarChart3,
@@ -512,7 +512,7 @@ const PersonnelModule: React.FC = () => {
             <Users className="w-5 h-5" style={{ color: PETROL }} />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.total)}</p>
             <p className="text-xs text-gray-500">{t('personnel.kpiTotal')}</p>
           </div>
         </div>

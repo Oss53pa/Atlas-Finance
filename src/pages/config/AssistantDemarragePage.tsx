@@ -102,8 +102,8 @@ const AssistantDemarragePage: React.FC = () => {
   const setupSteps: SetupStep[] = [
     {
       id: 'welcome',
-      title: 'Bienvenue',
-      description: 'Introduction à l\'assistant de démarrage',
+      title: t('startupWizard.stepWelcomeTitle'),
+      description: t('startupWizard.stepWelcomeDesc'),
       icon: Rocket,
       status: currentStep === 0 ? 'current' : currentStep > 0 ? 'completed' : 'pending',
       required: true,
@@ -111,8 +111,8 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'company',
-      title: 'Informations Société',
-      description: 'Configuration des données de base de votre entreprise',
+      title: t('startupWizard.stepCompanyTitle'),
+      description: t('startupWizard.stepCompanyDesc'),
       icon: Building2,
       status: currentStep === 1 ? 'current' : currentStep > 1 ? 'completed' : 'pending',
       required: true,
@@ -120,8 +120,8 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'accounting',
-      title: 'Plan Comptable',
-      description: 'Sélection du plan comptable SYSCOHADA',
+      title: t('startupWizard.stepAccountingTitle'),
+      description: t('startupWizard.stepAccountingDesc'),
       icon: FileText,
       status: currentStep === 2 ? 'current' : currentStep > 2 ? 'completed' : 'pending',
       required: true,
@@ -129,8 +129,8 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'users',
-      title: 'Utilisateurs',
-      description: 'Création des premiers utilisateurs',
+      title: t('startupWizard.stepUsersTitle'),
+      description: t('startupWizard.stepUsersDesc'),
       icon: Users,
       status: currentStep === 3 ? 'current' : currentStep > 3 ? 'completed' : 'pending',
       required: true,
@@ -138,8 +138,8 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'taxes',
-      title: 'Configuration TVA',
-      description: 'Paramétrage des taux de TVA',
+      title: t('startupWizard.stepTaxesTitle'),
+      description: t('startupWizard.stepTaxesDesc'),
       icon: CreditCard,
       status: currentStep === 4 ? 'current' : currentStep > 4 ? 'completed' : 'pending',
       required: false,
@@ -148,7 +148,7 @@ const AssistantDemarragePage: React.FC = () => {
     {
       id: 'security',
       title: t('settings.security'),
-      description: 'Configuration des paramètres de sécurité',
+      description: t('startupWizard.stepSecurityDesc'),
       icon: Shield,
       status: currentStep === 5 ? 'current' : currentStep > 5 ? 'completed' : 'pending',
       required: false,
@@ -156,8 +156,8 @@ const AssistantDemarragePage: React.FC = () => {
     },
     {
       id: 'finish',
-      title: 'Finalisation',
-      description: 'Récapitulatif et finalisation de la configuration',
+      title: t('startupWizard.stepFinishTitle'),
+      description: t('startupWizard.stepFinishDesc'),
       icon: CheckCircle,
       status: currentStep === 6 ? 'current' : currentStep > 6 ? 'completed' : 'pending',
       required: true,
@@ -172,7 +172,7 @@ const AssistantDemarragePage: React.FC = () => {
       setCurrentStep(currentStep + 1);
       setSetupProgress((currentStep + 1) / (setupSteps.length - 1) * 100);
       setIsProcessing(false);
-      toast.success('Étape suivante!');
+      toast.success(t('startupWizard.toastNextStep'));
     }
   };
 
@@ -190,7 +190,7 @@ const AssistantDemarragePage: React.FC = () => {
       setupSteps[currentStep].status = 'skipped';
       handleNext();
       setIsProcessing(false);
-      toast('Étape ignorée');
+      toast(t('startupWizard.toastStepSkipped'));
     }
   };
 
@@ -219,9 +219,9 @@ const AssistantDemarragePage: React.FC = () => {
       const existing = await adapter.getById('settings', 'admin_company_legal').catch(() => null);
       if (existing) await adapter.update('settings', 'admin_company_legal', payload);
       else await adapter.create('settings', payload);
-      toast.success('Entreprise enregistrée. Configuration terminée !');
+      toast.success(t('startupWizard.toastCompanySaved'));
     } catch {
-      toast.error("Échec de l'enregistrement de l'entreprise");
+      toast.error(t('startupWizard.toastCompanySaveError'));
     } finally {
       setIsProcessing(false);
     }
@@ -271,44 +271,43 @@ const AssistantDemarragePage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Bienvenue dans Atlas FnA
+                {t('startupWizard.welcomeHeading')}
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Cet assistant vous guidera à travers les étapes essentielles pour configurer 
-                votre système ERP selon les normes SYSCOHADA.
+                {t('startupWizard.welcomeIntro')}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <div className="p-6 bg-blue-50 rounded-lg">
                 <Building2 className="h-8 w-8 text-blue-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Configuration Société</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.cardCompanyTitle')}</h3>
                 <p className="text-sm text-gray-600">
-                  Paramétrage des informations légales et comptables
+                  {t('startupWizard.cardCompanyDesc')}
                 </p>
               </div>
               <div className="p-6 bg-green-50 rounded-lg">
                 <FileText className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Plan Comptable SYSCOHADA</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.cardChartTitle')}</h3>
                 <p className="text-sm text-gray-600">
-                  Installation automatique du référentiel comptable
+                  {t('startupWizard.cardChartDesc')}
                 </p>
               </div>
               <div className="p-6 bg-primary-50 rounded-lg">
                 <Users className="h-8 w-8 text-primary-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Gestion Utilisateurs</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.cardUsersTitle')}</h3>
                 <p className="text-sm text-gray-600">
-                  Configuration des profils et permissions
+                  {t('startupWizard.cardUsersDesc')}
                 </p>
               </div>
             </div>
             <div className="flex items-center justify-center space-x-4 text-sm text-gray-700">
               <div className="flex items-center space-x-1">
                 <Info className="h-4 w-4" />
-                <span>Temps estimé: {getTotalEstimatedTime()} minutes</span>
+                <span>{t('startupWizard.estimatedTime', { count: String(getTotalEstimatedTime()) })}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Star className="h-4 w-4" />
-                <span>Configuration recommandée</span>
+                <span>{t('startupWizard.recommendedSetup')}</span>
               </div>
             </div>
           </motion.div>
@@ -323,46 +322,46 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <Building2 className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <h2 className="text-lg font-bold text-gray-900">Informations de l'Entreprise</h2>
-              <p className="text-gray-600">Saisissez les informations légales et administratives</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('startupWizard.companyHeading')}</h2>
+              <p className="text-gray-600">{t('startupWizard.companySubtitle')}</p>
             </div>
 
             <div className="grid gap-6 max-w-4xl mx-auto">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Raison Sociale *
+                    {t('startupWizard.labelLegalName')} *
                   </label>
                   <Input
                     value={companyInfo.name}
                     onChange={(e) => handleCompanyInfoChange('name', e.target.value)}
-                    placeholder="Nom de votre entreprise"
+                    placeholder={t('startupWizard.phCompanyName')}
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Forme Juridique *
+                    {t('startupWizard.labelLegalForm')} *
                   </label>
                   <Select
                     value={companyInfo.legal_form}
                     onValueChange={(value) => handleCompanyInfoChange('legal_form', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
+                      <SelectValue placeholder={t('startupWizard.phSelect')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="SARL">SARL</SelectItem>
                       <SelectItem value="SA">SA</SelectItem>
                       <SelectItem value="SAS">SAS</SelectItem>
-                      <SelectItem value="EI">Entreprise Individuelle</SelectItem>
+                      <SelectItem value="EI">{t('startupWizard.legalFormSole')}</SelectItem>
                       <SelectItem value="GIE">GIE</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    N° RCCM *
+                    {t('startupWizard.labelRccm')} *
                   </label>
                   <Input
                     value={companyInfo.rccm}
@@ -372,37 +371,37 @@ const AssistantDemarragePage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    NIF *
+                    {t('startupWizard.labelNif')} *
                   </label>
                   <Input
                     value={companyInfo.nif}
                     onChange={(e) => handleCompanyInfoChange('nif', e.target.value)}
-                    placeholder="Numéro d'Identification Fiscale"
+                    placeholder={t('startupWizard.phNif')}
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Adresse *
+                    {t('startupWizard.labelAddress')} *
                   </label>
                   <Input
                     value={companyInfo.address}
                     onChange={(e) => handleCompanyInfoChange('address', e.target.value)}
-                    placeholder="Adresse complète"
+                    placeholder={t('startupWizard.phAddress')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ville *
+                    {t('startupWizard.labelCity')} *
                   </label>
                   <Input
                     value={companyInfo.city}
                     onChange={(e) => handleCompanyInfoChange('city', e.target.value)}
-                    placeholder="Ville"
+                    placeholder={t('startupWizard.phCity')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pays *
+                    {t('startupWizard.labelCountry')} *
                   </label>
                   <Select
                     value={companyInfo.country}
@@ -412,20 +411,20 @@ const AssistantDemarragePage: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="CI">Côte d'Ivoire</SelectItem>
-                      <SelectItem value="SN">Sénégal</SelectItem>
-                      <SelectItem value="BF">Burkina Faso</SelectItem>
-                      <SelectItem value="ML">Mali</SelectItem>
-                      <SelectItem value="NE">Niger</SelectItem>
-                      <SelectItem value="TG">Togo</SelectItem>
-                      <SelectItem value="BJ">Bénin</SelectItem>
-                      <SelectItem value="GN">Guinée</SelectItem>
+                      <SelectItem value="CI">{t('startupWizard.countryCI')}</SelectItem>
+                      <SelectItem value="SN">{t('startupWizard.countrySN')}</SelectItem>
+                      <SelectItem value="BF">{t('startupWizard.countryBF')}</SelectItem>
+                      <SelectItem value="ML">{t('startupWizard.countryML')}</SelectItem>
+                      <SelectItem value="NE">{t('startupWizard.countryNE')}</SelectItem>
+                      <SelectItem value="TG">{t('startupWizard.countryTG')}</SelectItem>
+                      <SelectItem value="BJ">{t('startupWizard.countryBJ')}</SelectItem>
+                      <SelectItem value="GN">{t('startupWizard.countryGN')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Téléphone
+                    {t('startupWizard.labelPhone')}
                   </label>
                   <Input
                     value={companyInfo.phone}
@@ -435,50 +434,50 @@ const AssistantDemarragePage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
+                    {t('startupWizard.labelEmail')}
                   </label>
                   <Input
                     type="email"
                     value={companyInfo.email}
                     onChange={(e) => handleCompanyInfoChange('email', e.target.value)}
-                    placeholder="contact@entreprise.com"
+                    placeholder={t('startupWizard.phCompanyEmail')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Secteur d'Activité *
+                    {t('startupWizard.labelSector')} *
                   </label>
                   <Select
                     value={companyInfo.activity_sector}
                     onValueChange={(value) => handleCompanyInfoChange('activity_sector', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner" />
+                      <SelectValue placeholder={t('startupWizard.phSelect')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="commerce">Commerce</SelectItem>
-                      <SelectItem value="industrie">Industrie</SelectItem>
-                      <SelectItem value="services">Services</SelectItem>
-                      <SelectItem value="agriculture">Agriculture</SelectItem>
-                      <SelectItem value="btp">BTP</SelectItem>
-                      <SelectItem value="transport">Transport</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
+                      <SelectItem value="commerce">{t('startupWizard.sectorCommerce')}</SelectItem>
+                      <SelectItem value="industrie">{t('startupWizard.sectorIndustry')}</SelectItem>
+                      <SelectItem value="services">{t('startupWizard.sectorServices')}</SelectItem>
+                      <SelectItem value="agriculture">{t('startupWizard.sectorAgriculture')}</SelectItem>
+                      <SelectItem value="btp">{t('startupWizard.sectorConstruction')}</SelectItem>
+                      <SelectItem value="transport">{t('startupWizard.sectorTransport')}</SelectItem>
+                      <SelectItem value="finance">{t('startupWizard.sectorFinance')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Capital Social
+                    {t('startupWizard.labelCapital')}
                   </label>
                   <Input
                     value={companyInfo.capital}
                     onChange={(e) => handleCompanyInfoChange('capital', e.target.value)}
-                    placeholder="Montant en FCFA"
+                    placeholder={t('startupWizard.phCapital')}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Monnaie *
+                    {t('startupWizard.labelCurrency')} *
                   </label>
                   <Select
                     value={companyInfo.currency}
@@ -490,14 +489,14 @@ const AssistantDemarragePage: React.FC = () => {
                     <SelectContent>
                       <SelectItem value="XOF">FCFA (XOF)</SelectItem>
                       <SelectItem value="XAF">FCFA (XAF)</SelectItem>
-                      <SelectItem value="EUR">Euro</SelectItem>
-                      <SelectItem value="USD">Dollar US</SelectItem>
+                      <SelectItem value="EUR">{t('startupWizard.currencyEur')}</SelectItem>
+                      <SelectItem value="USD">{t('startupWizard.currencyUsd')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Début Exercice Fiscal *
+                    {t('startupWizard.labelFiscalYearStart')} *
                   </label>
                   <Select
                     value={companyInfo.fiscal_year_start}
@@ -507,10 +506,10 @@ const AssistantDemarragePage: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="01-01">1er Janvier</SelectItem>
-                      <SelectItem value="04-01">1er Avril</SelectItem>
-                      <SelectItem value="07-01">1er Juillet</SelectItem>
-                      <SelectItem value="10-01">1er Octobre</SelectItem>
+                      <SelectItem value="01-01">{t('startupWizard.fiscalJan')}</SelectItem>
+                      <SelectItem value="04-01">{t('startupWizard.fiscalApr')}</SelectItem>
+                      <SelectItem value="07-01">{t('startupWizard.fiscalJul')}</SelectItem>
+                      <SelectItem value="10-01">{t('startupWizard.fiscalOct')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -528,8 +527,8 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <FileText className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <h2 className="text-lg font-bold text-gray-900">Plan Comptable SYSCOHADA</h2>
-              <p className="text-gray-600">Sélectionnez le plan comptable adapté à votre activité</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('startupWizard.cardChartTitle')}</h2>
+              <p className="text-gray-600">{t('startupWizard.chartSubtitle')}</p>
             </div>
 
             <div className="grid gap-4 max-w-4xl mx-auto">
@@ -537,33 +536,33 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-center space-x-4">
                   <div className="w-4 h-4 bg-green-600 rounded-full"></div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-green-900">Plan Comptable Standard SYSCOHADA</h3>
-                    <p className="text-sm text-green-700">Recommandé pour la majorité des entreprises</p>
+                    <h3 className="font-semibold text-green-900">{t('startupWizard.chartStandardTitle')}</h3>
+                    <p className="text-sm text-green-700">{t('startupWizard.chartStandardDesc')}</p>
                   </div>
                   <Badge variant="outline" className="text-green-700 border-green-300">
-                    Recommandé
+                    {t('startupWizard.recommended')}
                   </Badge>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h3 className="font-medium text-gray-900">Options additionnelles:</h3>
+                <h3 className="font-medium text-gray-900">{t('startupWizard.additionalOptions')}</h3>
                 <div className="space-y-3">
                   <label className="flex items-center space-x-3">
                     <input type="checkbox" defaultChecked className="form-checkbox" />
-                    <span className="text-sm text-gray-700">Comptes auxiliaires clients</span>
+                    <span className="text-sm text-gray-700">{t('startupWizard.optCustomerSubaccounts')}</span>
                   </label>
                   <label className="flex items-center space-x-3">
                     <input type="checkbox" defaultChecked className="form-checkbox" />
-                    <span className="text-sm text-gray-700">Comptes auxiliaires fournisseurs</span>
+                    <span className="text-sm text-gray-700">{t('startupWizard.optSupplierSubaccounts')}</span>
                   </label>
                   <label className="flex items-center space-x-3">
                     <input type="checkbox" className="form-checkbox" />
-                    <span className="text-sm text-gray-700">Plan analytique par défaut</span>
+                    <span className="text-sm text-gray-700">{t('startupWizard.optDefaultAnalytic')}</span>
                   </label>
                   <label className="flex items-center space-x-3">
                     <input type="checkbox" className="form-checkbox" />
-                    <span className="text-sm text-gray-700">Comptes budgétaires</span>
+                    <span className="text-sm text-gray-700">{t('startupWizard.optBudgetAccounts')}</span>
                   </label>
                 </div>
               </div>
@@ -572,10 +571,9 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-start space-x-3">
                   <Info className="h-5 w-5 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-1">Information importante</p>
+                    <p className="font-medium mb-1">{t('startupWizard.importantInfo')}</p>
                     <p>
-                      Le plan comptable SYSCOHADA sera installé automatiquement. 
-                      Vous pourrez le personnaliser ultérieurement selon vos besoins spécifiques.
+                      {t('startupWizard.chartInfoText')}
                     </p>
                   </div>
                 </div>
@@ -593,8 +591,8 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <Users className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h2 className="text-lg font-bold text-gray-900">Configuration des Utilisateurs</h2>
-              <p className="text-gray-600">Créez les premiers utilisateurs de votre système</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('startupWizard.usersHeading')}</h2>
+              <p className="text-gray-600">{t('startupWizard.usersSubtitle')}</p>
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
@@ -602,33 +600,33 @@ const AssistantDemarragePage: React.FC = () => {
               <div className="border border-primary-200 bg-primary-50 rounded-lg p-6">
                 <div className="flex items-center space-x-3 mb-4">
                   <Shield className="h-6 w-6 text-primary-600" />
-                  <h3 className="font-semibold text-primary-900">Administrateur Principal</h3>
-                  <Badge className="bg-primary-100 text-primary-800">Requis</Badge>
+                  <h3 className="font-semibold text-primary-900">{t('startupWizard.mainAdmin')}</h3>
+                  <Badge className="bg-primary-100 text-primary-800">{t('startupWizard.required')}</Badge>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom Complet *
+                      {t('startupWizard.labelFullName')} *
                     </label>
-                    <Input placeholder="Ex: Jean KONAN" />
+                    <Input placeholder={t('startupWizard.phFullNameAdmin')} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
+                      {t('startupWizard.labelEmail')} *
                     </label>
-                    <Input type="email" placeholder="admin@entreprise.com" />
+                    <Input type="email" placeholder={t('startupWizard.phAdminEmail')} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mot de Passe *
+                      {t('startupWizard.labelPassword')} *
                     </label>
-                    <Input type="password" placeholder="Minimum 8 caractères" />
+                    <Input type="password" placeholder={t('startupWizard.phPasswordMin')} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Confirmer le Mot de Passe *
+                      {t('startupWizard.labelConfirmPassword')} *
                     </label>
-                    <Input type="password" placeholder="Confirmer le mot de passe" />
+                    <Input type="password" placeholder={t('startupWizard.phConfirmPassword')} />
                   </div>
                 </div>
               </div>
@@ -638,26 +636,26 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
                     <Users className="h-6 w-6 text-blue-600" />
-                    <h3 className="font-semibold text-gray-900">Utilisateur Comptable</h3>
-                    <Badge variant="outline">Optionnel</Badge>
+                    <h3 className="font-semibold text-gray-900">{t('startupWizard.accountantUser')}</h3>
+                    <Badge variant="outline">{t('startupWizard.optional')}</Badge>
                   </div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" defaultChecked className="form-checkbox" />
-                    <span className="text-sm text-gray-600">Créer cet utilisateur</span>
+                    <span className="text-sm text-gray-600">{t('startupWizard.createThisUser')}</span>
                   </label>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Nom Complet
+                      {t('startupWizard.labelFullName')}
                     </label>
-                    <Input placeholder="Ex: Marie COULIBALY" />
+                    <Input placeholder={t('startupWizard.phFullNameAccountant')} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email
+                      {t('startupWizard.labelEmail')}
                     </label>
-                    <Input type="email" placeholder="comptable@entreprise.com" />
+                    <Input type="email" placeholder={t('startupWizard.phAccountantEmail')} />
                   </div>
                 </div>
               </div>
@@ -666,10 +664,9 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-start space-x-3">
                   <Info className="h-5 w-5 text-blue-600 mt-0.5" />
                   <div className="text-sm text-blue-700">
-                    <p className="font-medium mb-1">Profils de Sécurité</p>
+                    <p className="font-medium mb-1">{t('startupWizard.securityProfiles')}</p>
                     <p>
-                      Les utilisateurs pourront être affectés à différents profils de sécurité
-                      (Administrateur, Comptable, Auditeur, etc.) avec des permissions spécifiques.
+                      {t('startupWizard.securityProfilesText')}
                     </p>
                   </div>
                 </div>
@@ -687,41 +684,41 @@ const AssistantDemarragePage: React.FC = () => {
           >
             <div className="text-center mb-8">
               <CreditCard className="h-12 w-12 text-orange-600 mx-auto mb-4" />
-              <h2 className="text-lg font-bold text-gray-900">Configuration TVA et Taxes</h2>
-              <p className="text-gray-600">Paramétrez les taux de TVA applicables à votre activité</p>
+              <h2 className="text-lg font-bold text-gray-900">{t('startupWizard.taxHeading')}</h2>
+              <p className="text-gray-600">{t('startupWizard.taxSubtitle')}</p>
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
               {/* Régime TVA */}
               <div className="border rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Régime de TVA</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('startupWizard.vatRegime')}</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
                     <input type="radio" name="tva_regime" value="normal" defaultChecked className="mt-1" />
                     <div>
-                      <p className="font-medium text-gray-900">Régime Normal</p>
-                      <p className="text-sm text-gray-600">TVA facturée et récupérable</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.regimeNormal')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.regimeNormalDesc')}</p>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
                     <input type="radio" name="tva_regime" value="simplifie" className="mt-1" />
                     <div>
-                      <p className="font-medium text-gray-900">Régime Simplifié</p>
-                      <p className="text-sm text-gray-600">Déclaration simplifiée</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.regimeSimplified')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.regimeSimplifiedDesc')}</p>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
                     <input type="radio" name="tva_regime" value="franchise" className="mt-1" />
                     <div>
-                      <p className="font-medium text-gray-900">Franchise de Base</p>
-                      <p className="text-sm text-gray-600">Exonération de TVA</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.regimeFranchise')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.regimeFranchiseDesc')}</p>
                     </div>
                   </label>
                   <label className="flex items-start space-x-3 p-4 border rounded-lg cursor-pointer hover:border-orange-300">
                     <input type="radio" name="tva_regime" value="exonere" className="mt-1" />
                     <div>
-                      <p className="font-medium text-gray-900">Activité Exonérée</p>
-                      <p className="text-sm text-gray-600">Pas de TVA applicable</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.regimeExempt')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.regimeExemptDesc')}</p>
                     </div>
                   </label>
                 </div>
@@ -729,7 +726,7 @@ const AssistantDemarragePage: React.FC = () => {
 
               {/* Taux de TVA */}
               <div className="border rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Taux de TVA Applicables</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('startupWizard.applicableVatRates')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 bg-orange-50 rounded-lg">
                     <div className="flex items-center space-x-3">
@@ -737,11 +734,11 @@ const AssistantDemarragePage: React.FC = () => {
                         <span className="font-bold text-orange-600">18%</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Taux Normal</p>
-                        <p className="text-sm text-gray-600">Applicable par défaut</p>
+                        <p className="font-medium text-gray-900">{t('startupWizard.rateStandard')}</p>
+                        <p className="text-sm text-gray-600">{t('startupWizard.rateStandardDesc')}</p>
                       </div>
                     </div>
-                    <Badge className="bg-orange-100 text-orange-800">Actif</Badge>
+                    <Badge className="bg-orange-100 text-orange-800">{t('startupWizard.active')}</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -750,13 +747,13 @@ const AssistantDemarragePage: React.FC = () => {
                         <span className="font-bold text-gray-600">9%</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Taux Réduit</p>
-                        <p className="text-sm text-gray-600">Produits de première nécessité</p>
+                        <p className="font-medium text-gray-900">{t('startupWizard.rateReduced')}</p>
+                        <p className="text-sm text-gray-600">{t('startupWizard.rateReducedDesc')}</p>
                       </div>
                     </div>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" className="form-checkbox" />
-                      <span className="text-sm">Activer</span>
+                      <span className="text-sm">{t('startupWizard.enable')}</span>
                     </label>
                   </div>
 
@@ -766,13 +763,13 @@ const AssistantDemarragePage: React.FC = () => {
                         <span className="font-bold text-gray-600">0%</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">Exonéré</p>
-                        <p className="text-sm text-gray-600">Exportations et opérations exonérées</p>
+                        <p className="font-medium text-gray-900">{t('startupWizard.rateExempt')}</p>
+                        <p className="text-sm text-gray-600">{t('startupWizard.rateExemptDesc')}</p>
                       </div>
                     </div>
                     <label className="flex items-center space-x-2">
                       <input type="checkbox" defaultChecked className="form-checkbox" />
-                      <span className="text-sm">Activer</span>
+                      <span className="text-sm">{t('startupWizard.enable')}</span>
                     </label>
                   </div>
                 </div>
@@ -782,10 +779,9 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-start space-x-3">
                   <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
                   <div className="text-sm text-yellow-700">
-                    <p className="font-medium mb-1">Information Fiscale</p>
+                    <p className="font-medium mb-1">{t('startupWizard.taxInfo')}</p>
                     <p>
-                      Les taux de TVA sont configurés selon la législation fiscale de votre pays.
-                      Consultez votre conseiller fiscal en cas de doute.
+                      {t('startupWizard.taxInfoText')}
                     </p>
                   </div>
                 </div>
@@ -804,18 +800,18 @@ const AssistantDemarragePage: React.FC = () => {
             <div className="text-center mb-8">
               <Shield className="h-12 w-12 text-primary-600 mx-auto mb-4" />
               <h2 className="text-lg font-bold text-gray-900">{t('settings.security')}</h2>
-              <p className="text-gray-600">Configurez les paramètres de sécurité de votre système</p>
+              <p className="text-gray-600">{t('startupWizard.securitySubtitle')}</p>
             </div>
 
             <div className="max-w-4xl mx-auto space-y-6">
               {/* Politique de Mot de Passe */}
               <div className="border rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Politique de Mot de Passe</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('startupWizard.passwordPolicy')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Longueur Minimale</p>
-                      <p className="text-sm text-gray-600">Nombre de caractères requis</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.minLength')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.minLengthDesc')}</p>
                     </div>
                     <Select defaultValue="8">
                       <SelectTrigger className="w-24">
@@ -832,15 +828,15 @@ const AssistantDemarragePage: React.FC = () => {
                   <div className="space-y-3">
                     <label className="flex items-center space-x-3">
                       <input type="checkbox" defaultChecked className="form-checkbox" />
-                      <span className="text-sm text-gray-700">Exiger au moins une majuscule</span>
+                      <span className="text-sm text-gray-700">{t('startupWizard.requireUppercase')}</span>
                     </label>
                     <label className="flex items-center space-x-3">
                       <input type="checkbox" defaultChecked className="form-checkbox" />
-                      <span className="text-sm text-gray-700">Exiger au moins un chiffre</span>
+                      <span className="text-sm text-gray-700">{t('startupWizard.requireDigit')}</span>
                     </label>
                     <label className="flex items-center space-x-3">
                       <input type="checkbox" className="form-checkbox" />
-                      <span className="text-sm text-gray-700">Exiger un caractère spécial</span>
+                      <span className="text-sm text-gray-700">{t('startupWizard.requireSpecial')}</span>
                     </label>
                   </div>
                 </div>
@@ -848,28 +844,28 @@ const AssistantDemarragePage: React.FC = () => {
 
               {/* Sessions */}
               <div className="border rounded-lg p-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Gestion des Sessions</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('startupWizard.sessionManagement')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Expiration de Session</p>
-                      <p className="text-sm text-gray-600">Déconnexion automatique après inactivité</p>
+                      <p className="font-medium text-gray-900">{t('startupWizard.sessionExpiry')}</p>
+                      <p className="text-sm text-gray-600">{t('startupWizard.sessionExpiryDesc')}</p>
                     </div>
                     <Select defaultValue="30">
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                        <SelectItem value="60">1 heure</SelectItem>
-                        <SelectItem value="120">2 heures</SelectItem>
+                        <SelectItem value="15">{t('startupWizard.session15min')}</SelectItem>
+                        <SelectItem value="30">{t('startupWizard.session30min')}</SelectItem>
+                        <SelectItem value="60">{t('startupWizard.session1hour')}</SelectItem>
+                        <SelectItem value="120">{t('startupWizard.session2hours')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <label className="flex items-center space-x-3">
                     <input type="checkbox" defaultChecked className="form-checkbox" />
-                    <span className="text-sm text-gray-700">Limiter à une session par utilisateur</span>
+                    <span className="text-sm text-gray-700">{t('startupWizard.oneSessionPerUser')}</span>
                   </label>
                 </div>
               </div>
@@ -880,18 +876,17 @@ const AssistantDemarragePage: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <Shield className="h-6 w-6 text-primary-600" />
                     <div>
-                      <h3 className="font-semibold text-primary-900">Authentification à Deux Facteurs (2FA)</h3>
-                      <p className="text-sm text-primary-700">Sécurité renforcée pour les connexions</p>
+                      <h3 className="font-semibold text-primary-900">{t('startupWizard.twoFactorTitle')}</h3>
+                      <p className="text-sm text-primary-700">{t('startupWizard.twoFactorDesc')}</p>
                     </div>
                   </div>
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="form-checkbox" />
-                    <span className="text-sm text-primary-700">Activer</span>
+                    <span className="text-sm text-primary-700">{t('startupWizard.enable')}</span>
                   </label>
                 </div>
                 <p className="text-sm text-primary-600">
-                  L'activation du 2FA ajoute une couche de sécurité supplémentaire en demandant
-                  un code envoyé par SMS ou généré par une application d'authentification.
+                  {t('startupWizard.twoFactorText')}
                 </p>
               </div>
 
@@ -899,10 +894,9 @@ const AssistantDemarragePage: React.FC = () => {
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                   <div className="text-sm text-green-700">
-                    <p className="font-medium mb-1">Configuration Recommandée</p>
+                    <p className="font-medium mb-1">{t('startupWizard.recommendedConfig')}</p>
                     <p>
-                      Les paramètres par défaut suivent les bonnes pratiques de sécurité.
-                      Vous pourrez les ajuster ultérieurement dans les paramètres avancés.
+                      {t('startupWizard.recommendedConfigText')}
                     </p>
                   </div>
                 </div>
@@ -923,40 +917,40 @@ const AssistantDemarragePage: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Configuration Terminée !
+                {t('startupWizard.setupCompleteTitle')}
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Félicitations ! Votre système Atlas FnA est maintenant configuré et prêt à être utilisé.
+                {t('startupWizard.setupCompleteText')}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               <div className="p-6 bg-white border rounded-lg">
                 <CheckCircle className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Société configurée</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.summaryCompany')}</h3>
                 <p className="text-sm text-gray-600">
-                  Informations légales et paramètres de base enregistrés
+                  {t('startupWizard.summaryCompanyDesc')}
                 </p>
               </div>
               <div className="p-6 bg-white border rounded-lg">
                 <FileText className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Plan comptable</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.summaryChart')}</h3>
                 <p className="text-sm text-gray-600">
-                  Plan comptable SYSCOHADA disponible dans Configuration → Plan comptable
+                  {t('startupWizard.summaryChartDesc')}
                 </p>
               </div>
               <div className="p-6 bg-white border rounded-lg">
                 <Users className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Utilisateurs créés</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.summaryUsers')}</h3>
                 <p className="text-sm text-gray-600">
-                  Comptes administrateur et utilisateur configurés
+                  {t('startupWizard.summaryUsersDesc')}
                 </p>
               </div>
               <div className="p-6 bg-white border rounded-lg">
                 <Shield className="h-8 w-8 text-green-600 mb-3" />
-                <h3 className="font-semibold text-gray-900 mb-2">Sécurité activée</h3>
+                <h3 className="font-semibold text-gray-900 mb-2">{t('startupWizard.summarySecurity')}</h3>
                 <p className="text-sm text-gray-600">
-                  Paramètres de sécurité configurés selon les bonnes pratiques
+                  {t('startupWizard.summarySecurityDesc')}
                 </p>
               </div>
             </div>
@@ -970,12 +964,12 @@ const AssistantDemarragePage: React.FC = () => {
                 {isProcessing ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Finalisation...
+                    {t('startupWizard.finalizing')}
                   </>
                 ) : (
                   <>
                     <Rocket className="mr-2 h-4 w-4" />
-                    Commencer à utiliser Atlas FnA
+                    {t('startupWizard.startUsing')}
                   </>
                 )}
               </Button>
@@ -993,8 +987,8 @@ const AssistantDemarragePage: React.FC = () => {
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
               <Settings className="h-8 w-8 text-blue-600" />
             </div>
-            <h2 className="text-lg font-bold text-gray-900">Étape en Construction</h2>
-            <p className="text-gray-600">Cette étape sera disponible prochainement.</p>
+            <h2 className="text-lg font-bold text-gray-900">{t('startupWizard.stepUnderConstruction')}</h2>
+            <p className="text-gray-600">{t('startupWizard.stepComingSoon')}</p>
           </motion.div>
         );
     }
@@ -1007,14 +1001,14 @@ const AssistantDemarragePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">Assistant de Démarrage</h1>
+              <h1 className="text-lg font-bold text-gray-900">{t('startupWizard.pageTitle')}</h1>
               <p className="text-gray-600">
-                Étape {currentStep + 1} sur {setupSteps.length}
+                {t('startupWizard.stepXofY', { current: String(currentStep + 1), total: String(setupSteps.length) })}
               </p>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-600 mb-2">
-                Progression globale: {Math.round(setupProgress)}%
+                {t('startupWizard.overallProgress', { value: String(Math.round(setupProgress)) })}
               </div>
               <Progress value={setupProgress} className="w-48" />
             </div>
@@ -1028,7 +1022,7 @@ const AssistantDemarragePage: React.FC = () => {
           <div className="lg:col-span-3">
             <Card className="sticky top-8">
               <CardHeader>
-                <CardTitle className="text-lg">Étapes de Configuration</CardTitle>
+                <CardTitle className="text-lg">{t('startupWizard.setupStepsTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="space-y-2">
@@ -1109,7 +1103,7 @@ const AssistantDemarragePage: React.FC = () => {
                 variant="outline"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Précédent
+                {t('startupWizard.previous')}
               </Button>
 
               <div className="flex space-x-3">
@@ -1120,7 +1114,7 @@ const AssistantDemarragePage: React.FC = () => {
                     variant="ghost"
                     className="text-gray-600"
                   >
-                    Ignorer cette étape
+                    {t('startupWizard.skipStep')}
                   </Button>
                 )}
                 
@@ -1133,11 +1127,11 @@ const AssistantDemarragePage: React.FC = () => {
                     {isProcessing ? (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Traitement...
+                        {t('startupWizard.processing')}
                       </>
                     ) : (
                       <>
-                        Suivant
+                        {t('startupWizard.next')}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </>
                     )}
@@ -1151,12 +1145,12 @@ const AssistantDemarragePage: React.FC = () => {
                     {isProcessing ? (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Finalisation...
+                        {t('startupWizard.finalizing')}
                       </>
                     ) : (
                       <>
                         <CheckCircle className="mr-2 h-4 w-4" />
-                        Terminer
+                        {t('startupWizard.finish')}
                       </>
                     )}
                   </Button>

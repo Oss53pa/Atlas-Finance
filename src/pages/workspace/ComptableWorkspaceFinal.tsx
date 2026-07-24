@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { MySpacesDock } from '../../features/collaboration/components/MySpacesDock';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import { themes } from '../../styles/theme';
 import type { ThemeType } from '../../styles/theme';
 import CompleteTasksModule from '../../components/tasks/CompleteTasksModule';
@@ -264,7 +264,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
               </div>
             ))
           /* W12: clés stables basées sur le titre */
-          : [{title:'Ecritures',value:String(stats.entries),icon:FileText,color:'var(--color-primary)',change:'',up:true},{title:'En attente',value:String(stats.drafts),icon:Clock,color:'var(--color-secondary)',change:stats.drafts > 0 ? `${stats.drafts} brouillons` : '',up:stats.drafts === 0},{title:'Validees',value:String(stats.posted),icon:CheckCircle,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-primary)',change:'',up:stats.treasury >= 0}].map((m) => (
+          : [{title:'Ecritures',value:formatNumber(stats.entries),icon:FileText,color:'var(--color-primary)',change:'',up:true},{title:'En attente',value:formatNumber(stats.drafts),icon:Clock,color:'var(--color-secondary)',change:stats.drafts > 0 ? `${formatNumber(stats.drafts)} brouillons` : '',up:stats.drafts === 0},{title:'Validees',value:formatNumber(stats.posted),icon:CheckCircle,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-primary)',change:'',up:stats.treasury >= 0}].map((m) => (
             <div key={m.title} className="bg-white rounded-lg p-4 border hover:shadow-md">
               <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
               <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>

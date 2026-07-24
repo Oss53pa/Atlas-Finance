@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { listCapexRequests, type CapexPriorite, type CapexRequest } from '../../features/budget/services/budgetService';
 import { updateBcFields } from '../../features/budget/services/capexBcService';
@@ -22,6 +23,7 @@ function getClient(adapter: any): any | null {
 
 const CapexPriorisationPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [items, setItems] = useState<BcScoringInput[]>([]);
   /**
@@ -65,7 +67,7 @@ const CapexPriorisationPage: React.FC = () => {
         const vivants = reqs.filter((r) => !['rejete', 'clos'].includes(r.statut as string));
         setItems(mapped); setPortfolioRows(vivants); setCriteria(crit);
         setEnveloppe((e) => (e === '0' ? String(mapped.reduce((s, m) => s + m.montant, 0)) : e));
-      } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      } catch (e: any) { if (!cancelled) setError(e?.message || t('capexPrio.error')); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -88,20 +90,20 @@ const CapexPriorisationPage: React.FC = () => {
 
   const decide = useCallback(async (id: string, statut: 'approuve' | 'ajourne' | 'rejete') => {
     setBusyId(id); setError(null); setNotice(null);
-    try { await updateBcFields(adapter, id, { statut }); setNotice(`BC ${statut}.`); setRefreshKey((k) => k + 1); }
-    catch (e: any) { setError(e?.message || 'Échec'); } finally { setBusyId(null); }
+    try { await updateBcFields(adapter, id, { statut }); setNotice(t('capexPrio.bcDecided', { statut })); setRefreshKey((k) => k + 1); }
+    catch (e: any) { setError(e?.message || t('capexPrio.failure')); } finally { setBusyId(null); }
   }, [adapter]);
 
   return (
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Trophy className="w-6 h-6 text-[var(--color-primary)]" /> Priorisation du portefeuille</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{ranked.length} BC en lice · {passeCount} servi(s) · {formatCurrency(passeMontant)} sous l'enveloppe</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Trophy className="w-6 h-6 text-[var(--color-primary)]" /> {t('capexPrio.title')}</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{t('capexPrio.bcInPlay', { count: String(ranked.length) })} · {t('capexPrio.served', { count: String(passeCount) })} · {t('capexPrio.underEnvelope', { amount: formatCurrency(passeMontant) })}</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex bg-gray-100 rounded-lg p-0.5">
-            {([['tableau', 'Tableau', Table2], ['kanban', 'Kanban', Columns3]] as const).map(([k, lbl, Icon]) => (
+            {([['tableau', t('capexPrio.viewTable'), Table2], ['kanban', t('capexPrio.viewKanban'), Columns3]] as const).map(([k, lbl, Icon]) => (
               <button key={k} onClick={() => setVue(k)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
                   vue === k ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
@@ -111,7 +113,7 @@ const CapexPriorisationPage: React.FC = () => {
           </div>
           {vue === 'tableau' && (
             <label className="text-sm text-[var(--color-text-secondary)] flex items-center gap-2">
-              Enveloppe
+              {t('capexPrio.envelope')}
               <input type="number" value={enveloppe} onChange={(e) => setEnveloppe(e.target.value)}
                 className="w-40 px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] font-mono text-sm" />
             </label>
@@ -123,12 +125,12 @@ const CapexPriorisationPage: React.FC = () => {
       {notice && <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('capexPrio.loading')}</div>
       ) : vue === 'kanban' ? (
         /* Le kanban a sa PROPRE condition de vide : il couvre tout le portefeuille
            vivant, donc il ne doit pas être masqué quand aucun BC n'est « soumis ». */
         portfolioRows.length === 0 ? (
-          <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun Business Case actif. Créez-en un depuis l'onglet Business Cases.</div>
+          <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">{t('capexPrio.emptyKanban')}</div>
         ) : (
           <CapexPrioriteKanban
             rows={portfolioRows}
@@ -137,20 +139,20 @@ const CapexPriorisationPage: React.FC = () => {
           />
         )
       ) : ranked.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun BC soumis à arbitrer. Soumettez des Business Cases depuis le portefeuille.</div>
+        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">{t('capexPrio.emptyTable')}</div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
                 <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Business Case</th>
-                <th className="px-4 py-3 text-right">Score</th>
-                <th className="px-4 py-3 text-right">Montant</th>
-                <th className="px-4 py-3 text-right">Cumul</th>
-                <th className="px-4 py-3 text-right">VAN</th>
-                <th className="px-4 py-3 text-left">Catégorie</th>
-                <th className="px-4 py-3 text-right">Décision</th>
+                <th className="px-4 py-3 text-left">{t('capexPrio.colBusinessCase')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPrio.colScore')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPrio.colAmount')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPrio.colCumulative')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPrio.colNpv')}</th>
+                <th className="px-4 py-3 text-left">{t('capexPrio.colCategory')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPrio.colDecision')}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,13 +162,13 @@ const CapexPriorisationPage: React.FC = () => {
                 return (
                   <React.Fragment key={r.id}>
                     {waterlineHere && (
-                      <tr><td colSpan={8} className="px-4 py-1 bg-blue-50 dark:bg-blue-950/30 text-[11px] text-blue-600 dark:text-blue-300"><span className="inline-flex items-center gap-1"><Waves className="w-3.5 h-3.5" /> Ligne de flottaison — enveloppe {formatCurrency(Number(enveloppe) || 0)}</span></td></tr>
+                      <tr><td colSpan={8} className="px-4 py-1 bg-blue-50 dark:bg-blue-950/30 text-[11px] text-blue-600 dark:text-blue-300"><span className="inline-flex items-center gap-1"><Waves className="w-3.5 h-3.5" /> {t('capexPrio.waterline', { amount: formatCurrency(Number(enveloppe) || 0) })}</span></td></tr>
                     )}
                     <tr className={`border-b border-[var(--color-border-light)] ${!r.passe ? 'opacity-60' : ''}`}>
                       <td className="px-4 py-3 text-[var(--color-text-tertiary)]">{i + 1}</td>
                       <td className="px-4 py-3">
                         <button onClick={() => navigate(`/capex/bc/${r.id}`)} className="font-medium text-[var(--color-text-primary)] hover:text-[var(--color-primary)]">{r.libelle}</button>
-                        {r.obligatoire && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">obligatoire</span>}
+                        {r.obligatoire && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600">{t('capexPrio.mandatory')}</span>}
                       </td>
                       <td className="px-4 py-3 text-right font-mono font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)]">{r.score.toFixed(1)}</td>
                       <td className="px-4 py-3 text-right font-mono">{formatCurrency(r.montant)}</td>
@@ -175,9 +177,9 @@ const CapexPriorisationPage: React.FC = () => {
                       <td className="px-4 py-3 text-xs text-[var(--color-text-secondary)]">{r.categorie ? r.categorie.replace(/_/g, ' ') : '—'}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
-                          <button title="Approuver" disabled={busyId === r.id} onClick={() => decide(r.id, 'approuve')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-emerald-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">{busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}</button>
-                          <button title="Ajourner" disabled={busyId === r.id} onClick={() => decide(r.id, 'ajourne')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-amber-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><Clock className="w-4 h-4" /></button>
-                          <button title="Rejeter" disabled={busyId === r.id} onClick={() => decide(r.id, 'rejete')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><X className="w-4 h-4" /></button>
+                          <button title={t('capexPrio.approve')} disabled={busyId === r.id} onClick={() => decide(r.id, 'approuve')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-emerald-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">{busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}</button>
+                          <button title={t('capexPrio.postpone')} disabled={busyId === r.id} onClick={() => decide(r.id, 'ajourne')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-amber-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><Clock className="w-4 h-4" /></button>
+                          <button title={t('capexPrio.reject')} disabled={busyId === r.id} onClick={() => decide(r.id, 'rejete')} className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40"><X className="w-4 h-4" /></button>
                         </div>
                       </td>
                     </tr>

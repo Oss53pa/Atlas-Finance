@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { computeDashboardMetrics } from '../../utils/dashboardMetrics';
+import { formatNumber } from '../../utils/formatters';
 import {
   Calculator,
   FileText,
@@ -93,9 +94,9 @@ const ComptableDashboard: React.FC = () => {
   const handleQuickAction = (path: string) => navigate(path);
 
   const metrics = [
-    { title: 'Écritures du jour', value: String(liveData.todayCount), color: 'blue', icon: FileText, description: 'Saisies aujourd\'hui' },
-    { title: 'En attente validation', value: String(liveData.pendingCount), color: 'orange', icon: Clock, description: 'Brouillons à valider' },
-    { title: 'Écritures validées', value: String(liveData.validatedCount), color: 'green', icon: CheckCircle, description: 'Total comptabilisées' },
+    { title: 'Écritures du jour', value: formatNumber(liveData.todayCount), color: 'blue', icon: FileText, description: 'Saisies aujourd\'hui' },
+    { title: 'En attente validation', value: formatNumber(liveData.pendingCount), color: 'orange', icon: Clock, description: 'Brouillons à valider' },
+    { title: 'Écritures validées', value: formatNumber(liveData.validatedCount), color: 'green', icon: CheckCircle, description: 'Total comptabilisées' },
     { title: 'Solde de trésorerie', value: fmt(liveData.treasuryBalance), color: 'primary', icon: DollarSign, description: 'Classe 5 (hors 58)' },
   ];
 

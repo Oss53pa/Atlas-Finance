@@ -182,7 +182,7 @@ const TVATaxesPage: React.FC = () => {
           setTaxSettings(JSON.parse((ts as any).value));
         } catch (parseErr) {
           console.error('[TVATaxes] Erreur lecture paramètres TVA:', parseErr);
-          toast.error('Impossible de lire les paramètres TVA enregistrés, utilisation des valeurs par défaut');
+          toast.error(t('vatTaxes.readSettingsError'));
         }
       }
     };
@@ -235,16 +235,16 @@ const TVATaxesPage: React.FC = () => {
 
   const handleSaveRate = async () => {
     if (!modalForm.code?.trim() || !modalForm.libelle?.trim()) {
-      toast.error('Code et Libellé sont obligatoires');
+      toast.error(t('vatTaxes.codeLabelRequired'));
       return;
     }
     if (!modalForm.applicable_depuis?.trim()) {
-      toast.error('La date "Applicable depuis" est obligatoire');
+      toast.error(t('vatTaxes.applicableFromRequired'));
       return;
     }
     const taux = modalForm.taux ?? 0;
     if (typeof taux !== 'number' || isNaN(taux) || taux < 0 || taux > 100) {
-      toast.error('Le taux doit être un nombre entre 0 et 100');
+      toast.error(t('vatTaxes.rateRangeError'));
       return;
     }
     setIsSavingRate(true);
@@ -279,25 +279,25 @@ const TVATaxesPage: React.FC = () => {
       // refresh local state
       const tr = await adapter.getById<any>('settings', 'tva_rates');
       setTaxRatesSetting(tr);
-      toast.success(editingRate ? 'Taux modifié avec succès' : 'Taux créé avec succès');
+      toast.success(editingRate ? t('vatTaxes.rateUpdated') : t('vatTaxes.rateCreated'));
       setShowModal(false);
     } catch (err: any) {
-      toast.error(err?.message ?? 'Erreur lors de la sauvegarde du taux');
+      toast.error(err?.message ?? t('vatTaxes.rateSaveError'));
     } finally {
       setIsSavingRate(false);
     }
   };
 
   const handleDeleteTaxRate = async (rateId: string) => {
-    if (!window.confirm('Supprimer ce taux de taxe ?')) return;
+    if (!window.confirm(t('vatTaxes.deleteRateConfirm'))) return;
     try {
       const updatedRates = taxRates.filter(r => r.id !== rateId);
       await saveTaxRates(adapter, updatedRates);
       const tr = await adapter.getById<any>('settings', 'tva_rates');
       setTaxRatesSetting(tr);
-      toast.success('Taux supprimé');
+      toast.success(t('vatTaxes.rateDeleted'));
     } catch (err: any) {
-      toast.error(err?.message ?? 'Erreur lors de la suppression du taux');
+      toast.error(err?.message ?? t('vatTaxes.rateDeleteError'));
     }
   };
 
@@ -314,7 +314,7 @@ const TVATaxesPage: React.FC = () => {
     reader.onload = async (ev) => {
       try {
         const parsed: TaxRate[] = JSON.parse(ev.target?.result as string);
-        if (!Array.isArray(parsed)) throw new Error('Format invalide : tableau attendu');
+        if (!Array.isArray(parsed)) throw new Error(t('vatTaxes.invalidFormatArray'));
         // Merge: keep existing, add/overwrite by id
         const map = new Map(taxRates.map(r => [r.id, r]));
         for (const rate of parsed) {
@@ -323,9 +323,9 @@ const TVATaxesPage: React.FC = () => {
         await saveTaxRates(adapter, Array.from(map.values()));
         const tr = await adapter.getById<any>('settings', 'tva_rates');
         setTaxRatesSetting(tr);
-        toast.success(`${parsed.length} taux importés avec succès`);
+        toast.success(t('vatTaxes.ratesImported', { count: String(parsed.length) }));
       } catch (err: any) {
-        toast.error(err?.message ?? 'Erreur lors de l\'import du fichier');
+        toast.error(err?.message ?? t('vatTaxes.importError'));
       } finally {
         e.target.value = '';
       }
@@ -343,9 +343,9 @@ const TVATaxesPage: React.FC = () => {
       a.download = `taux-taxes-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Export téléchargé');
+      toast.success(t('vatTaxes.exportDownloaded'));
     } catch (err: any) {
-      toast.error(err?.message ?? 'Erreur lors de l\'export');
+      toast.error(err?.message ?? t('vatTaxes.exportError'));
     }
   };
 
@@ -357,9 +357,9 @@ const TVATaxesPage: React.FC = () => {
       await saveTaxSettings(adapter, taxSettings);
       const ts = await adapter.getById<any>('settings', 'tva_settings');
       setTaxSettingsSetting(ts);
-      toast.success('Paramètres sauvegardés');
+      toast.success(t('vatTaxes.settingsSaved'));
     } catch (err: any) {
-      toast.error(err?.message ?? 'Erreur lors de la sauvegarde des paramètres');
+      toast.error(err?.message ?? t('vatTaxes.settingsSaveError'));
     } finally {
       setIsSavingSettings(false);
     }
@@ -371,7 +371,7 @@ const TVATaxesPage: React.FC = () => {
       ...rate,
       id: undefined,
       code: `${rate.code}_COPIE`,
-      libelle: `${rate.libelle} (copie)`,
+      libelle: t('vatTaxes.copyLabelSuffix', { label: rate.libelle }),
       is_default: false,
     });
     setShowModal(true);
@@ -447,24 +447,24 @@ const TVATaxesPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <CreditCard className="mr-3 h-7 w-7 text-blue-600" />
-              Configuration TVA et Taxes
+              {t('vatTaxes.pageTitle')}
             </h1>
             <p className="mt-2 text-gray-600">
-              Gestion des taux de TVA et autres taxes selon la réglementation UEMOA
+              {t('vatTaxes.pageSubtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
             <Button onClick={handleImportTaxes} variant="outline">
               <Upload className="mr-2 h-4 w-4" />
-              Importer
+              {t('vatTaxes.import')}
             </Button>
             <Button onClick={handleExportTaxes} variant="outline">
               <Download className="mr-2 h-4 w-4" />
-              Exporter
+              {t('vatTaxes.export')}
             </Button>
             <Button onClick={openCreateModal} className="bg-blue-600 hover:bg-blue-700">
               <Plus className="mr-2 h-4 w-4" />
-              Nouveau Taux
+              {t('vatTaxes.newRate')}
             </Button>
           </div>
         </div>
@@ -480,7 +480,7 @@ const TVATaxesPage: React.FC = () => {
                   <CreditCard className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Taux Actifs</p>
+                  <p className="text-sm font-medium text-gray-600">{t('vatTaxes.activeRates')}</p>
                   <p className="text-lg font-bold text-blue-700">{activeTaxes}/{taxRates.length}</p>
                 </div>
               </div>
@@ -496,7 +496,7 @@ const TVATaxesPage: React.FC = () => {
                   <Percent className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Taux TVA</p>
+                  <p className="text-sm font-medium text-gray-600">{t('vatTaxes.vatRates')}</p>
                   <p className="text-lg font-bold text-green-700">{tvaRates}</p>
                 </div>
               </div>
@@ -512,7 +512,7 @@ const TVATaxesPage: React.FC = () => {
                   <Calculator className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Utilisations</p>
+                  <p className="text-sm font-medium text-gray-600">{t('vatTaxes.usages')}</p>
                   <p className="text-lg font-bold text-primary-700">{totalUsage.toLocaleString()}</p>
                 </div>
               </div>
@@ -528,7 +528,7 @@ const TVATaxesPage: React.FC = () => {
                   <Target className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Exonérations</p>
+                  <p className="text-sm font-medium text-gray-600">{t('vatTaxes.exemptions')}</p>
                   <p className="text-lg font-bold text-orange-700">{exemptions.length}</p>
                 </div>
               </div>
@@ -541,9 +541,9 @@ const TVATaxesPage: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
         <Tabs defaultValue="rates" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="rates">Taux de Taxes</TabsTrigger>
-            <TabsTrigger value="rules">Règles d'Application</TabsTrigger>
-            <TabsTrigger value="exemptions">Exonérations</TabsTrigger>
+            <TabsTrigger value="rates">{t('vatTaxes.ratesTab')}</TabsTrigger>
+            <TabsTrigger value="rules">{t('vatTaxes.rulesTab')}</TabsTrigger>
+            <TabsTrigger value="exemptions">{t('vatTaxes.exemptions')}</TabsTrigger>
             <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
@@ -555,7 +555,7 @@ const TVATaxesPage: React.FC = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
-                      placeholder="Rechercher un taux..."
+                      placeholder={t('vatTaxes.searchRatePlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -563,36 +563,36 @@ const TVATaxesPage: React.FC = () => {
                   </div>
 
                   <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger><SelectValue placeholder="Type de taxe" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('vatTaxes.taxTypePlaceholder')} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les types</SelectItem>
+                      <SelectItem value="all">{t('vatTaxes.allTypes')}</SelectItem>
                       <SelectItem value="TVA">TVA</SelectItem>
                       <SelectItem value="TCA">TCA</SelectItem>
                       <SelectItem value="TAF">TAF</SelectItem>
-                      <SelectItem value="IS">Impôt sur Sociétés</SelectItem>
+                      <SelectItem value="IS">{t('vatTaxes.corporateTax')}</SelectItem>
                       <SelectItem value="IRPP">IRPP</SelectItem>
                       <SelectItem value="TSS">TSS</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                    <SelectTrigger><SelectValue placeholder="Pays" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('vatTaxes.country')} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les pays</SelectItem>
-                      <SelectItem value="CI">Côte d'Ivoire</SelectItem>
-                      <SelectItem value="SN">Sénégal</SelectItem>
-                      <SelectItem value="BF">Burkina Faso</SelectItem>
-                      <SelectItem value="ML">Mali</SelectItem>
+                      <SelectItem value="all">{t('vatTaxes.allCountries')}</SelectItem>
+                      <SelectItem value="CI">{t('vatTaxes.countryCI')}</SelectItem>
+                      <SelectItem value="SN">{t('vatTaxes.countrySN')}</SelectItem>
+                      <SelectItem value="BF">{t('vatTaxes.countryBF')}</SelectItem>
+                      <SelectItem value="ML">{t('vatTaxes.countryML')}</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                    <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder={t('vatTaxes.status')} /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les statuts</SelectItem>
-                      <SelectItem value="active">Actif</SelectItem>
-                      <SelectItem value="inactive">Inactif</SelectItem>
-                      <SelectItem value="archived">Archivé</SelectItem>
+                      <SelectItem value="all">{t('vatTaxes.allStatuses')}</SelectItem>
+                      <SelectItem value="active">{t('vatTaxes.statusActive')}</SelectItem>
+                      <SelectItem value="inactive">{t('vatTaxes.statusInactive')}</SelectItem>
+                      <SelectItem value="archived">{t('vatTaxes.statusArchived')}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -605,13 +605,13 @@ const TVATaxesPage: React.FC = () => {
                       className="rounded border-gray-300"
                     />
                     <label htmlFor="show-archived" className="text-sm text-gray-700">
-                      Inclure archivés
+                      {t('vatTaxes.includeArchived')}
                     </label>
                   </div>
 
-                  <Button variant="outline" className="flex items-center" onClick={() => toast('Filtres avancés — fonctionnalité à venir', { icon: 'ℹ️' })}>
+                  <Button variant="outline" className="flex items-center" onClick={() => toast(t('vatTaxes.advancedFiltersComingSoon'), { icon: 'ℹ️' })}>
                     <Filter className="mr-2 h-4 w-4" />
-                    Filtres Avancés
+                    {t('vatTaxes.advancedFilters')}
                   </Button>
                 </div>
               </CardContent>
@@ -620,29 +620,29 @@ const TVATaxesPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Taux de Taxes ({filteredTaxRates.length})</span>
-                  <Badge variant="outline">Réglementation UEMOA</Badge>
+                  <span>{t('vatTaxes.ratesTitleCount', { count: String(filteredTaxRates.length) })}</span>
+                  <Badge variant="outline">{t('vatTaxes.uemoaRegulation')}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center py-8">
-                    <LoadingSpinner size="lg" text="Chargement des taux de taxes..." />
+                    <LoadingSpinner size="lg" text={t('vatTaxes.loadingRates')} />
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Code/Libellé</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Taux</TableHead>
-                          <TableHead>Pays</TableHead>
-                          <TableHead>Période</TableHead>
-                          <TableHead>Comptes</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead>Utilisation</TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
+                          <TableHead>{t('vatTaxes.colCodeLabel')}</TableHead>
+                          <TableHead>{t('vatTaxes.colType')}</TableHead>
+                          <TableHead>{t('vatTaxes.colRate')}</TableHead>
+                          <TableHead>{t('vatTaxes.colCountry')}</TableHead>
+                          <TableHead>{t('vatTaxes.colPeriod')}</TableHead>
+                          <TableHead>{t('vatTaxes.colAccounts')}</TableHead>
+                          <TableHead>{t('vatTaxes.colStatus')}</TableHead>
+                          <TableHead>{t('vatTaxes.colUsage')}</TableHead>
+                          <TableHead className="text-center">{t('vatTaxes.colActions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -657,7 +657,7 @@ const TVATaxesPage: React.FC = () => {
                                   <div className="flex items-center space-x-2">
                                     <Badge variant="outline" className="font-mono">{rate.code}</Badge>
                                     {rate.is_default && (
-                                      <Badge variant="default" className="text-xs bg-yellow-100 text-yellow-800">Défaut</Badge>
+                                      <Badge variant="default" className="text-xs bg-yellow-100 text-yellow-800">{t('vatTaxes.defaultBadge')}</Badge>
                                     )}
                                   </div>
                                   <p className="font-medium text-gray-900 mt-1">{rate.libelle}</p>
@@ -682,8 +682,8 @@ const TVATaxesPage: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                <p className="font-medium">Du {formatDate(rate.applicable_depuis)}</p>
-                                <p className="text-gray-700">Au {formatDate(rate.applicable_jusqu)}</p>
+                                <p className="font-medium">{t('vatTaxes.periodFrom', { date: formatDate(rate.applicable_depuis) })}</p>
+                                <p className="text-gray-700">{t('vatTaxes.periodTo', { date: formatDate(rate.applicable_jusqu) })}</p>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -704,7 +704,7 @@ const TVATaxesPage: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                <p className="font-medium text-gray-700">{rate.usage_count} fois</p>
+                                <p className="font-medium text-gray-700">{t('vatTaxes.usageTimes', { count: String(rate.usage_count) })}</p>
                                 <Progress value={totalUsage > 0 ? (rate.usage_count / totalUsage) * 100 : 0} className="w-16 h-2 mt-1" />
                               </div>
                             </TableCell>
@@ -713,8 +713,8 @@ const TVATaxesPage: React.FC = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  title="Voir le détail"
-                                  onClick={() => toast(`Détail : ${rate.libelle} — ${rate.taux}%`)}
+                                  title={t('vatTaxes.viewDetail')}
+                                  onClick={() => toast(t('vatTaxes.rateDetailToast', { label: rate.libelle, rate: String(rate.taux) }))}
                                 >
                                   <Eye className="h-4 w-4" />
                                 </Button>
@@ -728,7 +728,7 @@ const TVATaxesPage: React.FC = () => {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  title="Dupliquer"
+                                  title={t('vatTaxes.duplicate')}
                                   onClick={() => handleDuplicateTaxRate(rate)}
                                 >
                                   <Copy className="h-4 w-4" />
@@ -758,10 +758,10 @@ const TVATaxesPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Règles d'Application</span>
-                  <Button className="bg-primary-600 hover:bg-primary-700" onClick={() => toast('Création de règle — fonctionnalité à venir', { icon: 'ℹ️' })}>
+                  <span>{t('vatTaxes.rulesTitle')}</span>
+                  <Button className="bg-primary-600 hover:bg-primary-700" onClick={() => toast(t('vatTaxes.createRuleComingSoon'), { icon: 'ℹ️' })}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Nouvelle Règle
+                    {t('vatTaxes.newRule')}
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -776,13 +776,13 @@ const TVATaxesPage: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-3">
                           <Badge variant={rule.status === 'active' ? 'default' : 'outline'}>{rule.status}</Badge>
-                          <Badge variant="outline">Priorité {rule.priority}</Badge>
-                          {rule.auto_apply && <Badge className="bg-green-100 text-green-800">Auto</Badge>}
+                          <Badge variant="outline">{t('vatTaxes.priorityLabel', { priority: String(rule.priority) })}</Badge>
+                          {rule.auto_apply && <Badge className="bg-green-100 text-green-800">{t('vatTaxes.autoBadge')}</Badge>}
                         </div>
                       </div>
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Conditions:</h4>
+                          <h4 className="font-medium text-gray-900 mb-2">{t('vatTaxes.conditionsLabel')}</h4>
                           <div className="space-y-1">
                             {rule.conditions.map((condition, idx) => (
                               <Badge key={idx} variant="outline" className="mr-1 mb-1">{condition}</Badge>
@@ -790,13 +790,13 @@ const TVATaxesPage: React.FC = () => {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Formule de calcul:</h4>
+                          <h4 className="font-medium text-gray-900 mb-2">{t('vatTaxes.formulaLabel')}</h4>
                           <code className="text-sm bg-gray-100 p-2 rounded block">{rule.formula}</code>
                         </div>
                       </div>
                       <div className="flex justify-end space-x-2 mt-4 pt-4 border-t">
-                        <Button size="sm" variant="outline" onClick={() => toast(`Test de la règle "${rule.name}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Eye className="mr-2 h-4 w-4" />Tester</Button>
-                        <Button size="sm" variant="outline" onClick={() => toast(`Modification de la règle "${rule.name}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Edit className="mr-2 h-4 w-4" />Modifier</Button>
+                        <Button size="sm" variant="outline" onClick={() => toast(t('vatTaxes.testRuleComingSoon', { name: rule.name }), { icon: 'ℹ️' })}><Eye className="mr-2 h-4 w-4" />{t('vatTaxes.test')}</Button>
+                        <Button size="sm" variant="outline" onClick={() => toast(t('vatTaxes.editRuleComingSoon', { name: rule.name }), { icon: 'ℹ️' })}><Edit className="mr-2 h-4 w-4" />{t('vatTaxes.edit')}</Button>
                       </div>
                     </div>
                   ))}
@@ -810,10 +810,10 @@ const TVATaxesPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Exonérations et Réductions</span>
-                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => toast('Création d\'exonération — fonctionnalité à venir', { icon: 'ℹ️' })}>
+                  <span>{t('vatTaxes.exemptionsTitle')}</span>
+                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => toast(t('vatTaxes.createExemptionComingSoon'), { icon: 'ℹ️' })}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Nouvelle Exonération
+                    {t('vatTaxes.newExemption')}
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -822,13 +822,13 @@ const TVATaxesPage: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Code/Libellé</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Réduction</TableHead>
-                        <TableHead>Période</TableHead>
-                        <TableHead>Conditions</TableHead>
-                        <TableHead>Statut</TableHead>
-                        <TableHead className="text-center">Actions</TableHead>
+                        <TableHead>{t('vatTaxes.colCodeLabel')}</TableHead>
+                        <TableHead>{t('vatTaxes.colType')}</TableHead>
+                        <TableHead>{t('vatTaxes.colReduction')}</TableHead>
+                        <TableHead>{t('vatTaxes.colPeriod')}</TableHead>
+                        <TableHead>{t('vatTaxes.colConditions')}</TableHead>
+                        <TableHead>{t('vatTaxes.colStatus')}</TableHead>
+                        <TableHead className="text-center">{t('vatTaxes.colActions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -856,8 +856,8 @@ const TVATaxesPage: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              <p>Du {formatDate(exemption.date_debut)}</p>
-                              {exemption.date_fin && <p>Au {formatDate(exemption.date_fin)}</p>}
+                              <p>{t('vatTaxes.periodFrom', { date: formatDate(exemption.date_debut) })}</p>
+                              {exemption.date_fin && <p>{t('vatTaxes.periodTo', { date: formatDate(exemption.date_fin) })}</p>}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -878,8 +878,8 @@ const TVATaxesPage: React.FC = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center justify-center space-x-1">
-                              <Button variant="ghost" size="sm" title="Voir le détail" onClick={() => toast(`Détail exonération : ${exemption.libelle}`, { icon: 'ℹ️' })}><Eye className="h-4 w-4" /></Button>
-                              <Button variant="ghost" size="sm" title="Modifier" onClick={() => toast(`Modification de l'exonération "${exemption.libelle}" — fonctionnalité à venir`, { icon: 'ℹ️' })}><Edit className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="sm" title={t('vatTaxes.viewDetail')} onClick={() => toast(t('vatTaxes.exemptionDetailToast', { label: exemption.libelle }), { icon: 'ℹ️' })}><Eye className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="sm" title={t('vatTaxes.edit')} onClick={() => toast(t('vatTaxes.editExemptionComingSoon', { label: exemption.libelle }), { icon: 'ℹ️' })}><Edit className="h-4 w-4" /></Button>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -895,12 +895,12 @@ const TVATaxesPage: React.FC = () => {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres Généraux</CardTitle>
+                <CardTitle>{t('vatTaxes.generalSettings')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Calcul Automatique</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">{t('vatTaxes.automaticCalculation')}</h3>
                     <div className="space-y-3">
                       <label className="flex items-center space-x-3">
                         <input
@@ -909,7 +909,7 @@ const TVATaxesPage: React.FC = () => {
                           onChange={(e) => setTaxSettings(s => ({ ...s, auto_tva: e.target.checked }))}
                           className="form-checkbox"
                         />
-                        <span className="text-sm text-gray-700">Application automatique des règles de TVA</span>
+                        <span className="text-sm text-gray-700">{t('vatTaxes.autoVatRules')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input
@@ -918,7 +918,7 @@ const TVATaxesPage: React.FC = () => {
                           onChange={(e) => setTaxSettings(s => ({ ...s, auto_retenue: e.target.checked }))}
                           className="form-checkbox"
                         />
-                        <span className="text-sm text-gray-700">Calcul automatique des retenues à la source</span>
+                        <span className="text-sm text-gray-700">{t('vatTaxes.autoWithholding')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input
@@ -927,30 +927,30 @@ const TVATaxesPage: React.FC = () => {
                           onChange={(e) => setTaxSettings(s => ({ ...s, validation_manuelle: e.target.checked }))}
                           className="form-checkbox"
                         />
-                        <span className="text-sm text-gray-700">Validation manuelle des calculs d'impôts</span>
+                        <span className="text-sm text-gray-700">{t('vatTaxes.manualTaxValidation')}</span>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Arrondi</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">{t('vatTaxes.rounding')}</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Méthode d'arrondi</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('vatTaxes.roundingMethod')}</label>
                         <Select
                           value={taxSettings.arrondi_methode}
                           onValueChange={(v) => setTaxSettings(s => ({ ...s, arrondi_methode: v }))}
                         >
                           <SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="nearest">Au plus proche</SelectItem>
-                            <SelectItem value="up">Arrondi supérieur</SelectItem>
-                            <SelectItem value="down">Arrondi inférieur</SelectItem>
+                            <SelectItem value="nearest">{t('vatTaxes.roundNearest')}</SelectItem>
+                            <SelectItem value="up">{t('vatTaxes.roundUp')}</SelectItem>
+                            <SelectItem value="down">{t('vatTaxes.roundDown')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Précision</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t('vatTaxes.precision')}</label>
                         <Select
                           value={taxSettings.arrondi_precision}
                           onValueChange={(v) => setTaxSettings(s => ({ ...s, arrondi_precision: v }))}
@@ -976,7 +976,7 @@ const TVATaxesPage: React.FC = () => {
                             setTaxSettings(JSON.parse(taxSettingsSetting.value));
                           } catch (parseErr) {
                             console.error('[TVATaxes] Erreur restauration paramètres:', parseErr);
-                            toast.error('Impossible de restaurer les paramètres enregistrés');
+                            toast.error(t('vatTaxes.restoreSettingsError'));
                             setTaxSettings(DEFAULT_TAX_SETTINGS);
                           }
                         } else {
@@ -984,7 +984,7 @@ const TVATaxesPage: React.FC = () => {
                         }
                       }}
                     >
-                      Annuler
+                      {t('vatTaxes.cancel')}
                     </Button>
                     <Button
                       className="bg-blue-600 hover:bg-blue-700"
@@ -996,7 +996,7 @@ const TVATaxesPage: React.FC = () => {
                       ) : (
                         <Save className="mr-2 h-4 w-4" />
                       )}
-                      Sauvegarder
+                      {t('vatTaxes.save')}
                     </Button>
                   </div>
                 </div>
@@ -1012,14 +1012,14 @@ const TVATaxesPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">
-                {editingRate ? 'Modifier le taux' : 'Nouveau taux de taxe'}
+                {editingRate ? t('vatTaxes.editRateTitle') : t('vatTaxes.newRateTitle')}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-gray-500 hover:text-gray-700">✕</button>
             </div>
             <div className="px-6 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.codeRequired')}</label>
                   <Input
                     value={modalForm.code ?? ''}
                     onChange={(e) => setModalForm(f => ({ ...f, code: e.target.value }))}
@@ -1027,15 +1027,15 @@ const TVATaxesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Libellé *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.labelRequired')}</label>
                   <Input
                     value={modalForm.libelle ?? ''}
                     onChange={(e) => setModalForm(f => ({ ...f, libelle: e.target.value }))}
-                    placeholder="TVA normale 18%"
+                    placeholder={t('vatTaxes.labelPlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.colType')}</label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     value={modalForm.type ?? 'TVA'}
@@ -1051,7 +1051,7 @@ const TVATaxesPage: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Taux (%)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.rateField')}</label>
                   <Input
                     type="number"
                     value={modalForm.taux ?? 0}
@@ -1059,36 +1059,36 @@ const TVATaxesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pays</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.country')}</label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     value={modalForm.country ?? 'CI'}
                     onChange={(e) => setModalForm(f => ({ ...f, country: e.target.value }))}
                   >
-                    <option value="CI">Côte d'Ivoire</option>
-                    <option value="SN">Sénégal</option>
-                    <option value="BF">Burkina Faso</option>
-                    <option value="ML">Mali</option>
-                    <option value="NE">Niger</option>
-                    <option value="TG">Togo</option>
-                    <option value="BJ">Bénin</option>
-                    <option value="GN">Guinée</option>
+                    <option value="CI">{t('vatTaxes.countryCI')}</option>
+                    <option value="SN">{t('vatTaxes.countrySN')}</option>
+                    <option value="BF">{t('vatTaxes.countryBF')}</option>
+                    <option value="ML">{t('vatTaxes.countryML')}</option>
+                    <option value="NE">{t('vatTaxes.countryNE')}</option>
+                    <option value="TG">{t('vatTaxes.countryTG')}</option>
+                    <option value="BJ">{t('vatTaxes.countryBJ')}</option>
+                    <option value="GN">{t('vatTaxes.countryGN')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.status')}</label>
                   <select
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                     value={modalForm.status ?? 'active'}
                     onChange={(e) => setModalForm(f => ({ ...f, status: e.target.value as TaxRate['status'] }))}
                   >
-                    <option value="active">Actif</option>
-                    <option value="inactive">Inactif</option>
-                    <option value="archived">Archivé</option>
+                    <option value="active">{t('vatTaxes.statusActive')}</option>
+                    <option value="inactive">{t('vatTaxes.statusInactive')}</option>
+                    <option value="archived">{t('vatTaxes.statusArchived')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Applicable depuis</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.applicableFrom')}</label>
                   <Input
                     type="date"
                     value={modalForm.applicable_depuis ?? ''}
@@ -1096,7 +1096,7 @@ const TVATaxesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Applicable jusqu'au</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.applicableUntil')}</label>
                   <Input
                     type="date"
                     value={modalForm.applicable_jusqu ?? ''}
@@ -1104,7 +1104,7 @@ const TVATaxesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte collecte</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.collectionAccount')}</label>
                   <Input
                     value={modalForm.compte_collecte ?? ''}
                     onChange={(e) => setModalForm(f => ({ ...f, compte_collecte: e.target.value }))}
@@ -1112,7 +1112,7 @@ const TVATaxesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Compte déductible</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('vatTaxes.deductibleAccount')}</label>
                   <Input
                     value={modalForm.compte_deductible ?? ''}
                     onChange={(e) => setModalForm(f => ({ ...f, compte_deductible: e.target.value }))}
@@ -1127,12 +1127,12 @@ const TVATaxesPage: React.FC = () => {
                   onChange={(e) => setModalForm(f => ({ ...f, is_default: e.target.checked }))}
                   className="rounded border-gray-300"
                 />
-                <span className="text-sm text-gray-700">Taux par défaut</span>
+                <span className="text-sm text-gray-700">{t('vatTaxes.defaultRate')}</span>
               </label>
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
               <Button variant="outline" onClick={() => setShowModal(false)} disabled={isSavingRate}>
-                Annuler
+                {t('vatTaxes.cancel')}
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700"
@@ -1140,7 +1140,7 @@ const TVATaxesPage: React.FC = () => {
                 disabled={isSavingRate}
               >
                 {isSavingRate ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                {editingRate ? 'Enregistrer' : 'Créer'}
+                {editingRate ? t('vatTaxes.saveEntry') : t('vatTaxes.create')}
               </Button>
             </div>
           </div>

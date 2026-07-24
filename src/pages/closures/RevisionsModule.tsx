@@ -17,6 +17,7 @@ import {
 import { Progress } from '../../components/ui/Progress';
 import { analyzeAuditRevision, type AuditAnalysisResult, type AuditFindingItem } from '../../services/auditRevisionAnalyzer';
 import AuditResultPanel from '../../components/closures/AuditResultPanel';
+import { formatNumber } from '../../utils/formatters';
 
 // ==================== TYPES ET INTERFACES ====================
 
@@ -609,7 +610,7 @@ const RevisionsModule: React.FC = () => {
               <span className="text-sm text-blue-700">Total Points</span>
               <FileSearch className="w-5 h-5 text-blue-600" />
             </div>
-            <p className="text-lg font-bold text-blue-900">{stats.total}</p>
+            <p className="text-lg font-bold text-blue-900">{formatNumber(stats.total)}</p>
           </div>
 
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">

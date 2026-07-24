@@ -11,10 +11,12 @@ import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { computePnLBudget, type PnLLine, type N1Source } from '../../features/budget/services/pnlBudgetService';
 import { useAccountNames } from '../../hooks/useAccountNames';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Scale, Loader2, TrendingUp, TrendingDown, ChevronRight } from 'lucide-react';
 
 const BudgetPnLPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const { label: acctLabel } = useAccountNames();
   const [annee, setAnnee] = useState('');
   const [lines, setLines] = useState<PnLLine[]>([]);
@@ -34,7 +36,7 @@ const BudgetPnLPage: React.FC = () => {
         if (cancelled) return;
         setAnnee(a); setLines(res.lines); setN1Source(res.n1Source);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetPnl.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -61,13 +63,13 @@ const BudgetPnLPage: React.FC = () => {
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-            <Scale className="w-6 h-6 text-[var(--color-primary)]" /> Compte de résultat budgétaire
+            <Scale className="w-6 h-6 text-[var(--color-primary)]" /> {t('budgetPnl.title')}
           </h1>
-          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">P&amp;L de gestion SYSCOHADA · exercice {annee || '—'}</p>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{t('budgetPnl.subtitle', { year: annee || '—' })}</p>
         </div>
         {resultat && (
           <div className="text-right">
-            <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">Résultat de gestion (réalisé)</div>
+            <div className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('budgetPnl.resultKpi')}</div>
             <div className={`font-mono text-xl font-semibold ${resultat.realise >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
               {formatCurrency(resultat.realise)}
             </div>
@@ -78,23 +80,23 @@ const BudgetPnLPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('budgetPnl.loading')}</div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                <th className="px-4 py-3 text-left">Rubrique</th>
-                <th className="px-4 py-3 text-right">Budget</th>
-                <th className="px-4 py-3 text-right">Réalisé</th>
-                <th className="px-4 py-3 text-right">Écart</th>
+                <th className="px-4 py-3 text-left">{t('budgetPnl.colRubrique')}</th>
+                <th className="px-4 py-3 text-right">{t('budgetPnl.colBudget')}</th>
+                <th className="px-4 py-3 text-right">{t('budgetPnl.colRealise')}</th>
+                <th className="px-4 py-3 text-right">{t('budgetPnl.colEcart')}</th>
                 <th className="px-4 py-3 text-right">
-                  N-1
+                  {t('budgetPnl.colN1')}
                   <span className={`ml-1 inline-block px-1.5 py-0.5 rounded-full text-[9px] font-medium align-middle ${n1Source === 'import' ? 'bg-[var(--color-warning-light)] text-[var(--color-secondary)]' : n1Source === 'gl' ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)]' : 'bg-gray-100 text-gray-400'}`}>
-                    {n1Source === 'import' ? 'importé' : n1Source === 'gl' ? 'réalisé N-1' : 'n/a'}
+                    {n1Source === 'import' ? t('budgetPnl.n1Imported') : n1Source === 'gl' ? t('budgetPnl.n1Gl') : 'n/a'}
                   </span>
                 </th>
-                <th className="px-4 py-3 text-right">Δ N-1</th>
+                <th className="px-4 py-3 text-right">{t('budgetPnl.colDeltaN1')}</th>
               </tr>
             </thead>
             <tbody>
@@ -142,7 +144,7 @@ const BudgetPnLPage: React.FC = () => {
         </div>
       )}
       <p className="text-xs text-[var(--color-text-tertiary)]">
-        Valeurs signées (produits +, charges −) : un écart favorable = réalisé &gt; budget. Réalisé issu du grand livre (classe 6/7), budget de la version en vigueur. <strong>N-1</strong> : priorité à un N-1 <em>importé</em> (version budgétaire de l'exercice {annee ? Number(annee) - 1 : 'N-1'} — via l'écran Import), sinon repli sur le <em>réalisé N-1</em> du grand livre (0 si aucune écriture N-1). Cliquez une rubrique pour déplier le détail par compte.
+        {t('budgetPnl.noteSigned')} <strong>{t('budgetPnl.colN1')}</strong>{t('budgetPnl.noteN1Intro')}<em>{t('budgetPnl.n1Imported')}</em>{t('budgetPnl.noteN1Middle', { year: annee ? String(Number(annee) - 1) : t('budgetPnl.colN1') })}<em>{t('budgetPnl.n1Gl')}</em>{t('budgetPnl.noteN1End')}
       </p>
     </div>
   );

@@ -6,6 +6,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAccountNames } from '../../hooks/useAccountNames';
 import { formatCurrency } from '../../utils/formatters';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
@@ -13,7 +14,10 @@ import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search } from 'lucide-react';
 
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+const MOIS_KEYS = [
+  'ecarts.monJan', 'ecarts.monFeb', 'ecarts.monMar', 'ecarts.monApr', 'ecarts.monMay', 'ecarts.monJun',
+  'ecarts.monJul', 'ecarts.monAug', 'ecarts.monSep', 'ecarts.monOct', 'ecarts.monNov', 'ecarts.monDec',
+];
 
 // Libellés SYSCOHADA des rubriques (préfixe 2 chiffres) — charges & produits.
 const RUB_LABELS: Record<string, string> = {
@@ -32,16 +36,17 @@ const rubLabel = (code: string) => RUB_LABELS[code] || '';
 const WF_COLOR = { total: 'var(--color-primary)', inc: 'var(--color-secondary)', dec: 'var(--color-error)' } as const;
 
 const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: string; ecart: number }[] }> = ({ budget, realise, steps }) => {
+  const { t: tr } = useLanguage();
   type Bar = { label: string; lo: number; hi: number; run: number; delta: number; kind: 'total' | 'inc' | 'dec' };
   const bars: Bar[] = [];
-  bars.push({ label: 'Budget', lo: 0, hi: budget, run: budget, delta: budget, kind: 'total' });
+  bars.push({ label: tr('ecarts.budget'), lo: 0, hi: budget, run: budget, delta: budget, kind: 'total' });
   let cum = budget;
   for (const s of steps) {
     const after = cum + s.ecart;
     bars.push({ label: s.code, lo: Math.min(cum, after), hi: Math.max(cum, after), run: after, delta: s.ecart, kind: s.ecart >= 0 ? 'inc' : 'dec' });
     cum = after;
   }
-  bars.push({ label: 'Réalisé', lo: 0, hi: realise, run: realise, delta: realise, kind: 'total' });
+  bars.push({ label: tr('ecarts.realise'), lo: 0, hi: realise, run: realise, delta: realise, kind: 'total' });
 
   const W = 920, H = 300, padL = 10, padR = 10, padT = 16, padB = 42;
   const yMax = Math.max(1, ...bars.map(b => b.hi));
@@ -52,7 +57,7 @@ const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: stri
   const cx = (i: number) => padL + slot * i + slot / 2;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Cascade budget vers réalisé">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={tr('ecarts.waterfallAria')}>
       {/* lignes de repère */}
       {[0.25, 0.5, 0.75, 1].map((t) => { const v = yMin + (yMax - yMin) * t; return <line key={t} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="var(--color-border)" strokeOpacity="0.5" strokeDasharray="2 3" />; })}
       <line x1={padL} x2={W - padR} y1={y(0)} y2={y(0)} stroke="var(--color-border)" />
@@ -74,6 +79,7 @@ const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: stri
 
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
+  const { t: tr } = useLanguage();
   const { format: fmtAccount } = useAccountNames();
   const navigate = useNavigate();
   const [rows, setRows] = useState<BudgetVsActualRow[]>([]);
@@ -126,14 +132,14 @@ const BudgetEcartsPage: React.FC = () => {
     const top = nz.slice(0, 9);
     const restE = nz.slice(9).reduce((s, n) => s + n.ecart, 0);
     const steps = top.map(n => ({ code: n.code, ecart: n.ecart }));
-    if (Math.abs(restE) > 0.5) steps.push({ code: 'Autres', ecart: restE });
+    if (Math.abs(restE) > 0.5) steps.push({ code: tr('ecarts.autres'), ecart: restE });
     return steps;
-  }, [parNature]);
+  }, [parNature, tr]);
 
   // Étapes du waterfall PAR MOIS : écart cumulé de chaque période (12 mois).
   const wfMonthly = useMemo(() =>
-    MOIS.map((m, i) => ({ code: m, ecart: rows.filter(r => r.period === i + 1).reduce((s, r) => s + r.ecart, 0) })),
-  [rows]);
+    MOIS_KEYS.map((k, i) => ({ code: tr(k), ecart: rows.filter(r => r.period === i + 1).reduce((s, r) => s + r.ecart, 0) })),
+  [rows, tr]);
 
   const [wfMode, setWfMode] = useState<'rubrique' | 'mois'>('rubrique');
 
@@ -157,9 +163,9 @@ const BudgetEcartsPage: React.FC = () => {
         message: `En tant qu'analyste de gestion SYSCOHADA, commente brièvement (5 lignes max, en français) ces écarts budgétaires sans recalculer ni inventer de chiffres. Identifie les dépassements de charges et les manques de produits, et propose 2 actions. Données: ${lignes}. Écart global réalisé−budget: ${Math.round(totals.ecart)}.`,
         sensitivity: 'confidential',
       });
-      setProphet(res.answer || 'Aucun commentaire.');
+      setProphet(res.answer || tr('ecarts.prophetNoComment'));
     } catch (e: any) {
-      setProphet('PROPH3T indisponible : ' + (e?.message || 'erreur'));
+      setProphet(tr('ecarts.prophetUnavailable') + (e?.message || tr('ecarts.error')));
     } finally { setProphetLoading(false); }
   };
 
@@ -167,22 +173,22 @@ const BudgetEcartsPage: React.FC = () => {
   const heatmap = useMemo(() => {
     const natures = [...new Set(rows.map(r => r.account_code.slice(0, 2)))].sort();
     const grid = natures.map(code => {
-      const cells = MOIS.map((_, i) => rows.filter(r => r.account_code.slice(0, 2) === code && r.period === i + 1).reduce((s, r) => s + r.ecart, 0));
+      const cells = MOIS_KEYS.map((_, i) => rows.filter(r => r.account_code.slice(0, 2) === code && r.period === i + 1).reduce((s, r) => s + r.ecart, 0));
       return { code, cells };
     });
     const maxAbs = Math.max(1, ...grid.flatMap(g => g.cells.map(Math.abs)));
     return { grid, maxAbs };
   }, [rows]);
 
-  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">Chargement…</div>;
+  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">{tr('ecarts.loading')}</div>;
 
   if (rows.length === 0) {
     return (
       <div className="p-6 bg-[var(--color-border)] min-h-full">
         <div className="bg-white rounded-xl p-8 border border-[var(--color-border)] text-center">
           <TrendingUp className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-600">Aucun écart à analyser : aucune version budgétaire active avec des montants.</p>
-          <button onClick={() => navigate('/budget/table')} className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">Importer un budget</button>
+          <p className="text-sm text-gray-600">{tr('ecarts.emptyState')}</p>
+          <button onClick={() => navigate('/budget/table')} className="mt-4 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm">{tr('ecarts.importBudget')}</button>
         </div>
       </div>
     );
@@ -200,19 +206,19 @@ const BudgetEcartsPage: React.FC = () => {
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex items-center gap-3">
         <button onClick={() => navigate('/budget/cockpit')} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"><ArrowLeft className="w-4 h-4" /></button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-[var(--color-primary)]">Analyse des Écarts</h1>
-          <p className="text-sm text-[var(--color-text-tertiary)]">Réalisé − budget · favorable (vert) / défavorable (rouge)</p>
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">{tr('ecarts.title')}</h1>
+          <p className="text-sm text-[var(--color-text-tertiary)]">{tr('ecarts.subtitle')}</p>
         </div>
         {isProph3tCoreConfigured() && (
           <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
-            <Bot className="w-4 h-4" /> {prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
+            <Bot className="w-4 h-4" /> {prophetLoading ? tr('ecarts.analyzing') : tr('ecarts.prophetComment')}
           </button>
         )}
         <PageHeaderActions
           onToggleFilters={() => setFiltersOpen(o => !o)}
           filtersOpen={filtersOpen}
           activeFilters={q ? 1 : 0}
-          printTitle="Analyse des Écarts budgétaires"
+          printTitle={tr('ecarts.printTitle')}
         />
       </div>
 
@@ -220,7 +226,7 @@ const BudgetEcartsPage: React.FC = () => {
         <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-4 print-hide">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Filtrer par nature (ex. 60, 70…)" className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={tr('ecarts.filterPlaceholder')} className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
           </div>
         </div>
       )}
@@ -228,11 +234,11 @@ const BudgetEcartsPage: React.FC = () => {
       {/* Alertes de dépassement */}
       {alertes.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-          <div className="flex items-center gap-2 text-red-800 font-semibold text-sm mb-2"><AlertTriangle className="w-4 h-4" />{alertes.length} dépassement(s) significatif(s)</div>
+          <div className="flex items-center gap-2 text-red-800 font-semibold text-sm mb-2"><AlertTriangle className="w-4 h-4" />{tr('ecarts.overruns', { count: String(alertes.length) })}</div>
           <div className="flex flex-wrap gap-2">
             {alertes.map(a => (
               <span key={a.code} className="text-xs bg-white border border-red-200 rounded-full px-2.5 py-1 text-red-700">
-                <span className="font-mono">{a.code}</span> {a.classe === '6' ? 'charges' : 'produits'} {a.pct >= 0 ? '+' : ''}{a.pct}%
+                <span className="font-mono">{a.code}</span> {a.classe === '6' ? tr('ecarts.charges') : tr('ecarts.produits')} {a.pct >= 0 ? '+' : ''}{a.pct}%
               </span>
             ))}
           </div>
@@ -242,9 +248,9 @@ const BudgetEcartsPage: React.FC = () => {
       {/* Commentaire PROPH3T (advisory, jamais les chiffres) */}
       {prophet && (
         <div className="bg-white rounded-xl p-5 border border-[var(--color-primary)]/30 shadow-sm">
-          <div className="flex items-center gap-2 text-[var(--color-primary)] font-semibold text-sm mb-2"><Bot className="w-4 h-4" />Lecture PROPH3T</div>
+          <div className="flex items-center gap-2 text-[var(--color-primary)] font-semibold text-sm mb-2"><Bot className="w-4 h-4" />{tr('ecarts.prophetReading')}</div>
           <p className="text-sm text-gray-700 whitespace-pre-wrap">{prophet}</p>
-          <p className="text-[10px] text-gray-400 mt-2">Analyse indicative — PROPH3T ne produit jamais les chiffres comptables.</p>
+          <p className="text-[10px] text-gray-400 mt-2">{tr('ecarts.prophetDisclaimer')}</p>
         </div>
       )}
 
@@ -252,38 +258,38 @@ const BudgetEcartsPage: React.FC = () => {
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
         <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <h2 className="font-semibold text-[var(--color-primary)]">Cascade budget → réalisé</h2>
+            <h2 className="font-semibold text-[var(--color-primary)]">{tr('ecarts.waterfallTitle')}</h2>
             <div className="inline-flex items-center gap-1 p-0.5 rounded-lg bg-[var(--color-surface-hover)]">
               {(['rubrique', 'mois'] as const).map(m => (
                 <button key={m} onClick={() => setWfMode(m)}
                   className={`px-2.5 py-1 rounded-md text-xs transition ${wfMode === m ? 'bg-white shadow-sm text-[var(--color-primary)] font-medium' : 'text-[var(--color-text-secondary)] hover:text-neutral-800'}`}>
-                  {m === 'rubrique' ? 'Par rubrique' : 'Par mois'}
+                  {m === 'rubrique' ? tr('ecarts.byRubrique') : tr('ecarts.byMonth')}
                 </button>
               ))}
             </div>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.total }} /> Total</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.inc }} /> Augmentation</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.dec }} /> Diminution</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.total }} /> {tr('ecarts.total')}</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.inc }} /> {tr('ecarts.legendIncrease')}</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded-sm inline-block" style={{ background: WF_COLOR.dec }} /> {tr('ecarts.legendDecrease')}</span>
           </div>
         </div>
         <Waterfall budget={totals.budget} realise={totals.realise} steps={wfMode === 'mois' ? wfMonthly : wfSteps} />
-        <p className="text-[10px] text-gray-400 mt-1">Départ = budget total ; chaque barre = écart {wfMode === 'mois' ? "d'un mois" : "d'une rubrique"} (réalisé − budget) ; arrivée = réalisé total.</p>
+        <p className="text-[10px] text-gray-400 mt-1">{wfMode === 'mois' ? tr('ecarts.waterfallNoteMois') : tr('ecarts.waterfallNoteRubrique')}</p>
       </div>
 
       {/* Du budget au réalisé — table Budget / Réalisé / Écart, dépliable par compte */}
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
         <div className="px-4 py-3 border-b border-[var(--color-border)]">
-          <h2 className="font-semibold text-[var(--color-primary)]">Du budget au réalisé <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· clic sur une rubrique pour déplier les comptes</span></h2>
+          <h2 className="font-semibold text-[var(--color-primary)]">{tr('ecarts.tableTitle')} <span className="text-xs font-normal text-[var(--color-text-tertiary)]">· {tr('ecarts.tableHint')}</span></h2>
         </div>
         <table className="w-full text-sm min-w-[680px]">
           <thead className="bg-gray-50 border-b border-[var(--color-border)]">
             <tr>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique / Compte</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budget</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Réalisé</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{tr('ecarts.colRubriqueCompte')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('ecarts.budget')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('ecarts.realise')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{tr('ecarts.colEcart')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -317,7 +323,7 @@ const BudgetEcartsPage: React.FC = () => {
           </tbody>
           <tfoot>
             <tr className="bg-gray-50 border-t border-[var(--color-border)] font-semibold text-gray-900">
-              <td className="px-4 py-3">Total</td>
+              <td className="px-4 py-3">{tr('ecarts.total')}</td>
               <td className="px-4 py-3 text-right">{formatCurrency(totals.budget)}</td>
               <td className="px-4 py-3 text-right">{formatCurrency(totals.realise)}</td>
               <td className={`px-4 py-3 text-right ${totals.ecart >= 0 ? 'text-green-600' : 'text-red-600'}`}>{totals.ecart >= 0 ? '+' : ''}{formatCurrency(totals.ecart)}</td>
@@ -328,12 +334,12 @@ const BudgetEcartsPage: React.FC = () => {
 
       {/* Heatmap mois × nature */}
       <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm overflow-x-auto">
-        <h2 className="font-semibold text-[var(--color-primary)] mb-4">Heatmap des écarts (mois × nature)</h2>
+        <h2 className="font-semibold text-[var(--color-primary)] mb-4">{tr('ecarts.heatmapTitle')}</h2>
         <table className="text-xs border-collapse">
           <thead>
             <tr>
-              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white min-w-[190px]">Nature</th>
-              {MOIS.map(m => <th key={m} className="px-2 py-1 text-center text-gray-500 w-14">{m}</th>)}
+              <th className="px-2 py-1 text-left text-gray-500 sticky left-0 bg-white min-w-[190px]">{tr('ecarts.nature')}</th>
+              {MOIS_KEYS.map(k => <th key={k} className="px-2 py-1 text-center text-gray-500 w-14">{tr(k)}</th>)}
             </tr>
           </thead>
           <tbody>
@@ -341,7 +347,7 @@ const BudgetEcartsPage: React.FC = () => {
               <tr key={g.code}>
                 <td className="px-2 py-1 text-gray-600 sticky left-0 bg-white min-w-[190px]"><span className="font-mono font-bold text-[var(--color-primary)]">{g.code}</span> <span className="text-gray-500">{rubLabel(g.code)}</span></td>
                 {g.cells.map((v, i) => (
-                  <td key={i} className="px-1 py-1 text-center" style={{ background: cellColor(v) }} title={`${MOIS[i]} : ${formatCurrency(v)}`}>
+                  <td key={i} className="px-1 py-1 text-center" style={{ background: cellColor(v) }} title={`${tr(MOIS_KEYS[i])} : ${formatCurrency(v)}`}>
                     {v !== 0 ? Math.round(v / 1000).toLocaleString('fr-FR') : ''}
                   </td>
                 ))}
@@ -349,7 +355,7 @@ const BudgetEcartsPage: React.FC = () => {
             ))}
           </tbody>
         </table>
-        <p className="text-[10px] text-gray-400 mt-2">Valeurs en milliers FCFA. Vert = favorable, rouge = défavorable.</p>
+        <p className="text-[10px] text-gray-400 mt-2">{tr('ecarts.heatmapNote')}</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
 import { listCapexRequests, type CapexRequest } from '../../features/budget/services/budgetService';
@@ -12,12 +13,23 @@ import { getCapexExecution, type CapexExecution } from '../../features/budget/se
 import NewBusinessCaseModal from './NewBusinessCaseModal';
 import { Layers, Loader2, Plus, ArrowRight, Package, Boxes, TrendingDown, Wallet } from 'lucide-react';
 
-const MOIS_COURT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-const MOIS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+const MOIS_COURT_KEYS = [
+  'capexPortfolio.monthShortJan', 'capexPortfolio.monthShortFeb', 'capexPortfolio.monthShortMar',
+  'capexPortfolio.monthShortApr', 'capexPortfolio.monthShortMay', 'capexPortfolio.monthShortJun',
+  'capexPortfolio.monthShortJul', 'capexPortfolio.monthShortAug', 'capexPortfolio.monthShortSep',
+  'capexPortfolio.monthShortOct', 'capexPortfolio.monthShortNov', 'capexPortfolio.monthShortDec',
+];
+const MOIS_KEYS = [
+  'capexPortfolio.monthJan', 'capexPortfolio.monthFeb', 'capexPortfolio.monthMar',
+  'capexPortfolio.monthApr', 'capexPortfolio.monthMay', 'capexPortfolio.monthJun',
+  'capexPortfolio.monthJul', 'capexPortfolio.monthAug', 'capexPortfolio.monthSep',
+  'capexPortfolio.monthOct', 'capexPortfolio.monthNov', 'capexPortfolio.monthDec',
+];
 const fmt = (n: number) => formatCurrency(Math.round(n));
 const pctShare = (num: number, den: number) => (den ? Math.round((num / den) * 100) : 0);
 
 const CapexBars: React.FC<{ values: number[] }> = ({ values }) => {
+  const { t } = useLanguage();
   const max = Math.max(1, ...values.map((v) => Math.abs(v)));
   return (
     <div className="flex items-stretch gap-2 h-32 pt-2">
@@ -26,9 +38,9 @@ const CapexBars: React.FC<{ values: number[] }> = ({ values }) => {
         return (
           <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
             <div className="flex-1 w-full flex items-end">
-              <div className="w-full rounded-t-md bg-[var(--color-primary)]" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.12 }} title={`${MOIS[i]} : ${fmt(v)}`} />
+              <div className="w-full rounded-t-md bg-[var(--color-primary)]" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.12 }} title={`${t(MOIS_KEYS[i])} : ${fmt(v)}`} />
             </div>
-            <span className="text-[10px] text-[var(--color-text-tertiary)]">{MOIS_COURT[i]}</span>
+            <span className="text-[10px] text-[var(--color-text-tertiary)]">{t(MOIS_COURT_KEYS[i])}</span>
           </div>
         );
       })}
@@ -47,6 +59,7 @@ const CapexKpi: React.FC<{ label: string; value: string; icon: React.ReactNode; 
 );
 
 const CapexExecutionSection: React.FC<{ adapter: any }> = ({ adapter }) => {
+  const { t } = useLanguage();
   const [annee, setAnnee] = useState(String(new Date().getFullYear()));
   const [exec, setExec] = useState<CapexExecution | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,41 +80,41 @@ const CapexExecutionSection: React.FC<{ adapter: any }> = ({ adapter }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
-        <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Boxes className="w-4 h-4 text-[var(--color-primary)]" /> Exécution de l'investissement · réel</h2>
+        <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Boxes className="w-4 h-4 text-[var(--color-primary)]" /> {t('capexPortfolio.executionTitle')}</h2>
         <select value={annee} onChange={(e) => setAnnee(e.target.value)} className="px-2 py-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm">
           {[0, 1, 2, 3].map((d) => { const y = new Date().getFullYear() - d; return <option key={y} value={y}>{y}</option>; })}
         </select>
-        <span className="text-xs text-[var(--color-text-tertiary)]">Immobilisations (classe 2) issues du Grand Livre</span>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{t('capexPortfolio.executionHint')}</span>
       </div>
 
       {loading && !exec ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-8 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-8 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('capexPortfolio.loading')}</div>
       ) : exec ? (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <CapexKpi label={`CAPEX réalisé ${annee}`} value={fmt(exec.flowGross)} icon={<Wallet className="w-5 h-5" />} accent="text-[var(--color-primary)]" />
-            <CapexKpi label="Immobilisations brutes" value={fmt(exec.parcBrut)} icon={<Package className="w-5 h-5" />} />
-            <CapexKpi label="Amortissements cumulés" value={fmt(exec.parcAmort)} icon={<TrendingDown className="w-5 h-5" />} />
-            <CapexKpi label="Valeur nette comptable" value={fmt(exec.parcVnc)} icon={<Boxes className="w-5 h-5" />} accent="text-emerald-600" />
+            <CapexKpi label={t('capexPortfolio.kpiCapexActual', { year: annee })} value={fmt(exec.flowGross)} icon={<Wallet className="w-5 h-5" />} accent="text-[var(--color-primary)]" />
+            <CapexKpi label={t('capexPortfolio.kpiGrossAssets')} value={fmt(exec.parcBrut)} icon={<Package className="w-5 h-5" />} />
+            <CapexKpi label={t('capexPortfolio.kpiAccumulatedDepreciation')} value={fmt(exec.parcAmort)} icon={<TrendingDown className="w-5 h-5" />} />
+            <CapexKpi label={t('capexPortfolio.kpiNetBookValue')} value={fmt(exec.parcVnc)} icon={<Boxes className="w-5 h-5" />} accent="text-emerald-600" />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-medium text-gray-700">Acquisitions par mois · {annee}</h3>
-                <span className="text-xs text-[var(--color-text-tertiary)]">hors à-nouveaux · {fmt(exec.flowGross)}</span>
+                <h3 className="text-sm font-medium text-gray-700">{t('capexPortfolio.acquisitionsByMonth', { year: annee })}</h3>
+                <span className="text-xs text-[var(--color-text-tertiary)]">{t('capexPortfolio.excludingOpening', { amount: fmt(exec.flowGross) })}</span>
               </div>
               <CapexBars values={exec.byMonth} />
             </div>
 
             <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
-              <div className="px-4 py-3 border-b border-[var(--color-border)]"><h3 className="text-sm font-medium text-gray-700">Acquisitions par nature</h3></div>
+              <div className="px-4 py-3 border-b border-[var(--color-border)]"><h3 className="text-sm font-medium text-gray-700">{t('capexPortfolio.acquisitionsByNature')}</h3></div>
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-[var(--color-border)]">
                   <tr>
-                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Rubrique</th>
-                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Montant</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">Part</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{t('capexPortfolio.thCategoryNature')}</th>
+                    <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('capexPortfolio.thAmount')}</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 w-32">{t('capexPortfolio.thShare')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -112,12 +125,12 @@ const CapexExecutionSection: React.FC<{ adapter: any }> = ({ adapter }) => {
                       <td className="px-4 py-2.5"><div className="flex items-center gap-2"><div className="h-1.5 flex-1 rounded-full bg-gray-100 overflow-hidden"><div className="h-full rounded-full bg-[var(--color-secondary)]" style={{ width: `${Math.max(2, Math.min(100, (n.total / maxNat) * 100))}%` }} /></div><span className="text-xs text-gray-400 w-9 text-right">{pctShare(n.total, exec.flowGross)}%</span></div></td>
                     </tr>
                   ))}
-                  {exec.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">Aucune acquisition d'immobilisation sur {annee}.</td></tr>}
+                  {exec.byNature.length === 0 && <tr><td colSpan={3} className="px-4 py-8 text-center text-sm text-[var(--color-text-tertiary)]">{t('capexPortfolio.noAcquisitions', { year: annee })}</td></tr>}
                 </tbody>
               </table>
             </div>
           </div>
-          <p className="text-xs text-[var(--color-text-tertiary)]">Parc = position courante (classe 2, à-nouveaux inclus) : brut 20-27, amort. 28, VNC nette. CAPEX réalisé = acquisitions de l'exercice hors à-nouveaux (journal AN). Source : GL, écritures validées.</p>
+          <p className="text-xs text-[var(--color-text-tertiary)]">{t('capexPortfolio.executionFootnote')}</p>
         </>
       ) : null}
     </div>
@@ -140,6 +153,7 @@ const STATUT_STYLE: Record<string, string> = {
 
 const CapexPortfolioPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [rows, setRows] = useState<CapexRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,9 +163,9 @@ const CapexPortfolioPage: React.FC = () => {
   const loadRows = useCallback(async () => {
     setLoading(true); setError(null);
     try { const r = await listCapexRequests(adapter); setRows(r); }
-    catch (e: any) { setError(e?.message || 'Erreur'); }
+    catch (e: any) { setError(e?.message || t('capexPortfolio.errorGeneric')); }
     finally { setLoading(false); }
-  }, [adapter]);
+  }, [adapter, t]);
 
   useEffect(() => { loadRows(); }, [loadRows]);
 
@@ -167,10 +181,10 @@ const CapexPortfolioPage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> Portefeuille CAPEX</h1>
-          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{totals.count} business case(s) · {totals.approuves} approuvé(s) · {formatCurrency(totals.montant)}</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> {t('capexPortfolio.title')}</h1>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{t('capexPortfolio.subtitle', { count: String(totals.count), approved: String(totals.approuves), amount: formatCurrency(totals.montant) })}</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> Nouveau Business Case</button>
+        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> {t('capexPortfolio.newBusinessCase')}</button>
       </header>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -180,28 +194,28 @@ const CapexPortfolioPage: React.FC = () => {
 
       {/* Pipeline des Business Cases — détail dans son onglet dédié ; ici, aperçu court. */}
       <div className="flex items-center gap-2 pt-2 flex-wrap">
-        <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-4 h-4 text-[var(--color-primary)]" /> Business Cases</h2>
-        <span className="text-xs text-[var(--color-text-tertiary)]">pipeline de décision d'investissement</span>
+        <h2 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-4 h-4 text-[var(--color-primary)]" /> {t('capexPortfolio.businessCases')}</h2>
+        <span className="text-xs text-[var(--color-text-tertiary)]">{t('capexPortfolio.pipelineHint')}</span>
         <button onClick={() => navigate('/capex/business-cases')} className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-[var(--color-primary)] hover:underline">
-          Voir tous les Business Cases <ArrowRight className="w-3.5 h-3.5" />
+          {t('capexPortfolio.viewAllBusinessCases')} <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('capexPortfolio.loading')}</div>
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">Aucun business case. Créez-en un pour lancer un investissement.</div>
+        <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">{t('capexPortfolio.emptyBusinessCases')}</div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                <th className="px-4 py-3 text-left">Intitulé</th>
-                <th className="px-4 py-3 text-left">Compte</th>
-                <th className="px-4 py-3 text-left">Catégorie</th>
-                <th className="px-4 py-3 text-right">Montant</th>
-                <th className="px-4 py-3 text-right">VAN</th>
-                <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3 text-left">{t('capexPortfolio.thLabel')}</th>
+                <th className="px-4 py-3 text-left">{t('capexPortfolio.thAccount')}</th>
+                <th className="px-4 py-3 text-left">{t('capexPortfolio.thCategory')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPortfolio.thAmount')}</th>
+                <th className="px-4 py-3 text-right">{t('capexPortfolio.thNpv')}</th>
+                <th className="px-4 py-3">{t('capexPortfolio.thStatus')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>

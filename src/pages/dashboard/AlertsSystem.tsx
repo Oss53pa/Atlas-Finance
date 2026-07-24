@@ -11,6 +11,7 @@ import {
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
 import { useFormattedCurrency } from '../../hooks/useMoneyFormat';
+import { formatNumber } from '../../utils/formatters';
 
 interface Alert {
   id: string;
@@ -319,7 +320,7 @@ const AlertsSystem: React.FC = () => {
             <span className="text-sm font-medium text-gray-600">Total Alertes</span>
             <Bell className="w-5 h-5 text-gray-700" />
           </div>
-          <p className="text-lg font-bold text-gray-900">{stats.total}</p>
+          <p className="text-lg font-bold text-gray-900">{formatNumber(stats.total)}</p>
           <p className="text-xs text-gray-700 mt-1">Dernières 24h</p>
         </div>
 
