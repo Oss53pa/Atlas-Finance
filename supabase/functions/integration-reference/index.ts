@@ -17,6 +17,7 @@
 //   GET  ?resource=accounts                  plan de comptes
 //   GET  ?resource=analytic-sections         sections analytiques
 //   GET  ?resource=currencies                devises et cours
+//   GET  ?resource=closing-balance[&fiscalYearId=]  balance de clôture 8 col. (Liass'Pilot)
 //   POST {resource:'third-parties/request'}  demande de code tiers canonique
 // ============================================================================
 
@@ -147,5 +148,109 @@ Deno.serve(async (req) => {
     return json({ items: data ?? [] });
   }
 
+  // ── Balance générale de clôture pour Liass'Pilot (Vague D) ─────────────────
+  // Atlas F&A ne produit pas les annexes : il fournit la balance de clôture
+  // 8 colonnes (après inventaire, avant affectation) que Liass'Pilot mappe vers
+  // la DSF des 14 pays UEMOA/CEMAC.
+  if (resource === "closing-balance") {
+    // Exercice ciblé : paramètre explicite, sinon exercice ouvert le plus récent.
+    let fiscalYearId = url.searchParams.get("fiscalYearId") ?? "";
+    let fyRow: { id: string; name: string; start_date: string; end_date: string } | null = null;
+    if (fiscalYearId) {
+      const { data } = await svc.from("fiscal_years")
+        .select("id, name, start_date, end_date")
+        .eq("tenant_id", tenant).eq("id", fiscalYearId).maybeSingle();
+      fyRow = data;
+    } else {
+      const { data } = await svc.from("fiscal_years")
+        .select("id, name, start_date, end_date")
+        .eq("tenant_id", tenant).order("start_date", { ascending: false }).limit(1).maybeSingle();
+      fyRow = data;
+      fiscalYearId = data?.id ?? "";
+    }
+    if (!fyRow) return json({ error: "NO_FISCAL_YEAR" }, 404);
+
+    const { data: rows, error } = await svc.rpc("get_closing_trial_balance", {
+      p_tenant_id: tenant,
+      p_fiscal_year_id: fiscalYearId,
+    });
+    if (error) return json({ error: "RPC_FAILED", detail: error.message }, 500);
+
+    const list = (rows ?? []) as Array<Record<string, number | string>>;
+    const sum = (k: string) => list.reduce((s, r) => s + Number(r[k] ?? 0), 0);
+    const round2 = (n: number) => Math.round(n * 100) / 100;
+    const totals = {
+      openingDebit: round2(sum("opening_debit")),
+      openingCredit: round2(sum("opening_credit")),
+      movementDebit: round2(sum("movement_debit")),
+      movementCredit: round2(sum("movement_credit")),
+      closingDebit: round2(sum("closing_debit")),
+      closingCredit: round2(sum("closing_credit")),
+    };
+
+    // Pays / zone / devise (résolution du champ libre societes.pays).
+    const { data: soc } = await svc.from("societes").select("pays").eq("id", tenant).maybeSingle();
+    const country = resolveOhadaCountry(soc?.pays);
+
+    // Empreinte serveur : scelle la balance transmise.
+    const canonical = JSON.stringify({
+      fy: fiscalYearId, end: fyRow.end_date,
+      rows: list.map(r => [r.account_code, Number(r.closing_debit), Number(r.closing_credit)]),
+    });
+    const integrityHash = await sha256Hex(canonical);
+
+    return json({
+      fiscalYear: { id: fyRow.id, label: fyRow.name, startDate: fyRow.start_date, endDate: fyRow.end_date },
+      country: country ? { code: country.code, name: country.name, zone: country.zone } : null,
+      currency: country?.currency ?? "XOF",
+      state: "after_inventory_before_appropriation",
+      rows: list.map(r => ({
+        accountCode: r.account_code, accountName: r.account_name,
+        openingDebit: Number(r.opening_debit), openingCredit: Number(r.opening_credit),
+        movementDebit: Number(r.movement_debit), movementCredit: Number(r.movement_credit),
+        closingDebit: Number(r.closing_debit), closingCredit: Number(r.closing_credit),
+      })),
+      totals,
+      balanced: Math.abs(totals.closingDebit - totals.closingCredit) < 1,
+      integrityHash,
+      generatedAt: new Date().toISOString(),
+    });
+  }
+
   return json({ error: "UNKNOWN_RESOURCE", detail: "resource attendu" }, 400);
 });
+
+// ── Résolution pays OHADA (14 pays UEMOA + CEMAC) ────────────────────────────
+// Miroir compact de src/services/fiscal/ohadaCountries.ts pour le runtime Deno.
+type OhadaZone = "UEMOA" | "CEMAC";
+const OHADA: Record<string, { name: string; zone: OhadaZone; currency: "XOF" | "XAF" }> = {
+  BJ: { name: "Bénin", zone: "UEMOA", currency: "XOF" },
+  BF: { name: "Burkina Faso", zone: "UEMOA", currency: "XOF" },
+  CI: { name: "Côte d'Ivoire", zone: "UEMOA", currency: "XOF" },
+  GW: { name: "Guinée-Bissau", zone: "UEMOA", currency: "XOF" },
+  ML: { name: "Mali", zone: "UEMOA", currency: "XOF" },
+  NE: { name: "Niger", zone: "UEMOA", currency: "XOF" },
+  SN: { name: "Sénégal", zone: "UEMOA", currency: "XOF" },
+  TG: { name: "Togo", zone: "UEMOA", currency: "XOF" },
+  CM: { name: "Cameroun", zone: "CEMAC", currency: "XAF" },
+  CF: { name: "Centrafrique", zone: "CEMAC", currency: "XAF" },
+  CG: { name: "Congo", zone: "CEMAC", currency: "XAF" },
+  GA: { name: "Gabon", zone: "CEMAC", currency: "XAF" },
+  GQ: { name: "Guinée équatoriale", zone: "CEMAC", currency: "XAF" },
+  TD: { name: "Tchad", zone: "CEMAC", currency: "XAF" },
+};
+function resolveOhadaCountry(input?: string | null) {
+  if (!input) return undefined;
+  const raw = input.trim().toUpperCase();
+  if (OHADA[raw]) return { code: raw, ...OHADA[raw] };
+  const n = input.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim();
+  const aliases: Record<string, string> = {
+    "cote divoire": "CI", "cote d ivoire": "CI", "ivory coast": "CI", "rci": "CI",
+    "benin": "BJ", "burkina": "BF", "burkina faso": "BF", "cameroun": "CM", "cameroon": "CM",
+    "senegal": "SN", "gabon": "GA", "tchad": "TD", "chad": "TD", "mali": "ML", "niger": "NE",
+    "togo": "TG", "guinee bissau": "GW", "guinee equatoriale": "GQ",
+    "congo": "CG", "congo brazzaville": "CG", "centrafrique": "CF",
+  };
+  const code = aliases[n];
+  return code ? { code, ...OHADA[code] } : undefined;
+}
