@@ -140,4 +140,8 @@ export async function autoLettrerPayment(
 export const PAYMENT_EVENT_ACCOUNTS: Record<string, string> = {
   'sale.payment.received': '411',
   'purchase.payment.issued': '401',
+  // Paie : le versement des salaires solde le net à payer au personnel (422).
+  // Le lettrage ne s'applique que si la ligne porte un code tiers (paie par
+  // employé) ; un run agrégé sans tiers est simplement non lettré (best-effort).
+  'payroll.payment.issued': '422',
 };
