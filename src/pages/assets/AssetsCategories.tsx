@@ -10,6 +10,7 @@ import {
 import { ModernCard, CardHeader, CardBody } from '../../components/ui/ModernCard';
 import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
 
@@ -54,6 +55,7 @@ const SYSCOHADA_CATEGORIES = [
 
 const AssetsCategories: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   // Catégorie ouverte en MODALE détaillée (au lieu d'un dépliage en ligne).
@@ -189,7 +191,7 @@ const AssetsCategories: React.FC = () => {
 
   const handleSaveSettings = async () => {
     const client = (adapter as any)?.client;
-    if (!client) { toast.error('Indisponible hors-ligne.'); return; }
+    if (!client) { toast.error(t('assetsCategories.offlineUnavailable')); return; }
     try {
       const tenantId = (adapter as any).tenantId;
       const row = { key: 'asset_categories_settings', tenant_id: tenantId, value: JSON.stringify(settingsForm), updated_at: new Date().toISOString() };
@@ -198,9 +200,9 @@ const AssetsCategories: React.FC = () => {
         ? await client.from('settings').update(row).eq('key', 'asset_categories_settings')
         : await client.from('settings').insert(row);
       if (error) throw new Error(error.message);
-      toast.success('Paramètres des catégories sauvegardés');
+      toast.success(t('assetsCategories.settingsSaved'));
       setShowSettingsModal(false);
-    } catch (e: any) { toast.error('Échec : ' + (e?.message || 'erreur')); }
+    } catch (e: any) { toast.error(t('assetsCategories.saveFailed') + (e?.message || t('assetsCategories.errorGeneric'))); }
   };
 
   return (
@@ -209,10 +211,10 @@ const AssetsCategories: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-            Catégories d'Immobilisations
+            {t('assetsCategories.title')}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Classification et organisation des actifs
+            {t('assetsCategories.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -226,7 +228,7 @@ const AssetsCategories: React.FC = () => {
                   ? 'bg-[var(--color-primary)] text-white'
                   : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
-              title="Vue cartes"
+              title={t('assetsCategories.cardsView')}
             >
               <LayoutGrid className="w-4 h-4" />
             </button>
@@ -237,7 +239,7 @@ const AssetsCategories: React.FC = () => {
                   ? 'bg-[var(--color-primary)] text-white'
                   : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
               }`}
-              title="Vue tableau"
+              title={t('assetsCategories.tableView')}
             >
               <List className="w-4 h-4" />
             </button>
@@ -248,7 +250,7 @@ const AssetsCategories: React.FC = () => {
             onClick={() => setShowSettingsModal(true)}
           >
             <Settings className="w-4 h-4 mr-1" />
-            Paramètres
+            {t('assetsCategories.settings')}
           </ModernButton>
           {/* Pas de « Nouvelle catégorie » : les catégories d'immobilisations sont normatives
               SYSCOHADA (classes 20-24), dérivées du plan comptable — pas des entités libres.
@@ -263,7 +265,7 @@ const AssetsCategories: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
             <input
               type="text"
-              placeholder="Rechercher une catégorie..."
+              placeholder={t('assetsCategories.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -278,7 +280,7 @@ const AssetsCategories: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Total catégories</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsCategories.totalCategories')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {categories.length + totalSubCategories}
                 </p>
@@ -292,7 +294,7 @@ const AssetsCategories: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Total actifs</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsCategories.totalAssets')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {totalAssets.toLocaleString()}
                 </p>
@@ -306,7 +308,7 @@ const AssetsCategories: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Valeur totale</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsCategories.totalValue')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {(totalValue / 1000000).toFixed(2)}M FCFA
                 </p>
@@ -320,7 +322,7 @@ const AssetsCategories: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Taux moyen</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsCategories.averageRate')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">
                   {avgDepreciationRate !== null ? `${avgDepreciationRate.toFixed(1)}%` : '—'}
                 </p>
@@ -336,7 +338,7 @@ const AssetsCategories: React.FC = () => {
         <ModernCard>
           <CardHeader>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              Toutes les catégories
+              {t('assetsCategories.allCategories')}
             </h2>
           </CardHeader>
           <CardBody>
@@ -344,13 +346,13 @@ const AssetsCategories: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
-                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-primary)]">Code</th>
-                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-primary)]">Actifs</th>
-                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-primary)]">Valeur</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">Taux amort.</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">Sous-catégories</th>
-                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colCategory')}</th>
+                    <th className="text-left p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colCode')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colAssets')}</th>
+                    <th className="text-right p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colValue')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colDepreciationRate')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colSubcategories')}</th>
+                    <th className="text-center p-3 text-sm font-medium text-[var(--color-text-primary)]">{t('assetsCategories.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -396,9 +398,9 @@ const AssetsCategories: React.FC = () => {
                           <button
                             onClick={(e) => { e.stopPropagation(); setDetailCategory(category); }}
                             className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex items-center gap-1 text-xs"
-                            title="Voir le détail de la catégorie"
+                            title={t('assetsCategories.viewCategoryDetail')}
                           >
-                            Détail <ChevronRight className="w-4 h-4" />
+                            {t('assetsCategories.detail')} <ChevronRight className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
@@ -433,34 +435,34 @@ const AssetsCategories: React.FC = () => {
                             {category.name}
                           </h3>
                           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                            Code: {category.code}
+                            {t('assetsCategories.codeLabel')} {category.code}
                           </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setDetailCategory(category)}
                         className="p-1.5 text-[var(--color-text-secondary)] hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex items-center gap-1 text-xs"
-                        title="Voir le détail de la catégorie"
+                        title={t('assetsCategories.viewCategoryDetail')}
                       >
-                        Détail <ChevronRight className="w-4 h-4" />
+                        {t('assetsCategories.detail')} <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Actifs</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.colAssets')}</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">{category.count}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.grossValue')}</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">{formatCurrency(category.value)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">VNC</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.nbv')}</p>
                         <p className="font-semibold text-green-600">{formatCurrency(category.vnc)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.colDepreciationRate')}</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">{category.depreciationRate}</p>
                       </div>
                     </div>
@@ -469,7 +471,9 @@ const AssetsCategories: React.FC = () => {
                       onClick={() => setDetailCategory(category)}
                       className="w-full text-sm text-[var(--color-primary)] hover:underline text-left"
                     >
-                      {category.children.length} sous-catégorie{category.children.length > 1 ? 's' : ''} — voir le détail →
+                      {category.children.length > 1
+                        ? t('assetsCategories.subcategoriesLinkPlural', { count: String(category.children.length) })
+                        : t('assetsCategories.subcategoriesLinkSingular', { count: String(category.children.length) })}
                     </button>
                   </div>
                 </CardBody>
@@ -496,7 +500,7 @@ const AssetsCategories: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{c.name}</h2>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Classe SYSCOHADA {c.code} · {c.children.length} sous-catégorie(s)</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsCategories.classHeader', { code: c.code, count: String(c.children.length) })}</p>
                   </div>
                 </div>
                 <button onClick={() => setDetailCategory(null)} className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-background-subtle)]">
@@ -506,30 +510,30 @@ const AssetsCategories: React.FC = () => {
 
               {/* Synthèse de la classe */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-5 border-b border-[var(--color-border)]">
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Actifs</p><p className="font-bold text-[var(--color-text-primary)]">{c.count}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(c.value)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p><p className="font-bold text-red-600">{formatCurrency(c.amort)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">VNC</p><p className="font-bold text-green-600">{formatCurrency(c.vnc)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p><p className="font-bold text-[var(--color-text-primary)]">{c.depreciationRate}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.colAssets')}</p><p className="font-bold text-[var(--color-text-primary)]">{c.count}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.grossValue')}</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(c.value)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.accumulatedDepreciation')}</p><p className="font-bold text-red-600">{formatCurrency(c.amort)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.nbv')}</p><p className="font-bold text-green-600">{formatCurrency(c.vnc)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetsCategories.colDepreciationRate')}</p><p className="font-bold text-[var(--color-text-primary)]">{c.depreciationRate}</p></div>
               </div>
 
               {/* Détail des sous-catégories */}
               <div className="p-5">
-                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Sous-catégories (comptes)</h3>
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">{t('assetsCategories.subcategoriesAccounts')}</h3>
                 {c.children.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucune sous-catégorie.</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('assetsCategories.noSubcategory')}</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
-                          <th className="text-left py-2 pr-3 font-medium">Compte</th>
-                          <th className="text-left py-2 px-3 font-medium">Libellé</th>
-                          <th className="text-right py-2 px-3 font-medium">Actifs</th>
-                          <th className="text-right py-2 px-3 font-medium">Valeur brute</th>
-                          <th className="text-right py-2 px-3 font-medium">Amort. cumulé</th>
-                          <th className="text-right py-2 px-3 font-medium">VNC</th>
-                          <th className="text-center py-2 pl-3 font-medium">Taux</th>
+                          <th className="text-left py-2 pr-3 font-medium">{t('assetsCategories.colAccount')}</th>
+                          <th className="text-left py-2 px-3 font-medium">{t('assetsCategories.colLabel')}</th>
+                          <th className="text-right py-2 px-3 font-medium">{t('assetsCategories.colAssets')}</th>
+                          <th className="text-right py-2 px-3 font-medium">{t('assetsCategories.grossValue')}</th>
+                          <th className="text-right py-2 px-3 font-medium">{t('assetsCategories.accumulatedDepreciation')}</th>
+                          <th className="text-right py-2 px-3 font-medium">{t('assetsCategories.nbv')}</th>
+                          <th className="text-center py-2 pl-3 font-medium">{t('assetsCategories.colRate')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -547,7 +551,7 @@ const AssetsCategories: React.FC = () => {
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 border-[var(--color-border)] font-bold">
-                          <td className="py-2 pr-3" colSpan={2}>Total {c.code}</td>
+                          <td className="py-2 pr-3" colSpan={2}>{t('assetsCategories.total', { code: c.code })}</td>
                           <td className="py-2 px-3 text-right">{c.count}</td>
                           <td className="py-2 px-3 text-right font-mono">{formatCurrency(c.value)}</td>
                           <td className="py-2 px-3 text-right font-mono text-red-700">{formatCurrency(c.amort)}</td>
@@ -580,10 +584,10 @@ const AssetsCategories: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[var(--color-text-primary)]">
-                    Paramètres des catégories
+                    {t('assetsCategories.settingsTitle')}
                   </h2>
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Configuration de la classification des immobilisations
+                    {t('assetsCategories.settingsSubtitle')}
                   </p>
                 </div>
               </div>
@@ -600,40 +604,40 @@ const AssetsCategories: React.FC = () => {
               {/* Classification Method */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  Méthode de classification par défaut
+                  {t('assetsCategories.defaultClassificationMethod')}
                 </label>
                 <select
                   value={settingsForm.classificationMethod}
                   onChange={(e) => setSettingsForm({ ...settingsForm, classificationMethod: e.target.value })}
                   className="w-full px-3 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
-                  <option value="nature">Par nature d'actif</option>
-                  <option value="department">Par département</option>
-                  <option value="location">Par localisation</option>
-                  <option value="custom">Personnalisée</option>
+                  <option value="nature">{t('assetsCategories.byAssetNature')}</option>
+                  <option value="department">{t('assetsCategories.byDepartment')}</option>
+                  <option value="location">{t('assetsCategories.byLocation')}</option>
+                  <option value="custom">{t('assetsCategories.custom')}</option>
                 </select>
                 <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                  Détermine comment les nouvelles immobilisations sont classées automatiquement
+                  {t('assetsCategories.classificationMethodHint')}
                 </p>
               </div>
 
               {/* Max Hierarchy */}
               <div>
                 <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-                  Hiérarchie maximale
+                  {t('assetsCategories.maxHierarchy')}
                 </label>
                 <select
                   value={settingsForm.maxHierarchy}
                   onChange={(e) => setSettingsForm({ ...settingsForm, maxHierarchy: e.target.value })}
                   className="w-full px-3 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 >
-                  <option value="2">2 niveaux</option>
-                  <option value="3">3 niveaux</option>
-                  <option value="4">4 niveaux</option>
-                  <option value="unlimited">Illimitée</option>
+                  <option value="2">{t('assetsCategories.levels2')}</option>
+                  <option value="3">{t('assetsCategories.levels3')}</option>
+                  <option value="4">{t('assetsCategories.levels4')}</option>
+                  <option value="unlimited">{t('assetsCategories.unlimited')}</option>
                 </select>
                 <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                  Nombre maximum de niveaux de sous-catégories
+                  {t('assetsCategories.maxHierarchyHint')}
                 </p>
               </div>
 
@@ -642,10 +646,10 @@ const AssetsCategories: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                      Amortissement automatique
+                      {t('assetsCategories.autoDepreciation')}
                     </p>
                     <p className="text-xs text-[var(--color-text-secondary)]">
-                      Appliquer le taux par défaut de la catégorie aux nouveaux actifs
+                      {t('assetsCategories.autoDepreciationHint')}
                     </p>
                   </div>
                   <button
@@ -665,10 +669,10 @@ const AssetsCategories: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-[var(--color-text-primary)]">
-                      Conformité SYSCOHADA
+                      {t('assetsCategories.syscohadaCompliance')}
                     </p>
                     <p className="text-xs text-[var(--color-text-secondary)]">
-                      Valider les taux et durées selon les normes SYSCOHADA
+                      {t('assetsCategories.syscohadaComplianceHint')}
                     </p>
                   </div>
                   <button
@@ -694,7 +698,7 @@ const AssetsCategories: React.FC = () => {
                 size="sm"
                 onClick={() => setShowSettingsModal(false)}
               >
-                Annuler
+                {t('assetsCategories.cancel')}
               </ModernButton>
               <ModernButton
                 variant="primary"
@@ -702,7 +706,7 @@ const AssetsCategories: React.FC = () => {
                 onClick={handleSaveSettings}
               >
                 <Save className="w-4 h-4 mr-1" />
-                Sauvegarder
+                {t('assetsCategories.save')}
               </ModernButton>
             </div>
           </div>

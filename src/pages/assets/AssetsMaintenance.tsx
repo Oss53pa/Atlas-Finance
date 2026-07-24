@@ -259,25 +259,25 @@ const AssetsMaintenance: React.FC = () => {
   };
 
   const statusLabels = {
-    scheduled: 'Planifié',
-    in_progress: 'En cours',
-    completed: 'Terminé',
-    cancelled: 'Annulé',
-    overdue: 'En retard'
+    scheduled: t('assetsMaint.statusScheduled'),
+    in_progress: t('assetsMaint.statusInProgress'),
+    completed: t('assetsMaint.statusCompleted'),
+    cancelled: t('assetsMaint.statusCancelled'),
+    overdue: t('assetsMaint.statusOverdue')
   };
 
   const priorityLabels = {
-    low: 'Faible',
-    medium: 'Moyenne',
-    high: 'Élevée',
-    critical: 'Critique'
+    low: t('assetsMaint.priorityLow'),
+    medium: t('assetsMaint.priorityMedium'),
+    high: t('assetsMaint.priorityHigh'),
+    critical: t('assetsMaint.priorityCritical')
   };
 
   const typeLabels = {
-    preventive: 'Préventif',
-    corrective: 'Correctif',
-    predictive: 'Prédictif',
-    emergency: 'Urgence'
+    preventive: t('assetsMaint.typePreventive'),
+    corrective: t('assetsMaint.typeCorrective'),
+    predictive: t('assetsMaint.typePredictive'),
+    emergency: t('assetsMaint.typeEmergency')
   };
 
   const uniqueTechnicians = [...new Set(maintenanceRecords.map(r => r.technician).filter(Boolean))];
@@ -299,27 +299,27 @@ const AssetsMaintenance: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (!formData.assetName.trim()) {
-      errors.assetName = 'Le nom de l\'actif est requis';
+      errors.assetName = t('assetsMaint.errAssetNameRequired');
     }
 
     if (!formData.description.trim()) {
-      errors.description = 'La description est requise';
+      errors.description = t('assetsMaint.errDescriptionRequired');
     }
 
     if (!formData.scheduledDate) {
-      errors.scheduledDate = 'La date planifiée est requise';
+      errors.scheduledDate = t('assetsMaint.errScheduledDateRequired');
     }
 
     if (!formData.estimatedDuration || parseFloat(formData.estimatedDuration) <= 0) {
-      errors.estimatedDuration = 'La durée estimée doit être supérieure à 0';
+      errors.estimatedDuration = t('assetsMaint.errDurationPositive');
     }
 
     if (!formData.estimatedCost || parseFloat(formData.estimatedCost) < 0) {
-      errors.estimatedCost = 'Le coût estimé doit être positif';
+      errors.estimatedCost = t('assetsMaint.errCostPositive');
     }
 
     if (!formData.location.trim()) {
-      errors.location = 'L\'emplacement est requis';
+      errors.location = t('assetsMaint.errLocationRequired');
     }
 
     setFormErrors(errors);
@@ -374,7 +374,7 @@ const AssetsMaintenance: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      toast.error('Veuillez corriger les erreurs du formulaire');
+      toast.error(t('assetsMaint.toastFixErrors'));
       return;
     }
 
@@ -398,37 +398,37 @@ const AssetsMaintenance: React.FC = () => {
     try {
       if (maintenanceModal.mode === 'edit' && maintenanceModal.record) {
         await updateMaintenance(adapter, maintenanceModal.record.id, payload);
-        toast.success('Maintenance mise à jour');
+        toast.success(t('assetsMaint.toastUpdated'));
       } else {
         await createMaintenance(adapter, { ...payload, status: 'scheduled' });
-        toast.success('Maintenance créée');
+        toast.success(t('assetsMaint.toastCreated'));
       }
       setMaintenanceModal({ isOpen: false, mode: 'view' });
       resetForm();
       await loadMaintenance();
     } catch (error: any) {
-      toast.error('Erreur lors de l\'enregistrement : ' + (error?.message || ''));
+      toast.error(t('assetsMaint.toastSaveError', { msg: String(error?.message || '') }));
     }
   };
 
   const handleDeleteMaintenance = async (record: MaintenanceRecord) => {
-    if (!window.confirm('Supprimer cette intervention ?')) return;
-    try { await deleteMaintenance(adapter, record.id); toast.success('Supprimée'); await loadMaintenance(); }
-    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    if (!window.confirm(t('assetsMaint.confirmDelete'))) return;
+    try { await deleteMaintenance(adapter, record.id); toast.success(t('assetsMaint.toastDeleted')); await loadMaintenance(); }
+    catch (e: any) { toast.error(e?.message || t('assetsMaint.errGeneric')); }
   };
 
   const statusChartData = [
-    { label: 'Terminés', value: aggregatedData.completedRecords, color: 'bg-green-500' },
-    { label: 'Planifiés', value: aggregatedData.scheduledRecords, color: 'bg-blue-500' },
+    { label: t('assetsMaint.chartCompleted'), value: aggregatedData.completedRecords, color: 'bg-green-500' },
+    { label: t('assetsMaint.chartScheduled'), value: aggregatedData.scheduledRecords, color: 'bg-blue-500' },
     { label: t('status.inProgress'), value: aggregatedData.inProgressRecords, color: 'bg-yellow-500' },
-    { label: 'En retard', value: aggregatedData.overdueRecords, color: 'bg-red-500' }
+    { label: t('assetsMaint.chartOverdue'), value: aggregatedData.overdueRecords, color: 'bg-red-500' }
   ];
 
   const typeChartData = [
-    { label: 'Préventif', value: filteredRecords.filter(r => r.maintenanceType === 'preventive').length, color: 'bg-blue-500' },
-    { label: 'Correctif', value: filteredRecords.filter(r => r.maintenanceType === 'corrective').length, color: 'bg-orange-500' },
-    { label: 'Prédictif', value: filteredRecords.filter(r => r.maintenanceType === 'predictive').length, color: 'bg-primary-500' },
-    { label: 'Urgence', value: filteredRecords.filter(r => r.maintenanceType === 'emergency').length, color: 'bg-red-500' }
+    { label: t('assetsMaint.typePreventive'), value: filteredRecords.filter(r => r.maintenanceType === 'preventive').length, color: 'bg-blue-500' },
+    { label: t('assetsMaint.typeCorrective'), value: filteredRecords.filter(r => r.maintenanceType === 'corrective').length, color: 'bg-orange-500' },
+    { label: t('assetsMaint.typePredictive'), value: filteredRecords.filter(r => r.maintenanceType === 'predictive').length, color: 'bg-primary-500' },
+    { label: t('assetsMaint.typeEmergency'), value: filteredRecords.filter(r => r.maintenanceType === 'emergency').length, color: 'bg-red-500' }
   ];
 
   return (
@@ -436,23 +436,23 @@ const AssetsMaintenance: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Maintenance des Actifs"
-          subtitle="Planification, suivi et historique des maintenances"
+          title={t('assetsMaint.title')}
+          subtitle={t('assetsMaint.subtitle')}
           icon={Wrench}
           action={
             <div className="flex gap-3">
               <ElegantButton variant="outline" icon={Bell}>
-                Alertes
+                {t('assetsMaint.btnAlerts')}
               </ElegantButton>
               <ElegantButton variant="outline" icon={Download}>
-                Rapport
+                {t('assetsMaint.btnReport')}
               </ElegantButton>
               <ElegantButton
                 variant="primary"
                 icon={Plus}
                 onClick={() => handleModalOpen('create')}
               >
-                Nouvelle Maintenance
+                {t('assetsMaint.btnNewMaintenance')}
               </ElegantButton>
             </div>
           }
@@ -461,9 +461,9 @@ const AssetsMaintenance: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Maintenances Totales"
+            title={t('assetsMaint.kpiTotal')}
             value={aggregatedData.totalRecords.toString()}
-            subtitle={`${aggregatedData.completedRecords} terminées`}
+            subtitle={t('assetsMaint.kpiCompletedCount', { count: String(aggregatedData.completedRecords) })}
             icon={Wrench}
             color="primary"
             delay={0.1}
@@ -471,9 +471,9 @@ const AssetsMaintenance: React.FC = () => {
           />
 
           <KPICard
-            title="En Retard"
+            title={t('assetsMaint.kpiOverdue')}
             value={aggregatedData.overdueRecords.toString()}
-            subtitle={`${aggregatedData.overdueScheduled} planifiées en retard`}
+            subtitle={t('assetsMaint.kpiOverdueScheduled', { count: String(aggregatedData.overdueScheduled) })}
             icon={AlertTriangle}
             color="error"
             delay={0.2}
@@ -481,9 +481,9 @@ const AssetsMaintenance: React.FC = () => {
           />
 
           <KPICard
-            title="Coût Total"
+            title={t('assetsMaint.kpiTotalCost')}
             value={formatCurrency(aggregatedData.totalCost)}
-            subtitle={`Estimé: ${formatCurrency(aggregatedData.estimatedCost)}`}
+            subtitle={t('assetsMaint.kpiEstimated', { amount: formatCurrency(aggregatedData.estimatedCost) })}
             icon={DollarSign}
             color="success"
             delay={0.3}
@@ -491,9 +491,9 @@ const AssetsMaintenance: React.FC = () => {
           />
 
           <KPICard
-            title="Durée Moyenne"
+            title={t('assetsMaint.kpiAvgDuration')}
             value={`${aggregatedData.averageDuration.toFixed(1)}h`}
-            subtitle={`${aggregatedData.upcomingScheduled} prochainement`}
+            subtitle={t('assetsMaint.kpiUpcoming', { count: String(aggregatedData.upcomingScheduled) })}
             icon={Clock}
             color="neutral"
             delay={0.4}
@@ -515,24 +515,24 @@ const AssetsMaintenance: React.FC = () => {
                       : 'text-neutral-600 hover:text-blue-600'
                   }`}
                 >
-                  {mode === 'records' ? 'Interventions' :
-                   mode === 'schedule' ? 'Planning' : 'Analytique'}
+                  {mode === 'records' ? t('assetsMaint.tabRecords') :
+                   mode === 'schedule' ? t('assetsMaint.tabSchedule') : t('assetsMaint.tabAnalytics')}
                 </button>
               ))}
             </div>
 
             <div className="flex items-center gap-4">
               <PageHeaderActions />
-              <label className="text-sm font-medium text-neutral-700">Période:</label>
+              <label className="text-sm font-medium text-neutral-700">{t('assetsMaint.periodLabel')}</label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="current_month">Mois en cours</option>
-                <option value="current_quarter">Trimestre en cours</option>
-                <option value="current_year">Année en cours</option>
-                <option value="last_month">Mois dernier</option>
+                <option value="current_month">{t('assetsMaint.periodCurrentMonth')}</option>
+                <option value="current_quarter">{t('assetsMaint.periodCurrentQuarter')}</option>
+                <option value="current_year">{t('assetsMaint.periodCurrentYear')}</option>
+                <option value="last_month">{t('assetsMaint.periodLastMonth')}</option>
               </select>
             </div>
           </div>
@@ -548,8 +548,8 @@ const AssetsMaintenance: React.FC = () => {
                 transition={{ delay: 0.5 }}
               >
                 <ModernChartCard
-                  title="État des Maintenances"
-                  subtitle="Répartition par statut"
+                  title={t('assetsMaint.chartStatusTitle')}
+                  subtitle={t('assetsMaint.chartStatusSubtitle')}
                   icon={PieChart}
                 >
                   <ColorfulBarChart
@@ -565,8 +565,8 @@ const AssetsMaintenance: React.FC = () => {
                 transition={{ delay: 0.6 }}
               >
                 <ModernChartCard
-                  title="Types de Maintenance"
-                  subtitle="Répartition par type d'intervention"
+                  title={t('assetsMaint.chartTypeTitle')}
+                  subtitle={t('assetsMaint.chartTypeSubtitle')}
                   icon={Target}
                 >
                   <ColorfulBarChart
@@ -580,14 +580,14 @@ const AssetsMaintenance: React.FC = () => {
             {/* Filters */}
             <UnifiedCard variant="elevated" size="md">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-neutral-800">Filtres et Recherche</h3>
+                <h3 className="text-lg font-semibold text-neutral-800">{t('assetsMaint.filtersTitle')}</h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 h-4 w-4" />
                     <input
                       type="text"
-                      placeholder="Rechercher..."
+                      placeholder={t('assetsMaint.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -599,7 +599,7 @@ const AssetsMaintenance: React.FC = () => {
                     onChange={(e) => setFilterStatus(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les statuts</option>
+                    <option value="all">{t('assetsMaint.filterAllStatuses')}</option>
                     {Object.entries(statusLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -610,7 +610,7 @@ const AssetsMaintenance: React.FC = () => {
                     onChange={(e) => setFilterType(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les types</option>
+                    <option value="all">{t('assetsMaint.filterAllTypes')}</option>
                     {Object.entries(typeLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -621,7 +621,7 @@ const AssetsMaintenance: React.FC = () => {
                     onChange={(e) => setFilterPriority(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Toutes les priorités</option>
+                    <option value="all">{t('assetsMaint.filterAllPriorities')}</option>
                     {Object.entries(priorityLabels).map(([key, label]) => (
                       <option key={key} value={key}>{label}</option>
                     ))}
@@ -632,7 +632,7 @@ const AssetsMaintenance: React.FC = () => {
                     onChange={(e) => setFilterTechnician(e.target.value)}
                     className="px-3 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="all">Tous les techniciens</option>
+                    <option value="all">{t('assetsMaint.filterAllTechnicians')}</option>
                     {uniqueTechnicians.map(tech => (
                       <option key={tech} value={tech}>{tech}</option>
                     ))}
@@ -645,7 +645,7 @@ const AssetsMaintenance: React.FC = () => {
             <UnifiedCard variant="elevated" size="lg">
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold text-neutral-800">
-                  Interventions de Maintenance ({filteredRecords.length})
+                  {t('assetsMaint.recordsListTitle', { count: String(filteredRecords.length) })}
                 </h3>
 
                 <div className="space-y-4">
@@ -653,11 +653,10 @@ const AssetsMaintenance: React.FC = () => {
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <Archive className="h-10 w-10 text-neutral-300 mb-3" />
                       <p className="text-sm font-medium text-neutral-700">
-                        Aucune donnée — module non alimenté par l'import
+                        {t('assetsMaint.noDataTitle')}
                       </p>
                       <p className="text-xs text-neutral-500 mt-1 max-w-md">
-                        Aucun historique de maintenance n'est présent en base. Utilisez
-                        « Nouvelle Maintenance » pour saisir une intervention.
+                        {t('assetsMaint.noDataRecordsDesc')}
                       </p>
                     </div>
                   )}
@@ -685,7 +684,7 @@ const AssetsMaintenance: React.FC = () => {
                                 <span>•</span>
                                 <span>{formatDate(record.scheduledDate)}</span>
                                 <span>•</span>
-                                <span>{record.estimatedDuration}h estimées</span>
+                                <span>{t('assetsMaint.hoursEstimated', { count: String(record.estimatedDuration) })}</span>
                               </div>
                               <p className="text-sm text-neutral-600">{record.description}</p>
                               <div className="flex items-center space-x-3">
@@ -719,7 +718,7 @@ const AssetsMaintenance: React.FC = () => {
                               <button
                                 onClick={() => handleDeleteMaintenance(record)}
                                 className="p-2 text-neutral-400 hover:text-red-600 transition-colors"
-                                title="Supprimer"
+                                title={t('assetsMaint.btnDelete')}
                               >
                                 <XCircle className="h-4 w-4" />
                               </button>
@@ -729,22 +728,22 @@ const AssetsMaintenance: React.FC = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-neutral-100">
                           <div>
-                            <p className="text-sm text-neutral-500">Technicien:</p>
-                            <p className="font-medium text-neutral-800">{record.technician || 'Non assigné'}</p>
+                            <p className="text-sm text-neutral-500">{t('assetsMaint.labelTechnician')}</p>
+                            <p className="font-medium text-neutral-800">{record.technician || t('assetsMaint.notAssigned')}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-neutral-500">Coût:</p>
+                            <p className="text-sm text-neutral-500">{t('assetsMaint.labelCost')}</p>
                             <p className="font-medium text-neutral-800">
-                              {record.cost > 0 ? formatCurrency(record.cost) : `Est. ${formatCurrency(record.estimatedCost)}`}
+                              {record.cost > 0 ? formatCurrency(record.cost) : t('assetsMaint.estPrefix', { amount: formatCurrency(record.estimatedCost) })}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-neutral-500">Emplacement:</p>
+                            <p className="text-sm text-neutral-500">{t('assetsMaint.labelLocation')}</p>
                             <p className="font-medium text-neutral-800">{record.location}</p>
                           </div>
                           <div>
-                            <p className="text-sm text-neutral-500">Assigné à:</p>
-                            <p className="font-medium text-neutral-800">{record.assignedTo || 'Non assigné'}</p>
+                            <p className="text-sm text-neutral-500">{t('assetsMaint.labelAssignedTo')}</p>
+                            <p className="font-medium text-neutral-800">{record.assignedTo || t('assetsMaint.notAssigned')}</p>
                           </div>
                         </div>
                       </div>
@@ -761,14 +760,14 @@ const AssetsMaintenance: React.FC = () => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-neutral-800">
-                  Planning de Maintenance
+                  {t('assetsMaint.scheduleTitle')}
                 </h3>
                 <ElegantButton
                   variant="primary"
                   icon={Plus}
                   onClick={() => handleModalOpen('schedule')}
                 >
-                  Planifier
+                  {t('assetsMaint.btnSchedule')}
                 </ElegantButton>
               </div>
 
@@ -776,14 +775,14 @@ const AssetsMaintenance: React.FC = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-neutral-200">
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Actif</th>
-                      <th className="text-left py-3 px-4 font-medium text-neutral-600">Type de Maintenance</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Fréquence</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Dernière</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Prochaine</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Statut</th>
-                      <th className="text-right py-3 px-4 font-medium text-neutral-600">Coût Estimé</th>
-                      <th className="text-center py-3 px-4 font-medium text-neutral-600">Actions</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thAsset')}</th>
+                      <th className="text-left py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thMaintenanceType')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thFrequency')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thLast')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thNext')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thStatus')}</th>
+                      <th className="text-right py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thEstimatedCost')}</th>
+                      <th className="text-center py-3 px-4 font-medium text-neutral-600">{t('assetsMaint.thActions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -793,10 +792,10 @@ const AssetsMaintenance: React.FC = () => {
                           <div className="flex flex-col items-center justify-center">
                             <Archive className="h-10 w-10 text-neutral-300 mb-3" />
                             <p className="text-sm font-medium text-neutral-700">
-                              Aucune donnée — module non alimenté par l'import
+                              {t('assetsMaint.noDataTitle')}
                             </p>
                             <p className="text-xs text-neutral-500 mt-1">
-                              Aucun plan de maintenance n'est présent en base.
+                              {t('assetsMaint.noDataScheduleDesc')}
                             </p>
                           </div>
                         </td>
@@ -830,10 +829,10 @@ const AssetsMaintenance: React.FC = () => {
                         </td>
                         <td className="py-4 px-4 text-center">
                           <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-600">
-                            {schedule.frequency === 'weekly' ? 'Hebdomadaire' :
-                             schedule.frequency === 'monthly' ? 'Mensuelle' :
-                             schedule.frequency === 'quarterly' ? 'Trimestrielle' :
-                             schedule.frequency === 'bi_annually' ? 'Semestrielle' : 'Annuelle'}
+                            {schedule.frequency === 'weekly' ? t('assetsMaint.freqWeekly') :
+                             schedule.frequency === 'monthly' ? t('assetsMaint.freqMonthly') :
+                             schedule.frequency === 'quarterly' ? t('assetsMaint.freqQuarterly') :
+                             schedule.frequency === 'bi_annually' ? t('assetsMaint.freqBiAnnually') : t('assetsMaint.freqAnnually')}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-center">
@@ -851,21 +850,21 @@ const AssetsMaintenance: React.FC = () => {
                             <div className="flex items-center justify-center space-x-1">
                               <AlertTriangle className="h-4 w-4 text-red-600" />
                               <span className="text-sm text-red-600 font-medium">
-                                {Math.abs(schedule.daysUntilDue)} jours de retard
+                                {t('assetsMaint.daysOverdue', { count: String(Math.abs(schedule.daysUntilDue)) })}
                               </span>
                             </div>
                           ) : schedule.daysUntilDue <= 7 ? (
                             <div className="flex items-center justify-center space-x-1">
                               <Clock className="h-4 w-4 text-yellow-600" />
                               <span className="text-sm text-yellow-600 font-medium">
-                                Dans {schedule.daysUntilDue} jours
+                                {t('assetsMaint.inDays', { count: String(schedule.daysUntilDue) })}
                               </span>
                             </div>
                           ) : (
                             <div className="flex items-center justify-center space-x-1">
                               <CheckCircle className="h-4 w-4 text-green-600" />
                               <span className="text-sm text-green-600">
-                                Dans {schedule.daysUntilDue} jours
+                                {t('assetsMaint.inDays', { count: String(schedule.daysUntilDue) })}
                               </span>
                             </div>
                           )}
@@ -877,10 +876,10 @@ const AssetsMaintenance: React.FC = () => {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex justify-center space-x-2">
-                            <button className="p-2 text-neutral-400 hover:text-blue-600 transition-colors" aria-label="Calendrier">
+                            <button className="p-2 text-neutral-400 hover:text-blue-600 transition-colors" aria-label={t('assetsMaint.ariaCalendar')}>
                               <Calendar className="h-4 w-4" />
                             </button>
-                            <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label="Paramètres">
+                            <button className="p-2 text-neutral-400 hover:text-green-600 transition-colors" aria-label={t('assetsMaint.ariaSettings')}>
                               <Settings className="h-4 w-4" />
                             </button>
                           </div>
@@ -899,12 +898,10 @@ const AssetsMaintenance: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Archive className="h-12 w-12 text-neutral-300 mb-4" />
               <h3 className="text-lg font-semibold text-neutral-800">
-                Aucune donnée — module non alimenté par l'import
+                {t('assetsMaint.noDataTitle')}
               </h3>
               <p className="text-sm text-neutral-500 mt-2 max-w-md">
-                Les métriques et alertes de maintenance nécessitent un historique
-                d'interventions, absent de la base. Aucun indicateur n'est calculé
-                pour éviter d'afficher des chiffres fabriqués.
+                {t('assetsMaint.noDataAnalyticsDesc')}
               </p>
             </div>
           </UnifiedCard>
@@ -921,10 +918,10 @@ const AssetsMaintenance: React.FC = () => {
               <div className="p-6 border-b border-neutral-200">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-neutral-800">
-                    {maintenanceModal.mode === 'create' ? 'Nouvelle Maintenance' :
-                     maintenanceModal.mode === 'edit' ? 'Modifier la Maintenance' :
-                     maintenanceModal.mode === 'schedule' ? 'Planifier Maintenance' :
-                     'Détails de la Maintenance'}
+                    {maintenanceModal.mode === 'create' ? t('assetsMaint.btnNewMaintenance') :
+                     maintenanceModal.mode === 'edit' ? t('assetsMaint.modalEditTitle') :
+                     maintenanceModal.mode === 'schedule' ? t('assetsMaint.modalScheduleTitle') :
+                     t('assetsMaint.modalViewTitle')}
                   </h3>
                   <button
                     onClick={() => setMaintenanceModal({ isOpen: false, mode: 'view' })}
@@ -941,7 +938,7 @@ const AssetsMaintenance: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Actif
+                          {t('assetsMaint.labelAsset')}
                         </label>
                         <p className="text-neutral-800 font-semibold">{maintenanceModal.record.assetName}</p>
                         <p className="text-sm text-neutral-500">{maintenanceModal.record.assetTag}</p>
@@ -949,7 +946,7 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Type de Maintenance
+                          {t('assetsMaint.labelMaintenanceType')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getMaintenanceTypeColor(maintenanceModal.record.maintenanceType)}`}>
                           {typeLabels[maintenanceModal.record.maintenanceType]}
@@ -958,23 +955,23 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Description
+                          {t('assetsMaint.labelDescription')}
                         </label>
                         <p className="text-neutral-800">{maintenanceModal.record.description}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Technicien
+                          {t('assetsMaint.labelTechnicianField')}
                         </label>
-                        <p className="text-neutral-800">{maintenanceModal.record.technician || 'Non assigné'}</p>
+                        <p className="text-neutral-800">{maintenanceModal.record.technician || t('assetsMaint.notAssigned')}</p>
                       </div>
                     </div>
 
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Statut
+                          {t('assetsMaint.labelStatus')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(maintenanceModal.record.status)}`}>
                           {statusLabels[maintenanceModal.record.status]}
@@ -983,7 +980,7 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Priorité
+                          {t('assetsMaint.labelPriority')}
                         </label>
                         <span className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(maintenanceModal.record.priority)}`}>
                           {priorityLabels[maintenanceModal.record.priority]}
@@ -992,19 +989,19 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Date Planifiée
+                          {t('assetsMaint.labelScheduledDate')}
                         </label>
                         <p className="text-neutral-800">{formatDate(maintenanceModal.record.scheduledDate)}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-1">
-                          Coût
+                          {t('assetsMaint.labelCostField')}
                         </label>
                         <p className="text-neutral-800 font-semibold">
                           {maintenanceModal.record.cost > 0 ?
                             formatCurrency(maintenanceModal.record.cost) :
-                            `Estimé: ${formatCurrency(maintenanceModal.record.estimatedCost)}`}
+                            t('assetsMaint.kpiEstimated', { amount: formatCurrency(maintenanceModal.record.estimatedCost) })}
                         </p>
                       </div>
                     </div>
@@ -1015,7 +1012,7 @@ const AssetsMaintenance: React.FC = () => {
                       {/* Asset Information */}
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Nom de l'Actif <span className="text-red-500">*</span>
+                          {t('assetsMaint.labelAssetName')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1024,7 +1021,7 @@ const AssetsMaintenance: React.FC = () => {
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                             formErrors.assetName ? 'border-red-500' : 'border-neutral-200'
                           }`}
-                          placeholder="Ex: MacBook Pro 16"
+                          placeholder={t('assetsMaint.phAssetName')}
                         />
                         {formErrors.assetName && (
                           <p className="text-red-500 text-xs mt-1">{formErrors.assetName}</p>
@@ -1033,67 +1030,67 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Tag de l'Actif
+                          {t('assetsMaint.labelAssetTag')}
                         </label>
                         <input
                           type="text"
                           value={formData.assetTag}
                           onChange={(e) => handleFormChange('assetTag', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="Ex: IT001"
+                          placeholder={t('assetsMaint.phAssetTag')}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Catégorie
+                          {t('assetsMaint.labelCategory')}
                         </label>
                         <select
                           value={formData.category}
                           onChange={(e) => handleFormChange('category', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="materiel_informatique">Matériel Informatique</option>
-                          <option value="vehicules">Véhicules</option>
-                          <option value="equipements">Équipements</option>
+                          <option value="materiel_informatique">{t('assetsMaint.catIT')}</option>
+                          <option value="vehicules">{t('assetsMaint.catVehicles')}</option>
+                          <option value="equipements">{t('assetsMaint.catEquipment')}</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Type de Maintenance
+                          {t('assetsMaint.labelMaintenanceType')}
                         </label>
                         <select
                           value={formData.maintenanceType}
                           onChange={(e) => handleFormChange('maintenanceType', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="preventive">Préventif</option>
-                          <option value="corrective">Correctif</option>
-                          <option value="predictive">Prédictif</option>
-                          <option value="emergency">Urgence</option>
+                          <option value="preventive">{t('assetsMaint.typePreventive')}</option>
+                          <option value="corrective">{t('assetsMaint.typeCorrective')}</option>
+                          <option value="predictive">{t('assetsMaint.typePredictive')}</option>
+                          <option value="emergency">{t('assetsMaint.typeEmergency')}</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Priorité
+                          {t('assetsMaint.labelPriority')}
                         </label>
                         <select
                           value={formData.priority}
                           onChange={(e) => handleFormChange('priority', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="low">Faible</option>
-                          <option value="medium">Moyenne</option>
-                          <option value="high">Élevée</option>
-                          <option value="critical">Critique</option>
+                          <option value="low">{t('assetsMaint.priorityLow')}</option>
+                          <option value="medium">{t('assetsMaint.priorityMedium')}</option>
+                          <option value="high">{t('assetsMaint.priorityHigh')}</option>
+                          <option value="critical">{t('assetsMaint.priorityCritical')}</option>
                         </select>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Date Planifiée <span className="text-red-500">*</span>
+                          {t('assetsMaint.labelScheduledDate')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="date"
@@ -1110,7 +1107,7 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Durée Estimée (heures) <span className="text-red-500">*</span>
+                          {t('assetsMaint.labelEstimatedDuration')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"
@@ -1121,7 +1118,7 @@ const AssetsMaintenance: React.FC = () => {
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                             formErrors.estimatedDuration ? 'border-red-500' : 'border-neutral-200'
                           }`}
-                          placeholder="Ex: 2.5"
+                          placeholder={t('assetsMaint.phDuration')}
                         />
                         {formErrors.estimatedDuration && (
                           <p className="text-red-500 text-xs mt-1">{formErrors.estimatedDuration}</p>
@@ -1130,7 +1127,7 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Coût Estimé (FCFA) <span className="text-red-500">*</span>
+                          {t('assetsMaint.labelEstimatedCost')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="number"
@@ -1141,7 +1138,7 @@ const AssetsMaintenance: React.FC = () => {
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                             formErrors.estimatedCost ? 'border-red-500' : 'border-neutral-200'
                           }`}
-                          placeholder="Ex: 150.00"
+                          placeholder={t('assetsMaint.phCost')}
                         />
                         {formErrors.estimatedCost && (
                           <p className="text-red-500 text-xs mt-1">{formErrors.estimatedCost}</p>
@@ -1150,46 +1147,46 @@ const AssetsMaintenance: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Assigné à
+                          {t('assetsMaint.labelAssignedToField')}
                         </label>
                         <input
                           type="text"
                           value={formData.assignedTo}
                           onChange={(e) => handleFormChange('assignedTo', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="Ex: Service IT"
+                          placeholder={t('assetsMaint.phAssignedTo')}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Technicien
+                          {t('assetsMaint.labelTechnicianField')}
                         </label>
                         <input
                           type="text"
                           value={formData.technician}
                           onChange={(e) => handleFormChange('technician', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="Ex: Marc Technician"
+                          placeholder={t('assetsMaint.phTechnician')}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Fournisseur
+                          {t('assetsMaint.labelSupplier')}
                         </label>
                         <input
                           type="text"
                           value={formData.supplier}
                           onChange={(e) => handleFormChange('supplier', e.target.value)}
                           className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          placeholder="Ex: Apple Service"
+                          placeholder={t('assetsMaint.phSupplier')}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-neutral-700 mb-2">
-                          Emplacement <span className="text-red-500">*</span>
+                          {t('assetsMaint.labelLocationField')} <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -1198,7 +1195,7 @@ const AssetsMaintenance: React.FC = () => {
                           className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                             formErrors.location ? 'border-red-500' : 'border-neutral-200'
                           }`}
-                          placeholder="Ex: Bureau Paris"
+                          placeholder={t('assetsMaint.phLocation')}
                         />
                         {formErrors.location && (
                           <p className="text-red-500 text-xs mt-1">{formErrors.location}</p>
@@ -1208,7 +1205,7 @@ const AssetsMaintenance: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
-                        Description <span className="text-red-500">*</span>
+                        {t('assetsMaint.labelDescription')} <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={formData.description}
@@ -1217,7 +1214,7 @@ const AssetsMaintenance: React.FC = () => {
                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                           formErrors.description ? 'border-red-500' : 'border-neutral-200'
                         }`}
-                        placeholder="Décrivez la maintenance à effectuer..."
+                        placeholder={t('assetsMaint.phDescription')}
                       />
                       {formErrors.description && (
                         <p className="text-red-500 text-xs mt-1">{formErrors.description}</p>
@@ -1226,14 +1223,14 @@ const AssetsMaintenance: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-2">
-                        Notes
+                        {t('assetsMaint.labelNotes')}
                       </label>
                       <textarea
                         value={formData.notes}
                         onChange={(e) => handleFormChange('notes', e.target.value)}
                         rows={2}
                         className="w-full px-4 py-2 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Notes supplémentaires..."
+                        placeholder={t('assetsMaint.phNotes')}
                       />
                     </div>
                   </div>
@@ -1249,12 +1246,12 @@ const AssetsMaintenance: React.FC = () => {
                       }
                     }}
                   >
-                    {maintenanceModal.mode === 'view' ? 'Fermer' : 'Annuler'}
+                    {maintenanceModal.mode === 'view' ? t('assetsMaint.btnClose') : t('assetsMaint.btnCancel')}
                   </ElegantButton>
                   {maintenanceModal.mode !== 'view' && (
                     <ElegantButton variant="primary" onClick={handleSubmit}>
-                      {maintenanceModal.mode === 'create' ? 'Créer' :
-                       maintenanceModal.mode === 'schedule' ? 'Planifier' : 'Sauvegarder'}
+                      {maintenanceModal.mode === 'create' ? t('assetsMaint.btnCreate') :
+                       maintenanceModal.mode === 'schedule' ? t('assetsMaint.btnSchedule') : t('assetsMaint.btnSave')}
                     </ElegantButton>
                   )}
                 </div>
