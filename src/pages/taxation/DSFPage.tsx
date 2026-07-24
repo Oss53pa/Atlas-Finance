@@ -23,6 +23,12 @@ import {
   getFiscalCountries,
   getFiscalYears,
 } from '../../services/fiscal/fiscalParameters';
+import {
+  buildTaxEntryPreview,
+  postTaxEntry,
+  isTaxPosted,
+  type TaxEntryPreview,
+} from '../../services/fiscal/taxPostingService';
 
 const LIASS_PILOT_URL = 'https://liass-pilot.atlas-studio.org';
 
@@ -46,6 +52,10 @@ const DSFPage: React.FC = () => {
   const [fec, setFec] = useState<FecExportResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  // Écriture d'impôt (B1-post) : prévisualisation → confirmation.
+  const [taxPreview, setTaxPreview] = useState<TaxEntryPreview | null>(null);
+  const [taxBusy, setTaxBusy] = useState(false);
+  const [taxDone, setTaxDone] = useState(false);
 
   // Exercices comptables réels du tenant.
   useEffect(() => {
@@ -86,6 +96,17 @@ const DSFPage: React.FC = () => {
         endDate: selectedYear.endDate,
       });
       setDetermination(result);
+      // Prévisualise l'écriture d'impôt (sans rien écrire) et vérifie si elle
+      // est déjà comptabilisée pour cet exercice.
+      setTaxPreview(null);
+      if (selectedYear.id) {
+        const [preview, posted] = await Promise.all([
+          buildTaxEntryPreview(adapter, result, { fiscalYearId: selectedYear.id }),
+          isTaxPosted(adapter, selectedYear.id),
+        ]);
+        setTaxPreview(preview);
+        setTaxDone(posted);
+      }
       if (result.parametersFallback) {
         toast(result.parametersWarning ?? 'Paramètres fiscaux par repli', { icon: '⚠️' });
       }
@@ -95,6 +116,30 @@ const DSFPage: React.FC = () => {
       setLoading(false);
     }
   }, [adapter, country, fiscalYearNumber, selectedYear]);
+
+  const comptabiliserImpot = useCallback(async () => {
+    if (!determination || !selectedYear) return;
+    setTaxBusy(true);
+    try {
+      const res = await postTaxEntry(adapter, determination, {
+        fiscalYearId: selectedYear.id,
+        fiscalYearLabel: selectedYear.name,
+        entryDate: selectedYear.endDate,
+      });
+      if (res.posted) {
+        toast.success(res.message);
+        setTaxDone(true);
+        // Rafraîchit la prévisualisation (classe 89 désormais à l'impôt dû).
+        setTaxPreview(await buildTaxEntryPreview(adapter, determination, { fiscalYearId: selectedYear.id }));
+      } else {
+        toast(res.message, { icon: 'ℹ️' });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Comptabilisation impossible');
+    } finally {
+      setTaxBusy(false);
+    }
+  }, [adapter, determination, selectedYear]);
 
   const runFec = async () => {
     if (!selectedYear) return;
@@ -224,6 +269,68 @@ const DSFPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Comptabilisation de l'impôt (B1-post) */}
+          {taxPreview && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
+                <Scale className="w-4 h-4 text-[#235A6E]" /> Écriture d'impôt sur le résultat
+              </div>
+
+              {taxDone ? (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                  L'impôt de cet exercice est déjà comptabilisé (pièce <code>{taxPreview.reference}</code>).
+                  Classe 89 = {fmt(taxPreview.alreadyBooked, cur)}.
+                </div>
+              ) : taxPreview.nothingToPost ? (
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-600">
+                  {taxPreview.message}
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-500">
+                    Charge d'impôt déjà comptabilisée (classe 89) : {fmt(taxPreview.alreadyBooked, cur)}.
+                    Complément pour atteindre l'impôt dû : <strong>{fmt(Math.abs(taxPreview.complement), cur)}</strong>.
+                  </p>
+                  <div className="overflow-x-auto border border-gray-200 rounded">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-xs text-gray-500 border-b border-gray-200">
+                          <th className="px-3 py-1.5">Compte</th>
+                          <th className="px-3 py-1.5">Libellé</th>
+                          <th className="px-3 py-1.5 text-right">Débit</th>
+                          <th className="px-3 py-1.5 text-right">Crédit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {taxPreview.lines.map((l, i) => (
+                          <tr key={i} className="border-b border-gray-100 last:border-0">
+                            <td className="px-3 py-1.5 font-mono text-xs">{l.accountCode}</td>
+                            <td className="px-3 py-1.5 text-gray-600">{l.accountName}</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums">{l.debit ? fmt(l.debit, cur) : ''}</td>
+                            <td className="px-3 py-1.5 text-right tabular-nums">{l.credit ? fmt(l.credit, cur) : ''}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={comptabiliserImpot}
+                      disabled={taxBusy || !taxPreview.balanced}
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-[#235A6E] text-white rounded-lg hover:bg-[#1c4a5b] disabled:opacity-50"
+                    >
+                      {taxBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scale className="w-4 h-4" />}
+                      Comptabiliser l'impôt
+                    </button>
+                    <span className="text-xs text-gray-400">
+                      Écriture au journal OD, datée de la clôture ({selectedYear?.endDate}). Une seule par exercice.
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </>
       )}
 
