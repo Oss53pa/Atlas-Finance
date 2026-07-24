@@ -107,8 +107,8 @@ const DSFPage: React.FC = () => {
         setTaxPreview(preview);
         setTaxDone(posted);
       }
-      if (result.parametersFallback) {
-        toast(result.parametersWarning ?? 'Paramètres fiscaux par repli', { icon: '⚠️' });
+      if (result.parametersFallback || result.parametersProvisional) {
+        toast(result.parametersWarning ?? 'Paramètres fiscaux à valider', { icon: '⚠️' });
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Détermination impossible');
@@ -224,7 +224,7 @@ const DSFPage: React.FC = () => {
 
       {determination && (
         <>
-          {determination.parametersFallback && (
+          {(determination.parametersFallback || determination.parametersProvisional) && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 flex gap-2">
               <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               {determination.parametersWarning}

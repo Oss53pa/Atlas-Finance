@@ -64,6 +64,14 @@ export interface FiscalParameterSet {
   vatRateStandard: number;
   /** Catalogue des réintégrations/déductions applicables (B1). */
   fiscalAdjustments: FiscalAdjustmentRule[];
+  /**
+   * Jeu INDICATIF : taux têtes de chapitre (IS/TVA/minimum) documentés mais non
+   * certifiés contre la loi de finances en vigueur. À VALIDER avant toute
+   * déclaration. La détermination propage un avertissement.
+   */
+  provisional?: boolean;
+  /** Note de prudence affichée avec l'avertissement. */
+  notes?: string;
 }
 
 // ============================================================================
@@ -164,6 +172,59 @@ const CI_IRPP_BRACKETS: IrppBracket[] = [
 ];
 
 // ============================================================================
+// JEUX INDICATIFS OHADA 2026 (11 pays hors CI)
+// ============================================================================
+//
+// Taux têtes de chapitre (IS standard, TVA standard, taux minimum, report
+// déficitaire) — repères stables et largement documentés, MAIS à valider contre
+// la loi de finances de chaque pays avant toute déclaration (d'où provisional).
+// Un pays = une ligne dans ce tableau ; le builder produit le FiscalParameterSet.
+
+interface ProvisionalCountry {
+  code: string;
+  label: string;
+  currency: 'XOF' | 'XAF';
+  is: number;         // taux IS standard (%)
+  min: number;        // taux minimum / IMF (% du CA)
+  floor?: number;     // plancher minimum
+  vat: number;        // TVA standard (%)
+  deficit: number;    // années de report déficitaire
+  notes?: string;
+}
+
+const OHADA_PROVISIONAL_COUNTRIES: ProvisionalCountry[] = [
+  // ── UEMOA (XOF) ────────────────────────────────────────────────────────────
+  { code: 'BJ', label: 'Bénin',          currency: 'XOF', is: 30,   min: 0.5, floor: 250_000, vat: 18, deficit: 3 },
+  { code: 'BF', label: 'Burkina Faso',   currency: 'XOF', is: 27.5, min: 0.5, floor: 1_000_000, vat: 18, deficit: 4 },
+  { code: 'GW', label: 'Guinée-Bissau',  currency: 'XOF', is: 25,   min: 1,   vat: 17, deficit: 3, notes: 'TVA récemment introduite — vérifier le taux applicable.' },
+  { code: 'ML', label: 'Mali',           currency: 'XOF', is: 30,   min: 1,   vat: 18, deficit: 3 },
+  { code: 'NE', label: 'Niger',          currency: 'XOF', is: 30,   min: 1,   vat: 19, deficit: 3 },
+  { code: 'SN', label: 'Sénégal',        currency: 'XOF', is: 30,   min: 0.5, floor: 500_000, vat: 18, deficit: 3 },
+  { code: 'TG', label: 'Togo',           currency: 'XOF', is: 27,   min: 1,   vat: 18, deficit: 3 },
+  // ── CEMAC (XAF) ────────────────────────────────────────────────────────────
+  { code: 'CM', label: 'Cameroun',       currency: 'XAF', is: 33,   min: 2.2, vat: 19.25, deficit: 4, notes: 'IS 33 % = 30 % + 10 % CAC (centimes additionnels communaux).' },
+  { code: 'CF', label: 'Centrafrique',   currency: 'XAF', is: 30,   min: 1,   vat: 19, deficit: 3 },
+  { code: 'CG', label: 'Congo',          currency: 'XAF', is: 28,   min: 1,   vat: 18.9, deficit: 3 },
+  { code: 'GA', label: 'Gabon',          currency: 'XAF', is: 30,   min: 1,   vat: 18, deficit: 3 },
+  { code: 'GQ', label: 'Guinée équatoriale', currency: 'XAF', is: 35, min: 1.5, vat: 15, deficit: 3 },
+  { code: 'TD', label: 'Tchad',          currency: 'XAF', is: 35,   min: 1.5, vat: 18, deficit: 4 },
+];
+
+const OHADA_PROVISIONAL_2026: FiscalParameterSet[] = OHADA_PROVISIONAL_COUNTRIES.map(c => ({
+  countryCode: c.code,
+  fiscalYear: 2026,
+  legalReference: `CGI ${c.label} — taux standard (indicatif)`,
+  currency: c.currency,
+  is: { rateStandard: c.is, minimumRate: c.min, minimumFloor: c.floor ?? 0 },
+  deficitCarryForwardYears: c.deficit,
+  irppBrackets: [],
+  vatRateStandard: c.vat,
+  fiscalAdjustments: baselineAdjustments(c.label),
+  provisional: true,
+  notes: c.notes,
+}));
+
+// ============================================================================
 // JEUX DE PARAMÈTRES VERSIONNÉS
 // ============================================================================
 //
@@ -204,40 +265,12 @@ const PARAMETER_SETS: FiscalParameterSet[] = [
     vatRateStandard: 18,
     fiscalAdjustments: CI_ADJUSTMENTS,
   },
-  // ── Squelettes multi-pays (taux IS connus, ajustements de base) ────────────
-  {
-    countryCode: 'SN',
-    fiscalYear: 2026,
-    legalReference: 'CGI Sénégal (à compléter)',
-    currency: 'XOF',
-    is: { rateStandard: 30, minimumRate: 0.5, minimumFloor: 500_000 },
-    deficitCarryForwardYears: 3,
-    irppBrackets: [],
-    vatRateStandard: 18,
-    fiscalAdjustments: baselineAdjustments('Sénégal'),
-  },
-  {
-    countryCode: 'BJ',
-    fiscalYear: 2026,
-    legalReference: 'CGI Bénin (à compléter)',
-    currency: 'XOF',
-    is: { rateStandard: 30, minimumRate: 0.5, minimumFloor: 250_000 },
-    deficitCarryForwardYears: 3,
-    irppBrackets: [],
-    vatRateStandard: 18,
-    fiscalAdjustments: baselineAdjustments('Bénin'),
-  },
-  {
-    countryCode: 'CM',
-    fiscalYear: 2026,
-    legalReference: 'CGI Cameroun (à compléter)',
-    currency: 'XAF',
-    is: { rateStandard: 33, minimumRate: 2.2, minimumFloor: 0 },
-    deficitCarryForwardYears: 4,
-    irppBrackets: [],
-    vatRateStandard: 19.25,
-    fiscalAdjustments: baselineAdjustments('Cameroun'),
-  },
+  // ── Autres pays OHADA — jeux INDICATIFS (taux têtes de chapitre) ───────────
+  // ⚠️ IS/TVA/minimum standard, documentés mais NON certifiés contre la loi de
+  // finances en vigueur. `provisional: true` → la détermination avertit.
+  // Les barèmes IRPP (paie) sont laissés vides ici : ils relèvent d'Atlas People
+  // et ne sont pas utilisés par la détermination de l'IS.
+  ...OHADA_PROVISIONAL_2026,
 ];
 
 // ============================================================================
@@ -248,8 +281,20 @@ export interface FiscalParameterResolution {
   parameters: FiscalParameterSet;
   /** Vrai si le jeu exact (pays, année) n'existait pas et qu'on a replié. */
   fallback: boolean;
-  /** Message d'avertissement si repli ou pays inconnu. */
+  /** Vrai si le jeu appliqué est INDICATIF (taux à valider). */
+  provisional: boolean;
+  /** Message d'avertissement si repli, provisoire ou pays inconnu. */
   warning?: string;
+}
+
+/** Avertissement de prudence pour un jeu indicatif. */
+function provisionalWarning(p: FiscalParameterSet): string {
+  return (
+    `Paramètres fiscaux INDICATIFS pour ${p.countryCode} (${p.legalReference}) : ` +
+    `IS ${p.is.rateStandard} %, TVA ${p.vatRateStandard} %, minimum ${p.is.minimumRate} %. ` +
+    `À VALIDER contre la loi de finances en vigueur avant toute déclaration.` +
+    (p.notes ? ` ${p.notes}` : '')
+  );
 }
 
 /**
@@ -267,19 +312,28 @@ export function resolveFiscalParameters(
   const exact = PARAMETER_SETS.find(
     p => p.countryCode === countryCode && p.fiscalYear === fiscalYear,
   );
-  if (exact) return { parameters: exact, fallback: false };
+  if (exact) {
+    return {
+      parameters: exact,
+      fallback: false,
+      provisional: Boolean(exact.provisional),
+      warning: exact.provisional ? provisionalWarning(exact) : undefined,
+    };
+  }
 
   // Repli : loi antérieure la plus récente du même pays.
   const earlier = PARAMETER_SETS
     .filter(p => p.countryCode === countryCode && p.fiscalYear < fiscalYear)
     .sort((a, b) => b.fiscalYear - a.fiscalYear);
   if (earlier.length > 0) {
+    const base =
+      `Aucune loi de finances ${fiscalYear} pour ${countryCode} — application de ` +
+      `${earlier[0].legalReference} (dernière en vigueur). Vérifier les évolutions.`;
     return {
       parameters: earlier[0],
       fallback: true,
-      warning:
-        `Aucune loi de finances ${fiscalYear} pour ${countryCode} — application de ` +
-        `${earlier[0].legalReference} (dernière en vigueur). Vérifier les évolutions.`,
+      provisional: Boolean(earlier[0].provisional),
+      warning: earlier[0].provisional ? `${base} ${provisionalWarning(earlier[0])}` : base,
     };
   }
 
@@ -290,6 +344,7 @@ export function resolveFiscalParameters(
   return {
     parameters: ci,
     fallback: true,
+    provisional: true,
     warning:
       `Aucun paramétrage fiscal pour le pays « ${countryCode} » — repli sur le ` +
       `référentiel CI. Créer un jeu de paramètres pour ce pays avant toute déclaration.`,

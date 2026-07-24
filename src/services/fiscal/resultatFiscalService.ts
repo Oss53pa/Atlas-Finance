@@ -75,6 +75,8 @@ export interface ResultatFiscalResult {
   fiscalYear: number;
   legalReference: string;
   parametersFallback: boolean;
+  /** Jeu de paramètres INDICATIF (taux à valider contre la loi de finances). */
+  parametersProvisional: boolean;
   parametersWarning?: string;
   currency: string;
 
@@ -216,6 +218,7 @@ export async function determineResultatFiscal(
     fiscalYear: input.fiscalYear,
     legalReference: params.legalReference,
     parametersFallback: resolution.fallback,
+    parametersProvisional: resolution.provisional,
     parametersWarning: resolution.warning,
     currency: params.currency,
 
