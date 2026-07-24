@@ -92,10 +92,16 @@ export async function deleteBracket(adapter: DataAdapter, id: string): Promise<v
   if (error) throw new Error(error.message);
 }
 
-/** Niveau/role d'approbation requis pour un montant (bracket correspondant). */
+/**
+ * Niveau/rôle d'approbation requis pour un montant.
+ * Bornes : min INCLUSIF, max EXCLUSIF → partition propre [min, max[ sans
+ * chevauchement. Un montant pile sur un seuil (ex. 5 000 000) bascule vers la
+ * tranche SUPÉRIEURE (DAF), pas l'inférieure. La dernière tranche (seuil_max null)
+ * reste ouverte à l'infini.
+ */
 export function requiredApprover(matrix: ApprovalBracket[], montant: number): ApprovalBracket | null {
   const m = Math.abs(montant);
-  return matrix.find(b => m >= b.seuil_min && (b.seuil_max == null || m <= b.seuil_max)) || null;
+  return matrix.find(b => m >= b.seuil_min && (b.seuil_max == null || m < b.seuil_max)) || null;
 }
 
 export async function listApprovals(adapter: DataAdapter, requestId: string): Promise<CapexApproval[]> {
