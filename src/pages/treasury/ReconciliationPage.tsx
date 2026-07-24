@@ -9,8 +9,9 @@ import {
   rapprochementAutomatique,
   genererEtatRapprochement,
   appliquerRapprochement,
-  parseBankStatementCSV,
 } from '../../services/rapprochementBancaireService';
+import { parseBankFile } from '../../services/treasury/bankFileParsers';
+import { parseMobileMoney, looksLikeMobileMoney } from '../../services/treasury/mobileMoneyParsers';
 import type {
   RapprochementResult,
   RapprochementMatch,
@@ -339,15 +340,53 @@ const ReconciliationPage: React.FC = () => {
     }
   }, [adapter, filters.compte, setupInfo, refreshStatements, t]);
 
-  // Import CSV : parse → rapprochement.
-  const handleImportCSV = useCallback(async (csvContent: string) => {
-    const transactions = parseBankStatementCSV(csvContent);
-    if (transactions.length === 0) {
-      toast.error(t('bankRecon.noTransactionInCsv'));
+  // Import d'un relevé : auto-détection du format (CSV, MT940, CAMT.053, OFX)
+  // → rapprochement. Tous les formats produisent le même BankTransaction[], donc
+  // tout l'aval (matching, état, persistance) est inchangé.
+  const handleImportFile = useCallback(async (content: string, fileName?: string) => {
+    // Mobile money (Wave/Orange/MTN/Moov) : relevés CSV avec frais opérateur.
+    // Routé avant les parseurs bancaires standards quand le signal est fort.
+    const isMobileMoney = looksLikeMobileMoney(content, fileName);
+    const parsed = isMobileMoney
+      ? parseMobileMoney(content, fileName)
+      : parseBankFile(content, fileName);
+
+    if (parsed.transactions.length === 0) {
+      toast.error(
+        parsed.format === 'unknown'
+          ? t('bankRecon.noTransactionInCsv')
+          : `Relevé ${parsed.format.toUpperCase()} sans transaction exploitable`,
+      );
+      if (parsed.warnings.length > 0) toast(parsed.warnings[0], { icon: '⚠️' });
       return;
     }
-    toast.success(t('bankRecon.bankTxImported', { count: String(transactions.length) }));
-    await runReconciliation(transactions);
+
+    const fees = isMobileMoney ? (parsed as { totalFees?: number }).totalFees ?? 0 : 0;
+    if (fees > 0) {
+      toast(
+        `Frais opérateur extraits : ${fees.toLocaleString('fr-FR')} ` +
+        `(à comptabiliser en charge 6312)`,
+        { icon: '💸' },
+      );
+    }
+    // Pré-remplit les soldes/devise quand le format les fournit (MT940/CAMT.053).
+    setSetupInfo(prev => ({
+      ...prev,
+      fileName: fileName ?? prev.fileName,
+      currency: parsed.currency ?? prev.currency,
+      openingBalance: parsed.openingBalance ?? prev.openingBalance,
+      closingBalance: parsed.closingBalance ?? prev.closingBalance,
+      periodStart: parsed.periodStart ?? prev.periodStart,
+      periodEnd: parsed.periodEnd ?? prev.periodEnd,
+    }));
+    const label = parsed.format === 'csv' ? '' : ` (${parsed.format.toUpperCase()})`;
+    toast.success(
+      t('bankRecon.bankTxImported', { count: String(parsed.transactions.length) }) + label,
+    );
+    if (parsed.warnings.length > 0) {
+      toast(parsed.warnings[0], { icon: '⚠️' });
+    }
+    await runReconciliation(parsed.transactions);
   }, [runReconciliation, t]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -356,13 +395,13 @@ const ReconciliationPage: React.FC = () => {
     setSetupInfo(prev => ({ ...prev, fileName: file.name }));
     const reader = new FileReader();
     reader.onload = (event) => {
-      const csvContent = event.target?.result as string;
-      if (csvContent) handleImportCSV(csvContent);
+      const content = event.target?.result as string;
+      if (content) handleImportFile(content, file.name);
     };
     reader.readAsText(file);
     // Reset file input so the same file can be re-imported
     e.target.value = '';
-  }, [handleImportCSV]);
+  }, [handleImportFile]);
 
   // Import par SCAN/OCR (image ou PDF) : extraction des lignes → rapprochement.
   // Aucune écriture créée : les lignes alimentent le pointage comme le CSV.
@@ -781,7 +820,7 @@ const ReconciliationPage: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv"
+              accept=".csv,.txt,.sta,.mt940,.xml,.ofx,.qfx"
               onChange={handleFileUpload}
               className="hidden"
             />
