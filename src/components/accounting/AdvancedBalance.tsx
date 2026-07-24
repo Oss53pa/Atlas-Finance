@@ -50,7 +50,6 @@ const AdvancedBalance: React.FC = () => {
   const [granularity, setGranularity] = useState<'monthly' | 'quarterly' | 'yearly'>('monthly');
   const [showPeriodModal, setShowPeriodModal] = useState(false);
   const [dateRange, setDateRange] = useState({ start: `${new Date().getFullYear()}-01-01`, end: `${new Date().getFullYear()}-12-31` });
-  const [filteredData, setFilteredData] = useState<BalanceData[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
   const [showPrintPreview, setShowPrintPreview] = useState(false);
@@ -173,6 +172,46 @@ const AdvancedBalance: React.FC = () => {
       }).sort((a, b) => a.compte.localeCompare(b.compte));
     },
   });
+
+  // Centres de coût RÉELLEMENT présents dans les mouvements (issus de
+  // journal_lines.analytical_code, cf. mov.centreCout) — remplace les 3 options
+  // CC001/CC002/CC003 codées en dur qui n'existaient dans aucune donnée et ne
+  // filtraient donc jamais rien.
+  const centresPresents = useMemo(() => {
+    const s = new Set<string>();
+    for (const item of balanceData) {
+      const c = item.centreCout;
+      if (c?.trim()) s.add(c.trim());
+    }
+    return [...s].sort();
+  }, [balanceData]);
+
+  // Application RÉELLE du panneau de filtres. Le panneau était décoratif :
+  // aucun filtre n'était appliqué (setFilteredData n'était jamais appelé,
+  // l'export exportait donc du vide et le bouton « Appliquer » n'avait pas
+  // d'onClick). On dérive ici la liste affichée/exportée depuis balanceData.
+  // Les KPIs et graphiques gardent volontairement la vue globale ; seul le
+  // détail (tableau principal + export) est filtré.
+  const displayedData = useMemo(() => {
+    const min = filters.compteMin.trim();
+    const max = filters.compteMax.trim();
+    const search = filters.libelle.trim().toLowerCase();
+    const montantMin = filters.montantMin.trim() ? Number(filters.montantMin) : null;
+    const montantMax = filters.montantMax.trim() ? Number(filters.montantMax) : null;
+    const centre = filters.centreCout.trim();
+    return balanceData.filter((item) => {
+      if (min && item.compte.localeCompare(min) < 0) return false;
+      if (max && item.compte.localeCompare(max) > 0) return false;
+      if (search && !`${item.compte} ${item.libelle}`.toLowerCase().includes(search)) return false;
+      const magnitude = Math.abs(item.debitSolde - item.creditSolde);
+      if (montantMin !== null && !Number.isNaN(montantMin) && magnitude < montantMin) return false;
+      if (montantMax !== null && !Number.isNaN(montantMax) && magnitude > montantMax) return false;
+      if (filters.onlyMovement && item.debitMouvement === 0 && item.creditMouvement === 0) return false;
+      if (!filters.showZeroBalance && item.debitSolde === 0 && item.creditSolde === 0) return false;
+      if (centre && item.centreCout !== centre) return false;
+      return true;
+    });
+  }, [balanceData, filters]);
 
   // Écritures de la période (hors brouillons et hors À-Nouveau) — base de la
   // série temporelle des flux. Requête séparée du calcul de balance, qui lui
@@ -396,7 +435,7 @@ const AdvancedBalance: React.FC = () => {
             </button>
             
             <ExportMenu
-              data={filteredData as unknown as Record<string, unknown>[]}
+              data={displayedData as unknown as Record<string, unknown>[]}
               filename="balance-avancee"
               columns={{
                 compte: t('advBalance.colCompte'),
@@ -501,9 +540,7 @@ const AdvancedBalance: React.FC = () => {
                 className="w-full px-3 py-2 border border-[var(--color-border)] rounded-md text-sm"
               >
                 <option value="">{t('advBalance.all')}</option>
-                <option value="CC001">{t('advBalance.cc001')}</option>
-                <option value="CC002">{t('advBalance.cc002')}</option>
-                <option value="CC003">{t('advBalance.cc003')}</option>
+                {centresPresents.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
@@ -564,7 +601,13 @@ const AdvancedBalance: React.FC = () => {
               >
                 {t('advBalance.reset')}
               </button>
-              <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] transition-colors">
+              {/* Le filtrage est réactif (displayedData se recalcule à chaque
+                  changement de `filters`) : ce bouton confirme et referme le
+                  panneau plutôt que de rester inerte. */}
+              <button
+                onClick={() => setShowFilters(false)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-md hover:bg-[var(--color-primary-hover)] transition-colors"
+              >
                 <Search className="w-4 h-4 mr-2 inline" />
                 {t('advBalance.applyFilters')}
               </button>
@@ -1301,7 +1344,7 @@ const AdvancedBalance: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {balanceData.slice(0, 15).map((item) => (
+                  {displayedData.slice(0, 15).map((item) => (
                     <tr key={item.compte} className="border-b border-[var(--color-border)]">
                       <td className="border-r border-[var(--color-border)] px-2 py-1 font-mono">{item.compte}</td>
                       <td className="border-r border-[var(--color-border)] px-2 py-1">{item.libelle}</td>
