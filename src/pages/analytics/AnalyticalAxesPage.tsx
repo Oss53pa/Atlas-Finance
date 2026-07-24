@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useMutation } from '@tanstack/react-query';
 import {
   Layers,
@@ -72,6 +73,7 @@ interface AxesFilters {
 }
 
 const AnalyticalAxesPage: React.FC = () => {
+  const { t } = useLanguage();
   const [filters, setFilters] = useState<AxesFilters>({
     search: '',
     type: '',
@@ -119,7 +121,7 @@ const AnalyticalAxesPage: React.FC = () => {
       setAllAxes(rows.map(mapAxe));
     } catch (err) {
       console.error('[AnalyticalAxesPage] Erreur chargement axes analytiques:', err);
-      toast.error('Impossible de charger les axes analytiques.');
+      toast.error(t('analyticalAxes.loadError'));
     } finally {
       setIsLoading(false);
     }
@@ -178,30 +180,30 @@ const AnalyticalAxesPage: React.FC = () => {
       }
     },
     onSuccess: async () => {
-      toast.success(selectedAxe ? 'Axe analytique mis à jour' : 'Axe analytique créé avec succès');
+      toast.success(selectedAxe ? t('analyticalAxes.updated') : t('analyticalAxes.created'));
       setShowCreateModal(false);
       setSelectedAxe(null);
       resetForm();
       await loadAxes();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de l\'enregistrement');
+      toast.error(error.message || t('analyticalAxes.saveError'));
     },
   });
 
   const deleteAxeMutation = useMutation({
     mutationFn: async (axeId: string) => { await deleteAxe(adapter, axeId); },
     onSuccess: async () => {
-      toast.success('Axe supprimé avec succès');
+      toast.success(t('analyticalAxes.deleted'));
       await loadAxes();
     },
     onError: () => {
-      toast.error('Erreur lors de la suppression');
+      toast.error(t('analyticalAxes.deleteError'));
     }
   });
 
   const handleDeleteAxe = (axeId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet axe analytique ?')) {
+    if (confirm(t('analyticalAxes.confirmDelete'))) {
       deleteAxeMutation.mutate(axeId);
     }
   };
@@ -286,9 +288,9 @@ const AnalyticalAxesPage: React.FC = () => {
           fieldErrors[field] = err.message;
         });
         setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+        toast.error(t('analyticalAxes.formErrors'));
       } else {
-        toast.error('Erreur lors de la création');
+        toast.error(t('analyticalAxes.createError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -309,12 +311,12 @@ const AnalyticalAxesPage: React.FC = () => {
 
   const getTypeLabel = (type: string) => {
     switch (type) {
-      case 'centre_cout': return 'Centre de Coût';
-      case 'centre_profit': return 'Centre de Profit';
-      case 'projet': return 'Projet';
-      case 'produit': return 'Produit';
-      case 'region': return 'Région';
-      case 'activite': return 'Activité';
+      case 'centre_cout': return t('analyticalAxes.typeCostCenter');
+      case 'centre_profit': return t('analyticalAxes.typeProfitCenter');
+      case 'projet': return t('analyticalAxes.typeProject');
+      case 'produit': return t('analyticalAxes.typeProduct');
+      case 'region': return t('analyticalAxes.typeRegion');
+      case 'activite': return t('analyticalAxes.typeActivity');
       default: return type;
     }
   };
@@ -330,9 +332,9 @@ const AnalyticalAxesPage: React.FC = () => {
 
   const getStatusLabel = (statut: string) => {
     switch (statut) {
-      case 'actif': return 'Actif';
-      case 'inactif': return 'Inactif';
-      case 'archive': return 'Archivé';
+      case 'actif': return t('analyticalAxes.statusActive');
+      case 'inactif': return t('analyticalAxes.statusInactive');
+      case 'archive': return t('analyticalAxes.statusArchived');
       default: return statut;
     }
   };
@@ -350,10 +352,10 @@ const AnalyticalAxesPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
               <Layers className="mr-3 h-7 w-7" />
-              Axes Analytiques
+              {t('analyticalAxes.title')}
             </h1>
             <p className="mt-2 text-[var(--color-text-secondary)]">
-              Configuration des dimensions d'analyse comptable
+              {t('analyticalAxes.subtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -362,20 +364,20 @@ const AnalyticalAxesPage: React.FC = () => {
               filtersOpen={showFilters}
               activeFilters={[filters.search, filters.type, filters.statut, filters.niveau].filter(Boolean).length}
             />
-            <Button variant="outline" onClick={() => toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' })}>
+            <Button variant="outline" onClick={() => toast(t('analyticalAxes.exportInDev'), { icon: '⏳' })}>
               <Download className="mr-2 h-4 w-4" />
-              Exporter
+              {t('analyticalAxes.export')}
             </Button>
-            <Button variant="outline" onClick={() => toast('Fonctionnalité d\'import en cours de développement.', { icon: '⏳' })}>
+            <Button variant="outline" onClick={() => toast(t('analyticalAxes.importInDev'), { icon: '⏳' })}>
               <Upload className="mr-2 h-4 w-4" />
-              Importer
+              {t('analyticalAxes.import')}
             </Button>
             <Button 
               className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
               onClick={() => setShowCreateModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nouvel Axe
+              {t('analyticalAxes.newAxis')}
             </Button>
           </div>
         </div>
@@ -390,7 +392,7 @@ const AnalyticalAxesPage: React.FC = () => {
                 <Layers className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Axes</p>
+                <p className="text-sm font-medium text-gray-600">{t('analyticalAxes.totalAxes')}</p>
                 <p className="text-lg font-bold text-gray-900">
                   {axesData?.count || 0}
                 </p>
@@ -406,7 +408,7 @@ const AnalyticalAxesPage: React.FC = () => {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Axes Actifs</p>
+                <p className="text-sm font-medium text-gray-600">{t('analyticalAxes.activeAxes')}</p>
                 <p className="text-lg font-bold text-green-700">
                   {axesData?.active_count || 0}
                 </p>
@@ -422,11 +424,11 @@ const AnalyticalAxesPage: React.FC = () => {
                 <Users className="h-6 w-6 text-[var(--color-text-secondary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Centres Associés</p>
+                <p className="text-sm font-medium text-gray-600">{t('analyticalAxes.associatedCenters')}</p>
                 <p className="text-lg font-bold text-primary-700">
                   —
                 </p>
-                <p className="text-xs text-gray-500">Non alimenté par l'import</p>
+                <p className="text-xs text-gray-500">{t('analyticalAxes.notFedByImport')}</p>
               </div>
             </div>
           </CardContent>
@@ -439,11 +441,11 @@ const AnalyticalAxesPage: React.FC = () => {
                 <BarChart3 className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Ventilations</p>
+                <p className="text-sm font-medium text-gray-600">{t('analyticalAxes.allocations')}</p>
                 <p className="text-lg font-bold text-orange-700">
                   —
                 </p>
-                <p className="text-xs text-gray-500">Comptabilité analytique non alimentée</p>
+                <p className="text-xs text-gray-500">{t('analyticalAxes.costAccountingNotFed')}</p>
               </div>
             </div>
           </CardContent>
@@ -456,7 +458,7 @@ const AnalyticalAxesPage: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Filter className="mr-2 h-5 w-5" />
-            Filtres
+            {t('analyticalAxes.filters')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -464,7 +466,7 @@ const AnalyticalAxesPage: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
               <Input
-                placeholder="Rechercher un axe..."
+                placeholder={t('analyticalAxes.searchPlaceholder')}
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
                 className="pl-10"
@@ -473,48 +475,48 @@ const AnalyticalAxesPage: React.FC = () => {
             
             <Select value={filters.type} onValueChange={(value) => handleFilterChange('type', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les types" />
+                <SelectValue placeholder={t('analyticalAxes.allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les types</SelectItem>
-                <SelectItem value="centre_cout">Centre de Coût</SelectItem>
-                <SelectItem value="centre_profit">Centre de Profit</SelectItem>
-                <SelectItem value="projet">Projet</SelectItem>
-                <SelectItem value="produit">Produit</SelectItem>
-                <SelectItem value="region">Région</SelectItem>
-                <SelectItem value="activite">Activité</SelectItem>
+                <SelectItem value="">{t('analyticalAxes.allTypes')}</SelectItem>
+                <SelectItem value="centre_cout">{t('analyticalAxes.typeCostCenter')}</SelectItem>
+                <SelectItem value="centre_profit">{t('analyticalAxes.typeProfitCenter')}</SelectItem>
+                <SelectItem value="projet">{t('analyticalAxes.typeProject')}</SelectItem>
+                <SelectItem value="produit">{t('analyticalAxes.typeProduct')}</SelectItem>
+                <SelectItem value="region">{t('analyticalAxes.typeRegion')}</SelectItem>
+                <SelectItem value="activite">{t('analyticalAxes.typeActivity')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.statut} onValueChange={(value) => handleFilterChange('statut', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les statuts" />
+                <SelectValue placeholder={t('analyticalAxes.allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les statuts</SelectItem>
-                <SelectItem value="actif">Actif</SelectItem>
-                <SelectItem value="inactif">Inactif</SelectItem>
-                <SelectItem value="archive">Archivé</SelectItem>
+                <SelectItem value="">{t('analyticalAxes.allStatuses')}</SelectItem>
+                <SelectItem value="actif">{t('analyticalAxes.statusActive')}</SelectItem>
+                <SelectItem value="inactif">{t('analyticalAxes.statusInactive')}</SelectItem>
+                <SelectItem value="archive">{t('analyticalAxes.statusArchived')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={filters.niveau} onValueChange={(value) => handleFilterChange('niveau', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les niveaux" />
+                <SelectValue placeholder={t('analyticalAxes.allLevels')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les niveaux</SelectItem>
-                <SelectItem value="1">Niveau 1</SelectItem>
-                <SelectItem value="2">Niveau 2</SelectItem>
-                <SelectItem value="3">Niveau 3</SelectItem>
-                <SelectItem value="4">Niveau 4</SelectItem>
+                <SelectItem value="">{t('analyticalAxes.allLevels')}</SelectItem>
+                <SelectItem value="1">{t('analyticalAxes.level1')}</SelectItem>
+                <SelectItem value="2">{t('analyticalAxes.level2')}</SelectItem>
+                <SelectItem value="3">{t('analyticalAxes.level3')}</SelectItem>
+                <SelectItem value="4">{t('analyticalAxes.level4')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <div className="flex justify-end mt-4">
             <Button variant="outline" onClick={resetFilters}>
-              Réinitialiser
+              {t('analyticalAxes.reset')}
             </Button>
           </div>
         </CardContent>
@@ -525,10 +527,10 @@ const AnalyticalAxesPage: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Liste des Axes Analytiques</span>
+            <span>{t('analyticalAxes.listTitle')}</span>
             {axesData && (
               <Badge variant="outline">
-                {axesData.count} axe(s)
+                {t('analyticalAxes.axisCount', { count: String(axesData.count) })}
               </Badge>
             )}
           </CardTitle>
@@ -536,7 +538,7 @@ const AnalyticalAxesPage: React.FC = () => {
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" text="Chargement des axes..." />
+              <LoadingSpinner size="lg" text={t('analyticalAxes.loadingAxes')} />
             </div>
           ) : (
             <>
@@ -544,15 +546,15 @@ const AnalyticalAxesPage: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Code/Libellé</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Niveau</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Centres</TableHead>
-                      <TableHead>Utilisation</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Responsable</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('analyticalAxes.colCodeLabel')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colType')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colLevel')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colDescription')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colCenters')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colUsage')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colStatus')}</TableHead>
+                      <TableHead>{t('analyticalAxes.colResponsible')}</TableHead>
+                      <TableHead className="text-right">{t('analyticalAxes.colActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -578,12 +580,12 @@ const AnalyticalAxesPage: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Badge className={getNiveauColor(axe.niveau)} variant="outline">
-                            Niveau {axe.niveau}
+                            {t('analyticalAxes.levelLabel', { count: String(axe.niveau) })}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <p className="text-sm text-gray-700 max-w-xs truncate">
-                            {axe.description || 'Aucune description'}
+                            {axe.description || t('analyticalAxes.noDescription')}
                           </p>
                         </TableCell>
                         <TableCell>
@@ -618,30 +620,30 @@ const AnalyticalAxesPage: React.FC = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => setSelectedAxe(axe)}
-                              aria-label="Voir les détails"
+                              aria-label={t('analyticalAxes.viewDetails')}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Centres"
-                              onClick={() => toast(`Centres de l'axe "${axe.libelle}" — fonctionnalité en cours de développement.`, { icon: '⏳' })}
+                              aria-label={t('analyticalAxes.centers')}
+                              onClick={() => toast(t('analyticalAxes.centersInDev', { name: axe.libelle }), { icon: '⏳' })}
                             >
                               <Users className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Paramètres"
-                              onClick={() => toast(`Paramètres de l'axe "${axe.libelle}" — fonctionnalité en cours de développement.`, { icon: '⏳' })}
+                              aria-label={t('analyticalAxes.settings')}
+                              onClick={() => toast(t('analyticalAxes.settingsInDev', { name: axe.libelle }), { icon: '⏳' })}
                             >
                               <Settings className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              aria-label="Modifier"
+                              aria-label={t('analyticalAxes.edit')}
                               onClick={() => {
                                 setSelectedAxe(axe);
                                 setFormData({
@@ -668,7 +670,7 @@ const AnalyticalAxesPage: React.FC = () => {
                               size="sm"
                               onClick={() => handleDeleteAxe(axe.id)}
                               className="text-red-600 hover:text-red-700"
-                              aria-label="Supprimer"
+                              aria-label={t('analyticalAxes.delete')}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -694,18 +696,18 @@ const AnalyticalAxesPage: React.FC = () => {
               {(!axesData?.results || axesData.results.length === 0) && (
                 <div className="text-center py-12">
                   <Layers className="h-12 w-12 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun axe analytique trouvé</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('analyticalAxes.noAxisFound')}</h3>
                   <p className="text-gray-700 mb-6">
                     {filters.search || filters.type || filters.statut || filters.niveau
-                      ? 'Aucun axe ne correspond aux critères de recherche.'
-                      : 'Commencez par créer votre premier axe analytique.'}
+                      ? t('analyticalAxes.noMatchCriteria')
+                      : t('analyticalAxes.startCreate')}
                   </p>
                   <Button 
                     className="bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white"
                     onClick={() => setShowCreateModal(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Créer un axe
+                    {t('analyticalAxes.createAxis')}
                   </Button>
                 </div>
               )}
@@ -720,13 +722,13 @@ const AnalyticalAxesPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BarChart3 className="mr-2 h-5 w-5" />
-              Statistiques d'Utilisation
+              {t('analyticalAxes.usageStats')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Répartition par Type</h4>
+                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('analyticalAxes.distributionByType')}</h4>
                 <div className="space-y-2">
                   {axesData.type_distribution?.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -742,9 +744,9 @@ const AnalyticalAxesPage: React.FC = () => {
               </div>
               
               <div>
-                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Top Axes par Volume</h4>
+                <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('analyticalAxes.topAxesByVolume')}</h4>
                 <div className="p-4 bg-gray-50 rounded text-center text-sm text-gray-500">
-                  Aucune donnée — comptabilité analytique non alimentée par l'import
+                  {t('analyticalAxes.noDataCostAccounting')}
                 </div>
               </div>
             </div>
@@ -763,7 +765,7 @@ const AnalyticalAxesPage: React.FC = () => {
                   <Layers className="w-5 h-5" />
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">
-                  {selectedAxe ? 'Modifier l\'Axe Analytique' : 'Nouvel Axe Analytique'}
+                  {selectedAxe ? t('analyticalAxes.editModalTitle') : t('analyticalAxes.newModalTitle')}
                 </h2>
               </div>
               <button
@@ -774,7 +776,7 @@ const AnalyticalAxesPage: React.FC = () => {
                 }}
                 className="text-gray-700 hover:text-gray-900"
                 disabled={isSubmitting}
-                aria-label="Fermer"
+                aria-label={t('analyticalAxes.close')}
               >
                 <X className="w-6 h-6" />
               </button>
@@ -788,10 +790,9 @@ const AnalyticalAxesPage: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <AlertCircle className="w-5 h-5 text-[var(--color-primary)] flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-blue-900 mb-1">Axes Analytiques</h4>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">{t('analyticalAxes.title')}</h4>
                       <p className="text-sm text-blue-800">
-                        Les axes analytiques permettent d'analyser vos données comptables selon différentes dimensions
-                        (centres de coûts, projets, produits, régions, etc.).
+                        {t('analyticalAxes.infoText')}
                       </p>
                     </div>
                   </div>
@@ -799,11 +800,11 @@ const AnalyticalAxesPage: React.FC = () => {
 
                 {/* Identification */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Identification</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('analyticalAxes.identification')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Code <span className="text-red-500">*</span>
+                        {t('analyticalAxes.code')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -820,7 +821,7 @@ const AnalyticalAxesPage: React.FC = () => {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Type d'axe <span className="text-red-500">*</span>
+                        {t('analyticalAxes.axisType')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -828,13 +829,13 @@ const AnalyticalAxesPage: React.FC = () => {
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="">Sélectionner un type</option>
-                        <option value="centre_cout">Centre de Coût</option>
-                        <option value="centre_profit">Centre de Profit</option>
-                        <option value="projet">Projet</option>
-                        <option value="produit">Produit</option>
-                        <option value="region">Région</option>
-                        <option value="activite">Activité</option>
+                        <option value="">{t('analyticalAxes.selectType')}</option>
+                        <option value="centre_cout">{t('analyticalAxes.typeCostCenter')}</option>
+                        <option value="centre_profit">{t('analyticalAxes.typeProfitCenter')}</option>
+                        <option value="projet">{t('analyticalAxes.typeProject')}</option>
+                        <option value="produit">{t('analyticalAxes.typeProduct')}</option>
+                        <option value="region">{t('analyticalAxes.typeRegion')}</option>
+                        <option value="activite">{t('analyticalAxes.typeActivity')}</option>
                       </select>
                       {errors.type && (
                         <p className="mt-1 text-sm text-red-600">{errors.type}</p>
@@ -844,11 +845,11 @@ const AnalyticalAxesPage: React.FC = () => {
 
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Libellé <span className="text-red-500">*</span>
+                      {t('analyticalAxes.label')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      placeholder="Nom de l'axe analytique"
+                      placeholder={t('analyticalAxes.labelPlaceholder')}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       value={formData.libelle}
                       onChange={(e) => handleInputChange('libelle', e.target.value)}
@@ -861,11 +862,11 @@ const AnalyticalAxesPage: React.FC = () => {
 
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
+                      {t('analyticalAxes.colDescription')}
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Description détaillée de l'axe analytique..."
+                      placeholder={t('analyticalAxes.descriptionPlaceholder')}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       value={formData.description}
                       onChange={(e) => handleInputChange('description', e.target.value)}
@@ -879,11 +880,11 @@ const AnalyticalAxesPage: React.FC = () => {
 
                 {/* Configuration */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Configuration</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('analyticalAxes.configuration')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Niveau <span className="text-red-500">*</span>
+                        {t('analyticalAxes.colLevel')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -891,16 +892,16 @@ const AnalyticalAxesPage: React.FC = () => {
                         onChange={(e) => handleInputChange('niveau', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="1">Niveau 1 - Stratégique</option>
-                        <option value="2">Niveau 2 - Tactique</option>
-                        <option value="3">Niveau 3 - Opérationnel</option>
-                        <option value="4">Niveau 4 - Détaillé</option>
+                        <option value="1">{t('analyticalAxes.level1Strategic')}</option>
+                        <option value="2">{t('analyticalAxes.level2Tactical')}</option>
+                        <option value="3">{t('analyticalAxes.level3Operational')}</option>
+                        <option value="4">{t('analyticalAxes.level4Detailed')}</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Statut <span className="text-red-500">*</span>
+                        {t('analyticalAxes.colStatus')} <span className="text-red-500">*</span>
                       </label>
                       <select
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -908,16 +909,16 @@ const AnalyticalAxesPage: React.FC = () => {
                         onChange={(e) => handleInputChange('statut', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="actif">Actif</option>
-                        <option value="inactif">Inactif</option>
-                        <option value="archive">Archivé</option>
+                        <option value="actif">{t('analyticalAxes.statusActive')}</option>
+                        <option value="inactif">{t('analyticalAxes.statusInactive')}</option>
+                        <option value="archive">{t('analyticalAxes.statusArchived')}</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Responsable
+                      {t('analyticalAxes.colResponsible')}
                     </label>
                     <select
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -925,18 +926,18 @@ const AnalyticalAxesPage: React.FC = () => {
                       onChange={(e) => handleInputChange('responsable', e.target.value)}
                       disabled={isSubmitting}
                     >
-                      <option value="">Sélectionner un responsable</option>
-                      <option value="user1">Directeur Financier</option>
-                      <option value="user2">Contrôleur de Gestion</option>
-                      <option value="user3">Chef Comptable</option>
-                      <option value="user4">Analyste Financier</option>
+                      <option value="">{t('analyticalAxes.selectResponsible')}</option>
+                      <option value="user1">{t('analyticalAxes.roleCFO')}</option>
+                      <option value="user2">{t('analyticalAxes.roleController')}</option>
+                      <option value="user3">{t('analyticalAxes.roleChiefAccountant')}</option>
+                      <option value="user4">{t('analyticalAxes.roleFinancialAnalyst')}</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Options avancées */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Options avancées</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('analyticalAxes.advancedOptions')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center">
                       <input
@@ -948,7 +949,7 @@ const AnalyticalAxesPage: React.FC = () => {
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="obligatoire" className="ml-2 text-sm text-gray-700">
-                        Axe actif
+                        {t('analyticalAxes.activeAxis')}
                       </label>
                     </div>
 
@@ -962,7 +963,7 @@ const AnalyticalAxesPage: React.FC = () => {
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="hierarchique" className="ml-2 text-sm text-gray-700">
-                        Structure hiérarchique (sections parent/enfant)
+                        {t('analyticalAxes.hierarchicalStructure')}
                       </label>
                     </div>
 
@@ -976,7 +977,7 @@ const AnalyticalAxesPage: React.FC = () => {
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="budget" className="ml-2 text-sm text-gray-700">
-                        Activer le suivi budgétaire pour cet axe
+                        {t('analyticalAxes.enableBudgetTracking')}
                       </label>
                     </div>
 
@@ -990,7 +991,7 @@ const AnalyticalAxesPage: React.FC = () => {
                         className="w-4 h-4 text-[var(--color-primary)] border-gray-300 rounded focus:ring-[var(--color-primary)]"
                       />
                       <label htmlFor="reporting" className="ml-2 text-sm text-gray-700">
-                        Inclure dans les rapports analytiques automatiques
+                        {t('analyticalAxes.includeInReports')}
                       </label>
                     </div>
                   </div>
@@ -1009,21 +1010,21 @@ const AnalyticalAxesPage: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('analyticalAxes.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Valider">
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed" aria-label={t('analyticalAxes.validate')}>
                 {isSubmitting ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    <span>Création...</span>
+                    <span>{t('analyticalAxes.creating')}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    <span>Créer l'axe</span>
+                    <span>{t('analyticalAxes.createAxisBtn')}</span>
                   </>
                 )}
               </button>

@@ -200,7 +200,7 @@ const MultiSocietesPage: React.FC = () => {
   };
 
   const handleCreateCompany = async () => {
-    const name = window.prompt('Nom de la nouvelle société :')?.trim();
+    const name = window.prompt(t('multiCompany.promptNewCompanyName'))?.trim();
     if (!name) return;
     const now = new Date().toISOString();
     const company: Company = {
@@ -211,35 +211,35 @@ const MultiSocietesPage: React.FC = () => {
       users_count: 0, transactions_count: 0, consolidation_level: 0,
     };
     await saveCompanies([...companies, company]);
-    toast.success('Société créée');
+    toast.success(t('multiCompany.toastCompanyCreated'));
   };
 
   const handleEditCompany = async (companyId: string) => {
     const c = companies.find(x => x.id === companyId);
     if (!c) return;
-    const name = window.prompt('Nom de la société :', c.name)?.trim();
+    const name = window.prompt(t('multiCompany.promptCompanyName'), c.name)?.trim();
     if (!name) return;
     await saveCompanies(companies.map(x => x.id === companyId ? { ...x, name, last_activity: new Date().toISOString() } : x));
-    toast.success('Société mise à jour');
+    toast.success(t('multiCompany.toastCompanyUpdated'));
   };
 
   const handleDeleteCompany = async (companyId: string) => {
     const c = companies.find(x => x.id === companyId);
-    if (c?.is_parent) { toast.error('La société mère ne peut pas être supprimée.'); return; }
-    if (!window.confirm(`Supprimer la société « ${c?.name} » ?`)) return;
+    if (c?.is_parent) { toast.error(t('multiCompany.errorParentCannotDelete')); return; }
+    if (!window.confirm(t('multiCompany.confirmDeleteCompany', { name: String(c?.name) }))) return;
     await saveCompanies(companies.filter(x => x.id !== companyId));
-    toast.success('Société supprimée');
+    toast.success(t('multiCompany.toastCompanyDeleted'));
   };
 
   const handleSwitchCompany = async (companyId: string) => {
     // La société active = statut 'active' unique (les autres passent en 'inactive').
     await saveCompanies(companies.map(x => ({ ...x, status: (x.id === companyId ? 'active' : (x.status === 'suspended' ? 'suspended' : 'inactive')) as Company['status'] })));
     const c = companies.find(x => x.id === companyId);
-    toast.success(`Société active : ${c?.name || companyId}`);
+    toast.success(t('multiCompany.toastActiveCompany', { name: String(c?.name || companyId) }));
   };
 
   const handleConsolidation = () => {
-    toast('La consolidation multi-entités se pilote depuis Reporting → IFRS (périmètre de consolidation).', { icon: 'ℹ️' });
+    toast(t('multiCompany.toastConsolidationInfo'), { icon: 'ℹ️' });
   };
 
   const activeCompanies = companies.filter(c => c.status === 'active').length;
@@ -267,10 +267,10 @@ const MultiSocietesPage: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-gray-900 flex items-center">
               <Building2 className="mr-3 h-7 w-7 text-blue-600" />
-              Gestion Multi-Sociétés
+              {t('multiCompany.title')}
             </h1>
             <p className="mt-2 text-gray-600">
-              Gérez plusieurs entités légales avec consolidation comptable
+              {t('multiCompany.subtitle')}
             </p>
           </div>
           <div className="flex space-x-3">
@@ -279,14 +279,14 @@ const MultiSocietesPage: React.FC = () => {
               variant="outline"
             >
               <BarChart3 className="mr-2 h-4 w-4" />
-              Consolider
+              {t('multiCompany.consolidate')}
             </Button>
             <Button
               onClick={handleCreateCompany}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Nouvelle Société
+              {t('multiCompany.newCompany')}
             </Button>
           </div>
         </div>
@@ -306,7 +306,7 @@ const MultiSocietesPage: React.FC = () => {
                   <Building2 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sociétés Actives</p>
+                  <p className="text-sm font-medium text-gray-600">{t('multiCompany.activeCompanies')}</p>
                   <p className="text-lg font-bold text-blue-700">
                     {activeCompanies}/{companies.length}
                   </p>
@@ -328,7 +328,7 @@ const MultiSocietesPage: React.FC = () => {
                   <Users className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Utilisateurs Total</p>
+                  <p className="text-sm font-medium text-gray-600">{t('multiCompany.totalUsers')}</p>
                   <p className="text-lg font-bold text-green-700">{totalUsers}</p>
                 </div>
               </div>
@@ -348,7 +348,7 @@ const MultiSocietesPage: React.FC = () => {
                   <Database className="h-6 w-6 text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Transactions</p>
+                  <p className="text-sm font-medium text-gray-600">{t('multiCompany.transactions')}</p>
                   <p className="text-lg font-bold text-primary-700">{totalTransactions.toLocaleString()}</p>
                 </div>
               </div>
@@ -368,7 +368,7 @@ const MultiSocietesPage: React.FC = () => {
                   <Globe className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pays</p>
+                  <p className="text-sm font-medium text-gray-600">{t('multiCompany.countries')}</p>
                   <p className="text-lg font-bold text-orange-700">
                     {[...new Set(companies.map(c => c.country))].length}
                   </p>
@@ -387,9 +387,9 @@ const MultiSocietesPage: React.FC = () => {
       >
         <Tabs defaultValue="companies" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="companies">Liste des Sociétés</TabsTrigger>
-            <TabsTrigger value="consolidation">Consolidation</TabsTrigger>
-            <TabsTrigger value="hierarchy">Hiérarchie</TabsTrigger>
+            <TabsTrigger value="companies">{t('multiCompany.tabCompanies')}</TabsTrigger>
+            <TabsTrigger value="consolidation">{t('multiCompany.tabConsolidation')}</TabsTrigger>
+            <TabsTrigger value="hierarchy">{t('multiCompany.tabHierarchy')}</TabsTrigger>
             <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
           </TabsList>
 
@@ -401,7 +401,7 @@ const MultiSocietesPage: React.FC = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
-                      placeholder="Rechercher une société..."
+                      placeholder={t('multiCompany.searchPlaceholder')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -410,26 +410,26 @@ const MultiSocietesPage: React.FC = () => {
                   
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Statut" />
+                      <SelectValue placeholder={t('multiCompany.statusPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les statuts</SelectItem>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="suspended">Suspendue</SelectItem>
+                      <SelectItem value="all">{t('multiCompany.allStatuses')}</SelectItem>
+                      <SelectItem value="active">{t('multiCompany.statusActive')}</SelectItem>
+                      <SelectItem value="inactive">{t('multiCompany.statusInactive')}</SelectItem>
+                      <SelectItem value="suspended">{t('multiCompany.statusSuspended')}</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pays" />
+                      <SelectValue placeholder={t('multiCompany.countryPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous les pays</SelectItem>
-                      <SelectItem value="CI">Côte d'Ivoire</SelectItem>
-                      <SelectItem value="SN">Sénégal</SelectItem>
-                      <SelectItem value="BF">Burkina Faso</SelectItem>
-                      <SelectItem value="ML">Mali</SelectItem>
+                      <SelectItem value="all">{t('multiCompany.allCountries')}</SelectItem>
+                      <SelectItem value="CI">{t('multiCompany.countryCI')}</SelectItem>
+                      <SelectItem value="SN">{t('multiCompany.countrySN')}</SelectItem>
+                      <SelectItem value="BF">{t('multiCompany.countryBF')}</SelectItem>
+                      <SelectItem value="ML">{t('multiCompany.countryML')}</SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -442,7 +442,7 @@ const MultiSocietesPage: React.FC = () => {
                       className="rounded border-gray-300"
                     />
                     <label htmlFor="show-inactive" className="text-sm text-gray-700">
-                      Inclure inactives
+                      {t('multiCompany.includeInactive')}
                     </label>
                   </div>
 
@@ -462,29 +462,29 @@ const MultiSocietesPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Sociétés ({filteredCompanies.length})</span>
+                  <span>{t('multiCompany.companiesWithCount', { count: String(filteredCompanies.length) })}</span>
                   <Badge variant="outline">
-                    {activeCompanies} actives
+                    {t('multiCompany.activeCountLabel', { count: String(activeCompanies) })}
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {isLoading ? (
                   <div className="flex justify-center py-8">
-                    <LoadingSpinner size="lg" text="Chargement des sociétés..." />
+                    <LoadingSpinner size="lg" text={t('multiCompany.loadingCompanies')} />
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Code/Société</TableHead>
-                          <TableHead>Informations Légales</TableHead>
-                          <TableHead>Localisation</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead>Hiérarchie</TableHead>
-                          <TableHead>Activité</TableHead>
-                          <TableHead className="text-center">Actions</TableHead>
+                          <TableHead>{t('multiCompany.colCodeCompany')}</TableHead>
+                          <TableHead>{t('multiCompany.colLegalInfo')}</TableHead>
+                          <TableHead>{t('multiCompany.colLocation')}</TableHead>
+                          <TableHead>{t('multiCompany.colStatus')}</TableHead>
+                          <TableHead>{t('multiCompany.colHierarchy')}</TableHead>
+                          <TableHead>{t('multiCompany.colActivity')}</TableHead>
+                          <TableHead className="text-center">{t('multiCompany.colActions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -508,8 +508,8 @@ const MultiSocietesPage: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                <p className="font-medium">RCCM: {company.rccm}</p>
-                                <p className="text-gray-700">NIF: {company.nif}</p>
+                                <p className="font-medium">{t('multiCompany.rccm')}: {company.rccm}</p>
+                                <p className="text-gray-700">{t('multiCompany.nif')}: {company.nif}</p>
                                 <p className="text-gray-700">{company.currency}</p>
                               </div>
                             </TableCell>
@@ -532,15 +532,15 @@ const MultiSocietesPage: React.FC = () => {
                               <div className="text-sm">
                                 {company.is_parent ? (
                                   <Badge variant="default" className="bg-primary-100 text-primary-700">
-                                    Société Mère
+                                    {t('multiCompany.parentCompany')}
                                   </Badge>
                                 ) : (
                                   <div>
                                     <Badge variant="outline">
-                                      Filiale
+                                      {t('multiCompany.subsidiary')}
                                     </Badge>
                                     <p className="text-xs text-gray-700 mt-1">
-                                      Niveau {company.consolidation_level}
+                                      {t('multiCompany.levelLabel', { count: String(company.consolidation_level) })}
                                     </p>
                                   </div>
                                 )}
@@ -559,7 +559,7 @@ const MultiSocietesPage: React.FC = () => {
                                   </div>
                                 </div>
                                 <p className="text-xs text-gray-700">
-                                  Dernière activité: {formatDate(company.last_activity)}
+                                  {t('multiCompany.lastActivity')}: {formatDate(company.last_activity)}
                                 </p>
                               </div>
                             </TableCell>
@@ -612,10 +612,10 @@ const MultiSocietesPage: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
-                  <span>Groupes de Consolidation</span>
+                  <span>{t('multiCompany.consolidationGroups')}</span>
                   <Button className="bg-primary-600 hover:bg-primary-700">
                     <Plus className="mr-2 h-4 w-4" />
-                    Nouveau Groupe
+                    {t('multiCompany.newGroup')}
                   </Button>
                 </CardTitle>
               </CardHeader>
@@ -627,7 +627,7 @@ const MultiSocietesPage: React.FC = () => {
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">{group.name}</h3>
                           <p className="text-sm text-gray-600">
-                            Société mère: {group.parent_company}
+                            {t('multiCompany.parentCompanyLabel')}: {group.parent_company}
                           </p>
                         </div>
                         <div className="flex items-center space-x-3">
@@ -642,7 +642,7 @@ const MultiSocietesPage: React.FC = () => {
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Filiales consolidées:</h4>
+                          <h4 className="font-medium text-gray-900 mb-2">{t('multiCompany.consolidatedSubsidiaries')}</h4>
                           <div className="space-y-2">
                             {group.subsidiaries.map((sub, idx) => (
                               <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -658,22 +658,22 @@ const MultiSocietesPage: React.FC = () => {
                         <div className="space-y-4">
                           <div>
                             <p className="block text-sm font-medium text-gray-700 mb-1">
-                              Progression Consolidation
+                              {t('multiCompany.consolidationProgress')}
                             </p>
                             <Progress value={85} className="mb-2" />
                             <p className="text-xs text-gray-700">
-                              Dernière consolidation: {formatDate(group.last_consolidation)}
+                              {t('multiCompany.lastConsolidation')}: {formatDate(group.last_consolidation)}
                             </p>
                           </div>
                           
                           <div className="flex space-x-2">
                             <Button size="sm" variant="outline">
                               <BarChart3 className="mr-2 h-4 w-4" />
-                              Consolider
+                              {t('multiCompany.consolidate')}
                             </Button>
                             <Button size="sm" variant="outline">
                               <Settings className="mr-2 h-4 w-4" />
-                              Configurer
+                              {t('multiCompany.configure')}
                             </Button>
                           </div>
                         </div>
@@ -688,18 +688,18 @@ const MultiSocietesPage: React.FC = () => {
           <TabsContent value="hierarchy" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Hiérarchie des Sociétés</CardTitle>
+                <CardTitle>{t('multiCompany.hierarchyTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
                   <Building2 className="h-16 w-16 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Arbre Hiérarchique</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('multiCompany.hierarchyTree')}</h3>
                   <p className="text-gray-700 mb-6">
-                    Visualisation graphique de la structure du groupe sera disponible prochainement.
+                    {t('multiCompany.hierarchyComingSoon')}
                   </p>
                   <Button variant="outline">
                     <Eye className="mr-2 h-4 w-4" />
-                    Voir l'Organigramme
+                    {t('multiCompany.viewOrgChart')}
                   </Button>
                 </div>
               </CardContent>
@@ -709,49 +709,49 @@ const MultiSocietesPage: React.FC = () => {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres Multi-Sociétés</CardTitle>
+                <CardTitle>{t('multiCompany.settingsTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Paramètres de Consolidation</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">{t('multiCompany.consolidationSettings')}</h3>
                     <div className="space-y-3">
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" defaultChecked className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Consolidation automatique mensuelle</span>
+                        <span className="text-sm text-gray-700">{t('multiCompany.autoMonthlyConsolidation')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Élimination automatique des écritures interco</span>
+                        <span className="text-sm text-gray-700">{t('multiCompany.autoIntercoElimination')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" defaultChecked className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Conversion de devises automatique</span>
+                        <span className="text-sm text-gray-700">{t('multiCompany.autoCurrencyConversion')}</span>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="font-medium text-gray-900 mb-3">Sécurité et Accès</h3>
+                    <h3 className="font-medium text-gray-900 mb-3">{t('multiCompany.securityAndAccess')}</h3>
                     <div className="space-y-3">
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" defaultChecked className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Isolation des données par société</span>
+                        <span className="text-sm text-gray-700">{t('multiCompany.dataIsolation')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Accès cross-société pour les administrateurs</span>
+                        <span className="text-sm text-gray-700">{t('multiCompany.crossCompanyAccess')}</span>
                       </label>
                     </div>
                   </div>
 
                   <div className="flex justify-end space-x-3">
                     <Button variant="outline">
-                      Annuler
+                      {t('multiCompany.cancel')}
                     </Button>
                     <Button className="bg-blue-600 hover:bg-blue-700">
                       <Save className="mr-2 h-4 w-4" />
-                      Sauvegarder
+                      {t('multiCompany.save')}
                     </Button>
                   </div>
                 </div>
