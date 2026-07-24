@@ -24,10 +24,12 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { DBAuditLog } from '../../lib/db';
 
 const AdminDashboard: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('system');
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [showUserDetailModal, setShowUserDetailModal] = useState(false);
@@ -104,10 +106,10 @@ const AdminDashboard: React.FC = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       setLastBackup(new Date().toLocaleString('fr-FR'));
-      toast.success('Sauvegarde téléchargée');
+      toast.success(t('adminDashboard.backupDownloaded'));
     } catch (err) {
       console.error('[AdminDashboard] Erreur sauvegarde:', err);
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(t('adminDashboard.backupError'));
     }
     setIsBackingUp(false);
   };
@@ -115,7 +117,7 @@ const AdminDashboard: React.FC = () => {
   const handleCreateUser = () => {
     // Pas de faux "créé avec succès" : la vraie création (invitation email + rôle + RLS)
     // se fait dans Espace Admin › Utilisateurs. On redirige plutôt que de simuler.
-    toast.info('La création d\'utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
+    toast.info(t('adminDashboard.createUserRedirect'));
     setShowNewUserModal(false);
     setNewUser({ name: '', email: '', role: 'Comptable', password: '' });
   };
@@ -138,7 +140,7 @@ const AdminDashboard: React.FC = () => {
   const confirmDeleteUser = () => {
     // Pas de faux "supprimé avec succès" : la suppression réelle (avec RLS) est dans
     // Espace Admin › Utilisateurs & Droits.
-    toast.info('La suppression d\'utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
+    toast.info(t('adminDashboard.deleteUserRedirect'));
     setShowDeleteUserModal(false);
     setSelectedUser(null);
   };
@@ -146,33 +148,33 @@ const AdminDashboard: React.FC = () => {
   // Metriques systeme — donnees reelles depuis IndexedDB
   const systemMetrics = [
     {
-      title: 'Ecritures comptables',
+      title: t('adminDashboard.metricEntriesTitle'),
       value: liveMetrics ? formatNumber(liveMetrics.entries) : '...',
-      change: 'Ecritures enregistrees',
+      change: t('adminDashboard.metricEntriesChange'),
       color: 'blue',
       icon: Database,
       status: 'normal'
     },
     {
-      title: 'Comptes du plan',
+      title: t('adminDashboard.metricAccountsTitle'),
       value: liveMetrics ? formatNumber(liveMetrics.accounts) : '...',
-      change: 'Plan comptable SYSCOHADA',
+      change: t('adminDashboard.metricAccountsChange'),
       color: 'green',
       icon: Activity,
       status: 'good'
     },
     {
-      title: 'Tiers',
+      title: t('adminDashboard.metricThirdPartiesTitle'),
       value: liveMetrics ? formatNumber(liveMetrics.thirdParties) : '...',
-      change: 'Clients et fournisseurs',
+      change: t('adminDashboard.metricThirdPartiesChange'),
       color: 'orange',
       icon: Users,
       status: liveMetrics && liveMetrics.thirdParties === 0 ? 'warning' : 'good'
     },
     {
-      title: 'Immobilisations',
+      title: t('adminDashboard.metricAssetsTitle'),
       value: liveMetrics ? formatNumber(liveMetrics.assets) : '...',
-      change: 'Actifs enregistres',
+      change: t('adminDashboard.metricAssetsChange'),
       color: 'green',
       icon: HardDrive,
       status: 'good'
@@ -183,14 +185,14 @@ const AdminDashboard: React.FC = () => {
   const users: Array<{ id: number; name: string; email: string; role: string; status: string; lastLogin: string }> = [];
 
   const securityLogs = liveAuditLogs.length > 0 ? liveAuditLogs : [
-    { time: '--:--', event: 'Aucun evenement enregistre', user: 'system', ip: 'local', type: 'info' },
+    { time: '--:--', event: t('adminDashboard.noEventRecorded'), user: 'system', ip: 'local', type: 'info' },
   ];
 
   const tabs = [
-    { id: 'system', label: 'Système', icon: Server },
-    { id: 'users', label: 'Utilisateurs', icon: Users },
-    { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'database', label: 'Base de données', icon: Database },
+    { id: 'system', label: t('adminDashboard.tabSystem'), icon: Server },
+    { id: 'users', label: t('adminDashboard.tabUsers'), icon: Users },
+    { id: 'security', label: t('adminDashboard.tabSecurity'), icon: Shield },
+    { id: 'database', label: t('adminDashboard.tabDatabase'), icon: Database },
   ];
 
   return (
@@ -199,19 +201,19 @@ const AdminDashboard: React.FC = () => {
       <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Administration</h1>
-            <p className="text-[var(--color-text-primary)]">Gestion système et sécurité</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('adminDashboard.title')}</h1>
+            <p className="text-[var(--color-text-primary)]">{t('adminDashboard.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] px-3 py-1 rounded-full text-sm">
               <div className="w-2 h-2 bg-[var(--color-success)] rounded-full animate-pulse"></div>
-              <span>Système en ligne</span>
+              <span>{t('adminDashboard.systemOnline')}</span>
             </div>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]"
-              aria-label="Actualiser"
+              aria-label={t('adminDashboard.refresh')}
             >
               <RefreshCw className={`w-4 h-4 text-[var(--color-text-secondary)] ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
@@ -281,13 +283,13 @@ const AdminDashboard: React.FC = () => {
             {/* Volumétrie réelle de la base (un client web ne peut pas mesurer le CPU/RAM
                 du serveur — on affiche des métriques réelles et utiles à la place). */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Volumétrie de la base</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{t('adminDashboard.dbVolumeTitle')}</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Écritures', value: liveMetrics?.entries },
-                  { label: 'Comptes', value: liveMetrics?.accounts },
-                  { label: 'Tiers', value: liveMetrics?.thirdParties },
-                  { label: 'Immobilisations', value: liveMetrics?.assets },
+                  { label: t('adminDashboard.volEntries'), value: liveMetrics?.entries },
+                  { label: t('adminDashboard.volAccounts'), value: liveMetrics?.accounts },
+                  { label: t('adminDashboard.volThirdParties'), value: liveMetrics?.thirdParties },
+                  { label: t('adminDashboard.volAssets'), value: liveMetrics?.assets },
                 ].map((item) => (
                   <div key={item.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] text-center">
                     <p className="text-2xl font-bold text-[var(--color-text-primary)]">{item.value != null ? formatNumber(item.value) : '…'}</p>
@@ -303,13 +305,13 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-[var(--color-border)]">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Gestion des Utilisateurs</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('adminDashboard.usersManagement')}</h2>
                 <button
                   onClick={() => setShowNewUserModal(true)}
                   className="bg-[var(--color-info)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-primary-700 transition-colors"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>Nouvel utilisateur</span>
+                  <span>{t('adminDashboard.newUser')}</span>
                 </button>
               </div>
             </div>
@@ -318,11 +320,11 @@ const AdminDashboard: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Utilisateur</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Rôle</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Statut</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Dernière connexion</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('adminDashboard.thUser')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('adminDashboard.thRole')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('adminDashboard.thStatus')}</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('adminDashboard.thLastLogin')}</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('adminDashboard.thActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -354,32 +356,32 @@ const AdminDashboard: React.FC = () => {
                             ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
                             : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                         }`}>
-                          {user.status === 'active' ? 'Actif' : 'Inactif'}
+                          {user.status === 'active' ? t('adminDashboard.statusActive') : t('adminDashboard.statusInactive')}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                        Il y a {user.lastLogin}
+                        {t('adminDashboard.lastLoginAgo', { time: user.lastLogin })}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center space-x-2">
                           <button
                             onClick={() => handleViewUser(user)}
                             className="text-[var(--color-primary)] hover:text-[var(--color-primary-darker)]"
-                            aria-label="Voir les détails"
+                            aria-label={t('adminDashboard.viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleEditUser(user)}
                             className="text-[var(--color-success)] hover:text-[var(--color-success-darker)]"
-                            aria-label="Modifier"
+                            aria-label={t('adminDashboard.edit')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteUser(user)}
                             className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]"
-                            aria-label="Supprimer"
+                            aria-label={t('adminDashboard.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -397,7 +399,7 @@ const AdminDashboard: React.FC = () => {
           <div className="space-y-6">
             {/* Alertes sécurité */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Journal de Sécurité</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{t('adminDashboard.securityLog')}</h2>
               <div className="space-y-3">
                 {securityLogs.map((log, index) => (
                   <div key={index} className={`p-4 rounded-lg border-l-4 ${
@@ -412,7 +414,7 @@ const AdminDashboard: React.FC = () => {
                         {log.type === 'info' && <Clock className="w-5 h-5 text-[var(--color-primary)]" />}
                         <div>
                           <p className="text-sm font-medium text-[var(--color-text-primary)]">{log.event}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">Utilisateur: {log.user} | IP: {log.ip}</p>
+                          <p className="text-xs text-[var(--color-text-secondary)]">{t('adminDashboard.logUserIp', { user: log.user, ip: log.ip })}</p>
                         </div>
                       </div>
                       <span className="text-xs text-[var(--color-text-secondary)]">{log.time}</span>
@@ -425,24 +427,22 @@ const AdminDashboard: React.FC = () => {
             {/* Configuration sécurité */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Paramètres de Sécurité</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{t('adminDashboard.securityParams')}</h3>
                 <p className="text-sm text-[var(--color-text-secondary)]">
-                  La configuration de la sécurité (2FA, politique de mot de passe, restriction IP, journaux)
-                  se gère dans <strong>Espace Admin › Sécurité &amp; Rôles</strong>, où les réglages sont
-                  appliqués côté serveur.
+                  {t('adminDashboard.securityConfigDesc1')}<strong>{t('adminDashboard.securityConfigDescStrong')}</strong>{t('adminDashboard.securityConfigDesc2')}
                 </p>
               </div>
 
               <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
-                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Sauvegarde</h3>
+                <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{t('adminDashboard.backup')}</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Dernière sauvegarde</span>
-                    <span className="text-sm text-[var(--color-success)]">{lastBackup || 'Aucune (cette session)'}</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{t('adminDashboard.lastBackup')}</span>
+                    <span className="text-sm text-[var(--color-success)]">{lastBackup || t('adminDashboard.noBackupSession')}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Fréquence</span>
-                    <span className="text-sm text-[var(--color-text-primary)]">Manuelle</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{t('adminDashboard.frequency')}</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{t('adminDashboard.manual')}</span>
                   </div>
                   <button
                     onClick={handleBackup}
@@ -452,10 +452,10 @@ const AdminDashboard: React.FC = () => {
                     {isBackingUp ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin" />
-                        <span>Sauvegarde en cours...</span>
+                        <span>{t('adminDashboard.backingUp')}</span>
                       </>
                     ) : (
-                      <span>Sauvegarder maintenant</span>
+                      <span>{t('adminDashboard.backupNow')}</span>
                     )}
                   </button>
                 </div>
@@ -475,24 +475,24 @@ const AdminDashboard: React.FC = () => {
                   <div className="w-10 h-10 bg-[var(--color-info-lighter)] rounded-lg flex items-center justify-center">
                     <UserPlus className="w-5 h-5 text-[var(--color-info)]" />
                   </div>
-                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Nouvel Utilisateur</h2>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('adminDashboard.newUserModalTitle')}</h2>
                 </div>
                 <button onClick={() => setShowNewUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.fullNameRequired')}</label>
                 <input
                   type="text"
                   value={newUser.name}
                   onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Nom Prénom"
+                  placeholder={t('adminDashboard.phFullName')}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.emailRequired')}</label>
                 <input
                   type="email"
                   value={newUser.email}
@@ -502,19 +502,19 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.roleRequired')}</label>
                 <select
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 >
-                  <option value="Comptable">Comptable</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Admin">Administrateur</option>
+                  <option value="Comptable">{t('adminDashboard.roleComptable')}</option>
+                  <option value="Manager">{t('adminDashboard.roleManager')}</option>
+                  <option value="Admin">{t('adminDashboard.roleAdmin')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.passwordRequired')}</label>
                 <input
                   type="password"
                   value={newUser.password}
@@ -529,13 +529,13 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setShowNewUserModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('adminDashboard.cancel')}
               </button>
               <button
                 onClick={handleCreateUser}
                 className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700"
               >
-                Créer l'utilisateur
+                {t('adminDashboard.createUser')}
               </button>
             </div>
           </div>
@@ -548,7 +548,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Détails Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('adminDashboard.userDetails')}</h2>
                 <button onClick={() => setShowUserDetailModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
@@ -564,22 +564,22 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Rôle</span>
+                  <span className="text-gray-600">{t('adminDashboard.thRole')}</span>
                   <span className="font-medium">{selectedUser.role}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Statut</span>
+                  <span className="text-gray-600">{t('adminDashboard.thStatus')}</span>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                     selectedUser.status === 'active'
                       ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]'
                       : 'bg-gray-100 text-gray-600'
                   }`}>
-                    {selectedUser.status === 'active' ? 'Actif' : 'Inactif'}
+                    {selectedUser.status === 'active' ? t('adminDashboard.statusActive') : t('adminDashboard.statusInactive')}
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-gray-600">Dernière connexion</span>
-                  <span className="font-medium">Il y a {selectedUser.lastLogin}</span>
+                  <span className="text-gray-600">{t('adminDashboard.thLastLogin')}</span>
+                  <span className="font-medium">{t('adminDashboard.lastLoginAgo', { time: selectedUser.lastLogin })}</span>
                 </div>
               </div>
             </div>
@@ -588,7 +588,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setShowUserDetailModal(false)}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
               >
-                Fermer
+                {t('adminDashboard.close')}
               </button>
             </div>
           </div>
@@ -601,13 +601,13 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Modifier Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('adminDashboard.editUser')}</h2>
                 <button onClick={() => setShowEditUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom complet</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.fullName')}</label>
                 <input
                   type="text"
                   defaultValue={selectedUser.name}
@@ -615,7 +615,7 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.emailLabel')}</label>
                 <input
                   type="email"
                   defaultValue={selectedUser.email}
@@ -623,24 +623,24 @@ const AdminDashboard: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rôle</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.roleLabel')}</label>
                 <select
                   defaultValue={selectedUser.role}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value="Comptable">Comptable</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Admin">Administrateur</option>
+                  <option value="Comptable">{t('adminDashboard.roleComptable')}</option>
+                  <option value="Manager">{t('adminDashboard.roleManager')}</option>
+                  <option value="Admin">{t('adminDashboard.roleAdmin')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminDashboard.statusLabel')}</label>
                 <select
                   defaultValue={selectedUser.status}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 >
-                  <option value="active">Actif</option>
-                  <option value="inactive">Inactif</option>
+                  <option value="active">{t('adminDashboard.statusActive')}</option>
+                  <option value="inactive">{t('adminDashboard.statusInactive')}</option>
                 </select>
               </div>
             </div>
@@ -649,18 +649,18 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setShowEditUserModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('adminDashboard.cancel')}
               </button>
               <button
                 onClick={() => {
                   // Pas de faux "modifié avec succès" : l'édition réelle (persistée) se fait dans
                   // Espace Admin › Utilisateurs & Droits. On redirige plutôt que de simuler.
-                  toast.info('L\'édition des utilisateurs se fait dans Espace Admin › Utilisateurs & Droits.');
+                  toast.info(t('adminDashboard.editUserRedirect'));
                   setShowEditUserModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-darker)]"
               >
-                Enregistrer
+                {t('adminDashboard.save')}
               </button>
             </div>
           </div>
@@ -673,7 +673,7 @@ const AdminDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-error)]">Supprimer Utilisateur</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-error)]">{t('adminDashboard.deleteUserTitle')}</h2>
                 <button onClick={() => setShowDeleteUserModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
             </div>
@@ -684,10 +684,10 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
               <p className="text-center text-gray-700 mb-4">
-                Êtes-vous sûr de vouloir supprimer l'utilisateur <strong>{selectedUser.name}</strong> ?
+                {t('adminDashboard.deleteConfirmPrefix')}<strong>{selectedUser.name}</strong>{t('adminDashboard.deleteConfirmSuffix')}
               </p>
               <p className="text-center text-sm text-gray-500">
-                Cette action est irréversible.
+                {t('adminDashboard.irreversible')}
               </p>
             </div>
             <div className="p-6 border-t border-[var(--color-border)] flex justify-end space-x-3">
@@ -695,13 +695,13 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => setShowDeleteUserModal(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Annuler
+                {t('adminDashboard.cancel')}
               </button>
               <button
                 onClick={confirmDeleteUser}
                 className="px-4 py-2 bg-[var(--color-error)] text-white rounded-lg hover:bg-red-700"
               >
-                Supprimer
+                {t('adminDashboard.delete')}
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import {
   Trash2, RefreshCw, Database
 } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { db } from '../../../lib/db';
 import { supabase } from '../../../lib/supabase';
 import type { TableName } from '@atlas/data';
@@ -15,7 +16,10 @@ interface Props {
   setSubTab: (n: number) => void;
 }
 
-const tabs = ['Sauvegarde', 'Automatique', 'Historique', 'Restauration', 'Export', 'Réinitialisation'];
+const TAB_KEYS = [
+  'adminBackup.tabBackup', 'adminBackup.tabAuto', 'adminBackup.tabHistory',
+  'adminBackup.tabRestore', 'adminBackup.tabExport', 'adminBackup.tabReset',
+];
 
 // Tables sauvegardées en mode SaaS
 const SAAS_TABLES: TableName[] = [
@@ -27,12 +31,12 @@ const SAAS_TABLES: TableName[] = [
 ];
 
 const RESET_GROUPS = [
-  { key: 'thirdParties', label: '👥 Clients & Fournisseurs', desc: 'Supprime tous les tiers (clients, fournisseurs)', tables: ['thirdParties'] },
-  { key: 'journalEntries', label: '📒 Écritures comptables', desc: 'Supprime toutes les écritures du journal', tables: ['journalEntries'] },
-  { key: 'assets', label: '🏭 Immobilisations', desc: 'Supprime le registre des biens', tables: ['assets'] },
-  { key: 'budgetLines', label: '📊 Budgets', desc: 'Supprime les lignes budgétaires', tables: ['budgetLines'] },
-  { key: 'treasury', label: '💵 Trésorerie', desc: 'Couvertures, ordres de paiement, prêts, chèques', tables: ['hedgingPositions', 'paymentOrders', 'loanSchedules', 'checks'] },
-  { key: 'all', label: '🔴 TOUT réinitialiser', desc: 'Efface TOUTES les données locales. IRRÉVERSIBLE.', tables: [
+  { key: 'thirdParties', labelKey: 'adminBackup.resetGroupThirdPartiesLabel', descKey: 'adminBackup.resetGroupThirdPartiesDesc', tables: ['thirdParties'] },
+  { key: 'journalEntries', labelKey: 'adminBackup.resetGroupJournalLabel', descKey: 'adminBackup.resetGroupJournalDesc', tables: ['journalEntries'] },
+  { key: 'assets', labelKey: 'adminBackup.resetGroupAssetsLabel', descKey: 'adminBackup.resetGroupAssetsDesc', tables: ['assets'] },
+  { key: 'budgetLines', labelKey: 'adminBackup.resetGroupBudgetLabel', descKey: 'adminBackup.resetGroupBudgetDesc', tables: ['budgetLines'] },
+  { key: 'treasury', labelKey: 'adminBackup.resetGroupTreasuryLabel', descKey: 'adminBackup.resetGroupTreasuryDesc', tables: ['hedgingPositions', 'paymentOrders', 'loanSchedules', 'checks'] },
+  { key: 'all', labelKey: 'adminBackup.resetGroupAllLabel', descKey: 'adminBackup.resetGroupAllDesc', tables: [
     'journalEntries', 'thirdParties', 'assets', 'budgetLines', 'hedgingPositions', 'paymentOrders',
     'loanSchedules', 'checks', 'recoveryCases', 'taxDeclarations', 'taxRegistry', 'provisions',
     'inventoryItems', 'stockMovements', 'revisionItems', 'closureSessions', 'exchangeRates',
@@ -55,6 +59,7 @@ function downloadBlob(content: string, filename: string, mime = 'application/jso
 
 const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter, mode } = useData();
+  const { t: tr } = useLanguage();
   const isSaas = mode === 'saas';
   const restoreFileRef = useRef<HTMLInputElement>(null);
 
@@ -109,27 +114,27 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   // ── SAAS : export complet JSON ──────────────────────────────────────────
   const handleSaasBackup = async () => {
     setBackupProgress(0);
-    setBackupLabel('Lecture des données...');
+    setBackupLabel(tr('adminBackup.readingData'));
     const backup: Record<string, any> = {
       _meta: { date: new Date().toISOString(), version: '2.0', mode: 'saas' },
     };
     let totalSize = 0;
     for (let i = 0; i < SAAS_TABLES.length; i++) {
       const table = SAAS_TABLES[i];
-      setBackupLabel(`Export ${table} (${i + 1}/${SAAS_TABLES.length})…`);
+      setBackupLabel(tr('adminBackup.exportTable', { table, current: String(i + 1), total: String(SAAS_TABLES.length) }));
       try { backup[table] = await adapter.getAll<any>(table); }
       catch { backup[table] = []; }
       setBackupProgress(Math.round(((i + 1) / SAAS_TABLES.length) * 90));
     }
-    setBackupLabel('Génération du fichier…');
+    setBackupLabel(tr('adminBackup.generatingFile'));
     const content = JSON.stringify(backup, null, 2);
     totalSize = content.length;
     const sizeMb = (totalSize / 1024 / 1024).toFixed(2);
     const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     downloadBlob(content, `atlas-backup-${dateStr}.json`);
     setBackupProgress(100);
-    setBackupLabel('Sauvegarde terminée');
-    toast.success(`Sauvegarde exportée — ${sizeMb} Mo`);
+    setBackupLabel(tr('adminBackup.backupComplete'));
+    toast.success(tr('adminBackup.backupExported', { size: sizeMb }));
     await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Manuel', size: sizeMb + ' Mo', status: 'Succes' });
     setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
   };
@@ -137,25 +142,25 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   // ── LOCAL : sauvegarde Dexie (export RÉEL, fini la fausse barre de progression) ──
   const handleLocalBackup = async () => {
     setBackupProgress(0);
-    setBackupLabel('Lecture des données…');
+    setBackupLabel(tr('adminBackup.readingData'));
     const backup: Record<string, any> = {
       _meta: { date: new Date().toISOString(), version: '2.0', mode: 'local' },
     };
     for (let i = 0; i < SAAS_TABLES.length; i++) {
       const table = SAAS_TABLES[i];
-      setBackupLabel(`Export ${table} (${i + 1}/${SAAS_TABLES.length})…`);
+      setBackupLabel(tr('adminBackup.exportTable', { table, current: String(i + 1), total: String(SAAS_TABLES.length) }));
       try { backup[table] = await adapter.getAll<any>(table); }
       catch { backup[table] = []; }
       setBackupProgress(Math.round(((i + 1) / SAAS_TABLES.length) * 90));
     }
-    setBackupLabel('Génération du fichier…');
+    setBackupLabel(tr('adminBackup.generatingFile'));
     const content = JSON.stringify(backup, null, 2);
     const sizeMb = (content.length / 1024 / 1024).toFixed(2);
     const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     downloadBlob(content, `atlas-backup-local-${dateStr}.json`);
     setBackupProgress(100);
-    setBackupLabel('Sauvegarde terminée');
-    toast.success(`Sauvegarde exportée — ${sizeMb} Mo`);
+    setBackupLabel(tr('adminBackup.backupComplete'));
+    toast.success(tr('adminBackup.backupExported', { size: sizeMb }));
     await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Manuel', size: sizeMb + ' Mo', status: 'Succes' });
     setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
   };
@@ -165,11 +170,11 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     if (!restoreFile || !restoreAcknowledged) return;
     setShowRestoreConfirm(false);
     setBackupProgress(0);
-    setBackupLabel('Lecture du fichier…');
+    setBackupLabel(tr('adminBackup.readingFile'));
     try {
       const text = await restoreFile.text();
       const backup = JSON.parse(text);
-      if (!backup._meta) { toast.error('Fichier de sauvegarde invalide'); return; }
+      if (!backup._meta) { toast.error(tr('adminBackup.invalidBackupFile')); return; }
       const tables = Object.keys(backup).filter(k => k !== '_meta') as TableName[];
       const tenantId = (adapter as any).tenantId;
       let okCount = 0, errCount = 0;
@@ -177,7 +182,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       for (let i = 0; i < tables.length; i++) {
         const table = tables[i];
         const rows = backup[table];
-        setBackupLabel(`Restauration ${table} (${i + 1}/${tables.length})…`);
+        setBackupLabel(tr('adminBackup.restoreTable', { table, current: String(i + 1), total: String(tables.length) }));
         setBackupProgress(Math.round(((i + 1) / tables.length) * 90));
         if (!Array.isArray(rows) || rows.length === 0) continue;
         // Upsert via Supabase directement (les tables ont id ou key comme PK)
@@ -198,19 +203,19 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       // Statut réel (pas de "succès" systématique) : Succès / Partiel / Échec
       const status = errCount === 0 ? 'Succes' : okCount === 0 ? 'Echec' : 'Partiel';
       if (errCount === 0) {
-        setBackupLabel('Restauration terminée');
-        toast.success('Restauration effectuée avec succès');
+        setBackupLabel(tr('adminBackup.restoreComplete'));
+        toast.success(tr('adminBackup.restoreSuccess'));
       } else if (okCount === 0) {
-        setBackupLabel('Restauration échouée');
-        toast.error(`Restauration échouée — aucune table restaurée (${failedTables.join(', ')})`);
+        setBackupLabel(tr('adminBackup.restoreFailed'));
+        toast.error(tr('adminBackup.restoreFailedNone', { tables: failedTables.join(', ') }));
       } else {
-        setBackupLabel(`Restauration partielle (${errCount} table(s) en échec)`);
-        toast.warning(`Restauration partielle : ${okCount} OK, ${errCount} en échec (${failedTables.join(', ')})`);
+        setBackupLabel(tr('adminBackup.restorePartialLabel', { count: String(errCount) }));
+        toast.warning(tr('adminBackup.restorePartialToast', { ok: String(okCount), err: String(errCount), tables: failedTables.join(', ') }));
       }
       await addToHistory({ date: new Date().toLocaleString('fr-FR'), type: 'Restauration', size: (restoreFile.size / 1024).toFixed(0) + ' Ko', status });
       setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 2000);
     } catch (err) {
-      toast.error('Erreur lors de la restauration : ' + String(err));
+      toast.error(tr('adminBackup.restoreError', { error: String(err) }));
       setBackupProgress(null);
     } finally {
       setRestoreFile(null);
@@ -221,7 +226,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   // ── EXPORT JSON / FEC / CSV ─────────────────────────────────────────────
   const handleExport = async () => {
     setBackupProgress(0);
-    setBackupLabel('Export en cours…');
+    setBackupLabel(tr('adminBackup.exportInProgress'));
     try {
       const entries = await adapter.getAll<any>('journalEntries');
       const filtered = entries.filter((e: any) => {
@@ -248,10 +253,10 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       }
 
       setBackupProgress(100);
-      toast.success(`Export ${exportFormat} généré`);
+      toast.success(tr('adminBackup.exportGenerated', { format: exportFormat }));
       setTimeout(() => { setBackupProgress(null); setBackupLabel(''); }, 1500);
     } catch (err) {
-      toast.error('Erreur lors de l\'export');
+      toast.error(tr('adminBackup.exportError'));
       setBackupProgress(null);
     }
   };
@@ -259,22 +264,22 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
   const handleReset = async () => {
     // Étape 1 : phrase de confirmation
     if (resetInput.trim().toLowerCase() !== 'tout réinitialiser') {
-      toast.error('Tapez exactement "tout réinitialiser" pour continuer.');
+      toast.error(tr('adminBackup.resetTypeExactly'));
       return;
     }
     // Étape 2 : vérification du mot de passe via Supabase Auth
     setResetPasswordError('');
-    if (!resetPassword) { setResetPasswordError('Mot de passe requis.'); return; }
+    if (!resetPassword) { setResetPasswordError(tr('adminBackup.passwordRequired')); return; }
     try {
       const { data: { session } } = await (supabase as any).auth.getSession();
-      if (!session?.user?.email) { setResetPasswordError('Session expirée — rechargez la page.'); return; }
+      if (!session?.user?.email) { setResetPasswordError(tr('adminBackup.sessionExpired')); return; }
       // Re-authentifier pour confirmer le mot de passe
       const { error: authErr } = await (supabase as any).auth.signInWithPassword({
         email: session.user.email,
         password: resetPassword,
       });
-      if (authErr) { setResetPasswordError('Mot de passe incorrect.'); return; }
-    } catch { setResetPasswordError('Erreur de vérification — réessayez.'); return; }
+      if (authErr) { setResetPasswordError(tr('adminBackup.passwordIncorrect')); return; }
+    } catch { setResetPasswordError(tr('adminBackup.verificationError')); return; }
     const group = RESET_GROUPS.find(g => g.key === resetTarget);
     if (!group) return;
     setResetLoading(true);
@@ -283,7 +288,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         // ── Mode SaaS : supprimer via Supabase directement ───────────────
         const sc = (adapter as any).client;
         const tid = (adapter as any).tenantId;
-        if (!sc || !tid) throw new Error('Client Supabase non initialisé');
+        if (!sc || !tid) throw new Error(tr('adminBackup.supabaseNotInit'));
 
         // Mapping table JS → nom table Postgres
         // Mapping JS table name → { pgTable, tenantCol }
@@ -342,15 +347,15 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         for (const table of group.tables) { await (db as any)[table]?.clear(); }
       }
       setResetSuccess(true); setResetTarget(null); setResetInput(''); setResetPassword(''); setResetPasswordError('');
-      toast.success('Réinitialisation effectuée. Rechargez la page.');
+      toast.success(tr('adminBackup.resetDone'));
     } catch (err) {
-      toast.error('Erreur lors de la réinitialisation : ' + (err instanceof Error ? err.message : String(err)));
+      toast.error(tr('adminBackup.resetError', { error: err instanceof Error ? err.message : String(err) }));
       console.error('[handleReset]', err);
     }
     finally { setResetLoading(false); }
   };
 
-  if (loading) return <div className="flex items-center justify-center py-12 text-gray-400">Chargement…</div>;
+  if (loading) return <div className="flex items-center justify-center py-12 text-gray-400">{tr('adminBackup.loading')}</div>;
 
   const btnBlue = 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm';
 
@@ -358,10 +363,10 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
     <div className="space-y-6">
       {/* Tabs */}
       <div className="flex gap-1 border-b pb-0 overflow-x-auto">
-        {tabs.map((t, i) => (
-          <button key={t} onClick={() => setSubTab(i)}
+        {TAB_KEYS.map((key, i) => (
+          <button key={key} onClick={() => setSubTab(i)}
             className={`px-4 py-2 text-sm font-medium rounded-t whitespace-nowrap border-b-2 transition-colors ${subTab === i ? 'border-blue-600 text-blue-700 bg-blue-50' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-            {t}
+            {tr(key)}
           </button>
         ))}
       </div>
@@ -370,7 +375,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       {backupProgress !== null && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
           <div className="flex items-center justify-between text-sm text-blue-800">
-            <span>{backupLabel || 'En cours…'}</span>
+            <span>{backupLabel || tr('adminBackup.inProgress')}</span>
             <span>{backupProgress}%</span>
           </div>
           <div className="w-full bg-blue-200 rounded-full h-2">
@@ -384,27 +389,27 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         <div className="space-y-6">
           <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-lg border">
             <Database className="w-16 h-16 text-blue-500" />
-            <h3 className="text-lg font-semibold">Sauvegarde complète</h3>
+            <h3 className="text-lg font-semibold">{tr('adminBackup.fullBackupTitle')}</h3>
             <p className="text-gray-500 text-center max-w-md">
               {isSaas
-                ? 'Exporte toutes vos données comptables (écritures, tiers, immobilisations, budgets, paramètres) dans un fichier JSON téléchargeable.'
-                : 'Crée une sauvegarde locale de votre base IndexedDB.'}
+                ? tr('adminBackup.fullBackupDescSaas')
+                : tr('adminBackup.fullBackupDescLocal')}
             </p>
             {backupProgress === null && (
               <button onClick={isSaas ? handleSaasBackup : handleLocalBackup} className={btnBlue + ' text-base px-6 py-3'}>
-                <Download className="w-5 h-5" /> Lancer la sauvegarde
+                <Download className="w-5 h-5" /> {tr('adminBackup.startBackup')}
               </button>
             )}
           </div>
           <div className="p-4 bg-gray-50 rounded-lg border">
-            <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> Dernière sauvegarde</h4>
+            <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2"><Clock className="w-4 h-4" /> {tr('adminBackup.lastBackup')}</h4>
             {lastBackup ? (
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div><span className="text-gray-500">Date :</span> {lastBackup.date}</div>
-                <div><span className="text-gray-500">Taille :</span> {lastBackup.size}</div>
-                <div><span className="text-gray-500">Statut :</span> <span className={`font-medium ${lastBackup.status === 'Succes' ? 'text-green-600' : 'text-red-600'}`}>{lastBackup.status}</span></div>
+                <div><span className="text-gray-500">{tr('adminBackup.dateLabel')}</span> {lastBackup.date}</div>
+                <div><span className="text-gray-500">{tr('adminBackup.sizeLabel')}</span> {lastBackup.size}</div>
+                <div><span className="text-gray-500">{tr('adminBackup.statusLabel')}</span> <span className={`font-medium ${lastBackup.status === 'Succes' ? 'text-green-600' : 'text-red-600'}`}>{lastBackup.status}</span></div>
               </div>
-            ) : <p className="text-sm text-gray-400">Aucune sauvegarde effectuée</p>}
+            ) : <p className="text-sm text-gray-400">{tr('adminBackup.noBackupDone')}</p>}
           </div>
         </div>
       )}
@@ -414,8 +419,8 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
         <div className="space-y-6 bg-white p-6 rounded-lg border">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-lg">Sauvegarde automatique</h3>
-              <p className="text-sm text-gray-500">Configurez la sauvegarde périodique</p>
+              <h3 className="font-semibold text-lg">{tr('adminBackup.autoBackupTitle')}</h3>
+              <p className="text-sm text-gray-500">{tr('adminBackup.autoBackupSubtitle')}</p>
             </div>
             <button onClick={() => setAutoEnabled(!autoEnabled)}
               className={`relative w-14 h-7 rounded-full transition-colors ${autoEnabled ? 'bg-blue-600' : 'bg-gray-300'}`}>
@@ -423,17 +428,17 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Fréquence</label>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{tr('adminBackup.frequency')}</label>
               <select value={autoFrequency} onChange={e => setAutoFrequency(e.target.value)} className="w-full border rounded-lg px-3 py-2">
-                <option value="daily">Quotidienne</option><option value="weekly">Hebdomadaire</option><option value="monthly">Mensuelle</option>
+                <option value="daily">{tr('adminBackup.freqDaily')}</option><option value="weekly">{tr('adminBackup.freqWeekly')}</option><option value="monthly">{tr('adminBackup.freqMonthly')}</option>
               </select></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{tr('adminBackup.time')}</label>
               <input type="time" value={autoTime} onChange={e => setAutoTime(e.target.value)} className="w-full border rounded-lg px-3 py-2" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Conservation (jours)</label>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{tr('adminBackup.retentionDays')}</label>
               <input type="number" value={retention} onChange={e => setRetention(Number(e.target.value))} min={1} className="w-full border rounded-lg px-3 py-2" /></div>
           </div>
-          <button onClick={async () => { await saveSetting('admin_backup_auto', { enabled: autoEnabled, frequency: autoFrequency, time: autoTime, retention }); toast.success('Paramètres enregistrés'); }} className={btnBlue}>
-            <Settings className="w-4 h-4" /> Enregistrer
+          <button onClick={async () => { await saveSetting('admin_backup_auto', { enabled: autoEnabled, frequency: autoFrequency, time: autoTime, retention }); toast.success(tr('adminBackup.settingsSaved')); }} className={btnBlue}>
+            <Settings className="w-4 h-4" /> {tr('adminBackup.save')}
           </button>
         </div>
       )}
@@ -442,16 +447,16 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       {subTab === 2 && (
         <div className="bg-white rounded-lg border overflow-hidden">
           {backupHistory.length === 0
-            ? <div className="p-8 text-center text-gray-400">Aucune sauvegarde dans l'historique</div>
+            ? <div className="p-8 text-center text-gray-400">{tr('adminBackup.noBackupHistory')}</div>
             : <table className="w-full text-sm">
-                <thead className="bg-gray-50"><tr>{['Date', 'Type', 'Taille', 'Statut'].map(h => <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>)}</tr></thead>
+                <thead className="bg-gray-50"><tr>{[tr('adminBackup.colDate'), tr('adminBackup.colType'), tr('adminBackup.colSize'), tr('adminBackup.colStatus')].map(h => <th key={h} className="px-4 py-3 text-left font-medium text-gray-600">{h}</th>)}</tr></thead>
                 <tbody className="divide-y">
                   {backupHistory.map((row, i) => (
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="px-4 py-3">{row.date}</td>
-                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${row.type === 'Auto' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{row.type}</span></td>
+                      <td className="px-4 py-3"><span className={`px-2 py-1 rounded text-xs font-medium ${row.type === 'Auto' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>{row.type === 'Auto' ? tr('adminBackup.typeAuto') : row.type === 'Restauration' ? tr('adminBackup.typeRestore') : row.type === 'Manuel' ? tr('adminBackup.typeManual') : row.type}</span></td>
                       <td className="px-4 py-3">{row.size}</td>
-                      <td className="px-4 py-3">{row.status === 'Succes' ? <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-4 h-4" /> Succès</span> : <span className="flex items-center gap-1 text-red-600"><XCircle className="w-4 h-4" /> Échec</span>}</td>
+                      <td className="px-4 py-3">{row.status === 'Succes' ? <span className="flex items-center gap-1 text-green-600"><CheckCircle className="w-4 h-4" /> {tr('adminBackup.statusSuccess')}</span> : <span className="flex items-center gap-1 text-red-600"><XCircle className="w-4 h-4" /> {tr('adminBackup.statusFailure')}</span>}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -466,29 +471,29 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-red-800">Opération irréversible</h4>
-              <p className="text-sm text-red-700">La restauration remplacera les données existantes par celles du fichier de sauvegarde. Faites une sauvegarde avant de continuer.</p>
+              <h4 className="font-semibold text-red-800">{tr('adminBackup.irreversibleOp')}</h4>
+              <p className="text-sm text-red-700">{tr('adminBackup.restoreWarning')}</p>
             </div>
           </div>
           <div className="bg-white p-6 rounded-lg border space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fichier de sauvegarde (.json)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{tr('adminBackup.backupFileJson')}</label>
               <input ref={restoreFileRef} type="file" accept=".json" className="hidden"
                 onChange={e => setRestoreFile(e.target.files?.[0] ?? null)} />
               <button onClick={() => restoreFileRef.current?.click()} className="px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 flex items-center gap-2 text-gray-600 hover:text-blue-600 w-full justify-center">
                 <Upload className="w-5 h-5" />
-                {restoreFile ? restoreFile.name : 'Choisir un fichier de sauvegarde'}
+                {restoreFile ? restoreFile.name : tr('adminBackup.chooseBackupFile')}
               </button>
             </div>
             {restoreFile && (
               <>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={restoreAcknowledged} onChange={e => setRestoreAcknowledged(e.target.checked)} className="rounded" />
-                  Je comprends que cette action remplacera les données existantes par celles du fichier
+                  {tr('adminBackup.restoreAcknowledge')}
                 </label>
                 <button onClick={() => setShowRestoreConfirm(true)} disabled={!restoreAcknowledged}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4" /> Restaurer depuis ce fichier
+                  <RotateCcw className="w-4 h-4" /> {tr('adminBackup.restoreFromFile')}
                 </button>
               </>
             )}
@@ -496,12 +501,12 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           {showRestoreConfirm && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-xl">
-                <h3 className="text-lg font-semibold text-red-800">Confirmer la restauration</h3>
-                <p className="text-sm text-gray-600">Vous allez restaurer depuis <strong>{restoreFile?.name}</strong>. Les données existantes seront remplacées.</p>
+                <h3 className="text-lg font-semibold text-red-800">{tr('adminBackup.confirmRestore')}</h3>
+                <p className="text-sm text-gray-600">{tr('adminBackup.restoreFromPrefix')}<strong>{restoreFile?.name}</strong>{tr('adminBackup.restoreFromSuffix')}</p>
                 <div className="flex gap-3 justify-end">
-                  <button onClick={() => setShowRestoreConfirm(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
+                  <button onClick={() => setShowRestoreConfirm(false)} className="px-4 py-2 border rounded-lg hover:bg-gray-50">{tr('adminBackup.cancel')}</button>
                   <button onClick={handleSaasRestore} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2">
-                    <RotateCcw className="w-4 h-4" /> Confirmer la restauration
+                    <RotateCcw className="w-4 h-4" /> {tr('adminBackup.confirmRestore')}
                   </button>
                 </div>
               </div>
@@ -513,28 +518,28 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
       {/* ── EXPORT ───────────────────────────────────────────────────────── */}
       {subTab === 4 && (
         <div className="bg-white p-6 rounded-lg border space-y-6">
-          <h3 className="font-semibold text-lg flex items-center gap-2"><FileDown className="w-5 h-5" /> Export des données</h3>
+          <h3 className="font-semibold text-lg flex items-center gap-2"><FileDown className="w-5 h-5" /> {tr('adminBackup.exportDataTitle')}</h3>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Format d'export</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{tr('adminBackup.exportFormatLabel')}</label>
             <div className="flex flex-wrap gap-4">
               {['JSON', 'CSV', 'FEC'].map(f => (
                 <label key={f} className="flex items-center gap-2 cursor-pointer">
                   <input type="radio" name="exportFormat" value={f} checked={exportFormat === f} onChange={() => setExportFormat(f)} />
                   <span className="text-sm font-medium">{f}</span>
-                  {f === 'FEC' && <span className="text-xs text-gray-400">(Fichier des Écritures Comptables)</span>}
+                  {f === 'FEC' && <span className="text-xs text-gray-400">{tr('adminBackup.fecGloss')}</span>}
                 </label>
               ))}
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{tr('adminBackup.dateStart')}</label>
               <input type="date" value={exportStart} onChange={e => setExportStart(e.target.value)} className="w-full border rounded-lg px-3 py-2" /></div>
-            <div><label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+            <div><label className="block text-sm font-medium text-gray-700 mb-1">{tr('adminBackup.dateEnd')}</label>
               <input type="date" value={exportEnd} onChange={e => setExportEnd(e.target.value)} className="w-full border rounded-lg px-3 py-2" /></div>
           </div>
           {backupProgress === null && (
             <button onClick={handleExport} className={btnBlue}>
-              <FileDown className="w-4 h-4" /> Générer l'export {exportFormat}
+              <FileDown className="w-4 h-4" /> {tr('adminBackup.generateExport', { format: exportFormat })}
             </button>
           )}
         </div>
@@ -546,39 +551,39 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-semibold text-red-800">Zone de réinitialisation</h4>
+              <h4 className="font-semibold text-red-800">{tr('adminBackup.resetZoneTitle')}</h4>
               <p className="text-sm text-red-700 mt-1">
                 {isSaas
-                  ? 'La réinitialisation efface les données de la base Supabase pour votre tenant. IRRÉVERSIBLE.'
-                  : 'Efface les données de l\'IndexedDB local. IRRÉVERSIBLE. Faites une sauvegarde d\'abord.'}
+                  ? tr('adminBackup.resetDescSaas')
+                  : tr('adminBackup.resetDescLocal')}
               </p>
             </div>
           </div>
           {resetSuccess && (
             <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-sm text-green-800 font-medium">Réinitialisation effectuée.</span>
+              <span className="text-sm text-green-800 font-medium">{tr('adminBackup.resetDoneShort')}</span>
               <button onClick={() => window.location.reload()} className="ml-auto px-3 py-1 text-sm bg-green-600 text-white rounded flex items-center gap-1">
-                <RefreshCw className="w-4 h-4" /> Recharger
+                <RefreshCw className="w-4 h-4" /> {tr('adminBackup.reload')}
               </button>
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {RESET_GROUPS.filter(g => g.key !== 'all').map(group => (
               <div key={group.key} className="bg-white border rounded-lg p-4 flex items-center justify-between gap-3">
-                <div><p className="font-medium text-gray-800 text-sm">{group.label}</p><p className="text-xs text-gray-500 mt-0.5">{group.desc}</p></div>
+                <div><p className="font-medium text-gray-800 text-sm">{tr(group.labelKey)}</p><p className="text-xs text-gray-500 mt-0.5">{tr(group.descKey)}</p></div>
                 <button onClick={() => { setResetTarget(group.key); setResetInput(''); setResetSuccess(false); }}
                   className="px-3 py-1.5 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 flex items-center gap-1 whitespace-nowrap flex-shrink-0">
-                  <Trash2 className="w-4 h-4" /> Vider
+                  <Trash2 className="w-4 h-4" /> {tr('adminBackup.clear')}
                 </button>
               </div>
             ))}
           </div>
           <div className="bg-red-50 border-2 border-red-400 rounded-lg p-5 flex items-center justify-between gap-4">
-            <div><p className="font-bold text-red-800">🔴 TOUT réinitialiser</p><p className="text-sm text-red-700 mt-1">Efface toutes les données — écritures, tiers, budgets, immobilisations, trésorerie…</p></div>
+            <div><p className="font-bold text-red-800">{tr('adminBackup.resetAllTitle')}</p><p className="text-sm text-red-700 mt-1">{tr('adminBackup.resetAllDesc')}</p></div>
             <button onClick={() => { setResetTarget('all'); setResetInput(''); setResetSuccess(false); }}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-              <AlertTriangle className="w-4 h-4" /> Tout effacer
+              <AlertTriangle className="w-4 h-4" /> {tr('adminBackup.eraseAll')}
             </button>
           </div>
           {resetTarget && (
@@ -590,21 +595,21 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                     <AlertTriangle className="w-5 h-5 text-red-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-red-800">{RESET_GROUPS.find(g => g.key === resetTarget)?.label}</h3>
-                    <p className="text-xs text-red-600">Action irréversible — toutes les données seront supprimées</p>
+                    <h3 className="text-lg font-bold text-red-800">{(() => { const g = RESET_GROUPS.find(g => g.key === resetTarget); return g ? tr(g.labelKey) : ''; })()}</h3>
+                    <p className="text-xs text-red-600">{tr('adminBackup.irreversibleAction')}</p>
                   </div>
                 </div>
 
                 {/* Description */}
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-700">{RESET_GROUPS.find(g => g.key === resetTarget)?.desc}</p>
+                  <p className="text-sm text-red-700">{(() => { const g = RESET_GROUPS.find(g => g.key === resetTarget); return g ? tr(g.descKey) : ''; })()}</p>
                 </div>
 
                 {/* Étape 1 — phrase */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">Étape 1</span>
-                    Tapez exactement : <span className="font-mono text-red-700">tout réinitialiser</span>
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">{tr('adminBackup.step1')}</span>
+                    {tr('adminBackup.typeExactlyLabel')} <span className="font-mono text-red-700">tout réinitialiser</span>
                   </label>
                   <input
                     type="text"
@@ -617,21 +622,21 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                     }`}
                   />
                   {resetInput && resetInput.toLowerCase() === 'tout réinitialiser' && (
-                    <p className="text-xs text-green-600 mt-1">✓ Phrase confirmée</p>
+                    <p className="text-xs text-green-600 mt-1">{tr('adminBackup.phraseConfirmed')}</p>
                   )}
                 </div>
 
                 {/* Étape 2 — mot de passe */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">Étape 2</span>
-                    Confirmez votre mot de passe
+                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded mr-2">{tr('adminBackup.step2')}</span>
+                    {tr('adminBackup.confirmPassword')}
                   </label>
                   <input
                     type="password"
                     value={resetPassword}
                     onChange={e => { setResetPassword(e.target.value); setResetPasswordError(''); }}
-                    placeholder="Votre mot de passe"
+                    placeholder={tr('adminBackup.yourPassword')}
                     className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 ${
                       resetPasswordError ? 'border-red-400 bg-red-50' : 'border-gray-300'
                     }`}
@@ -649,7 +654,7 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                     onClick={() => { setResetTarget(null); setResetInput(''); setResetPassword(''); setResetPasswordError(''); }}
                     className="px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm"
                   >
-                    Annuler
+                    {tr('adminBackup.cancel')}
                   </button>
                   <button
                     onClick={handleReset}
@@ -661,8 +666,8 @@ const AdminBackup: React.FC<Props> = ({ subTab, setSubTab }) => {
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 text-sm font-medium"
                   >
                     {resetLoading
-                      ? <><RefreshCw className="w-4 h-4 animate-spin" /> Réinitialisation…</>
-                      : <><Trash2 className="w-4 h-4" /> Réinitialiser définitivement</>
+                      ? <><RefreshCw className="w-4 h-4 animate-spin" /> {tr('adminBackup.resetting')}</>
+                      : <><Trash2 className="w-4 h-4" /> {tr('adminBackup.resetPermanently')}</>
                     }
                   </button>
                 </div>
