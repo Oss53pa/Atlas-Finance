@@ -17,22 +17,33 @@ import { SOUS_COMPTES_SYSCOHADA } from '../../data/syscohada-referentiel';
 
 export type AccountOption = { code: string; libelle: string };
 
+/** Une ou plusieurs classes SYSCOHADA (« 6 », ou [« 2 », « 6 », « 7 »]). */
+export type ClassPrefix = string | string[];
+
+const asList = (p: ClassPrefix): string[] => (Array.isArray(p) ? p : [p]);
+const matchesClass = (code: string, prefixes: string[]): boolean =>
+  prefixes.some((p) => code.startsWith(p));
+
 /**
- * Comptes proposés pour une classe : référentiel SYSCOHADA + plan du tenant
- * (le nom du tenant écrase le libellé standard sur un même code).
+ * Comptes proposés pour une (ou plusieurs) classe(s) : référentiel SYSCOHADA +
+ * plan du tenant (le nom du tenant écrase le libellé standard sur un même code).
  */
-export function useAccountOptions(classPrefix: string): AccountOption[] {
+export function useAccountOptions(classPrefix: ClassPrefix): AccountOption[] {
   const { names } = useAccountNames();
+  // Clé stable : évite de recréer le memo à chaque rendu quand un tableau littéral
+  // est passé en prop (`['2','6','7']` change d'identité à chaque rendu parent).
+  const key = asList(classPrefix).join(',');
   return useMemo(() => {
+    const prefixes = key ? key.split(',') : [];
     const map = new Map<string, string>();
     SOUS_COMPTES_SYSCOHADA
-      .filter((sc) => sc.code.startsWith(classPrefix))
+      .filter((sc) => matchesClass(sc.code, prefixes))
       .forEach((sc) => map.set(sc.code, sc.libelle));
-    names.forEach((n, code) => { if (code.startsWith(classPrefix)) map.set(code, n); });
+    names.forEach((n, code) => { if (matchesClass(code, prefixes)) map.set(code, n); });
     return [...map.entries()]
       .map(([code, libelle]) => ({ code, libelle }))
       .sort((a, b) => a.code.localeCompare(b.code));
-  }, [names, classPrefix]);
+  }, [names, key]);
 }
 
 interface Props {
@@ -43,8 +54,8 @@ interface Props {
    * à utiliser quand le parent persiste (évite une écriture par frappe).
    */
   onCommit?: (code: string) => void;
-  /** Classe SYSCOHADA à proposer (« 6 », « 7 », « 2 »…). */
-  classPrefix: string;
+  /** Classe(s) SYSCOHADA à proposer (« 6 », ou [« 2 », « 6 », « 7 »]). */
+  classPrefix: ClassPrefix;
   disabled?: boolean;
   placeholder?: string;
   /** Largeur du champ (classes Tailwind). */
@@ -172,7 +183,7 @@ const AccountCombobox: React.FC<Props> = ({
           className="z-[60] overflow-y-auto rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-lg py-1"
         >
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-xs text-[var(--color-text-tertiary)]">Aucun compte de classe {classPrefix} ne correspond.</li>
+            <li className="px-3 py-2 text-xs text-[var(--color-text-tertiary)]">Aucun compte de classe {asList(classPrefix).join('/')} ne correspond.</li>
           ) : filtered.map((o, i) => (
             <li
               key={o.code}

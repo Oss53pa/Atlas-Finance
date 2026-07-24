@@ -8,6 +8,8 @@ import { useData } from '../../contexts/DataContext';
 import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
+import AccountCombobox from '../../components/common/AccountCombobox';
+import { useAccountNames } from '../../hooks/useAccountNames';
 import {
   getActiveFiscalYear, ensureActiveVersion, getActiveBudgetVersion,
   getBudgetLinesWithPeriods, saveBudgetLine, deleteBudgetLine, inferBudgetType, type BudgetLineEdit,
@@ -15,8 +17,8 @@ import {
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
 import { Plus, Save, Trash2, Table2, Lock, X } from 'lucide-react';
 
-interface AccountLite { code: string; name: string }
-
+/** Comptes budgétables : investissement (classe 2) + exploitation (classes 6 & 7). */
+const BUDGET_CLASSES = ['2', '6', '7'];
 const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 type Row = BudgetLineEdit & { _dirty?: boolean; _new?: boolean };
 
@@ -29,8 +31,8 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
   const [annee, setAnnee] = useState('');
   const [statut, setStatut] = useState('brouillon');
   const [rows, setRows] = useState<Row[]>([]);
-  const [accounts, setAccounts] = useState<AccountLite[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const { label: accountName } = useAccountNames();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -42,19 +44,13 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
       setAnnee(fy.code);
       const vid = await ensureActiveVersion(adapter, fy.id, `Budget ${fy.code}`);
       setVersionId(vid);
-      const [v, lignes, accs, secs] = await Promise.all([
+      const [v, lignes, secs] = await Promise.all([
         getActiveBudgetVersion(adapter),
         getBudgetLinesWithPeriods(adapter, vid),
-        adapter.getAll<any>('accounts'),
         listSections(adapter),
       ]);
       setStatut(v?.statut || 'brouillon');
       setRows(lignes);
-      // Comptes budgétables : classes 2 (invest), 6 & 7 (exploitation)
-      setAccounts((accs || [])
-        .map((a: any) => ({ code: String(a.code || ''), name: String(a.name || a.libelle || '') }))
-        .filter(a => /^[267]/.test(a.code))
-        .sort((a, b) => a.code.localeCompare(b.code)));
       setSections(secs);
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
     finally { setLoading(false); }
@@ -70,7 +66,6 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
   const setSection = (idx: number, sectionId: string) =>
     setRows(r => r.map((row, i) => i === idx ? { ...row, section_id: sectionId || null, _dirty: true } : row));
   const rowTotal = (row: Row) => Object.values(row.periods).reduce((s, v) => s + (v || 0), 0);
-  const accountName = (code: string) => accounts.find(a => a.code === code)?.name || '';
 
   const saveAll = async () => {
     const dirty = rows.filter(r => r._dirty && r.account_code.trim());
@@ -114,11 +109,6 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
 
         {locked && <div className="bg-amber-50 text-amber-800 px-4 py-2 text-xs">Version verrouillée : saisie désactivée (déverrouillez depuis « Versions & Validation »).</div>}
 
-        {/* Autocomplétion des comptes (plan comptable réel, classes 2/6/7) */}
-        <datalist id="budget-accounts-list">
-          {accounts.map(a => <option key={a.code} value={a.code}>{a.code} — {a.name}</option>)}
-        </datalist>
-
         <div className="overflow-x-auto max-h-[60vh]">
           <table className="text-xs border-collapse min-w-[1000px]">
             <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
@@ -137,8 +127,11 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
               {rows.map((row, idx) => (
                 <tr key={row.id || `new-${idx}`} className={row._dirty ? 'bg-amber-50/40' : ''}>
                   <td className="px-2 py-1 sticky left-0 bg-white">
-                    <input list="budget-accounts-list" value={row.account_code} disabled={locked} onChange={e => setCell(idx, 'account_code', e.target.value)} placeholder="Compte…" className="w-36 border border-gray-200 rounded px-1.5 py-1 font-mono disabled:bg-gray-50" />
-                    {accountName(row.account_code) && <div className="text-[10px] text-gray-400 truncate max-w-[140px]">{accountName(row.account_code)}</div>}
+                    <AccountCombobox value={row.account_code} onChange={(code) => setCell(idx, 'account_code', code)}
+                      classPrefix={BUDGET_CLASSES} disabled={locked} placeholder="Compte…" inputClassName="w-36" />
+                    <div className="text-[10px] text-gray-400 truncate max-w-[140px]" title={accountName(row.account_code)}>
+                      {row.account_code ? (accountName(row.account_code) || 'Compte hors référentiel') : ''}
+                    </div>
                   </td>
                   <td className="px-2 py-1"><select value={row.budget_type} disabled={locked} onChange={e => setCell(idx, 'budget_type', e.target.value)} className="border border-gray-200 rounded px-1 py-1 disabled:bg-gray-50"><option value="exploitation">Exploit.</option><option value="investissement">Invest.</option></select></td>
                   <td className="px-2 py-1">
