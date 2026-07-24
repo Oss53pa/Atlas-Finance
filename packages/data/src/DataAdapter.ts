@@ -93,6 +93,7 @@ export type TableName =
   | 'integrationDeadLetters'
   | 'integrationApiKeys'
   | 'entrySequences'
+  | 'budgetEngagements'
 
 export interface QueryFilters {
   where?: Record<string, any>
