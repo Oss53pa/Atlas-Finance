@@ -17,15 +17,22 @@ import { listSections, type Section } from '../../features/budget/services/analy
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import {
   listRules, createRule, deleteRule, toggleRule, runVentilation, listRuns, getReconciliation,
-  listKeys, createKey, deleteKey, listKeyValues, setKeyValue, getSecondaryTransfers, setRuleComportement,
+  listKeys, createKey, deleteKey, listKeyValues, setKeyValue, getSecondaryTransfers, setRuleComportement, publishRun,
   type AllocationRule, type AllocationRun, type ReconciliationClasse, type RunReport,
   type AllocationKey, type RuleType, type SecondaryTransfer, type Comportement,
 } from '../../features/budget/services/ventilationRunService';
 import { listControls, type ControlResult } from '../../features/budget/services/controlsService';
 import { countQueue } from '../../features/budget/services/qualificationService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox, Network, Gauge,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox, Network, Gauge, Lock, Send, FileText,
 } from 'lucide-react';
+
+const PHASE_STYLE: Record<string, { label: string; cls: string }> = {
+  brouillon: { label: 'Brouillon', cls: 'bg-gray-100 text-gray-600' },
+  simule: { label: 'Simulé', cls: 'bg-blue-50 text-blue-600' },
+  controle: { label: 'Contrôlé', cls: 'bg-indigo-50 text-indigo-600' },
+  publie: { label: 'Publié', cls: 'bg-green-100 text-green-700' },
+};
 
 const CONTROL_LABEL: Record<string, string> = {
   C1: 'Réconciliation Σ ventilé = Σ GL', C2: 'Couverture (reliquat qualifié)', C3: 'Cohérence sémantique axe/classe',
@@ -144,7 +151,17 @@ const VentilationRunPage: React.FC = () => {
     if (sections.length === 0) { toast.error('Créez d’abord des sections (Comptabilité Analytique).'); return; }
     setRunning(true); setReport(null);
     try {
-      const rep = await runVentilation(adapter, parseInt(annee, 10));
+      let rep: RunReport;
+      try {
+        rep = await runVentilation(adapter, parseInt(annee, 10));
+      } catch (e: any) {
+        // Après publication, un nouveau run exige une justification (CDC §7).
+        if (String(e?.message || '').toLowerCase().includes('justification')) {
+          const j = window.prompt('Une version publiée existe pour cet exercice. Justification du nouveau run :');
+          if (!j || !j.trim()) { toast.error('Run annulé : justification requise.'); return; }
+          rep = await runVentilation(adapter, parseInt(annee, 10), null, j.trim());
+        } else throw e;
+      }
       setReport(rep);
       setControls(rep.controls);
       const blocking = rep.controls.filter(c => c.severite === 'bloquant' && c.resultat === 'ko').length;
@@ -153,6 +170,11 @@ const VentilationRunPage: React.FC = () => {
       load();
     } catch (e: any) { toast.error('Run échoué : ' + (e?.message || 'erreur')); }
     finally { setRunning(false); }
+  };
+
+  const publish = async (runId: string) => {
+    try { await publishRun(adapter, runId); toast.success('Run publié — verrouillé (immuable).'); load(); }
+    catch (e: any) { toast.error(e?.message || 'Publication impossible'); }
   };
 
   const runProphet = async () => {
@@ -200,6 +222,9 @@ const VentilationRunPage: React.FC = () => {
         </button>
         <button onClick={() => navigate('/analytique/point-mort')} className="px-3 py-2 text-sm border border-[var(--color-border)] text-gray-600 rounded-lg hover:bg-gray-50 flex items-center gap-2" title="Marge sur coûts variables & point mort">
           <Gauge className="w-4 h-4" />Point mort
+        </button>
+        <button onClick={() => navigate('/analytique/manuel')} className="px-3 py-2 text-sm border border-[var(--color-border)] text-gray-600 rounded-lg hover:bg-gray-50 flex items-center gap-2" title="Manuel des règles de gestion (imprimable)">
+          <FileText className="w-4 h-4" />Manuel
         </button>
         {isProph3tCoreConfigured() && (
           <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
@@ -515,24 +540,40 @@ const VentilationRunPage: React.FC = () => {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-[var(--color-border)]"><tr>
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Date</th>
-            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Exercice</th>
+            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">V.</th>
             <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Couverture</th>
-            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Lignes ventilées</th>
-            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Statut</th>
+            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Lignes</th>
+            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Réconc.</th>
+            <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Phase</th>
             <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Hash</th>
+            <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600"></th>
           </tr></thead>
           <tbody className="divide-y divide-gray-100">
-            {runs.length === 0 && <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-400">Aucun run encore. Lancez le moteur.</td></tr>}
-            {runs.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2.5 text-gray-600 text-xs">{new Date(r.executed_at).toLocaleString('fr-FR')}</td>
-                <td className="px-4 py-2.5 text-center text-gray-600">{r.exercice}</td>
-                <td className="px-4 py-2.5 text-right text-gray-800">{Number(r.couverture_pct).toFixed(1)}%</td>
-                <td className="px-4 py-2.5 text-center text-gray-600">{r.nb_lignes_ventilees}/{r.nb_lignes_gl}</td>
-                <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${r.statut === 'success' ? 'bg-green-100 text-green-700' : r.statut === 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>{r.statut}</span></td>
-                <td className="px-4 py-2.5 text-gray-400 font-mono text-xs flex items-center gap-1"><Hash className="w-3 h-3" />{r.hash_audit}</td>
-              </tr>
-            ))}
+            {runs.length === 0 && <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucun run encore. Lancez le moteur.</td></tr>}
+            {runs.map(r => {
+              const ph = PHASE_STYLE[r.phase] || PHASE_STYLE.simule;
+              const blocking = controls.some(c => c.severite === 'bloquant' && c.resultat === 'ko');
+              const isLatest = runs[0]?.id === r.id;
+              return (
+                <tr key={r.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2.5 text-gray-600 text-xs">{new Date(r.executed_at).toLocaleString('fr-FR')}</td>
+                  <td className="px-4 py-2.5 text-center text-gray-500 font-mono text-xs">{r.version_run}</td>
+                  <td className="px-4 py-2.5 text-right text-gray-800">{Number(r.couverture_pct).toFixed(1)}%</td>
+                  <td className="px-4 py-2.5 text-center text-gray-600">{r.nb_lignes_ventilees}/{r.nb_lignes_gl}</td>
+                  <td className="px-4 py-2.5 text-center">{r.reconcilie ? <CheckCircle className="w-4 h-4 text-green-600 inline" /> : <AlertTriangle className="w-4 h-4 text-red-500 inline" />}</td>
+                  <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-flex items-center gap-1 ${ph.cls}`}>{r.phase === 'publie' && <Lock className="w-3 h-3" />}{ph.label}</span></td>
+                  <td className="px-4 py-2.5 text-gray-400 font-mono text-xs"><span className="inline-flex items-center gap-1"><Hash className="w-3 h-3" />{r.hash_audit}</span></td>
+                  <td className="px-4 py-2.5 text-right">
+                    {r.phase !== 'publie' && isLatest && (
+                      <button onClick={() => publish(r.id)} disabled={blocking} title={blocking ? 'Un contrôle bloquant est en échec' : 'Publier et verrouiller ce run'} className="px-2.5 py-1 text-xs rounded-lg bg-[var(--color-primary)] text-white inline-flex items-center gap-1 disabled:opacity-40">
+                        <Send className="w-3.5 h-3.5" />Publier
+                      </button>
+                    )}
+                    {r.phase === 'publie' && <span className="text-[11px] text-green-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" />verrouillé</span>}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

@@ -9,10 +9,10 @@ import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import {
-  listAxes, createAxe, updateAxe, deleteAxe, createSection, updateSection, deleteSection,
+  listAxes, createAxe, updateAxe, deleteAxe, createSection, updateSection, deleteSection, setSectionStatut,
   getSectionPerformance, applyVentilationRule, getVentilationCoverage,
   listVentilationBySection, clearSectionVentilation, getSectionAccountBreakdown,
-  type Axe, type SectionPerformance, type VentilationCoverage,
+  type Axe, type SectionPerformance, type VentilationCoverage, type SectionStatut,
 } from '../../features/budget/services/analyticsService';
 import { KPICard } from '../../components/ui/DesignSystem';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
@@ -267,6 +267,7 @@ const AnalyticsSectionsPage: React.FC = () => {
                 <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Axe</th>
                 <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Budget annuel</th>
                 <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Ventilé</th>
+                <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600">Statut</th>
                 <th className="px-4 py-2 text-center text-xs font-semibold text-gray-600">Actions</th>
               </tr>
             </thead>
@@ -299,6 +300,18 @@ const AnalyticsSectionsPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-2 text-right text-xs text-gray-500">
                       {v ? <span title={`${v.lignes} ligne(s)`}>{v.lignes} l. · {formatCurrency(v.montant)}</span> : '—'}
+                    </td>
+                    <td className="px-4 py-2 text-center">
+                      <select
+                        value={s.statut || 'active'}
+                        onChange={e => setSectionStatut(adapter, s.id, e.target.value as SectionStatut).then(load).catch((err: any) => toast.error(err?.message || 'Erreur'))}
+                        title="Statut de cycle — une section gelée ou close ne doit rien recevoir (contrôle C5)"
+                        className={`border rounded px-1.5 py-1 text-xs bg-white ${s.statut && s.statut !== 'active' ? 'border-amber-300 text-amber-700' : 'border-gray-200 text-gray-600'}`}
+                      >
+                        <option value="active">Active</option>
+                        <option value="gelee">Gelée</option>
+                        <option value="close">Close</option>
+                      </select>
                     </td>
                     <td className="px-4 py-2">
                       <div className="flex items-center justify-center gap-2">

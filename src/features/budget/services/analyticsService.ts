@@ -16,6 +16,8 @@ export interface Axe {
   actif: boolean;
 }
 
+export type SectionStatut = 'active' | 'gelee' | 'close';
+
 export interface Section {
   id: string;
   axe_id: string | null;
@@ -25,6 +27,7 @@ export interface Section {
   responsable: string | null;
   budget_annuel: number;
   actif: boolean;
+  statut?: SectionStatut;        // cycle de vie (A·3) : active | gelée | close
 }
 
 export interface SectionPerformance extends Section {
@@ -98,6 +101,14 @@ export async function updateSection(adapter: DataAdapter, id: string, patch: Par
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const { error } = await client.from('sections_analytiques').update(patch).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Change le statut de cycle de vie d'une section (active/gelée/close) — pilote le contrôle C5. */
+export async function setSectionStatut(adapter: DataAdapter, id: string, statut: SectionStatut): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('sections_analytiques').update({ statut }).eq('id', id);
   if (error) throw new Error(error.message);
 }
 

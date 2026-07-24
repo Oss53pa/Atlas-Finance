@@ -86,6 +86,8 @@ export interface AllocationRun {
   id: string;
   exercice: number;
   statut: string;
+  phase: 'brouillon' | 'simule' | 'controle' | 'publie';
+  version_run: number;
   hash_audit: string | null;
   couverture_pct: number;
   montant_gl: number;
@@ -95,6 +97,8 @@ export interface AllocationRun {
   reconcilie: boolean;
   detail: { classes: ReconciliationClasse[] } | null;
   executed_at: string;
+  publie_le: string | null;
+  publie_par: string | null;
 }
 
 export interface SecondaryTransfer {
@@ -249,6 +253,22 @@ export async function listRuns(adapter: DataAdapter, limit = 10): Promise<Alloca
   })) as AllocationRun[];
 }
 
+/**
+ * Publie un run : le fige (immuable via RLS). Refusé si un contrôle BLOQUANT est
+ * en échec (CDC §5.4/§7). Après publication, tout nouveau run exige justification.
+ */
+export async function publishRun(adapter: DataAdapter, runId: string, publishedBy?: string | null): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { data: ctrls } = await client.from('ana_controle').select('severite,resultat').eq('run_id', runId);
+  const blocking = (ctrls ?? []).some((c: any) => c.severite === 'bloquant' && c.resultat === 'ko');
+  if (blocking) throw new Error('Publication interdite : au moins un contrôle bloquant est en échec.');
+  const { error } = await client.from('fna_allocation_run')
+    .update({ phase: 'publie', publie_le: new Date().toISOString(), publie_par: publishedBy || null })
+    .eq('id', runId);
+  if (error) throw new Error(error.message);
+}
+
 // Lecture des lignes de GL analytiques (classes 2/6/7) de l'exercice, paginée
 // (PostgREST tronque à 1000 → on boucle en .range).
 async function loadGlLines(client: any, exercice: number): Promise<any[]> {
@@ -296,10 +316,21 @@ function matchRuleOfType(line: any, rules: AllocationRule[], type: RuleType): Al
  * réel, écrit les ventilations (idempotent), calcule couverture & réconciliation,
  * trace le run (immuable). Renvoie le rapport.
  */
-export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null): Promise<RunReport> {
+export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null): Promise<RunReport> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = tenantOf(adapter);
+
+  // Versionnage & garde de re-run : après publication, un nouveau run exige une
+  // justification (le run publié reste immuable). Version incrémentée par exercice.
+  const { data: priorRuns } = await client.from('fna_allocation_run')
+    .select('version_run,phase').eq('exercice', exercice).order('version_run', { ascending: false }).limit(1);
+  const versionRun = ((priorRuns?.[0]?.version_run as number) || 0) + 1;
+  const { data: publishedRuns } = await client.from('fna_allocation_run')
+    .select('id').eq('exercice', exercice).eq('phase', 'publie').limit(1);
+  if ((publishedRuns?.length ?? 0) > 0 && !(justification && justification.trim())) {
+    throw new Error('Une version publiée existe pour cet exercice : une justification est requise pour lancer un nouveau run.');
+  }
   // Id de run généré côté client : fna_allocation_run est INSERT-ONLY en RLS (pas
   // d'UPDATE possible), donc on calcule tout en mémoire puis on insère le run
   // AVANT les ventilations (contrainte FK ventilations.run_id → run).
@@ -313,14 +344,14 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     .select('ligne_gl_id,section_id').eq('statut', 'affecte').not('section_id', 'is', null);
   const manualMap = new Map<string, string>((qData ?? []).map((q: any) => [q.ligne_gl_id, q.section_id]));
 
-  // Méta sections (nature principale/auxiliaire) + axes (type sémantique) pour C3/C4.
+  // Méta sections (nature, statut) + axes (type sémantique) pour C3/C4/C5.
   const [{ data: secData }, { data: axeData }] = await Promise.all([
-    client.from('sections_analytiques').select('id,axe_id,nature'),
+    client.from('sections_analytiques').select('id,axe_id,nature,statut'),
     client.from('axes_analytiques').select('id,type_axe'),
   ]);
   const axeType = new Map<string, string | null>((axeData ?? []).map((a: any) => [a.id, a.type_axe ?? null]));
-  const sectionMeta = new Map<string, { nature: string | null; type_axe: string | null }>(
-    (secData ?? []).map((s: any) => [s.id, { nature: s.nature ?? null, type_axe: axeType.get(s.axe_id) ?? null }]));
+  const sectionMeta = new Map<string, { nature: string | null; type_axe: string | null; statut?: string | null }>(
+    (secData ?? []).map((s: any) => [s.id, { nature: s.nature ?? null, type_axe: axeType.get(s.axe_id) ?? null, statut: s.statut ?? null }]));
 
   // Montant analytique en centimes entiers (debit - credit).
   const cents = (l: any) => Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100);
@@ -470,6 +501,9 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
       tenant_id: tenantId,
       exercice,
       statut: reconcilie ? 'success' : 'failed',
+      phase: 'simule',
+      version_run: versionRun,
+      justification_rerun: justification?.trim() || null,
       hash_audit: hash,
       couverture_pct: couverture,
       montant_gl: totGlCents,

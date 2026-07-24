@@ -28,7 +28,7 @@ export interface ControlsInput {
   ventRows: Array<{ section_id: string; ligne_ecriture_id: string; montant: number }>;
   transferRows: Array<{ from_section_id: string; to_section_id: string; montant: number }>;
   lineCode: Map<string, string>;                // ligne_ecriture_id → account_code
-  sectionMeta: Map<string, { nature: string | null; type_axe: string | null }>;
+  sectionMeta: Map<string, { nature: string | null; type_axe: string | null; statut?: string | null }>;
   hasSecondaire: boolean;
 }
 
@@ -81,13 +81,23 @@ export function evaluateControls(input: ControlsInput): ControlResult[] {
     out.push({ code: 'C4', severite: 'bloquant', resultat: nonSoldees.length ? 'ko' : 'ok', detail: { aux_non_soldees: nonSoldees } });
   }
 
+  // C5 — une section gelée ou close ne doit rien recevoir sur la période.
+  const c5 = new Set<string>();
+  for (const v of input.ventRows) {
+    const st = input.sectionMeta.get(v.section_id)?.statut;
+    if (st === 'gelee' || st === 'close') c5.add(v.section_id);
+  }
+  out.push({ code: 'C5', severite: 'bloquant', resultat: c5.size ? 'ko' : 'ok',
+    detail: { sections_verrouillees: [...c5], count: c5.size } });
+
   // C6 — Σ % d'une règle multi-sections = 100 : pas de règle multi_pct en V1.
   out.push({ code: 'C6', severite: 'bloquant', resultat: 'na', detail: { note: 'pas de règle multi-sections à pourcentages en V1' } });
 
-  // C5, C7..C10 — posés (typés), implémentés en A·3.
+  // C7..C10 — posés (typés), implémentés en A·3 vague 2 (clés variables, écarts,
+  // double validation, plan Projets).
   const stub = (code: ControlCode, severite: ControlSeverite): ControlResult =>
-    ({ code, severite, resultat: 'na', detail: { note: 'implémenté en A·3' } });
-  out.push(stub('C5', 'bloquant'), stub('C7', 'avertissement'), stub('C8', 'avertissement'),
+    ({ code, severite, resultat: 'na', detail: { note: 'implémenté en A·3 vague 2' } });
+  out.push(stub('C7', 'avertissement'), stub('C8', 'avertissement'),
     stub('C9', 'avertissement'), stub('C10', 'bloquant'));
 
   return out;
