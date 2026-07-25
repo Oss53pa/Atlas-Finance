@@ -1,7 +1,9 @@
 name: Cleanup merged branches (temporaire)
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]
+    paths: ['.github/workflows/atlas-cleanup-branches.yml']
 
 permissions:
   contents: write
