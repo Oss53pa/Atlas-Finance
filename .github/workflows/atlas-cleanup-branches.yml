@@ -1,0 +1,44 @@
+name: Cleanup merged branches (temporaire)
+
+on:
+  push:
+    branches: [master]
+    paths: ['.github/workflows/atlas-cleanup-branches.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  delete-merged:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Supprimer les branches archivées
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -u
+          BRANCHES="
+          chore/remove-mock-wire-real
+          claude/elastic-raman-c0995a
+          claude/migration-mode-templates
+          claude/migration-v3-sage-atlas
+          claude/pagination-grand-livre
+          claude/serene-mayer-ddcd08
+          claude/team-settings-2026-05-07
+          feature/petrol-cream-ui
+          fix/atlas-anon-key-env-claude
+          fix/chartconfig-line-typing
+          fix/charts-forwardref
+          fix/migration-deployed
+          fix/premium-dashboard-charts
+          frontend
+          worktree-django-purge
+          "
+          for b in $BRANCHES; do
+            [ -z "$b" ] && continue
+            if gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${b}" >/dev/null 2>&1; then
+              echo "supprimée : $b"
+            else
+              echo "ignorée (absente ?) : $b"
+            fi
+          done
