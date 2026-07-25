@@ -382,6 +382,54 @@ describe('Bus d’intégration', () => {
 });
 
 // ============================================================================
+// Cycle vente end-to-end : facture → encaissement → lettrage auto 411
+// ============================================================================
+
+describe('cycle vente end-to-end', () => {
+  it('lettre automatiquement la facture à l’encaissement via le bus', async () => {
+    // Règles vente + règlement.
+    seedSaleRules();
+    memory.postingRules.push(
+      { id: crypto.randomUUID(), eventType: 'sale.payment.received', lineRole: 'cash', matchKey: '', debitAccount: '521000', creditAccount: null, thirdParty: false, analytic: false, priority: 100, active: true },
+      { id: crypto.randomUUID(), eventType: 'sale.payment.received', lineRole: 'receivable', matchKey: '', debitAccount: null, creditAccount: '411000', thirdParty: true, analytic: false, priority: 100, active: true },
+    );
+    invalidatePostingRulesCache();
+
+    // 1. Facture émise par Atlas Trade.
+    await ingestEvent(adapter, {
+      sourceSystem: 'atlas_trade', eventType: 'sale.invoice.issued',
+      sourceDocId: 'TRD-1', idempotencyKey: 'trade:TRD-1:issued',
+      occurredAt: '2026-07-15T10:00:00.000Z', payload: saleEvent().payload,
+    });
+    // 2. Encaissement du client.
+    await ingestEvent(adapter, {
+      sourceSystem: 'atlas_trade', eventType: 'sale.payment.received',
+      sourceDocId: 'PAY-1', idempotencyKey: 'trade:PAY-1:received',
+      occurredAt: '2026-07-20T10:00:00.000Z',
+      payload: {
+        docNumber: 'PAY-1', docDate: '2026-07-20', currency: 'XOF',
+        thirdParty: { code: 'C0042', name: 'Client Test' },
+        lines: [
+          { role: 'cash', amount: 1_180_000, label: 'Encaissement' },
+          { role: 'receivable', amount: 1_180_000, label: 'Solde facture' },
+        ],
+      },
+    });
+
+    const res = await processPendingEvents(adapter);
+    expect(res.posted).toBe(2);
+
+    // Les deux lignes 411 (facture + encaissement) sont lettrées du même code.
+    const entries = await db.journalEntries.toArray();
+    const lines411 = entries.flatMap(e => e.lines).filter(l => l.accountCode.startsWith('411'));
+    expect(lines411).toHaveLength(2);
+    const codes = lines411.map(l => (l as any).lettrageCode);
+    expect(codes.every(Boolean)).toBe(true);
+    expect(codes[0]).toBe(codes[1]);
+  });
+});
+
+// ============================================================================
 // Résolution de règle (unitaire)
 // ============================================================================
 

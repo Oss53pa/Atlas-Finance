@@ -14,7 +14,11 @@ export interface Axe {
   type_axe: string | null;
   obligatoire: boolean;
   actif: boolean;
+  conditionnel?: boolean;                          // A·3 : axe à sémantique conditionnelle
+  regle_condition?: Record<string, string> | null; // classe de compte → type sémantique attendu
 }
+
+export type SectionStatut = 'active' | 'gelee' | 'close';
 
 export interface Section {
   id: string;
@@ -25,6 +29,7 @@ export interface Section {
   responsable: string | null;
   budget_annuel: number;
   actif: boolean;
+  statut?: SectionStatut;        // cycle de vie (A·3) : active | gelée | close
 }
 
 export interface SectionPerformance extends Section {
@@ -98,6 +103,27 @@ export async function updateSection(adapter: DataAdapter, id: string, patch: Par
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const { error } = await client.from('sections_analytiques').update(patch).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Change le statut de cycle de vie d'une section (active/gelée/close) — pilote le contrôle C5. */
+export async function setSectionStatut(adapter: DataAdapter, id: string, statut: SectionStatut): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('sections_analytiques').update({ statut }).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Mapping SYSCOHADA standard pour un axe conditionnel : charges→coût, produits→revenu. */
+export const STANDARD_REGLE_CONDITION: Record<string, string> = { '6': 'centre_cout', '7': 'centre_revenu' };
+
+/** Active/désactive la sémantique conditionnelle d'un axe (pilote le contrôle C3). */
+export async function setAxeCondition(adapter: DataAdapter, id: string, conditionnel: boolean, regleCondition?: Record<string, string> | null): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const { error } = await client.from('axes_analytiques')
+    .update({ conditionnel, regle_condition: conditionnel ? (regleCondition ?? STANDARD_REGLE_CONDITION) : null })
+    .eq('id', id);
   if (error) throw new Error(error.message);
 }
 
