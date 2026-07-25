@@ -1,4 +1,5 @@
 import type { DataAdapter } from '@atlas/data';
+import { resolveSetting } from '../../../services/param/paramService';
 
 /**
  * Budget Check (refonte OPEX/CAPEX — Lot 2, §4.2 CDC).
@@ -46,13 +47,10 @@ export function natureOfAccount(accountCode: string): MailleNature {
   return 'opex';                                    // classe 6 (charges)
 }
 
-/** Politique de contrôle par nature (settings), défaut 'avertissement'. */
+/** Politique de contrôle par nature (paramètre gouverné via le socle). */
 export async function getControlPolicy(adapter: DataAdapter, nature: MailleNature): Promise<BudgetControlPolicy> {
-  const client = getClient(adapter);
-  if (!client) return 'avertissement';
   const key = `budget_control_policy_${nature}`;
-  const { data } = await client.from('settings').select('value').eq('key', key).limit(1);
-  const v = data?.[0]?.value as string | undefined;
+  const v = await resolveSetting<string>(adapter, key);
   if (v === 'bloquant' || v === 'avertissement' || v === 'passif') return v;
   // défaut : CAPEX bloquant recommandé (§4.2), sinon avertissement.
   return nature === 'capex' ? 'bloquant' : 'avertissement';
