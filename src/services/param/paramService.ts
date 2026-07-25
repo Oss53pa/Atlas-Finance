@@ -112,6 +112,42 @@ export interface ParamAuditRow {
   par: string | null; le: string; hash: string | null; hash_precedent: string | null;
 }
 
+// ── Compat `settings` → socle (namespace settings.<clé>) ─────────────────────
+
+/**
+ * Lit une ancienne clé `settings` via le socle (param_resolve du namespace
+ * `settings.<clé>`), avec repli sur la table `settings` legacy. Permet aux
+ * consommateurs de migrer sans big-bang.
+ */
+export async function resolveSetting<T = any>(adapter: DataAdapter, key: string, asOf?: string): Promise<T | undefined> {
+  const v = await resolveParam<T>(adapter, `settings.${key}`, asOf);
+  if (v !== undefined && v !== null) return v;
+  const client = getClient(adapter);
+  if (!client) return undefined;
+  const { data } = await client.from('settings').select('value').eq('key', key).limit(1);
+  const raw = data?.[0]?.value;
+  if (raw == null) return undefined;
+  try { return JSON.parse(raw) as T; } catch { return raw as unknown as T; }
+}
+
+/**
+ * Écrit une clé `settings` via le socle ET la table legacy (miroir), pour que
+ * les lecteurs non encore migrés voient la mise à jour. La définition est créée
+ * à la volée si absente.
+ */
+export async function setSetting(adapter: DataAdapter, key: string, value: any, module = 'societe'): Promise<void> {
+  const client = getClient(adapter);
+  if (!client) throw new Error('Indisponible hors-ligne.');
+  const cle = `settings.${key}`;
+  const { data: def } = await client.from('param_definition').select('id').eq('cle', cle).limit(1);
+  if (!def?.[0]?.id) {
+    await client.from('param_definition').insert({ cle, module, libelle: key, type_valeur: 'json', type_gouvernance: 'operationnel', portee_min: 'societe', portee_max: 'societe' });
+  }
+  await setParamValue(adapter, cle, value, { portee: 'societe' });
+  // Miroir legacy (RPC gère le tenant en interne).
+  try { await client.rpc('upsert_setting', { p_key: key, p_value: JSON.stringify(value) }); } catch { /* legacy best-effort */ }
+}
+
 /** Journal des paramètres (changements chaînés par hash). */
 export async function listParamAudit(adapter: DataAdapter, limit = 100): Promise<ParamAuditRow[]> {
   const client = getClient(adapter);
