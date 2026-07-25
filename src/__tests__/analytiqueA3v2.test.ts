@@ -67,3 +67,19 @@ describe('C3 conditionnel (regle_condition)', () => {
     expect(c3(input).resultat).toBe('ok');
   });
 });
+
+describe('C10 — axe projet renseigné sur un plan Projets', () => {
+  const c10 = (input: ControlsInput) => evaluateControls(input).find(c => c.code === 'C10')!;
+  it('plan sans axe projet → n/a', () => {
+    expect(c10(baseInput()).resultat).toBe('na');
+  });
+  it('plan Projets sans reliquat → conforme', () => {
+    expect(c10({ ...baseInput(), planHasProjetAxe: true, reliquatCount: 0 }).resultat).toBe('ok');
+  });
+  it('plan Projets avec reliquat → rejet bloquant (lignes sans projet)', () => {
+    const r = c10({ ...baseInput(), planHasProjetAxe: true, reliquatCount: 4 });
+    expect(r.resultat).toBe('ko');
+    expect(r.severite).toBe('bloquant');
+    expect(r.detail.lignes_sans_projet).toBe(4);
+  });
+});

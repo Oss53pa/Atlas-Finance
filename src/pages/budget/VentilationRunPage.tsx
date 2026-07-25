@@ -70,6 +70,7 @@ const VentilationRunPage: React.FC = () => {
   const [queueCount, setQueueCount] = useState(0);
   const [plans, setPlans] = useState<AnaPlan[]>([]);
   const [planId, setPlanId] = useState<string>('');
+  const [historique, setHistorique] = useState(false);
   const [transfers, setTransfers] = useState<SecondaryTransfer[]>([]);
   const [keys, setKeys] = useState<AllocationKey[]>([]);
   const [nk, setNk] = useState({ code: '', libelle: '', unite: '' });
@@ -161,13 +162,13 @@ const VentilationRunPage: React.FC = () => {
     try {
       let rep: RunReport;
       try {
-        rep = await runVentilation(adapter, parseInt(annee, 10), null, undefined, planId || undefined);
+        rep = await runVentilation(adapter, parseInt(annee, 10), null, undefined, planId || undefined, historique);
       } catch (e: any) {
         // Après publication, un nouveau run exige une justification (CDC §7).
         if (String(e?.message || '').toLowerCase().includes('justification')) {
           const j = window.prompt('Une version publiée existe pour ce plan/exercice. Justification du nouveau run :');
           if (!j || !j.trim()) { toast.error('Run annulé : justification requise.'); return; }
-          rep = await runVentilation(adapter, parseInt(annee, 10), null, j.trim(), planId || undefined);
+          rep = await runVentilation(adapter, parseInt(annee, 10), null, j.trim(), planId || undefined, historique);
         } else throw e;
       }
       setReport(rep);
@@ -257,6 +258,9 @@ const VentilationRunPage: React.FC = () => {
             <Bot className="w-4 h-4" />{prophetLoading ? 'Analyse…' : 'Commentaire PROPH3T'}
           </button>
         )}
+        <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer" title="Marque le run comme reconstitution d'un exercice historique importé">
+          <input type="checkbox" checked={historique} onChange={e => setHistorique(e.target.checked)} />rétroactif
+        </label>
         <button onClick={launch} disabled={running} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2">
           <Play className="w-4 h-4" />{running ? 'Run en cours…' : 'Lancer le run'}
         </button>
@@ -583,7 +587,7 @@ const VentilationRunPage: React.FC = () => {
               return (
                 <tr key={r.id} className="hover:bg-gray-50">
                   <td className="px-4 py-2.5 text-gray-600 text-xs">{new Date(r.executed_at).toLocaleString('fr-FR')}</td>
-                  <td className="px-4 py-2.5 text-center text-gray-500 font-mono text-xs">{r.version_run}</td>
+                  <td className="px-4 py-2.5 text-center text-gray-500 font-mono text-xs">v{r.version_run}{r.historique && <span title="Historique reconstitué" className="ml-1 text-[9px] px-1 rounded bg-purple-100 text-purple-700">H</span>}</td>
                   <td className="px-4 py-2.5 text-right text-gray-800">{Number(r.couverture_pct).toFixed(1)}%</td>
                   <td className="px-4 py-2.5 text-center text-gray-600">{r.nb_lignes_ventilees}/{r.nb_lignes_gl}</td>
                   <td className="px-4 py-2.5 text-center">{r.reconcilie ? <CheckCircle className="w-4 h-4 text-green-600 inline" /> : <AlertTriangle className="w-4 h-4 text-red-500 inline" />}</td>

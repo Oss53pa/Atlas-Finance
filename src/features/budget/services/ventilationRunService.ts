@@ -100,6 +100,8 @@ export interface AllocationRun {
   executed_at: string;
   publie_le: string | null;
   publie_par: string | null;
+  version_referentiel_id: string | null;
+  historique: boolean;
 }
 
 export interface SecondaryTransfer {
@@ -138,6 +140,25 @@ function auditHash(input: string): string {
     h = Math.imul(h, 0x01000193);
   }
   return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Garantit une version de référentiel pour (tenant, plan) : hash le snapshot du
+ * paramétrage ; si identique à la dernière version, la réutilise (reproductibilité),
+ * sinon en crée une nouvelle. Retourne l'id de version.
+ */
+async function ensureReferentielVersion(client: any, tenantId: string, planId: string | null, snapshot: any): Promise<string | null> {
+  const hash = auditHash(JSON.stringify(snapshot));
+  let q = client.from('ana_referentiel_version').select('id,numero,hash').eq('tenant_id', tenantId);
+  q = planId ? q.eq('plan_id', planId) : q.is('plan_id', null);
+  const { data } = await q.order('numero', { ascending: false }).limit(1);
+  const latest = data?.[0];
+  if (latest && latest.hash === hash) return latest.id;
+  const numero = ((latest?.numero as number) || 0) + 1;
+  const { data: ins, error } = await client.from('ana_referentiel_version')
+    .insert({ tenant_id: tenantId, plan_id: planId, numero, snapshot, hash }).select('id').single();
+  if (error) throw new Error(error.message);
+  return (ins as any)?.id ?? null;
 }
 
 // ── Règles ───────────────────────────────────────────────────────────────────
@@ -323,7 +344,7 @@ function matchRuleOfType(line: any, rules: AllocationRule[], type: RuleType): Al
  * réel, écrit les ventilations (idempotent), calcule couverture & réconciliation,
  * trace le run (immuable). Renvoie le rapport.
  */
-export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null, planId?: string | null): Promise<RunReport> {
+export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null, planId?: string | null, historique?: boolean): Promise<RunReport> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = tenantOf(adapter);
@@ -355,7 +376,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   // Méta sections (nature, statut) + axes (type sémantique, règle conditionnelle) pour C3/C4/C5.
   const [{ data: secData }, { data: axeData }] = await Promise.all([
     client.from('sections_analytiques').select('id,axe_id,nature,statut'),
-    client.from('axes_analytiques').select('id,type_axe,conditionnel,regle_condition'),
+    client.from('axes_analytiques').select('id,type_axe,conditionnel,regle_condition,plan_id'),
   ]);
   const axeById = new Map<string, { type_axe: string | null; regle_condition: Record<string, string> | null }>(
     (axeData ?? []).map((a: any) => [a.id, { type_axe: a.type_axe ?? null, regle_condition: a.conditionnel ? (a.regle_condition ?? null) : null }]));
@@ -364,6 +385,8 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
       const ax = axeById.get(s.axe_id);
       return [s.id, { nature: s.nature ?? null, type_axe: ax?.type_axe ?? null, statut: s.statut ?? null, regle_condition: ax?.regle_condition ?? null }];
     }));
+  // Le plan porte-t-il un axe « projet » ? (contrôle C10 : reliquat = ligne sans projet)
+  const planHasProjetAxe = (axeData ?? []).some((a: any) => a.type_axe === 'projet' && (planId ? a.plan_id === planId : true));
 
   // Montant analytique en centimes entiers (debit - credit).
   const cents = (l: any) => Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100);
@@ -514,13 +537,24 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
   }
 
-  // 2) Run inséré AVANT les ventilations (FK ventilations.run_id → run). Id explicite.
+  // 2) Version de référentiel (snapshot du paramétrage) pour la reproductibilité.
+  const snapshot = {
+    rules: rules.map(r => [r.type, r.ordre, r.compte_pattern, r.journal_pattern, r.libelle_pattern, r.tiers_pattern, r.section_id, r.key_id, r.source_section_id, r.comportement, r.pct_variable, r.plan_id, r.actif]),
+    axes: axeData ?? [],
+    sections: secData ?? [],
+    keys: [...keyWeightsMap.entries()].map(([kid, ws]) => [kid, ws.map(w => [w.section_id, w.valeur])]),
+  };
+  const versionReferentielId = await ensureReferentielVersion(client, tenantId, planId ?? null, snapshot);
+
+  // 3) Run inséré AVANT les ventilations (FK ventilations.run_id → run). Id explicite.
   {
     const { error } = await client.from('fna_allocation_run').insert({
       id: runId,
       tenant_id: tenantId,
       exercice,
       plan_id: planId ?? null,
+      version_referentiel_id: versionReferentielId,
+      historique: !!historique,
       statut: reconcilie ? 'success' : 'failed',
       phase: 'simule',
       version_run: versionRun,
@@ -561,6 +595,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   const controls = evaluateControls({
     reconcilie, couverturePct: couverture, reliquatCount: reliquatRows.length,
     ventRows, transferRows, lineCode, sectionMeta, hasSecondaire: secondaireRules.length > 0,
+    planHasProjetAxe,
   });
   {
     const rows = controls.map(c => ({ tenant_id: tenantId, run_id: runId, code: c.code, severite: c.severite, resultat: c.resultat, detail: c.detail }));

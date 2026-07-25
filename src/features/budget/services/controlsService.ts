@@ -30,6 +30,7 @@ export interface ControlsInput {
   lineCode: Map<string, string>;                // ligne_ecriture_id → account_code
   sectionMeta: Map<string, { nature: string | null; type_axe: string | null; statut?: string | null; regle_condition?: Record<string, string> | null }>;
   hasSecondaire: boolean;
+  planHasProjetAxe?: boolean;                    // le plan courant porte un axe « projet » (C10)
 }
 
 const isAux = (nature: string | null | undefined): boolean => !!nature && /aux/i.test(nature);
@@ -101,12 +102,20 @@ export function evaluateControls(input: ControlsInput): ControlResult[] {
   // C6 — Σ % d'une règle multi-sections = 100 : pas de règle multi_pct en V1.
   out.push({ code: 'C6', severite: 'bloquant', resultat: 'na', detail: { note: 'pas de règle multi-sections à pourcentages en V1' } });
 
-  // C7..C10 — posés (typés), implémentés en A·3 vague 2 (clés variables, écarts,
-  // double validation, plan Projets).
-  const stub = (code: ControlCode, severite: ControlSeverite): ControlResult =>
-    ({ code, severite, resultat: 'na', detail: { note: 'implémenté en A·3 vague 2' } });
-  out.push(stub('C7', 'avertissement'), stub('C8', 'avertissement'),
-    stub('C9', 'avertissement'), stub('C10', 'bloquant'));
+  // C10 — sur un plan « Projets », toute ligne cl.6/7 doit porter un projet ;
+  // le reliquat (non fléché) = lignes sans projet → bloquant.
+  if (input.planHasProjetAxe) {
+    out.push({ code: 'C10', severite: 'bloquant', resultat: input.reliquatCount === 0 ? 'ok' : 'ko',
+      detail: { lignes_sans_projet: input.reliquatCount } });
+  } else {
+    out.push({ code: 'C10', severite: 'bloquant', resultat: 'na', detail: { note: 'plan sans axe projet' } });
+  }
+
+  // C7..C9 — avertissements posés (typés), implémentés ultérieurement (clés
+  // variables rafraîchies, variation vs M-1/budget, double validation seuil).
+  const stub = (code: ControlCode): ControlResult =>
+    ({ code, severite: 'avertissement', resultat: 'na', detail: { note: 'avertissement — à implémenter' } });
+  out.push(stub('C7'), stub('C8'), stub('C9'));
 
   return out;
 }
