@@ -15,7 +15,7 @@ import {
   Eye, ChartBar, Target, BookOpen, Archive, Download,
   Upload, Save, FolderOpen, Home, ChevronDown, Link, PieChart,
   Video, Calendar, Folder, ArrowLeftRight, Tag, Layers, Book, Brain, History, Split, Inbox,
-  Boxes, Warehouse, PackageX, ArrowRightLeft, ClipboardList, ShieldCheck
+  Boxes, Warehouse, PackageX, ArrowRightLeft, ClipboardList, ShieldCheck, Mail
 } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { themes } from '../../styles/theme';
@@ -270,6 +270,7 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     dashboard: [
       { id: 'global-view', label: t('nav.globalView'), path: '/dashboard', icon: <Eye className="w-4 h-4" /> },
       { id: 'executive-view', label: t('nav.executiveView'), path: '/executive', icon: <TrendingUp className="w-4 h-4" /> },
+      { id: 'executive-digest', label: 'Vue Dirigeant', path: '/executive/digest', icon: <Mail className="w-4 h-4" /> },
       { id: 'kpis', label: t('nav.realtimeKpis'), path: '/dashboard/kpis', icon: <Activity className="w-4 h-4" /> },
       { id: 'alerts', label: t('nav.alerts'), path: '/dashboard/alerts', icon: <AlertTriangle className="w-4 h-4" />, badge: badgeCounts.alerts > 0 ? badgeCounts.alerts : undefined },
       { id: 'ai-insights', label: t('nav.aiInsights'), path: '/dashboard/ai-insights', icon: <Bot className="w-4 h-4" /> },
