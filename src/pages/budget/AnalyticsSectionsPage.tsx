@@ -9,7 +9,7 @@ import { useToast } from '../../hooks/useToast';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import {
-  listAxes, createAxe, updateAxe, deleteAxe, createSection, updateSection, deleteSection, setSectionStatut,
+  listAxes, createAxe, updateAxe, deleteAxe, createSection, updateSection, deleteSection, setSectionStatut, setAxeCondition,
   getSectionPerformance, applyVentilationRule, getVentilationCoverage,
   listVentilationBySection, clearSectionVentilation, getSectionAccountBreakdown,
   type Axe, type SectionPerformance, type VentilationCoverage, type SectionStatut,
@@ -213,6 +213,7 @@ const AnalyticsSectionsPage: React.FC = () => {
                     <>
                       <span className="flex-1 text-gray-800">{a.libelle}</span>
                       <span className="text-[11px] text-gray-400">{AXE_TYPES.find(t => t.v === (a.type_axe || ''))?.l !== '— Type —' ? AXE_TYPES.find(t => t.v === (a.type_axe || ''))?.l : ''}</span>
+                      <button onClick={() => setAxeCondition(adapter, a.id, !a.conditionnel).then(() => load()).catch((err: any) => toast.error(err?.message || 'Erreur'))} title="Axe conditionnel — contrôle C3 (classe de compte → type attendu : 6→coût, 7→revenu)" className={`text-[10px] px-1.5 py-0.5 rounded ${a.conditionnel ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>C3</button>
                       <button onClick={() => setEditAxe(p => ({ ...p, [a.id]: { libelle: a.libelle, type_axe: a.type_axe || '' } }))} className="text-gray-400 hover:text-[var(--color-primary)]" title="Modifier"><Pencil className="w-3.5 h-3.5" /></button>
                       <button onClick={() => removeAxe(a.id, a.code)} className="text-gray-400 hover:text-red-600" title="Supprimer"><Trash2 className="w-3.5 h-3.5" /></button>
                     </>

@@ -43,6 +43,7 @@ export interface AllocationRule {
   actif: boolean;
   comportement: Comportement | null;   // null = dériver du compte par nature
   pct_variable: number | null;         // part variable si comportement='mixte'
+  plan_id: string | null;              // plan analytique (null = legacy/tous plans)
 }
 
 /**
@@ -140,10 +141,13 @@ function auditHash(input: string): string {
 }
 
 // ── Règles ───────────────────────────────────────────────────────────────────
-export async function listRules(adapter: DataAdapter): Promise<AllocationRule[]> {
+export async function listRules(adapter: DataAdapter, planId?: string | null): Promise<AllocationRule[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data } = await client.from('fna_allocation_rule').select('*').order('ordre').order('created_at');
+  let q = client.from('fna_allocation_rule').select('*');
+  // Un plan voit ses propres règles + les règles legacy non rattachées (plan_id NULL).
+  if (planId) q = q.or(`plan_id.eq.${planId},plan_id.is.null`);
+  const { data } = await q.order('ordre').order('created_at');
   return (data ?? []) as AllocationRule[];
 }
 
@@ -151,7 +155,7 @@ export async function createRule(adapter: DataAdapter, rule: {
   type?: RuleType; ordre?: number; compte_pattern?: string; journal_pattern?: string;
   libelle_pattern?: string; tiers_pattern?: string; section_id: string;
   key_id?: string | null; source_section_id?: string | null;
-  comportement?: Comportement | null; pct_variable?: number | null;
+  comportement?: Comportement | null; pct_variable?: number | null; plan_id?: string | null;
 }): Promise<string> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
@@ -168,6 +172,7 @@ export async function createRule(adapter: DataAdapter, rule: {
     source_section_id: rule.source_section_id || null,
     comportement: rule.comportement || null,
     pct_variable: rule.comportement === 'mixte' ? (rule.pct_variable ?? null) : null,
+    plan_id: rule.plan_id || null,
     actif: true,
   }).select('id').single();
   if (error) throw new Error(error.message);
@@ -241,10 +246,12 @@ export async function toggleRule(adapter: DataAdapter, id: string, actif: boolea
 }
 
 // ── Historique des runs ──────────────────────────────────────────────────────
-export async function listRuns(adapter: DataAdapter, limit = 10): Promise<AllocationRun[]> {
+export async function listRuns(adapter: DataAdapter, limit = 10, planId?: string | null): Promise<AllocationRun[]> {
   const client = getClient(adapter);
   if (!client) return [];
-  const { data } = await client.from('fna_allocation_run').select('*').order('executed_at', { ascending: false }).limit(limit);
+  let q = client.from('fna_allocation_run').select('*');
+  if (planId) q = q.eq('plan_id', planId);
+  const { data } = await q.order('executed_at', { ascending: false }).limit(limit);
   return (data ?? []).map((r: any) => ({
     ...r,
     couverture_pct: Number(r.couverture_pct) || 0,
@@ -316,27 +323,28 @@ function matchRuleOfType(line: any, rules: AllocationRule[], type: RuleType): Al
  * réel, écrit les ventilations (idempotent), calcule couverture & réconciliation,
  * trace le run (immuable). Renvoie le rapport.
  */
-export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null): Promise<RunReport> {
+export async function runVentilation(adapter: DataAdapter, exercice: number, executedBy?: string | null, justification?: string | null, planId?: string | null): Promise<RunReport> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
   const tenantId = tenantOf(adapter);
 
-  // Versionnage & garde de re-run : après publication, un nouveau run exige une
-  // justification (le run publié reste immuable). Version incrémentée par exercice.
-  const { data: priorRuns } = await client.from('fna_allocation_run')
-    .select('version_run,phase').eq('exercice', exercice).order('version_run', { ascending: false }).limit(1);
+  // Versionnage & garde de re-run par (exercice, plan) : après publication, un
+  // nouveau run exige une justification (le run publié reste immuable).
+  const scopePlan = (q: any) => planId ? q.eq('plan_id', planId) : q.is('plan_id', null);
+  const { data: priorRuns } = await scopePlan(client.from('fna_allocation_run')
+    .select('version_run,phase').eq('exercice', exercice)).order('version_run', { ascending: false }).limit(1);
   const versionRun = ((priorRuns?.[0]?.version_run as number) || 0) + 1;
-  const { data: publishedRuns } = await client.from('fna_allocation_run')
-    .select('id').eq('exercice', exercice).eq('phase', 'publie').limit(1);
+  const { data: publishedRuns } = await scopePlan(client.from('fna_allocation_run')
+    .select('id').eq('exercice', exercice).eq('phase', 'publie')).limit(1);
   if ((publishedRuns?.length ?? 0) > 0 && !(justification && justification.trim())) {
-    throw new Error('Une version publiée existe pour cet exercice : une justification est requise pour lancer un nouveau run.');
+    throw new Error('Une version publiée existe pour ce plan/exercice : une justification est requise pour lancer un nouveau run.');
   }
   // Id de run généré côté client : fna_allocation_run est INSERT-ONLY en RLS (pas
   // d'UPDATE possible), donc on calcule tout en mémoire puis on insère le run
   // AVANT les ventilations (contrainte FK ventilations.run_id → run).
   const runId: string = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
 
-  const [rules, lines] = await Promise.all([listRules(adapter), loadGlLines(client, exercice)]);
+  const [rules, lines] = await Promise.all([listRules(adapter, planId), loadGlLines(client, exercice)]);
 
   // Affectations manuelles persistées (file de qualification) : ré-appliquées à
   // chaque run tant qu'aucune règle ne couvre la ligne. Clé = ligne_gl_id.
@@ -344,14 +352,18 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
     .select('ligne_gl_id,section_id').eq('statut', 'affecte').not('section_id', 'is', null);
   const manualMap = new Map<string, string>((qData ?? []).map((q: any) => [q.ligne_gl_id, q.section_id]));
 
-  // Méta sections (nature, statut) + axes (type sémantique) pour C3/C4/C5.
+  // Méta sections (nature, statut) + axes (type sémantique, règle conditionnelle) pour C3/C4/C5.
   const [{ data: secData }, { data: axeData }] = await Promise.all([
     client.from('sections_analytiques').select('id,axe_id,nature,statut'),
-    client.from('axes_analytiques').select('id,type_axe'),
+    client.from('axes_analytiques').select('id,type_axe,conditionnel,regle_condition'),
   ]);
-  const axeType = new Map<string, string | null>((axeData ?? []).map((a: any) => [a.id, a.type_axe ?? null]));
-  const sectionMeta = new Map<string, { nature: string | null; type_axe: string | null; statut?: string | null }>(
-    (secData ?? []).map((s: any) => [s.id, { nature: s.nature ?? null, type_axe: axeType.get(s.axe_id) ?? null, statut: s.statut ?? null }]));
+  const axeById = new Map<string, { type_axe: string | null; regle_condition: Record<string, string> | null }>(
+    (axeData ?? []).map((a: any) => [a.id, { type_axe: a.type_axe ?? null, regle_condition: a.conditionnel ? (a.regle_condition ?? null) : null }]));
+  const sectionMeta = new Map<string, { nature: string | null; type_axe: string | null; statut?: string | null; regle_condition?: Record<string, string> | null }>(
+    (secData ?? []).map((s: any) => {
+      const ax = axeById.get(s.axe_id);
+      return [s.id, { nature: s.nature ?? null, type_axe: ax?.type_axe ?? null, statut: s.statut ?? null, regle_condition: ax?.regle_condition ?? null }];
+    }));
 
   // Montant analytique en centimes entiers (debit - credit).
   const cents = (l: any) => Math.round(((Number(l.debit) || 0) - (Number(l.credit) || 0)) * 100);
@@ -486,13 +498,21 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
   const detail = { classes };
 
   // ── Persistance ordonnée ───────────────────────────────────────────────────
-  // 1) Idempotence : purge du périmètre (ventilations + reliquat en_attente ; les
-  //    affectations manuelles 'affecte' sont conservées). Transferts de l'exercice.
+  // 1) Idempotence : purge du périmètre, SCOPÉE AU PLAN (un run d'un plan ne doit
+  //    pas effacer les ventilations d'un autre plan sur les mêmes lignes ; on
+  //    nettoie aussi les ventilations legacy plan_id NULL). Reliquat en_attente
+  //    purgé (les affectations manuelles 'affecte' sont conservées).
   for (const c of chunk(lineIds, 200)) {
-    await client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
+    let del = client.from('ventilations_analytiques').delete().in('ligne_ecriture_id', c);
+    del = planId ? del.or(`plan_id.eq.${planId},plan_id.is.null`) : del.is('plan_id', null);
+    await del;
     await client.from('ana_qualification').delete().eq('statut', 'en_attente').in('ligne_gl_id', c);
   }
-  await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
+  // Transferts secondaires : ne toucher que si ce plan en produit (pas de plan_id
+  // sur fna_secondary_transfer en v2a → on évite d'effacer ceux d'un autre plan).
+  if (secondaireRules.length > 0) {
+    await client.from('fna_secondary_transfer').delete().eq('exercice', exercice);
+  }
 
   // 2) Run inséré AVANT les ventilations (FK ventilations.run_id → run). Id explicite.
   {
@@ -500,6 +520,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
       id: runId,
       tenant_id: tenantId,
       exercice,
+      plan_id: planId ?? null,
       statut: reconcilie ? 'success' : 'failed',
       phase: 'simule',
       version_run: versionRun,
@@ -519,7 +540,7 @@ export async function runVentilation(adapter: DataAdapter, exercice: number, exe
 
   // 3) Ventilations, transferts, reliquat.
   for (const c of chunk(ventRows, 500)) {
-    const { error } = await client.from('ventilations_analytiques').insert(c);
+    const { error } = await client.from('ventilations_analytiques').insert(c.map(v => ({ ...v, plan_id: planId ?? null })));
     if (error) throw new Error(error.message);
   }
   for (const c of chunk(transferRows, 500)) {

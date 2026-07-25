@@ -28,7 +28,7 @@ export interface ControlsInput {
   ventRows: Array<{ section_id: string; ligne_ecriture_id: string; montant: number }>;
   transferRows: Array<{ from_section_id: string; to_section_id: string; montant: number }>;
   lineCode: Map<string, string>;                // ligne_ecriture_id → account_code
-  sectionMeta: Map<string, { nature: string | null; type_axe: string | null; statut?: string | null }>;
+  sectionMeta: Map<string, { nature: string | null; type_axe: string | null; statut?: string | null; regle_condition?: Record<string, string> | null }>;
   hasSecondaire: boolean;
 }
 
@@ -51,15 +51,23 @@ export function evaluateControls(input: ControlsInput): ControlResult[] {
   out.push({ code: 'C2', severite: 'bloquant', resultat: input.reliquatCount === 0 ? 'ok' : 'ko',
     detail: { reliquat: input.reliquatCount, couverture_pct: input.couverturePct } });
 
-  // C3 — Cohérence sémantique axe/classe.
-  const c3: Array<{ ligne_id: string; account_code: string; type_axe: string | null }> = [];
+  // C3 — Cohérence sémantique axe/classe. Si l'axe de la section est CONDITIONNEL
+  // (regle_condition : classe → type attendu), on applique cette table ; sinon on
+  // retombe sur l'heuristique (7x⇏centre_cout, 6x⇏centre_revenu).
+  const c3: Array<{ ligne_id: string; account_code: string; type_axe: string | null; attendu?: string }> = [];
   for (const v of input.ventRows) {
     const code = input.lineCode.get(v.ligne_ecriture_id) || '';
     const meta = input.sectionMeta.get(v.section_id);
     if (!meta) continue;
     const t = meta.type_axe;
-    if (/^7/.test(code) && t === 'centre_cout') c3.push({ ligne_id: v.ligne_ecriture_id, account_code: code, type_axe: t });
-    if (/^6/.test(code) && t === 'centre_revenu') c3.push({ ligne_id: v.ligne_ecriture_id, account_code: code, type_axe: t });
+    const cls = code.charAt(0);
+    if (meta.regle_condition && meta.regle_condition[cls]) {
+      const attendu = meta.regle_condition[cls];
+      if (t && t !== attendu) c3.push({ ligne_id: v.ligne_ecriture_id, account_code: code, type_axe: t, attendu });
+    } else {
+      if (/^7/.test(code) && t === 'centre_cout') c3.push({ ligne_id: v.ligne_ecriture_id, account_code: code, type_axe: t });
+      if (/^6/.test(code) && t === 'centre_revenu') c3.push({ ligne_id: v.ligne_ecriture_id, account_code: code, type_axe: t });
+    }
   }
   out.push({ code: 'C3', severite: 'bloquant', resultat: c3.length ? 'ko' : 'ok',
     detail: { count: c3.length, violations: c3.slice(0, 50) } });

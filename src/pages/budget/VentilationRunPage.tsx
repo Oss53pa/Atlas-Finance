@@ -23,8 +23,9 @@ import {
 } from '../../features/budget/services/ventilationRunService';
 import { listControls, type ControlResult } from '../../features/budget/services/controlsService';
 import { countQueue } from '../../features/budget/services/qualificationService';
+import { listPlans, createPlan, ensureDefaultPlan, type AnaPlan } from '../../features/budget/services/planService';
 import {
-  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox, Network, Gauge, Lock, Send, FileText,
+  ArrowLeft, Split, Play, Plus, Trash2, CheckCircle, AlertTriangle, ShieldCheck, Hash, Search, ExternalLink, Scale, Save, Bot, BookOpen, ListChecks, Inbox, Network, Gauge, Lock, Send, FileText, Layers,
 } from 'lucide-react';
 
 const PHASE_STYLE: Record<string, { label: string; cls: string }> = {
@@ -67,6 +68,8 @@ const VentilationRunPage: React.FC = () => {
   const [nr, setNr] = useState<{ type: RuleType; compte_pattern: string; journal_pattern: string; libelle_pattern: string; tiers_pattern: string; section_id: string; key_id: string; source_section_id: string; comportement: '' | Comportement }>({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '', comportement: '' });
   const [controls, setControls] = useState<ControlResult[]>([]);
   const [queueCount, setQueueCount] = useState(0);
+  const [plans, setPlans] = useState<AnaPlan[]>([]);
+  const [planId, setPlanId] = useState<string>('');
   const [transfers, setTransfers] = useState<SecondaryTransfer[]>([]);
   const [keys, setKeys] = useState<AllocationKey[]>([]);
   const [nk, setNk] = useState({ code: '', libelle: '', unite: '' });
@@ -75,15 +78,19 @@ const VentilationRunPage: React.FC = () => {
   const [prophet, setProphet] = useState<string | null>(null);
   const [prophetLoading, setProphetLoading] = useState(false);
 
-  const load = async () => {
+  const load = async (forcePlan?: string) => {
     setLoading(true);
     try {
       const a = annee || await getDefaultAnnee(adapter);
+      // Plans : garantit le plan PRINCIPAL, sélectionne le plan courant.
+      let pls = await listPlans(adapter);
+      if (pls.length === 0) { await ensureDefaultPlan(adapter); pls = await listPlans(adapter); }
+      const pid = forcePlan || planId || pls[0]?.id || '';
       const [secs, rl, rn, rc, ks, tr, qc] = await Promise.all([
-        listSections(adapter), listRules(adapter), listRuns(adapter), getReconciliation(adapter, a), listKeys(adapter),
+        listSections(adapter), listRules(adapter, pid || undefined), listRuns(adapter, 10, pid || undefined), getReconciliation(adapter, a), listKeys(adapter),
         getSecondaryTransfers(adapter, parseInt(a, 10)), countQueue(adapter),
       ]);
-      setAnnee(a); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc); setKeys(ks); setTransfers(tr); setQueueCount(qc);
+      setAnnee(a); setPlans(pls); setPlanId(pid); setSections(secs); setRules(rl); setRuns(rn); setRecon(rc); setKeys(ks); setTransfers(tr); setQueueCount(qc);
       // Contrôles du dernier run (rapport persisté), si un run existe.
       if (rn[0]?.id) { try { setControls(await listControls(adapter, rn[0].id)); } catch { /* table absente : ignore */ } }
     } catch (e: any) { toast.error(e?.message || 'Erreur'); }
@@ -114,6 +121,7 @@ const VentilationRunPage: React.FC = () => {
         key_id: nr.type === 'DIRECT' ? null : nr.key_id,
         source_section_id: nr.type === 'SECONDAIRE' ? nr.source_section_id : null,
         comportement: nr.type === 'SECONDAIRE' ? null : (nr.comportement || null),
+        plan_id: planId || null,
       });
       setNr({ type: 'DIRECT', compte_pattern: '', journal_pattern: '', libelle_pattern: '', tiers_pattern: '', section_id: '', key_id: '', source_section_id: '', comportement: '' });
       toast.success('Règle ajoutée'); load();
@@ -153,13 +161,13 @@ const VentilationRunPage: React.FC = () => {
     try {
       let rep: RunReport;
       try {
-        rep = await runVentilation(adapter, parseInt(annee, 10));
+        rep = await runVentilation(adapter, parseInt(annee, 10), null, undefined, planId || undefined);
       } catch (e: any) {
         // Après publication, un nouveau run exige une justification (CDC §7).
         if (String(e?.message || '').toLowerCase().includes('justification')) {
-          const j = window.prompt('Une version publiée existe pour cet exercice. Justification du nouveau run :');
+          const j = window.prompt('Une version publiée existe pour ce plan/exercice. Justification du nouveau run :');
           if (!j || !j.trim()) { toast.error('Run annulé : justification requise.'); return; }
-          rep = await runVentilation(adapter, parseInt(annee, 10), null, j.trim());
+          rep = await runVentilation(adapter, parseInt(annee, 10), null, j.trim(), planId || undefined);
         } else throw e;
       }
       setReport(rep);
@@ -175,6 +183,15 @@ const VentilationRunPage: React.FC = () => {
   const publish = async (runId: string) => {
     try { await publishRun(adapter, runId); toast.success('Run publié — verrouillé (immuable).'); load(); }
     catch (e: any) { toast.error(e?.message || 'Publication impossible'); }
+  };
+
+  const changePlan = (id: string) => { setPlanId(id); void load(id); };
+  const addPlan = async () => {
+    const code = window.prompt('Code du nouveau plan (ex. PROJETS, FRAIS_GENERAUX) :');
+    if (!code || !code.trim()) return;
+    const libelle = window.prompt('Libellé du plan :', code.trim()) || code.trim();
+    try { const id = await createPlan(adapter, { code: code.trim(), libelle: libelle.trim() }); toast.success('Plan créé'); changePlan(id); }
+    catch (e: any) { toast.error(e?.message || 'Création impossible'); }
   };
 
   const runProphet = async () => {
@@ -217,6 +234,15 @@ const VentilationRunPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">Moteur de Ventilation</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">Reconstruction analytique du grand livre · Exercice {annee} · déterministe & réconcilié</p>
         </div>
+        {plans.length > 0 && (
+          <div className="flex items-center gap-1" title="Plan analytique (le run est scopé au plan sélectionné)">
+            <Layers className="w-4 h-4 text-[var(--color-primary)]" />
+            <select value={planId} onChange={e => changePlan(e.target.value)} className="border border-[var(--color-border)] rounded-lg px-2 py-2 text-sm bg-white">
+              {plans.map(p => <option key={p.id} value={p.id}>{p.code} · {p.libelle}</option>)}
+            </select>
+            <button onClick={addPlan} className="p-2 rounded-lg border border-[var(--color-border)] text-gray-500 hover:bg-gray-50" title="Nouveau plan"><Plus className="w-4 h-4" /></button>
+          </div>
+        )}
         <button onClick={() => navigate('/analytique/dependance')} className="px-3 py-2 text-sm border border-[var(--color-border)] text-gray-600 rounded-lg hover:bg-gray-50 flex items-center gap-2" title="Concentration & dépendance tiers">
           <Network className="w-4 h-4" />Dépendance
         </button>
@@ -426,7 +452,7 @@ const VentilationRunPage: React.FC = () => {
                 <div className="text-sm"><span className="font-mono text-gray-500">{k.code}</span> <span className="text-gray-800">{k.libelle}</span>{k.unite && <span className="text-xs text-gray-400 ml-1">({k.unite})</span>}</div>
                 <div className="flex items-center gap-3">
                   <button onClick={() => openKeyWeights(k.id)} className="text-xs text-[var(--color-primary)] hover:underline">{editKey === k.id ? 'Fermer' : 'Définir les poids'}</button>
-                  <button onClick={() => deleteKey(adapter, k.id).then(load)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => deleteKey(adapter, k.id).then(() => load())} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               </div>
               {editKey === k.id && (
@@ -518,7 +544,7 @@ const VentilationRunPage: React.FC = () => {
                 <td className="px-4 py-2.5 text-gray-800">{r.type === 'SECONDAIRE' ? <>{sectionLabel(r.source_section_id || '')} <span className="text-gray-400">→</span> {keyLabel(r.key_id)}</> : r.type === 'PRIMAIRE' ? keyLabel(r.key_id) : sectionLabel(r.section_id)}</td>
                 <td className="px-4 py-2.5">
                   {r.type === 'SECONDAIRE' ? <span className="text-gray-300 text-xs">—</span> : (
-                    <select value={r.comportement || ''} onChange={e => setRuleComportement(adapter, r.id, (e.target.value || null) as Comportement | null).then(load)} className="border border-gray-200 rounded px-1.5 py-1 text-xs bg-white" title="Comportement (vide = déduit du compte par nature)">
+                    <select value={r.comportement || ''} onChange={e => setRuleComportement(adapter, r.id, (e.target.value || null) as Comportement | null).then(() => load())} className="border border-gray-200 rounded px-1.5 py-1 text-xs bg-white" title="Comportement (vide = déduit du compte par nature)">
                       <option value="">auto</option>
                       <option value="fixe">Fixe</option>
                       <option value="variable">Variable</option>
@@ -526,8 +552,8 @@ const VentilationRunPage: React.FC = () => {
                     </select>
                   )}
                 </td>
-                <td className="px-4 py-2.5 text-center"><input type="checkbox" checked={r.actif} onChange={e => toggleRule(adapter, r.id, e.target.checked).then(load)} /></td>
-                <td className="px-4 py-2.5 text-right"><button onClick={() => deleteRule(adapter, r.id).then(load)} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button></td>
+                <td className="px-4 py-2.5 text-center"><input type="checkbox" checked={r.actif} onChange={e => toggleRule(adapter, r.id, e.target.checked).then(() => load())} /></td>
+                <td className="px-4 py-2.5 text-right"><button onClick={() => deleteRule(adapter, r.id).then(() => load())} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button></td>
               </tr>
             ))}
           </tbody>
