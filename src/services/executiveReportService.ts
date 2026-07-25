@@ -16,12 +16,15 @@ import { supabase } from '../lib/supabase';
 const db = supabase as unknown as SupabaseClient;
 
 export type ReportFrequency = 'weekly' | 'monthly';
+/** Période couverte par la synthèse envoyée. */
+export type ReportPeriode = 'exercice' | 'mois' | 'trimestre' | 'cumul';
 
 export interface ExecutiveReportSchedule {
   id?: string;
   tenant_id?: string;
   enabled: boolean;
   frequency: ReportFrequency;
+  periode: ReportPeriode;  // période couverte par l'email (défaut: exercice)
   send_hour: number;   // 0-23 (UTC)
   weekday: number;     // 0 (dim) … 6 (sam) — utilisé si frequency === 'weekly'
   month_day: number;   // 1-28 — utilisé si frequency === 'monthly'
@@ -33,6 +36,7 @@ export interface ExecutiveReportSchedule {
 export const DEFAULT_SCHEDULE: ExecutiveReportSchedule = {
   enabled: false,
   frequency: 'monthly',
+  periode: 'exercice',
   send_hour: 7,
   weekday: 1,
   month_day: 1,
@@ -94,6 +98,7 @@ export async function loadSchedule(): Promise<ExecutiveReportSchedule> {
     tenant_id: data.tenant_id,
     enabled: !!data.enabled,
     frequency: (data.frequency as ReportFrequency) || 'monthly',
+    periode: (data.periode as ReportPeriode) || 'exercice',
     send_hour: data.send_hour ?? 7,
     weekday: data.weekday ?? 1,
     month_day: data.month_day ?? 1,
@@ -115,6 +120,7 @@ export async function saveSchedule(s: ExecutiveReportSchedule): Promise<Executiv
     tenant_id: tenantId,
     enabled: s.enabled,
     frequency: s.frequency,
+    periode: s.periode || 'exercice',
     send_hour: s.send_hour,
     weekday: s.weekday,
     month_day: s.month_day,
@@ -135,6 +141,7 @@ export async function saveSchedule(s: ExecutiveReportSchedule): Promise<Executiv
     tenant_id: data.tenant_id,
     enabled: !!data.enabled,
     frequency: data.frequency as ReportFrequency,
+    periode: (data.periode as ReportPeriode) || 'exercice',
     send_hour: data.send_hour,
     weekday: data.weekday,
     month_day: data.month_day,
