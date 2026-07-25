@@ -31,7 +31,7 @@ import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
 import {
   loadSchedule, saveSchedule, sendTestReport, isValidEmail,
-  DEFAULT_SCHEDULE, type ExecutiveReportSchedule, type ReportFrequency,
+  DEFAULT_SCHEDULE, type ExecutiveReportSchedule, type ReportFrequency, type ReportPeriode,
 } from '../../services/executiveReportService';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler);
@@ -196,6 +196,9 @@ const ExecutiveDigest: React.FC = () => {
   const creances = m.h.net('41');
   const periodDays = 30; // approximation DSO sur base mensualisée
   const dso = m.ca > 0 ? Math.max(0, Math.round((creances / m.ca) * 365)) : 0;
+  // DPO — délai de paiement fournisseurs : dettes 40x (créditeur) / achats (cl.60) × 365.
+  const dettesFrs = m.h.creditNet('40');
+  const dpo = achatsPeriod > 0 ? Math.max(0, Math.round((dettesFrs / achatsPeriod) * 365)) : 0;
   const nbFactures = monthly.reduce((s, x) => s + x.invoices, 0);
   const panierMoyen = nbFactures > 0 ? m.ca / (selMonth === 'all' ? nbFactures : Math.max(1, monthly[selMonth as number]?.invoices || 0)) : 0;
 
@@ -209,7 +212,7 @@ const ExecutiveDigest: React.FC = () => {
   const invoiceSeries = monthly.map((x) => x.invoices);
   const newClientSeries = monthly.map((x) => x.newClients);
   const panierSeries = monthly.map((x) => (x.invoices > 0 ? Math.round(x.ca / x.invoices) : 0));
-  const growthSeries = caSeries.map((v, i) => (i > 0 && caSeries[i - 1] ? Math.round(((v - caSeries[i - 1]) / Math.abs(caSeries[i - 1])) * 100) : 0));
+  const achatsSeries = monthly.map((x) => Math.round(x.achats));
 
   // ─── Répartition des charges (classe 6) sur la période ───
   const chargeBreakdown = useMemo(() => {
@@ -239,7 +242,7 @@ const ExecutiveDigest: React.FC = () => {
     { label: 'Nouveaux clients', value: String(newClientSeries.reduce((s, x) => s + x, 0)), unit: '', icon: UserPlus, series: newClientSeries, delta: deltaOf(newClientSeries) },
     { label: 'Panier moyen', value: fmt(panierMoyen), unit: 'FCFA', icon: ShoppingCart, series: panierSeries, delta: deltaOf(panierSeries) },
     { label: 'Délai paiement (DSO)', value: `${dso}`, unit: 'jours', icon: Timer, series: invoiceSeries, delta: deltaOf(invoiceSeries) },
-    { label: 'Croissance CA', value: (deltaOf(caSeries).value), unit: '', icon: BarChart3, series: growthSeries, delta: deltaOf(caSeries) },
+    { label: 'Délai paiement (DPO)', value: `${dpo}`, unit: 'jours', icon: Timer, series: achatsSeries, delta: deltaOf(achatsSeries) },
   ];
 
   // ─── Graphe : évolution du CA ───
@@ -315,7 +318,7 @@ const ExecutiveDigest: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto" style={{ color: 'var(--color-text-primary)' }}>
+    <div className="p-6 w-full" style={{ color: 'var(--color-text-primary)' }}>
       {/* ═══ En-tête ═══ */}
       <div className="flex items-start justify-between gap-4 mb-6 flex-wrap">
         <div className="flex items-start gap-3">
@@ -477,6 +480,17 @@ const ExecutiveDigest: React.FC = () => {
                     {Array.from({ length: 24 }, (_, i) => i).map((h) => <option key={h} value={h}>{String(h).padStart(2, '0')}h00</option>)}
                   </select>
                 </div>
+              </div>
+              {/* Période couverte par la synthèse */}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wide flex items-center gap-1" style={{ color: 'var(--color-text-secondary)' }}><Calendar className="w-3 h-3" /> Période</label>
+                <select value={schedule.periode} onChange={(e) => patch({ periode: e.target.value as ReportPeriode })} className="mt-2 w-full px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
+                  <option value="exercice">Exercice complet</option>
+                  <option value="mois">Mois en cours</option>
+                  <option value="trimestre">Trimestre en cours</option>
+                  <option value="cumul">Cumul annuel à date</option>
+                </select>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>Période couverte par la synthèse envoyée.</p>
               </div>
               {/* Destinataires */}
               <div>
