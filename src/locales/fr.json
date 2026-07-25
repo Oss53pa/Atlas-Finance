@@ -2556,6 +2556,7 @@
     "subtabDetail": "Détail par client",
     "subtabRisks": "Clients à risque & Recommandations",
     "distributionTitle": "Distribution des Créances",
+    "overdueRate": "Créances en retard",
     "total": "Total",
     "clientsCount": "{count} clients",
     "detailByBucket": "Détail par Tranche d'Ancienneté",

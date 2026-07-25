@@ -121,10 +121,16 @@ export const UnifiedCard: React.FC<UnifiedCardProps> = ({
   };
 
   const baseStyle: React.CSSProperties = {
-    background: variant === 'outlined' ? 'transparent' : 'var(--color-surface)',
+    // Voile de profondeur sur la variante elevated (sans overflow:hidden — évite
+    // de rogner menus/tooltips rendus à l'intérieur des cartes conteneurs).
+    background: variant === 'outlined'
+      ? 'transparent'
+      : variant === 'elevated'
+        ? 'linear-gradient(180deg, rgba(184,149,74,0.045) 0%, transparent 42%), var(--color-surface)'
+        : 'var(--color-surface)',
     border: '1px solid var(--color-border)',
     borderRadius: 'var(--radius-lg)',
-    boxShadow: variant === 'elevated' ? 'var(--shadow-md)' : 'var(--shadow-sm)',
+    boxShadow: variant === 'elevated' ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
     padding: sizes[size],
     cursor: onClick ? 'pointer' : 'default',
     transition: 'box-shadow var(--motion-normal), border-color var(--motion-normal), transform var(--motion-normal)',
@@ -469,6 +475,14 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
   className = '',
   gradient = 'warm'
 }) => {
+  // La prop `gradient` pilote la teinte d'accent (filet + tuile d'icône + voile
+  // d'en-tête) pour différencier visuellement les cartes selon leur nature.
+  const GRAD: Record<NonNullable<ModernChartCardProps['gradient']>, { accent: string; tile: string; wash: string }> = {
+    warm:    { accent: '#B8954A', tile: 'linear-gradient(135deg, #C4A65C 0%, #9E6322 100%)', wash: 'rgba(184,149,74,0.06)' },
+    cool:    { accent: '#235A6E', tile: 'linear-gradient(135deg, #2C6E86 0%, #163A46 100%)', wash: 'rgba(35,90,110,0.06)' },
+    neutral: { accent: '#8A8170', tile: 'linear-gradient(135deg, #9A9080 0%, #5C5347 100%)', wash: 'rgba(138,129,112,0.05)' },
+  };
+  const g = GRAD[gradient];
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -477,30 +491,35 @@ export const ModernChartCard: React.FC<ModernChartCardProps> = ({
       className={`surface-card ${className}`}
       style={{ overflow: 'hidden', position: 'relative' }}
     >
-      {/* Filet gold supérieur subtil */}
+      {/* Filet d'accent supérieur — teinte selon le gradient */}
       <div
         aria-hidden
         style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-          background: 'linear-gradient(90deg, transparent 0%, var(--color-accent) 50%, transparent 100%)',
-          opacity: 0.40,
+          position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+          background: `linear-gradient(90deg, transparent 0%, ${g.accent} 50%, transparent 100%)`,
+          opacity: 0.55,
         }}
       />
       {/* Header */}
       <div
         className="flex items-center justify-between gap-4"
-        style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border-light)' }}
+        style={{
+          padding: '1rem 1.25rem',
+          borderBottom: '1px solid var(--color-border-light)',
+          background: `linear-gradient(180deg, ${g.wash} 0%, transparent 100%)`,
+        }}
       >
         <div className="flex items-center gap-3 min-w-0">
           <span
             className="shrink-0 inline-flex items-center justify-center"
             style={{
-              width: 30, height: 30, borderRadius: 8,
-              background: 'var(--color-accent-light)',
-              color: 'var(--color-accent-deep)',
+              width: 32, height: 32, borderRadius: 9,
+              background: g.tile,
+              color: '#fff',
+              boxShadow: `0 5px 12px -6px ${g.accent}99`,
             }}
           >
-            <Icon size={15} strokeWidth={1.5} />
+            <Icon size={15} strokeWidth={1.75} />
           </span>
           <div className="min-w-0">
             <h2
@@ -597,6 +616,91 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+};
+
+// Jauge radiale (anneau de progression) — pour taux, ratios, scores.
+interface RadialGaugeProps {
+  /** Valeur courante. */
+  value: number;
+  /** Valeur maximale (défaut 100). */
+  max?: number;
+  /** Diamètre en px (défaut 168). */
+  size?: number;
+  /** Épaisseur de l'anneau en px (défaut 13). */
+  thickness?: number;
+  color?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
+  /** Texte principal au centre. Par défaut : le pourcentage arrondi. */
+  centerValue?: string;
+  /** Légende sous la valeur centrale. */
+  label?: string;
+  /** Animation d'entrée décalée. */
+  delay?: number;
+}
+
+export const RadialGauge: React.FC<RadialGaugeProps> = ({
+  value,
+  max = 100,
+  size = 168,
+  thickness = 13,
+  color = 'primary',
+  centerValue,
+  label,
+  delay = 0,
+}) => {
+  const GT: Record<NonNullable<RadialGaugeProps['color']>, [string, string]> = {
+    primary: ['#2C6E86', '#163A46'],
+    success: ['#1F9C4C', '#0F5C2C'],
+    warning: ['#F0A945', '#C77E2C'],
+    error:   ['#D24239', '#93231D'],
+    neutral: ['#9A9080', '#5C5347'],
+  };
+  const [from, to] = GT[color];
+  const pct = Math.max(0, Math.min(1, max > 0 ? value / max : 0));
+  const r = (size - thickness) / 2;
+  const c = 2 * Math.PI * r;
+  const gradId = 'gauge-grad-' + React.useId().replace(/[^a-zA-Z0-9]/g, '');
+  const center = centerValue ?? `${Math.round(pct * 100)}%`;
+
+  return (
+    <div className="inline-flex flex-col items-center" style={{ width: size }}>
+      <div style={{ position: 'relative', width: size, height: size }}>
+        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={from} />
+              <stop offset="100%" stopColor={to} />
+            </linearGradient>
+          </defs>
+          <circle
+            cx={size / 2} cy={size / 2} r={r}
+            fill="none" stroke="var(--color-border-light)" strokeWidth={thickness}
+          />
+          <motion.circle
+            cx={size / 2} cy={size / 2} r={r}
+            fill="none" stroke={`url(#${gradId})`} strokeWidth={thickness} strokeLinecap="round"
+            strokeDasharray={c}
+            initial={{ strokeDashoffset: c }}
+            animate={{ strokeDashoffset: c * (1 - pct) }}
+            transition={{ delay, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          />
+        </svg>
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center text-center"
+          style={{ padding: thickness }}
+        >
+          <span
+            className="num-display"
+            style={{ fontSize: size * 0.2, fontWeight: 700, lineHeight: 1, letterSpacing: '-0.02em', color: 'var(--color-text-primary)' }}
+          >
+            {center}
+          </span>
+          {label && (
+            <span className="mt-1 text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{label}</span>
+          )}
+        </div>
       </div>
     </div>
   );
