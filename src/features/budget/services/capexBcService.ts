@@ -1,5 +1,6 @@
 import type { DataAdapter } from '@atlas/data';
 import { computeCapexMetrics } from '../../../utils/capexMetrics';
+import { resolveSetting } from '../../../services/param/paramService';
 
 /**
  * Business Case CAPEX structuré (refonte OPEX/CAPEX — Lot 5, §16).
@@ -123,12 +124,10 @@ export async function deleteRisque(adapter: DataAdapter, id: string): Promise<vo
   if (error) throw new Error(error.message);
 }
 
-/** WACC du tenant (settings 'wacc', défaut 0.12). */
+/** WACC du tenant (paramètre gouverné 'wacc' via le socle, défaut 0.12). */
 export async function getWacc(adapter: DataAdapter): Promise<number> {
-  const client = getClient(adapter);
-  if (!client) return 0.12;
-  const { data } = await client.from('settings').select('value').eq('key', 'wacc').limit(1);
-  const v = Number(data?.[0]?.value);
+  const raw = await resolveSetting<unknown>(adapter, 'wacc');
+  const v = Number(raw);
   return Number.isFinite(v) && v > 0 ? v : 0.12;
 }
 
