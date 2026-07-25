@@ -24,6 +24,7 @@ import {
   PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
+import { KPICard, RadialGauge } from '../../components/ui/DesignSystem';
 
 // Interface Client complète avec données comptables
 interface Client {
@@ -1150,59 +1151,63 @@ const ClientsModule: React.FC = () => {
             </div>
           </div>
 
-          {/* KPIs Balance Âgée */}
+          {/* KPIs Balance Âgée — cartes premium color-codées par sévérité (theme-aware) */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <Wallet className="w-5 h-5 text-blue-600" />
-              </div>
-              <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-              <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.colTotalReceivables')}</p>
-            </div>
-
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-xs text-green-600">{((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
-              </div>
-              <p className="text-lg font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
-              <p className="text-xs text-green-600">{t('clients.bucketNonEchu')}</p>
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-              <div className="flex items-center justify-between mb-2">
-                <Clock className="w-5 h-5 text-yellow-600" />
-                <span className="text-xs text-yellow-600">{((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
-              </div>
-              <p className="text-lg font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
-              <p className="text-xs text-yellow-600">{t('clients.bucket030')}</p>
-            </div>
-
-            <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-              <div className="flex items-center justify-between mb-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <span className="text-xs text-orange-600">{((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
-              </div>
-              <p className="text-lg font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
-              <p className="text-xs text-orange-600">{t('clients.bucket3160')}</p>
-            </div>
-
-            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-              <div className="flex items-center justify-between mb-2">
-                <AlertOctagon className="w-5 h-5 text-red-600" />
-                <span className="text-xs text-red-600">{(((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalCreances) * 100).toFixed(1)}%</span>
-              </div>
-              <p className="text-lg font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
-              <p className="text-xs text-red-600">{t('clients.bucketPlus60')}</p>
-            </div>
-
-            <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
-              <div className="flex items-center justify-between mb-2">
-                <Shield className="w-5 h-5 text-primary-600" />
-              </div>
-              <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-primary-600">{t('clients.provisions')}</p>
-            </div>
+            {(() => {
+              const tot = totauxBalanceAgee.totalCreances;
+              const pct = (v: number) => (tot > 0 ? `${((v / tot) * 100).toFixed(1)}%` : undefined);
+              const retard = totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90;
+              return (
+                <>
+                  <KPICard
+                    title={t('clients.colTotalReceivables')}
+                    value={formatCurrency(tot)}
+                    icon={Wallet}
+                    color="primary"
+                    valueFontSize="1.125rem"
+                  />
+                  <KPICard
+                    title={t('clients.bucketNonEchu')}
+                    value={formatCurrency(totauxBalanceAgee.nonEchu)}
+                    subtitle={pct(totauxBalanceAgee.nonEchu)}
+                    icon={CheckCircle}
+                    color="success"
+                    valueFontSize="1.125rem"
+                  />
+                  <KPICard
+                    title={t('clients.bucket030')}
+                    value={formatCurrency(totauxBalanceAgee.echu0_30)}
+                    subtitle={pct(totauxBalanceAgee.echu0_30)}
+                    icon={Clock}
+                    color="warning"
+                    valueFontSize="1.125rem"
+                  />
+                  <KPICard
+                    title={t('clients.bucket3160')}
+                    value={formatCurrency(totauxBalanceAgee.echu31_60)}
+                    subtitle={pct(totauxBalanceAgee.echu31_60)}
+                    icon={AlertTriangle}
+                    color="warning"
+                    valueFontSize="1.125rem"
+                  />
+                  <KPICard
+                    title={t('clients.bucketPlus60')}
+                    value={formatCurrency(retard)}
+                    subtitle={pct(retard)}
+                    icon={AlertOctagon}
+                    color="error"
+                    valueFontSize="1.125rem"
+                  />
+                  <KPICard
+                    title={t('clients.provisions')}
+                    value={formatCurrency(totauxBalanceAgee.provision)}
+                    icon={Shield}
+                    color="primary"
+                    valueFontSize="1.125rem"
+                  />
+                </>
+              );
+            })()}
           </div>
 
           {/* Sous-onglets Balance Âgée */}
@@ -1291,6 +1296,16 @@ const ClientsModule: React.FC = () => {
                           <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.clientsCount', { count: String(balanceAgeeData.length) })}</p>
                         </div>
                       </div>
+                    </div>
+                    {/* Jauge — part des créances échues (en retard) sur le total */}
+                    <div className="mt-5 flex justify-center">
+                      <RadialGauge
+                        value={totauxBalanceAgee.totalCreances > 0 ? ((totauxBalanceAgee.totalCreances - totauxBalanceAgee.nonEchu) / totauxBalanceAgee.totalCreances) * 100 : 0}
+                        max={100}
+                        size={150}
+                        color="error"
+                        label={t('clients.overdueRate')}
+                      />
                     </div>
                   </div>
 

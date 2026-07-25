@@ -2547,6 +2547,7 @@
     "subtabDetail": "Detail by customer",
     "subtabRisks": "At-risk customers & recommendations",
     "distributionTitle": "Receivables Distribution",
+    "overdueRate": "Overdue receivables",
     "total": "Total",
     "clientsCount": "{count} customers",
     "detailByBucket": "Detail by Ageing Bucket",

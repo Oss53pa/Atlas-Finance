@@ -2547,6 +2547,7 @@
     "subtabDetail": "Detalle por cliente",
     "subtabRisks": "Clientes en riesgo y recomendaciones",
     "distributionTitle": "Distribución de créditos",
+    "overdueRate": "Cuentas vencidas",
     "total": "Total",
     "clientsCount": "{count} clientes",
     "detailByBucket": "Detalle por tramo de antigüedad",
