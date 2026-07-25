@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 // Design System unifié pour Atlas FnA
 // Palette de couleurs cohérente et élégante
@@ -190,14 +190,15 @@ export const KPICard: React.FC<KPICardProps> = ({
   series,
   valueFontSize
 }) => {
-  const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileBg: string; tileColor: string; trendBg: string; trendColor: string }> = {
-    primary: { stroke: '#235A6E', tileBg: 'var(--color-accent-light)',  tileColor: 'var(--color-accent-deep)', trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
-    success: { stroke: '#15803D', tileBg: 'rgba(21,128,61,0.10)',       tileColor: '#15803D',                  trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
-    warning: { stroke: '#E89A2E', tileBg: 'rgba(232,154,46,0.14)',      tileColor: '#C77E2C',                  trendBg: 'rgba(232,154,46,0.14)', trendColor: '#C77E2C' },
-    error:   { stroke: '#C0322B', tileBg: 'rgba(192,50,43,0.10)',       tileColor: '#C0322B',                  trendBg: 'rgba(192,50,43,0.10)', trendColor: '#C0322B' },
-    neutral: { stroke: '#8A8170', tileBg: 'var(--color-surface-hover)', tileColor: 'var(--color-text-secondary)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
+  const TONE: Record<NonNullable<KPICardProps['color']>, { stroke: string; tileGrad: string; wash: string; trendBg: string; trendColor: string }> = {
+    primary: { stroke: '#235A6E', tileGrad: 'linear-gradient(135deg, #2C6E86 0%, #163A46 100%)', wash: 'rgba(35,90,110,0.06)',  trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
+    success: { stroke: '#15803D', tileGrad: 'linear-gradient(135deg, #1F9C4C 0%, #0F5C2C 100%)', wash: 'rgba(21,128,61,0.06)',  trendBg: 'rgba(21,128,61,0.10)', trendColor: '#15803D' },
+    warning: { stroke: '#E89A2E', tileGrad: 'linear-gradient(135deg, #F0A945 0%, #C77E2C 100%)', wash: 'rgba(232,154,46,0.08)', trendBg: 'rgba(232,154,46,0.14)', trendColor: '#C77E2C' },
+    error:   { stroke: '#C0322B', tileGrad: 'linear-gradient(135deg, #D24239 0%, #93231D 100%)', wash: 'rgba(192,50,43,0.06)',  trendBg: 'rgba(192,50,43,0.10)', trendColor: '#C0322B' },
+    neutral: { stroke: '#8A8170', tileGrad: 'linear-gradient(135deg, #9A9080 0%, #5C5347 100%)', wash: 'rgba(138,129,112,0.06)', trendBg: 'var(--color-surface-hover)', trendColor: 'var(--color-text-secondary)' },
   };
   const t = TONE[color];
+  const TrendArrow = trend?.isPositive ? ArrowUpRight : ArrowDownRight;
   // id de gradient SVG unique & valide (le titre contient des espaces -> id invalide -> fill noir)
   const gradId = 'kpi-grad-' + React.useId().replace(/[^a-zA-Z0-9]/g, '');
 
@@ -222,8 +223,22 @@ export const KPICard: React.FC<KPICardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       className="surface-card lift"
-      style={{ padding: '1.125rem 1.25rem 1rem', position: 'relative', overflow: 'hidden' }}
+      style={{
+        padding: '1.125rem 1.25rem 1rem',
+        position: 'relative',
+        overflow: 'hidden',
+        // Voile radial teinté par ton — donne de la profondeur sans casser le fond thème.
+        background: `radial-gradient(120% 130% at 100% 0%, ${t.wash} 0%, transparent 55%), var(--color-surface)`,
+      }}
     >
+      {/* Barre d'accent supérieure — signature couleur du ton */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 3,
+          background: `linear-gradient(90deg, ${t.stroke} 0%, ${t.stroke}00 70%)`,
+        }}
+      />
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h6
@@ -234,7 +249,7 @@ export const KPICard: React.FC<KPICardProps> = ({
           </h6>
           <p
             className="display-md num-display"
-            style={{ color: 'var(--color-text-primary)', marginBottom: 0, ...(valueFontSize ? { fontSize: valueFontSize } : {}) }}
+            style={{ color: 'var(--color-text-primary)', marginBottom: 0, fontWeight: 700, letterSpacing: '-0.02em', ...(valueFontSize ? { fontSize: valueFontSize } : {}) }}
           >
             {value}
           </p>
@@ -242,11 +257,12 @@ export const KPICard: React.FC<KPICardProps> = ({
         <span
           className="shrink-0 inline-flex items-center justify-center"
           style={{
-            width: 34, height: 34, borderRadius: 9,
-            background: t.tileBg, color: t.tileColor,
+            width: 38, height: 38, borderRadius: 11,
+            background: t.tileGrad, color: '#fff',
+            boxShadow: `0 6px 14px -6px ${t.stroke}80`,
           }}
         >
-          <Icon size={16} strokeWidth={1.5} />
+          <Icon size={17} strokeWidth={1.75} />
         </span>
       </div>
 
@@ -254,16 +270,17 @@ export const KPICard: React.FC<KPICardProps> = ({
         <div className="flex items-center gap-2 mt-2">
           {trend && (
             <span
-              className="inline-flex items-center num-tabular"
+              className="inline-flex items-center gap-0.5 num-tabular"
               style={{
-                padding: '0.125rem 0.5rem',
+                padding: '0.1875rem 0.5rem 0.1875rem 0.375rem',
                 borderRadius: 9999,
                 fontSize: 11,
-                fontWeight: 600,
-                background: trend.isPositive ? 'rgba(15,143,95,0.10)' : 'rgba(192,50,43,0.10)',
+                fontWeight: 700,
+                background: trend.isPositive ? 'rgba(21,128,61,0.10)' : 'rgba(192,50,43,0.10)',
                 color: trend.isPositive ? '#15803D' : '#C0322B',
               }}
             >
+              <TrendArrow size={12} strokeWidth={2.5} />
               {trend.value}
             </span>
           )}
@@ -275,15 +292,15 @@ export const KPICard: React.FC<KPICardProps> = ({
 
       {chartPaths && (
         <div className="mt-3 -mx-1">
-          <svg width="100%" height="32" viewBox="0 0 200 32" preserveAspectRatio="none">
+          <svg width="100%" height="34" viewBox="0 0 200 34" preserveAspectRatio="none">
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={t.stroke} stopOpacity={0.32} />
+                <stop offset="0%" stopColor={t.stroke} stopOpacity={0.34} />
                 <stop offset="100%" stopColor={t.stroke} stopOpacity={0} />
               </linearGradient>
             </defs>
             <path d={chartPaths.area} fill={`url(#${gradId})`} />
-            <path d={chartPaths.line} fill="none" stroke={t.stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d={chartPaths.line} fill="none" stroke={t.stroke} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
       )}
@@ -533,7 +550,10 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between gap-2" style={{ height }}>
+      <div
+        className="flex items-end justify-between gap-2"
+        style={{ height, borderBottom: '1px solid var(--color-border-light)' }}
+      >
         {data.map((item, index) => {
           const barHeight = (Math.abs(item.value) / maxValue) * 100;
           const c = BAR_SERIES[index % BAR_SERIES.length];
@@ -547,7 +567,8 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
               <div className="w-full flex-1 flex flex-col items-center justify-end min-h-0">
                 {showValues && (
                   <span
-                    className="text-[11px] font-semibold text-neutral-700 mb-1 whitespace-nowrap leading-none"
+                    className="text-[11px] font-semibold mb-1 whitespace-nowrap leading-none num-tabular"
+                    style={{ color: 'var(--color-text-secondary)' }}
                     title={String(item.value)}
                   >
                     {formatValue(item.value)}
@@ -566,7 +587,11 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
                   whileHover={{ scale: 1.04 }}
                 />
               </div>
-              <span className="text-xs text-neutral-600 mt-2 font-medium text-center truncate w-full" title={item.label}>
+              <span
+                className="text-xs mt-2 font-medium text-center truncate w-full"
+                style={{ color: 'var(--color-text-tertiary)' }}
+                title={item.label}
+              >
                 {item.label}
               </span>
             </div>
