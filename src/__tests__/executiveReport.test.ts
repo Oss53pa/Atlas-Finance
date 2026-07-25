@@ -76,6 +76,19 @@ describe('computeReportData', () => {
     expect(data.margeNette).toBeCloseTo(40, 5);
   });
 
+  it('calcule la marge brute = CA − achats (cl.60)', () => {
+    // achats cl.60 = 60000 (601) ⇒ marge brute = 100000 − 60000 = 40000.
+    expect(data.achats).toBe(60000);
+    expect(data.margeBrute).toBe(40000);
+    expect(data.tauxMargeBrute).toBeCloseTo(40, 5);
+  });
+
+  it('répartit les charges par nature (classe 6)', () => {
+    const achatsSlice = data.chargeBreakdown.find((x) => x.label === 'Achats / Marchandises');
+    expect(achatsSlice?.value).toBe(60000);
+    expect(data.chargeTotal).toBe(60000);
+  });
+
   it('remonte le top client par CA', () => {
     expect(data.topClients[0]).toMatchObject({ name: 'Client Un', ca: 100000 });
   });

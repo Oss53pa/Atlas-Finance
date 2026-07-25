@@ -45,10 +45,15 @@ export interface ReportContext {
 
 export interface MonthAgg { ca: number; charges: number }
 
+export interface ChargeSlice { label: string; value: number; color: string }
+
 export interface ReportData {
   ctx: ReportContext;
   ca: number;
   charges: number;
+  achats: number;          // consommations cl.60 (pour la marge brute)
+  margeBrute: number;      // ca − achats
+  tauxMargeBrute: number;  // %
   resultatNet: number;
   margeNette: number;      // %
   treasury: number;
@@ -57,10 +62,22 @@ export interface ReportData {
   caDelta?: { value: string; up: boolean | null };     // mois courant vs précédent
   resultDelta?: { value: string; up: boolean | null };
   monthly: MonthAgg[];     // 12 mois de l'exercice
+  chargeBreakdown: ChargeSlice[]; // répartition des charges par nature
+  chargeTotal: number;
   topClients: { name: string; ca: number }[];
   healthScore: number;
   healthAxes: { label: string; score: number }[];
 }
+
+// Répartition des charges (classe 6) par nature SYSCOHADA — miroir de la vue écran.
+const CHARGE_GROUPS: { label: string; prefixes: string[]; color: string }[] = [
+  { label: 'Achats / Marchandises', prefixes: ['60'], color: '#2E7D8A' },
+  { label: 'Charges de personnel', prefixes: ['66'], color: '#C79A3F' },
+  { label: 'Services extérieurs', prefixes: ['61', '62', '63'], color: '#1E3A4C' },
+  { label: 'Impôts & taxes', prefixes: ['64'], color: '#6BA9B2' },
+  { label: 'Charges financières', prefixes: ['67'], color: '#405A66' },
+  { label: 'Autres charges', prefixes: ['65', '68', '69'], color: '#AEC3C9' },
+];
 
 const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
@@ -106,10 +123,19 @@ export function computeReportData(entries: ReportEntry[], ctx: ReportContext): R
 
   const ca = creditNet(posted, '7');
   const charges = net(posted, '6');
+  const achats = net(posted, '60');
+  const margeBrute = ca - achats;
+  const tauxMargeBrute = ca > 0 ? (margeBrute / ca) * 100 : 0;
   const impots = net(posted, '89');
   const resultatNet = ca - charges - impots;
   const margeNette = ca > 0 ? (resultatNet / ca) * 100 : 0;
   const treasury = net(posted, '5') - net(posted, '58');
+
+  // Répartition des charges par nature (classe 6).
+  const chargeBreakdown: ChargeSlice[] = CHARGE_GROUPS
+    .map((g) => ({ label: g.label, color: g.color, value: g.prefixes.reduce((s, p) => s + net(posted, p), 0) }))
+    .filter((x) => x.value > 0);
+  const chargeTotal = chargeBreakdown.reduce((s, x) => s + x.value, 0);
 
   // Séries mensuelles (12 mois de l'exercice) : CA (cl.7) et charges (cl.6).
   const monthly: MonthAgg[] = Array.from({ length: 12 }, () => ({ ca: 0, charges: 0 }));
@@ -179,6 +205,9 @@ export function computeReportData(entries: ReportEntry[], ctx: ReportContext): R
     ctx,
     ca,
     charges,
+    achats,
+    margeBrute,
+    tauxMargeBrute,
     resultatNet,
     margeNette,
     treasury,
@@ -187,6 +216,8 @@ export function computeReportData(entries: ReportEntry[], ctx: ReportContext): R
     caDelta,
     resultDelta,
     monthly,
+    chargeBreakdown,
+    chargeTotal,
     topClients,
     healthScore,
     healthAxes,
@@ -259,7 +290,7 @@ function monthlyBars(monthly: MonthAgg[]): string {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid ${BORDER};border-radius:12px;">
       <tr><td style="padding:18px;">
-        <div style="font-size:13px;font-weight:700;color:${OBSIDIAN};margin-bottom:4px;">Tendance sur 6 mois</div>
+        <div style="font-size:13px;font-weight:700;color:${OBSIDIAN};margin-bottom:4px;">Évolution du chiffre d'affaires</div>
         <div style="font-size:11px;color:${MUTED};margin-bottom:14px;">
           <span style="display:inline-block;width:8px;height:8px;background:${GOLD};border-radius:2px;"></span> Chiffre d'affaires
           &nbsp;&nbsp;<span style="display:inline-block;width:8px;height:8px;background:#B0B0B0;border-radius:2px;"></span> Charges
@@ -287,6 +318,34 @@ function topClientsBlock(clients: { name: string; ca: number }[]): string {
       <tr><td style="padding:18px;">
         <div style="font-size:13px;font-weight:700;color:${OBSIDIAN};margin-bottom:10px;">Top clients — chiffre d'affaires</div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+      </td></tr>
+    </table>`;
+}
+
+/** Répartition des charges par nature — barres CSS (compatibles email, sans SVG). */
+function chargesBreakdownBlock(items: ChargeSlice[], total: number): string {
+  if (items.length === 0 || total <= 0) return '';
+  const rows = items
+    .map((x) => {
+      const pct = Math.round((x.value / total) * 100);
+      return `
+      <tr>
+        <td style="font-size:12px;color:${OBSIDIAN};padding:5px 0;width:150px;">
+          <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${x.color};margin-right:6px;"></span>${esc(x.label)}
+        </td>
+        <td style="padding:5px 8px;"><div style="background:${BORDER};border-radius:4px;height:9px;width:100%;"><div style="background:${x.color};height:9px;border-radius:4px;width:${Math.max(3, pct)}%;"></div></div></td>
+        <td style="font-size:12px;color:${OBSIDIAN};font-weight:700;text-align:right;width:70px;padding:5px 0;white-space:nowrap;">${pct} %</td>
+      </tr>`;
+    })
+    .join('');
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid ${BORDER};border-radius:12px;">
+      <tr><td style="padding:18px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td style="font-size:13px;font-weight:700;color:${OBSIDIAN};">Répartition des charges</td>
+          <td style="text-align:right;font-size:13px;font-weight:700;color:${OBSIDIAN};">Total ${esc(fcfa(total))} FCFA</td>
+        </tr></table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:12px;">${rows}</table>
       </td></tr>
     </table>`;
 }
@@ -325,11 +384,11 @@ export function buildReportHtml(data: ReportData): string {
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
       <tr>
         ${kpiCell('Chiffre d\'affaires', fcfa(data.ca), 'FCFA', data.caDelta, OBSIDIAN)}
-        ${kpiCell('Résultat net', fcfa(data.resultatNet), 'FCFA', data.resultDelta, resultAccent)}
+        ${kpiCell('Marge brute', fcfa(data.margeBrute), 'FCFA', undefined, GOLD)}
       </tr>
       <tr>
+        ${kpiCell('Résultat net', fcfa(data.resultatNet), 'FCFA', data.resultDelta, resultAccent)}
         ${kpiCell('Trésorerie', fcfa(data.treasury), 'FCFA', undefined, OBSIDIAN)}
-        ${kpiCell('Marge nette', `${data.margeNette.toFixed(1).replace('.', ',')} %`, '', undefined, OBSIDIAN)}
       </tr>
     </table>`;
 
@@ -365,6 +424,8 @@ export function buildReportHtml(data: ReportData): string {
           ${kpis}
           <div style="height:16px;"></div>
           ${monthlyBars(data.monthly)}
+          <div style="height:16px;"></div>
+          ${chargesBreakdownBlock(data.chargeBreakdown, data.chargeTotal)}
           <div style="height:16px;"></div>
           ${healthBlock(data.healthScore, data.healthAxes)}
           <div style="height:16px;"></div>
