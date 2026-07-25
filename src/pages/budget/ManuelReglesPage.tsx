@@ -17,6 +17,7 @@ import {
   listRules, listKeys, listKeyValues,
   type AllocationRule, type AllocationKey, type KeyValue,
 } from '../../features/budget/services/ventilationRunService';
+import { resolveParam } from '../../services/param/paramService';
 
 // Signature courte (FNV-1a) du paramétrage — sert de repère de version tant que
 // le versionnage complet du référentiel (ana_referentiel_version) n'est pas posé.
@@ -36,15 +37,21 @@ const ManuelReglesPage: React.FC = () => {
   const [keys, setKeys] = useState<AllocationKey[]>([]);
   const [keyValues, setKeyValues] = useState<Record<string, KeyValue[]>>({});
   const [sections, setSections] = useState<Section[]>([]);
+  const [tol, setTol] = useState<{ std: any; retro: any }>({ std: 0.5, retro: 2 });
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rl, ks, secs] = await Promise.all([listRules(adapter), listKeys(adapter), listSections(adapter)]);
+      const [rl, ks, secs, tStd, tRetro] = await Promise.all([
+        listRules(adapter), listKeys(adapter), listSections(adapter),
+        resolveParam(adapter, 'ana.tolerance_qualification'),
+        resolveParam(adapter, 'ana.tolerance_qualification_retro'),
+      ]);
       const kv: Record<string, KeyValue[]> = {};
       await Promise.all(ks.map(async k => { kv[k.id] = await listKeyValues(adapter, k.id); }));
       setRules(rl); setKeys(ks); setSections(secs); setKeyValues(kv);
+      setTol({ std: tStd ?? 0.5, retro: tRetro ?? 2 });
     } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
     finally { setLoading(false); }
   }, [adapter]);
@@ -149,7 +156,7 @@ const ManuelReglesPage: React.FC = () => {
           <Section title="4. Paramètres du cycle">
             <ul className="px-3 py-2 text-sm text-gray-700 space-y-1 list-disc list-inside">
               <li>Comportement par défaut : 60x variable · 61x/62x mixte · 63x/64x/66x/68x fixe (surchargé par règle).</li>
-              <li>Tolérance « À QUALIFIER » : 0,5 % des charges (2 % en run rétroactif).</li>
+              <li>Tolérance « À QUALIFIER » : {String(tol.std)} % des charges ({String(tol.retro)} % en run rétroactif) <span className="text-[10px] text-gray-400">— paramètre <code>ana.tolerance_qualification</code></span>.</li>
               <li>Publication interdite si un contrôle bloquant (C1..C6) est en échec ; run publié immuable, re-run versionné justifié.</li>
             </ul>
           </Section>
