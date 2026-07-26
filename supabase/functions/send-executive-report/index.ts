@@ -47,15 +47,58 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://www.atlasstudio.org';
 const MAIL_FROM = Deno.env.get('MAIL_FROM') || 'Atlas FnA <noreply@atlasstudio.org>';
 
+/** Période couverte par la synthèse (miroir du type client). */
+type Periode = 'exercice' | 'mois' | 'trimestre' | 'cumul';
+
 interface ScheduleRow {
   id: string;
   tenant_id: string;
   enabled: boolean;
   frequency: Frequency;
+  periode: Periode;
   send_hour: number;
   weekday: number;
   month_day: number;
   recipients: string[];
+}
+
+/**
+ * Résout la plage de dates (from/to, inclus) + le libellé d'une période, bornée
+ * à l'exercice actif. 'exercice' = FY complet, 'mois'/'trimestre' = période
+ * courante, 'cumul' = début d'exercice → aujourd'hui.
+ */
+function resolvePeriod(
+  periode: Periode,
+  fyStart: string,
+  fyEnd: string,
+  now: Date,
+): { from: string; to: string; label: string } {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const start = String(fyStart).slice(0, 10);
+  const end = String(fyEnd).slice(0, 10);
+  const clamp = (d: string) => (d < start ? start : d > end ? end : d);
+  const y = now.getUTCFullYear();
+  const monthName = (d: Date) =>
+    d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+      .replace(/^\w/, (c) => c.toUpperCase());
+
+  if (periode === 'mois') {
+    const m = now.getUTCMonth();
+    const last = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    return { from: clamp(`${y}-${pad(m + 1)}-01`), to: clamp(`${y}-${pad(m + 1)}-${pad(last)}`), label: monthName(now) };
+  }
+  if (periode === 'trimestre') {
+    const q = Math.floor(now.getUTCMonth() / 3);
+    const startM = q * 3, endM = startM + 2;
+    const last = new Date(Date.UTC(y, endM + 1, 0)).getUTCDate();
+    return { from: clamp(`${y}-${pad(startM + 1)}-01`), to: clamp(`${y}-${pad(endM + 1)}-${pad(last)}`), label: `T${q + 1} ${y}` };
+  }
+  if (periode === 'cumul') {
+    const today = now.toISOString().slice(0, 10);
+    return { from: start, to: clamp(today), label: `Cumul au ${now.toLocaleDateString('fr-FR', { timeZone: 'UTC' })}` };
+  }
+  const sY = start.slice(0, 4), eY = end.slice(0, 4);
+  return { from: start, to: end, label: `Exercice ${sY === eY ? sY : `${sY}–${eY}`}` };
 }
 
 /** Charge le contexte (société + exercice actif) puis les écritures de l'exercice. */
@@ -63,6 +106,7 @@ async function loadReportInputs(
   svc: SupabaseClient,
   tenantId: string,
   frequency: Frequency,
+  periode: Periode,
 ): Promise<{ ctx: ReportContext; entries: ReportEntry[] } | null> {
   const { data: societe } = await svc
     .from('societes')
@@ -84,14 +128,17 @@ async function loadReportInputs(
   const endY = String(end).slice(0, 4);
   const exerciceLabel = startY === endY ? startY : `${startY}–${endY}`;
 
-  // Écritures non-brouillon de l'exercice + leurs lignes (une requête, filtrée serveur).
+  // Plage de dates dérivée de la période choisie (bornée à l'exercice).
+  const range = resolvePeriod(periode, start, end, now);
+
+  // Écritures non-brouillon de la période + leurs lignes (une requête, filtrée serveur).
   const { data: entryRows, error: entryErr } = await svc
     .from('journal_entries')
     .select('id, date, status, journal_lines(account_code, debit, credit, third_party_code, third_party_name)')
     .eq('tenant_id', tenantId)
     .neq('status', 'draft')
-    .gte('date', String(start).slice(0, 10))
-    .lte('date', String(end).slice(0, 10));
+    .gte('date', range.from)
+    .lte('date', range.to);
   if (entryErr) {
     console.error('[send-executive-report] entry query error:', entryErr);
     return null;
@@ -109,17 +156,13 @@ async function loadReportInputs(
     })),
   }));
 
-  const periodLabel = now
-    .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
-    .replace(/^\w/, (c) => c.toUpperCase());
-
   const ctx: ReportContext = {
     companyName: (societe?.nom as string) || 'Votre société',
     fyYear,
     exerciceLabel,
     frequency,
-    periodLabel,
-    appUrl: `${SITE_URL}/executive`,
+    periodLabel: range.label,
+    appUrl: `${SITE_URL}/executive/digest`,
   };
   return { ctx, entries };
 }
@@ -156,8 +199,9 @@ async function sendReport(
   tenantId: string,
   frequency: Frequency,
   recipients: string[],
+  periode: Periode,
 ): Promise<{ ok: boolean; id?: string; error?: unknown }> {
-  const inputs = await loadReportInputs(svc, tenantId, frequency);
+  const inputs = await loadReportInputs(svc, tenantId, frequency, periode);
   if (!inputs) return { ok: false, error: 'LOAD_FAILED' };
   const data = computeReportData(inputs.entries, inputs.ctx);
   const html = buildReportHtml(data);
@@ -189,7 +233,7 @@ Deno.serve(async (req) => {
     const results: Array<{ tenant: string; ok: boolean; error?: unknown }> = [];
     for (const s of (due || []) as ScheduleRow[]) {
       try {
-        const r = await sendReport(svc, s.tenant_id, s.frequency, s.recipients || []);
+        const r = await sendReport(svc, s.tenant_id, s.frequency, s.recipients || [], s.periode || 'exercice');
         const next = computeNextRun(s.frequency, { sendHour: s.send_hour, weekday: s.weekday, monthDay: s.month_day });
         await svc
           .from('executive_report_schedules')
@@ -213,21 +257,23 @@ Deno.serve(async (req) => {
   const { data: tenant } = await userClient.rpc('get_user_company_id');
   if (!tenant) return json({ error: 'NO_TENANT' }, 403);
 
-  // Destinataires : ceux fournis, sinon la planification enregistrée.
+  // Destinataires / cadence / période : corps de requête, sinon planification enregistrée.
   let recipients: string[] = Array.isArray(body?.recipients) ? (body.recipients as string[]) : [];
   let frequency: Frequency = (body?.frequency as Frequency) === 'weekly' ? 'weekly' : 'monthly';
-  if (recipients.length === 0) {
+  let periode: Periode = (body?.periode as Periode) || 'exercice';
+  {
     const { data: sched } = await userClient
       .from('executive_report_schedules')
-      .select('recipients, frequency')
+      .select('recipients, frequency, periode')
       .eq('tenant_id', tenant)
       .maybeSingle();
-    recipients = (sched?.recipients as string[]) || [];
-    if (sched?.frequency) frequency = sched.frequency as Frequency;
+    if (recipients.length === 0) recipients = (sched?.recipients as string[]) || [];
+    if (!body?.frequency && sched?.frequency) frequency = sched.frequency as Frequency;
+    if (!body?.periode && sched?.periode) periode = sched.periode as Periode;
   }
   if (recipients.length === 0) return json({ error: 'NO_RECIPIENTS' }, 400);
 
-  const r = await sendReport(svc, tenant as string, frequency, recipients);
+  const r = await sendReport(svc, tenant as string, frequency, recipients, periode);
   if (!r.ok) return json({ error: 'SEND_FAILED', detail: r.error }, 500);
   return json({ success: true, id: r.id, recipients });
 });

@@ -301,7 +301,7 @@ const ExecutiveDigest: React.FC = () => {
   const onSendNow = async () => {
     if (validRecipients.length === 0) { toast.error('Ajoutez au moins un destinataire.'); return; }
     setSending(true);
-    try { await sendTestReport(validRecipients, schedule.frequency); toast.success(`Rapport envoyé à ${validRecipients.length} destinataire(s).`); }
+    try { await sendTestReport(validRecipients, schedule.frequency, schedule.periode); toast.success(`Rapport envoyé à ${validRecipients.length} destinataire(s).`); }
     catch (err: any) { toast.error(err?.message || 'Échec de l\'envoi.'); }
     finally { setSending(false); }
   };

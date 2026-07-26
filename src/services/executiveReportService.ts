@@ -158,11 +158,12 @@ export async function saveSchedule(s: ExecutiveReportSchedule): Promise<Executiv
 export async function sendTestReport(
   recipients: string[],
   frequency: ReportFrequency,
+  periode: ReportPeriode = 'exercice',
 ): Promise<{ success: boolean; id?: string }> {
   assertSaaS();
   const clean = (recipients || []).map((r) => r.trim()).filter(isValidEmail);
   const { data, error } = await supabase.functions.invoke('send-executive-report', {
-    body: { mode: 'test', recipients: clean, frequency },
+    body: { mode: 'test', recipients: clean, frequency, periode },
   });
   if (error) throw new Error(error.message || 'Échec de l\'envoi du rapport.');
   return { success: !!(data as { success?: boolean })?.success, id: (data as { id?: string })?.id };
