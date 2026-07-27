@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ShieldCheck, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { syncAppBranding } from '@/lib/brandingSync';
 
 type Status = 'loading' | 'error';
 
@@ -95,6 +96,10 @@ const ExternalAuthPage: React.FC = () => {
       if (otpError) {
         throw new Error(otpError.message);
       }
+
+      // Session Supabase établie : resync du branding de l'app dans
+      // raw_user_meta_data (non bloquant, n'interrompt jamais le flux SSO).
+      await syncAppBranding('atlas-compta');
 
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
