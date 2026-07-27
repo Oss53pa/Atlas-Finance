@@ -3,6 +3,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { useAccountNames } from '@/hooks/useAccountNames';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { StatBadgeCard } from '../../components/premium';
 import type { DBAsset } from '../../lib/db';
 import { listMaintenance } from '../../services/immobilisations/maintenanceService';
 import { motion } from 'framer-motion';
@@ -502,46 +503,18 @@ const AssetsSummary: React.FC = () => {
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {assetKPIs.map((kpi, index) => (
-          <motion.div
+          <StatBadgeCard
             key={kpi.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white rounded-xl shadow-lg p-6 border border-primary-200 hover:shadow-xl transition-shadow"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className={kpi.color.startsWith('[') ? `p-3 rounded-lg bg-${kpi.color}/10` : `p-3 rounded-lg bg-${kpi.color}-100`}>
-                <div className={kpi.color.startsWith('[') ? `text-${kpi.color}` : `text-${kpi.color}-600`}>
-                  {kpi.icon}
-                </div>
-              </div>
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                kpi.trend === 'up'
-                  ? 'bg-green-100 text-green-800'
-                  : kpi.trend === 'down'
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-primary-100 text-primary-800'
-              }`}>
-                {kpi.trend === 'up' ? (
-                  <TrendingUp className="w-3 h-3" />
-                ) : kpi.trend === 'down' ? (
-                  <TrendingDown className="w-3 h-3" />
-                ) : (
-                  <Activity className="w-3 h-3" />
-                )}
-                {kpi.change > 0 ? '+' : ''}{kpi.change}%
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-primary-600">{kpi.title}</h3>
-              <p className="text-lg font-bold text-primary-900">{kpi.value}</p>
-              <p className="text-xs text-primary-500">{kpi.changeLabel}</p>
-              {kpi.description && (
-                <p className="text-xs text-primary-400 mt-2">{kpi.description}</p>
-              )}
-            </div>
-          </motion.div>
+            label={kpi.title}
+            value={String(kpi.value)}
+            icon={kpi.icon}
+            badge={index % 2 === 0 ? 'petrol' : 'amber'}
+            valueSize={22}
+            delta={kpi.change !== 0
+              ? { value: `${kpi.change > 0 ? '+' : ''}${kpi.change} %`, trend: kpi.trend === 'up' ? 'up' : kpi.trend === 'down' ? 'down' : 'flat' }
+              : undefined}
+            meta={kpi.description || kpi.changeLabel}
+          />
         ))}
       </motion.div>
 

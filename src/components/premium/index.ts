@@ -1,6 +1,9 @@
 export { default as KpiCardPremium } from './KpiCardPremium';
 export type { KpiCardPremiumProps, KpiTrend, KpiTone } from './KpiCardPremium';
 
+export { default as StatBadgeCard } from './StatBadgeCard';
+export type { StatBadgeCardProps, BadgeTone, StatTrend } from './StatBadgeCard';
+
 export { default as HeroBrandHeader } from './HeroBrandHeader';
 export type { HeroBrandHeaderProps } from './HeroBrandHeader';
 

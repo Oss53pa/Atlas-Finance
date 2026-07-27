@@ -6,6 +6,7 @@ import { verifyTrialBalance } from '../../services/trialBalanceService';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
+import { StatBadgeCard } from '../premium';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, LabelList
@@ -578,65 +579,36 @@ const AdvancedBalance: React.FC = () => {
         <div className="p-6 space-y-6">
           
           {/* Indicateurs clés */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.totalDebit')}</p>
-                  <p className="text-lg font-bold text-blue-600">{fmt(indicators.totalDebit)}</p>
-                  <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.totalCredit')}</p>
-                  <p className="text-lg font-bold text-green-600">{fmt(indicators.totalCredit)}</p>
-                  <p className="text-xs text-[var(--color-primary)]/50">XAF</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.balanceRate')}</p>
-                  <p className={`text-lg font-bold ${indicators.tauxEquilibre > 98 ? 'text-green-600' : 'text-orange-600'}`}>
-                    {indicators.tauxEquilibre.toFixed(1)}%
-                  </p>
-                  <p className="text-xs text-gray-700">
-                    {indicators.equilibre === 0 ? t('advBalance.perfect') : t('advBalance.gapK', { value: (indicators.equilibre / 1000).toFixed(0) })}
-                  </p>
-                </div>
-                <div className={`w-12 h-12 ${indicators.equilibre === 0 ? 'bg-green-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center`}>
-                  {indicators.equilibre === 0 ? 
-                    <CheckCircle className="w-6 h-6 text-green-600" /> :
-                    <AlertTriangle className="w-6 h-6 text-orange-600" />
-                  }
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[var(--color-surface-hover)] p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-[var(--color-primary)]/70">{t('advBalance.activeAccounts')}</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">{balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length}</p>
-                  <p className="text-xs text-gray-700">{t('advBalance.ofTotal', { count: String(balanceData.length) })}</p>
-                </div>
-                <div className="w-12 h-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
-                  <Building className="w-6 h-6 text-[var(--color-primary)]" />
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+            <StatBadgeCard
+              label={t('advBalance.totalDebit')}
+              value={fmt(indicators.totalDebit)}
+              badge="petrol"
+              icon={<TrendingUp />}
+              meta="XAF"
+            />
+            <StatBadgeCard
+              label={t('advBalance.totalCredit')}
+              value={fmt(indicators.totalCredit)}
+              badge="petrol"
+              icon={<TrendingDown />}
+              meta="XAF"
+            />
+            <StatBadgeCard
+              label={t('advBalance.balanceRate')}
+              value={`${indicators.tauxEquilibre.toFixed(1)} %`}
+              badge={indicators.equilibre === 0 ? 'success' : 'amber'}
+              valueTone={indicators.tauxEquilibre > 98 ? 'success' : 'default'}
+              icon={indicators.equilibre === 0 ? <CheckCircle /> : <AlertTriangle />}
+              meta={indicators.equilibre === 0 ? t('advBalance.perfect') : t('advBalance.gapK', { value: (indicators.equilibre / 1000).toFixed(0) })}
+            />
+            <StatBadgeCard
+              label={t('advBalance.activeAccounts')}
+              value={String(balanceData.filter(item => item.debitSolde > 0 || item.creditSolde > 0).length)}
+              badge="petrol"
+              icon={<Building />}
+              meta={t('advBalance.ofTotal', { count: String(balanceData.length) })}
+            />
           </div>
 
           {/* Vérification balance de vérification */}

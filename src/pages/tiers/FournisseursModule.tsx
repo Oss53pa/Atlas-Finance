@@ -8,6 +8,7 @@ import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
+import { StatBadgeCard } from '../../components/premium';
 import {
   Search, Plus, Filter, Upload, Eye, Edit, Trash2, X, Save,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -839,60 +840,60 @@ const FournisseursModule: React.FC = () => {
             </div>
           </div>
 
-          {/* KPIs Balance Âgée */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <Wallet className="w-5 h-5 text-blue-600" />
+          {/* KPIs Balance Âgée — Daylight Pro */}
+          {(() => {
+            const tot = totauxBalanceAgee.totalDettes;
+            const pct = (x: number) => (tot > 0 ? ((x / tot) * 100).toFixed(1) : '0');
+            const over60 = totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90;
+            return (
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 items-stretch">
+                <StatBadgeCard
+                  label={t('suppliers.totalPayables')}
+                  value={formatCurrency(totauxBalanceAgee.totalDettes)}
+                  badge="petrol"
+                  icon={<Wallet />}
+                  meta={t('suppliers.suppliersCount', { count: String(balanceAgeeData.length) })}
+                />
+                <StatBadgeCard
+                  label={t('suppliers.notDue')}
+                  value={formatCurrency(totauxBalanceAgee.nonEchu)}
+                  badge="success"
+                  valueTone="success"
+                  icon={<CheckCircle />}
+                  meta={`${pct(totauxBalanceAgee.nonEchu)} %`}
+                />
+                <StatBadgeCard
+                  label={t('suppliers.days0_30')}
+                  value={formatCurrency(totauxBalanceAgee.echu0_30)}
+                  badge="amber"
+                  icon={<Clock />}
+                  meta={`${pct(totauxBalanceAgee.echu0_30)} %`}
+                />
+                <StatBadgeCard
+                  label={t('suppliers.days31_60')}
+                  value={formatCurrency(totauxBalanceAgee.echu31_60)}
+                  badge="amber"
+                  icon={<AlertTriangle />}
+                  meta={`${pct(totauxBalanceAgee.echu31_60)} %`}
+                />
+                <StatBadgeCard
+                  label={t('suppliers.daysOver60')}
+                  value={formatCurrency(over60)}
+                  badge="error"
+                  valueTone="error"
+                  icon={<AlertOctagon />}
+                  meta={`${pct(over60)} %`}
+                />
+                <StatBadgeCard
+                  label={t('suppliers.provisions')}
+                  value={formatCurrency(totauxBalanceAgee.provision)}
+                  badge="petrol"
+                  icon={<Shield />}
+                  meta={`${pct(totauxBalanceAgee.provision)} %`}
+                />
               </div>
-              <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-              <p className="text-xs text-[var(--color-text-secondary)]">{t('suppliers.totalPayables')}</p>
-            </div>
-
-            <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center justify-between mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-xs text-green-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.nonEchu / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
-              </div>
-              <p className="text-lg font-bold text-green-800">{formatCurrency(totauxBalanceAgee.nonEchu)}</p>
-              <p className="text-xs text-green-600">{t('suppliers.notDue')}</p>
-            </div>
-
-            <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-              <div className="flex items-center justify-between mb-2">
-                <Clock className="w-5 h-5 text-yellow-600" />
-                <span className="text-xs text-yellow-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu0_30 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
-              </div>
-              <p className="text-lg font-bold text-yellow-800">{formatCurrency(totauxBalanceAgee.echu0_30)}</p>
-              <p className="text-xs text-yellow-600">{t('suppliers.days0_30')}</p>
-            </div>
-
-            <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-              <div className="flex items-center justify-between mb-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <span className="text-xs text-orange-600">{totauxBalanceAgee.totalDettes > 0 ? ((totauxBalanceAgee.echu31_60 / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
-              </div>
-              <p className="text-lg font-bold text-orange-800">{formatCurrency(totauxBalanceAgee.echu31_60)}</p>
-              <p className="text-xs text-orange-600">{t('suppliers.days31_60')}</p>
-            </div>
-
-            <div className="bg-red-50 rounded-lg p-4 border border-red-200">
-              <div className="flex items-center justify-between mb-2">
-                <AlertOctagon className="w-5 h-5 text-red-600" />
-                <span className="text-xs text-red-600">{totauxBalanceAgee.totalDettes > 0 ? (((totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90) / totauxBalanceAgee.totalDettes) * 100).toFixed(1) : 0}%</span>
-              </div>
-              <p className="text-lg font-bold text-red-800">{formatCurrency(totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90)}</p>
-              <p className="text-xs text-red-600">{t('suppliers.daysOver60')}</p>
-            </div>
-
-            <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
-              <div className="flex items-center justify-between mb-2">
-                <Shield className="w-5 h-5 text-primary-600" />
-              </div>
-              <p className="text-lg font-bold text-primary-800">{formatCurrency(totauxBalanceAgee.provision)}</p>
-              <p className="text-xs text-primary-600">{t('suppliers.provisions')}</p>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Sous-onglets Balance Âgée */}
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">

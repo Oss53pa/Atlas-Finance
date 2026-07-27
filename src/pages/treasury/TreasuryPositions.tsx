@@ -40,7 +40,6 @@ import {
 } from 'recharts';
 import {
   UnifiedCard,
-  KPICard,
   SectionHeader,
   ElegantButton,
   PageContainer,
@@ -48,6 +47,7 @@ import {
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
+import { StatBadgeCard } from '../../components/premium';
 
 interface BankPosition {
   id: string;
@@ -703,12 +703,12 @@ const TreasuryPositions: React.FC = () => {
 
               {/* KPIs — modèle de carte du projet (KPICard), montants COMPLETS avec
                   une police réduite (valueFontSize) pour tenir sur une ligne. */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <KPICard title={t('treasuryPos.lineRealBalance')} value={formatCurrency(tot.solde)} subtitle={t('treasuryPos.kpiRealSub')} icon={Wallet} color="primary" withChart valueFontSize="1.125rem" />
-                <KPICard title={t('treasuryPos.lineIssued')} value={formatCurrency(-tot.emis)} subtitle={t('treasuryPos.kpiIssuedSubCockpit')} icon={ArrowDownRight} color="error" withChart valueFontSize="1.125rem" />
-                <KPICard title={t('treasuryPos.lineReceived')} value={`+ ${formatCurrency(tot.recus)}`} subtitle={t('treasuryPos.kpiReceivedSubCockpit')} icon={ArrowUpRight} color="success" withChart valueFontSize="1.125rem" />
-                <KPICard title={t('treasuryPos.lineTheoretical')} value={formatCurrency(theorique)} subtitle={t('treasuryPos.kpiTheoreticalSub')} icon={TrendingUp} color="primary" withChart valueFontSize="1.125rem" />
-                <KPICard title={t('treasuryPos.kpiLiquidity')} value={formatCurrency(theorique)} subtitle={t('treasuryPos.kpiLiquiditySub')} icon={ShieldCheck} color="neutral" withChart valueFontSize="1.125rem" />
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
+                <StatBadgeCard label={t('treasuryPos.lineRealBalance')} value={formatCurrency(tot.solde)} meta={t('treasuryPos.kpiRealSub')} icon={<Wallet />} badge="petrol" valueSize={19} />
+                <StatBadgeCard label={t('treasuryPos.lineIssued')} value={formatCurrency(-tot.emis)} meta={t('treasuryPos.kpiIssuedSubCockpit')} icon={<ArrowDownRight />} badge="error" valueTone="error" valueSize={19} />
+                <StatBadgeCard label={t('treasuryPos.lineReceived')} value={`+ ${formatCurrency(tot.recus)}`} meta={t('treasuryPos.kpiReceivedSubCockpit')} icon={<ArrowUpRight />} badge="success" valueTone="success" valueSize={19} />
+                <StatBadgeCard label={t('treasuryPos.lineTheoretical')} value={formatCurrency(theorique)} meta={t('treasuryPos.kpiTheoreticalSub')} icon={<TrendingUp />} badge="petrol" valueSize={19} />
+                <StatBadgeCard label={t('treasuryPos.kpiLiquidity')} value={formatCurrency(theorique)} meta={t('treasuryPos.kpiLiquiditySub')} icon={<ShieldCheck />} badge="amber" valueSize={19} />
               </div>
 
               {/* Proph3t — conseil de trésorerie (déterministe) */}
