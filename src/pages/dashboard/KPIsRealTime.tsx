@@ -537,20 +537,20 @@ const KPIsRealTime: React.FC = () => {
               <div
                 key={kpi.id}
                 className={cn(
-                  "bg-white rounded-lg shadow p-4 cursor-pointer transition-all hover:shadow-lg",
-                  selectedKPI === kpi.id && "ring-2 ring-[var(--color-text-tertiary)]",
+                  "bg-[var(--color-surface)] rounded-2xl border border-[var(--color-border)] shadow-sm p-4 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5",
+                  selectedKPI === kpi.id && "ring-2 ring-[var(--color-primary)]",
                   fullscreenKPI === kpi.id && "fixed inset-4 z-50"
                 )}
                 onClick={() => setSelectedKPI(kpi.id)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-600">{kpi.name}</h3>
-                    <div className="flex items-baseline gap-1 mt-1">
-                      <span className="text-lg font-bold text-gray-900">
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-tertiary)]">{kpi.name}</h3>
+                    <div className="flex items-baseline gap-1 mt-1.5">
+                      <span className="text-2xl font-bold num-tabular text-[var(--color-text-primary)]" style={{ letterSpacing: '-0.02em' }}>
                         {kpi.unit === '%' ? formatNumber(kpi.value, 1) : formatNumber(kpi.value)}
                       </span>
-                      <span className="text-sm text-gray-700">{kpi.unit}</span>
+                      <span className="text-sm text-[var(--color-text-tertiary)]">{kpi.unit}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
