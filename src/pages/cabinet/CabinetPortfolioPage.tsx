@@ -8,10 +8,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Briefcase, Loader2, RefreshCw, FolderOpen, Lock, LockOpen, AlertCircle } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
+import toast from 'react-hot-toast';
 import {
   getCabinetPortfolio,
   portfolioSummary,
-  openDossier,
+  switchToDossier,
   type CabinetDossier,
 } from '../../services/cabinet/cabinetPortfolioService';
 
@@ -104,7 +105,11 @@ const CabinetPortfolioPage: React.FC = () => {
                 <RowMini label="Résultat" value={fmt(d.resultat)} tone={d.resultat >= 0 ? 'ok' : 'bad'} />
               </div>
 
-              <button onClick={() => openDossier(d.id)}
+              <button
+                onClick={async () => {
+                  try { await switchToDossier(adapter, d.id); }
+                  catch (e) { toast.error(e instanceof Error ? e.message : 'Bascule impossible'); }
+                }}
                 className="mt-3 flex items-center justify-center gap-2 px-3 py-2 text-sm bg-[#235A6E] text-white rounded-lg hover:bg-[#1c4a5b]">
                 <FolderOpen className="w-4 h-4" /> Ouvrir le dossier
               </button>
