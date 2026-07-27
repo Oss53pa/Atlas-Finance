@@ -610,7 +610,11 @@ const AssetsSummary: React.FC = () => {
                   /* % uniquement sur les parts ≥ 6 % (sinon les libellés des fines
                      tranches se chevauchent) ; les noms sont dans la légende. */
                   label={({ percentage }) => (Number(percentage) >= 6 ? `${percentage}%` : '')}
+                  innerRadius={56}
                   outerRadius={90}
+                  paddingAngle={2}
+                  cornerRadius={6}
+                  stroke="none"
                   fill="#235A6E"
                   dataKey="value"
                   nameKey="name"

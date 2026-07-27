@@ -6270,44 +6270,33 @@ const ContentieuxTab = ({
 
       return (
         <div className="space-y-6">
-          {/* Budget global */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalLitigationBudget')}</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">
-                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-600">{t('recovery.collectedReceivables')}</p>
-                </div>
-                <Wallet className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.incurredExpenses')}</p>
-                  <p className="text-lg font-bold text-orange-600">
-                    {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-600">{budgetPct}</p>
-                </div>
-                <CreditCard className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedAmounts')}</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                  </p>
-                  <p className="text-xs text-green-600">{roiLabel}</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
+          {/* Budget global — Daylight Pro */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            <StatBadgeCard
+              label={t('recovery.totalLitigationBudget')}
+              value={totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+              badge="petrol"
+              icon={<Wallet />}
+              valueSize={20}
+              meta={t('recovery.collectedReceivables')}
+            />
+            <StatBadgeCard
+              label={t('recovery.incurredExpenses')}
+              value={totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
+              badge="amber"
+              icon={<CreditCard />}
+              valueSize={20}
+              meta={budgetPct}
+            />
+            <StatBadgeCard
+              label={t('recovery.collectedAmounts')}
+              value={totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+              badge="success"
+              valueTone="success"
+              icon={<TrendingUp />}
+              valueSize={20}
+              meta={roiLabel}
+            />
           </div>
 
           {/* Détail des coûts par type */}
@@ -6328,9 +6317,12 @@ const ContentieuxTab = ({
                         data={costChartData}
                         cx="50%"
                         cy="50%"
+                        innerRadius={62}
                         outerRadius={100}
+                        paddingAngle={2}
+                        cornerRadius={6}
+                        stroke="none"
                         fill="#235A6E"
-                        label
                       >
                         {costChartData.map((_entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
