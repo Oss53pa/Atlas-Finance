@@ -13,6 +13,7 @@ import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { StatBadgeCard } from '../../components/premium';
 
 interface Prediction {
   id: string;
@@ -833,35 +834,11 @@ const AIInsights: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.detailedPerformanceMetrics')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
-              <Target className="w-6 h-6 text-[var(--color-text-primary)]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">{totalEntries}</div>
-            <div className="text-sm text-gray-900">{t('aiInsights.entriesAnalyzed')}</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/20 rounded-lg flex items-center justify-center mb-2">
-              <CheckCircle className="w-6 h-6 text-[var(--color-text-primary)]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">{predictions.length}</div>
-            <div className="text-sm text-gray-900">{t('aiInsights.trackedIndicators')}</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-text-secondary)]/10 to-[var(--color-text-secondary)]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[var(--color-text-secondary)]/20 rounded-lg flex items-center justify-center mb-2">
-              <AlertTriangle className="w-6 h-6 text-[var(--color-text-secondary)]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">{anomalies.length}</div>
-            <div className="text-sm text-gray-900">{t('aiInsights.anomaliesDetected')}</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-br from-[var(--color-primary)]/10 to-[var(--color-primary)]/5 rounded-lg">
-            <div className="w-12 h-12 mx-auto bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center mb-2">
-              <Lightbulb className="w-6 h-6 text-[var(--color-text-primary)]" />
-            </div>
-            <div className="text-lg font-bold text-gray-900">{insights.length}</div>
-            <div className="text-sm text-gray-900">{t('aiInsights.recommendations')}</div>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+          <StatBadgeCard label={t('aiInsights.entriesAnalyzed')} value={String(totalEntries)} badge="petrol" icon={<Target />} />
+          <StatBadgeCard label={t('aiInsights.trackedIndicators')} value={String(predictions.length)} badge="petrol" icon={<CheckCircle />} />
+          <StatBadgeCard label={t('aiInsights.anomaliesDetected')} value={String(anomalies.length)} badge="amber" icon={<AlertTriangle />} />
+          <StatBadgeCard label={t('aiInsights.recommendations')} value={String(insights.length)} badge="amber" icon={<Lightbulb />} />
         </div>
       </div>
     </div>

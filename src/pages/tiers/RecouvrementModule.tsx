@@ -380,14 +380,18 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <RechartsPieChart>
                     <Pie
                       dataKey="montant"
-                      data={analyticsData.repartitionNiveaux}
+                      data={analyticsData.repartitionNiveaux.filter(r => r.montant > 0)}
                       cx="50%"
                       cy="50%"
+                      innerRadius={62}
                       outerRadius={100}
-                      fill="#235A6E"
+                      paddingAngle={2}
+                      cornerRadius={6}
+                      stroke="none"
+                      labelLine={false}
                       label={({ niveau, count }) => `${niveau} (${count})`}
                     >
-                      {analyticsData.repartitionNiveaux.map((entry, index) => (
+                      {analyticsData.repartitionNiveaux.filter(r => r.montant > 0).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
