@@ -5,6 +5,8 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { listPermissionCatalogue } from '../../services/param/rbacService';
+import { detectSodViolations, listSodRules, type SodRule } from '../../services/param/sodService';
 import {
   PlusIcon,
   MagnifyingGlassIcon,
@@ -43,6 +45,49 @@ interface Role {
   category: 'admin' | 'management' | 'operational' | 'readonly';
 }
 
+/** Sélecteur de permissions groupé par module, avec contrôle SoD en direct. */
+const PermissionPicker: React.FC<{
+  perms: Permission[]; selected: string[]; onChange: (codes: string[]) => void; sodRules: SodRule[]; disabled?: boolean;
+}> = ({ perms, selected, onChange, sodRules, disabled }) => {
+  const byModule = perms.reduce((acc, p) => { (acc[p.module] ||= []).push(p); return acc; }, {} as Record<string, Permission[]>);
+  const violations = detectSodViolations(selected, sodRules);
+  const toggle = (code: string) => {
+    if (disabled) return;
+    onChange(selected.includes(code) ? selected.filter(c => c !== code) : [...selected, code]);
+  };
+  if (perms.length === 0) return <p className="text-sm text-gray-500">Aucune permission au catalogue.</p>;
+  return (
+    <div className="space-y-3">
+      {violations.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+          <div className="font-semibold flex items-center gap-1"><LockClosedIcon className="h-4 w-4" />{violations.length} conflit(s) de séparation des tâches</div>
+          <ul className="mt-1 space-y-0.5">
+            {violations.map((v, i) => (
+              <li key={i} className="text-xs"><span className="uppercase font-medium">{v.severite}</span> — <span className="font-mono">{v.permission_a}</span> + <span className="font-mono">{v.permission_b}</span>{v.libelle ? ` (${v.libelle})` : ''}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="space-y-3 max-h-96 overflow-y-auto">
+        {Object.entries(byModule).map(([mod, list]) => (
+          <div key={mod} className="border border-gray-200 rounded-lg p-4">
+            <div className="font-medium text-gray-900 mb-2 capitalize">{mod}</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+              {list.map(p => (
+                <label key={p.id} className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={selected.includes(p.id)} onChange={() => toggle(p.id)} disabled={disabled} className="rounded text-primary-600 focus:ring-primary-500" />
+                  <span className="text-gray-700">{p.name}</span>
+                  <span className="font-mono text-[10px] text-gray-400">{p.id}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const RolesPage: React.FC = () => {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,17 +109,23 @@ const RolesPage: React.FC = () => {
 
   // Load roles from settings
   const [rolesSetting, setRolesSetting] = useState<any>(undefined);
-  const [permissionsSetting, setPermissionsSetting] = useState<any>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  // Catalogue réel des permissions (table permissions) + matrice SoD.
+  const [catalogue, setCatalogue] = useState<{ code: string; name: string; module: string }[]>([]);
+  const [sodRules, setSodRules] = useState<SodRule[]>([]);
+  // Permissions sélectionnées dans le modal create/edit (codes).
+  const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const [rs, ps] = await Promise.all([
+      const [rs, cat, rules] = await Promise.all([
         adapter.getById('settings', 'roles_config'),
-        adapter.getById('settings', 'permissions_config'),
+        listPermissionCatalogue(adapter),
+        listSodRules(adapter),
       ]);
       setRolesSetting(rs);
-      setPermissionsSetting(ps);
+      setCatalogue(cat);
+      setSodRules(rules);
       setIsLoading(false);
     };
     load();
@@ -102,8 +153,11 @@ const RolesPage: React.FC = () => {
     );
   }, [allRoles, searchTerm, selectedCategory]);
 
-  // Load permissions from settings
-  const permissions: Permission[] = permissionsSetting ? JSON.parse(permissionsSetting.value) : [];
+  // Permissions = catalogue réel (id = code, pour compat getPermissionsByModule).
+  const permissions: Permission[] = catalogue.map(c => ({
+    id: c.code, name: c.name || c.code, module: c.module,
+    action: c.code.split('.').slice(1).join('.'), description: '', category: c.module,
+  }));
 
   const duplicateRoleMutation = useMutation({
     mutationFn: async (roleId: string) => {
@@ -132,7 +186,7 @@ const RolesPage: React.FC = () => {
     if (!roleForm.name.trim() || !roleForm.code.trim()) { toast.error('Nom et code obligatoires'); return; }
     const role: Role = {
       id: crypto.randomUUID(), name: roleForm.name.trim(), code: roleForm.code.trim().toUpperCase(),
-      description: roleForm.description.trim(), permissions: [], usersCount: 0, isSystemRole: false,
+      description: roleForm.description.trim(), permissions: selectedPerms, usersCount: 0, isSystemRole: false,
       createdAt: nowIso(), lastModified: nowIso(), createdBy: 'Utilisateur', category: roleForm.category,
     };
     await saveRoles([...allRoles, role]);
@@ -143,7 +197,7 @@ const RolesPage: React.FC = () => {
     if (!selectedRole) return;
     if (!roleForm.name.trim() || !roleForm.code.trim()) { toast.error('Nom et code obligatoires'); return; }
     await saveRoles(allRoles.map(r => r.id === selectedRole.id
-      ? { ...r, name: roleForm.name.trim(), code: roleForm.code.trim().toUpperCase(), description: roleForm.description.trim(), category: roleForm.category, lastModified: nowIso() }
+      ? { ...r, name: roleForm.name.trim(), code: roleForm.code.trim().toUpperCase(), description: roleForm.description.trim(), category: roleForm.category, permissions: selectedPerms, lastModified: nowIso() }
       : r));
     toast.success('Rôle mis à jour');
     setShowEditModal(false); setSelectedRole(null); setRoleForm(emptyForm);
@@ -240,7 +294,7 @@ const RolesPage: React.FC = () => {
             activeFilters={[searchTerm !== '', selectedCategory !== 'all'].filter(Boolean).length}
           />
           <button
-            onClick={() => { setRoleForm(emptyForm); setShowCreateModal(true); }}
+            onClick={() => { setRoleForm(emptyForm); setSelectedPerms([]); setShowCreateModal(true); }}
             className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
@@ -488,6 +542,7 @@ const RolesPage: React.FC = () => {
                     onClick={() => {
                       setSelectedRole(role);
                       setRoleForm({ name: role.name, code: role.code, description: role.description, category: role.category });
+                      setSelectedPerms(role.permissions || []);
                       setShowEditModal(true);
                     }}
                     className="p-2 text-gray-700 hover:text-primary-600 transition-colors"
@@ -593,99 +648,7 @@ const RolesPage: React.FC = () => {
 
               <div>
                 <h3 className="font-medium text-gray-900 mb-3">Permissions par Module</h3>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">Système</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Configuration Système</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Accès Complet</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">Finance</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Lecture Finance</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Écriture Finance</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Gestion Trésorerie</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{t('accounting.title')}</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Lecture Comptabilité</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Saisie Écritures</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Gestion Journaux</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">Commercial</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Lecture Commercial</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Écriture Commercial</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Gestion Clients</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
+                <PermissionPicker perms={permissions} selected={selectedPerms} onChange={setSelectedPerms} sodRules={sodRules} />
               </div>
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -832,7 +795,7 @@ const RolesPage: React.FC = () => {
                 {!selectedRole.isSystemRole && (
                   <button
                     onClick={() => {
-                      if (selectedRole) setRoleForm({ name: selectedRole.name, code: selectedRole.code, description: selectedRole.description, category: selectedRole.category });
+                      if (selectedRole) { setRoleForm({ name: selectedRole.name, code: selectedRole.code, description: selectedRole.description, category: selectedRole.category }); setSelectedPerms(selectedRole.permissions || []); }
                       setShowViewModal(false);
                       setShowEditModal(true);
                     }}
@@ -933,64 +896,7 @@ const RolesPage: React.FC = () => {
 
               <div>
                 <h3 className="font-medium text-gray-900 mb-3">Permissions par Module</h3>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" defaultChecked className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">Système</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Gestion Utilisateurs</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Configuration Système</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" defaultChecked className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">Finance</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Lecture Finance</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" defaultChecked className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Écriture Finance</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-
-                  <div className="border border-gray-200 rounded-lg p-4">
-                    <label className="flex items-start space-x-3">
-                      <input type="checkbox" className="mt-1 rounded text-primary-600 focus:ring-primary-500" />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900">{t('accounting.title')}</div>
-                        <div className="mt-2 ml-6 space-y-2">
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Lecture Comptabilité</span>
-                          </label>
-                          <label className="flex items-center">
-                            <input type="checkbox" className="rounded text-primary-600 focus:ring-primary-500 mr-2" />
-                            <span className="text-sm text-gray-700">Saisie Écritures</span>
-                          </label>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
+                <PermissionPicker perms={permissions} selected={selectedPerms} onChange={setSelectedPerms} sodRules={sodRules} disabled={selectedRole.isSystemRole} />
               </div>
 
               {selectedRole.usersCount > 0 && (
