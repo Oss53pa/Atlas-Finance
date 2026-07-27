@@ -287,11 +287,11 @@ const LoginPage: React.FC = () => {
                 >
                   {t('login.passwordLabel')}
                 </label>
-                <Link to="/forgot-password" className="text-xs transition-colors" style={{ color: 'var(--color-text-tertiary)' }}
+                <a href="https://atlas-studio.org/portal/forgot-password" className="text-xs transition-colors" style={{ color: 'var(--color-text-tertiary)' }}
                       onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-accent-deep)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}>
                   {t('login.forgotPassword')}
-                </Link>
+                </a>
               </div>
               <div className="relative">
                 <input
