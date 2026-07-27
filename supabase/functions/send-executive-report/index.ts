@@ -10,7 +10,8 @@
  *      fournis (sinon ceux enregistrés dans la planification). Bouton
  *      « Envoyer maintenant » de l'UI.
  *
- *  • mode « cron » — protégé par l'en-tête x-cron-secret == CRON_SECRET.
+ *  • mode « cron » — protégé par l'en-tête x-cron-secret, vérifié contre le
+ *      Vault (RPC exec_report_verify_cron_secret), avec repli sur CRON_SECRET.
  *      Body : { mode: 'cron' }
  *      Balaye toutes les planifications actives dont next_run_at <= now,
  *      envoie chaque rapport, met à jour last_sent_at et next_run_at.
@@ -218,9 +219,17 @@ Deno.serve(async (req) => {
 
   // ─── Mode cron : balayage des planifications dues ───
   if (mode === 'cron') {
+    // Auth du cron : le secret est vérifié contre le Vault (source unique de
+    // vérité, via RPC SECURITY DEFINER exec_report_verify_cron_secret), avec
+    // repli sur la variable d'environnement CRON_SECRET si elle est définie.
     const secret = req.headers.get('x-cron-secret') || '';
-    const expected = Deno.env.get('CRON_SECRET') || '';
-    if (!expected || secret !== expected) return json({ error: 'FORBIDDEN' }, 403);
+    const envSecret = Deno.env.get('CRON_SECRET') || '';
+    let authorized = envSecret !== '' && secret === envSecret;
+    if (!authorized && secret !== '') {
+      const { data: vaultOk } = await svc.rpc('exec_report_verify_cron_secret', { p_secret: secret });
+      authorized = vaultOk === true;
+    }
+    if (!authorized) return json({ error: 'FORBIDDEN' }, 403);
 
     const nowIso = new Date().toISOString();
     const { data: due, error } = await svc
