@@ -9,6 +9,7 @@ import {
   Calendar, Filter, Download, FileText, AlertTriangle, CheckCircle,
   Info, Clock, CreditCard, Wallet, PiggyBank, Landmark, ChevronRight, ChevronDown
 } from 'lucide-react';
+import { StatBadgeCard } from '../../components/premium';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -390,71 +391,46 @@ const FinancialAnalysisDashboard: React.FC = () => {
         )}
 
         {/* Key Financial Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Chiffre d'Affaires</span>
-              <DollarSign className="w-4 h-4 text-[var(--color-success)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.revenue.current)}
-            </div>
-            <div className="text-xs mt-1 text-[var(--color-text-secondary)]">
-              Produits nets (classe 7)
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Marge Brute</span>
-              <Percent className="w-4 h-4 text-[var(--color-primary)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {financialMetrics.profit.grossMargin}%
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              {formatCurrency(financialMetrics.profit.gross)}
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">EBITDA</span>
-              <TrendingUp className="w-4 h-4 text-[var(--color-info)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.profit.ebitda)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              Marge: {financialMetrics.profit.ebitdaMargin}%
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Cash Flow Net</span>
-              <PiggyBank className="w-4 h-4 text-[var(--color-warning)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.cashflow.net)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              FCF: {formatCurrency(financialMetrics.cashflow.freeFlow)}
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">BFR</span>
-              <Wallet className="w-4 h-4 text-[var(--color-info)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.ratios.workingCapital)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              Ratio courant: {financialMetrics.ratios.currentRatio}
-            </div>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 items-stretch">
+          <StatBadgeCard
+            label="Chiffre d'Affaires"
+            value={formatCurrency(financialMetrics.revenue.current)}
+            badge="petrol"
+            icon={<DollarSign />}
+            valueSize={20}
+            meta="Produits nets (classe 7)"
+          />
+          <StatBadgeCard
+            label="Marge Brute"
+            value={`${financialMetrics.profit.grossMargin}%`}
+            badge="petrol"
+            icon={<Percent />}
+            meta={formatCurrency(financialMetrics.profit.gross)}
+          />
+          <StatBadgeCard
+            label="EBITDA"
+            value={formatCurrency(financialMetrics.profit.ebitda)}
+            badge="petrol"
+            icon={<TrendingUp />}
+            valueSize={20}
+            meta={`Marge : ${financialMetrics.profit.ebitdaMargin}%`}
+          />
+          <StatBadgeCard
+            label="Cash Flow Net"
+            value={formatCurrency(financialMetrics.cashflow.net)}
+            badge="amber"
+            icon={<PiggyBank />}
+            valueSize={20}
+            meta={`FCF : ${formatCurrency(financialMetrics.cashflow.freeFlow)}`}
+          />
+          <StatBadgeCard
+            label="BFR"
+            value={formatCurrency(financialMetrics.ratios.workingCapital)}
+            badge="petrol"
+            icon={<Wallet />}
+            valueSize={20}
+            meta={`Ratio courant : ${financialMetrics.ratios.currentRatio}`}
+          />
         </div>
       </div>
 
