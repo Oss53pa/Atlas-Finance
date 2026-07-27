@@ -1,6 +1,7 @@
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { createAtlasSupabaseClient } from './createAtlasSupabaseClient';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -12,42 +13,19 @@ export const isSupabaseConfigured =
   !supabaseUrl.includes('YOUR_PROJECT_ID') &&
   !supabaseAnonKey.includes('YOUR_ANON_KEY');
 
-// Lock no-op : @supabase/gotrue-js essaie d'utiliser Navigator.locks pour
-// coordonner l'auth entre onglets. Certains contextes (iframes sandboxed,
-// vieux navigateurs, modes privés) retournent un lock null et le SDK
-// déclenche un warning console répétitif. On force une implémentation
-// no-op qui exécute simplement la fonction sans verrou. La coordination
-// cross-tab reste fonctionnelle via les events `onAuthStateChange` de
-// Supabase + le storage event de localStorage.
-const noopLock = async <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
-  return await fn();
-};
-
+// Client construit via la factory Atlas Studio harmonisée (harmonization,
+// runbook §4). La factory fournit la config d'auth normalisée : persistance
+// localStorage, storageKey explicite, lock no-op (évite le warning console
+// répétitif de Navigator.locks) et fetch résilient.
+//
 // Create client only if real keys exist, otherwise use a dummy URL (client won't be called)
-export const supabase: SupabaseClient<Database> = createClient<Database>(
-  isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co',
-  isSupabaseConfigured ? supabaseAnonKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
-  {
-    auth: {
-      autoRefreshToken: isSupabaseConfigured,
-      persistSession: isSupabaseConfigured,
-      detectSessionInUrl: isSupabaseConfigured,
-      // localStorage : persiste entre fermetures d'onglet et navigateur.
-      // (sessionStorage purgeait la session a chaque fermeture, ce qui forcait
-      // l'utilisateur a se reconnecter sans cesse.)
-      storage: typeof localStorage !== 'undefined' ? localStorage : undefined,
-      storageKey: 'atlas-fna-auth',
-      // Désactive le Navigator.locks (warning console répétitif sur navigateurs
-      // non-compliants ou iframes). Le lock est remplacé par une no-op.
-      lock: noopLock as any,
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10,
-      },
-    },
-  }
-);
+export const supabase: SupabaseClient<Database> = createAtlasSupabaseClient<Database>({
+  url: isSupabaseConfigured ? supabaseUrl : 'https://placeholder.supabase.co',
+  anonKey: isSupabaseConfigured
+    ? supabaseAnonKey
+    : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
+  storageKey: 'atlas-fna-auth',
+});
 
 // Helper to get the current session
 export async function getSession() {
