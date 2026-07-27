@@ -14,6 +14,7 @@ import {
   Layers, TrendingUp as TrendIcon
 } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { StatBadgeCard } from '../premium';
 
 const JournalDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -222,66 +223,41 @@ const JournalDashboard: React.FC = () => {
           {activeSubTab === 'operations' && (
             <div className="space-y-6">
               {/* Synthèse du jour */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Écritures du jour</p>
-                      <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{todaySummary.totalEntries}</p>
-                    </div>
-                    <FileText className="w-8 h-8 text-[var(--color-text-primary)]" />
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Total Débits</p>
-                      <p className="text-lg font-bold text-red-600 mt-1">
-                        {formatAmount(todaySummary.totalDebit)}
-                      </p>
-                    </div>
-                    <TrendingUp className="w-8 h-8 text-red-500" />
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Total Crédits</p>
-                      <p className="text-lg font-bold text-green-600 mt-1">
-                        {formatAmount(todaySummary.totalCredit)}
-                      </p>
-                    </div>
-                    <TrendingDown className="w-8 h-8 text-green-500" />
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('accounting.balance')}</p>
-                      <p className={`text-lg font-bold mt-1 ${todaySummary.isBalanced ? 'text-green-600' : 'text-red-600'}`}>
-                        {todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
-                      </p>
-                    </div>
-                    {todaySummary.isBalanced ? (
-                      <CheckCircle className="w-8 h-8 text-green-500" />
-                    ) : (
-                      <AlertTriangle className="w-8 h-8 text-red-500" />
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border border-[var(--color-border)]">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('status.pending')}</p>
-                      <p className="text-lg font-bold text-orange-600 mt-1">{todaySummary.pendingValidation}</p>
-                    </div>
-                    <Clock className="w-8 h-8 text-orange-500" />
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
+                <StatBadgeCard
+                  label="Écritures du jour"
+                  value={String(todaySummary.totalEntries)}
+                  badge="petrol"
+                  icon={<FileText />}
+                />
+                <StatBadgeCard
+                  label="Total Débits"
+                  value={formatAmount(todaySummary.totalDebit)}
+                  badge="petrol"
+                  icon={<TrendingUp />}
+                  valueSize={19}
+                />
+                <StatBadgeCard
+                  label="Total Crédits"
+                  value={formatAmount(todaySummary.totalCredit)}
+                  badge="petrol"
+                  icon={<TrendingDown />}
+                  valueSize={19}
+                />
+                <StatBadgeCard
+                  label={t('accounting.balance')}
+                  value={todaySummary.isBalanced ? 'Équilibrée' : 'Déséquilibrée'}
+                  badge={todaySummary.isBalanced ? 'success' : 'error'}
+                  valueTone={todaySummary.isBalanced ? 'success' : 'error'}
+                  icon={todaySummary.isBalanced ? <CheckCircle /> : <AlertTriangle />}
+                  valueSize={19}
+                />
+                <StatBadgeCard
+                  label={t('status.pending')}
+                  value={String(todaySummary.pendingValidation)}
+                  badge="amber"
+                  icon={<Clock />}
+                />
               </div>
 
               {/* Visualisations */}

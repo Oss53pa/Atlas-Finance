@@ -8,7 +8,7 @@ import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
-import { StatBadgeCard } from '../../components/premium';
+import { StatBadgeCard, DonutBreakdown, RadialGauge } from '../../components/premium';
 import {
   Search, Plus, Filter, Upload, Eye, Edit, Trash2, X, Save,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -939,110 +939,34 @@ const FournisseursModule: React.FC = () => {
             {/* Contenu sous-onglet: Répartition par ancienneté */}
             {balanceAgeeSubTab === 'repartition' && (
               <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                  {/* Graphique Donut Moderne */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">{t('suppliers.payablesDistribution')}</h4>
-                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">{t('suppliers.subTabBreakdown')}</p>
-                    <div className="relative">
-                      <ResponsiveContainer width="100%" height={320}>
-                        <RechartsPieChart>
-                          <defs>
-                            <filter id="shadowFournisseur" x="-20%" y="-20%" width="140%" height="140%">
-                              <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
-                            </filter>
-                          </defs>
-                          <Pie
-                            data={balanceAgeeChartData}
-                            nameKey="label"
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={70}
-                            outerRadius={120}
-                            paddingAngle={3}
-                            dataKey="value"
-                            cornerRadius={6}
-                            stroke="none"
-                            filter="url(#shadowFournisseur)"
-                          >
-                            {balanceAgeeChartData.map((entry, index) => (
-                              <Cell
-                                key={`cell-${index}`}
-                                fill={entry.color}
-                                style={{ filter: 'brightness(1.05)' }}
-                              />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            formatter={(value) => formatCurrency(value as number)}
-                            contentStyle={{
-                              borderRadius: '12px',
-                              border: 'none',
-                              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                              padding: '12px 16px'
-                            }}
-                          />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                      {/* Centre du Donut avec Total */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center shadow-lg">
-                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('suppliers.total')}</p>
-                          <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(totauxBalanceAgee.totalDettes)}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">{t('suppliers.suppliersCount', { count: String(balanceAgeeData.length) })}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Légende détaillée et statistiques */}
-                  <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.detailByAgeBracket')}</h4>
-                    {balanceAgeeChartData.map((item, idx) => {
-                      const percent = totauxBalanceAgee.totalDettes > 0
-                        ? ((item.value / totauxBalanceAgee.totalDettes) * 100).toFixed(1)
-                        : '0';
-                      const fournisseurCount = balanceAgeeData.filter(f => {
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                  <DonutBreakdown
+                    className="lg:col-span-2"
+                    title={t('suppliers.detailByAgeBracket')}
+                    subtitle={t('suppliers.subTabBreakdown')}
+                    total={totauxBalanceAgee.totalDettes}
+                    formatValue={formatCurrency}
+                    centerLabel={t('suppliers.total')}
+                    segments={balanceAgeeChartData.map(item => ({
+                      name: item.label,
+                      value: item.value,
+                      color: item.color,
+                      count: balanceAgeeData.filter(f => {
                         if (item.name === 'Non échu') return f.nonEchu > 0;
                         if (item.name === '0-30 jours') return f.echu0_30 > 0;
                         if (item.name === '31-60 jours') return f.echu31_60 > 0;
                         if (item.name === '61-90 jours') return f.echu61_90 > 0;
                         if (item.name === '+90 jours') return f.echuPlus90 > 0;
                         return false;
-                      }).length;
-                      return (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:shadow-md transition-all duration-200 cursor-pointer group"
-                          style={{ borderLeft: `4px solid ${item.color}` }}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div
-                              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
-                              style={{ backgroundColor: `${item.color}20` }}
-                            >
-                              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-text-tertiary)] transition-colors">{item.label}</p>
-                              <p className="text-sm text-[var(--color-text-secondary)]">{t('suppliers.suppliersConcerned', { count: String(fournisseurCount) })}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(item.value)}</p>
-                            <div className="flex items-center justify-end space-x-2">
-                              <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all duration-500"
-                                  style={{ width: `${percent}%`, backgroundColor: item.color }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium text-[var(--color-text-secondary)] min-w-[45px] text-right">{percent}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                      }).length,
+                    }))}
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 18, boxShadow: 'var(--shadow-sm)', padding: 20 }}>
+                    <RadialGauge
+                      percent={totauxBalanceAgee.totalDettes > 0 ? (totauxBalanceAgee.provision / totauxBalanceAgee.totalDettes) * 100 : 0}
+                      label={t('suppliers.provisions')}
+                      sublabel={formatCurrency(totauxBalanceAgee.provision)}
+                    />
                   </div>
                 </div>
 
