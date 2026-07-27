@@ -298,6 +298,7 @@ const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettes
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
 const FrameworkPage = lazyRetry(() => import('./pages/framework/FrameworkPage'));
+const RevisionDossierPage = lazyRetry(() => import('./pages/cabinet/RevisionDossierPage'));
 const TVATaxesPage = lazyRetry(() => import('./pages/config/TVATaxesPage'));
 const MultiSocietesPage = lazyRetry(() => import('./pages/config/MultiSocietesPage'));
 const AssistantDemarragePage = lazyRetry(() => import('./pages/config/AssistantDemarragePage'));
@@ -559,6 +560,7 @@ function App() {
                           <Route path="/closures" element={<ClosureModulesIndex />} />
                           <Route path="/closures/periodic" element={<PeriodicClosuresModule />} />
                           <Route path="/closures/revisions" element={work(<RevisionsModule />)} />
+                          <Route path="/cabinet/revision" element={work(<RevisionDossierPage />)} />
                           <Route path="/closures/carry-forward" element={work(<ReportsANouveauModule />)} />
                           <Route path="/closures/audit-trail" element={work(<PisteAuditModule />)} />
                           <Route path="/closures/off-balance" element={work(<OffBalanceCommitmentsPage />)} />
