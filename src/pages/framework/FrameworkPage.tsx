@@ -22,6 +22,11 @@ import {
 } from '../../services/framework/accountingFramework';
 import { buildSMTStatement, smtToCSV, type SMTStatement } from '../../services/framework/smtService';
 import { computeSycebnlResult, type SycebnlResult } from '../../services/framework/sycebnlService';
+import {
+  buildFondsDediesStatement,
+  fondsDediesToCSV,
+  type FondsDediesStatement,
+} from '../../services/framework/fondsDediesService';
 
 const fmt = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
@@ -32,6 +37,7 @@ const FrameworkPage: React.FC = () => {
   const [yearId, setYearId] = useState('');
   const [smt, setSmt] = useState<SMTStatement | null>(null);
   const [sycebnl, setSycebnl] = useState<SycebnlResult | null>(null);
+  const [fondsDedies, setFondsDedies] = useState<FondsDediesStatement | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,7 +56,7 @@ const FrameworkPage: React.FC = () => {
   const changeFramework = async (code: AccountingFramework) => {
     setFw(code);
     await setFramework(adapter, code);
-    setSmt(null); setSycebnl(null);
+    setSmt(null); setSycebnl(null); setFondsDedies(null);
     toast.success(`Référentiel : ${frameworkMeta(code).label}`);
   };
 
@@ -64,6 +70,7 @@ const FrameworkPage: React.FC = () => {
         setSycebnl(null);
       } else if (isNonProfit(framework)) {
         setSycebnl(await computeSycebnlResult(adapter, range));
+        setFondsDedies(await buildFondsDediesStatement(adapter, range));
         setSmt(null);
       } else {
         toast('Ce référentiel utilise les états SYSCOHADA standards (Bilan, Compte de résultat).', { icon: 'ℹ️' });
@@ -126,7 +133,7 @@ const FrameworkPage: React.FC = () => {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Exercice</label>
-            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); }}
+            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); setFondsDedies(null); }}
               className="px-3 py-2 border border-gray-300 rounded text-sm">
               {years.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
             </select>
@@ -183,6 +190,64 @@ const FrameworkPage: React.FC = () => {
             Excédent/déficit = produits − charges, sans déduction d'impôt sur les sociétés
             (activité non lucrative).
           </p>
+        </div>
+      )}
+
+      {/* État des fonds dédiés (SYCEBNL) */}
+      {fondsDedies && fondsDedies.projets.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <span className="font-semibold text-sm">État des fonds dédiés (ressources affectées)</span>
+            <button
+              onClick={() => {
+                const blob = new Blob(['﻿' + fondsDediesToCSV(fondsDedies)], { type: 'text/csv;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `fonds-dedies-${year?.name ?? 'exercice'}.csv`;
+                a.click(); URL.revokeObjectURL(a.href);
+              }}
+              className="text-xs text-[#235A6E] hover:underline flex items-center gap-1"
+            >
+              <Download className="w-3.5 h-3.5" /> CSV
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-gray-500 border-b border-gray-200">
+                  <th className="px-3 py-2">Projet / Bailleur</th>
+                  <th className="px-3 py-2 text-right">Ouverture</th>
+                  <th className="px-3 py-2 text-right">Ressources affectées</th>
+                  <th className="px-3 py-2 text-right">Emplois</th>
+                  <th className="px-3 py-2 text-right">À reporter</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fondsDedies.projets.map(p => (
+                  <tr key={p.projet} className="border-b border-gray-100 last:border-0">
+                    <td className="px-3 py-1.5">{p.projet}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{fmt(p.ouverture)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{fmt(p.ressourcesAffectees)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums">{fmt(p.emplois)}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums font-medium">{fmt(p.cloture)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot className="bg-gray-100">
+                <tr className="text-xs font-semibold border-t border-gray-300">
+                  <td className="px-3 py-2">TOTAL</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(fondsDedies.totalOuverture)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(fondsDedies.totalRessources)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(fondsDedies.totalEmplois)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmt(fondsDedies.totalCloture)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div className="px-4 py-2 text-xs text-gray-400 border-t border-gray-100">
+            Ressources affectées par projet/bailleur (axe analytique), non encore employées, à reporter
+            en fonds dédiés (comptes 13x).
+          </div>
         </div>
       )}
     </div>
