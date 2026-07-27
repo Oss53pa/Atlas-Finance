@@ -68,9 +68,28 @@ export function portfolioSummary(dossiers: CabinetDossier[]): PortfolioSummary {
 }
 
 /**
- * Bascule sur un dossier (best-effort) : mémorise le tenant cible et recharge.
- * ⚠️ Le tenantId « certifié » est dérivé de la session serveur au chargement ;
- * pour un utilisateur multi-sociétés, la valeur mémorisée ici sert d'amorçage.
+ * Bascule le DOSSIER ACTIF de l'utilisateur, côté session.
+ *
+ * Le tenant « certifié » (RLS via get_user_company_id → profiles.company_id) est
+ * mis à jour par la RPC `switch_active_company`, qui applique une GARDE
+ * D'APPARTENANCE côté serveur (l'utilisateur doit être membre de la société).
+ * On mémorise ensuite le tenant pour amorcer l'adapter, puis on recharge afin
+ * que toute l'app reparte sur le dossier certifié.
+ */
+export async function switchToDossier(adapter: DataAdapter, dossierId: string): Promise<void> {
+  const client = (adapter as any).client;
+  if (client?.rpc) {
+    const { error } = await client.rpc('switch_active_company', { p_company_id: dossierId });
+    if (error) throw new Error(error.message ?? 'Bascule refusée');
+  }
+  try { localStorage.setItem('atlas-tenant-id', dossierId); } catch { /* stockage indisponible */ }
+  if (typeof window !== 'undefined') window.location.assign('/dashboard');
+}
+
+/**
+ * Variante best-effort SANS bascule serveur (mode local/hors client) :
+ * mémorise le tenant cible et recharge. À éviter en SaaS — préférer
+ * switchToDossier qui met à jour le tenant certifié.
  */
 export function openDossier(dossierId: string): void {
   try { localStorage.setItem('atlas-tenant-id', dossierId); } catch { /* stockage indisponible */ }
