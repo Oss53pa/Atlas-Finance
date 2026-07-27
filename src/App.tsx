@@ -289,6 +289,7 @@ const MultiSitesPage = lazyRetry(() => import('./pages/config/MultiSitesPage'));
 // Settings
 const AccountingSettingsPage = lazyRetry(() => import('./pages/settings/AccountingSettingsPage'));
 const ParametresPage = lazyRetry(() => import('./pages/settings/ParametresPage'));
+const SodReportPage = lazyRetry(() => import('./pages/settings/SodReportPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
 const ImportExportPage = lazyRetry(() => import('./pages/settings/ImportExportPage'));
 const ImportTemplatesCatalogPage = lazyRetry(() => import('./pages/settings/ImportTemplatesCatalogPage'));
@@ -664,6 +665,7 @@ function App() {
                           <Route path="/settings" element={<AccountingSettingsPage />} />
                           <Route path="/settings/accounting" element={<AccountingSettingsPage />} />
                           <Route path="/settings/parametres" element={work(<ParametresPage />)} />
+                          <Route path="/settings/sod" element={work(<SodReportPage />)} />
                           <Route path="/settings/users" element={<UsersPage />} />
                           <Route path="/settings/company" element={<CompanyPage />} />
                           <Route path="/settings/import-export" element={<ImportExportPage />} />
