@@ -100,6 +100,7 @@ const GouvernancePage = lazyRetry(() => import('./pages/validation/GouvernancePa
 // Dashboards
 const ExecutiveDashboard = lazyRetry(() => import('./pages/dashboard/PremiumOverview'));
 const ExecutiveDashboardLegacy = lazyRetry(() => import('./pages/dashboard/ExecutiveDashboard'));
+const ExecutiveDigest = lazyRetry(() => import('./pages/dashboard/ExecutiveDigest'));
 const AdminDashboard = lazyRetry(() => import('./pages/dashboard/AdminDashboard'));
 const ComptableDashboard = lazyRetry(() => import('./pages/dashboard/ComptableDashboard'));
 const ManagerDashboard = lazyRetry(() => import('./pages/dashboard/ManagerDashboard'));
@@ -429,6 +430,7 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/dashboard" element={<AccountingDashboard />} />
                           <Route path="/executive" element={<ExecutiveDashboard />} />
+                          <Route path="/executive/digest" element={<ExecutiveDigest />} />
                           <Route path="/executive/legacy" element={<ExecutiveDashboardLegacy />} />
                           <Route path="/dashboard/admin" element={<AdminDashboard />} />
                           <Route path="/dashboard/comptable" element={<ComptableDashboard />} />

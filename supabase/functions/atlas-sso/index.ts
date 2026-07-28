@@ -12,8 +12,6 @@ import { getCorsHeaders, jsonResponse, errorResponse } from "../_shared/cors.ts"
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const jwtSecret = Deno.env.get("JWT_SECRET")!;
-
 Deno.serve(async (req) => {
   const origin = req.headers.get('origin') || '';
   const cors = getCorsHeaders(origin);
@@ -33,7 +31,7 @@ Deno.serve(async (req) => {
     }
 
     // 1. Validate the Atlas Studio JWT
-    const claims = await verifyAtlasJWT(token, jwtSecret);
+    const claims = await verifyAtlasJWT(token, { audience: ["atlas-compta", "atlas-fa"] });
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },

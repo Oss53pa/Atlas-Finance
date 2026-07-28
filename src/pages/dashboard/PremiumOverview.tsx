@@ -18,7 +18,7 @@ import {
   Plus, Download, Search as SearchIcon, Settings, Bell,
   ShieldCheck, Wallet, TrendingUp, TrendingDown,
   Users, AlertTriangle, ArrowUpRight, BarChart3,
-  Banknote, Receipt, Coins, Landmark, Package, CheckCircle2,
+  Banknote, Receipt, Coins, Landmark, Package, CheckCircle2, Mail,
 } from 'lucide-react';
 import {
   HeroBrandHeader,
@@ -243,6 +243,10 @@ const PremiumOverview: React.FC = () => {
           ]}
           actions={
             <>
+              <button onClick={() => navigate('/executive/digest')} className="btn btn-outline" style={{ gap: '0.5rem', display: 'inline-flex', alignItems: 'center' }}>
+                <Mail className="w-3.5 h-3.5" strokeWidth={1.6} />
+                <span>Vue Dirigeant</span>
+              </button>
               <button onClick={() => navigate('/financial-statements/balance')} className="btn btn-outline" style={{ gap: '0.5rem', display: 'inline-flex', alignItems: 'center' }}>
                 <Download className="w-3.5 h-3.5" strokeWidth={1.6} />
                 <span>{t('premiumOverview.btnFinancialStatements')}</span>

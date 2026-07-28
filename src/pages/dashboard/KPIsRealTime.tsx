@@ -32,6 +32,10 @@ interface RealTimeData {
   conversion: number;
 }
 
+/** Format compact FR pour les axes/tooltips (1 234 567 → « 1,2 M »). */
+const compactNumber = (n: number): string =>
+  new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0);
+
 const KPIsRealTime: React.FC = () => {
   const { adapter } = useData();
   const { activityType } = useActivityType();
@@ -176,6 +180,25 @@ const KPIsRealTime: React.FC = () => {
         const caHistory = buildHistory(monthlyCA);
         const chargesHistory = buildHistory(monthlyCharges);
         const tresoHistory = buildHistory(monthlyTresorerie);
+
+        // ─── Série « Performance Temps Réel » (8 derniers mois, données réelles) ───
+        // Ventes = CA mensuel (cl.7) ; Encaissements = flux trésorerie (cl.5) ;
+        // Marge nette (%) = (CA − charges) / CA, bornée 0–100.
+        const perfSeries: RealTimeData[] = sortedMonths.slice(-8).map((mo) => {
+          const ca = Math.round(monthlyCA[mo] || 0);
+          const ch = Math.round(monthlyCharges[mo] || 0);
+          const tr = Math.round(monthlyTresorerie[mo] || 0);
+          const marge = ca > 0 ? Math.max(0, Math.min(100, Math.round(((ca - ch) / ca) * 100))) : 0;
+          const [yy, mm] = mo.split('-');
+          return {
+            timestamp: new Date(Number(yy), Number(mm || 1) - 1, 1),
+            sales: ca,
+            orders: tr,
+            visitors: 0,
+            conversion: marge,
+          };
+        });
+        setRealTimeData(perfSeries);
 
         const computedKPIs: KPIMetric[] = [
           {
@@ -387,8 +410,13 @@ const KPIsRealTime: React.FC = () => {
           ? Math.min(100, Math.round((totalTresorerie / (totalCharges > 0 ? totalCharges : 1)) * 100))
           : 20;
 
+        // Score « Ventes » = momentum réel du CA (croissance mois courant vs précédent).
+        const caMomentum = totalCA > 0
+          ? Math.max(0, Math.min(100, 50 + computeTrend(monthlyCA[currentMonth] || 0, monthlyCA[prevMonth] || 0)))
+          : 0;
+
         setRadarData([
-          { subject: 'Ventes', A: totalCA > 0 ? Math.min(100, 75) : 0, fullMark: 100 },
+          { subject: 'Ventes', A: caMomentum, fullMark: 100 },
           { subject: 'Rentabilité', A: marge > 0 ? Math.min(100, Math.round(marge * 2.5)) : 0, fullMark: 100 },
           { subject: 'Liquidité', A: totalTresorerie > 0 ? Math.min(100, Math.round((totalTresorerie / (totalCharges || 1)) * 100)) : 0, fullMark: 100 },
           { subject: 'Créances', A: Math.max(0, Math.min(100, Math.round(100 - receivablesRatio * 2))), fullMark: 100 },
@@ -631,19 +659,37 @@ const KPIsRealTime: React.FC = () => {
       {activeTab === 'charts' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Performance Temps Réel</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={realTimeData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#d4d4d4" />
-                <XAxis dataKey="timestamp" tickFormatter={(value) => new Date(value).toLocaleTimeString()} stroke="#235A6E" />
-                <YAxis stroke="#235A6E" />
-                <Tooltip labelFormatter={(value) => new Date(value).toLocaleTimeString()} />
-                <Legend />
-                <Line type="monotone" dataKey="sales" stroke="#235A6E" name="Ventes" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="orders" stroke="#15803D" name="Commandes" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="conversion" stroke="#E89A2E" name="Conversion (%)" strokeWidth={2} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Performance Temps Réel</h2>
+            <p className="text-xs text-gray-500 mb-4">Ventes &amp; encaissements mensuels et marge nette — 8 derniers mois (données réelles)</p>
+            {realTimeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={realTimeData} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                  <XAxis
+                    dataKey="timestamp"
+                    stroke="#235A6E"
+                    tick={{ fontSize: 12 }}
+                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
+                  />
+                  <YAxis yAxisId="left" stroke="#235A6E" tick={{ fontSize: 11 }} width={64} tickFormatter={(v) => compactNumber(Number(v))} />
+                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="#E89A2E" tick={{ fontSize: 11 }} width={40} tickFormatter={(v) => `${v}%`} />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
+                    formatter={(value: number, name: string) => [name === 'Marge nette (%)' ? `${value} %` : `${compactNumber(Number(value))} FCFA`, name]}
+                  />
+                  <Legend />
+                  <Line yAxisId="left" type="monotone" dataKey="sales" stroke="#235A6E" name="Ventes (CA)" strokeWidth={2.5} dot={false} />
+                  <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#15803D" name="Encaissements" strokeWidth={2} dot={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="conversion" stroke="#E89A2E" name="Marge nette (%)" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex flex-col items-center justify-center text-center text-gray-400">
+                <BarChart3 className="w-10 h-10 mb-3" />
+                <p className="text-sm">Aucune écriture comptabilisée pour l'instant.</p>
+                <p className="text-xs mt-1">La courbe se remplit dès les premières ventes validées.</p>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
