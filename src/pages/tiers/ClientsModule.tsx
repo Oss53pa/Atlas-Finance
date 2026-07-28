@@ -25,7 +25,6 @@ import {
   PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
-import { KPICard, RadialGauge } from '../../components/ui/DesignSystem';
 
 // Interface Client complète avec données comptables
 interface Client {
