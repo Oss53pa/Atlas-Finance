@@ -9,6 +9,7 @@ import {
   Calendar, Filter, Download, FileText, AlertTriangle, CheckCircle,
   Info, Clock, CreditCard, Wallet, PiggyBank, Landmark, ChevronRight, ChevronDown
 } from 'lucide-react';
+import { StatBadgeCard } from '../../components/premium';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -243,7 +244,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
       data: [liveFinancials.treasury],
       backgroundColor: (context: any) => {
         const value = context.raw;
-        return value >= 0 ? 'rgba(var(--color-success-rgb), 0.8)' : 'rgba(var(--color-danger-rgb), 0.8)';
+        return value >= 0 ? 'rgba(21,128,61,0.85)' : 'rgba(192,50,43,0.85)';
       }
     }]
   };
@@ -254,11 +255,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
     '73': 'Production immob.', '74': 'Subventions', '75': 'Autres produits',
     '76': 'Produits financiers', '77': 'Produits except.', '78': 'Reprises', '79': 'Transferts',
   };
-  const revColors = ['#4CAF50','#2196F3','#FF9800','#9C27B0','#F44336','#00BCD4','#8BC34A','#FF5722'];
+  const revColors = ['#235A6E','#E89A2E','#15803D','#4E7E8D','#C77E2C','#7FA3AF','#3E7A8C','#B26A12'];
   const revenueMixData = useMemo(() => {
     const entries = Object.entries(liveFinancials.revenueByClass).filter(([, v]) => v > 0);
     if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }] };
+      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
     }
     return {
       labels: entries.map(([cls]) => revAccountLabels[cls] || `Classe ${cls}`),
@@ -271,11 +272,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
     '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
     '68': 'Dotations', '69': 'Participation',
   };
-  const expColors = ['#F44336','#FF9800','#FFC107','#8BC34A','#03A9F4','#9C27B0','#607D8B','#795548'];
+  const expColors = ['#C0322B','#E89A2E','#C77E2C','#235A6E','#4E7E8D','#15803D','#7FA3AF','#B26A12'];
   const expenseBreakdownData = useMemo(() => {
     const entries = Object.entries(liveFinancials.expenseByClass).filter(([, v]) => v > 0);
     if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['var(--color-secondary)'] }] };
+      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
     }
     return {
       labels: entries.map(([cls]) => expAccountLabels[cls] || `Classe ${cls}`),
@@ -291,24 +292,24 @@ const FinancialAnalysisDashboard: React.FC = () => {
       {
         label: 'Revenus',
         data: liveFinancials.monthlyRev,
-        borderColor: 'var(--color-success)',
-        backgroundColor: 'rgba(var(--color-success-rgb), 0.1)',
+        borderColor: '#15803D',
+        backgroundColor: 'rgba(21,128,61,0.12)',
         tension: 0.4,
         fill: true
       },
       {
         label: 'Dépenses',
         data: liveFinancials.monthlyExp,
-        borderColor: 'var(--color-danger)',
-        backgroundColor: 'rgba(var(--color-danger-rgb), 0.1)',
+        borderColor: '#C0322B',
+        backgroundColor: 'rgba(192,50,43,0.12)',
         tension: 0.4,
         fill: true
       },
       {
         label: 'Profit Net',
         data: monthlyProfitData,
-        borderColor: 'var(--color-primary)',
-        backgroundColor: 'rgba(var(--color-primary-rgb), 0.1)',
+        borderColor: '#235A6E',
+        backgroundColor: 'rgba(35,90,110,0.12)',
         tension: 0.4,
         fill: true
       }
@@ -323,9 +324,9 @@ const FinancialAnalysisDashboard: React.FC = () => {
     return {
       labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       datasets: [
-        { label: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: 'var(--color-success)' },
-        { label: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: 'var(--color-warning)' },
-        { label: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: 'var(--color-danger)' },
+        { label: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: '#235A6E' },
+        { label: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: '#E89A2E' },
+        { label: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: '#C0322B' },
       ],
     };
   }, [liveFinancials]);
@@ -390,71 +391,46 @@ const FinancialAnalysisDashboard: React.FC = () => {
         )}
 
         {/* Key Financial Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Chiffre d'Affaires</span>
-              <DollarSign className="w-4 h-4 text-[var(--color-success)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.revenue.current)}
-            </div>
-            <div className="text-xs mt-1 text-[var(--color-text-secondary)]">
-              Produits nets (classe 7)
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Marge Brute</span>
-              <Percent className="w-4 h-4 text-[var(--color-primary)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {financialMetrics.profit.grossMargin}%
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              {formatCurrency(financialMetrics.profit.gross)}
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">EBITDA</span>
-              <TrendingUp className="w-4 h-4 text-[var(--color-info)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.profit.ebitda)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              Marge: {financialMetrics.profit.ebitdaMargin}%
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">Cash Flow Net</span>
-              <PiggyBank className="w-4 h-4 text-[var(--color-warning)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.cashflow.net)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              FCF: {formatCurrency(financialMetrics.cashflow.freeFlow)}
-            </div>
-          </div>
-
-          <div className="bg-[var(--color-card-bg)] rounded-lg p-4 border border-[var(--color-border)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-text-secondary)]">BFR</span>
-              <Wallet className="w-4 h-4 text-[var(--color-info)]" />
-            </div>
-            <div className="text-lg font-bold text-[var(--color-text-primary)]">
-              {formatCurrency(financialMetrics.ratios.workingCapital)}
-            </div>
-            <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-              Ratio courant: {financialMetrics.ratios.currentRatio}
-            </div>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 items-stretch">
+          <StatBadgeCard
+            label="Chiffre d'Affaires"
+            value={formatCurrency(financialMetrics.revenue.current)}
+            badge="petrol"
+            icon={<DollarSign />}
+            valueSize={20}
+            meta="Produits nets (classe 7)"
+          />
+          <StatBadgeCard
+            label="Marge Brute"
+            value={`${financialMetrics.profit.grossMargin}%`}
+            badge="petrol"
+            icon={<Percent />}
+            meta={formatCurrency(financialMetrics.profit.gross)}
+          />
+          <StatBadgeCard
+            label="EBITDA"
+            value={formatCurrency(financialMetrics.profit.ebitda)}
+            badge="petrol"
+            icon={<TrendingUp />}
+            valueSize={20}
+            meta={`Marge : ${financialMetrics.profit.ebitdaMargin}%`}
+          />
+          <StatBadgeCard
+            label="Cash Flow Net"
+            value={formatCurrency(financialMetrics.cashflow.net)}
+            badge="amber"
+            icon={<PiggyBank />}
+            valueSize={20}
+            meta={`FCF : ${formatCurrency(financialMetrics.cashflow.freeFlow)}`}
+          />
+          <StatBadgeCard
+            label="BFR"
+            value={formatCurrency(financialMetrics.ratios.workingCapital)}
+            badge="petrol"
+            icon={<Wallet />}
+            valueSize={20}
+            meta={`Ratio courant : ${financialMetrics.ratios.currentRatio}`}
+          />
         </div>
       </div>
 

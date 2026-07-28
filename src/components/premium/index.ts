@@ -1,6 +1,15 @@
 export { default as KpiCardPremium } from './KpiCardPremium';
 export type { KpiCardPremiumProps, KpiTrend, KpiTone } from './KpiCardPremium';
 
+export { default as StatBadgeCard } from './StatBadgeCard';
+export type { StatBadgeCardProps, BadgeTone, StatTrend } from './StatBadgeCard';
+
+export { default as DonutBreakdown } from './DonutBreakdown';
+export type { DonutBreakdownProps, DonutSegment } from './DonutBreakdown';
+
+export { default as RadialGauge } from './RadialGauge';
+export type { RadialGaugeProps } from './RadialGauge';
+
 export { default as HeroBrandHeader } from './HeroBrandHeader';
 export type { HeroBrandHeaderProps } from './HeroBrandHeader';
 

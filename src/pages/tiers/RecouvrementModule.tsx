@@ -24,6 +24,7 @@ import {
   AreaChart, Area, ComposedChart
 } from 'recharts';
 import { DebtCollection, CollectionAction, InvoiceDebt } from '../../types/tiers';
+import { StatBadgeCard } from '../../components/premium';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from '../../components/ui';
 import { createTransfertContentieuxSchema } from '../../services/modules/tiers.service';
@@ -268,71 +269,38 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
         return (
           <div className="space-y-6">
             {/* KPIs principaux avec intégrations temps réel */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalReceivables')}</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(analyticsData.statistiques.montantTotalCreances)}
-                    </p>
-                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">{analyticsData.statistiques.nombreCreances} dossiers</p>
-                    <div className="flex items-center mt-2 text-xs text-blue-600">
-                      <Link className="w-3 h-3 mr-1" />
-                      <span>{t('recovery.accountingSync')}</span>
-                    </div>
-                  </div>
-                  <DollarSign className="w-8 h-8 text-red-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedThisMonth')}</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {formatCurrency(analyticsData.statistiques.montantRecouvre)}
-                    </p>
-                    <p className="text-xs text-green-600 mt-1">{t('recovery.vsPrevMonth12')}</p>
-                    <div className="flex items-center mt-2 text-xs text-green-600">
-                      <Zap className="w-3 h-3 mr-1" />
-                      <span>{t('recovery.realTime')}</span>
-                    </div>
-                  </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.successRate')}</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {analyticsData.statistiques.tauxRecouvrement}%
-                    </p>
-                    <p className="text-xs text-blue-600 mt-1">Objectif: 85%</p>
-                    <div className="flex items-center mt-2 text-xs text-primary-600">
-                      <Cloud className="w-3 h-3 mr-1" />
-                      <span>IA enrichie</span>
-                    </div>
-                  </div>
-                  <TrendingUp className="w-8 h-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.averageDelay')}</p>
-                    <p className="text-lg font-bold text-[var(--color-primary)]">
-                      {analyticsData.statistiques.delaiMoyenRecouvrement}j
-                    </p>
-                    <p className="text-xs text-orange-600 mt-1">{analyticsData.statistiques.creancesEnRetard} en retard</p>
-                    <div className="flex items-center mt-2 text-xs text-blue-600">
-                      <Calculator className="w-3 h-3 mr-1" />
-                      <span>CRM scoring</span>
-                    </div>
-                  </div>
-                  <Clock className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 items-stretch">
+              <StatBadgeCard
+                label={t('recovery.totalReceivables')}
+                value={formatCurrency(analyticsData.statistiques.montantTotalCreances)}
+                badge="petrol"
+                icon={<DollarSign />}
+                valueSize={20}
+                meta={`${analyticsData.statistiques.nombreCreances} dossiers`}
+              />
+              <StatBadgeCard
+                label={t('recovery.collectedThisMonth')}
+                value={formatCurrency(analyticsData.statistiques.montantRecouvre)}
+                badge="success"
+                valueTone="success"
+                icon={<CheckCircle />}
+                valueSize={20}
+                meta={t('recovery.vsPrevMonth12')}
+              />
+              <StatBadgeCard
+                label={t('recovery.successRate')}
+                value={`${analyticsData.statistiques.tauxRecouvrement}%`}
+                badge="petrol"
+                icon={<TrendingUp />}
+                meta="Objectif : 85%"
+              />
+              <StatBadgeCard
+                label={t('recovery.averageDelay')}
+                value={`${analyticsData.statistiques.delaiMoyenRecouvrement}j`}
+                badge="amber"
+                icon={<Clock />}
+                meta={`${analyticsData.statistiques.creancesEnRetard} en retard`}
+              />
             </div>
 
             {/* Panel des intégrations en temps réel */}
@@ -412,14 +380,18 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
                   <RechartsPieChart>
                     <Pie
                       dataKey="montant"
-                      data={analyticsData.repartitionNiveaux}
+                      data={analyticsData.repartitionNiveaux.filter(r => r.montant > 0)}
                       cx="50%"
                       cy="50%"
+                      innerRadius={62}
                       outerRadius={100}
-                      fill="#235A6E"
+                      paddingAngle={2}
+                      cornerRadius={6}
+                      stroke="none"
+                      labelLine={false}
                       label={({ niveau, count }) => `${niveau} (${count})`}
                     >
-                      {analyticsData.repartitionNiveaux.map((entry, index) => (
+                      {analyticsData.repartitionNiveaux.filter(r => r.montant > 0).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -6298,44 +6270,33 @@ const ContentieuxTab = ({
 
       return (
         <div className="space-y-6">
-          {/* Budget global */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.totalLitigationBudget')}</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">
-                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-600">{t('recovery.collectedReceivables')}</p>
-                </div>
-                <Wallet className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.incurredExpenses')}</p>
-                  <p className="text-lg font-bold text-orange-600">
-                    {totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
-                  </p>
-                  <p className="text-xs text-gray-600">{budgetPct}</p>
-                </div>
-                <CreditCard className="w-8 h-8 text-orange-600" />
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-[var(--color-text-secondary)]">{t('recovery.collectedAmounts')}</p>
-                  <p className="text-lg font-bold text-green-600">
-                    {totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
-                  </p>
-                  <p className="text-xs text-green-600">{roiLabel}</p>
-                </div>
-                <TrendingUp className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
+          {/* Budget global — Daylight Pro */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
+            <StatBadgeCard
+              label={t('recovery.totalLitigationBudget')}
+              value={totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+              badge="petrol"
+              icon={<Wallet />}
+              valueSize={20}
+              meta={t('recovery.collectedReceivables')}
+            />
+            <StatBadgeCard
+              label={t('recovery.incurredExpenses')}
+              value={totalDepensesEngagees > 0 ? formatCurrency(totalDepensesEngagees) : '—'}
+              badge="amber"
+              icon={<CreditCard />}
+              valueSize={20}
+              meta={budgetPct}
+            />
+            <StatBadgeCard
+              label={t('recovery.collectedAmounts')}
+              value={totalMontantsRecouVres > 0 ? formatCurrency(totalMontantsRecouVres) : '—'}
+              badge="success"
+              valueTone="success"
+              icon={<TrendingUp />}
+              valueSize={20}
+              meta={roiLabel}
+            />
           </div>
 
           {/* Détail des coûts par type */}
@@ -6356,9 +6317,12 @@ const ContentieuxTab = ({
                         data={costChartData}
                         cx="50%"
                         cy="50%"
+                        innerRadius={62}
                         outerRadius={100}
+                        paddingAngle={2}
+                        cornerRadius={6}
+                        stroke="none"
                         fill="#235A6E"
-                        label
                       >
                         {costChartData.map((_entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

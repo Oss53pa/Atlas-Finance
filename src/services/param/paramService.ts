@@ -112,6 +112,15 @@ export interface ParamAuditRow {
   par: string | null; le: string; hash: string | null; hash_precedent: string | null;
 }
 
+/**
+ * Résout un compte par défaut (namespace `compte.<clé>`) via le socle — remplace
+ * les codes de comptes en dur. Ex. resolveCompteDefaut(adapter, 'client_collectif').
+ * Repli automatique sur la valeur par défaut SYSCOHADA du catalogue.
+ */
+export async function resolveCompteDefaut(adapter: DataAdapter, key: string, asOf?: string): Promise<string | undefined> {
+  return resolveParam<string>(adapter, `compte.${key}`, asOf);
+}
+
 // ── Compat `settings` → socle (namespace settings.<clé>) ─────────────────────
 
 /**

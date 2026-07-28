@@ -7,6 +7,7 @@ import { useData } from '../../contexts/DataContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
+import { StatBadgeCard } from '../premium';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, AreaChart, Area
@@ -1368,59 +1369,36 @@ const AdvancedGeneralLedger: React.FC = () => {
       {activeView === 'dashboard' && (
         <div className="w-full bg-white">
 
-          {/* Indicateurs clés */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{t('gl.totalAccountsLabel')}</p>
-                  <p className="text-lg font-bold text-[var(--color-primary)]">{indicators.totalComptes}</p>
-                  <p className="text-xs text-gray-700">{t('accounting.chartOfAccounts')}</p>
-                </div>
-                <div className="w-12 h-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
-                  <Hash className="w-6 h-6 text-[var(--color-primary)]" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{t('gl.activeAccountsLabel')}</p>
-                  <p className="text-lg font-bold text-blue-600">{indicators.comptesActifs}</p>
-                  <p className="text-xs text-gray-700">{t('gl.withMovements')}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{t('gl.totalEntriesLabel')}</p>
-                  <p className="text-lg font-bold text-green-600">{indicators.totalEcritures}</p>
-                  <p className="text-xs text-gray-700">{t('gl.currentPeriod')}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{t('gl.avgEntries')}</p>
-                  <p className="text-lg font-bold text-orange-600">{formatNumber(indicators.moyenneEcritures)}</p>
-                  <p className="text-xs text-gray-700">{t('gl.perActiveAccount')}</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </div>
+          {/* Indicateurs clés — Daylight Pro */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 items-stretch">
+            <StatBadgeCard
+              label={t('gl.totalAccountsLabel')}
+              value={String(indicators.totalComptes)}
+              badge="petrol"
+              icon={<Hash />}
+              meta={t('accounting.chartOfAccounts')}
+            />
+            <StatBadgeCard
+              label={t('gl.activeAccountsLabel')}
+              value={String(indicators.comptesActifs)}
+              badge="amber"
+              icon={<TrendingUp />}
+              meta={t('gl.withMovements')}
+            />
+            <StatBadgeCard
+              label={t('gl.totalEntriesLabel')}
+              value={String(indicators.totalEcritures)}
+              badge="petrol"
+              icon={<FileText />}
+              meta={t('gl.currentPeriod')}
+            />
+            <StatBadgeCard
+              label={t('gl.avgEntries')}
+              value={formatNumber(indicators.moyenneEcritures)}
+              badge="amber"
+              icon={<BarChart3 />}
+              meta={t('gl.perActiveAccount')}
+            />
           </div>
 
           {/* Graphiques d'évolution */}

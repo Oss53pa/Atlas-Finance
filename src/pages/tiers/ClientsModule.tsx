@@ -9,6 +9,7 @@ import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
+import { StatBadgeCard, DonutBreakdown, RadialGauge } from '../../components/premium';
 import {
   Search, Plus, Filter, Eye, Edit, Trash2, X,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -24,7 +25,6 @@ import {
   PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
-import { KPICard, RadialGauge } from '../../components/ui/DesignSystem';
 
 // Interface Client complète avec données comptables
 interface Client {
@@ -1151,64 +1151,60 @@ const ClientsModule: React.FC = () => {
             </div>
           </div>
 
-          {/* KPIs Balance Âgée — cartes premium color-codées par sévérité (theme-aware) */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-            {(() => {
-              const tot = totauxBalanceAgee.totalCreances;
-              const pct = (v: number) => (tot > 0 ? `${((v / tot) * 100).toFixed(1)}%` : undefined);
-              const retard = totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90;
-              return (
-                <>
-                  <KPICard
-                    title={t('clients.colTotalReceivables')}
-                    value={formatCurrency(tot)}
-                    icon={Wallet}
-                    color="primary"
-                    valueFontSize="1.125rem"
-                  />
-                  <KPICard
-                    title={t('clients.bucketNonEchu')}
-                    value={formatCurrency(totauxBalanceAgee.nonEchu)}
-                    subtitle={pct(totauxBalanceAgee.nonEchu)}
-                    icon={CheckCircle}
-                    color="success"
-                    valueFontSize="1.125rem"
-                  />
-                  <KPICard
-                    title={t('clients.bucket030')}
-                    value={formatCurrency(totauxBalanceAgee.echu0_30)}
-                    subtitle={pct(totauxBalanceAgee.echu0_30)}
-                    icon={Clock}
-                    color="warning"
-                    valueFontSize="1.125rem"
-                  />
-                  <KPICard
-                    title={t('clients.bucket3160')}
-                    value={formatCurrency(totauxBalanceAgee.echu31_60)}
-                    subtitle={pct(totauxBalanceAgee.echu31_60)}
-                    icon={AlertTriangle}
-                    color="warning"
-                    valueFontSize="1.125rem"
-                  />
-                  <KPICard
-                    title={t('clients.bucketPlus60')}
-                    value={formatCurrency(retard)}
-                    subtitle={pct(retard)}
-                    icon={AlertOctagon}
-                    color="error"
-                    valueFontSize="1.125rem"
-                  />
-                  <KPICard
-                    title={t('clients.provisions')}
-                    value={formatCurrency(totauxBalanceAgee.provision)}
-                    icon={Shield}
-                    color="primary"
-                    valueFontSize="1.125rem"
-                  />
-                </>
-              );
-            })()}
-          </div>
+          {/* KPIs Balance Âgée — Daylight Pro */}
+          {(() => {
+            const tot = totauxBalanceAgee.totalCreances;
+            const pct = (x: number) => (tot > 0 ? ((x / tot) * 100).toFixed(1) : '0');
+            const over60 = totauxBalanceAgee.echu61_90 + totauxBalanceAgee.echuPlus90;
+            return (
+              <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 items-stretch">
+                <StatBadgeCard
+                  label={t('clients.colTotalReceivables')}
+                  value={formatCurrency(totauxBalanceAgee.totalCreances)}
+                  badge="petrol"
+                  icon={<Wallet />}
+                  meta={t('clients.clientsCount', { count: String(balanceAgeeData.length) })}
+                />
+                <StatBadgeCard
+                  label={t('clients.bucketNonEchu')}
+                  value={formatCurrency(totauxBalanceAgee.nonEchu)}
+                  badge="success"
+                  valueTone="success"
+                  icon={<CheckCircle />}
+                  meta={`${pct(totauxBalanceAgee.nonEchu)} %`}
+                />
+                <StatBadgeCard
+                  label={t('clients.bucket030')}
+                  value={formatCurrency(totauxBalanceAgee.echu0_30)}
+                  badge="amber"
+                  icon={<Clock />}
+                  meta={`${pct(totauxBalanceAgee.echu0_30)} %`}
+                />
+                <StatBadgeCard
+                  label={t('clients.bucket3160')}
+                  value={formatCurrency(totauxBalanceAgee.echu31_60)}
+                  badge="amber"
+                  icon={<AlertTriangle />}
+                  meta={`${pct(totauxBalanceAgee.echu31_60)} %`}
+                />
+                <StatBadgeCard
+                  label={t('clients.bucketPlus60')}
+                  value={formatCurrency(over60)}
+                  badge="error"
+                  valueTone="error"
+                  icon={<AlertOctagon />}
+                  meta={`${pct(over60)} %`}
+                />
+                <StatBadgeCard
+                  label={t('clients.provisions')}
+                  value={formatCurrency(totauxBalanceAgee.provision)}
+                  badge="petrol"
+                  icon={<Shield />}
+                  meta={`${pct(totauxBalanceAgee.provision)} %`}
+                />
+              </div>
+            );
+          })()}
 
           {/* Sous-onglets Balance Âgée */}
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
@@ -1254,109 +1250,34 @@ const ClientsModule: React.FC = () => {
             {/* Contenu sous-onglet: Répartition par ancienneté */}
             {balanceAgeeSubTab === 'repartition' && (
               <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                  {/* Graphique Donut Moderne */}
-                  <div className="lg:col-span-2 bg-gradient-to-br from-primary-50 to-gray-100 rounded-2xl p-6 shadow-inner">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-2 text-center">{t('clients.distributionTitle')}</h4>
-                    <p className="text-sm text-[var(--color-text-secondary)] text-center mb-4">{t('clients.subtabDistribution')}</p>
-                    <div className="relative">
-                      <ResponsiveContainer width="100%" height={320}>
-                        <RechartsPieChart>
-                          <Pie
-                            data={balanceAgeeChartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={72}
-                            outerRadius={118}
-                            paddingAngle={1}
-                            dataKey="value"
-                            stroke="#fff"
-                            strokeWidth={2}
-                          >
-                            {balanceAgeeChartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            formatter={(value) => formatCurrency(value as number)}
-                            contentStyle={{
-                              borderRadius: '12px',
-                              border: 'none',
-                              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-                              padding: '12px 16px'
-                            }}
-                          />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                      {/* Centre du Donut avec Total (cercle net, sans ombre qui bave) */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="text-center bg-white rounded-full w-32 h-32 flex flex-col items-center justify-center border border-[var(--color-border)] px-3">
-                          <p className="text-xs text-[var(--color-text-secondary)] uppercase tracking-wide">{t('clients.total')}</p>
-                          <p className="text-base font-bold text-[var(--color-primary)] leading-tight">{formatCurrency(totauxBalanceAgee.totalCreances)}</p>
-                          <p className="text-xs text-[var(--color-text-secondary)]">{t('clients.clientsCount', { count: String(balanceAgeeData.length) })}</p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Jauge — part des créances échues (en retard) sur le total */}
-                    <div className="mt-5 flex justify-center">
-                      <RadialGauge
-                        value={totauxBalanceAgee.totalCreances > 0 ? ((totauxBalanceAgee.totalCreances - totauxBalanceAgee.nonEchu) / totauxBalanceAgee.totalCreances) * 100 : 0}
-                        max={100}
-                        size={150}
-                        color="error"
-                        label={t('clients.overdueRate')}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Légende détaillée et statistiques */}
-                  <div className="lg:col-span-3 space-y-3">
-                    <h4 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.detailByBucket')}</h4>
-                    {balanceAgeeChartData.map((item, idx) => {
-                      const percent = totauxBalanceAgee.totalCreances > 0
-                        ? ((item.value / totauxBalanceAgee.totalCreances) * 100).toFixed(1)
-                        : '0';
-                      const clientCount = balanceAgeeData.filter(c => {
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+                  <DonutBreakdown
+                    className="lg:col-span-2"
+                    title={t('clients.detailByBucket')}
+                    subtitle={t('clients.subtabDistribution')}
+                    total={totauxBalanceAgee.totalCreances}
+                    formatValue={formatCurrency}
+                    centerLabel={t('clients.total')}
+                    segments={balanceAgeeChartData.map(item => ({
+                      name: item.name,
+                      value: item.value,
+                      color: item.color,
+                      count: balanceAgeeData.filter(c => {
                         if (item.key === 'nonEchu') return c.nonEchu > 0;
                         if (item.key === 'echu0_30') return c.echu0_30 > 0;
                         if (item.key === 'echu31_60') return c.echu31_60 > 0;
                         if (item.key === 'echu61_90') return c.echu61_90 > 0;
                         if (item.key === 'echuPlus90') return c.echuPlus90 > 0;
                         return false;
-                      }).length;
-                      return (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-[var(--color-border)] hover:shadow-md transition-all duration-200 cursor-pointer group"
-                          style={{ borderLeft: `4px solid ${item.color}` }}
-                        >
-                          <div className="flex items-center space-x-4">
-                            <div
-                              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
-                              style={{ backgroundColor: `${item.color}20` }}
-                            >
-                              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: item.color }}></div>
-                            </div>
-                            <div>
-                              <p className="font-semibold text-[var(--color-primary)] group-hover:text-[var(--color-primary)] transition-colors">{item.name}</p>
-                              <p className="text-sm text-[var(--color-text-secondary)]">{t('clients.clientsConcerned', { count: String(clientCount) })}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-lg font-bold text-[var(--color-primary)]">{formatCurrency(item.value)}</p>
-                            <div className="flex items-center justify-end space-x-2">
-                              <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all duration-500"
-                                  style={{ width: `${percent}%`, backgroundColor: item.color }}
-                                ></div>
-                              </div>
-                              <span className="text-sm font-medium text-[var(--color-text-secondary)] min-w-[45px] text-right">{percent}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                      }).length,
+                    }))}
+                  />
+                  <div className="flex flex-col items-center justify-center gap-1" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 18, boxShadow: 'var(--shadow-sm)', padding: 20 }}>
+                    <RadialGauge
+                      percent={totauxBalanceAgee.totalCreances > 0 ? (totauxBalanceAgee.provision / totauxBalanceAgee.totalCreances) * 100 : 0}
+                      label={t('clients.provisions')}
+                      sublabel={formatCurrency(totauxBalanceAgee.provision)}
+                    />
                   </div>
                 </div>
 
