@@ -22,7 +22,7 @@ const DuplicationPage: React.FC = () => {
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
   const [blocks, setBlocks] = useState<DupBlock[]>(DUP_BLOCKS.map(b => b.key));
-  const [report, setReport] = useState<Record<string, number> | null>(null);
+  const [report, setReport] = useState<Record<string, any> | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
 

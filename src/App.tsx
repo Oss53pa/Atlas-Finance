@@ -294,6 +294,7 @@ const SodReportPage = lazyRetry(() => import('./pages/settings/SodReportPage'));
 const ReferentielsPage = lazyRetry(() => import('./pages/settings/ReferentielsPage'));
 const FiscaliteParamsPage = lazyRetry(() => import('./pages/settings/FiscaliteParamsPage'));
 const RgpdPage = lazyRetry(() => import('./pages/settings/RgpdPage'));
+const AnonymisationPage = lazyRetry(() => import('./pages/settings/AnonymisationPage'));
 const DuplicationPage = lazyRetry(() => import('./pages/settings/DuplicationPage'));
 const BootstrapPage = lazyRetry(() => import('./pages/settings/BootstrapPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
@@ -683,6 +684,7 @@ function App() {
                           <Route path="/settings/referentiels" element={work(<ReferentielsPage />)} />
                           <Route path="/settings/fiscalite" element={work(<FiscaliteParamsPage />)} />
                           <Route path="/settings/rgpd" element={work(<RgpdPage />)} />
+                          <Route path="/settings/rgpd/anonymisation" element={work(<AnonymisationPage />)} />
                           <Route path="/settings/duplication" element={work(<DuplicationPage />)} />
                           <Route path="/settings/bootstrap" element={work(<BootstrapPage />)} />
                           <Route path="/settings/users" element={<UsersPage />} />
