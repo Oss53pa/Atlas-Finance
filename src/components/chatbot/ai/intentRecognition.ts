@@ -1,6 +1,6 @@
 /**
  * Advanced Intent Recognition System
- * Système avancé de reconnaissance d'intention avec IA sémantique pour Paloma
+ * Système avancé de reconnaissance d'intention avec IA sémantique pour Proph3t
  */
 
 import { UserIntent, ChatContext } from '../types';

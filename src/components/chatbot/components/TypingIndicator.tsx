@@ -4,14 +4,14 @@
  */
 
 import React from 'react';
-import { PalomaAvatar } from './PalomaAvatar';
+import { Proph3tAvatar } from './Proph3tAvatar';
 
 export const TypingIndicator: React.FC = () => {
   return (
     <div className="typing-indicator" role="status" aria-label="L'assistant est en train d'écrire">
       <div className="message-bubble message-bubble--assistant message-bubble--typing">
         <div className="message-bubble__avatar">
-          <PalomaAvatar size="sm" isTyping={true} />
+          <Proph3tAvatar size="sm" isTyping={true} />
         </div>
         <div className="message-bubble__content">
           <div className="typing-animation">

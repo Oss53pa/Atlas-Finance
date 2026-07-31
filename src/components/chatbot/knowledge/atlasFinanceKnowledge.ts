@@ -1,6 +1,6 @@
 /**
  * Base de Connaissances Atlas Studio
- * Documentation complète du système pour Paloma
+ * Documentation complète du système pour Proph3t
  */
 
 export interface KnowledgeEntry {

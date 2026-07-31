@@ -11,8 +11,8 @@ import { useDraggable } from './hooks/useDraggable';
 import { MessageList } from './components/MessageList';
 import { MessageInput } from './components/MessageInput';
 import { QuickReplies } from './components/QuickReplies';
-import { PalomaAvatar } from './components/PalomaAvatar';
-import { Move, Minimize2, Maximize2, MessageCircle } from 'lucide-react';
+import { Proph3tAvatar } from './components/Proph3tAvatar';
+import { Move, Minimize2, Maximize2 } from 'lucide-react';
 import './ChatWidget.css';
 
 interface ChatWidgetProps {
@@ -81,7 +81,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
     return (
       <button
         ref={dragRef as unknown as React.RefObject<HTMLButtonElement>}
-        className={`chat-widget-toggle ${className} ${isDragging ? 'dragging' : ''}`}
+        className={`chat-widget-toggle proph3t-orb ${className} ${isDragging ? 'dragging' : ''}`}
         onClick={onToggle}
         aria-label={t('chat.toggleAriaLabel')}
         title={t('chat.toggleTitle')}
@@ -92,7 +92,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
           transition: isDragging ? 'none' : 'all 0.3s ease',
         }}
       >
-        <MessageCircle size={24} strokeWidth={2} />
+        <img src="/proph3t.png" alt="Proph3t" className="chat-widget-toggle__orb" />
         <span className="chat-widget-toggle__status" />
       </button>
     );
@@ -118,7 +118,7 @@ export const ChatWidget: React.FC<ChatWidgetProps> = ({
             <Move size={16} className="drag-icon" />
           </div>
           <div className="chat-widget__avatar">
-            <PalomaAvatar size="md" isTyping={isTyping} />
+            <Proph3tAvatar size="md" isTyping={isTyping} />
           </div>
           <div className="chat-widget__header-text">
             <h3 className="chat-widget__title proph3t-font">Proph3t</h3>
