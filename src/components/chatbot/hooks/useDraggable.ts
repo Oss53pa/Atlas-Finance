@@ -1,6 +1,6 @@
 /**
  * Hook pour rendre un élément déplaçable
- * Permet de déplacer Paloma n'importe où sur l'écran
+ * Permet de déplacer Proph3t n'importe où sur l'écran
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -37,7 +37,7 @@ export function useDraggable(options: UseDraggableOptions = {}) {
 
   // Sauvegarder la position dans le sessionStorage
   useEffect(() => {
-    const savedPosition = sessionStorage.getItem('paloma-position');
+    const savedPosition = sessionStorage.getItem('proph3t-position');
     if (savedPosition) {
       try {
         const parsed = JSON.parse(savedPosition);
@@ -60,7 +60,7 @@ export function useDraggable(options: UseDraggableOptions = {}) {
 
   useEffect(() => {
     if (!isDragging) {
-      sessionStorage.setItem('paloma-position', JSON.stringify(position));
+      sessionStorage.setItem('proph3t-position', JSON.stringify(position));
     }
   }, [position, isDragging]);
 
@@ -257,7 +257,7 @@ export function useDraggable(options: UseDraggableOptions = {}) {
     resetPosition: () => {
       const leftPosition = { x: 20, y: window.innerHeight - 120 };
       setPosition(leftPosition);
-      sessionStorage.setItem('paloma-position', JSON.stringify(leftPosition));
+      sessionStorage.setItem('proph3t-position', JSON.stringify(leftPosition));
     },
   };
 }

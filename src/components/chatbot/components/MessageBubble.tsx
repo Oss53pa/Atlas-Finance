@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import DOMPurify from 'dompurify';
 import { ChatMessage, ChatAction } from '../types';
-import { PalomaAvatar } from './PalomaAvatar';
+import { Proph3tAvatar } from './Proph3tAvatar';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -97,7 +97,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
     >
       {message.sender === 'assistant' && (
         <div className="message-bubble__avatar">
-          <PalomaAvatar size="sm" />
+          <Proph3tAvatar size="sm" />
         </div>
       )}
 

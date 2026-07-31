@@ -100,8 +100,8 @@
   opacity: 1;
 }
 
-/* Styles pour l'avatar Paloma */
-.paloma-avatar {
+/* Styles pour l'avatar Proph3t */
+.proph3t-avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -109,27 +109,27 @@
   position: relative;
 }
 
-.paloma-avatar__container {
+.proph3t-avatar__container {
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
 }
 
-.paloma-avatar--lg .paloma-name,
-.paloma-avatar--xl .paloma-name {
+.proph3t-avatar--lg .proph3t-name,
+.proph3t-avatar--xl .proph3t-name {
   margin-top: 8px;
   text-align: center;
 }
 
-.paloma-name {
+.proph3t-name {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 6px;
 }
 
-.paloma-name__text {
+.proph3t-name__text {
   font-size: 16px;
   font-weight: 700;
   color: white;
@@ -137,14 +137,14 @@
   letter-spacing: 0.5px;
 }
 
-.paloma-name__subtitle {
+.proph3t-name__subtitle {
   font-size: 10px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.9);
   margin-top: 2px;
 }
 
-.paloma-typing-indicator {
+.proph3t-typing-indicator {
   position: absolute;
   bottom: -5px;
   right: -5px;
@@ -156,7 +156,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.paloma-typing-indicator span {
+.proph3t-typing-indicator span {
   display: block;
   width: 4px;
   height: 4px;
@@ -165,11 +165,11 @@
   animation: typing 1.4s infinite;
 }
 
-.paloma-typing-indicator span:nth-child(2) {
+.proph3t-typing-indicator span:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-.paloma-typing-indicator span:nth-child(3) {
+.proph3t-typing-indicator span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
@@ -857,19 +857,19 @@
   justify-content: center;
 }
 
-/* Paloma Avatar Styles */
-.paloma-avatar {
+/* Proph3t Avatar Styles */
+.proph3t-avatar {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.paloma-avatar--typing {
-  animation: palomaThinking 2s infinite ease-in-out;
+.proph3t-avatar--typing {
+  animation: proph3tThinking 2s infinite ease-in-out;
 }
 
-@keyframes palomaThinking {
+@keyframes proph3tThinking {
   0%, 100% {
     transform: scale(1);
   }
@@ -878,12 +878,12 @@
   }
 }
 
-.paloma-name {
+.proph3t-name {
   text-align: center;
   margin-top: 8px;
 }
 
-.paloma-name__text {
+.proph3t-name__text {
   display: block;
   font-size: 14px;
   font-weight: 600;
@@ -891,15 +891,15 @@
   margin-bottom: 2px;
 }
 
-.paloma-name__subtitle {
+.proph3t-name__subtitle {
   display: block;
   font-size: 10px;
   color: var(--chat-text-secondary);
   font-style: italic;
 }
 
-/* Paloma dans le header */
-.chat-widget__header .paloma-avatar {
+/* Proph3t dans le header */
+.chat-widget__header .proph3t-avatar {
   width: 40px;
   height: 40px;
   background: rgba(255, 255, 255, 0.2);
@@ -907,8 +907,8 @@
   padding: 4px;
 }
 
-/* Paloma dans les messages */
-.message-bubble .paloma-avatar {
+/* Proph3t dans les messages */
+.message-bubble .proph3t-avatar {
   width: 32px;
   height: 32px;
   background: var(--chat-surface);
@@ -917,17 +917,17 @@
   padding: 2px;
 }
 
-/* Animation de Paloma quand elle réfléchit */
-.paloma-avatar--thinking {
-  animation: palomaThinking 1.5s infinite ease-in-out;
+/* Animation de Proph3t quand elle réfléchit */
+.proph3t-avatar--thinking {
+  animation: proph3tThinking 1.5s infinite ease-in-out;
 }
 
-/* Hover effect sur Paloma dans le header */
-.chat-widget__header:hover .paloma-avatar {
-  animation: palomaWave 0.6s ease-in-out;
+/* Hover effect sur Proph3t dans le header */
+.chat-widget__header:hover .proph3t-avatar {
+  animation: proph3tWave 0.6s ease-in-out;
 }
 
-@keyframes palomaWave {
+@keyframes proph3tWave {
   0%, 100% {
     transform: rotate(0deg);
   }
@@ -1051,3 +1051,14 @@
     animation: none;
   }
 }
+/* ─── Proph3t orb : identité visuelle + halo doré subtil ─── */
+.chat-widget-toggle.proph3t-orb        { background: transparent; box-shadow: none; }
+.chat-widget-toggle.proph3t-orb:hover  { box-shadow: none; transform: translateY(-2px); }
+.chat-widget-toggle__orb               { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; }
+@keyframes proph3t-glow {
+  0%, 100% { filter: drop-shadow(0 3px 8px rgba(212,175,55,0.28)); }
+  50%      { filter: drop-shadow(0 4px 13px rgba(212,175,55,0.50)); }
+}
+.proph3t-orb img       { animation: proph3t-glow 3.4s ease-in-out infinite; }
+.proph3t-orb:hover img { animation-play-state: paused; filter: drop-shadow(0 6px 18px rgba(212,175,55,0.75)); }
+@media (prefers-reduced-motion: reduce) { .proph3t-orb img { animation: none; } }
