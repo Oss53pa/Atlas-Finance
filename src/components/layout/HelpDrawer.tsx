@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { X, Search, BookOpen, MessageCircle, ChevronRight, HelpCircle } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { X, Search, BookOpen, MessageCircle, ChevronRight } from 'lucide-react';
 import { HELP_ARTICLES, type HelpArticle } from '../../data/helpArticles';
 
 /** Map URL route prefixes to help article categories */
@@ -27,6 +27,7 @@ export const HelpDrawer: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Global F1 handler
   useEffect(() => {
@@ -66,12 +67,12 @@ export const HelpDrawer: React.FC = () => {
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg flex items-center justify-center transition-all hover:scale-105"
-        aria-label="Ouvrir l'aide (F1)"
-        title="Aide (F1)"
+        onClick={() => navigate('/proph3t')}
+        className="proph3t-orb fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+        aria-label="Ouvrir Proph3t — assistant IA"
+        title="Proph3t — assistant IA"
       >
-        <HelpCircle className="w-6 h-6" />
+        <img src="/proph3t.png" alt="Proph3t" className="w-full h-full object-contain" />
       </button>
     );
   }
