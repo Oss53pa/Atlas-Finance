@@ -9,7 +9,8 @@ import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
-import { StatBadgeCard, DonutBreakdown, RadialGauge } from '../../components/premium';
+import { StatBadgeCard, RadialGauge } from '../../components/premium';
+import { AtlasDonut } from '../../components/charts';
 import {
   Search, Plus, Filter, Eye, Edit, Trash2, X,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -1251,27 +1252,22 @@ const ClientsModule: React.FC = () => {
             {balanceAgeeSubTab === 'repartition' && (
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                  <DonutBreakdown
-                    className="lg:col-span-2"
-                    title={t('clients.detailByBucket')}
-                    subtitle={t('clients.subtabDistribution')}
-                    total={totauxBalanceAgee.totalCreances}
-                    formatValue={formatCurrency}
-                    centerLabel={t('clients.total')}
-                    segments={balanceAgeeChartData.map(item => ({
-                      name: item.name,
-                      value: item.value,
-                      color: item.color,
-                      count: balanceAgeeData.filter(c => {
-                        if (item.key === 'nonEchu') return c.nonEchu > 0;
-                        if (item.key === 'echu0_30') return c.echu0_30 > 0;
-                        if (item.key === 'echu31_60') return c.echu31_60 > 0;
-                        if (item.key === 'echu61_90') return c.echu61_90 > 0;
-                        if (item.key === 'echuPlus90') return c.echuPlus90 > 0;
-                        return false;
-                      }).length,
-                    }))}
-                  />
+                  <div className="lg:col-span-2 rounded-xl p-5" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('clients.detailByBucket')}</h4>
+                      <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{t('clients.subtabDistribution')}</span>
+                    </div>
+                    <AtlasDonut
+                      data={balanceAgeeChartData.map(item => ({ name: item.name, value: item.value }))}
+                      colors={balanceAgeeChartData.map(item => item.color)}
+                      centerPrimary={totauxBalanceAgee.totalCreances >= 1e9
+                        ? `${(totauxBalanceAgee.totalCreances / 1e9).toFixed(2).replace('.', ',')} Md`
+                        : `${Math.round(totauxBalanceAgee.totalCreances / 1e6)} M`}
+                      centerLabel={t('clients.total')}
+                      valueFormatter={formatCurrency}
+                      height={300}
+                    />
+                  </div>
                   <div className="flex flex-col items-center justify-center gap-1" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 18, boxShadow: 'var(--shadow-sm)', padding: 20 }}>
                     <RadialGauge
                       percent={totauxBalanceAgee.totalCreances > 0 ? (totauxBalanceAgee.provision / totauxBalanceAgee.totalCreances) * 100 : 0}
