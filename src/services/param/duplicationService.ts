@@ -14,12 +14,13 @@ function getClient(adapter: DataAdapter): any | null {
 }
 
 export interface MyCompany { id: string; nom: string; code: string; role: string | null; }
-export type DupBlock = 'parametres' | 'conditions_paiement' | 'sites';
+export type DupBlock = 'parametres' | 'conditions_paiement' | 'sites' | 'analytique';
 
 export const DUP_BLOCKS: Array<{ key: DupBlock; label: string }> = [
   { key: 'parametres',          label: 'Paramètres (valeurs de configuration)' },
   { key: 'conditions_paiement', label: 'Conditions de paiement' },
   { key: 'sites',               label: 'Sites / établissements' },
+  { key: 'analytique',          label: 'Référentiel analytique (plans, axes, sections, règles)' },
 ];
 
 /** Valide le couple (source, cible). Fonction pure. Renvoie un message d'erreur ou null. */
@@ -39,11 +40,28 @@ export async function listMyCompanies(adapter: DataAdapter): Promise<MyCompany[]
   return (data ?? []) as MyCompany[];
 }
 
-/** Duplique les blocs sélectionnés de source vers cible. Renvoie le rapport de copie. */
-export async function duplicateConfig(adapter: DataAdapter, source: string, target: string, blocks: DupBlock[]): Promise<Record<string, number>> {
+/**
+ * Duplique les blocs sélectionnés de source vers cible. Renvoie le rapport de
+ * copie fusionné. Les blocs plats passent par param_duplicate_config ; le bloc
+ * « analytique » (graphe avec remapping d'ID) passe par ana_duplicate_referentiel.
+ */
+export async function duplicateConfig(adapter: DataAdapter, source: string, target: string, blocks: DupBlock[]): Promise<Record<string, any>> {
   const client = getClient(adapter);
   if (!client) throw new Error('Indisponible hors-ligne.');
-  const { data, error } = await client.rpc('param_duplicate_config', { p_source: source, p_target: target, p_blocks: blocks });
-  if (error) throw new Error(error.message);
-  return (data ?? {}) as Record<string, number>;
+  let report: Record<string, any> = {};
+
+  const flat = blocks.filter(b => b !== 'analytique');
+  if (flat.length) {
+    const { data, error } = await client.rpc('param_duplicate_config', { p_source: source, p_target: target, p_blocks: flat });
+    if (error) throw new Error(error.message);
+    report = { ...report, ...(data ?? {}) };
+  }
+
+  if (blocks.includes('analytique')) {
+    const { data, error } = await client.rpc('ana_duplicate_referentiel', { p_source: source, p_target: target });
+    if (error) throw new Error(error.message);
+    report = { ...report, analytique: data ?? {} };
+  }
+
+  return report;
 }
