@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import { ArrowLeft, RefreshCw, ShieldAlert, ShieldCheck, Grid3x3 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { getSodReport, listSodRules, type SodRoleReport, type SodRule, type SodSeverite } from '../../services/param/sodService';
+import { listUserRoles, listDerogations, type UserRoleRow, type DerogationRow } from '../../services/param/userRoleService';
 
 const SEV_STYLE: Record<SodSeverite, string> = {
   eleve: 'bg-red-100 text-red-700', moyen: 'bg-amber-100 text-amber-800', faible: 'bg-gray-100 text-gray-600',
@@ -20,13 +21,15 @@ const SodReportPage: React.FC = () => {
   const { adapter } = useData();
   const [report, setReport] = useState<SodRoleReport[]>([]);
   const [rules, setRules] = useState<SodRule[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRoleRow[]>([]);
+  const [derogations, setDerogations] = useState<DerogationRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rep, rl] = await Promise.all([getSodReport(adapter), listSodRules(adapter)]);
-      setReport(rep); setRules(rl);
+      const [rep, rl, ur, der] = await Promise.all([getSodReport(adapter), listSodRules(adapter), listUserRoles(adapter), listDerogations(adapter)]);
+      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der);
     } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
     finally { setLoading(false); }
   }, [adapter]);
@@ -110,7 +113,39 @@ const SodReportPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500">Analyse en lecture seule sur les rôles relationnels. Le blocage effectif à l'affectation et les dérogations tracées arrivent en vague suivante (nécessite la refonte de l'attribution des rôles).</p>
+      {/* Rôles utilisateurs (modèle user_role) + dérogations SoD */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800">Rôles utilisateurs ({userRoles.length})</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {userRoles.length === 0 && <tr><td className="px-3 py-3 text-gray-400 text-xs">Aucune affectation.</td></tr>}
+              {userRoles.slice(0, 20).map(u => (
+                <tr key={u.id} className="border-b border-gray-100">
+                  <td className="px-3 py-1.5 font-mono text-[11px] text-gray-500">{u.user_id.slice(0, 8)}…</td>
+                  <td className="px-3 py-1.5 text-gray-800">{u.role_code}{u.delegue_de && <span className="ml-1 text-[10px] text-indigo-600">délégué</span>}</td>
+                  <td className="px-3 py-1.5 text-right text-[11px] text-gray-400">{u.valide_au ? `→ ${u.valide_au}` : 'permanent'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800">Dérogations SoD ({derogations.length})</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {derogations.length === 0 && <tr><td className="px-3 py-3 text-gray-400 text-xs">Aucune dérogation.</td></tr>}
+              {derogations.map((d, i) => (
+                <tr key={i} className="border-b border-gray-100">
+                  <td className="px-3 py-1.5 font-mono text-[11px] text-gray-500">{d.permission_a} + {d.permission_b}</td>
+                  <td className="px-3 py-1.5 text-gray-700 text-xs">{d.motif}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="text-xs text-gray-500">Le blocage SoD est <b>effectif côté serveur à l'affectation</b> (fonction souveraine <code>assign_user_role</code> : refus sauf dérogation motivée tracée). L'enforcement des permissions par le socle <code>user_role</code> reste en lecture parallèle — la bascule du RBACGuard interviendra après une période d'observation à écart nul avec <code>profiles.role</code>.</p>
     </div>
   );
 };
