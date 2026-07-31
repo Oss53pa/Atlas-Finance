@@ -27,6 +27,11 @@ import {
   fondsDediesToCSV,
   type FondsDediesStatement,
 } from '../../services/framework/fondsDediesService';
+import {
+  buildTableauRessourcesEmplois,
+  tableauToCSV,
+  type TableauRessourcesEmplois,
+} from '../../services/framework/sycebnlStatements';
 
 const fmt = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
@@ -38,6 +43,7 @@ const FrameworkPage: React.FC = () => {
   const [smt, setSmt] = useState<SMTStatement | null>(null);
   const [sycebnl, setSycebnl] = useState<SycebnlResult | null>(null);
   const [fondsDedies, setFondsDedies] = useState<FondsDediesStatement | null>(null);
+  const [tableau, setTableau] = useState<TableauRessourcesEmplois | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -56,7 +62,7 @@ const FrameworkPage: React.FC = () => {
   const changeFramework = async (code: AccountingFramework) => {
     setFw(code);
     await setFramework(adapter, code);
-    setSmt(null); setSycebnl(null); setFondsDedies(null);
+    setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null);
     toast.success(`Référentiel : ${frameworkMeta(code).label}`);
   };
 
@@ -71,6 +77,7 @@ const FrameworkPage: React.FC = () => {
       } else if (isNonProfit(framework)) {
         setSycebnl(await computeSycebnlResult(adapter, range));
         setFondsDedies(await buildFondsDediesStatement(adapter, range));
+        setTableau(await buildTableauRessourcesEmplois(adapter, range));
         setSmt(null);
       } else {
         toast('Ce référentiel utilise les états SYSCOHADA standards (Bilan, Compte de résultat).', { icon: 'ℹ️' });
@@ -133,7 +140,7 @@ const FrameworkPage: React.FC = () => {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Exercice</label>
-            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); setFondsDedies(null); }}
+            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null); }}
               className="px-3 py-2 border border-gray-300 rounded text-sm">
               {years.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
             </select>
@@ -170,6 +177,57 @@ const FrameworkPage: React.FC = () => {
             <Section title="Dépenses" lines={smt.depenses} total={smt.totalDepenses} tone="debit" />
             <Row label="Variation de trésorerie" value={smt.variationTresorerie} bold />
             <Row label="Solde de clôture" value={smt.soldeCloture} bold highlight />
+          </div>
+        </div>
+      )}
+
+      {/* Tableau des ressources et des emplois (SYCEBNL) */}
+      {tableau && (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <span className="font-semibold text-sm">Tableau des ressources et des emplois</span>
+            <button
+              onClick={() => {
+                const blob = new Blob(['﻿' + tableauToCSV(tableau)], { type: 'text/csv;charset=utf-8' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `ressources-emplois-${year?.name ?? 'exercice'}.csv`;
+                a.click(); URL.revokeObjectURL(a.href);
+              }}
+              className="text-xs text-[#235A6E] hover:underline flex items-center gap-1"
+            >
+              <Download className="w-3.5 h-3.5" /> CSV
+            </button>
+          </div>
+          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div className="p-4">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Emplois (charges)</div>
+              {tableau.emplois.map(e => (
+                <div key={e.label} className="flex items-center justify-between py-0.5 text-sm">
+                  <span className="text-gray-600">{e.label}</span>
+                  <span className="tabular-nums">{fmt(e.montant)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between border-t border-gray-200 mt-2 pt-1 text-sm font-semibold">
+                <span>Total emplois</span><span className="tabular-nums">{fmt(tableau.totalEmplois)}</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Ressources (produits)</div>
+              {tableau.ressources.map(r => (
+                <div key={r.label} className="flex items-center justify-between py-0.5 text-sm">
+                  <span className="text-gray-600">{r.label}</span>
+                  <span className="tabular-nums">{fmt(r.montant)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between border-t border-gray-200 mt-2 pt-1 text-sm font-semibold">
+                <span>Total ressources</span><span className="tabular-nums">{fmt(tableau.totalRessources)}</span>
+              </div>
+            </div>
+          </div>
+          <div className={`px-4 py-3 border-t border-gray-200 flex items-center justify-between text-sm font-bold ${tableau.excedentDeficit >= 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>
+            <span>{tableau.label} de l'exercice</span>
+            <span className="tabular-nums">{fmt(Math.abs(tableau.excedentDeficit))}</span>
           </div>
         </div>
       )}
