@@ -46,7 +46,9 @@ const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const SITE_URL = Deno.env.get('SITE_URL') || 'https://www.atlasstudio.org';
-const MAIL_FROM = Deno.env.get('MAIL_FROM') || 'Atlas FnA <noreply@atlasstudio.org>';
+// Expéditeur : domaine VÉRIFIÉ dans Resend (atlas-studio.org, avec tiret) —
+// aligné sur le mailer central. Un domaine non vérifié fait échouer l'envoi (403).
+const MAIL_FROM = Deno.env.get('MAIL_FROM') || 'Atlas FnA <notifications@atlas-studio.org>';
 
 /** Période couverte par la synthèse (miroir du type client). */
 type Periode = 'exercice' | 'mois' | 'trimestre' | 'cumul';
