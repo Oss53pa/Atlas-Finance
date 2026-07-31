@@ -9,6 +9,8 @@
  * ressources affectées). Les classes 2/3/4/5 restent celles du SYSCOHADA.
  */
 
+import { resolveSycebnlPlanAccount } from './sycebnlPlan';
+
 export interface SycebnlAccount {
   code: string;
   libelle: string;
@@ -43,14 +45,18 @@ export const SYCEBNL_ACCOUNTS: SycebnlAccount[] = [
 
 const BY_CODE = new Map(SYCEBNL_ACCOUNTS.map(a => [a.code, a]));
 
-/** Libellé SYCEBNL d'un compte (préfixe le plus long), '' si non spécifique. */
+/**
+ * Libellé SYCEBNL d'un compte (préfixe le plus long). Cherche d'abord dans les
+ * comptes différenciants, puis dans le plan complet (`SYCEBNL_PLAN`). '' si non
+ * couvert par le référentiel SYCEBNL.
+ */
 export function getSycebnlLabel(code: string): string {
   const c = String(code || '');
   for (let len = c.length; len >= 2; len--) {
     const hit = BY_CODE.get(c.slice(0, len));
     if (hit) return hit.libelle;
   }
-  return '';
+  return resolveSycebnlPlanAccount(c)?.libelle ?? '';
 }
 
 /** Compte de fonds dédiés (report des ressources affectées, 13x). */

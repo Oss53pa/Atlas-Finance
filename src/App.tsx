@@ -310,6 +310,7 @@ const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettes
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
 const FrameworkPage = lazyRetry(() => import('./pages/framework/FrameworkPage'));
+const SycebnlPlanPage = lazyRetry(() => import('./pages/framework/SycebnlPlanPage'));
 const RevisionDossierPage = lazyRetry(() => import('./pages/cabinet/RevisionDossierPage'));
 const CabinetPortfolioPage = lazyRetry(() => import('./pages/cabinet/CabinetPortfolioPage'));
 const ConsolidationPage = lazyRetry(() => import('./pages/cabinet/ConsolidationPage'));
@@ -702,6 +703,7 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
                           <Route path="/config/referentiel" element={work(<FrameworkPage />)} />
+                          <Route path="/config/plan-sycebnl" element={work(<SycebnlPlanPage />)} />
                           <Route path="/config/tva" element={<TVATaxesPage />} />
                           <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
                           <Route path="/config/multi-sites" element={<MultiSitesPage />} />
