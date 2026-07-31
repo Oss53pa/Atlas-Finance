@@ -32,6 +32,11 @@ import {
   tableauToCSV,
   type TableauRessourcesEmplois,
 } from '../../services/framework/sycebnlStatements';
+import {
+  buildBilanSycebnl,
+  bilanSycebnlToCSV,
+  type BilanSycebnl,
+} from '../../services/framework/sycebnlBilan';
 
 const fmt = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
 
@@ -44,6 +49,7 @@ const FrameworkPage: React.FC = () => {
   const [sycebnl, setSycebnl] = useState<SycebnlResult | null>(null);
   const [fondsDedies, setFondsDedies] = useState<FondsDediesStatement | null>(null);
   const [tableau, setTableau] = useState<TableauRessourcesEmplois | null>(null);
+  const [bilan, setBilan] = useState<BilanSycebnl | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -62,7 +68,7 @@ const FrameworkPage: React.FC = () => {
   const changeFramework = async (code: AccountingFramework) => {
     setFw(code);
     await setFramework(adapter, code);
-    setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null);
+    setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null); setBilan(null);
     toast.success(`Référentiel : ${frameworkMeta(code).label}`);
   };
 
@@ -78,6 +84,7 @@ const FrameworkPage: React.FC = () => {
         setSycebnl(await computeSycebnlResult(adapter, range));
         setFondsDedies(await buildFondsDediesStatement(adapter, range));
         setTableau(await buildTableauRessourcesEmplois(adapter, range));
+        setBilan(await buildBilanSycebnl(adapter, range));
         setSmt(null);
       } else {
         toast('Ce référentiel utilise les états SYSCOHADA standards (Bilan, Compte de résultat).', { icon: 'ℹ️' });
@@ -140,7 +147,7 @@ const FrameworkPage: React.FC = () => {
         <div className="flex flex-wrap items-end gap-3">
           <div>
             <label className="block text-xs text-gray-500 mb-1">Exercice</label>
-            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null); }}
+            <select value={yearId} onChange={e => { setYearId(e.target.value); setSmt(null); setSycebnl(null); setFondsDedies(null); setTableau(null); setBilan(null); }}
               className="px-3 py-2 border border-gray-300 rounded text-sm">
               {years.map(y => <option key={y.id} value={y.id}>{y.name}</option>)}
             </select>
@@ -177,6 +184,58 @@ const FrameworkPage: React.FC = () => {
             <Section title="Dépenses" lines={smt.depenses} total={smt.totalDepenses} tone="debit" />
             <Row label="Variation de trésorerie" value={smt.variationTresorerie} bold />
             <Row label="Solde de clôture" value={smt.soldeCloture} bold highlight />
+          </div>
+        </div>
+      )}
+
+      {/* Bilan SYCEBNL */}
+      {bilan && (
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <span className="font-semibold text-sm">Bilan (SYCEBNL)</span>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs flex items-center gap-1 ${bilan.equilibre ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {bilan.equilibre ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                {bilan.equilibre ? 'équilibré' : 'déséquilibre'}
+              </span>
+              <button
+                onClick={() => {
+                  const blob = new Blob(['﻿' + bilanSycebnlToCSV(bilan)], { type: 'text/csv;charset=utf-8' });
+                  const a = document.createElement('a');
+                  a.href = URL.createObjectURL(blob);
+                  a.download = `bilan-sycebnl-${year?.name ?? 'exercice'}.csv`;
+                  a.click(); URL.revokeObjectURL(a.href);
+                }}
+                className="text-xs text-[#235A6E] hover:underline flex items-center gap-1">
+                <Download className="w-3.5 h-3.5" /> CSV
+              </button>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <div className="p-4">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Actif</div>
+              {bilan.actif.map(a => (
+                <div key={a.label} className="flex items-center justify-between py-0.5 text-sm">
+                  <span className="text-gray-600">{a.label}</span>
+                  <span className="tabular-nums">{fmt(a.montant)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between border-t border-gray-200 mt-2 pt-1 text-sm font-semibold">
+                <span>Total actif</span><span className="tabular-nums">{fmt(bilan.totalActif)}</span>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-semibold text-gray-500 uppercase mb-2">Passif</div>
+              {bilan.passif.map(p => (
+                <div key={p.label} className="flex items-center justify-between py-0.5 text-sm">
+                  <span className="text-gray-600">{p.label}</span>
+                  <span className="tabular-nums">{fmt(p.montant)}</span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between border-t border-gray-200 mt-2 pt-1 text-sm font-semibold">
+                <span>Total passif</span><span className="tabular-nums">{fmt(bilan.totalPassif)}</span>
+              </div>
+            </div>
           </div>
         </div>
       )}
