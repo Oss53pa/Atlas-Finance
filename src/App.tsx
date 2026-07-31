@@ -294,6 +294,7 @@ const SodReportPage = lazyRetry(() => import('./pages/settings/SodReportPage'));
 const ReferentielsPage = lazyRetry(() => import('./pages/settings/ReferentielsPage'));
 const FiscaliteParamsPage = lazyRetry(() => import('./pages/settings/FiscaliteParamsPage'));
 const RgpdPage = lazyRetry(() => import('./pages/settings/RgpdPage'));
+const DuplicationPage = lazyRetry(() => import('./pages/settings/DuplicationPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
 const ImportExportPage = lazyRetry(() => import('./pages/settings/ImportExportPage'));
 const ImportTemplatesCatalogPage = lazyRetry(() => import('./pages/settings/ImportTemplatesCatalogPage'));
@@ -680,6 +681,7 @@ function App() {
                           <Route path="/settings/referentiels" element={work(<ReferentielsPage />)} />
                           <Route path="/settings/fiscalite" element={work(<FiscaliteParamsPage />)} />
                           <Route path="/settings/rgpd" element={work(<RgpdPage />)} />
+                          <Route path="/settings/duplication" element={work(<DuplicationPage />)} />
                           <Route path="/settings/users" element={<UsersPage />} />
                           <Route path="/settings/company" element={<CompanyPage />} />
                           <Route path="/settings/import-export" element={<ImportExportPage />} />
