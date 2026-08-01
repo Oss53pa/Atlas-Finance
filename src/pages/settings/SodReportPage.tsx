@@ -11,7 +11,7 @@ import { ArrowLeft, RefreshCw, ShieldAlert, ShieldCheck, Grid3x3 } from 'lucide-
 import { useData } from '../../contexts/DataContext';
 import { getSodReport, listSodRules, type SodRoleReport, type SodRule, type SodSeverite } from '../../services/param/sodService';
 import { listUserRoles, listDerogations, type UserRoleRow, type DerogationRow } from '../../services/param/userRoleService';
-import { rbacRoleDelta, effectiveEnforcementEnabled, type RoleDelta } from '../../services/param/rbacBascule';
+import { rbacRoleDelta, effectiveEnforcementEnabled, listRoleCrosswalk, type RoleDelta, type RoleCrosswalkRow } from '../../services/param/rbacBascule';
 import { useAuth } from '../../contexts/AuthContext';
 
 const SEV_STYLE: Record<SodSeverite, string> = {
@@ -27,16 +27,18 @@ const SodReportPage: React.FC = () => {
   const [userRoles, setUserRoles] = useState<UserRoleRow[]>([]);
   const [derogations, setDerogations] = useState<DerogationRow[]>([]);
   const [delta, setDelta] = useState<RoleDelta | null>(null);
+  const [crosswalk, setCrosswalk] = useState<RoleCrosswalkRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rep, rl, ur, der, dl] = await Promise.all([
+      const [rep, rl, ur, der, dl, cw] = await Promise.all([
         getSodReport(adapter), listSodRules(adapter), listUserRoles(adapter), listDerogations(adapter),
         user?.id ? rbacRoleDelta(adapter, user.id) : Promise.resolve(null),
+        listRoleCrosswalk(adapter),
       ]);
-      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der); setDelta(dl);
+      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der); setDelta(dl); setCrosswalk(cw);
     } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
     finally { setLoading(false); }
   }, [adapter, user?.id]);
@@ -70,8 +72,8 @@ const SodReportPage: React.FC = () => {
             <p className="text-gray-400 text-xs">Observation indisponible (hors-ligne ou aucun rôle effectif).</p>
           ) : (
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <div><span className="text-gray-500 text-xs">Rôle legacy : </span><span className="font-mono">{delta.legacy ?? '∅'}</span></div>
-              <div><span className="text-gray-500 text-xs">Effectifs : </span><span className="font-mono">{delta.effective.length ? delta.effective.join(', ') : '∅'}</span></div>
+              <div><span className="text-gray-500 text-xs">Rôle legacy : </span><span className="font-mono">{delta.legacyRaw ?? '∅'}</span>{delta.legacyRaw !== delta.legacy && <span className="font-mono text-gray-400"> → {delta.legacy ?? '∅'}</span>}</div>
+              <div><span className="text-gray-500 text-xs">Effectifs (canoniques) : </span><span className="font-mono">{delta.effective.length ? delta.effective.join(', ') : '∅'}</span></div>
               {delta.aligned
                 ? <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs inline-flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />aligné — aucun verrouillage à la bascule</span>
                 : <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs inline-flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" />perdrait : {delta.perd.join(', ')}</span>}
@@ -80,6 +82,27 @@ const SodReportPage: React.FC = () => {
           )}
           <p className="text-[11px] text-gray-400 mt-2">Basculer via <code>VITE_RBAC_SOURCE=effective</code> (déploiement + rollback tracés) — uniquement après « écart nul » observé sur l'ensemble des utilisateurs.</p>
         </div>
+        {/* Crosswalk de réconciliation des vocabulaires de rôles */}
+        {crosswalk.length > 0 && (
+          <div className="border-t border-gray-200">
+            <div className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50/60">Réconciliation des vocabulaires ({crosswalk.length})</div>
+            <table className="w-full text-xs">
+              <tbody>
+                {crosswalk.map((c, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    <td className="px-3 py-1 text-gray-400 font-mono">{c.source_vocab}</td>
+                    <td className="px-3 py-1 font-mono text-gray-700">{c.source_value}</td>
+                    <td className="px-3 py-1 text-gray-400">→</td>
+                    <td className="px-3 py-1 font-mono text-gray-800">{c.canonical_role}</td>
+                    <td className="px-3 py-1">{c.statut === 'a_trancher'
+                      ? <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">à trancher</span>
+                      : <span className="text-gray-400">{c.note ?? ''}</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Synthèse */}

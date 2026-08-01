@@ -32,11 +32,37 @@ export function effectiveEnforcementEnabled(): boolean {
 }
 
 export interface RoleDelta {
-  legacy: string | null;
-  effective: string[];
+  legacyRaw: string | null;  // valeur brute profiles.role (avant canonicalisation)
+  legacy: string | null;     // rôle legacy canonicalisé
+  effective: string[];       // rôles effectifs canonicalisés
   perd: string[];     // rôles legacy perdus à la bascule (verrouillage → danger)
   gagne: string[];    // rôles gagnés à la bascule (nouvel accès)
   aligned: boolean;   // legacy couvert par l'effectif → aucun verrouillage
+}
+
+export type RoleVocab = 'profiles' | 'roles_name' | 'user_role';
+
+export interface RoleCrosswalkRow {
+  source_vocab: RoleVocab;
+  source_value: string;
+  canonical_role: string;
+  statut: 'confirme' | 'a_trancher';
+  note: string | null;
+}
+
+/**
+ * Normalise une valeur source vers son rôle canonique. Fonction PURE (miroir de
+ * `canonical_role` SQL) : d'abord le crosswalk confirmé, sinon la valeur elle-même
+ * si déjà canonique, sinon null (non résolu → aucun accès accordé par défaut).
+ */
+export function canonicalRole(
+  vocab: RoleVocab, value: string | null,
+  crosswalk: RoleCrosswalkRow[], canonicalCodes: string[],
+): string | null {
+  if (value == null) return null;
+  const hit = crosswalk.find(r => r.source_vocab === vocab && r.source_value === value && r.statut === 'confirme');
+  if (hit) return hit.canonical_role;
+  return canonicalCodes.includes(value) ? value : null;
 }
 
 /**
@@ -49,6 +75,7 @@ export function diffRoles(legacy: string | null, effective: string[]): RoleDelta
   const eff = Array.from(new Set(effective.filter(Boolean)));
   const inEff = legacy != null && eff.includes(legacy);
   return {
+    legacyRaw: legacy,
     legacy,
     effective: eff,
     perd: legacy != null && !inEff ? [legacy] : [],
@@ -78,10 +105,21 @@ export async function rbacRoleDelta(adapter: DataAdapter, userId: string): Promi
   if (error || !data) return null;
   const d = data as any;
   return {
+    legacyRaw: d.legacy_raw ?? null,
     legacy: d.legacy ?? null,
     effective: Array.isArray(d.effective) ? d.effective : [],
     perd: Array.isArray(d.perd) ? d.perd : [],
     gagne: Array.isArray(d.gagne) ? d.gagne : [],
     aligned: !!d.aligned,
   };
+}
+
+/** Liste le crosswalk de réconciliation des rôles (référence, lecture ouverte). */
+export async function listRoleCrosswalk(adapter: DataAdapter): Promise<RoleCrosswalkRow[]> {
+  const client = getClient(adapter);
+  if (!client) return [];
+  const { data } = await client.from('role_crosswalk')
+    .select('source_vocab,source_value,canonical_role,statut,note')
+    .order('source_vocab').order('source_value');
+  return (data ?? []) as RoleCrosswalkRow[];
 }
