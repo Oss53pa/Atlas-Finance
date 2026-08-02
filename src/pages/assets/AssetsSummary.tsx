@@ -4,6 +4,7 @@ import { useAccountNames } from '@/hooks/useAccountNames';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { StatBadgeCard } from '../../components/premium';
+import { AtlasDonut } from '../../components/charts';
 import type { DBAsset } from '../../lib/db';
 import { listMaintenance } from '../../services/immobilisations/maintenanceService';
 import { motion } from 'framer-motion';
@@ -600,36 +601,12 @@ const AssetsSummary: React.FC = () => {
           </div>
 
           <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPieChart>
-                <Pie
-                  data={assetCategories}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  /* % uniquement sur les parts ≥ 6 % (sinon les libellés des fines
-                     tranches se chevauchent) ; les noms sont dans la légende. */
-                  label={({ percentage }) => (Number(percentage) >= 6 ? `${percentage}%` : '')}
-                  innerRadius={56}
-                  outerRadius={90}
-                  paddingAngle={2}
-                  cornerRadius={6}
-                  stroke="none"
-                  fill="#235A6E"
-                  dataKey="value"
-                  nameKey="name"
-                >
-                  {assetCategories.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
-                />
-                <Legend layout="vertical" align="right" verticalAlign="middle"
-                  formatter={(value: string) => <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{value}</span>} />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <AtlasDonut
+              data={assetCategories.map((c: any) => ({ name: c.name, value: c.value }))}
+              colors={assetCategories.map((c: any) => c.color)}
+              valueFormatter={formatCurrency}
+              height={320}
+            />
           </div>
         </div>
 
