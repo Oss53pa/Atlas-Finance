@@ -11,6 +11,8 @@ import { ArrowLeft, RefreshCw, ShieldAlert, ShieldCheck, Grid3x3 } from 'lucide-
 import { useData } from '../../contexts/DataContext';
 import { getSodReport, listSodRules, type SodRoleReport, type SodRule, type SodSeverite } from '../../services/param/sodService';
 import { listUserRoles, listDerogations, type UserRoleRow, type DerogationRow } from '../../services/param/userRoleService';
+import { rbacRoleDelta, effectiveEnforcementEnabled, type RoleDelta } from '../../services/param/rbacBascule';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SEV_STYLE: Record<SodSeverite, string> = {
   eleve: 'bg-red-100 text-red-700', moyen: 'bg-amber-100 text-amber-800', faible: 'bg-gray-100 text-gray-600',
@@ -19,20 +21,25 @@ const SEV_STYLE: Record<SodSeverite, string> = {
 const SodReportPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { user } = useAuth();
   const [report, setReport] = useState<SodRoleReport[]>([]);
   const [rules, setRules] = useState<SodRule[]>([]);
   const [userRoles, setUserRoles] = useState<UserRoleRow[]>([]);
   const [derogations, setDerogations] = useState<DerogationRow[]>([]);
+  const [delta, setDelta] = useState<RoleDelta | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rep, rl, ur, der] = await Promise.all([getSodReport(adapter), listSodRules(adapter), listUserRoles(adapter), listDerogations(adapter)]);
-      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der);
+      const [rep, rl, ur, der, dl] = await Promise.all([
+        getSodReport(adapter), listSodRules(adapter), listUserRoles(adapter), listDerogations(adapter),
+        user?.id ? rbacRoleDelta(adapter, user.id) : Promise.resolve(null),
+      ]);
+      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der); setDelta(dl);
     } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
     finally { setLoading(false); }
-  }, [adapter]);
+  }, [adapter, user?.id]);
   useEffect(() => { void load(); }, [load]);
 
   const rolesEnConflit = report.filter(r => r.violations.length > 0);
@@ -48,6 +55,31 @@ const SodReportPage: React.FC = () => {
           </div>
         </div>
         <button onClick={() => void load()} className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Recharger</button>
+      </div>
+
+      {/* Bascule RBAC phase 3 — état de préparation (observation) */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800 flex items-center justify-between gap-2">
+          <span>Bascule RBAC (rôle unique → modèle multi-rôles)</span>
+          <span className={`px-2 py-0.5 rounded text-xs ${effectiveEnforcementEnabled() ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'}`}>
+            enforcement : {effectiveEnforcementEnabled() ? 'effectif' : 'legacy (défaut)'}
+          </span>
+        </div>
+        <div className="p-3 text-sm">
+          {!delta ? (
+            <p className="text-gray-400 text-xs">Observation indisponible (hors-ligne ou aucun rôle effectif).</p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div><span className="text-gray-500 text-xs">Rôle legacy : </span><span className="font-mono">{delta.legacy ?? '∅'}</span></div>
+              <div><span className="text-gray-500 text-xs">Effectifs : </span><span className="font-mono">{delta.effective.length ? delta.effective.join(', ') : '∅'}</span></div>
+              {delta.aligned
+                ? <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs inline-flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />aligné — aucun verrouillage à la bascule</span>
+                : <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs inline-flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" />perdrait : {delta.perd.join(', ')}</span>}
+              {delta.gagne.length > 0 && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs">gagnerait : {delta.gagne.join(', ')}</span>}
+            </div>
+          )}
+          <p className="text-[11px] text-gray-400 mt-2">Basculer via <code>VITE_RBAC_SOURCE=effective</code> (déploiement + rollback tracés) — uniquement après « écart nul » observé sur l'ensemble des utilisateurs.</p>
+        </div>
       </div>
 
       {/* Synthèse */}
