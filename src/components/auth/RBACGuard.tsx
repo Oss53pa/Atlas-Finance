@@ -15,6 +15,7 @@ import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
+import { effectiveEnforcementEnabled } from '../../services/param/rbacBascule';
 
 type UserRole = 'admin' | 'manager' | 'comptable' | 'accountant' | 'user' | 'viewer' | 'super_admin';
 
@@ -42,10 +43,6 @@ const ROLE_HIERARCHY: Record<UserRole, number> = {
   user: 40,
   viewer: 20,
 };
-
-function hasRole(userRole: UserRole, allowedRoles: UserRole[]): boolean {
-  return allowedRoles.includes(userRole);
-}
 
 function hasPermissions(userPermissions: string[], required: string[]): boolean {
   return required.every(p => userPermissions.includes(p));
@@ -132,8 +129,17 @@ const RBACGuard: React.FC<RBACGuardProps> = ({
   // mode démo explicite (opt-in via sessionStorage, borné à import.meta.env.DEV) le
   // court-circuite. Auparavant `!isDevMode` ouvrait toutes les vues gardées (admin
   // inclus) en dev/preview à n'importe quel rôle. La barrière réelle reste la RLS.
+  //
+  // BASCULE phase 3 (défaut INERTE) : quand `VITE_RBAC_SOURCE='effective'` ET que
+  // AuthContext a peuplé `effectiveRoles` (modèle multi-rôles user_role), on
+  // autorise si l'un des rôles effectifs est admis. Sinon on retombe strictement
+  // sur le rôle unique `profiles.role` — comportement historique inchangé.
+  const rolesToCheck: UserRole[] =
+    effectiveEnforcementEnabled() && user?.effectiveRoles && user.effectiveRoles.length > 0
+      ? (user.effectiveRoles as UserRole[])
+      : (user ? [user.role] : []);
   if (!isDemoMode && allowedRoles && allowedRoles.length > 0 && user) {
-    if (!hasRole(user.role, allowedRoles)) {
+    if (!allowedRoles.some(r => rolesToCheck.includes(r))) {
       if (fallback) return <>{fallback}</>;
       return <Navigate to={redirectTo} replace />;
     }

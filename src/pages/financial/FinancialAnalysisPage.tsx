@@ -38,6 +38,7 @@ import {
   Area,
   AreaChart
 } from 'recharts';
+import { AtlasRadar } from '../../components/charts';
 
 interface FinancialData {
   tafire: TAFIREData;
@@ -495,18 +496,11 @@ const FinancialAnalysisPage: React.FC = () => {
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Globale</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart data={financialData?.ratios.map(ratio => ({
-                  category: ratio.category,
-                  value: Math.min(100, (ratio.value / ratio.reference) * 100),
-                  fullMark: 100
-                })) || []}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="category" />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} />
-                  <Radar name="Performance" dataKey="value" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-                </RadarChart>
-              </ResponsiveContainer>
+              <AtlasRadar
+                height={380}
+                indicators={(financialData?.ratios || []).map((r) => ({ name: r.category, max: 100 }))}
+                series={[{ name: 'Performance', data: (financialData?.ratios || []).map((r) => Math.min(100, (r.value / r.reference) * 100)), color: '#235A6E' }]}
+              />
               
               <div className="space-y-4">
                 {financialData?.ratios.slice(0, 5).map((ratio, index) => (

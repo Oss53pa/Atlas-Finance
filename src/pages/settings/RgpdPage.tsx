@@ -83,8 +83,9 @@ const RgpdPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800">
-        <b>Anonymisation — lot dédié à venir.</b> La purge/pseudonymisation effective des coordonnées des tiers personnes physiques échus, avec journal des anonymisations et validation, est une opération destructive traitée séparément. Cet écran en pose la politique.
+      <div className="p-3 rounded-lg border border-amber-200 bg-amber-50 text-sm text-amber-800 flex items-center justify-between flex-wrap gap-2">
+        <span><b>Anonymisation des tiers.</b> Purge des coordonnées des personnes physiques échues (écritures et soldes préservés), tracée dans un journal chaîné.</span>
+        <button onClick={() => navigate('/settings/rgpd/anonymisation')} className="px-3 py-1.5 bg-amber-600 text-white rounded-lg text-xs whitespace-nowrap">Ouvrir l'anonymisation</button>
       </div>
     </div>
   );

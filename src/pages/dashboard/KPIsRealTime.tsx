@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { AtlasRadar } from '../../components/charts';
 
 interface KPIMetric {
   id: string;
@@ -694,15 +695,11 @@ const KPIsRealTime: React.FC = () => {
 
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#d4d4d4" />
-                <PolarAngleAxis dataKey="subject" stroke="#235A6E" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#235A6E" />
-                <Radar name="Performance" dataKey="A" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-                <Tooltip />
-              </RadarChart>
-            </ResponsiveContainer>
+            <AtlasRadar
+              height={380}
+              indicators={(radarData as any[]).map((d) => ({ name: d.subject, max: 100 }))}
+              series={[{ name: 'Performance', data: (radarData as any[]).map((d) => d.A), color: '#235A6E' }]}
+            />
           </div>
         </div>
       )}

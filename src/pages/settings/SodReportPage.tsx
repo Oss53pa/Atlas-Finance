@@ -10,6 +10,9 @@ import { toast } from 'react-hot-toast';
 import { ArrowLeft, RefreshCw, ShieldAlert, ShieldCheck, Grid3x3 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { getSodReport, listSodRules, type SodRoleReport, type SodRule, type SodSeverite } from '../../services/param/sodService';
+import { listUserRoles, listDerogations, type UserRoleRow, type DerogationRow } from '../../services/param/userRoleService';
+import { rbacRoleDelta, effectiveEnforcementEnabled, listRoleCrosswalk, type RoleDelta, type RoleCrosswalkRow } from '../../services/param/rbacBascule';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SEV_STYLE: Record<SodSeverite, string> = {
   eleve: 'bg-red-100 text-red-700', moyen: 'bg-amber-100 text-amber-800', faible: 'bg-gray-100 text-gray-600',
@@ -18,18 +21,27 @@ const SEV_STYLE: Record<SodSeverite, string> = {
 const SodReportPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { user } = useAuth();
   const [report, setReport] = useState<SodRoleReport[]>([]);
   const [rules, setRules] = useState<SodRule[]>([]);
+  const [userRoles, setUserRoles] = useState<UserRoleRow[]>([]);
+  const [derogations, setDerogations] = useState<DerogationRow[]>([]);
+  const [delta, setDelta] = useState<RoleDelta | null>(null);
+  const [crosswalk, setCrosswalk] = useState<RoleCrosswalkRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [rep, rl] = await Promise.all([getSodReport(adapter), listSodRules(adapter)]);
-      setReport(rep); setRules(rl);
+      const [rep, rl, ur, der, dl, cw] = await Promise.all([
+        getSodReport(adapter), listSodRules(adapter), listUserRoles(adapter), listDerogations(adapter),
+        user?.id ? rbacRoleDelta(adapter, user.id) : Promise.resolve(null),
+        listRoleCrosswalk(adapter),
+      ]);
+      setReport(rep); setRules(rl); setUserRoles(ur); setDerogations(der); setDelta(dl); setCrosswalk(cw);
     } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
     finally { setLoading(false); }
-  }, [adapter]);
+  }, [adapter, user?.id]);
   useEffect(() => { void load(); }, [load]);
 
   const rolesEnConflit = report.filter(r => r.violations.length > 0);
@@ -45,6 +57,52 @@ const SodReportPage: React.FC = () => {
           </div>
         </div>
         <button onClick={() => void load()} className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Recharger</button>
+      </div>
+
+      {/* Bascule RBAC phase 3 — état de préparation (observation) */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800 flex items-center justify-between gap-2">
+          <span>Bascule RBAC (rôle unique → modèle multi-rôles)</span>
+          <span className={`px-2 py-0.5 rounded text-xs ${effectiveEnforcementEnabled() ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'}`}>
+            enforcement : {effectiveEnforcementEnabled() ? 'effectif' : 'legacy (défaut)'}
+          </span>
+        </div>
+        <div className="p-3 text-sm">
+          {!delta ? (
+            <p className="text-gray-400 text-xs">Observation indisponible (hors-ligne ou aucun rôle effectif).</p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div><span className="text-gray-500 text-xs">Rôle legacy : </span><span className="font-mono">{delta.legacyRaw ?? '∅'}</span>{delta.legacyRaw !== delta.legacy && <span className="font-mono text-gray-400"> → {delta.legacy ?? '∅'}</span>}</div>
+              <div><span className="text-gray-500 text-xs">Effectifs (canoniques) : </span><span className="font-mono">{delta.effective.length ? delta.effective.join(', ') : '∅'}</span></div>
+              {delta.aligned
+                ? <span className="px-2 py-0.5 rounded bg-green-100 text-green-700 text-xs inline-flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />aligné — aucun verrouillage à la bascule</span>
+                : <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs inline-flex items-center gap-1"><ShieldAlert className="w-3.5 h-3.5" />perdrait : {delta.perd.join(', ')}</span>}
+              {delta.gagne.length > 0 && <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-xs">gagnerait : {delta.gagne.join(', ')}</span>}
+            </div>
+          )}
+          <p className="text-[11px] text-gray-400 mt-2">Basculer via <code>VITE_RBAC_SOURCE=effective</code> (déploiement + rollback tracés) — uniquement après « écart nul » observé sur l'ensemble des utilisateurs.</p>
+        </div>
+        {/* Crosswalk de réconciliation des vocabulaires de rôles */}
+        {crosswalk.length > 0 && (
+          <div className="border-t border-gray-200">
+            <div className="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-50/60">Réconciliation des vocabulaires ({crosswalk.length})</div>
+            <table className="w-full text-xs">
+              <tbody>
+                {crosswalk.map((c, i) => (
+                  <tr key={i} className="border-b border-gray-100">
+                    <td className="px-3 py-1 text-gray-400 font-mono">{c.source_vocab}</td>
+                    <td className="px-3 py-1 font-mono text-gray-700">{c.source_value}</td>
+                    <td className="px-3 py-1 text-gray-400">→</td>
+                    <td className="px-3 py-1 font-mono text-gray-800">{c.canonical_role}</td>
+                    <td className="px-3 py-1">{c.statut === 'a_trancher'
+                      ? <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">à trancher</span>
+                      : <span className="text-gray-400">{c.note ?? ''}</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Synthèse */}
@@ -110,7 +168,39 @@ const SodReportPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500">Analyse en lecture seule sur les rôles relationnels. Le blocage effectif à l'affectation et les dérogations tracées arrivent en vague suivante (nécessite la refonte de l'attribution des rôles).</p>
+      {/* Rôles utilisateurs (modèle user_role) + dérogations SoD */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800">Rôles utilisateurs ({userRoles.length})</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {userRoles.length === 0 && <tr><td className="px-3 py-3 text-gray-400 text-xs">Aucune affectation.</td></tr>}
+              {userRoles.slice(0, 20).map(u => (
+                <tr key={u.id} className="border-b border-gray-100">
+                  <td className="px-3 py-1.5 font-mono text-[11px] text-gray-500">{u.user_id.slice(0, 8)}…</td>
+                  <td className="px-3 py-1.5 text-gray-800">{u.role_code}{u.delegue_de && <span className="ml-1 text-[10px] text-indigo-600">délégué</span>}</td>
+                  <td className="px-3 py-1.5 text-right text-[11px] text-gray-400">{u.valide_au ? `→ ${u.valide_au}` : 'permanent'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-800">Dérogations SoD ({derogations.length})</div>
+          <table className="w-full text-sm">
+            <tbody>
+              {derogations.length === 0 && <tr><td className="px-3 py-3 text-gray-400 text-xs">Aucune dérogation.</td></tr>}
+              {derogations.map((d, i) => (
+                <tr key={i} className="border-b border-gray-100">
+                  <td className="px-3 py-1.5 font-mono text-[11px] text-gray-500">{d.permission_a} + {d.permission_b}</td>
+                  <td className="px-3 py-1.5 text-gray-700 text-xs">{d.motif}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p className="text-xs text-gray-500">Le blocage SoD est <b>effectif côté serveur à l'affectation</b> (fonction souveraine <code>assign_user_role</code> : refus sauf dérogation motivée tracée). L'enforcement des permissions par le socle <code>user_role</code> reste en lecture parallèle — la bascule du RBACGuard interviendra après une période d'observation à écart nul avec <code>profiles.role</code>.</p>
     </div>
   );
 };

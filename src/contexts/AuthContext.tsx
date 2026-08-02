@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase, isSupabaseConfigured, getUserProfile, getUserPermissions } from '@/lib/supabase';
+import { effectiveEnforcementEnabled } from '@/services/param/rbacBascule';
 import type { Session } from '@supabase/supabase-js';
 
 interface User {
@@ -12,6 +13,10 @@ interface User {
   company?: string;
   company_id?: string;
   permissions?: string[];
+  /** Rôles effectifs (modèle multi-rôles user_role). Peuplé UNIQUEMENT sous
+   *  bascule phase 3 (VITE_RBAC_SOURCE='effective') ; sinon undefined et
+   *  RBACGuard retombe sur le rôle unique. Cf. services/param/rbacBascule. */
+  effectiveRoles?: string[];
   photo_url?: string;
   phone?: string;
   department?: string;
@@ -116,6 +121,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const permissions = await getUserPermissions();
         const userData = mapProfileToUser(profile);
         userData.permissions = permissions;
+        // BASCULE phase 3 (défaut INERTE) : sous VITE_RBAC_SOURCE='effective'
+        // seulement, on charge les rôles effectifs (modèle user_role) que
+        // RBACGuard utilisera. Chemin 'legacy' = aucun appel supplémentaire.
+        // Best-effort : ne bloque/n'échoue jamais l'auth (garde le fallback rôle unique).
+        if (effectiveEnforcementEnabled()) {
+          try {
+            const { data } = await supabase.rpc('my_effective_roles');
+            const eff = data as unknown as string[] | null;
+            if (Array.isArray(eff) && eff.length > 0) userData.effectiveRoles = eff;
+          } catch (_e) { /* garder le rôle unique en repli */ }
+        }
         setUser(userData);
 
         // Synchroniser le tenant_id pour le SupabaseAdapter

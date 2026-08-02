@@ -24,6 +24,7 @@ import {
   type AtlasCatalogItem,
 } from '../../data/atlasCatalog';
 import type { ReportBlock, KPIBlock, TableBlock, ChartBlock } from '../../types';
+import { renderBlockContent } from '../blocks';
 
 // ---- Icon mapping ----
 const iconMap: Record<string, React.ReactNode> = {
@@ -313,42 +314,71 @@ const CatalogItemCard: React.FC<{
 };
 
 // ---- Preview Panel ----
-const PreviewPanel: React.FC<{ item: AtlasCatalogItem; onClose: () => void; onAdd: () => void }> = ({ item, onClose, onAdd }) => (
-  <div className="absolute inset-0 bg-white z-20 flex flex-col">
-    <div className="flex items-center justify-between p-3 border-b border-neutral-200">
-      <button onClick={onClose} className="text-xs text-neutral-900 hover:text-blue-800">← Retour</button>
-      <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1 text-[10px] font-medium text-white bg-neutral-900 rounded">
-        <Plus className="w-3 h-3" /> Ajouter
-      </button>
-    </div>
-    <div className="p-4 flex-1 overflow-y-auto">
-      <div className={`inline-flex items-center gap-2 p-2 rounded-md border ${categoryColors[item.category]} mb-3`}>
-        {iconMap[item.icon] || <Hash className="w-4 h-4" />}
-        <span className="text-xs font-semibold">{item.label}</span>
+const PreviewPanel: React.FC<{ item: AtlasCatalogItem; onClose: () => void; onAdd: () => void }> = ({ item, onClose, onAdd }) => {
+  // Bloc réel construit depuis l'item du catalogue (mémoïsé pour stabiliser
+  // l'id/les hooks de données entre les rendus). Rendu via renderBlockContent :
+  // les renderers (KPI/table/chart) auto-chargent les données de compta réelles
+  // via useBlockData → blockDataService, exactement comme sur le canvas.
+  const previewBlock = useMemo(() => {
+    const b = createBlockFromCatalog(item);
+    // Dans le panneau latéral étroit, une grille 4 colonnes est illisible : on
+    // la réduit à 2 pour l'aperçu (le bloc AJOUTÉ au rapport garde ses 4 colonnes).
+    if (b.type === 'kpi-grid') (b as unknown as { columns: number }).columns = 2;
+    return b;
+  }, [item.id]);
+
+  // Période du document : si absente, les renderers affichent « — »
+  // (données non chargées). On le signale explicitement à l'utilisateur.
+  const period = useReportBuilderStore(s => s.document?.period);
+
+  return (
+    <div className="absolute inset-0 bg-white z-20 flex flex-col">
+      <div className="flex items-center justify-between p-3 border-b border-neutral-200">
+        <button onClick={onClose} className="text-xs text-neutral-900 hover:text-blue-800">← Retour</button>
+        <button onClick={onAdd} className="flex items-center gap-1 px-3 py-1 text-[10px] font-medium text-white bg-neutral-900 rounded">
+          <Plus className="w-3 h-3" /> Ajouter
+        </button>
       </div>
-      <p className="text-xs text-neutral-600 mb-3">{item.description}</p>
-      <div className="space-y-2 text-[11px]">
-        <div className="flex justify-between"><span className="text-neutral-500">Catégorie</span><span className="text-neutral-700 font-medium">{item.subcategory}</span></div>
-        <div className="flex justify-between"><span className="text-neutral-500">Type de bloc</span><span className="text-neutral-700 font-medium capitalize">{item.blockType}</span></div>
-        <div className="flex justify-between"><span className="text-neutral-500">Source</span><span className="text-neutral-700 font-mono text-[10px]">{item.source}</span></div>
-        <div className="flex justify-between"><span className="text-neutral-500">Lié à la période</span><span className="text-neutral-700">{item.periodBound ? 'Oui' : 'Non'}</span></div>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-1">
-        {item.tags.map(tag => (
-          <span key={tag} className="text-[9px] bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded">{tag}</span>
-        ))}
-      </div>
-      {/* Preview placeholder */}
-      <div className="mt-4 bg-neutral-50 border border-neutral-200 rounded-lg p-6 text-center">
-        <div className={`inline-flex p-3 rounded-lg mb-2 ${categoryColors[item.category]}`}>
-          {categoryIcons[item.category]}
+      <div className="p-4 flex-1 overflow-y-auto">
+        <div className={`inline-flex items-center gap-2 p-2 rounded-md border ${categoryColors[item.category]} mb-3`}>
+          {iconMap[item.icon] || <Hash className="w-4 h-4" />}
+          <span className="text-xs font-semibold">{item.label}</span>
         </div>
-        <p className="text-xs text-neutral-500">Aperçu avec données réelles</p>
-        <p className="text-[10px] text-neutral-400 mt-1">Les données se chargeront automatiquement depuis Atlas FnA</p>
+        <p className="text-xs text-neutral-600 mb-3">{item.description}</p>
+
+        {/* Aperçu EN DIRECT — données de la comptabilité quand elles sont dispo */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[11px] font-semibold text-neutral-600">Aperçu en direct</span>
+            <span className="text-[9px] text-neutral-400">
+              {period ? period.label : 'Aucune période'}
+            </span>
+          </div>
+          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-3 overflow-x-auto">
+            {renderBlockContent(previewBlock)}
+          </div>
+          <p className="text-[9px] text-neutral-400 mt-1">
+            {period
+              ? 'Données réelles chargées depuis Atlas FnA pour la période du rapport.'
+              : 'Définissez une période sur le rapport pour charger les données comptables.'}
+          </p>
+        </div>
+
+        <div className="space-y-2 text-[11px]">
+          <div className="flex justify-between"><span className="text-neutral-500">Catégorie</span><span className="text-neutral-700 font-medium">{item.subcategory}</span></div>
+          <div className="flex justify-between"><span className="text-neutral-500">Type de bloc</span><span className="text-neutral-700 font-medium capitalize">{item.blockType}</span></div>
+          <div className="flex justify-between"><span className="text-neutral-500">Source</span><span className="text-neutral-700 font-mono text-[10px]">{item.source}</span></div>
+          <div className="flex justify-between"><span className="text-neutral-500">Lié à la période</span><span className="text-neutral-700">{item.periodBound ? 'Oui' : 'Non'}</span></div>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-1">
+          {item.tags.map(tag => (
+            <span key={tag} className="text-[9px] bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded">{tag}</span>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ============================================================================
 // MAIN COMPONENT

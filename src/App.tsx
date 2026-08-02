@@ -294,6 +294,9 @@ const SodReportPage = lazyRetry(() => import('./pages/settings/SodReportPage'));
 const ReferentielsPage = lazyRetry(() => import('./pages/settings/ReferentielsPage'));
 const FiscaliteParamsPage = lazyRetry(() => import('./pages/settings/FiscaliteParamsPage'));
 const RgpdPage = lazyRetry(() => import('./pages/settings/RgpdPage'));
+const AnonymisationPage = lazyRetry(() => import('./pages/settings/AnonymisationPage'));
+const DuplicationPage = lazyRetry(() => import('./pages/settings/DuplicationPage'));
+const BootstrapPage = lazyRetry(() => import('./pages/settings/BootstrapPage'));
 const BackupPage = lazyRetry(() => import('./pages/settings/BackupPage'));
 const ImportExportPage = lazyRetry(() => import('./pages/settings/ImportExportPage'));
 const ImportTemplatesCatalogPage = lazyRetry(() => import('./pages/settings/ImportTemplatesCatalogPage'));
@@ -308,6 +311,7 @@ const ThemePalettesPage = lazyRetry(() => import('./pages/settings/ThemePalettes
 // Config
 const PlanSYSCOHADAPage = lazyRetry(() => import('./pages/config/PlanSYSCOHADAPage'));
 const FrameworkPage = lazyRetry(() => import('./pages/framework/FrameworkPage'));
+const SycebnlPlanPage = lazyRetry(() => import('./pages/framework/SycebnlPlanPage'));
 const RevisionDossierPage = lazyRetry(() => import('./pages/cabinet/RevisionDossierPage'));
 const CabinetPortfolioPage = lazyRetry(() => import('./pages/cabinet/CabinetPortfolioPage'));
 const ConsolidationPage = lazyRetry(() => import('./pages/cabinet/ConsolidationPage'));
@@ -680,6 +684,9 @@ function App() {
                           <Route path="/settings/referentiels" element={work(<ReferentielsPage />)} />
                           <Route path="/settings/fiscalite" element={work(<FiscaliteParamsPage />)} />
                           <Route path="/settings/rgpd" element={work(<RgpdPage />)} />
+                          <Route path="/settings/rgpd/anonymisation" element={work(<AnonymisationPage />)} />
+                          <Route path="/settings/duplication" element={work(<DuplicationPage />)} />
+                          <Route path="/settings/bootstrap" element={work(<BootstrapPage />)} />
                           <Route path="/settings/users" element={<UsersPage />} />
                           <Route path="/settings/company" element={<CompanyPage />} />
                           <Route path="/settings/import-export" element={<ImportExportPage />} />
@@ -698,6 +705,7 @@ function App() {
                         <Route element={<RBACGuard allowedRoles={['admin', 'manager', 'comptable', 'accountant', 'user', 'viewer']}><Outlet /></RBACGuard>}>
                           <Route path="/config/plan-syscohada" element={<PlanSYSCOHADAPage />} />
                           <Route path="/config/referentiel" element={work(<FrameworkPage />)} />
+                          <Route path="/config/plan-sycebnl" element={work(<SycebnlPlanPage />)} />
                           <Route path="/config/tva" element={<TVATaxesPage />} />
                           <Route path="/config/multi-societes" element={<MultiSocietesPage />} />
                           <Route path="/config/multi-sites" element={<MultiSitesPage />} />

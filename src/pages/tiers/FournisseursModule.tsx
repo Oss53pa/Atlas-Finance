@@ -8,7 +8,8 @@ import { useAccountNames } from '../../hooks/useAccountNames';
 import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/auxiliaryCodeService';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
-import { StatBadgeCard, DonutBreakdown, RadialGauge } from '../../components/premium';
+import { StatBadgeCard, RadialGauge } from '../../components/premium';
+import { AtlasRadar, AtlasDonut } from '../../components/charts';
 import {
   Search, Plus, Filter, Upload, Eye, Edit, Trash2, X, Save,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -940,27 +941,22 @@ const FournisseursModule: React.FC = () => {
             {balanceAgeeSubTab === 'repartition' && (
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                  <DonutBreakdown
-                    className="lg:col-span-2"
-                    title={t('suppliers.detailByAgeBracket')}
-                    subtitle={t('suppliers.subTabBreakdown')}
-                    total={totauxBalanceAgee.totalDettes}
-                    formatValue={formatCurrency}
-                    centerLabel={t('suppliers.total')}
-                    segments={balanceAgeeChartData.map(item => ({
-                      name: item.label,
-                      value: item.value,
-                      color: item.color,
-                      count: balanceAgeeData.filter(f => {
-                        if (item.name === 'Non échu') return f.nonEchu > 0;
-                        if (item.name === '0-30 jours') return f.echu0_30 > 0;
-                        if (item.name === '31-60 jours') return f.echu31_60 > 0;
-                        if (item.name === '61-90 jours') return f.echu61_90 > 0;
-                        if (item.name === '+90 jours') return f.echuPlus90 > 0;
-                        return false;
-                      }).length,
-                    }))}
-                  />
+                  <div className="lg:col-span-2 rounded-xl p-5" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="font-bold text-sm" style={{ color: 'var(--color-text-primary)' }}>{t('suppliers.detailByAgeBracket')}</h4>
+                      <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{t('suppliers.subTabBreakdown')}</span>
+                    </div>
+                    <AtlasDonut
+                      data={balanceAgeeChartData.map(item => ({ name: item.label, value: item.value }))}
+                      colors={balanceAgeeChartData.map(item => item.color)}
+                      centerPrimary={totauxBalanceAgee.totalDettes >= 1e9
+                        ? `${(totauxBalanceAgee.totalDettes / 1e9).toFixed(2).replace('.', ',')} Md`
+                        : `${Math.round(totauxBalanceAgee.totalDettes / 1e6)} M`}
+                      centerLabel={t('suppliers.total')}
+                      valueFormatter={formatCurrency}
+                      height={300}
+                    />
+                  </div>
                   <div className="flex flex-col items-center justify-center gap-1" style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 18, boxShadow: 'var(--shadow-sm)', padding: 20 }}>
                     <RadialGauge
                       percent={totauxBalanceAgee.totalDettes > 0 ? (totauxBalanceAgee.provision / totauxBalanceAgee.totalDettes) * 100 : 0}
@@ -1451,15 +1447,11 @@ const FournisseursModule: React.FC = () => {
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.performanceAssessment')}</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={analyticsData.performanceFournisseurs}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="critere" />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                    <Radar name="Score" dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <AtlasRadar
+                  height={380}
+                  indicators={(analyticsData.performanceFournisseurs as any[]).map((d) => ({ name: d.critere, max: 100 }))}
+                  series={[{ name: 'Score', data: (analyticsData.performanceFournisseurs as any[]).map((d) => d.score), color: '#235A6E' }]}
+                />
               </div>
             </div>
           )}
