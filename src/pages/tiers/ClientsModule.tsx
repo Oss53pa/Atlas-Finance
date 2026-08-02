@@ -10,7 +10,7 @@ import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/aux
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { StatBadgeCard, RadialGauge } from '../../components/premium';
-import { AtlasDonut } from '../../components/charts';
+import { AtlasDonut, AtlasRadar } from '../../components/charts';
 import {
   Search, Plus, Filter, Eye, Edit, Trash2, X,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -1756,15 +1756,11 @@ const ClientsModule: React.FC = () => {
 
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.performanceEvaluation')}</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={analyticsData.performanceClients}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="critere" />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                    <Radar name={t('clients.score')} dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                <AtlasRadar
+                  height={300}
+                  indicators={(analyticsData.performanceClients as any[]).map((d) => ({ name: d.critere, max: 100 }))}
+                  series={[{ name: t('clients.score'), data: (analyticsData.performanceClients as any[]).map((d) => d.score), color: '#235A6E' }]}
+                />
               </div>
             </div>
           )}

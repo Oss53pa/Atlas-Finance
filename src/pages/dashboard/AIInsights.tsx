@@ -14,6 +14,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { StatBadgeCard } from '../../components/premium';
+import { AtlasRadar } from '../../components/charts';
 
 interface Prediction {
   id: string;
@@ -802,17 +803,14 @@ const AIInsights: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.aiPerformanceScore')}</h2>
-          <ResponsiveContainer width="100%" height={350}>
-            <RadarChart data={scoringData}>
-              <PolarGrid stroke="#e5e5e5" />
-              <PolarAngleAxis dataKey="metric" stroke="#235A6E" />
-              <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#235A6E" />
-              <Radar name={t('aiInsights.yourScore')} dataKey="score" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} />
-              <Radar name={t('aiInsights.benchmark')} dataKey="benchmark" stroke="#15803D" fill="#15803D" fillOpacity={0.3} />
-              <Legend />
-              <Tooltip />
-            </RadarChart>
-          </ResponsiveContainer>
+          <AtlasRadar
+            height={350}
+            indicators={(scoringData as any[]).map((d) => ({ name: d.metric, max: 100 }))}
+            series={[
+              { name: t('aiInsights.yourScore'), data: (scoringData as any[]).map((d) => d.score), color: '#235A6E' },
+              { name: t('aiInsights.benchmark'), data: (scoringData as any[]).map((d) => d.benchmark), color: '#15803D' },
+            ]}
+          />
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
