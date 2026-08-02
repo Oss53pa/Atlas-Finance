@@ -53,6 +53,7 @@ const AtlasDonut: React.FC<AtlasDonutProps> = ({
         selectedMode: 'single',
         selectedOffset: 18,
         avoidLabelOverlap: true,
+        minShowLabelAngle: 12,
         padAngle: 2,
         itemStyle: { borderColor: '#fff', borderWidth: 3, borderRadius: 9, shadowBlur: 16, shadowColor: 'rgba(38,30,21,0.16)' },
         label: { show: true, position: 'inside', formatter: '{d}%', color: '#fff', fontFamily: FONT_MONO, fontWeight: 700, fontSize: 12 },
@@ -60,11 +61,15 @@ const AtlasDonut: React.FC<AtlasDonutProps> = ({
         emphasis: { scale: true, scaleSize: 5, itemStyle: { shadowBlur: 24, shadowColor: 'rgba(38,30,21,0.24)' } },
         data: data.map((d, i) => ({ value: d.value, name: d.name, selected: i === explodeIndex })),
       }],
-      graphic: centerPrimary ? {
-        elements: [
-          { type: 'text', left: cx, top: '46%', style: { text: centerPrimary, fontFamily: FONT_MONO, fontSize: 24, fontWeight: 700, fill: ATLAS_INK, textAlign: 'center' } },
-          { type: 'text', left: cx, top: '56%', style: { text: centerLabel, fontFamily: FONT_SANS, fontSize: 10, fontWeight: 700, fill: ATLAS_INK3, textAlign: 'center' } },
-        ],
+      title: centerPrimary ? {
+        text: centerPrimary,
+        subtext: centerLabel,
+        left: cx,
+        top: '44%',
+        textAlign: 'center',
+        itemGap: 3,
+        textStyle: { fontFamily: FONT_MONO, fontSize: 19, fontWeight: 700, color: ATLAS_INK },
+        subtextStyle: { fontFamily: FONT_SANS, fontSize: 10, fontWeight: 700, color: ATLAS_INK3 },
       } : undefined,
     };
   }, [data, explodeIndex, centerPrimary, centerLabel, colors, showLegend, valueFormatter]);

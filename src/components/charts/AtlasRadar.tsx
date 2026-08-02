@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { EChartsOption } from 'echarts';
 import EChart from './EChart';
-import { ATLAS_SERIES, ATLAS_INK2, ATLAS_INK3, ATLAS_HAIRLINE, FONT_SANS } from './theme';
+import { ATLAS_SERIES, ATLAS_INK2, ATLAS_INK3, ATLAS_HAIRLINE, FONT_SANS, FONT_MONO } from './theme';
 
 export interface RadarIndicator {
   name: string;
@@ -36,15 +36,18 @@ const AtlasRadar: React.FC<AtlasRadarProps> = ({
     radar: {
       indicator: indicators,
       shape: 'polygon',
-      radius: '66%',
+      radius: '72%',
+      center: ['50%', '54%'],
       splitNumber: 4,
       axisName: { fontFamily: FONT_SANS, color: ATLAS_INK2, fontSize: 11, fontWeight: 600 },
+      axisLabel: { show: true, fontFamily: FONT_MONO, fontSize: 9, color: ATLAS_INK3, showMinLabel: false },
       splitLine: { lineStyle: { color: ATLAS_HAIRLINE } },
       splitArea: { areaStyle: { color: ['rgba(247,245,239,0)', 'rgba(38,30,21,0.02)'] } },
       axisLine: { lineStyle: { color: ATLAS_HAIRLINE } },
     },
     series: [{
       type: 'radar',
+      label: { show: true, formatter: (p: any) => `${p.value}`, fontFamily: FONT_MONO, fontSize: 10, fontWeight: 700, color: ATLAS_INK2 },
       data: series.map((s, i) => {
         const col = s.color || colors[i % colors.length];
         return {
