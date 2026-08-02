@@ -1757,7 +1757,7 @@ const ClientsModule: React.FC = () => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.performanceEvaluation')}</h3>
                 <AtlasRadar
-                  height={300}
+                  height={380}
                   indicators={(analyticsData.performanceClients as any[]).map((d) => ({ name: d.critere, max: 100 }))}
                   series={[{ name: t('clients.score'), data: (analyticsData.performanceClients as any[]).map((d) => d.score), color: '#235A6E' }]}
                 />

@@ -804,7 +804,7 @@ const AIInsights: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.aiPerformanceScore')}</h2>
           <AtlasRadar
-            height={350}
+            height={380}
             indicators={(scoringData as any[]).map((d) => ({ name: d.metric, max: 100 }))}
             series={[
               { name: t('aiInsights.yourScore'), data: (scoringData as any[]).map((d) => d.score), color: '#235A6E' },

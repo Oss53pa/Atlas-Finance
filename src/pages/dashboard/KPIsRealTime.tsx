@@ -696,7 +696,7 @@ const KPIsRealTime: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
             <AtlasRadar
-              height={300}
+              height={380}
               indicators={(radarData as any[]).map((d) => ({ name: d.subject, max: 100 }))}
               series={[{ name: 'Performance', data: (radarData as any[]).map((d) => d.A), color: '#235A6E' }]}
             />

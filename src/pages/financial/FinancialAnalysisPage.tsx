@@ -497,7 +497,7 @@ const FinancialAnalysisPage: React.FC = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Globale</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <AtlasRadar
-                height={300}
+                height={380}
                 indicators={(financialData?.ratios || []).map((r) => ({ name: r.category, max: 100 }))}
                 series={[{ name: 'Performance', data: (financialData?.ratios || []).map((r) => Math.min(100, (r.value / r.reference) * 100)), color: '#235A6E' }]}
               />
