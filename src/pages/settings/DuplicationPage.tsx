@@ -110,12 +110,22 @@ const DuplicationPage: React.FC = () => {
           <div className="px-3 py-2 bg-green-50 border-b border-green-200 text-sm font-semibold text-green-800 flex items-center gap-2"><CheckCircle className="w-4 h-4" />Rapport de copie</div>
           <table className="w-full text-sm">
             <tbody>
-              {DUP_BLOCKS.filter(b => b.key in report).map(b => (
+              {DUP_BLOCKS.filter(b => b.key !== 'analytique' && b.key in report).map(b => (
                 <tr key={b.key} className="border-b border-gray-100">
                   <td className="px-3 py-2 text-gray-700">{b.label}</td>
                   <td className="px-3 py-2 text-right font-medium text-gray-900">{report[b.key]} copié(s)</td>
                 </tr>
               ))}
+              {report.analytique && (
+                <tr className="border-b border-gray-100">
+                  <td className="px-3 py-2 text-gray-700">Référentiel analytique</td>
+                  <td className="px-3 py-2 text-right font-medium text-gray-900">
+                    {report.analytique.skipped
+                      ? <span className="text-amber-600 text-xs">ignoré ({report.analytique.skipped})</span>
+                      : `${report.analytique.plans ?? 0} plans · ${report.analytique.axes ?? 0} axes · ${report.analytique.sections ?? 0} sections · ${report.analytique.regles ?? 0} règles`}
+                  </td>
+                </tr>
+              )}
               {Object.keys(report).length === 0 && <tr><td className="px-3 py-3 text-gray-400 text-sm">Aucun bloc copié.</td></tr>}
             </tbody>
           </table>
