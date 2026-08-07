@@ -9,7 +9,7 @@ import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/aux
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { StatBadgeCard, RadialGauge } from '../../components/premium';
-import { AtlasRadar, AtlasDonut } from '../../components/charts';
+import { AtlasBar, AtlasRadar, AtlasDonut } from '../../components/charts';
 import {
   Search, Plus, Filter, Upload, Eye, Edit, Trash2, X, Save,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -20,11 +20,9 @@ import {
   Globe, Shield, Zap, Timer, BookOpen, AlertOctagon, Award,
   Receipt, Printer
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
-} from 'recharts';
+// Rampe d'ancienneté : du vert (non échu) au rouge (> 90 j) — l'œil lit le risque
+// avant de lire la légende. Hex obligatoires : ECharts rend sur canvas.
+const AGING_RAMP = ['#15803D', '#E89A2E', '#C77E2C', '#B4532A', '#C0322B'];
 
 interface Fournisseur {
   id: string;
@@ -969,20 +967,28 @@ const FournisseursModule: React.FC = () => {
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.evolutionBySupplier')}</h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={balanceAgeeData.slice(0, 8)} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`} />
-                      <YAxis type="category" dataKey="fournisseurCode" width={80} />
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name={t('suppliers.notDue')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name={t('suppliers.days0_30Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name={t('suppliers.days31_60Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name={t('suppliers.days61_90Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name={t('suppliers.daysOver90Short')} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {(() => {
+                    // ECharts empile l'axe catégoriel du bas vers le haut : on inverse
+                    // pour garder le premier fournisseur en haut.
+                    const top = balanceAgeeData.slice(0, 8).slice().reverse();
+                    const buckets = [
+                      { name: t('suppliers.notDue'), get: (d: typeof top[number]) => d.nonEchu },
+                      { name: t('suppliers.days0_30Short'), get: (d: typeof top[number]) => d.echu0_30 },
+                      { name: t('suppliers.days31_60Short'), get: (d: typeof top[number]) => d.echu31_60 },
+                      { name: t('suppliers.days61_90Short'), get: (d: typeof top[number]) => d.echu61_90 },
+                      { name: t('suppliers.daysOver90Short'), get: (d: typeof top[number]) => d.echuPlus90 },
+                    ];
+                    return (
+                      <AtlasBar
+                        categories={top.map(d => d.fournisseurCode)}
+                        series={buckets.map((b, i) => ({ name: b.name, data: top.map(b.get), color: AGING_RAMP[i] }))}
+                        horizontal
+                        stacked
+                        valueFormatter={(v) => formatCurrency(v)}
+                        height={300}
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -1427,17 +1433,12 @@ const FournisseursModule: React.FC = () => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.breakdownByCategory')}</h3>
                 {catData.some(d => d.montant > 0) ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie dataKey="montant" data={catData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#235A6E"
-                        label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}>
-                        {catData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+                  <AtlasDonut
+                    data={catData.map((d: any) => ({ name: d.categorie, value: d.montant }))}
+                    colors={COLORS}
+                    valueFormatter={(v) => formatCurrency(v)}
+                    height={300}
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-gray-500">
                     <p className="text-sm">{t('suppliers.noPurchaseData')}</p>

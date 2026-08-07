@@ -18,11 +18,7 @@ import {
   ShoppingCart, Package, Link, Zap, Cloud, TrendingDown, LineChart as LineChartIcon,
   Building2, Paperclip, Reply, Forward, Shield
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area, ComposedChart
-} from 'recharts';
+import { AtlasBar, AtlasCombo, AtlasDonut, AtlasLine, AtlasPie, ATLAS_PETROL } from '../../components/charts';
 import { DebtCollection, CollectionAction, InvoiceDebt } from '../../types/tiers';
 import { StatBadgeCard } from '../../components/premium';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -361,43 +357,26 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               {/* Évolution mensuelle */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.collectionTrend')}</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={analyticsData.evolutionRecouvrement}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="creances" stackId="1" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
-                    <Area type="monotone" dataKey="recouvre" stackId="2" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={analyticsData.evolutionRecouvrement.map(d => d.mois)}
+                  series={[
+                    { name: 'Créances', data: analyticsData.evolutionRecouvrement.map(d => d.creances), color: '#C0322B', area: true },
+                    { name: 'Recouvré', data: analyticsData.evolutionRecouvrement.map(d => d.recouvre), color: '#15803D', area: true },
+                  ]}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={300}
+                />
               </div>
 
               {/* Répartition par niveau */}
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.breakdownByLevel')}</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
-                    <Pie
-                      dataKey="montant"
-                      data={analyticsData.repartitionNiveaux.filter(r => r.montant > 0)}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={62}
-                      outerRadius={100}
-                      paddingAngle={2}
-                      cornerRadius={6}
-                      stroke="none"
-                      labelLine={false}
-                      label={({ niveau, count }) => `${niveau} (${count})`}
-                    >
-                      {analyticsData.repartitionNiveaux.filter(r => r.montant > 0).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
+                <AtlasDonut
+                  data={analyticsData.repartitionNiveaux.filter(r => r.montant > 0).map(r => ({ name: `${r.niveau} (${r.count})`, value: r.montant }))}
+                  colors={COLORS}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={300}
+                />
               </div>
             </div>
 
@@ -457,18 +436,16 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.successRateTrend')}</h3>
                 {analyticsData.evolutionRecouvrement.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analyticsData.evolutionRecouvrement.map(d => ({
-                      mois: d.mois,
-                      taux: d.creances > 0 ? Math.round((d.recouvre / d.creances) * 100) : 0
-                    }))}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="mois" />
-                      <YAxis domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                      <Tooltip formatter={(v) => `${v}%`} />
-                      <Line type="monotone" dataKey="taux" stroke="#235A6E" strokeWidth={3} name="Taux recouvrement %" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <AtlasLine
+                    categories={analyticsData.evolutionRecouvrement.map(d => d.mois)}
+                    series={[{
+                      name: 'Taux recouvrement %',
+                      data: analyticsData.evolutionRecouvrement.map(d => (d.creances > 0 ? Math.round((d.recouvre / d.creances) * 100) : 0)),
+                      color: ATLAS_PETROL,
+                    }]}
+                    valueFormatter={(v) => `${v} %`}
+                    height={300}
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
                     {t('recovery.notEnoughData')}
@@ -510,15 +487,12 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.receivablesAging')}</h3>
               {analyticsData.anciennete.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData.anciennete}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="periode" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Bar dataKey="montant" fill="#235A6E" name="Montant" radius={[6,6,0,0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <AtlasBar
+                  categories={analyticsData.anciennete.map(a => a.periode)}
+                  series={[{ name: 'Montant', data: analyticsData.anciennete.map(a => a.montant), color: ATLAS_PETROL }]}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={300}
+                />
               ) : (
                 <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
                   {t('recovery.noAgingData')}
@@ -535,16 +509,15 @@ const AnalyticsTab = ({ analyticsData }: AnalyticsTabProps) => {
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.trends12Months')}</h3>
               {analyticsData.evolutionRecouvrement.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={analyticsData.evolutionRecouvrement}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mois" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="creances" stroke="#C0322B" fill="#C0322B" fillOpacity={0.3} name="Créances" />
-                    <Area type="monotone" dataKey="recouvre" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name="Recouvré" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={analyticsData.evolutionRecouvrement.map(d => d.mois)}
+                  series={[
+                    { name: 'Créances', data: analyticsData.evolutionRecouvrement.map(d => d.creances), color: '#C0322B', area: true },
+                    { name: 'Recouvré', data: analyticsData.evolutionRecouvrement.map(d => d.recouvre), color: '#15803D', area: true },
+                  ]}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={400}
+                />
               ) : (
                 <div className="flex items-center justify-center h-[400px] text-sm text-gray-500">
                   {t('recovery.noTrendData')}
@@ -6076,20 +6049,14 @@ const ContentieuxTab = ({
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
                 {t('recovery.amicableVsLitigation')}
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={[
-                  { phase: 'Amiable', taux_succes: 82, delai_moyen: 45, cout_moyen: 50000 },
-                  { phase: 'Contentieux', taux_succes: 67, delai_moyen: 127, cout_moyen: 250000 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="phase" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="taux_succes" fill="url(#gradPetrol)" name="Taux succès %" />
-                  <Bar radius={[6,6,0,0]} dataKey="delai_moyen" fill="url(#gradAmber)" name="Délai (jours)" />
-                </BarChart>
-              </ResponsiveContainer>
+              {/* Un taux en % et un délai en jours : deux unités, deux axes. */}
+              <AtlasCombo
+                categories={['Amiable', 'Contentieux']}
+                bars={[{ name: 'Taux succès %', data: [82, 67], color: ATLAS_PETROL }]}
+                lines={[{ name: 'Délai (jours)', data: [45, 127], color: '#E89A2E' }]}
+                rightFormatter={(v) => `${v} j`}
+                height={300}
+              />
             </div>
 
             {/* Flux entre processus */}
@@ -6097,23 +6064,14 @@ const ContentieuxTab = ({
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">
                 {t('recovery.monthlyFlowAmicableLitig')}
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={[
-                  { mois: 'Sept', transferts: 12, retours: 3 },
-                  { mois: 'Oct', transferts: 15, retours: 5 },
-                  { mois: 'Nov', transferts: 18, retours: 4 },
-                  { mois: 'Déc', transferts: 14, retours: 6 },
-                  { mois: 'Jan', transferts: 20, retours: 7 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="transferts" stroke="#C0322B" name="Transferts vers contentieux" />
-                  <Line type="monotone" dataKey="retours" stroke="#15803D" name="Retours en amiable" />
-                </LineChart>
-              </ResponsiveContainer>
+              <AtlasLine
+                categories={['Sept', 'Oct', 'Nov', 'Déc', 'Jan']}
+                series={[
+                  { name: 'Transferts vers contentieux', data: [12, 15, 18, 14, 20], color: '#C0322B' },
+                  { name: 'Retours en amiable', data: [3, 5, 4, 6, 7], color: '#15803D' },
+                ]}
+                height={300}
+              />
             </div>
           </div>
 
@@ -6462,28 +6420,12 @@ const ContentieuxTab = ({
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="montant"
-                        data={costChartData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={62}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        cornerRadius={6}
-                        stroke="none"
-                        fill="#235A6E"
-                      >
-                        {costChartData.map((_entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Legend />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+                  <AtlasDonut
+                    data={costChartData.map(c => ({ name: c.name, value: c.montant }))}
+                    colors={COLORS}
+                    valueFormatter={(v) => formatCurrency(v)}
+                    height={300}
+                  />
                 </div>
                 <div className="space-y-3">
                   {costChartData.map((cat, index) => {
@@ -6710,26 +6652,19 @@ const ContentieuxTab = ({
           {/* Évolution temporelle */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('recovery.performanceTrend')}</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={[
-                { mois: 'Août', amiable: 78, contentieux: 62, roi: 2.8 },
-                { mois: 'Sept', amiable: 80, contentieux: 65, roi: 2.9 },
-                { mois: 'Oct', amiable: 82, contentieux: 64, roi: 3.0 },
-                { mois: 'Nov', amiable: 81, contentieux: 68, roi: 3.1 },
-                { mois: 'Déc', amiable: 83, contentieux: 66, roi: 3.2 },
-                { mois: 'Jan', amiable: 82, contentieux: 67, roi: 3.2 }
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="amiable" stroke="#15803D" name="Taux succès amiable %" />
-                <Line yAxisId="left" type="monotone" dataKey="contentieux" stroke="#C0322B" name="Taux succès contentieux %" />
-                <Line yAxisId="right" type="monotone" dataKey="roi" stroke="#235A6E" name="ROI (x)" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            {/* Les deux taux (%) restent sur l'axe gauche, le ROI (multiple) à droite. */}
+            <AtlasCombo
+              categories={['Août', 'Sept', 'Oct', 'Nov', 'Déc', 'Jan']}
+              bars={[]}
+              lines={[
+                { name: 'Taux succès amiable %', data: [78, 80, 82, 81, 83, 82], color: '#15803D', onRightAxis: false },
+                { name: 'Taux succès contentieux %', data: [62, 65, 64, 68, 66, 67], color: '#C0322B', onRightAxis: false },
+                { name: 'ROI (x)', data: [2.8, 2.9, 3.0, 3.1, 3.2, 3.2], color: ATLAS_PETROL },
+              ]}
+              valueFormatter={(v) => `${v} %`}
+              rightFormatter={(v) => `${v}x`}
+              height={400}
+            />
           </div>
 
           {/* Analyse prédictive */}
@@ -10888,21 +10823,20 @@ const RecouvrementModule: React.FC = () => {
                         </div>
                         <h3 className="ml-3 font-semibold text-gray-900">Active cases</h3>
                       </div>
-                      <div className="h-48 flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={[
-                            { name: 'Total receivables', value: selectedDossierDetail.montantTotal },
-                            { name: 'Total collection', value: selectedDossierDetail.montantPaye },
-                            { name: 'Balance', value: selectedDossierDetail.montantTotal - selectedDossierDetail.montantPaye }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <AtlasBar
+                        categories={['Total receivables', 'Total collection', 'Balance']}
+                        series={[{
+                          name: 'Montant',
+                          data: [
+                            selectedDossierDetail.montantTotal,
+                            selectedDossierDetail.montantPaye,
+                            selectedDossierDetail.montantTotal - selectedDossierDetail.montantPaye,
+                          ],
+                          itemColors: [ATLAS_PETROL, '#15803D', '#E89A2E'],
+                        }]}
+                        valueFormatter={(v) => formatCurrency(v)}
+                        height={192}
+                      />
                     </div>
 
                     {/* Submitted debt and collected */}
@@ -10913,31 +10847,22 @@ const RecouvrementModule: React.FC = () => {
                         </div>
                         <h3 className="ml-3 font-semibold text-gray-900">Submitted debt and collected</h3>
                       </div>
-                      <div className="h-48 flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={[
-                            { name: 'Jan', receivables: 0, collection: 0 },
-                            { name: 'Feb', receivables: 0, collection: 0 },
-                            { name: 'Mar', receivables: selectedDossierDetail.montantTotal, collection: 0 },
-                            { name: 'Apr', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'May', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Jun', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Jul', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Aug', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Sep', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Oct', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Nov', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye },
-                            { name: 'Dec', receivables: selectedDossierDetail.montantTotal, collection: selectedDossierDetail.montantPaye }
-                          ]}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="receivables" stroke="#235A6E" name="Total receivables" />
-                            <Line type="monotone" dataKey="collection" stroke="#15803D" name="Total collection" />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
+                      {(() => {
+                        const MOIS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                        const total = selectedDossierDetail.montantTotal;
+                        const paye = selectedDossierDetail.montantPaye;
+                        return (
+                          <AtlasLine
+                            categories={MOIS}
+                            series={[
+                              { name: 'Total receivables', data: MOIS.map((_, i) => (i >= 2 ? total : 0)), color: ATLAS_PETROL },
+                              { name: 'Total collection', data: MOIS.map((_, i) => (i >= 3 ? paye : 0)), color: '#15803D' },
+                            ]}
+                            valueFormatter={(v) => formatCurrency(v)}
+                            height={192}
+                          />
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -11092,16 +11017,13 @@ const RecouvrementModule: React.FC = () => {
                       </div>
 
                       {/* Graphique DSO : distribution des créances par tranche d'ancienneté */}
-                      <div className="mt-6 h-40">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={detailAgingChart} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="tranche" fontSize={11} />
-                            <YAxis allowDecimals={false} fontSize={11} />
-                            <Tooltip formatter={(v: any) => [`${v} facture(s)`, 'Nombre']} />
-                            <Bar radius={[6, 6, 0, 0]} dataKey="nb" fill="#235A6E" />
-                          </BarChart>
-                        </ResponsiveContainer>
+                      <div className="mt-6">
+                        <AtlasBar
+                          categories={detailAgingChart.map((a: any) => a.tranche)}
+                          series={[{ name: 'Nombre', data: detailAgingChart.map((a: any) => a.nb), color: ATLAS_PETROL }]}
+                          valueFormatter={(v) => `${v} facture(s)`}
+                          height={160}
+                        />
                       </div>
                       <div className="text-center text-sm text-gray-700 mt-1">
                         <span className="font-bold text-gray-900">{selectedDossierDetail.dsoMoyen}</span> jours (DSO moyen)
@@ -11812,17 +11734,10 @@ const RecouvrementModule: React.FC = () => {
                   {/* Graphique des paiements par mois */}
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.paymentsTrend')}</h4>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        {/* Données réelles d'échéancier de paiement non disponibles (recovery_cases vide) */}
-                        <AreaChart data={[]}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="mois" />
-                          <YAxis />
-                          <Tooltip formatter={(value) => [`${formatCurrency(Number(value))}`, 'Montant']} />
-                          <Area type="monotone" dataKey="montant" stroke="#15803D" fill="#15803D" fillOpacity={0.1} />
-                        </AreaChart>
-                      </ResponsiveContainer>
+                    {/* Données réelles d'échéancier non disponibles (recovery_cases vide) :
+                        des axes vides laissaient croire à un graphique en attente de chargement. */}
+                    <div className="h-64 flex items-center justify-center text-sm text-gray-500">
+                      {t('recovery.noDataNotImported')}
                     </div>
                   </div>
 
@@ -11830,26 +11745,17 @@ const RecouvrementModule: React.FC = () => {
                   <div className="bg-white rounded-lg shadow p-6">
                     <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.breakdownByPaymentMethod')}</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="h-48">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <RechartsPieChart>
-                            <Pie
-                              data={[
-                                { name: 'Virement bancaire', value: 5000, fill: '#235A6E' },
-                                { name: 'Chèque', value: 8000, fill: '#15803D' },
-                                { name: 'Espèces', value: 1500, fill: '#E89A2E' },
-                                { name: 'Carte bancaire', value: 0, fill: '#C77E2C' }
-                              ]}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={60}
-                              dataKey="value"
-                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            />
-                            <Tooltip formatter={(value) => [`${formatCurrency(Number(value))}`, 'Montant']} />
-                          </RechartsPieChart>
-                        </ResponsiveContainer>
-                      </div>
+                      <AtlasPie
+                        data={[
+                          { name: t('recovery.bankTransfer'), value: 5000 },
+                          { name: t('recovery.check'), value: 8000 },
+                          { name: t('recovery.cash'), value: 1500 },
+                          { name: t('recovery.bankCard'), value: 0 },
+                        ]}
+                        colors={['#235A6E', '#15803D', '#E89A2E', '#C77E2C']}
+                        valueFormatter={(v) => formatCurrency(v)}
+                        height={192}
+                      />
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center">
@@ -12866,21 +12772,19 @@ const RecouvrementModule: React.FC = () => {
           {repaymentPlans.length > 0 && (
             <div className="mt-6 bg-white rounded-lg shadow p-6">
               <h4 className="text-lg font-semibold text-gray-900 mb-4">{t('recovery.planCompliance')}</h4>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={[
-                    { statut: 'Respectés', count: repaymentPlans.filter(p => p.statut === 'Respecté').length },
-                    { statut: 'Partiels', count: repaymentPlans.filter(p => p.statut === 'Partiel').length },
-                    { statut: 'En retard', count: repaymentPlans.filter(p => p.statut === 'En retard').length },
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="statut" />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="count" name="Plans" fill="#235A6E" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <AtlasBar
+                categories={['Respectés', 'Partiels', 'En retard']}
+                series={[{
+                  name: 'Plans',
+                  data: [
+                    repaymentPlans.filter(p => p.statut === 'Respecté').length,
+                    repaymentPlans.filter(p => p.statut === 'Partiel').length,
+                    repaymentPlans.filter(p => p.statut === 'En retard').length,
+                  ],
+                  itemColors: ['#15803D', '#E89A2E', '#C0322B'],
+                }]}
+                height={256}
+              />
             </div>
           )}
         </div>

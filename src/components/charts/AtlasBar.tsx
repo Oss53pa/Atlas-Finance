@@ -7,6 +7,8 @@ export interface BarSeries {
   name: string;
   data: number[];
   color?: string;
+  /** couleur par barre (une entrée par catégorie) — prime sur `color` */
+  itemColors?: (string | undefined)[];
 }
 
 export interface AtlasBarProps {
@@ -51,7 +53,10 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
       yAxis: horizontal ? catAxis : valAxis,
       series: series.map((s, i) => ({
         name: s.name, type: 'bar' as const,
-        data: s.data, stack: stacked ? 'total' : undefined,
+        data: s.itemColors
+          ? s.data.map((v, k) => ({ value: v, itemStyle: { color: s.itemColors![k] || s.color || colors[i % colors.length] } }))
+          : s.data,
+        stack: stacked ? 'total' : undefined,
         barMaxWidth: 34, barGap: '20%',
         itemStyle: { color: s.color || colors[i % colors.length], borderRadius: horizontal ? [12, 12, 12, 12] : [12, 12, 12, 12] },
         showBackground: !stacked, backgroundStyle: { color: ATLAS_HAIRLINE, borderRadius: 12 },

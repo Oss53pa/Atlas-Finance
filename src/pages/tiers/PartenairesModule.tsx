@@ -20,11 +20,7 @@ import {
 import { tiersService, createPartenaireSchema } from '../../services/modules/tiers.service';
 import { z } from 'zod';
 import { toast } from 'react-hot-toast';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area, RadialBarChart, RadialBar
-} from 'recharts';
+import { AtlasCombo, AtlasPie, ATLAS_PETROL, ATLAS_SERIES } from '../../components/charts';
 
 interface Partenaire {
   id: string;
@@ -691,18 +687,15 @@ const PartenairesModule: React.FC = () => {
           {/* Performance Evolution */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.performanceEvolution')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={analytics.evolutionPerformance}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Area yAxisId="left" type="monotone" dataKey="ventes" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} name={t('partners.chartSales')} />
-                <Line yAxisId="right" type="monotone" dataKey="satisfaction" stroke="#4E7E8D" name={t('partners.chartSatisfaction')} />
-              </AreaChart>
-            </ResponsiveContainer>
+            {/* Ventes (montants) et satisfaction (note) ne partagent pas d'échelle :
+                barres à gauche, courbe sur l'axe droit. */}
+            <AtlasCombo
+              categories={analytics.evolutionPerformance.map((e: any) => e.mois)}
+              bars={[{ name: t('partners.chartSales'), data: analytics.evolutionPerformance.map((e: any) => e.ventes), color: ATLAS_PETROL }]}
+              lines={[{ name: t('partners.chartSatisfaction'), data: analytics.evolutionPerformance.map((e: any) => e.satisfaction), color: '#4E7E8D' }]}
+              valueFormatter={(v) => formatCurrency(v)}
+              height={300}
+            />
           </div>
         </div>
       )}
@@ -713,40 +706,25 @@ const PartenairesModule: React.FC = () => {
           {/* Répartition par Type */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.distributionByType')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsPieChart>
-                <Pie
-                  dataKey="ca"
-                  data={analytics.repartitionParType}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#235A6E"
-                  label={({ type, nombre }: any) => `${type}: ${nombre}`}
-                >
-                  {analytics.repartitionParType.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <AtlasPie
+              data={analytics.repartitionParType.map((r: any) => ({ name: `${r.type} (${r.nombre})`, value: r.ca }))}
+              colors={COLORS}
+              valueFormatter={(v) => formatCurrency(v)}
+              height={300}
+            />
           </div>
 
           {/* Couverture Géographique */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('partners.geoCoverage')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.zonesCouverte}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="zone" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="partenaires" fill="url(#gradPetrol)" name={t('partners.chartPartnerCount')} />
-                <Bar radius={[6,6,0,0]} dataKey="ca" fill="url(#gradPetrolLight)" name={t('partners.chartRevenueThousands')} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Un compte de partenaires et un CA en milliers sur le même axe se
+                seraient écrasés : le CA passe sur l'axe droit. */}
+            <AtlasCombo
+              categories={analytics.zonesCouverte.map((z: any) => z.zone)}
+              bars={[{ name: t('partners.chartPartnerCount'), data: analytics.zonesCouverte.map((z: any) => z.partenaires), color: ATLAS_PETROL }]}
+              lines={[{ name: t('partners.chartRevenueThousands'), data: analytics.zonesCouverte.map((z: any) => z.ca), color: ATLAS_SERIES[1] }]}
+              height={300}
+            />
           </div>
         </div>
       )}

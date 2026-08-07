@@ -11,11 +11,7 @@ import {
   Phone, Mail, MapPin, Calendar, Target, CreditCard,
   FileText, MessageSquare, Settings, RefreshCw, Handshake, X
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area
-} from 'recharts';
+import { AtlasLine, AtlasPie, ATLAS_PETROL } from '../../components/charts';
 import { TiersKPI, ClientAnalytics, SupplierAnalytics, ThirdParty, Client, Supplier } from '../../types/tiers';
 import { getThirdPartyCoverage, type ThirdPartyCoverage } from '../../services/tiers/thirdPartyCoverage';
 
@@ -473,24 +469,12 @@ const TiersDashboard: React.FC = () => {
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Répartition Clients par Segment</h3>
               {clientAnalytics.repartitionParSegment.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
-                    <Pie
-                      dataKey="ca"
-                      data={clientAnalytics.repartitionParSegment}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      fill="#235A6E"
-                      label={({ segment, pourcentage }) => `${segment} (${pourcentage}%)`}
-                    >
-                      {clientAnalytics.repartitionParSegment.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
+                <AtlasPie
+                  data={clientAnalytics.repartitionParSegment.map((r: any) => ({ name: r.segment, value: r.ca }))}
+                  colors={COLORS}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={300}
+                />
               ) : (
                 <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-text-secondary)]">
                   Aucune donnée de segmentation disponible.
@@ -502,15 +486,12 @@ const TiersDashboard: React.FC = () => {
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Évolution du Chiffre d'Affaires</h3>
               {clientAnalytics.evolutionCA.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={clientAnalytics.evolutionCA}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis tickFormatter={(value) => `${value / 1000}k`} />
-                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    <Area type="monotone" dataKey="valeur" stroke="#235A6E" fill="#235A6E" fillOpacity={0.3} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={clientAnalytics.evolutionCA.map((e: any) => e.date)}
+                  series={[{ name: "Chiffre d'affaires", data: clientAnalytics.evolutionCA.map((e: any) => e.valeur), color: ATLAS_PETROL, area: true }]}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={300}
+                />
               ) : (
                 <div className="flex items-center justify-center h-[300px] text-sm text-[var(--color-text-secondary)]">
                   Aucune donnée d'évolution du CA disponible.

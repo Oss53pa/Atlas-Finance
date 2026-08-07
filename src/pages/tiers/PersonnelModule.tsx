@@ -15,11 +15,7 @@ import {
   Wallet, Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line,
-  ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+import { AtlasBar, AtlasLine, AtlasPie } from '../../components/charts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -320,7 +316,7 @@ const PersonnelModule: React.FC = () => {
     };
   }, [personnel, soldes]);
 
-  // Pie data for recharts
+  // Données du camembert (kit charts Atlas)
   const pieData = useMemo(
     () =>
       soldes
@@ -932,34 +928,12 @@ const PersonnelModule: React.FC = () => {
                       {t('personnel.noData')}
                     </div>
                   ) : (
-                    <ResponsiveContainer width="100%" height={220}>
-                      <RechartsPieChart>
-                        <Pie
-                          data={pieData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, percent }) =>
-                            `${name} (${(percent * 100).toFixed(0)}%)`
-                          }
-                        >
-                          {pieData.map((entry) => (
-                            <Cell
-                              key={entry.name}
-                              fill={COLLECTIF_COLORS[entry.name] || PETROL}
-                            />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: any, _name: any, props: any) => [
-                            `${t('personnel.membersCount', { count: String(value) })} — ${formatCurrency(props.payload?.montant ?? 0, 'XAF')}`,
-                            t('personnel.accountPrefix', { code: String(props.payload?.name ?? '') }),
-                          ]}
-                        />
-                        <Legend />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
+                    <AtlasPie
+                      data={pieData.map(d => ({ name: d.name, value: d.value }))}
+                      colors={pieData.map(d => COLLECTIF_COLORS[d.name] || PETROL)}
+                      valueFormatter={(v) => t('personnel.membersCount', { count: String(v) })}
+                      height={220}
+                    />
                   )}
                 </div>
 
@@ -969,32 +943,12 @@ const PersonnelModule: React.FC = () => {
                     <TrendingUp className="w-4 h-4" style={{ color: AMBER }} />
                     {t('personnel.chartMonthlyPayroll')}
                   </h3>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={monthlyMasse}>
-                      <defs>
-                        <linearGradient id="gradMasse" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={AMBER} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={AMBER} stopOpacity={0.02} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                      <XAxis dataKey="mois" tick={{ fontSize: 11 }} />
-                      <YAxis
-                        tick={{ fontSize: 11 }}
-                        tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`}
-                      />
-                      <Tooltip
-                        formatter={(v: any) => [formatCurrency(v, 'XAF'), t('personnel.payroll')]}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="masse"
-                        stroke={AMBER}
-                        strokeWidth={2}
-                        fill="url(#gradMasse)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  <AtlasLine
+                    categories={monthlyMasse.map(m => m.mois)}
+                    series={[{ name: t('personnel.payroll'), data: monthlyMasse.map(m => m.masse), color: AMBER, area: true }]}
+                    valueFormatter={(v) => formatCurrency(v, 'XAF')}
+                    height={220}
+                  />
                 </div>
               </div>
 
@@ -1004,22 +958,16 @@ const PersonnelModule: React.FC = () => {
                   <BarChart3 className="w-4 h-4" style={{ color: PETROL }} />
                   {t('personnel.chartBalancesBySubAccount')}
                 </h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={soldes} barSize={40}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="compte" tick={{ fontSize: 12, fontWeight: 600 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip
-                      formatter={(v: any) => [formatCurrency(v, 'XAF'), t('personnel.balance')]}
-                      labelFormatter={label => t('personnel.accountPrefix', { code: String(label) })}
-                    />
-                    <Bar dataKey="montant" radius={[6, 6, 0, 0]}>
-                      {soldes.map(s => (
-                        <Cell key={s.compte} fill={COLLECTIF_COLORS[s.compte] || PETROL} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <AtlasBar
+                  categories={soldes.map(s => s.compte)}
+                  series={[{
+                    name: t('personnel.balance'),
+                    data: soldes.map(s => s.montant),
+                    itemColors: soldes.map(s => COLLECTIF_COLORS[s.compte] || PETROL),
+                  }]}
+                  valueFormatter={(v) => formatCurrency(v, 'XAF')}
+                  height={200}
+                />
               </div>
 
               {/* IAS 19 compliance note */}

@@ -10,7 +10,7 @@ import { generateNextCode, loadMappings } from '../../services/auxiliaryCode/aux
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { StatBadgeCard, RadialGauge } from '../../components/premium';
-import { AtlasDonut, AtlasRadar } from '../../components/charts';
+import { AtlasBar, AtlasDonut, AtlasRadar } from '../../components/charts';
 import {
   Search, Plus, Filter, Eye, Edit, Trash2, X,
   Building, TrendingUp, AlertTriangle, CheckCircle, Clock,
@@ -21,11 +21,9 @@ import {
   CreditCard, Landmark, FileCheck, Printer, Download,
   BookOpen, Wallet, Receipt, AlertOctagon, Timer
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
-} from 'recharts';
+// Rampe d'ancienneté : du vert (non échu) au rouge (> 90 j) — l'œil lit le risque
+// avant de lire la légende. Hex obligatoires : ECharts rend sur canvas.
+const AGING_RAMP = ['#15803D', '#E89A2E', '#C77E2C', '#B4532A', '#C0322B'];
 
 // Interface Client complète avec données comptables
 interface Client {
@@ -1280,20 +1278,28 @@ const ClientsModule: React.FC = () => {
                 {/* Graphique en barres empilées */}
                 <div className="mt-6 bg-gray-50 rounded-lg p-6">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('clients.evolutionByClient')}</h4>
-                  <ResponsiveContainer width="100%" height={320}>
-                    <BarChart data={balanceAgeeData.slice(0, 8).map(d => ({ ...d, label: `${d.clientCode} · ${(d.clientNom || '').slice(0, 22)}` }))} layout="vertical" margin={{ left: 12 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                      <YAxis type="category" dataKey="label" width={200} tick={{ fontSize: 11 }} interval={0} />
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                      <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="nonEchu" stackId="a" fill="url(#gradGreen)" name={t('clients.bucketNonEchu')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu0_30" stackId="a" fill="url(#gradAmber)" name={t('clients.bucket030Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu31_60" stackId="a" fill="url(#gradAmber)" name={t('clients.bucket3160Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echu61_90" stackId="a" fill="url(#gradRed)" name={t('clients.bucket6190Short')} />
-                      <Bar radius={[6,6,0,0]} dataKey="echuPlus90" stackId="a" fill="url(#gradRed)" name={t('clients.bucketPlus90Short')} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  {(() => {
+                    // ECharts empile l'axe catégoriel du bas vers le haut : on inverse
+                    // pour garder le premier client en haut.
+                    const top = balanceAgeeData.slice(0, 8).slice().reverse();
+                    const buckets = [
+                      { name: t('clients.bucketNonEchu'), get: (d: typeof top[number]) => d.nonEchu },
+                      { name: t('clients.bucket030Short'), get: (d: typeof top[number]) => d.echu0_30 },
+                      { name: t('clients.bucket3160Short'), get: (d: typeof top[number]) => d.echu31_60 },
+                      { name: t('clients.bucket6190Short'), get: (d: typeof top[number]) => d.echu61_90 },
+                      { name: t('clients.bucketPlus90Short'), get: (d: typeof top[number]) => d.echuPlus90 },
+                    ];
+                    return (
+                      <AtlasBar
+                        categories={top.map(d => `${d.clientCode} · ${(d.clientNom || '').slice(0, 22)}`)}
+                        series={buckets.map((b, i) => ({ name: b.name, data: top.map(b.get), color: AGING_RAMP[i] }))}
+                        horizontal
+                        stacked
+                        valueFormatter={(v) => formatCurrency(v)}
+                        height={320}
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -1736,17 +1742,12 @@ const ClientsModule: React.FC = () => {
               <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
                 <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('clients.distributionByCategory')}</h3>
                 {pieData.some(d => d.ca > 0) ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <RechartsPieChart>
-                      <Pie dataKey="ca" data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} fill="#235A6E"
-                        label={({ categorie, percent }) => `${categorie} ${(percent * 100).toFixed(0)}%`}>
-                        {pieData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
+                  <AtlasDonut
+                    data={pieData.map((d: any) => ({ name: d.categorie, value: d.ca }))}
+                    colors={COLORS}
+                    valueFormatter={(v) => formatCurrency(v)}
+                    height={300}
+                  />
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-gray-500">
                     <p className="text-sm">{t('clients.noRevenueData')}</p>

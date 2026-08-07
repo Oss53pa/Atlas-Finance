@@ -11,11 +11,7 @@ import {
   MessageSquare, Activity, Clock, Star, Heart, Award,
   BarChart3, PieChart, TrendingUp, Users, Globe, Linkedin
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area
-} from 'recharts';
+import { AtlasBar, AtlasLine, AtlasPie, ATLAS_PETROL } from '../../components/charts';
 import { Contact, Interaction, ThirdParty } from '../../types/tiers';
 
 const ContactsModule: React.FC = () => {
@@ -566,41 +562,27 @@ const ContactsModule: React.FC = () => {
             {/* Répartition par type de tiers */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.distributionByTierType')}</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <RechartsPieChart>
-                  <Pie
-                    dataKey="count"
-                    data={analyticsData.repartitionTiers}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    fill="#235A6E"
-                    label={({ type, pourcentage }) => `${type} (${pourcentage}%)`}
-                  >
-                    {analyticsData.repartitionTiers.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </RechartsPieChart>
-              </ResponsiveContainer>
+              <AtlasPie
+                data={analyticsData.repartitionTiers.map((r: any) => ({ name: r.type, value: r.count }))}
+                colors={COLORS}
+                height={300}
+              />
             </div>
 
             {/* Évolution des interactions */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.interactionsTrend')}</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={analyticsData.interactionsParMois}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="mois" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area type="monotone" dataKey="emails" stackId="1" stroke="#235A6E" fill="#235A6E" />
-                  <Area type="monotone" dataKey="appels" stackId="1" stroke="#4E7E8D" fill="#4E7E8D" />
-                  <Area type="monotone" dataKey="rencontres" stackId="1" stroke="#4E7E8D" fill="#4E7E8D" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {/* Trois canaux distincts : trois teintes distinctes (les deux
+                  derniers partageaient la même, donc ne se distinguaient pas). */}
+              <AtlasLine
+                categories={analyticsData.interactionsParMois.map((m: any) => m.mois)}
+                series={[
+                  { name: 'Emails', data: analyticsData.interactionsParMois.map((m: any) => m.emails), area: true },
+                  { name: 'Appels', data: analyticsData.interactionsParMois.map((m: any) => m.appels), area: true },
+                  { name: 'Rencontres', data: analyticsData.interactionsParMois.map((m: any) => m.rencontres), area: true },
+                ]}
+                height={300}
+              />
             </div>
           </div>
 
@@ -633,15 +615,11 @@ const ContactsModule: React.FC = () => {
             {/* Répartition par fonction */}
             <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
               <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('contacts.distributionByDepartment')}</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={analyticsData.repartitionFonctions}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="fonction" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar radius={[6,6,0,0]} dataKey="count" fill="url(#gradPetrol)" />
-                </BarChart>
-              </ResponsiveContainer>
+              <AtlasBar
+                categories={analyticsData.repartitionFonctions.map((f: any) => f.fonction)}
+                series={[{ name: t('contacts.distributionByDepartment'), data: analyticsData.repartitionFonctions.map((f: any) => f.count), color: ATLAS_PETROL }]}
+                height={300}
+              />
             </div>
           </div>
         </div>

@@ -13,6 +13,9 @@ export type { AtlasBarProps, BarSeries } from './AtlasBar';
 export { default as AtlasLine } from './AtlasLine';
 export type { AtlasLineProps, LineSeries } from './AtlasLine';
 
+export { default as AtlasFunnel } from './AtlasFunnel';
+export type { AtlasFunnelProps, FunnelStage } from './AtlasFunnel';
+
 export { default as AtlasSparkline } from './AtlasSparkline';
 export type { AtlasSparklineProps } from './AtlasSparkline';
 
