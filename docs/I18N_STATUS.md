@@ -5,16 +5,19 @@ Généré automatiquement depuis le code. Trois langues : fr (référence), en, 
 ## État
 
 - Clés de traduction : **13625** par langue (fr / en / es)
-- Fichiers .tsx contenant encore des chaînes françaises : **201** (dont **142** sans aucun `useLanguage()`)
-- Lignes concernées : **2360**
+- Fichiers .tsx contenant encore des chaînes françaises : **176** (dont **132** sans aucun `useLanguage()`)
+- Lignes concernées : **1437**
 
 Modules entièrement traduits :
 
 - **Clôtures** (`src/pages/closures`, 19 fichiers)
 - **Budget / CAPEX** (`src/pages/budget`, 43 fichiers)
 - **Immobilisations** (`src/pages/assets`, 7 fichiers)
-- **Paramètres** (`src/pages/settings`, 20 fichiers)
 - **Tableaux de bord** (`src/pages/dashboard`, 11 fichiers)
+
+Modules presque terminés :
+
+- **Paramètres** (`src/pages/settings`) — 17 des 20 fichiers ; restent OfflineModePage, MobileAppPage et ImportExportPage
 
 > Le comptage exclut les commentaires. « i18n partiel » = le fichier utilise déjà
 > `useLanguage()` mais conserve des chaînes codées en dur (souvent un libellé
@@ -24,107 +27,104 @@ Modules entièrement traduits :
 
 | Répertoire | Lignes FR |
 |---|---:|
-| `src/pages/tiers` | 269 |
-| `src/pages/reporting` | 167 |
-| `src/pages/settings` | 155 |
-| `src/pages/treasury` | 145 |
-| `src/pages/core` | 134 |
-| `src/pages/config` | 124 |
-| `src/components/admin/sections` | 97 |
-| `src/pages/financial` | 97 |
-| `src/pages/platform` | 75 |
-| `src/pages/assets` | 73 |
-| `src/pages/stock` | 73 |
-| `src/components/demo` | 67 |
-| `src/pages/analytics` | 66 |
-| `src/pages/security` | 65 |
-| `src/features/report-builder/components` | 61 |
-| `src/pages/accounting` | 59 |
-| `src/pages/admin-console` | 59 |
-| `src/components/accounting` | 48 |
-| `src/pages` | 47 |
-| `src/features/report-builder/components/sidebar` | 44 |
-| `src/pages/onboarding` | 41 |
-| `src/pages/validation` | 39 |
-| `src/components/tasks` | 27 |
-| `src/features/report-builder/components/blocks` | 26 |
-| `src/pages/cabinet` | 21 |
-| `src/pages/integration` | 21 |
-| `src/pages/workspace` | 21 |
-| `src/pages/help` | 21 |
-| `src/pages/taxation` | 18 |
-| `src/components/gating` | 17 |
-| `src/pages/admin/sections` | 17 |
-| `src/pages/budgeting` | 14 |
-| `src/pages/framework` | 13 |
-| `src/components/admin` | 12 |
-| `src/features/collaboration/components` | 12 |
-| `src/pages/public` | 11 |
-| `src/components/financial` | 10 |
-| `src/components/common` | 9 |
-| `src/components/security` | 9 |
-| `src/components/ui` | 8 |
-| `src/features/report-builder/components/properties` | 8 |
+| `src/pages/tiers` | 136 |
+| `src/pages/settings` | 95 |
+| `src/pages/core` | 89 |
+| `src/pages/config` | 82 |
+| `src/pages/financial` | 78 |
+| `src/components/admin/sections` | 76 |
+| `src/pages/reporting` | 72 |
+| `src/pages/treasury` | 58 |
+| `src/components/financial` | 45 |
+| `src/pages/platform` | 44 |
+| `src/components/demo` | 43 |
+| `src/pages/stock` | 43 |
+| `src/pages/security` | 41 |
+| `src/pages` | 39 |
+| `src/pages/accounting` | 35 |
+| `src/pages/assets` | 34 |
+| `src/pages/admin-console` | 34 |
+| `src/pages/onboarding` | 34 |
+| `src/pages/analytics` | 34 |
+| `src/features/report-builder/components/sidebar` | 32 |
+| `src/components/accounting` | 31 |
+| `src/features/report-builder/components` | 29 |
+| `src/pages/validation` | 27 |
+| `src/features/report-builder/components/blocks` | 16 |
+| `src/components/gating` | 15 |
+| `src/components/tasks` | 14 |
+| `src/pages/cabinet` | 14 |
+| `src/pages/integration` | 13 |
+| `src/pages/admin/sections` | 11 |
+| `src/pages/taxation` | 11 |
+| `src/pages/help` | 11 |
+| `src/pages/workspace` | 10 |
+| `src/features/collaboration/components` | 8 |
+| `src/pages/public` | 8 |
+| `src/pages/framework` | 8 |
 | `src/components/shared` | 7 |
-| `src/components/onboarding` | 7 |
-| `src/pages/budget` | 7 |
-| `src/components/chatbot/components` | 6 |
-| `src/components/settings` | 6 |
-| `src/components/collaboration` | 6 |
+| `src/components/common` | 7 |
+| `src/components/admin` | 5 |
+| `src/components/ui` | 5 |
+| `src/components/chatbot/components` | 5 |
+| `src/components/onboarding` | 5 |
+| `src/components/security` | 5 |
+| `src/features/report-builder/components/properties` | 5 |
 | `src/contexts` | 4 |
+| `src/pages/budget` | 4 |
 | `src/components/layout` | 3 |
-| `src` | 3 |
-| `src/pages/auth` | 3 |
-| `src/pages/closures/sections` | 3 |
+| `src/components/settings` | 2 |
 | `src/components/closures` | 2 |
+| `src` | 2 |
+| `src/pages/auth` | 2 |
+| `src/pages/budgeting` | 2 |
 | `src/components/auth` | 1 |
 | `src/components/budget` | 1 |
-| `src/components/import` | 1 |
 
 ## Les 40 fichiers les plus concernés
 
 | Fichier | Lignes FR | i18n |
 |---|---:|---|
-| `src/pages/tiers/RecouvrementModule.tsx` | 213 | partiel |
-| `src/pages/config/PlanSYSCOHADAPage.tsx` | 86 | partiel |
-| `src/pages/core/SetupWizardPage.tsx` | 65 | partiel |
-| `src/pages/core/ExercicePage.tsx` | 57 | partiel |
-| `src/pages/settings/ImportExportPage.tsx` | 54 | partiel |
-| `src/components/admin/sections/AdminBackup.tsx` | 52 | aucun |
-| `src/pages/reporting/ReportingSyscohada.tsx` | 48 | partiel |
-| `src/pages/settings/MobileAppPage.tsx` | 48 | partiel |
-| `src/pages/reporting/DashboardsPage.tsx` | 47 | partiel |
-| `src/pages/reporting/ReportingIFRS.tsx` | 47 | partiel |
-| `src/pages/settings/OfflineModePage.tsx` | 45 | partiel |
-| `src/pages/DemoPage.tsx` | 43 | aucun |
-| `src/pages/assets/AssetsMaintenance.tsx` | 42 | partiel |
-| `src/pages/analytics/AnalyticalAxesPage.tsx` | 38 | aucun |
-| `src/pages/financial/CompteResultatPage.tsx` | 36 | partiel |
-| `src/features/report-builder/components/sidebar/AtlasCatalogPanel.tsx` | 35 | aucun |
-| `src/pages/security/RolesPage.tsx` | 32 | partiel |
-| `src/pages/config/MultiSocietesPage.tsx` | 30 | partiel |
-| `src/pages/treasury/GestionPaiementsPage.tsx` | 30 | partiel |
-| `src/pages/treasury/ConnexionsBancairesPage.tsx` | 30 | partiel |
-| `src/pages/security/SecurityDashboard.tsx` | 29 | aucun |
-| `src/pages/analytics/CostCentersPage.tsx` | 28 | aucun |
-| `src/components/tasks/CompleteTasksModule.tsx` | 27 | partiel |
-| `src/pages/financial/BilanSYSCOHADAPage.tsx` | 27 | partiel |
-| `src/pages/validation/BannettePage.tsx` | 26 | aucun |
-| `src/pages/reporting/ReportingDashboard.tsx` | 25 | aucun |
-| `src/pages/financial/FinancialAnalysisPage.tsx` | 25 | aucun |
-| `src/pages/onboarding/SolutionCatalogPage.tsx` | 24 | aucun |
-| `src/components/demo/InteractiveBilanDemo.tsx` | 22 | aucun |
-| `src/features/report-builder/components/TemplateGalleryPage.tsx` | 22 | aucun |
-| `src/pages/accounting/AccountingDashboard.tsx` | 20 | partiel |
-| `src/pages/tiers/AutresTiersModule.tsx` | 19 | partiel |
-| `src/pages/treasury/EffetsCommercePage.tsx` | 19 | aucun |
-| `src/pages/platform/AtlasFnAHome.tsx` | 18 | aucun |
-| `src/pages/help/FAQPage.tsx` | 18 | aucun |
-| `src/components/gating/UpgradeBanner.tsx` | 17 | aucun |
-| `src/pages/admin/sections/AdminTaxRegistry.tsx` | 17 | aucun |
-| `src/pages/treasury/TreasuryDashboard.tsx` | 17 | aucun |
-| `src/components/demo/InteractiveEntryDemo.tsx` | 16 | aucun |
-| `src/components/demo/InteractiveTaxDemo.tsx` | 16 | aucun |
+| `src/pages/tiers/RecouvrementModule.tsx` | 103 | partiel |
+| `src/pages/config/PlanSYSCOHADAPage.tsx` | 59 | partiel |
+| `src/pages/core/SetupWizardPage.tsx` | 48 | partiel |
+| `src/components/financial/CashFlowStatementSYSCOHADA.tsx` | 45 | aucun |
+| `src/components/admin/sections/AdminBackup.tsx` | 43 | aucun |
+| `src/pages/DemoPage.tsx` | 35 | aucun |
+| `src/pages/settings/OfflineModePage.tsx` | 34 | partiel |
+| `src/pages/core/ExercicePage.tsx` | 32 | partiel |
+| `src/pages/settings/MobileAppPage.tsx` | 31 | partiel |
+| `src/pages/financial/CompteResultatPage.tsx` | 29 | partiel |
+| `src/features/report-builder/components/sidebar/AtlasCatalogPanel.tsx` | 27 | aucun |
+| `src/pages/settings/ImportExportPage.tsx` | 27 | partiel |
+| `src/pages/reporting/ReportingIFRS.tsx` | 22 | partiel |
+| `src/pages/financial/BilanSYSCOHADAPage.tsx` | 22 | partiel |
+| `src/pages/reporting/ReportingSyscohada.tsx` | 21 | partiel |
+| `src/pages/onboarding/SolutionCatalogPage.tsx` | 21 | aucun |
+| `src/pages/security/RolesPage.tsx` | 20 | partiel |
+| `src/pages/validation/BannettePage.tsx` | 19 | aucun |
+| `src/pages/security/SecurityDashboard.tsx` | 19 | aucun |
+| `src/pages/config/MultiSocietesPage.tsx` | 18 | partiel |
+| `src/pages/financial/FinancialAnalysisPage.tsx` | 18 | aucun |
+| `src/pages/accounting/AccountingDashboard.tsx` | 18 | partiel |
+| `src/pages/tiers/AutresTiersModule.tsx` | 18 | partiel |
+| `src/pages/analytics/AnalyticalAxesPage.tsx` | 18 | aucun |
+| `src/pages/assets/AssetsMaintenance.tsx` | 17 | partiel |
+| `src/pages/analytics/CostCentersPage.tsx` | 16 | aucun |
+| `src/components/gating/UpgradeBanner.tsx` | 15 | aucun |
+| `src/features/report-builder/components/TemplateGalleryPage.tsx` | 15 | aucun |
+| `src/pages/reporting/DashboardsPage.tsx` | 15 | partiel |
+| `src/components/tasks/CompleteTasksModule.tsx` | 14 | partiel |
+| `src/pages/reporting/ReportingDashboard.tsx` | 14 | aucun |
+| `src/components/accounting/JournalDashboard.tsx` | 12 | partiel |
+| `src/components/demo/InteractiveTaxDemo.tsx` | 12 | aucun |
+| `src/components/demo/InteractiveBilanDemo.tsx` | 12 | aucun |
+| `src/pages/treasury/TreasuryDashboard.tsx` | 12 | aucun |
+| `src/pages/stock/MaterialsPage.tsx` | 12 | aucun |
+| `src/components/admin/sections/AdminCompany.tsx` | 11 | aucun |
+| `src/pages/admin/sections/AdminTaxRegistry.tsx` | 11 | aucun |
+| `src/pages/platform/AtlasFnAHome.tsx` | 11 | aucun |
+| `src/components/admin/sections/AdminOCR.tsx` | 10 | aucun |
 
 ## Convention appliquée
 
