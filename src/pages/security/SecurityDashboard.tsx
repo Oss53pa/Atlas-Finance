@@ -15,7 +15,8 @@ import {
   Eye,
   Clock,
   Zap,
-  Target
+  Target,
+  Download
 } from 'lucide-react';
 import { 
   UnifiedCard,
@@ -171,6 +172,40 @@ const SecurityDashboard: React.FC = () => {
     return icons[eventType] || <Activity className="h-4 w-4" />;
   };
 
+  // Export CSV du journal d'audit complet (conformité / forensic).
+  const handleExportAudit = async () => {
+    try {
+      const logs = (await adapter.getAuditTrail()) as any[];
+      if (!logs || logs.length === 0) return;
+      const sep = ';';
+      const esc = (v: unknown) => {
+        const s = String(v ?? '');
+        return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const header = ['Date', 'Utilisateur', 'Action', 'Description', 'Adresse IP'];
+      const lines = [header.map(esc).join(sep)];
+      for (const l of logs) {
+        lines.push([
+          l.timestamp || l.createdAt || '',
+          l.userId || l.user || l.createdBy || '',
+          l.action || l.event || '',
+          l.description || l.details || '',
+          l.ipAddress || l.ip || '',
+        ].map(esc).join(sep));
+      }
+      const csv = '﻿' + lines.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `journal_audit_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch { /* silencieux — export indisponible */ }
+  };
+
   return (
     <PageContainer background="warm" padding="lg">
       <div className="space-y-8">
@@ -181,6 +216,9 @@ const SecurityDashboard: React.FC = () => {
           icon={Shield}
           action={
             <div className="flex space-x-4">
+              <ElegantButton variant="outline" icon={Download} onClick={handleExportAudit}>
+                Exporter le journal
+              </ElegantButton>
               <Link to="/security/users">
                 <ElegantButton icon={Users}>
                   Gérer Utilisateurs
