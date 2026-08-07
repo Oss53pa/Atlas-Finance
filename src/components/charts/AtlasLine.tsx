@@ -6,7 +6,8 @@ import { ATLAS_SERIES, ATLAS_INK3, ATLAS_HAIRLINE, FONT_SANS, FONT_MONO } from '
 
 export interface LineSeries {
   name: string;
-  data: number[];
+  /** `null` = pas de valeur (période non close) : la courbe s'interrompt. */
+  data: (number | null)[];
   color?: string;
   /** aplat dégradé sous la courbe */
   area?: boolean;
@@ -23,6 +24,8 @@ export interface AtlasLineProps {
   /** formateur des graduations de l'axe des valeurs (défaut : `valueFormatter`).
    *  À renseigner pour compacter l'axe (1,2 Md) sans perdre la précision de l'infobulle. */
   axisFormatter?: (n: number) => string;
+  /** repère horizontal (plafond, cible, seuil…) */
+  referenceLine?: { value: number; label?: string; color?: string };
   colors?: string[];
   height?: number;
   className?: string;
@@ -34,7 +37,7 @@ export interface AtlasLineProps {
  */
 const AtlasLine: React.FC<AtlasLineProps> = ({
   categories, series, smooth = true, showPoints = true, showGrid = true, valueFormatter,
-  axisFormatter, colors = ATLAS_SERIES, height = 300, className,
+  axisFormatter, referenceLine, colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => ({
     color: colors,
@@ -54,7 +57,7 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
       },
       axisLine: { show: false }, axisTick: { show: false },
     },
-    series: series.map((s, i) => {
+    series: series.map((s, i, all) => {
       const col = s.color || colors[i % colors.length];
       return {
         name: s.name, type: 'line' as const, data: s.data, smooth,
@@ -66,9 +69,21 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
             { offset: 0, color: col + '2b' }, { offset: 1, color: col + '00' },
           ]),
         } : undefined,
+        // Porté par la dernière série pour rester au-dessus des tracés.
+        markLine: referenceLine && i === all.length - 1 ? {
+          silent: true, symbol: 'none',
+          data: [{ yAxis: referenceLine.value }],
+          lineStyle: { color: referenceLine.color || ATLAS_INK3, type: 'dashed' as const, width: 1.5 },
+          label: {
+            show: !!referenceLine.label, formatter: referenceLine.label ?? '',
+            position: 'insideEndTop' as const,
+            fontFamily: FONT_SANS, fontSize: 10, fontWeight: 700,
+            color: referenceLine.color || ATLAS_INK3,
+          },
+        } : undefined,
       };
     }),
-  }), [categories, series, smooth, showPoints, showGrid, valueFormatter, axisFormatter, colors]);
+  }), [categories, series, smooth, showPoints, showGrid, valueFormatter, axisFormatter, referenceLine, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };

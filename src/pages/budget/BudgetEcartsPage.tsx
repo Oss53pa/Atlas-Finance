@@ -14,6 +14,10 @@ import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search, Download } from 'lucide-react';
+import { AtlasWaterfall, ATLAS_AMBER, ATLAS_ERROR, ATLAS_PETROL } from '../../components/charts';
+
+// La légende sous le graphe reprend exactement les teintes passées à AtlasWaterfall.
+const WF_COLOR = { total: ATLAS_PETROL, inc: ATLAS_AMBER, dec: ATLAS_ERROR } as const;
 
 const MOIS_KEYS = [
   'ecarts.monJan', 'ecarts.monFeb', 'ecarts.monMar', 'ecarts.monApr', 'ecarts.monMay', 'ecarts.monJun',
@@ -32,49 +36,25 @@ const RUB_LABELS: Record<string, string> = {
 };
 const rubLabel = (code: string) => RUB_LABELS[code] || '';
 
-// Vrai graphique waterfall : Budget (départ) → écarts par rubrique (montées orange /
-// descentes rouges) → Réalisé (arrivée). Reconcilie car Budget + Σécarts = Réalisé.
-const WF_COLOR = { total: 'var(--color-primary)', inc: 'var(--color-secondary)', dec: 'var(--color-error)' } as const;
-
+// Waterfall : Budget (départ) → écarts par rubrique → Réalisé (arrivée).
+// Réconcilie par construction : Budget + Σécarts = Réalisé. Rendu par le kit
+// (infobulle, valeurs sur les paliers, mise à l'échelle responsive) — le tracé
+// SVG maison qu'il remplace n'avait qu'un <title> au survol et un viewBox figé.
 const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: string; ecart: number }[] }> = ({ budget, realise, steps }) => {
   const { t: tr } = useLanguage();
-  type Bar = { label: string; lo: number; hi: number; run: number; delta: number; kind: 'total' | 'inc' | 'dec' };
-  const bars: Bar[] = [];
-  bars.push({ label: tr('ecarts.budget'), lo: 0, hi: budget, run: budget, delta: budget, kind: 'total' });
-  let cum = budget;
-  for (const s of steps) {
-    const after = cum + s.ecart;
-    bars.push({ label: s.code, lo: Math.min(cum, after), hi: Math.max(cum, after), run: after, delta: s.ecart, kind: s.ecart >= 0 ? 'inc' : 'dec' });
-    cum = after;
-  }
-  bars.push({ label: tr('ecarts.realise'), lo: 0, hi: realise, run: realise, delta: realise, kind: 'total' });
-
-  const W = 920, H = 300, padL = 10, padR = 10, padT = 16, padB = 42;
-  const yMax = Math.max(1, ...bars.map(b => b.hi));
-  const yMin = Math.min(0, ...bars.map(b => b.lo));
-  const plotH = H - padT - padB, plotW = W - padL - padR, n = bars.length, slot = plotW / n;
-  const bw = Math.min(48, slot * 0.6);
-  const y = (v: number) => padT + plotH - ((v - yMin) / (yMax - yMin || 1)) * plotH;
-  const cx = (i: number) => padL + slot * i + slot / 2;
-
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={tr('ecarts.waterfallAria')}>
-      {/* lignes de repère */}
-      {[0.25, 0.5, 0.75, 1].map((t) => { const v = yMin + (yMax - yMin) * t; return <line key={t} x1={padL} x2={W - padR} y1={y(v)} y2={y(v)} stroke="var(--color-border)" strokeOpacity="0.5" strokeDasharray="2 3" />; })}
-      <line x1={padL} x2={W - padR} y1={y(0)} y2={y(0)} stroke="var(--color-border)" />
-      {bars.map((b, i) => {
-        const yh = y(b.hi), h = Math.max(2, y(b.lo) - yh), x = cx(i) - bw / 2;
-        return (
-          <g key={i}>
-            {i > 0 && <line x1={cx(i - 1) + bw / 2} x2={cx(i) - bw / 2} y1={y(bars[i - 1].run)} y2={y(bars[i - 1].run)} stroke="var(--color-text-tertiary)" strokeOpacity="0.4" strokeDasharray="3 3" />}
-            <rect x={x} y={yh} width={bw} height={h} rx={2} fill={WF_COLOR[b.kind]} opacity={0.92}>
-              <title>{b.label} · {b.delta >= 0 ? '+' : ''}{formatCurrency(b.delta)}</title>
-            </rect>
-            <text x={cx(i)} y={H - padB + 14} textAnchor="middle" className="fill-gray-500 text-[9px]">{b.label}</text>
-          </g>
-        );
-      })}
-    </svg>
+    <AtlasWaterfall
+      items={[
+        { name: tr('ecarts.budget'), value: budget, isTotal: true },
+        ...steps.map((s) => ({ name: s.code, value: s.ecart })),
+        { name: tr('ecarts.realise'), value: realise, isTotal: true },
+      ]}
+      positiveColor={ATLAS_AMBER}
+      negativeColor={ATLAS_ERROR}
+      totalColor={ATLAS_PETROL}
+      valueFormatter={(v) => formatCurrency(Math.round(v))}
+      height={300}
+    />
   );
 };
 
