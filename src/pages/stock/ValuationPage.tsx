@@ -2,7 +2,7 @@
  * ValuationPage — valorisation du stock (CUMP / FIFO) à date.
  */
 import React, { useEffect, useState, useCallback } from 'react';
-import { Calculator, Loader2, RefreshCw } from 'lucide-react';
+import { Calculator, Loader2, RefreshCw, Download } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getMaterialStockRows, type MaterialStockRow } from '../../services/stock/stockDashboardService';
@@ -23,15 +23,55 @@ function ValuationInner() {
 
   const total = rows.reduce((s, r) => s + r.value, 0);
 
+  const handleExport = () => {
+    if (rows.length === 0) return;
+    const sep = ';';
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ['Code', 'Désignation', 'Type', 'Méthode', 'Quantité', 'Unité', 'Coût unitaire', 'Valeur'];
+    const lines = [header.map(esc).join(sep)];
+    for (const r of rows) {
+      const unit = r.quantity > 0 ? r.value / r.quantity : (r.material.movingAvgCost || 0);
+      lines.push([
+        r.material.code,
+        r.material.name,
+        MATERIAL_TYPE_LABELS[r.material.materialType] || r.material.materialType,
+        r.material.valuationMethod,
+        r.quantity,
+        r.material.baseUom,
+        Math.round(unit),
+        Math.round(r.value),
+      ].map(esc).join(sep));
+    }
+    lines.push(['Total', '', '', '', '', '', '', Math.round(total)].map(esc).join(sep));
+    const csv = '﻿' + lines.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `valorisation_stock_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Calculator className="w-6 h-6 text-[#235A6E]" /> Valorisation du stock
         </h1>
-        <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
-          <RefreshCw className="w-4 h-4" /> Actualiser
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleExport} disabled={rows.length === 0} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+            <Download className="w-4 h-4" /> Exporter (CSV)
+          </button>
+          <button onClick={load} className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">
+            <RefreshCw className="w-4 h-4" /> Actualiser
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
