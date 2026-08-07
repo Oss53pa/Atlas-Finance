@@ -4,15 +4,17 @@ Généré automatiquement depuis le code. Trois langues : fr (référence), en, 
 
 ## État
 
-- Clés de traduction : **12755** par langue (fr / en / es)
-- Fichiers .tsx contenant encore des chaînes françaises : **223** (dont **158** sans aucun `useLanguage()`)
-- Lignes concernées : **2696**
+- Clés de traduction : **13625** par langue (fr / en / es)
+- Fichiers .tsx contenant encore des chaînes françaises : **201** (dont **142** sans aucun `useLanguage()`)
+- Lignes concernées : **2360**
 
 Modules entièrement traduits :
 
 - **Clôtures** (`src/pages/closures`, 19 fichiers)
 - **Budget / CAPEX** (`src/pages/budget`, 43 fichiers)
 - **Immobilisations** (`src/pages/assets`, 7 fichiers)
+- **Paramètres** (`src/pages/settings`, 20 fichiers)
+- **Tableaux de bord** (`src/pages/dashboard`, 11 fichiers)
 
 > Le comptage exclut les commentaires. « i18n partiel » = le fichier utilise déjà
 > `useLanguage()` mais conserve des chaînes codées en dur (souvent un libellé
@@ -23,9 +25,8 @@ Modules entièrement traduits :
 | Répertoire | Lignes FR |
 |---|---:|
 | `src/pages/tiers` | 269 |
-| `src/pages/settings` | 262 |
-| `src/pages/dashboard` | 229 |
 | `src/pages/reporting` | 167 |
+| `src/pages/settings` | 155 |
 | `src/pages/treasury` | 145 |
 | `src/pages/core` | 134 |
 | `src/pages/config` | 124 |
@@ -89,7 +90,6 @@ Modules entièrement traduits :
 | `src/pages/core/SetupWizardPage.tsx` | 65 | partiel |
 | `src/pages/core/ExercicePage.tsx` | 57 | partiel |
 | `src/pages/settings/ImportExportPage.tsx` | 54 | partiel |
-| `src/pages/dashboard/AlertsSystem.tsx` | 53 | partiel |
 | `src/components/admin/sections/AdminBackup.tsx` | 52 | aucun |
 | `src/pages/reporting/ReportingSyscohada.tsx` | 48 | partiel |
 | `src/pages/settings/MobileAppPage.tsx` | 48 | partiel |
@@ -101,7 +101,6 @@ Modules entièrement traduits :
 | `src/pages/analytics/AnalyticalAxesPage.tsx` | 38 | aucun |
 | `src/pages/financial/CompteResultatPage.tsx` | 36 | partiel |
 | `src/features/report-builder/components/sidebar/AtlasCatalogPanel.tsx` | 35 | aucun |
-| `src/pages/dashboard/ManagerDashboard.tsx` | 33 | partiel |
 | `src/pages/security/RolesPage.tsx` | 32 | partiel |
 | `src/pages/config/MultiSocietesPage.tsx` | 30 | partiel |
 | `src/pages/treasury/GestionPaiementsPage.tsx` | 30 | partiel |
@@ -114,16 +113,18 @@ Modules entièrement traduits :
 | `src/pages/reporting/ReportingDashboard.tsx` | 25 | aucun |
 | `src/pages/financial/FinancialAnalysisPage.tsx` | 25 | aucun |
 | `src/pages/onboarding/SolutionCatalogPage.tsx` | 24 | aucun |
-| `src/pages/dashboard/WorkflowsManager.tsx` | 24 | partiel |
-| `src/pages/dashboard/AdminDashboard.tsx` | 24 | aucun |
 | `src/components/demo/InteractiveBilanDemo.tsx` | 22 | aucun |
 | `src/features/report-builder/components/TemplateGalleryPage.tsx` | 22 | aucun |
 | `src/pages/accounting/AccountingDashboard.tsx` | 20 | partiel |
-| `src/pages/dashboard/KPIsRealTime.tsx` | 20 | aucun |
-| `src/pages/dashboard/ExecutiveDigest.tsx` | 20 | aucun |
 | `src/pages/tiers/AutresTiersModule.tsx` | 19 | partiel |
 | `src/pages/treasury/EffetsCommercePage.tsx` | 19 | aucun |
 | `src/pages/platform/AtlasFnAHome.tsx` | 18 | aucun |
+| `src/pages/help/FAQPage.tsx` | 18 | aucun |
+| `src/components/gating/UpgradeBanner.tsx` | 17 | aucun |
+| `src/pages/admin/sections/AdminTaxRegistry.tsx` | 17 | aucun |
+| `src/pages/treasury/TreasuryDashboard.tsx` | 17 | aucun |
+| `src/components/demo/InteractiveEntryDemo.tsx` | 16 | aucun |
+| `src/components/demo/InteractiveTaxDemo.tsx` | 16 | aucun |
 
 ## Convention appliquée
 
