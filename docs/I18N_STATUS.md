@@ -4,20 +4,17 @@ Généré automatiquement depuis le code. Trois langues : fr (référence), en, 
 
 ## État
 
-- Clés de traduction : **13625** par langue (fr / en / es)
+- Clés de traduction : **13864** par langue (fr / en / es)
 - Fichiers .tsx contenant encore des chaînes françaises : **176** (dont **132** sans aucun `useLanguage()`)
-- Lignes concernées : **1437**
+- Lignes concernées : **1356**
 
 Modules entièrement traduits :
 
 - **Clôtures** (`src/pages/closures`, 19 fichiers)
 - **Budget / CAPEX** (`src/pages/budget`, 43 fichiers)
 - **Immobilisations** (`src/pages/assets`, 7 fichiers)
+- **Paramètres** (`src/pages/settings`, 20 fichiers)
 - **Tableaux de bord** (`src/pages/dashboard`, 11 fichiers)
-
-Modules presque terminés :
-
-- **Paramètres** (`src/pages/settings`) — 17 des 20 fichiers ; restent OfflineModePage, MobileAppPage et ImportExportPage
 
 > Le comptage exclut les commentaires. « i18n partiel » = le fichier utilise déjà
 > `useLanguage()` mais conserve des chaînes codées en dur (souvent un libellé
@@ -28,7 +25,6 @@ Modules presque terminés :
 | Répertoire | Lignes FR |
 |---|---:|
 | `src/pages/tiers` | 136 |
-| `src/pages/settings` | 95 |
 | `src/pages/core` | 89 |
 | `src/pages/config` | 82 |
 | `src/pages/financial` | 78 |
@@ -54,6 +50,7 @@ Modules presque terminés :
 | `src/components/gating` | 15 |
 | `src/components/tasks` | 14 |
 | `src/pages/cabinet` | 14 |
+| `src/pages/settings` | 14 |
 | `src/pages/integration` | 13 |
 | `src/pages/admin/sections` | 11 |
 | `src/pages/taxation` | 11 |
@@ -91,12 +88,9 @@ Modules presque terminés :
 | `src/components/financial/CashFlowStatementSYSCOHADA.tsx` | 45 | aucun |
 | `src/components/admin/sections/AdminBackup.tsx` | 43 | aucun |
 | `src/pages/DemoPage.tsx` | 35 | aucun |
-| `src/pages/settings/OfflineModePage.tsx` | 34 | partiel |
 | `src/pages/core/ExercicePage.tsx` | 32 | partiel |
-| `src/pages/settings/MobileAppPage.tsx` | 31 | partiel |
 | `src/pages/financial/CompteResultatPage.tsx` | 29 | partiel |
 | `src/features/report-builder/components/sidebar/AtlasCatalogPanel.tsx` | 27 | aucun |
-| `src/pages/settings/ImportExportPage.tsx` | 27 | partiel |
 | `src/pages/reporting/ReportingIFRS.tsx` | 22 | partiel |
 | `src/pages/financial/BilanSYSCOHADAPage.tsx` | 22 | partiel |
 | `src/pages/reporting/ReportingSyscohada.tsx` | 21 | partiel |
@@ -125,6 +119,9 @@ Modules presque terminés :
 | `src/pages/admin/sections/AdminTaxRegistry.tsx` | 11 | aucun |
 | `src/pages/platform/AtlasFnAHome.tsx` | 11 | aucun |
 | `src/components/admin/sections/AdminOCR.tsx` | 10 | aucun |
+| `src/components/demo/InteractiveEntryDemo.tsx` | 10 | aucun |
+| `src/pages/platform/ClientAuditTrail.tsx` | 10 | aucun |
+| `src/pages/onboarding/PremierConnexionPage.tsx` | 10 | aucun |
 
 ## Convention appliquée
 

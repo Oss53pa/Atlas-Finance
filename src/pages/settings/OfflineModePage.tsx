@@ -148,9 +148,9 @@ const OfflineModePage: React.FC = () => {
 
   const handleRefreshCwOperation = (operationId: string, action: 'retry' | 'cancel') => {
     if (action === 'retry') {
-      toast.success('Opération relancée');
+      toast.success(t('offlineMode.opRetried'));
     } else {
-      toast.success('Opération annulée');
+      toast.success(t('offlineMode.opCancelled'));
     }
   };
 
@@ -180,14 +180,14 @@ const OfflineModePage: React.FC = () => {
   };
 
   const handleManualRefreshCw = () => {
-    toast.success('RefreshCwhronisation manuelle démarrée');
+    toast.success(t('offlineMode.manualSyncStarted'));
   };
 
   const handleClearCache = (module?: string) => {
     if (module) {
       toast.success(`Cache du module ${module} vidé`);
     } else {
-      toast.success('Tous les caches ont été vidés');
+      toast.success(t('offlineMode.cachesCleared'));
     }
   };
 
@@ -234,7 +234,7 @@ const OfflineModePage: React.FC = () => {
             <WifiOff className="h-8 w-8 text-[var(--color-primary)]" />
             <div>
               <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Mode Hors-Ligne</h1>
-              <p className="text-gray-600">Gestion des données et synchronisation offline</p>
+              <p className="text-gray-600">{t('offlineMode.subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -254,7 +254,7 @@ const OfflineModePage: React.FC = () => {
               className="flex items-center space-x-2"
             >
               <RefreshCw className="h-4 w-4" />
-              <span>RefreshCwhroniser</span>
+              <span>{t('offlineMode.synchronise')}</span>
             </Button>
           </div>
         </div>
@@ -262,11 +262,11 @@ const OfflineModePage: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="data">Gestion des données</TabsTrigger>
-          <TabsTrigger value="sync">File de synchronisation</TabsTrigger>
-          <TabsTrigger value="config">Configuration</TabsTrigger>
-          <TabsTrigger value="conflicts">Conflits</TabsTrigger>
+          <TabsTrigger value="overview">{t('offlineMode.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="data">{t('offlineMode.tabData')}</TabsTrigger>
+          <TabsTrigger value="sync">{t('offlineMode.tabSync')}</TabsTrigger>
+          <TabsTrigger value="config">{t('offlineMode.tabConfig')}</TabsTrigger>
+          <TabsTrigger value="conflicts">{t('offlineMode.tabConflicts')}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -281,7 +281,7 @@ const OfflineModePage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">État du système</p>
+                    <p className="text-sm font-medium text-gray-600">{t('offlineMode.systemState')}</p>
                     <p className={`text-lg font-bold ${offlineMode ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]'}`}>
                       {offlineMode ? 'Hors ligne' : 'En ligne'}
                     </p>
@@ -299,7 +299,7 @@ const OfflineModePage: React.FC = () => {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Espace utilisé</p>
+                    <p className="text-sm font-medium text-gray-600">{t('offlineMode.usedSpace')}</p>
                     <p className="text-lg font-bold text-[var(--color-text-primary)]">
                       {(storageMetrics.used / 1024).toFixed(1)} GB
                     </p>
@@ -352,7 +352,7 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <BarChart3 className="h-5 w-5" />
-                  <span>Utilisation du stockage</span>
+                  <span>{t('offlineMode.storageUsage')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -377,12 +377,12 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5" />
-                  <span>Activité récente</span>
+                  <span>{t('offlineMode.recentActivity')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {recentActivity.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">Aucune activité récente</p>
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">{t('offlineMode.noRecentActivity')}</p>
                 ) : recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start space-x-3 p-3 bg-[var(--color-surface-hover)] rounded-lg">
                     <div className={`p-1 rounded-full ${
@@ -423,7 +423,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
                     <Database className="h-5 w-5" />
-                    <span>Données en cache</span>
+                    <span>{t('offlineMode.cachedData')}</span>
                   </CardTitle>
                   <Button variant="outline" size="sm" onClick={() => handleClearCache()}>
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -439,7 +439,7 @@ const OfflineModePage: React.FC = () => {
                         <Switch
                           checked={data.enabled}
                           onCheckedChange={() => {
-                            toast.success(`${data.module} ${data.enabled ? 'désactivé' : 'activé'} pour le cache offline`);
+                            toast.success(t('offlineMode.moduleToggled', { module: data.module, state: t(data.enabled ? 'offlineMode.stateDisabled' : 'offlineMode.stateEnabled') }));
                           }}
                         />
                         <div>
@@ -471,12 +471,12 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Settings className="h-5 w-5" />
-                  <span>Paramètres de stockage</span>
+                  <span>{t('offlineMode.storageSettings')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Limite de stockage</Label>
+                  <Label>{t('offlineMode.storageLimit')}</Label>
                   <Select defaultValue="10gb">
                     <SelectTrigger>
                       <SelectValue />
@@ -485,13 +485,13 @@ const OfflineModePage: React.FC = () => {
                       <SelectItem value="5gb">5 GB</SelectItem>
                       <SelectItem value="10gb">10 GB</SelectItem>
                       <SelectItem value="20gb">20 GB</SelectItem>
-                      <SelectItem value="unlimited">Illimité</SelectItem>
+                      <SelectItem value="unlimited">{t('offlineMode.unlimited')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label>Rétention des données</Label>
+                  <Label>{t('offlineMode.dataRetention')}</Label>
                   <Select defaultValue="30">
                     <SelectTrigger>
                       <SelectValue />
@@ -506,12 +506,12 @@ const OfflineModePage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label>Compression des données</Label>
+                  <Label>{t('offlineMode.dataCompression')}</Label>
                   <Switch checked />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <Label>Chiffrement local</Label>
+                  <Label>{t('offlineMode.localEncryption')}</Label>
                   <Switch checked />
                 </div>
 
@@ -549,7 +549,7 @@ const OfflineModePage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center space-x-2">
                   <RefreshCw className="h-5 w-5" />
-                  <span>File de synchronisation</span>
+                  <span>{t('offlineMode.syncQueue')}</span>
                 </CardTitle>
                 <div className="flex items-center space-x-2">
                   <Button variant="outline" size="sm">
@@ -611,7 +611,7 @@ const OfflineModePage: React.FC = () => {
                       <Badge className={getStatusColor(operation.status)}>
                         {operation.status === 'pending' ? 'En attente' :
                          operation.status === 'in_progress' ? 'En cours' :
-                         operation.status === 'completed' ? 'Terminé' :
+                         operation.status === 'completed' ? t('offlineMode.statusCompleted') :
                          operation.status === 'failed' ? 'Échec' :
                          operation.status === 'conflict' ? 'Conflit' : operation.status}
                       </Badge>
@@ -650,13 +650,13 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Settings className="h-5 w-5" />
-                  <span>Mode hors-ligne</span>
+                  <span>{t('offlineMode.offlineModeSection')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Activer le mode hors-ligne</Label>
+                    <Label>{t('offlineMode.enableOffline')}</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Permet de travailler sans connexion internet</p>
                   </div>
                   <Switch
@@ -667,8 +667,8 @@ const OfflineModePage: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>RefreshCwhronisation automatique</Label>
-                    <p className="text-sm text-[var(--color-text-secondary)]">RefreshCw auto dès que la connexion est rétablie</p>
+                    <Label>{t('offlineMode.autoSync')}</Label>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('offlineMode.autoSyncDesc')}</p>
                   </div>
                   <Switch
                     checked={autoRefreshCw}
@@ -678,14 +678,14 @@ const OfflineModePage: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Mode économie de données</Label>
+                    <Label>{t('offlineMode.dataSaver')}</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Réduire l'utilisation de la bande passante</p>
                   </div>
                   <Switch />
                 </div>
 
                 <div>
-                  <Label>Intervalle de synchronisation</Label>
+                  <Label>{t('offlineMode.syncInterval')}</Label>
                   <Select defaultValue="15">
                     <SelectTrigger>
                       <SelectValue />
@@ -705,20 +705,20 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Wifi className="h-5 w-5" />
-                  <span>Détection réseau</span>
+                  <span>{t('offlineMode.networkDetection')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Détection automatique</Label>
+                    <Label>{t('offlineMode.autoDetection')}</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Basculer automatiquement entre online/offline</p>
                   </div>
                   <Switch checked />
                 </div>
 
                 <div>
-                  <Label>Timeout de connexion</Label>
+                  <Label>{t('offlineMode.connectionTimeout')}</Label>
                   <Select defaultValue="30">
                     <SelectTrigger>
                       <SelectValue />
@@ -732,13 +732,13 @@ const OfflineModePage: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label>Serveur de test</Label>
+                  <Label>{t('offlineMode.testServer')}</Label>
                   <Input defaultValue="https://api.atlasfna.com/ping" />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Notifications de statut</Label>
+                    <Label>{t('offlineMode.statusNotifications')}</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">Alertes lors des changements de connexion</p>
                   </div>
                   <Switch checked />
@@ -750,12 +750,12 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Zap className="h-5 w-5" />
-                  <span>Performance</span>
+                  <span>{t('offlineMode.performance')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Taille des lots de synchronisation</Label>
+                  <Label>{t('offlineMode.batchSize')}</Label>
                   <Select defaultValue="100">
                     <SelectTrigger>
                       <SelectValue />
@@ -769,7 +769,7 @@ const OfflineModePage: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label>Threads de synchronisation</Label>
+                  <Label>{t('offlineMode.syncThreads')}</Label>
                   <Select defaultValue="3">
                     <SelectTrigger>
                       <SelectValue />
@@ -784,8 +784,8 @@ const OfflineModePage: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Optimisation mémoire</Label>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Libérer la mémoire après synchronisation</p>
+                    <Label>{t('offlineMode.memoryOptimisation')}</Label>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('offlineMode.memoryOptimisationDesc')}</p>
                   </div>
                   <Switch checked />
                 </div>
@@ -796,13 +796,13 @@ const OfflineModePage: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Shield className="h-5 w-5" />
-                  <span>Sécurité</span>
+                  <span>{t('offlineMode.security')}</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Chiffrement en transit</Label>
+                    <Label>{t('offlineMode.encryptionInTransit')}</Label>
                     <p className="text-sm text-[var(--color-text-secondary)]">TLS 1.3 pour toutes les communications</p>
                   </div>
                   <Switch checked disabled />
@@ -810,14 +810,14 @@ const OfflineModePage: React.FC = () => {
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label>Validation des certificats</Label>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Vérifier l'authenticité du serveur</p>
+                    <Label>{t('offlineMode.certificateValidation')}</Label>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('offlineMode.certificateValidationDesc')}</p>
                   </div>
                   <Switch checked />
                 </div>
 
                 <div>
-                  <Label>Algorithme de chiffrement</Label>
+                  <Label>{t('offlineMode.encryptionAlgorithm')}</Label>
                   <Select defaultValue="aes256">
                     <SelectTrigger>
                       <SelectValue />
@@ -841,7 +841,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center space-x-2">
                     <AlertTriangle className="h-5 w-5" />
-                    <span>Conflits de synchronisation</span>
+                    <span>{t('offlineMode.syncConflicts')}</span>
                   </CardTitle>
                   <div className="flex items-center space-x-2">
                     <Select defaultValue="all">
@@ -849,9 +849,9 @@ const OfflineModePage: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tous les conflits</SelectItem>
+                        <SelectItem value="all">{t('offlineMode.allConflicts')}</SelectItem>
                         <SelectItem value="pending">{t('status.pending')}</SelectItem>
-                        <SelectItem value="resolved">Résolus</SelectItem>
+                        <SelectItem value="resolved">{t('offlineMode.filterResolved')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button variant="outline" size="sm">
@@ -864,7 +864,7 @@ const OfflineModePage: React.FC = () => {
               <CardContent>
                 <div className="space-y-4">
                   {conflicts.length === 0 ? (
-                    <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">Aucun conflit détecté</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">{t('offlineMode.noConflict')}</p>
                   ) : conflicts.map((conflict) => (
                     <div key={conflict.id} className="border rounded-lg">
                       <div className="flex items-center justify-between p-4">
@@ -890,7 +890,7 @@ const OfflineModePage: React.FC = () => {
                               <span>•</span>
                               <Badge className={getStatusColor(conflict.status)}>
                                 {conflict.status === 'pending' ? 'En attente' :
-                                 conflict.status === 'resolved' ? 'Résolu' : 'Auto-résolu'}
+                                 conflict.status === 'resolved' ? t('offlineMode.statusResolved') : t('offlineMode.statusAutoResolved')}
                               </Badge>
                             </div>
                           </div>
@@ -921,7 +921,7 @@ const OfflineModePage: React.FC = () => {
                             <div className="space-y-3">
                               <h4 className="font-medium flex items-center space-x-2">
                                 <GitBranch className="h-4 w-4" />
-                                <span>Version locale</span>
+                                <span>{t('offlineMode.localVersion')}</span>
                               </h4>
                               <div className="bg-white p-3 rounded border">
                                 <p className="font-mono text-sm">{JSON.stringify(conflict.localValue)}</p>
@@ -942,7 +942,7 @@ const OfflineModePage: React.FC = () => {
                             <div className="space-y-3">
                               <h4 className="font-medium flex items-center space-x-2">
                                 <Cloud className="h-4 w-4" />
-                                <span>Version serveur</span>
+                                <span>{t('offlineMode.serverVersion')}</span>
                               </h4>
                               <div className="bg-white p-3 rounded border">
                                 <p className="font-mono text-sm">{JSON.stringify(conflict.serverValue)}</p>
@@ -1006,28 +1006,28 @@ const OfflineModePage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Settings className="h-5 w-5" />
-                    <span>Stratégies de résolution</span>
+                    <span>{t('offlineMode.resolutionStrategies')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>Résolution automatique</Label>
+                    <Label>{t('offlineMode.autoResolution')}</Label>
                     <Select defaultValue="timestamp">
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="timestamp">Plus récent gagne</SelectItem>
-                        <SelectItem value="local">Priorité locale</SelectItem>
-                        <SelectItem value="server">Priorité serveur</SelectItem>
-                        <SelectItem value="manual">Toujours manuel</SelectItem>
+                        <SelectItem value="timestamp">{t('offlineMode.stratNewest')}</SelectItem>
+                        <SelectItem value="local">{t('offlineMode.stratLocal')}</SelectItem>
+                        <SelectItem value="server">{t('offlineMode.stratServer')}</SelectItem>
+                        <SelectItem value="manual">{t('offlineMode.stratManual')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Notification des conflits</Label>
+                      <Label>{t('offlineMode.conflictNotification')}</Label>
                       <p className="text-sm text-[var(--color-text-secondary)]">Alerter lors de nouveaux conflits</p>
                     </div>
                     <Switch checked />
@@ -1035,14 +1035,14 @@ const OfflineModePage: React.FC = () => {
 
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Sauvegarde avant résolution</Label>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Conserver une copie de sécurité</p>
+                      <Label>{t('offlineMode.backupBeforeResolution')}</Label>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('offlineMode.backupBeforeResolutionDesc')}</p>
                     </div>
                     <Switch checked />
                   </div>
 
                   <div>
-                    <Label>Délai d'attente auto-résolution</Label>
+                    <Label>{t('offlineMode.autoResolutionDelay')}</Label>
                     <Select defaultValue="24">
                       <SelectTrigger>
                         <SelectValue />
@@ -1051,7 +1051,7 @@ const OfflineModePage: React.FC = () => {
                         <SelectItem value="1">1 heure</SelectItem>
                         <SelectItem value="24">24 heures</SelectItem>
                         <SelectItem value="168">7 jours</SelectItem>
-                        <SelectItem value="never">Jamais</SelectItem>
+                        <SelectItem value="never">{t('offlineMode.never')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1062,7 +1062,7 @@ const OfflineModePage: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <History className="h-5 w-5" />
-                    <span>Historique des résolutions</span>
+                    <span>{t('offlineMode.resolutionHistory')}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1144,7 +1144,7 @@ const OfflineModePage: React.FC = () => {
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-900 flex items-center space-x-2">
                       <GitBranch className="w-4 h-4 text-[var(--color-primary)]" />
-                      <span>Valeur locale</span>
+                      <span>{t('offlineMode.localValue')}</span>
                     </h4>
                     <div className="bg-gray-50 p-3 rounded border border-gray-200">
                       <pre className="text-sm text-gray-700 whitespace-pre-wrap">
@@ -1159,7 +1159,7 @@ const OfflineModePage: React.FC = () => {
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-900 flex items-center space-x-2">
                       <Cloud className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                      <span>Valeur serveur</span>
+                      <span>{t('offlineMode.serverValue')}</span>
                     </h4>
                     <div className="bg-gray-50 p-3 rounded border border-gray-200">
                       <pre className="text-sm text-gray-700 whitespace-pre-wrap">
@@ -1176,14 +1176,14 @@ const OfflineModePage: React.FC = () => {
                 <div className="space-y-2">
                   <h4 className="font-medium text-gray-900 flex items-center space-x-2">
                     <Edit className="w-4 h-4 text-[var(--color-text-secondary)]" />
-                    <span>Valeur de fusion manuelle</span>
+                    <span>{t('offlineMode.manualMergeValue')}</span>
                   </h4>
                   <textarea
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] font-mono text-sm"
                     rows={8}
                     value={editValue}
                     onChange={(e) => setEditValue(e.target.value)}
-                    placeholder="Entrez la valeur JSON pour résoudre le conflit..."
+                    placeholder={t('offlineMode.mergePlaceholder')}
                   />
                   <p className="text-xs text-gray-700">
                     Modifiez la valeur JSON ci-dessus pour créer une fusion manuelle des données

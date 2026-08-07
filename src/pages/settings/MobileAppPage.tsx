@@ -53,11 +53,11 @@ const MobileAppPage: React.FC = () => {
   });
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: Smartphone },
-    { id: 'devices', label: 'Appareils', icon: Users },
-    { id: 'sync', label: 'Synchronisation', icon: RefreshCw },
-    { id: 'security', label: 'Sécurité', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'overview', label: t('mobileApp.tabOverview'), icon: Smartphone },
+    { id: 'devices', label: t('mobileApp.tabDevices'), icon: Users },
+    { id: 'sync', label: t('mobileApp.tabSync'), icon: RefreshCw },
+    { id: 'security', label: t('mobileApp.tabSecurity'), icon: Shield },
+    { id: 'notifications', label: t('mobileApp.tabNotifications'), icon: Bell },
     { id: 'settings', label: t('navigation.settings'), icon: Settings }
   ];
 
@@ -77,43 +77,43 @@ const MobileAppPage: React.FC = () => {
   const appFeatures = [
     {
       id: 1,
-      name: 'Mode hors ligne',
-      description: 'Travaillez sans connexion internet',
+      name: t('mobileApp.featOffline'),
+      description: t('mobileApp.featOfflineDesc'),
       enabled: true,
       icon: WifiOff
     },
     {
       id: 2,
-      name: 'Scan de documents',
-      description: 'Numérisez factures et reçus',
+      name: t('mobileApp.featScan'),
+      description: t('mobileApp.featScanDesc'),
       enabled: true,
       icon: Camera
     },
     {
       id: 3,
-      name: 'Authentification biométrique',
-      description: 'Connexion par empreinte ou Face ID',
+      name: t('mobileApp.featBiometric'),
+      description: t('mobileApp.featBiometricDesc'),
       enabled: true,
       icon: Fingerprint
     },
     {
       id: 4,
       name: 'QR Code',
-      description: 'Scan rapide pour les paiements',
+      description: t('mobileApp.featQrDesc'),
       enabled: false,
       icon: QrCode
     },
     {
       id: 5,
-      name: 'Notifications push',
-      description: 'Alertes en temps réel',
+      name: t('mobileApp.featPush'),
+      description: t('mobileApp.featPushDesc'),
       enabled: true,
       icon: Bell
     },
     {
       id: 6,
-      name: 'Synchronisation automatique',
-      description: 'Mise à jour en arrière-plan',
+      name: t('mobileApp.featAutoSync'),
+      description: t('mobileApp.featAutoSyncDesc'),
       enabled: true,
       icon: RefreshCw
     }
@@ -131,7 +131,7 @@ const MobileAppPage: React.FC = () => {
     // Simulate sync process
     setTimeout(() => {
       setIsSyncing(prev => ({ ...prev, [deviceId]: false }));
-      toast.success('Synchronisation réussie !');
+      toast.success(t('mobileApp.syncSuccess'));
     }, 2000);
   };
 
@@ -147,7 +147,7 @@ const MobileAppPage: React.FC = () => {
   };
 
   const handleSaveSettings = () => {
-    toast.success('Paramètres enregistrés avec succès !');
+    toast.success(t('mobileApp.settingsSaved'));
   };
 
   const handleResetSettings = () => {
@@ -158,7 +158,7 @@ const MobileAppPage: React.FC = () => {
       debugMode: false,
       analytics: true
     });
-    toast.success('Paramètres réinitialisés !');
+    toast.success(t('mobileApp.settingsReset'));
   };
 
   const getStatusColor = (status: string) => {
@@ -198,7 +198,7 @@ const MobileAppPage: React.FC = () => {
                   <Smartphone className="w-8 h-8 text-[var(--color-primary)]" />
                 </div>
                 <div className="text-lg font-bold">{connectedDevices.length}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Appareils connectés</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('mobileApp.connectedDevices')}</div>
               </motion.div>
 
               <motion.div
@@ -237,7 +237,7 @@ const MobileAppPage: React.FC = () => {
                   <RefreshCw className="w-8 h-8 text-[var(--color-secondary)]" />
                 </div>
                 <div className="text-lg font-bold">{syncHistory.filter(s => s.status === 'success').length}/{syncHistory.length || '-'}</div>
-                <div className="text-xs text-[var(--color-text-tertiary)]">Synchronisations réussies</div>
+                <div className="text-xs text-[var(--color-text-tertiary)]">{t('mobileApp.successfulSyncs')}</div>
               </motion.div>
             </div>
 
@@ -281,7 +281,7 @@ const MobileAppPage: React.FC = () => {
 
             {/* Features Grid */}
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold mb-4">Fonctionnalités mobiles</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('mobileApp.mobileFeatures')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {appFeatures.map((feature) => (
                   <div
@@ -309,10 +309,10 @@ const MobileAppPage: React.FC = () => {
 
             {/* Recent Activity */}
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold mb-4">Activité récente</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('mobileApp.recentActivity')}</h3>
               <div className="space-y-3">
                 {syncHistory.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-tertiary)] py-4 text-center">Aucune activité récente</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] py-4 text-center">{t('mobileApp.noRecentActivity')}</p>
                 ) : (
                   syncHistory.slice(0, 3).map(sync => (
                     <div key={sync.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -334,7 +334,7 @@ const MobileAppPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Appareils connectés</h3>
+              <h3 className="text-lg font-semibold">{t('mobileApp.connectedDevices')}</h3>
               <button
                 onClick={handleAssociateDevice}
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors">
@@ -379,7 +379,7 @@ const MobileAppPage: React.FC = () => {
                       <span>{device.version}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-[var(--color-text-tertiary)]">Dernière sync:</span>
+                      <span className="text-[var(--color-text-tertiary)]">{t('mobileApp.lastSync')}</span>
                       <span>{device.lastSync}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
@@ -421,13 +421,13 @@ const MobileAppPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-              <h3 className="text-lg font-semibold mb-4">Paramètres de synchronisation</h3>
+              <h3 className="text-lg font-semibold mb-4">{t('mobileApp.syncSettings')}</h3>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <div className="font-medium">Synchronisation automatique</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Synchroniser les données en arrière-plan</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('mobileApp.backgroundSync')}</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
@@ -458,7 +458,7 @@ const MobileAppPage: React.FC = () => {
                 </div>
 
                 <div className="p-3 bg-[var(--color-surface-hover)] rounded-lg">
-                  <div className="font-medium mb-2">Données à synchroniser</div>
+                  <div className="font-medium mb-2">{t('mobileApp.dataToSync')}</div>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="rounded" />
@@ -510,7 +510,7 @@ const MobileAppPage: React.FC = () => {
                              sync.status === 'failed' ? <AlertCircle className="w-4 h-4" /> :
                              <Info className="w-4 h-4" />}
                             {sync.status === 'success' ? 'Réussi' :
-                             sync.status === 'failed' ? 'Échoué' : 'En cours'}
+                             sync.status === 'failed' ? t('mobileApp.statusFailed') : t('mobileApp.statusInProgress')}
                           </span>
                           {sync.error && (
                             <span className="text-xs text-[var(--color-error)]">{sync.error}</span>
@@ -528,7 +528,7 @@ const MobileAppPage: React.FC = () => {
       case 'security':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Sécurité mobile</h3>
+            <h3 className="text-lg font-semibold">{t('mobileApp.mobileSecurity')}</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[var(--color-surface)] rounded-lg p-4 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
@@ -572,12 +572,12 @@ const MobileAppPage: React.FC = () => {
                     <span className="text-xs text-[var(--color-success)] font-medium">AES-256</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Chiffrement réseau</span>
+                    <span className="text-sm">{t('mobileApp.networkEncryption')}</span>
                     <span className="text-xs text-[var(--color-success)] font-medium">TLS 1.3</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Stockage sécurisé</span>
-                    <span className="text-xs text-[var(--color-success)] font-medium">Activé</span>
+                    <span className="text-sm">{t('mobileApp.secureStorage')}</span>
+                    <span className="text-xs text-[var(--color-success)] font-medium">{t('mobileApp.enabled')}</span>
                   </div>
                 </div>
               </div>
@@ -598,7 +598,7 @@ const MobileAppPage: React.FC = () => {
                     </select>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Effacement à distance</span>
+                    <span className="text-sm">{t('mobileApp.remoteWipe')}</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="w-9 h-5 bg-[var(--color-border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-success)]"></div>
@@ -614,14 +614,14 @@ const MobileAppPage: React.FC = () => {
                 </h4>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Journal d'activité</span>
+                    <span className="text-sm">{t('mobileApp.activityLog')}</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="w-9 h-5 bg-[var(--color-border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-success)]"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Alertes de sécurité</span>
+                    <span className="text-sm">{t('mobileApp.securityAlerts')}</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="w-9 h-5 bg-[var(--color-border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-success)]"></div>
@@ -636,7 +636,7 @@ const MobileAppPage: React.FC = () => {
       case 'notifications':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Paramètres de notifications</h3>
+            <h3 className="text-lg font-semibold">{t('mobileApp.notificationSettings')}</h3>
 
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
               <h4 className="font-semibold mb-4">Types de notifications</h4>
@@ -654,8 +654,8 @@ const MobileAppPage: React.FC = () => {
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <div className="font-medium">Paiements reçus</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Être alerté lors de la réception d'un paiement</div>
+                    <div className="font-medium">{t('mobileApp.paymentsReceived')}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('mobileApp.paymentsReceivedDesc')}</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
@@ -666,7 +666,7 @@ const MobileAppPage: React.FC = () => {
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <div className="font-medium">{t('thirdParty.dueDate')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">Rappels pour les échéances importantes</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('mobileApp.deadlineReminders')}</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" defaultChecked className="sr-only peer" />
@@ -676,7 +676,7 @@ const MobileAppPage: React.FC = () => {
 
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <div className="font-medium">Mises à jour système</div>
+                    <div className="font-medium">{t('mobileApp.systemUpdates')}</div>
                     <div className="text-xs text-[var(--color-text-tertiary)]">Informations sur les nouvelles versions</div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -692,10 +692,10 @@ const MobileAppPage: React.FC = () => {
       case 'settings':
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Paramètres de l'application mobile</h3>
+            <h3 className="text-lg font-semibold">{t('mobileApp.appSettings')}</h3>
 
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
-              <h4 className="font-semibold mb-4">Configuration générale</h4>
+              <h4 className="font-semibold mb-4">{t('mobileApp.generalConfig')}</h4>
 
               <div className="space-y-4">
                 <div>
@@ -748,7 +748,7 @@ const MobileAppPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Collecte de données analytics</span>
+                  <span className="text-sm font-medium text-gray-700">{t('mobileApp.analyticsCollection')}</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -787,7 +787,7 @@ const MobileAppPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Application Mobile</h1>
-        <p className="text-[var(--color-text-secondary)] mt-1">Gérez l'application mobile Atlas FnA et les appareils connectés</p>
+        <p className="text-[var(--color-text-secondary)] mt-1">{t('mobileApp.pageSubtitle')}</p>
       </div>
 
       {/* Tabs */}
@@ -851,7 +851,7 @@ const MobileAppPage: React.FC = () => {
             <div className="flex justify-center gap-2">
               <button
                 onClick={() => {
-                  toast.success('Code copié dans le presse-papier !');
+                  toast.success(t('mobileApp.codeCopied'));
                   navigator.clipboard.writeText(pairingToken);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
@@ -873,7 +873,7 @@ const MobileAppPage: React.FC = () => {
       <Dialog open={!!showDisconnectConfirm} onOpenChange={() => setShowDisconnectConfirm(null)}>
         <DialogContent className="bg-white max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">Confirmer la déconnexion</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{t('mobileApp.confirmDisconnect')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-gray-600">

@@ -140,22 +140,25 @@ const ImportExportPage: React.FC = () => {
     }
   ]);
 
+  // Les `fields` sont les EN-TÊTES DE COLONNES du fichier généré : ce sont des
+  // identifiants de schéma (le FEC les impose à la lettre), pas du texte
+  // d'interface — ils restent donc en littéral.
   // Mock export templates
   const exportTemplates: ExportTemplate[] = [
     {
       id: '1',
-      name: 'Balance Générale',
-      description: 'Export complet de la balance avec soldes',
+      name: t('importExport.tplBalance'),
+      description: t('importExport.tplBalanceDesc'),
       format: 'excel',
-      module: 'Comptabilité',
+      module: t('importExport.moduleAccounting'),
       fields: ['Compte', 'Libellé', 'Débit', 'Crédit', 'Solde'],
       lastUsed: new Date('2024-02-09'),
-      schedule: 'Mensuel'
+      schedule: t('importExport.schedMonthly')
     },
     {
       id: '2',
-      name: 'Liste Clients',
-      description: 'Export des clients avec informations complètes',
+      name: t('importExport.tplClients'),
+      description: t('importExport.tplClientsDesc'),
       format: 'csv',
       module: 'CRM',
       fields: ['Code', 'Nom', 'Email', 'Téléphone', 'Solde'],
@@ -163,17 +166,17 @@ const ImportExportPage: React.FC = () => {
     },
     {
       id: '3',
-      name: 'FEC (Fichier des Écritures Comptables)',
-      description: 'Export légal pour l\'administration fiscale',
+      name: t('importExport.tplFec'),
+      description: t('importExport.tplFecDesc'),
       format: 'xml',
-      module: 'Comptabilité',
+      module: t('importExport.moduleAccounting'),
       fields: ['JournalCode', 'EcritureNum', 'PieceRef', 'CompteNum', 'Debit', 'Credit'],
-      schedule: 'Annuel'
+      schedule: t('importExport.schedAnnual')
     },
     {
       id: '4',
-      name: 'Inventaire Stock',
-      description: 'État du stock avec valorisation',
+      name: t('importExport.tplStock'),
+      description: t('importExport.tplStockDesc'),
       format: 'excel',
       module: 'Stock',
       fields: ['Article', 'Référence', 'Quantité', 'PrixUnitaire', 'Valeur'],
@@ -183,12 +186,12 @@ const ImportExportPage: React.FC = () => {
 
   // Modules disponibles
   const modules = [
-    { id: 'accounting', name: 'Comptabilité', icon: Calculator, color: 'blue' },
+    { id: 'accounting', name: t('importExport.moduleAccounting'), icon: Calculator, color: 'blue' },
     { id: 'crm', name: 'CRM', icon: Users, color: 'primary' },
     { id: 'stock', name: 'Stock', icon: Package, color: 'green' },
     { id: 'hr', name: 'RH', icon: Users, color: 'orange' },
-    { id: 'assets', name: 'Immobilisations', icon: Building, color: 'primary' },
-    { id: 'treasury', name: 'Trésorerie', icon: DollarSign, color: 'primary' }
+    { id: 'assets', name: t('importExport.moduleAssets'), icon: Building, color: 'primary' },
+    { id: 'treasury', name: t('importExport.moduleTreasury'), icon: DollarSign, color: 'primary' }
   ];
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,12 +202,12 @@ const ImportExportPage: React.FC = () => {
 
   const handleImport = () => {
     if (selectedFiles.length === 0) {
-      toast.error('Veuillez sélectionner au moins un fichier');
+      toast.error(t('importExport.selectFile'));
       return;
     }
     setIsImporting(true);
     setTimeout(() => {
-      toast.success('Import lancé avec succès');
+      toast.success(t('importExport.importStarted'));
       setIsImporting(false);
       setSelectedFiles([]);
     }, 2000);
@@ -214,7 +217,7 @@ const ImportExportPage: React.FC = () => {
     const job = importJobs.find(j => j.id === jobId);
     if (job) {
       if (confirm(`Voulez-vous mettre en pause l'import "${job.fileName}" ?`)) {
-        toast.success('Import mis en pause');
+        toast.success(t('importExport.importPaused'));
       }
     }
   };
@@ -223,7 +226,7 @@ const ImportExportPage: React.FC = () => {
     const job = importJobs.find(j => j.id === jobId);
     if (job) {
       if (confirm(`Voulez-vous relancer l'import "${job.fileName}" ?`)) {
-        toast.success('Import relancé avec succès');
+        toast.success(t('importExport.importResumed'));
       }
     }
   };
@@ -237,7 +240,7 @@ const ImportExportPage: React.FC = () => {
   };
 
   const handleExportNow = () => {
-    toast.success('Export lancé avec succès !');
+    toast.success(t('importExport.exportStarted'));
   };
 
   const handleScheduleExport = () => {
@@ -258,15 +261,15 @@ const ImportExportPage: React.FC = () => {
   };
 
   const handleUseTemplate = (templateId: string) => {
-    toast.success(`Utilisation du modèle ${templateId}`);
+    toast.success(t('importExport.usingTemplate', { id: templateId }));
   };
 
   const handleConfigureTemplate = (templateId: string) => {
-    toast(`Configuration du modèle ${templateId}`);
+    toast(t('importExport.configuringTemplate', { id: templateId }));
   };
 
   const handleDownloadHistory = () => {
-    toast.success('Téléchargement du rapport...');
+    toast.success(t('importExport.downloadingReport'));
   };
 
   const getStatusColor = (status: string) => {
@@ -332,7 +335,7 @@ const ImportExportPage: React.FC = () => {
               type="button"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              Planifier
+              {t('importExport.schedule')}
             </Button>
           </div>
         </div>
@@ -343,8 +346,8 @@ const ImportExportPage: React.FC = () => {
         <TabsList>
           <TabsTrigger value="import">Import</TabsTrigger>
           <TabsTrigger value="export">Export</TabsTrigger>
-          <TabsTrigger value="templates">Modèles</TabsTrigger>
-          <TabsTrigger value="history">Historique</TabsTrigger>
+          <TabsTrigger value="templates">{t('importExport.tabTemplates')}</TabsTrigger>
+          <TabsTrigger value="history">{t('importExport.tabHistory')}</TabsTrigger>
           <TabsTrigger value="mapping">Mapping</TabsTrigger>
         </TabsList>
 
@@ -383,13 +386,13 @@ const ImportExportPage: React.FC = () => {
                     </Button>
                   </div>
                   <p className="text-xs text-[var(--color-text-tertiary)]">
-                    Formats supportés: CSV, Excel, JSON, XML
+                    {t('importExport.supportedFormats')}
                   </p>
                 </div>
 
                 {selectedFiles.length > 0 && (
                   <div className="mt-4 space-y-2">
-                    <h4 className="text-sm font-medium">Fichiers sélectionnés:</h4>
+                    <h4 className="text-sm font-medium">{t('importExport.selectedFiles')}</h4>
                     {selectedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-[var(--color-surface-hover)] rounded">
                         <span className="text-sm">{file.name}</span>
@@ -418,25 +421,25 @@ const ImportExportPage: React.FC = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Type de données</Label>
+                  <Label>{t('importExport.dataType')}</Label>
                   <Select defaultValue="auto">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="auto">Détection automatique</SelectItem>
-                      <SelectItem value="accounts">Plan comptable</SelectItem>
-                      <SelectItem value="entries">Écritures comptables</SelectItem>
+                      <SelectItem value="auto">{t('importExport.autoDetect')}</SelectItem>
+                      <SelectItem value="accounts">{t('importExport.chartOfAccounts')}</SelectItem>
+                      <SelectItem value="entries">{t('importExport.journalEntries')}</SelectItem>
                       <SelectItem value="customers">{t('navigation.clients')}</SelectItem>
                       <SelectItem value="suppliers">{t('navigation.suppliers')}</SelectItem>
-                      <SelectItem value="products">Articles/Produits</SelectItem>
-                      <SelectItem value="employees">Employés</SelectItem>
+                      <SelectItem value="products">{t('importExport.products')}</SelectItem>
+                      <SelectItem value="employees">{t('importExport.employees')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label>Format de date</Label>
+                  <Label>{t('importExport.dateFormat')}</Label>
                   <Select defaultValue="dd/mm/yyyy">
                     <SelectTrigger>
                       <SelectValue />
@@ -450,14 +453,14 @@ const ImportExportPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <Label>Séparateur décimal</Label>
+                  <Label>{t('importExport.decimalSeparator')}</Label>
                   <Select defaultValue="comma">
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="comma">Virgule (,)</SelectItem>
-                      <SelectItem value="dot">Point (.)</SelectItem>
+                      <SelectItem value="comma">{t('importExport.comma')}</SelectItem>
+                      <SelectItem value="dot">{t('importExport.dot')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -465,15 +468,15 @@ const ImportExportPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <Checkbox defaultChecked />
-                    <Label>Ignorer les doublons</Label>
+                    <Label>{t('importExport.ignoreDuplicates')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox defaultChecked />
-                    <Label>Valider les données avant import</Label>
+                    <Label>{t('importExport.validateBeforeImport')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox />
-                    <Label>Mode test (simuler l'import)</Label>
+                    <Label>{t('importExport.dryRun')}</Label>
                   </div>
                 </div>
 
@@ -502,19 +505,19 @@ const ImportExportPage: React.FC = () => {
           {/* Jobs d'import en cours */}
           <Card>
             <CardHeader>
-              <CardTitle>Imports en cours et récents</CardTitle>
+              <CardTitle>{t('importExport.currentImports')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Type</TableHead>
-                    <TableHead>Fichier</TableHead>
-                    <TableHead>Progression</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Enregistrements</TableHead>
-                    <TableHead>Durée</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead>{t('importExport.colFile')}</TableHead>
+                    <TableHead>{t('importExport.colProgress')}</TableHead>
+                    <TableHead>{t('importExport.colStatus')}</TableHead>
+                    <TableHead>{t('importExport.colRecords')}</TableHead>
+                    <TableHead>{t('importExport.colDuration')}</TableHead>
+                    <TableHead>{t('importExport.colActions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -551,7 +554,7 @@ const ImportExportPage: React.FC = () => {
                             {Math.round((job.endTime.getTime() - job.startTime.getTime()) / 1000)}s
                           </span>
                         ) : (
-                          <span className="text-sm text-[var(--color-text-tertiary)]">En cours...</span>
+                          <span className="text-sm text-[var(--color-text-tertiary)]">{t('importExport.inProgress')}</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -603,7 +606,7 @@ const ImportExportPage: React.FC = () => {
             {/* Sélection du module */}
             <Card className="md:col-span-1">
               <CardHeader>
-                <CardTitle>Modules</CardTitle>
+                <CardTitle>{t('importExport.modules')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -633,12 +636,12 @@ const ImportExportPage: React.FC = () => {
             {/* Configuration Export */}
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle>Configuration d'Export</CardTitle>
+                <CardTitle>{t('importExport.exportConfig')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label>Format d'export</Label>
+                    <Label>{t('importExport.exportFormat')}</Label>
                     <Select defaultValue="excel">
                       <SelectTrigger>
                         <SelectValue />
@@ -654,34 +657,34 @@ const ImportExportPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <Label>Période</Label>
+                    <Label>{t('importExport.period')}</Label>
                     <Select defaultValue="current-month">
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes les données</SelectItem>
-                        <SelectItem value="current-month">Mois en cours</SelectItem>
-                        <SelectItem value="last-month">Mois dernier</SelectItem>
-                        <SelectItem value="current-year">Année en cours</SelectItem>
-                        <SelectItem value="custom">Personnalisée</SelectItem>
+                        <SelectItem value="all">{t('importExport.allData')}</SelectItem>
+                        <SelectItem value="current-month">{t('importExport.currentMonth')}</SelectItem>
+                        <SelectItem value="last-month">{t('importExport.lastMonth')}</SelectItem>
+                        <SelectItem value="current-year">{t('importExport.currentYear')}</SelectItem>
+                        <SelectItem value="custom">{t('importExport.custom')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
                 <div>
-                  <Label>Champs à exporter</Label>
+                  <Label>{t('importExport.fieldsToExport')}</Label>
                   <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
                         <Checkbox defaultChecked />
-                        <Label>Tous les champs</Label>
+                        <Label>{t('importExport.allFields')}</Label>
                       </div>
                       <div className="ml-6 space-y-2">
                         <div className="flex items-center space-x-2">
                           <Checkbox defaultChecked />
-                          <Label className="text-sm">Code</Label>
+                          <Label className="text-sm">{t('importExport.fieldCode')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Checkbox defaultChecked />
@@ -689,11 +692,11 @@ const ImportExportPage: React.FC = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Checkbox defaultChecked />
-                          <Label className="text-sm">Montants</Label>
+                          <Label className="text-sm">{t('importExport.fieldAmounts')}</Label>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Checkbox defaultChecked />
-                          <Label className="text-sm">Dates</Label>
+                          <Label className="text-sm">{t('importExport.fieldDates')}</Label>
                         </div>
                       </div>
                     </div>
@@ -707,7 +710,7 @@ const ImportExportPage: React.FC = () => {
                     type="button"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    Exporter maintenant
+                    {t('importExport.exportNow')}
                   </Button>
                   <Button
                     variant="outline"
@@ -715,7 +718,7 @@ const ImportExportPage: React.FC = () => {
                     type="button"
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    Planifier
+                    {t('importExport.schedule')}
                   </Button>
                 </div>
               </CardContent>
@@ -728,8 +731,8 @@ const ImportExportPage: React.FC = () => {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Modèles d'Export</CardTitle>
-                <Button onClick={() => toast('Création d\'un nouveau modèle...')} type="button">
+                <CardTitle>{t('importExport.exportTemplates')}</CardTitle>
+                <Button onClick={() => toast(t('importExport.creatingTemplate'))} type="button">
                   <Plus className="mr-2 h-4 w-4" />
                   Nouveau modèle
                 </Button>
@@ -800,7 +803,7 @@ const ImportExportPage: React.FC = () => {
         <TabsContent value="history" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Historique des Import/Export</CardTitle>
+              <CardTitle>{t('importExport.historyTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -810,7 +813,7 @@ const ImportExportPage: React.FC = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
+                      <SelectItem value="all">{t('importExport.filterAll')}</SelectItem>
                       <SelectItem value="import">Import</SelectItem>
                       <SelectItem value="export">Export</SelectItem>
                     </SelectContent>
@@ -823,7 +826,7 @@ const ImportExportPage: React.FC = () => {
                       <SelectItem value="today">{t('common.today')}</SelectItem>
                       <SelectItem value="7days">7 derniers jours</SelectItem>
                       <SelectItem value="30days">30 derniers jours</SelectItem>
-                      <SelectItem value="all">Tout</SelectItem>
+                      <SelectItem value="all">{t('importExport.filterEverything')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Input placeholder="Rechercher..." className="max-w-xs" />
@@ -834,12 +837,12 @@ const ImportExportPage: React.FC = () => {
                     <TableRow>
                       <TableHead>{t('common.date')}</TableHead>
                       <TableHead>Type</TableHead>
-                      <TableHead>Fichier</TableHead>
-                      <TableHead>Module</TableHead>
-                      <TableHead>Enregistrements</TableHead>
-                      <TableHead>Statut</TableHead>
-                      <TableHead>Utilisateur</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t('importExport.colFile')}</TableHead>
+                      <TableHead>{t('importExport.colModule')}</TableHead>
+                      <TableHead>{t('importExport.colRecords')}</TableHead>
+                      <TableHead>{t('importExport.colStatus')}</TableHead>
+                      <TableHead>{t('importExport.colUser')}</TableHead>
+                      <TableHead>{t('importExport.colActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -884,7 +887,7 @@ const ImportExportPage: React.FC = () => {
         <TabsContent value="mapping" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Configuration du Mapping</CardTitle>
+              <CardTitle>{t('importExport.mappingConfig')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Alert className="mb-4">
@@ -896,7 +899,7 @@ const ImportExportPage: React.FC = () => {
 
               <div className="space-y-4">
                 <div>
-                  <Label>Type de mapping</Label>
+                  <Label>{t('importExport.mappingType')}</Label>
                   <Select defaultValue="customer">
                     <SelectTrigger>
                       <SelectValue />
@@ -904,18 +907,18 @@ const ImportExportPage: React.FC = () => {
                     <SelectContent>
                       <SelectItem value="customer">{t('navigation.clients')}</SelectItem>
                       <SelectItem value="supplier">{t('navigation.suppliers')}</SelectItem>
-                      <SelectItem value="product">Produits</SelectItem>
-                      <SelectItem value="account">Comptes</SelectItem>
+                      <SelectItem value="product">{t('importExport.mapProducts')}</SelectItem>
+                      <SelectItem value="account">{t('importExport.mapAccounts')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-3">Correspondance des champs</h4>
+                  <h4 className="font-medium mb-3">{t('importExport.fieldMatching')}</h4>
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label className="text-sm">Champ source</Label>
+                        <Label className="text-sm">{t('importExport.sourceField')}</Label>
                         <Select defaultValue="customer_id">
                           <SelectTrigger>
                             <SelectValue />
@@ -928,14 +931,14 @@ const ImportExportPage: React.FC = () => {
                         </Select>
                       </div>
                       <div>
-                        <Label className="text-sm">Champ destination</Label>
+                        <Label className="text-sm">{t('importExport.targetField')}</Label>
                         <Select defaultValue="code">
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="code">Code client</SelectItem>
-                            <SelectItem value="reference">Référence</SelectItem>
+                            <SelectItem value="code">{t('importExport.clientCode')}</SelectItem>
+                            <SelectItem value="reference">{t('importExport.reference')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -945,10 +948,10 @@ const ImportExportPage: React.FC = () => {
 
                 <Button
                   className="w-full"
-                  onClick={() => toast.success('Mapping sauvegardé avec succès !')}
+                  onClick={() => toast.success(t('importExport.mappingSaved'))}
                   type="button"
                 >
-                  Sauvegarder le mapping
+                  {t('importExport.saveMapping')}
                 </Button>
               </div>
             </CardContent>
@@ -962,7 +965,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">Rapport d'import détaillé</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('importExport.importReport')}</h2>
                 <button onClick={() => setShowReportModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -991,14 +994,14 @@ const ImportExportPage: React.FC = () => {
 
               {/* File Information */}
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Informations du fichier</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.fileInfo')}</h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Nom du fichier</span>
+                    <span className="text-sm text-gray-600">{t('importExport.fileName')}</span>
                     <span className="font-medium text-gray-900">{selectedJob.fileName}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Taille</span>
+                    <span className="text-sm text-gray-600">{t('importExport.fileSize')}</span>
                     <span className="font-medium text-gray-900">{selectedJob.size}</span>
                   </div>
                 </div>
@@ -1006,10 +1009,10 @@ const ImportExportPage: React.FC = () => {
 
               {/* Timing Information */}
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Chronologie</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.timeline')}</h3>
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Début</span>
+                    <span className="text-sm text-gray-600">{t('importExport.start')}</span>
                     <span className="font-medium text-gray-900">
                       {selectedJob.startTime.toLocaleString('fr-FR')}
                     </span>
@@ -1023,7 +1026,7 @@ const ImportExportPage: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Durée</span>
+                        <span className="text-sm text-gray-600">{t('importExport.duration')}</span>
                         <span className="font-medium text-gray-900">
                           {Math.round((selectedJob.endTime.getTime() - selectedJob.startTime.getTime()) / 1000)}s
                         </span>
@@ -1035,20 +1038,20 @@ const ImportExportPage: React.FC = () => {
 
               {/* Processing Statistics */}
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Statistiques de traitement</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.processingStats')}</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-600 mb-1">Traités</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('importExport.processed')}</p>
                     <p className="text-lg font-bold text-blue-700">{selectedJob.recordsProcessed}</p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg text-center">
-                    <p className="text-sm text-gray-600 mb-1">Total</p>
+                    <p className="text-sm text-gray-600 mb-1">{t('importExport.total')}</p>
                     <p className="text-lg font-bold text-green-700">{selectedJob.recordsTotal}</p>
                   </div>
                 </div>
                 <div className="mt-3">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-gray-600">Progression</span>
+                    <span className="text-gray-600">{t('importExport.progress')}</span>
                     <span className="font-medium text-gray-900">{selectedJob.progress}%</span>
                   </div>
                   <Progress value={selectedJob.progress} className="h-2" />
@@ -1058,7 +1061,7 @@ const ImportExportPage: React.FC = () => {
               {/* Error Messages */}
               {selectedJob.errors && selectedJob.errors.length > 0 && (
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-3">Erreurs détectées ({selectedJob.errors.length})</h3>
+                  <h3 className="font-medium text-gray-900 mb-3">{t('importExport.errorsDetected', { count: String(selectedJob.errors.length) })}</h3>
                   <div className="bg-red-50 border border-red-200 p-4 rounded-lg space-y-2">
                     {selectedJob.errors.map((error, idx) => (
                       <div key={idx} className="flex items-start space-x-2">
@@ -1074,11 +1077,11 @@ const ImportExportPage: React.FC = () => {
               <div className="flex space-x-3">
                 <Button
                   variant="outline"
-                  onClick={() => toast.success('Rapport téléchargé')}
+                  onClick={() => toast.success(t('importExport.reportDownloaded'))}
                   className="flex-1"
                 >
                   <Download className="mr-2 h-4 w-4" />
-                  Télécharger le rapport complet
+                  {t('importExport.downloadFullReport')}
                 </Button>
                 {selectedJob.status === 'failed' && (
                   <Button
@@ -1096,7 +1099,7 @@ const ImportExportPage: React.FC = () => {
               </div>
             </div>
             <div className="p-6 border-t border-gray-200 flex justify-end">
-              <Button onClick={() => setShowReportModal(false)}>Fermer</Button>
+              <Button onClick={() => setShowReportModal(false)}>{t('importExport.close')}</Button>
             </div>
           </div>
         </div>
@@ -1108,7 +1111,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-xl w-full m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">Planifier un export automatique</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('importExport.scheduleExport')}</h2>
                 <button onClick={() => setShowScheduleModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -1116,32 +1119,32 @@ const ImportExportPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700 mb-2">Fréquence</Label>
+                <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.frequency')}</Label>
                 <Select defaultValue="monthly">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Quotidien</SelectItem>
-                    <SelectItem value="weekly">Hebdomadaire</SelectItem>
-                    <SelectItem value="monthly">Mensuel</SelectItem>
-                    <SelectItem value="quarterly">Trimestriel</SelectItem>
-                    <SelectItem value="yearly">Annuel</SelectItem>
+                    <SelectItem value="daily">{t('importExport.daily')}</SelectItem>
+                    <SelectItem value="weekly">{t('importExport.weekly')}</SelectItem>
+                    <SelectItem value="monthly">{t('importExport.schedMonthly')}</SelectItem>
+                    <SelectItem value="quarterly">{t('importExport.quarterly')}</SelectItem>
+                    <SelectItem value="yearly">{t('importExport.schedAnnual')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2">Date de début</Label>
+                  <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.startDate')}</Label>
                   <Input type="date" />
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2">Heure</Label>
+                  <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.time')}</Label>
                   <Input type="time" defaultValue="00:00" />
                 </div>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700 mb-2">Module</Label>
+                <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.colModule')}</Label>
                 <Select defaultValue={selectedModule}>
                   <SelectTrigger>
                     <SelectValue />
@@ -1156,18 +1159,18 @@ const ImportExportPage: React.FC = () => {
               <div>
                 <Label className="flex items-center space-x-2">
                   <Checkbox defaultChecked />
-                  <span className="text-sm text-gray-700">Envoyer une notification par email</span>
+                  <span className="text-sm text-gray-700">{t('importExport.emailNotification')}</span>
                 </Label>
               </div>
             </div>
             <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowScheduleModal(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setShowScheduleModal(false)}>{t('importExport.cancel')}</Button>
               <Button onClick={() => {
-                toast.success('Export planifié avec succès');
+                toast.success(t('importExport.exportScheduled'));
                 setShowScheduleModal(false);
               }}>
                 <Calendar className="mr-2 h-4 w-4" />
-                Planifier
+                {t('importExport.schedule')}
               </Button>
             </div>
           </div>
@@ -1180,7 +1183,7 @@ const ImportExportPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto m-4">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-gray-900">Paramètres d'Import/Export</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('importExport.settingsTitle')}</h2>
                 <button onClick={() => setShowSettingsModal(false)} className="text-gray-700 hover:text-gray-600">
                   <X className="h-6 w-6" />
                 </button>
@@ -1188,43 +1191,43 @@ const ImportExportPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-6">
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Paramètres généraux</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.generalSettings')}</h3>
                 <div className="space-y-3">
                   <Label className="flex items-center space-x-3">
                     <Checkbox defaultChecked />
-                    <span className="text-sm text-gray-700">Validation automatique des données</span>
+                    <span className="text-sm text-gray-700">{t('importExport.autoValidation')}</span>
                   </Label>
                   <Label className="flex items-center space-x-3">
                     <Checkbox defaultChecked />
-                    <span className="text-sm text-gray-700">Sauvegarde automatique des fichiers importés</span>
+                    <span className="text-sm text-gray-700">{t('importExport.autoBackup')}</span>
                   </Label>
                   <Label className="flex items-center space-x-3">
                     <Checkbox />
-                    <span className="text-sm text-gray-700">Notifications par email</span>
+                    <span className="text-sm text-gray-700">{t('importExport.emailNotifications')}</span>
                   </Label>
                   <Label className="flex items-center space-x-3">
                     <Checkbox defaultChecked />
-                    <span className="text-sm text-gray-700">Créer un rapport après chaque import</span>
+                    <span className="text-sm text-gray-700">{t('importExport.reportAfterImport')}</span>
                   </Label>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Limites et performance</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.limitsPerformance')}</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-2">Taille maximale de fichier (MB)</Label>
+                    <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.maxFileSize')}</Label>
                     <Input type="number" defaultValue="100" />
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-2">Nombre max d'enregistrements</Label>
+                    <Label className="text-sm font-medium text-gray-700 mb-2">{t('importExport.maxRecords')}</Label>
                     <Input type="number" defaultValue="100000" />
                   </div>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Formats supportés</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.supportedFormatsTitle')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   <Label className="flex items-center space-x-2">
                     <Checkbox defaultChecked />
@@ -1250,13 +1253,13 @@ const ImportExportPage: React.FC = () => {
               </div>
             </div>
             <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setShowSettingsModal(false)}>Annuler</Button>
+              <Button variant="outline" onClick={() => setShowSettingsModal(false)}>{t('importExport.cancel')}</Button>
               <Button onClick={() => {
-                toast.success('Paramètres sauvegardés');
+                toast.success(t('importExport.settingsSaved'));
                 setShowSettingsModal(false);
               }}>
                 <Check className="mr-2 h-4 w-4" />
-                Sauvegarder
+                {t('importExport.save')}
               </Button>
             </div>
           </div>
@@ -1282,7 +1285,7 @@ const ImportExportPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="font-medium text-gray-900 mb-3">Options d'export disponibles</h3>
+                <h3 className="font-medium text-gray-900 mb-3">{t('importExport.availableExportOptions')}</h3>
                 <div className="space-y-2">
                   {exportTemplates
                     .filter(t => t.module === selectedModuleDetails.name)
@@ -1300,7 +1303,7 @@ const ImportExportPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <h3 className="font-medium text-gray-900 mb-2">Format d'export</h3>
+                <h3 className="font-medium text-gray-900 mb-2">{t('importExport.exportFormat')}</h3>
                 <Select defaultValue="excel">
                   <SelectTrigger>
                     <SelectValue />
@@ -1321,7 +1324,7 @@ const ImportExportPage: React.FC = () => {
                 setShowModuleDetailsModal(false);
               }}>
                 <Download className="mr-2 h-4 w-4" />
-                Exporter maintenant
+                {t('importExport.exportNow')}
               </Button>
             </div>
           </div>
