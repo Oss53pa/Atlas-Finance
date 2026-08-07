@@ -16,8 +16,20 @@ import {
   Plus,
   Search,
   Filter,
-  Download
+  Download,
+  Wallet,
+  Receipt,
+  Scale,
+  Percent,
+  Landmark
 } from 'lucide-react';
+
+const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+// Seuils d'alerte partagés avec le Dashboard Manager (mêmes clés localStorage).
+const DSO_THRESHOLD_DEFAULT = 60; const DSO_THRESHOLD_KEY = 'manager-dso-threshold';
+const DPO_THRESHOLD_DEFAULT = 60; const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
+const TRESO_THRESHOLD_DEFAULT = 0; const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
+const BFR_DAYS_THRESHOLD_DEFAULT = 90; const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
 
 const ComptableDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -37,6 +49,22 @@ const ComptableDashboard: React.FC = () => {
   // Metrics from DataContext
   const [liveData, setLiveData] = useState<{ todayCount: number; pendingCount: number; validatedCount: number; treasuryBalance: number; recentEntries: any[] }>({ todayCount: 0, pendingCount: 0, validatedCount: 0, treasuryBalance: 0, recentEntries: [] });
 
+  // Bloc « Créances, dettes & ratios » (identique au Dashboard Manager).
+  const [bilan, setBilan] = useState<{
+    revenue: number; receivables: number; payables: number; stocks: number; bfr: number; bfrDays: number;
+    dso: number; dpo: number; margeBrute: number; ratioCD: number | null;
+  }>({ revenue: 0, receivables: 0, payables: 0, stocks: 0, bfr: 0, bfrDays: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null });
+  const [balHistory, setBalHistory] = useState<Array<{ label: string; creances: number; dettes: number }>>([]);
+  const [dsoThreshold, setDsoThreshold] = useState<number>(() => { try { const v = Number(localStorage.getItem(DSO_THRESHOLD_KEY)); return v > 0 ? v : DSO_THRESHOLD_DEFAULT; } catch { return DSO_THRESHOLD_DEFAULT; } });
+  const [dpoThreshold, setDpoThreshold] = useState<number>(() => { try { const v = Number(localStorage.getItem(DPO_THRESHOLD_KEY)); return v > 0 ? v : DPO_THRESHOLD_DEFAULT; } catch { return DPO_THRESHOLD_DEFAULT; } });
+  const [tresoThreshold, setTresoThreshold] = useState<number>(() => { try { const s = localStorage.getItem(TRESO_THRESHOLD_KEY); return s !== null && s !== '' ? Number(s) : TRESO_THRESHOLD_DEFAULT; } catch { return TRESO_THRESHOLD_DEFAULT; } });
+  const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => { try { const v = Number(localStorage.getItem(BFR_DAYS_THRESHOLD_KEY)); return v > 0 ? v : BFR_DAYS_THRESHOLD_DEFAULT; } catch { return BFR_DAYS_THRESHOLD_DEFAULT; } });
+  const updateThreshold = (key: string, setter: (n: number) => void, v: number, min: number, max: number) => {
+    const val = Math.max(min, Math.min(max, Math.round(v || 0)));
+    setter(val);
+    try { localStorage.setItem(key, String(val)); } catch { /* ignore */ }
+  };
+
   useEffect(() => {
     const load = async () => {
       const today = new Date().toISOString().split('T')[0];
@@ -47,7 +75,32 @@ const ComptableDashboard: React.FC = () => {
       const validatedEntries = allEntries.filter((e: any) => e.status === 'validated' || e.status === 'posted');
 
       // Trésorerie via la source unique (classe 5 hors 58).
-      const treasuryBalance = computeDashboardMetrics(allEntries).treasury;
+      const m = computeDashboardMetrics(allEntries);
+      const treasuryBalance = m.treasury;
+
+      // Bloc bilan & ratios (identique au Manager) — sur l'ensemble des écritures.
+      const receivables = m.h.net('41');
+      const payables = m.h.creditNet('40');
+      const stocks = m.classNet['3'] || 0;
+      const bfr = receivables + stocks - payables;
+      const achats = m.h.net('60');
+      const dso = m.ca > 0 ? Math.round((receivables / m.ca) * 365) : 0;
+      const dpo = achats > 0 ? Math.round((payables / achats) * 365) : 0;
+      const bfrDays = m.ca > 0 ? Math.round((bfr / m.ca) * 365) : 0;
+      const margeBrute = m.ca > 0 ? ((m.ca - achats) / m.ca) * 100 : 0;
+      const ratioCD = payables !== 0 ? receivables / payables : null;
+      setBilan({ revenue: m.ca, receivables, payables, stocks, bfr, bfrDays, dso, dpo, margeBrute, ratioCD });
+
+      // Historique 6 mois : encours créances/dettes cumulés à la fin de chaque mois.
+      const anchor = new Date();
+      const hist: Array<{ label: string; creances: number; dettes: number }> = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthEnd = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - i + 1, 0));
+        const iso = monthEnd.toISOString().slice(0, 10);
+        const mm = computeDashboardMetrics(allEntries, { to: iso });
+        hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
+      }
+      setBalHistory(hist);
 
       // Recent entries — on garde les montants NUMÉRIQUES + date/statut bruts pour filtrer/formater.
       const recent = [...allEntries]
@@ -202,6 +255,100 @@ const ComptableDashboard: React.FC = () => {
                 );
               })}
             </div>
+
+            {/* Créances, dettes & ratios — identique au Dashboard Manager */}
+            <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                    <Clock className="w-3.5 h-3.5" /> Seuil DSO
+                    <input type="number" min={1} max={365} value={dsoThreshold} onChange={(e) => updateThreshold(DSO_THRESHOLD_KEY, setDsoThreshold, Number(e.target.value), 1, 365)} className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500" aria-label="Seuil DSO en jours" /> j
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                    Seuil DPO
+                    <input type="number" min={1} max={365} value={dpoThreshold} onChange={(e) => updateThreshold(DPO_THRESHOLD_KEY, setDpoThreshold, Number(e.target.value), 1, 365)} className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500" aria-label="Seuil DPO en jours" /> j
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                    Seuil trésorerie
+                    <input type="number" step={1000} value={tresoThreshold} onChange={(e) => updateThreshold(TRESO_THRESHOLD_KEY, setTresoThreshold, Number(e.target.value), -1e15, 1e15)} className="w-28 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500" aria-label="Seuil trésorerie en FCFA" /> FCFA
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                    Seuil BFR
+                    <input type="number" min={1} max={1000} value={bfrDaysThreshold} onChange={(e) => updateThreshold(BFR_DAYS_THRESHOLD_KEY, setBfrDaysThreshold, Number(e.target.value), 1, 1000)} className="w-16 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500" aria-label="Seuil BFR en jours de CA" /> j de CA
+                  </label>
+                </div>
+              </div>
+
+              {/* Alertes dérivées (mêmes seuils que le Manager) */}
+              {(() => {
+                const al: string[] = [];
+                if (bilan.dso > dsoThreshold) al.push(`DSO élevé : ${bilan.dso} j (seuil ${dsoThreshold} j)`);
+                if (bilan.dpo > dpoThreshold) al.push(`DPO élevé : ${bilan.dpo} j (seuil ${dpoThreshold} j)`);
+                if (bilan.revenue > 0 && bilan.bfrDays > bfrDaysThreshold) al.push(`BFR en forte hausse : ${bilan.bfrDays} j de CA (seuil ${bfrDaysThreshold} j)`);
+                if (liveData.treasuryBalance < tresoThreshold) al.push(`Trésorerie sous le seuil : ${fmt(liveData.treasuryBalance)} (seuil ${fmt(tresoThreshold)})`);
+                return al.length > 0 ? (
+                  <div className="mb-4 space-y-2">
+                    {al.map((a, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-[var(--color-warning-lightest)] border-l-4 border-yellow-400 text-[var(--color-text-primary)]">
+                        <span className="font-medium">⚠ {a}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
+                {[
+                  { label: 'Créances clients', value: fmt(bilan.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
+                  { label: 'Dettes fournisseurs', value: fmt(bilan.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
+                  { label: 'BFR', value: fmt(bilan.bfr), sub: `${bilan.bfrDays} j de CA · seuil ${bfrDaysThreshold} j`, icon: Scale, tone: (bilan.revenue > 0 && bilan.bfrDays > bfrDaysThreshold) ? 'text-[var(--color-error)]' : (bilan.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]') },
+                  { label: 'DSO', value: `${bilan.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: bilan.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
+                  { label: 'DPO', value: `${bilan.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: bilan.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
+                  { label: 'Marge brute', value: `${bilan.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
+                  { label: 'Créances / Dettes', value: bilan.ratioCD != null ? bilan.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: bilan.ratioCD != null && bilan.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
+                ].map((r) => {
+                  const Icon = r.icon;
+                  return (
+                    <div key={r.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)]">
+                      <div className="flex items-center gap-2 mb-2 text-[var(--color-text-secondary)]">
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs font-medium">{r.label}</span>
+                      </div>
+                      <p className={`text-base font-bold ${r.tone}`}>{r.value}</p>
+                      <p className="text-[11px] text-[var(--color-text-secondary)] mt-1">{r.sub}</p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Évolution créances vs dettes (6 mois, encours de fin de mois) */}
+              {balHistory.length > 0 && (() => {
+                const maxVal = Math.max(1, ...balHistory.flatMap(h => [h.creances, h.dettes]));
+                return (
+                  <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Évolution créances vs dettes (6 mois)</h3>
+                      <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+                        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-primary)]" /> Créances</span>
+                        <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-warning)]" /> Dettes</span>
+                      </div>
+                    </div>
+                    <div className="flex items-end justify-between gap-3" style={{ height: 160 }}>
+                      {balHistory.map((h) => (
+                        <div key={h.label} className="flex-1 flex flex-col items-center justify-end h-full">
+                          <div className="flex items-end justify-center gap-1 w-full" style={{ height: 130 }}>
+                            <div className="rounded-t bg-[var(--color-primary)] transition-all" style={{ width: '38%', height: `${Math.max(2, (h.creances / maxVal) * 130)}px` }} title={`Créances ${h.label} : ${fmt(h.creances)}`} />
+                            <div className="rounded-t bg-[var(--color-warning)] transition-all" style={{ width: '38%', height: `${Math.max(2, (h.dettes / maxVal) * 130)}px` }} title={`Dettes ${h.label} : ${fmt(h.dettes)}`} />
+                          </div>
+                          <span className="text-[11px] text-[var(--color-text-secondary)] mt-2">{h.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </section>
 
             {/* Actions rapides */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
