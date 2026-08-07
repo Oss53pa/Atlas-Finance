@@ -26,6 +26,10 @@ import {
 const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 const DSO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de recouvrement clients (jours), par défaut
 const DSO_THRESHOLD_KEY = 'manager-dso-threshold';
+const DPO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de paiement fournisseurs (jours)
+const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
+const TRESO_THRESHOLD_DEFAULT = 0; // seuil d'alerte de trésorerie nette (FCFA) : alerte si en dessous
+const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
 
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -53,6 +57,22 @@ const ManagerDashboard: React.FC = () => {
     const val = Math.max(1, Math.min(365, Math.round(v || 0)));
     setDsoThreshold(val);
     try { localStorage.setItem(DSO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
+  };
+  const [dpoThreshold, setDpoThreshold] = useState<number>(() => {
+    try { const v = Number(localStorage.getItem(DPO_THRESHOLD_KEY)); return v > 0 ? v : DPO_THRESHOLD_DEFAULT; } catch { return DPO_THRESHOLD_DEFAULT; }
+  });
+  const updateDpoThreshold = (v: number) => {
+    const val = Math.max(1, Math.min(365, Math.round(v || 0)));
+    setDpoThreshold(val);
+    try { localStorage.setItem(DPO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
+  };
+  const [tresoThreshold, setTresoThreshold] = useState<number>(() => {
+    try { const s = localStorage.getItem(TRESO_THRESHOLD_KEY); return s !== null && s !== '' ? Number(s) : TRESO_THRESHOLD_DEFAULT; } catch { return TRESO_THRESHOLD_DEFAULT; }
+  });
+  const updateTresoThreshold = (v: number) => {
+    const val = Math.round(v || 0);
+    setTresoThreshold(val);
+    try { localStorage.setItem(TRESO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
   };
 
   const handleExport = () => {
@@ -190,11 +210,20 @@ const ManagerDashboard: React.FC = () => {
       time: '',
     });
   }
-  if (liveKpiData.treasury < 0) {
+  if (liveKpiData.dpo > dpoThreshold) {
     alerts.push({
       type: 'warning',
-      title: 'Trésorerie négative',
-      message: `Trésorerie nette de ${fmt(liveKpiData.treasury)}.`,
+      title: 'DPO élevé',
+      message: `Délai de paiement fournisseurs de ${liveKpiData.dpo} jours (seuil ${dpoThreshold} j). Risque sur les relations fournisseurs.`,
+      action: 'Voir les dettes',
+      time: '',
+    });
+  }
+  if (liveKpiData.treasury < tresoThreshold) {
+    alerts.push({
+      type: 'warning',
+      title: 'Trésorerie sous le seuil',
+      message: `Trésorerie nette de ${fmt(liveKpiData.treasury)} (seuil ${fmt(tresoThreshold)}).`,
       action: 'Analyser',
       time: '',
     });
@@ -304,22 +333,41 @@ const ManagerDashboard: React.FC = () => {
         <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
                 <Clock className="w-3.5 h-3.5" />
-                Seuil alerte DSO
+                Seuil DSO
                 <input
-                  type="number"
-                  min={1}
-                  max={365}
+                  type="number" min={1} max={365}
                   value={dsoThreshold}
                   onChange={(e) => updateDsoThreshold(Number(e.target.value))}
-                  className="w-16 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
+                  className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
                   aria-label="Seuil d'alerte DSO en jours"
                 />
                 j
               </label>
-              <span className="text-xs text-[var(--color-text-secondary)]">Encours cumulés · ratios sur la période</span>
+              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                Seuil DPO
+                <input
+                  type="number" min={1} max={365}
+                  value={dpoThreshold}
+                  onChange={(e) => updateDpoThreshold(Number(e.target.value))}
+                  className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
+                  aria-label="Seuil d'alerte DPO en jours"
+                />
+                j
+              </label>
+              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                Seuil trésorerie
+                <input
+                  type="number" step={1000}
+                  value={tresoThreshold}
+                  onChange={(e) => updateTresoThreshold(Number(e.target.value))}
+                  className="w-28 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
+                  aria-label="Seuil d'alerte de trésorerie en FCFA"
+                />
+                FCFA
+              </label>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
@@ -328,7 +376,7 @@ const ManagerDashboard: React.FC = () => {
               { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
               { label: 'BFR', value: fmt(liveKpiData.bfr), sub: 'Créances + stocks − dettes', icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
               { label: 'DSO', value: `${liveKpiData.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: liveKpiData.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
-              { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: 'Délai paiement fourn.', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: liveKpiData.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
               { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
               { label: 'Créances / Dettes', value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
             ].map((r) => {
