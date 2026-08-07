@@ -5,6 +5,7 @@ import { Toaster as SonnerToaster } from 'sonner'
 import { HelmetProvider } from 'react-helmet-async'
 import * as Sentry from '@sentry/react'
 import { initAtlasErrorMonitor } from './lib/atlasErrorMonitor'
+import { isStaleChunkError, reloadForStaleChunk } from './lib/chunkReload'
 
 // Remontée vers la console Atlas Studio (Error Monitor + Bug-Triage ASVC),
 // en plus de Sentry. Silencieux, clé anon Atlas publique.
@@ -217,17 +218,9 @@ killLegacyServiceWorker();
 // ── Stale-chunk safety net ───────────────────────────────────
 // Catches "Failed to fetch dynamically imported module" errors that escape
 // lazyRetry (e.g. direct import() calls or errors before lazyRetry loads).
-// Same 30-second window to avoid reload loops.
+// Le plafond de rechargement est partagé avec lazyRetry (fenêtre de 30 s).
 window.addEventListener('unhandledrejection', (event) => {
-  const msg = String(event?.reason?.message ?? event?.reason ?? '');
-  if (msg.includes('Failed to fetch dynamically imported module') ||
-      msg.includes('Importing a module script failed') ||
-      msg.includes('error loading dynamically imported module')) {
-    const TS_KEY = 'chunk-reload-ts';
-    const last = Number(sessionStorage.getItem(TS_KEY) ?? 0);
-    if (Date.now() - last > 30_000) {
-      sessionStorage.setItem(TS_KEY, String(Date.now()));
-      window.location.reload();
-    }
+  if (isStaleChunkError(event?.reason)) {
+    reloadForStaleChunk();
   }
 });

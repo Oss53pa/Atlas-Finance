@@ -20,29 +20,10 @@ import RBACGuard from './components/auth/RBACGuard';
 import ImpersonationBanner from './components/auth/ImpersonationBanner';
 import GuidedTourOverlay from './components/demo/GuidedTourOverlay';
 import { DataProvider } from './contexts/DataContext';
+// Wrapper `React.lazy` durci : gère les chunks obsolètes après déploiement et
+// les modules qui se résolvent sans export exploitable (cf. src/lib/lazyRetry).
+import { lazyRetry } from './lib/lazyRetry';
 import './styles/globals.css';
-
-// Retry wrapper for lazy imports — handles chunk loading errors after Vercel deploys
-function lazyRetry(importFn: () => Promise<any>) {
-  return React.lazy(() =>
-    importFn().catch((err: unknown) => {
-      // Stale chunk after new deploy — hard-reload once per 30s window.
-      // Using a timestamp key prevents stale booleans from previous deployments
-      // blocking the reload indefinitely.
-      const TS_KEY = 'chunk-reload-ts';
-      const last = Number(sessionStorage.getItem(TS_KEY) ?? 0);
-      const canReload = Date.now() - last > 30_000;
-      if (canReload) {
-        sessionStorage.setItem(TS_KEY, String(Date.now()));
-        window.location.reload();
-        // Suspend forever while the reload is in flight — never resolve/reject
-        return new Promise<any>(() => {});
-      }
-      // Reloaded recently and still failing → let ErrorBoundary handle it
-      throw err;
-    })
-  );
-}
 
 // Pages publiques
 const LandingPage = lazyRetry(() => import('./pages/LandingPage'));
