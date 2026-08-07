@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
 import { Download, FileText, FileSpreadsheet, FileImage } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Button } from '../ui';
 import { toast } from 'react-hot-toast';
 
@@ -65,10 +67,32 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
       exportExcel(exportData, `${filename}_${dateStr}.xls`);
       toast.success('Export Excel réussi !');
     } else if (format === 'pdf') {
-      toast('Export PDF en cours de développement');
+      exportPDF(exportData, `${filename}_${dateStr}.pdf`);
+      toast.success('Export PDF réussi !');
     }
 
     setShowMenu(false);
+  };
+
+  const exportPDF = (rows: Record<string, unknown>[], pdfName: string) => {
+    if (rows.length === 0) return;
+    const headers = Object.keys(rows[0]);
+    const doc = new jsPDF({ orientation: headers.length > 6 ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const title = pdfName.replace(/\.pdf$/i, '').replace(/_/g, ' ');
+    doc.setFontSize(13);
+    doc.text(title, 14, 14);
+    autoTable(doc, {
+      startY: 20,
+      head: [headers],
+      body: rows.map(row => headers.map(h => {
+        const v = row[h];
+        return v == null ? '' : String(v);
+      })),
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [35, 90, 110], textColor: 255 },
+      alternateRowStyles: { fillColor: [245, 247, 248] },
+    });
+    doc.save(pdfName);
   };
 
   const exportCSV = (data: Record<string, unknown>[], filename: string) => {
@@ -160,10 +184,9 @@ const ExportMenu: React.FC<ExportMenuProps> = ({
             <button
               onClick={() => handleExport('pdf')}
               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center space-x-2 text-gray-700 rounded-b-lg"
-              disabled
             >
-              <FileImage className="w-4 h-4" />
-              <span>Export PDF (bientôt)</span>
+              <FileImage className="w-4 h-4 text-[var(--color-text-tertiary)]" />
+              <span>Export PDF</span>
             </button>
           )}
         </div>
