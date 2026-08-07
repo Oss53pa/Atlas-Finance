@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Loader2,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import {
   UnifiedCard,
@@ -114,6 +115,7 @@ const FiscalDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [detailResult, setDetailResult] = useState<TaxDetectionResult | null>(null);
 
   const period = useMemo(
     () => buildPeriodFromSelection(selectedYear, selectedMonth),
@@ -557,7 +559,7 @@ const FiscalDashboard: React.FC = () => {
 
                                     {/* Voir detail */}
                                     <button
-                                      onClick={() => {}}
+                                      onClick={() => setDetailResult(r)}
                                       className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-neutral-50 text-neutral-600 hover:bg-neutral-100 transition-colors"
                                       title="Voir detail"
                                     >
@@ -617,6 +619,64 @@ const FiscalDashboard: React.FC = () => {
             <ColorfulBarChart data={chartData} height={160} />
           </ModernChartCard>
         </motion.div>
+
+        {/* Modal — détail d'une obligation fiscale détectée */}
+        {detailResult && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setDetailResult(null)}>
+            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-5 border-b flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-semibold text-neutral-900">{detailResult.tax.taxShortName || detailResult.tax.taxCode}</h3>
+                  <p className="text-xs text-neutral-500">{detailResult.tax.taxName}</p>
+                </div>
+                <button onClick={() => setDetailResult(null)} className="p-1.5 rounded-lg hover:bg-neutral-100" aria-label="Fermer"><X className="w-4 h-4 text-neutral-500" /></button>
+              </div>
+              <div className="p-5 space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><span className="text-neutral-500 block text-xs">Catégorie</span>{detailResult.tax.taxCategory}</div>
+                  <div><span className="text-neutral-500 block text-xs">Périodicité</span>{detailResult.tax.periodicity}</div>
+                  <div><span className="text-neutral-500 block text-xs">Taux</span>{detailResult.tax.ratePct != null ? `${detailResult.tax.ratePct} %` : '—'}</div>
+                  <div><span className="text-neutral-500 block text-xs">Statut</span>{detailResult.status || '—'}</div>
+                  <div><span className="text-neutral-500 block text-xs">Échéance</span>{detailResult.declarationDeadline || '—'}{detailResult.isOverdue && <span className="ml-1 text-red-600 font-medium">(dépassée)</span>}</div>
+                  <div><span className="text-neutral-500 block text-xs">Jours restants</span>{detailResult.daysUntilDeadline != null ? detailResult.daysUntilDeadline : '—'}</div>
+                </div>
+
+                <div className="rounded-lg border border-neutral-200 p-3">
+                  <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Déclenchement</div>
+                  <p className="text-neutral-700">{detailResult.triggerReason || (detailResult.isTriggered ? 'Obligation déclenchée.' : 'Non déclenchée.')}</p>
+                </div>
+
+                {detailResult.amounts && (
+                  <div className="rounded-lg border border-neutral-200 p-3">
+                    <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Montants</div>
+                    <table className="w-full text-sm">
+                      <tbody>
+                        <tr><td className="py-1 text-neutral-500">Base</td><td className="py-1 text-right tabular-nums">{formatCurrency(detailResult.amounts.base || 0)}</td></tr>
+                        <tr><td className="py-1 text-neutral-500">Brut collecté</td><td className="py-1 text-right tabular-nums">{formatCurrency(detailResult.amounts.gross || 0)}</td></tr>
+                        <tr><td className="py-1 text-neutral-500">Déductible</td><td className="py-1 text-right tabular-nums">{formatCurrency(detailResult.amounts.deductible || 0)}</td></tr>
+                        <tr><td className="py-1 text-neutral-500">Crédit</td><td className="py-1 text-right tabular-nums">{formatCurrency(detailResult.amounts.credit || 0)}</td></tr>
+                        <tr className="border-t font-semibold"><td className="py-1">Net à payer</td><td className="py-1 text-right tabular-nums">{formatCurrency(detailResult.amounts.net || 0)}</td></tr>
+                      </tbody>
+                    </table>
+                    {detailResult.amounts.requiresManualInput && (
+                      <p className="text-xs text-amber-600 mt-2">Saisie manuelle requise pour finaliser le calcul.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="rounded-lg border border-neutral-200 p-3">
+                  <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-2">Déclaration</div>
+                  {detailResult.existingDeclaration
+                    ? <p className="text-neutral-700">Déclaration existante — statut : {detailResult.status || 'inconnu'}.</p>
+                    : <p className="text-neutral-500">Aucune déclaration enregistrée pour cette période.</p>}
+                </div>
+              </div>
+              <div className="p-5 border-t flex justify-end">
+                <button onClick={() => setDetailResult(null)} className="px-4 py-2 rounded-lg border border-neutral-300 text-neutral-700 text-sm font-medium hover:bg-neutral-50">Fermer</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageContainer>
   );

@@ -155,7 +155,18 @@ const TaxationDashboard: React.FC = () => {
           subtitle="Suivi des declarations fiscales et obligations reglementaires"
           icon={Calculator}
           action={
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {/* Sélecteur d'exercice — pilote le filtrage annuel des données. */}
+              <select
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                aria-label="Exercice"
+                className="px-3 py-2 rounded-lg border border-neutral-300 text-sm bg-white text-neutral-700"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((y) => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
               <Link to="/taxation/declarations">
                 <ElegantButton variant="outline" icon={FileText}>
                   Nouvelles Declarations
