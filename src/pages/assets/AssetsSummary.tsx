@@ -3,6 +3,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { useAccountNames } from '@/hooks/useAccountNames';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { StatBadgeCard } from '../../components/premium';
 import { AtlasDonut } from '../../components/charts';
 import type { DBAsset } from '../../lib/db';
@@ -136,6 +137,8 @@ const AssetsSummary: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const { adapter } = useData();
   const { format: formatAccount } = useAccountNames();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
 
   // Assets from DataContext
   const [dbAssets, setDbAssets] = useState<DBAsset[]>([]);
@@ -197,79 +200,79 @@ const AssetsSummary: React.FC = () => {
   const assetKPIs: AssetKPI[] = useMemo(() => [
     {
       id: 'total_value',
-      title: 'Valeur Totale des Actifs',
+      title: t('assetsSummary.kpiTotalValue'),
       value: `${formatCurrency(totalAcquisitionValue)}`,
       change: 0,
-      changeLabel: 'cette année',
+      changeLabel: t('assetsSummary.changeThisYear'),
       icon: <DollarSign className="w-6 h-6" />,
       color: '[var(--color-primary)]',
       trend: 'up' as const,
-      description: 'Valeur brute de tous les actifs immobilisés'
+      description: t('assetsSummary.kpiTotalValueDesc')
     },
     {
       id: 'net_book_value',
-      title: 'Valeur Nette Comptable',
+      title: t('assetsSummary.kpiNbv'),
       value: `${formatCurrency(totalResidualValue)}`,
       change: 0,
-      changeLabel: 'cette année',
+      changeLabel: t('assetsSummary.changeThisYear'),
       icon: <Building2 className="w-6 h-6" />,
       color: 'green',
       trend: 'up' as const,
-      description: 'Valeur résiduelle de tous les actifs'
+      description: t('assetsSummary.kpiNbvDesc')
     },
     {
       id: 'depreciation_rate',
-      title: 'Taux d\'Amortissement',
+      title: t('assetsSummary.kpiDepRate'),
       value: `${depreciationRate.toFixed(1)}%`,
       change: 0,
-      changeLabel: 'calculé',
+      changeLabel: t('assetsSummary.changeComputed'),
       icon: <TrendingDown className="w-6 h-6" />,
       color: 'orange',
       trend: 'down' as const,
-      description: 'Pourcentage d\'amortissement cumulé'
+      description: t('assetsSummary.kpiDepRateDesc')
     },
     {
       id: 'maintenance_cost',
-      title: 'Coûts de Maintenance',
+      title: t('assetsSummary.kpiMaintenanceCost'),
       value: `${formatCurrency(maintenanceCost)}`,
       change: 0,
-      changeLabel: 'réel',
+      changeLabel: t('assetsSummary.changeActual'),
       icon: <Wrench className="w-6 h-6" />,
       color: '[var(--color-text-secondary)]',
       trend: 'down' as const,
-      description: 'Coûts de maintenance enregistrés'
+      description: t('assetsSummary.kpiMaintenanceCostDesc')
     },
     {
       id: 'asset_count',
-      title: 'Nombre d\'Actifs',
+      title: t('assetsSummary.kpiAssetCount'),
       value: String(dbAssets.length || glAssets.count),
       change: 0,
-      changeLabel: 'cette année',
+      changeLabel: t('assetsSummary.changeThisYear'),
       icon: <Package className="w-6 h-6" />,
       color: '[var(--color-primary)]',
       trend: 'up' as const,
-      description: 'Total des actifs enregistrés'
+      description: t('assetsSummary.kpiAssetCountDesc')
     },
     {
       id: 'utilization_rate',
-      title: 'Taux d\'Utilisation',
+      title: t('assetsSummary.kpiUtilizationRate'),
       value: `${utilizationRate.toFixed(1)}%`,
       change: 0,
-      changeLabel: 'actifs actifs / total',
+      changeLabel: t('assetsSummary.changeActiveRatio'),
       icon: <Activity className="w-6 h-6" />,
       color: '[var(--color-primary)]',
       trend: 'up' as const,
-      description: 'Pourcentage d\'actifs en utilisation'
+      description: t('assetsSummary.kpiUtilizationRateDesc')
     }
-  ], [dbAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate, maintenanceCost]);
+  ], [dbAssets, glAssets, totalAcquisitionValue, totalResidualValue, depreciationRate, utilizationRate, maintenanceCost, t]);
 
   // Catégories = CLASSES SYSCOHADA réelles (préfixe 2 chiffres du compte d'immobilisation).
   // Le champ `category` n'a qu'UNE valeur à l'import (« Autre ») → inutilisable.
   const assetCategories: AssetCategory[] = useMemo(() => {
     const CLASS_LABELS: Record<string, string> = {
-      '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
-      '23': 'Bâtiments et installations', '24': 'Matériel, mobilier & transport',
-      '25': 'Avances sur immobilisations', '26': 'Titres de participation', '27': 'Autres immo. financières',
+      '20': t('assetClasses.class20'), '21': t('assetClasses.class21'), '22': t('assetClasses.class22'),
+      '23': t('assetClasses.class23'), '24': t('assetClasses.class24'),
+      '25': t('assetClasses.class25'), '26': t('assetClasses.class26'), '27': t('assetClasses.class27'),
     };
     const catMap: Record<string, { count: number; value: number; subs: Record<string, { count: number; value: number }> }> = {};
     for (const asset of dbAssets) {
@@ -289,7 +292,7 @@ const AssetsSummary: React.FC = () => {
       .sort((a, b) => b[1].value - a[1].value)
       .map(([cls, data], index) => ({
         id: cls,
-        name: `${cls} — ${CLASS_LABELS[cls] || 'Autres immobilisations'}`,
+        name: `${cls} — ${CLASS_LABELS[cls] || t('assetsSummary.otherAssets')}`,
         icon: <Package className="w-6 h-6" />,
         count: data.count,
         value: data.value,
@@ -300,7 +303,7 @@ const AssetsSummary: React.FC = () => {
           .sort((a, b) => b[1].value - a[1].value)
           .map(([code, d]) => ({ name: `Compte ${formatAccount(code)}`, count: d.count, value: d.value })),
       }));
-  }, [dbAssets, formatAccount]);
+  }, [dbAssets, formatAccount, t]);
 
   // Geographic data - group by category as proxy (no location field in DBAsset)
   const geographicData: GeographicData[] = useMemo(() => {
@@ -365,11 +368,11 @@ const AssetsSummary: React.FC = () => {
 
   // Tab configuration
   const tabs: Tab[] = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: <Eye className="w-4 h-4" /> },
-    { id: 'categories', label: 'Catégories', icon: <BarChartIcon className="w-4 h-4" /> },
-    { id: 'financial', label: 'Financier', icon: <DollarSign className="w-4 h-4" /> },
-    { id: 'geographic', label: 'Géographique', icon: <Map className="w-4 h-4" /> },
-    { id: 'maintenance', label: 'Maintenance', icon: <Settings className="w-4 h-4" /> }
+    { id: 'overview', label: t('assetsSummary.tabOverview'), icon: <Eye className="w-4 h-4" /> },
+    { id: 'categories', label: t('assetsSummary.tabCategories'), icon: <BarChartIcon className="w-4 h-4" /> },
+    { id: 'financial', label: t('assetsSummary.tabFinancial'), icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'geographic', label: t('assetsSummary.tabGeographic'), icon: <Map className="w-4 h-4" /> },
+    { id: 'maintenance', label: t('assetsSummary.tabMaintenance'), icon: <Settings className="w-4 h-4" /> }
   ];
 
   // Calculs dynamiques
@@ -394,47 +397,47 @@ const AssetsSummary: React.FC = () => {
 
     // KPIs Sheet
     const kpiData = assetKPIs.map(kpi => ({
-      'Indicateur': kpi.title,
-      'Valeur': kpi.value,
-      'Évolution': `${kpi.change}%`,
-      'Période': kpi.changeLabel,
-      'Description': kpi.description
+      [t('assetsSummary.xlsIndicator')]: kpi.title,
+      [t('assetsSummary.xlsValue')]: kpi.value,
+      [t('assetsSummary.xlsChange')]: `${kpi.change}%`,
+      [t('assetsSummary.xlsPeriod')]: kpi.changeLabel,
+      [t('assetsSummary.xlsDescription')]: kpi.description
     }));
     const kpiSheet = XLSX.utils.json_to_sheet(kpiData);
     XLSX.utils.book_append_sheet(wb, kpiSheet, 'KPIs');
 
     // Categories Sheet
     const categoryData = assetCategories.map(cat => ({
-      'Catégorie': cat.name,
-      'Nombre': cat.count,
-      'Valeur': `${formatCurrency(cat.value)}`,
-      'Pourcentage': `${cat.percentage}%`
+      [t('assetsSummary.xlsCategory')]: cat.name,
+      [t('assetsSummary.xlsCount')]: cat.count,
+      [t('assetsSummary.xlsValue')]: `${formatCurrency(cat.value)}`,
+      [t('assetsSummary.xlsPercentage')]: `${cat.percentage}%`
     }));
     const categorySheet = XLSX.utils.json_to_sheet(categoryData);
-    XLSX.utils.book_append_sheet(wb, categorySheet, 'Catégories');
+    XLSX.utils.book_append_sheet(wb, categorySheet, t('assetsSummary.sheetCategories'));
 
     // Geographic Sheet
     const geoData = geographicData.map(geo => ({
-      'Localisation': geo.location,
-      'Nombre': geo.count,
-      'Valeur': `${formatCurrency(geo.value)}`,
-      'Pourcentage': `${geo.percentage}%`,
-      'Niveau de Risque': geo.riskLevel
+      [t('assetsSummary.xlsLocation')]: geo.location,
+      [t('assetsSummary.xlsCount')]: geo.count,
+      [t('assetsSummary.xlsValue')]: `${formatCurrency(geo.value)}`,
+      [t('assetsSummary.xlsPercentage')]: `${geo.percentage}%`,
+      [t('assetsSummary.xlsRiskLevel')]: geo.riskLevel
     }));
     const geoSheet = XLSX.utils.json_to_sheet(geoData);
-    XLSX.utils.book_append_sheet(wb, geoSheet, 'Répartition Géographique');
+    XLSX.utils.book_append_sheet(wb, geoSheet, t('assetsSummary.sheetGeographic'));
 
     // Maintenance Sheet
     const maintenanceExportData = maintenanceData.map((item: any) => ({
-      'Actif': item.assetName,
-      'Type': item.type,
-      'Statut': item.status,
-      'Date d\'échéance': item.dueDate,
-      'Coût': `${formatCurrency(item.cost)}`,
-      'Priorité': item.priority
+      [t('assetsSummary.xlsAsset')]: item.assetName,
+      [t('assetsSummary.xlsType')]: item.type,
+      [t('assetsSummary.xlsStatus')]: item.status,
+      [t('assetsSummary.xlsDueDate')]: item.dueDate,
+      [t('assetsSummary.xlsCost')]: `${formatCurrency(item.cost)}`,
+      [t('assetsSummary.xlsPriority')]: item.priority
     }));
     const maintenanceSheet = XLSX.utils.json_to_sheet(maintenanceExportData);
-    XLSX.utils.book_append_sheet(wb, maintenanceSheet, 'Maintenance');
+    XLSX.utils.book_append_sheet(wb, maintenanceSheet, t('assetsSummary.sheetMaintenance'));
 
     XLSX.writeFile(wb, `Assets_Summary_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
@@ -447,17 +450,17 @@ const AssetsSummary: React.FC = () => {
 
     // Titre
     pdf.setFontSize(20);
-    pdf.text('Synthèse des Actifs - Atlas FnA', pageWidth / 2, yPos, { align: 'center' });
+    pdf.text(t('assetsSummary.pdfTitle'), pageWidth / 2, yPos, { align: 'center' });
     yPos += 20;
 
     // Date
     pdf.setFontSize(12);
-    pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth / 2, yPos, { align: 'center' });
+    pdf.text(t('assetsSummary.pdfGeneratedOn', { date: new Date().toLocaleDateString(dateLocale) }), pageWidth / 2, yPos, { align: 'center' });
     yPos += 30;
 
     // KPIs principaux
     pdf.setFontSize(16);
-    pdf.text('Indicateurs Clés de Performance', 20, yPos);
+    pdf.text(t('assetsSummary.pdfKpis'), 20, yPos);
     yPos += 15;
 
     pdf.setFontSize(10);
@@ -470,12 +473,12 @@ const AssetsSummary: React.FC = () => {
 
     // Répartition par catégories
     pdf.setFontSize(16);
-    pdf.text('Répartition par Catégories', 20, yPos);
+    pdf.text(t('assetsSummary.pdfCategories'), 20, yPos);
     yPos += 15;
 
     pdf.setFontSize(10);
     assetCategories.forEach(cat => {
-      pdf.text(`${cat.name}: ${cat.count} actifs - ${formatCurrency(cat.value)} (${cat.percentage}%)`, 20, yPos);
+      pdf.text(t('assetsSummary.pdfCategoryLine', { name: cat.name, count: String(cat.count), value: formatCurrency(cat.value), pct: String(cat.percentage) }), 20, yPos);
       yPos += 8;
     });
 
@@ -528,9 +531,9 @@ const AssetsSummary: React.FC = () => {
       >
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
-            <h2 className="text-lg font-bold text-neutral-900 mb-1">Analyse Rapide</h2>
+            <h2 className="text-lg font-bold text-neutral-900 mb-1">{t('assetsSummary.quickAnalysis')}</h2>
             <p className="text-sm text-neutral-500">
-              Points clés à retenir sur votre patrimoine d'actifs
+              {t('assetsSummary.quickAnalysisSub')}
             </p>
           </div>
 
@@ -540,11 +543,11 @@ const AssetsSummary: React.FC = () => {
                 <TrendingUp className="w-5 h-5 text-neutral-700" />
               </div>
               <div>
-                <p className="text-sm text-neutral-500">Croissance</p>
+                <p className="text-sm text-neutral-500">{t('assetsSummary.growth')}</p>
                 <p className="font-semibold text-neutral-900">
                   {dbAssets.length > 0
-                    ? `${depreciationRate > 0 ? '+' : ''}${(100 - depreciationRate).toFixed(1)}% valeur nette`
-                    : '— aucun actif'}
+                    ? `${depreciationRate > 0 ? '+' : ''}${t('assetsSummary.netValuePct', { pct: (100 - depreciationRate).toFixed(1) })}`
+                    : t('assetsSummary.noAsset')}
                 </p>
               </div>
             </div>
@@ -554,11 +557,11 @@ const AssetsSummary: React.FC = () => {
                 <Shield className="w-5 h-5 text-neutral-700" />
               </div>
               <div>
-                <p className="text-sm text-neutral-500">Conformité</p>
+                <p className="text-sm text-neutral-500">{t('assetsSummary.compliance')}</p>
                 <p className="font-semibold text-neutral-900">
                   {dbAssets.length > 0
-                    ? `${((activeAssets.filter(a => a.depreciationMethod && a.usefulLifeYears > 0).length / Math.max(activeAssets.length, 1)) * 100).toFixed(1)}% conforme`
-                    : '— aucun actif'}
+                    ? t('assetsSummary.compliantPct', { pct: ((activeAssets.filter(a => a.depreciationMethod && a.usefulLifeYears > 0).length / Math.max(activeAssets.length, 1)) * 100).toFixed(1) })
+                    : t('assetsSummary.noAsset')}
                 </p>
               </div>
             </div>
@@ -568,11 +571,11 @@ const AssetsSummary: React.FC = () => {
                 <Target className="w-5 h-5 text-neutral-700" />
               </div>
               <div>
-                <p className="text-sm text-neutral-500">Performance</p>
+                <p className="text-sm text-neutral-500">{t('assetsSummary.performance')}</p>
                 <p className="font-semibold text-neutral-900">
                   {dbAssets.length > 0
-                    ? `${utilizationRate.toFixed(1)}% utilisation`
-                    : '— aucun actif'}
+                    ? t('assetsSummary.utilizationPct', { pct: utilizationRate.toFixed(1) })
+                    : t('assetsSummary.noAsset')}
                 </p>
               </div>
             </div>
@@ -614,7 +617,7 @@ const AssetsSummary: React.FC = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 border border-primary-200">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-primary-900">
-              Détail par Catégorie
+              {t('assetsSummary.categoryDetail')}
             </h2>
             <BarChart3 className="w-5 h-5 text-primary-500" />
           </div>
@@ -738,7 +741,7 @@ const AssetsSummary: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-primary-900">
-            Évolution Financière des Actifs
+            {t('assetsSummary.financialEvolution')}
           </h2>
           <LineChart className="w-5 h-5 text-primary-500" />
         </div>
@@ -759,28 +762,28 @@ const AssetsSummary: React.FC = () => {
                 dataKey="acquisition"
                 stroke="#235A6E"
                 strokeWidth={2}
-                name="Acquisitions"
+                name={t('assetsSummary.seriesAcquisitions')}
               />
               <Line
                 type="monotone"
                 dataKey="depreciation"
                 stroke="#C0322B"
                 strokeWidth={2}
-                name="Amortissements"
+                name={t('assetsSummary.seriesDepreciation')}
               />
               <Line
                 type="monotone"
                 dataKey="netValue"
                 stroke="#15803D"
                 strokeWidth={2}
-                name="Valeur nette"
+                name={t('assetsSummary.seriesNetValue')}
               />
               <Line
                 type="monotone"
                 dataKey="disposal"
                 stroke="#E89A2E"
                 strokeWidth={2}
-                name="Cessions"
+                name={t('assetsSummary.seriesDisposals')}
               />
             </RechartsLineChart>
           </ResponsiveContainer>
@@ -839,15 +842,15 @@ const AssetsSummary: React.FC = () => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="text-primary-600">Faible risque</span>
+                <span className="text-primary-600">{t('assetsSummary.riskLow')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <span className="text-primary-600">Risque moyen</span>
+                <span className="text-primary-600">{t('assetsSummary.riskMedium')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <span className="text-primary-600">Risque élevé</span>
+                <span className="text-primary-600">{t('assetsSummary.riskHigh')}</span>
               </div>
             </div>
           </div>
@@ -863,7 +866,7 @@ const AssetsSummary: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-primary-900">
-            Distribution par Valeur
+            {t('assetsSummary.valueDistribution')}
           </h2>
           <BarChart3 className="w-5 h-5 text-primary-500" />
         </div>
@@ -905,25 +908,25 @@ const AssetsSummary: React.FC = () => {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 rounded-lg bg-red-50 border border-red-200">
             <div className="text-lg font-bold text-red-600">{overdueMaintenanceCount}</div>
-            <div className="text-sm text-red-600">En retard</div>
+            <div className="text-sm text-red-600">{t('assetsSummary.overdue')}</div>
           </div>
           <div className="text-center p-4 rounded-lg bg-orange-50 border border-orange-200">
             <div className="text-lg font-bold text-orange-600">{criticalMaintenanceCount}</div>
-            <div className="text-sm text-orange-600">Critique</div>
+            <div className="text-sm text-orange-600">{t('assetsSummary.critical')}</div>
           </div>
           <div className="text-center p-4 rounded-lg bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20">
             <div className="text-lg font-bold text-[var(--color-primary)]">
               {formatCurrency(totalMaintenanceCost)}
             </div>
-            <div className="text-sm text-[var(--color-primary)]">Coût total</div>
+            <div className="text-sm text-[var(--color-primary)]">{t('assetsSummary.totalCost')}</div>
           </div>
         </div>
 
         {/* Liste des maintenances prioritaires */}
         <div className="space-y-3">
-          <h3 className="font-medium text-primary-900 mb-3">Maintenances Prioritaires</h3>
+          <h3 className="font-medium text-primary-900 mb-3">{t('assetsSummary.priorityMaintenance')}</h3>
           {maintenanceData.length === 0 && (
-            <p className="text-sm text-primary-400 italic py-2">Aucune maintenance enregistrée.</p>
+            <p className="text-sm text-primary-400 italic py-2">{t('assetsSummary.noMaintenance')}</p>
           )}
           {maintenanceData
             .filter(item => item.priority === 'critical' || item.status === 'overdue')
@@ -971,14 +974,14 @@ const AssetsSummary: React.FC = () => {
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-primary-900">
-            Toutes les Maintenances
+            {t('assetsSummary.allMaintenance')}
           </h2>
           <Calendar className="w-5 h-5 text-primary-500" />
         </div>
 
         <div className="space-y-3">
           {maintenanceData.length === 0 && (
-            <p className="text-sm text-primary-400 italic py-4 text-center">Aucune maintenance enregistrée.</p>
+            <p className="text-sm text-primary-400 italic py-4 text-center">{t('assetsSummary.noMaintenance')}</p>
           )}
           {maintenanceData.map((item) => (
             <motion.div
@@ -1041,7 +1044,7 @@ const AssetsSummary: React.FC = () => {
                 Synthèse des Actifs
               </h1>
               <p className="text-primary-600">
-                Vue d'ensemble complète du patrimoine de l'entreprise
+                {t('assetsSummary.subtitle')}
               </p>
             </div>
 
@@ -1053,7 +1056,7 @@ const AssetsSummary: React.FC = () => {
                   className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                  Actualiser
+                  {t('assetsSummary.refresh')}
                 </button>
 
                 <button
@@ -1078,10 +1081,10 @@ const AssetsSummary: React.FC = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-4 py-2 border border-primary-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="month">Ce mois</option>
-                <option value="quarter">Ce trimestre</option>
-                <option value="year">Cette année</option>
-                <option value="all">Tout</option>
+                <option value="month">{t('assetsSummary.periodMonth')}</option>
+                <option value="quarter">{t('assetsSummary.periodQuarter')}</option>
+                <option value="year">{t('assetsSummary.periodYear')}</option>
+                <option value="all">{t('assetsSummary.periodAll')}</option>
               </select>
             </div>
           </div>

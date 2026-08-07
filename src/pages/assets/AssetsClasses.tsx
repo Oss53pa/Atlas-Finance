@@ -11,24 +11,28 @@ import ModernButton from '../../components/ui/ModernButton';
 import { useData } from '../../contexts/DataContext';
 import { formatCompactCurrency, formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // SYSCOHADA class definitions (reference structure — values come from data)
 // Classes SYSCOHADA OFFICIELLES (les anciens libellés étaient faux : 21≠corporelles,
 // 22≠concession, 23=Bâtiments — c'est là que vit la construction PLAZA, 25≠informatique).
 // Les sous-comptes affichés sont dérivés DYNAMIQUEMENT des écritures réelles.
+// Clés (et non libellés) : la table est figée au chargement du module ; nom et
+// description sont résolus au rendu.
 const CLASS_DEFS = [
-  { code: '20', name: 'Charges immobilisées', description: 'Frais d\'établissement et charges à répartir', icon: FileText, color: 'primary', accountDefs: [] as Array<{ code: string; name: string }> },
-  { code: '21', name: 'Immobilisations incorporelles', description: 'Brevets, licences, logiciels, fonds commercial', icon: FileText, color: 'blue', accountDefs: [] },
-  { code: '22', name: 'Terrains', description: 'Terrains bâtis et non bâtis', icon: Building, color: 'green', accountDefs: [] },
-  { code: '23', name: 'Bâtiments, installations et agencements', description: 'Constructions, installations techniques, agencements', icon: Building, color: 'orange', accountDefs: [] },
-  { code: '24', name: 'Matériel, mobilier et transport', description: 'Matériel et outillage industriel, mobilier, véhicules', icon: Car, color: 'red', accountDefs: [] },
-  { code: '25', name: 'Avances et acomptes sur immobilisations', description: 'Avances et acomptes versés sur commandes d\'immobilisations', icon: Package, color: 'primary', accountDefs: [] },
-  { code: '26', name: 'Titres de participation', description: 'Participations et créances rattachées', icon: Shield, color: 'blue', accountDefs: [] },
-  { code: '27', name: 'Autres immobilisations financières', description: 'Prêts, dépôts et cautionnements', icon: Computer, color: 'green', accountDefs: [] },
+  { code: '20', nameKey: 'assetClasses.class20', descKey: 'assetClasses.class20Desc', icon: FileText, color: 'primary', accountDefs: [] as Array<{ code: string; name: string }> },
+  { code: '21', nameKey: 'assetClasses.class21', descKey: 'assetClasses.class21Desc', icon: FileText, color: 'blue', accountDefs: [] },
+  { code: '22', nameKey: 'assetClasses.class22', descKey: 'assetClasses.class22Desc', icon: Building, color: 'green', accountDefs: [] },
+  { code: '23', nameKey: 'assetClasses.class23', descKey: 'assetClasses.class23Desc', icon: Building, color: 'orange', accountDefs: [] },
+  { code: '24', nameKey: 'assetClasses.class24', descKey: 'assetClasses.class24Desc', icon: Car, color: 'red', accountDefs: [] },
+  { code: '25', nameKey: 'assetClasses.class25', descKey: 'assetClasses.class25Desc', icon: Package, color: 'primary', accountDefs: [] },
+  { code: '26', nameKey: 'assetClasses.class26', descKey: 'assetClasses.class26Desc', icon: Shield, color: 'blue', accountDefs: [] },
+  { code: '27', nameKey: 'assetClasses.class27', descKey: 'assetClasses.class27Desc', icon: Computer, color: 'green', accountDefs: [] },
 ];
 
 const AssetsClasses: React.FC = () => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeView, setActiveView] = useState<'grid' | 'table'>('grid');
@@ -88,8 +92,8 @@ const AssetsClasses: React.FC = () => {
 
       return {
         code: def.code,
-        name: def.name,
-        description: def.description,
+        name: t(def.nameKey),
+        description: t(def.descKey),
         accounts,
         totalValue: totalValue || classAssets.reduce((s, a) => s + (a.acquisitionValue || 0), 0),
         cumulAmort,
@@ -103,7 +107,7 @@ const AssetsClasses: React.FC = () => {
         color: def.color,
       };
     });
-  }, [dbAssets, dbEntries]);
+  }, [dbAssets, dbEntries, t]);
 
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string }> = {
@@ -127,21 +131,21 @@ const AssetsClasses: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-            Classes Comptables d'Immobilisations
+            {t('assetClasses.title')}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Plan comptable et classification des actifs
+            {t('assetClasses.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <PageHeaderActions />
           <ModernButton variant="outline" size="sm">
             <Settings className="w-4 h-4 mr-1" />
-            Configuration
+            {t('assetClasses.configuration')}
           </ModernButton>
           <ModernButton variant="primary" size="sm">
             <Plus className="w-4 h-4 mr-1" />
-            Nouvelle classe
+            {t('assetClasses.newClass')}
           </ModernButton>
         </div>
       </div>
@@ -155,7 +159,7 @@ const AssetsClasses: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
-                  placeholder="Rechercher par code ou nom de classe..."
+                  placeholder={t('assetClasses.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -171,7 +175,7 @@ const AssetsClasses: React.FC = () => {
                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
                 }`}
               >
-                Vue grille
+                {t('assetClasses.gridView')}
               </button>
               <button
                 onClick={() => setActiveView('table')}
@@ -181,7 +185,7 @@ const AssetsClasses: React.FC = () => {
                     : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-background-subtle)]'
                 }`}
               >
-                Vue tableau
+                {t('assetClasses.tableView')}
               </button>
             </div>
           </div>
@@ -194,7 +198,7 @@ const AssetsClasses: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Total classes</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetClasses.totalClasses')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.length}</p>
               </div>
               <Layers className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
@@ -206,7 +210,7 @@ const AssetsClasses: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Comptes actifs</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetClasses.activeAccounts')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.reduce((s, c) => s + c.accounts.filter(a => a.balance !== 0).length, 0)}</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
@@ -218,8 +222,8 @@ const AssetsClasses: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Valeur totale</p>
-                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XAF', maximumFractionDigits: 0 }).format(assetClasses.reduce((s, c) => s + c.totalValue, 0))}</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetClasses.totalValue')}</p>
+                <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{new Intl.NumberFormat(language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR', { style: 'currency', currency: 'XAF', maximumFractionDigits: 0 }).format(assetClasses.reduce((s, c) => s + c.totalValue, 0))}</p>
               </div>
               <DollarSign className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
             </div>
@@ -230,7 +234,7 @@ const AssetsClasses: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Actifs liés</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetClasses.linkedAssets')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{assetClasses.reduce((s, c) => s + c.count, 0)}</p>
               </div>
               <BarChart3 className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
@@ -264,7 +268,7 @@ const AssetsClasses: React.FC = () => {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-[var(--color-text-primary)]">
-                            Classe {assetClass.code}
+                            {t('assetClasses.classPrefix', { code: assetClass.code })}
                           </h3>
                           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
                             {assetClass.name}
@@ -282,13 +286,13 @@ const AssetsClasses: React.FC = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.grossValue')}</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
                           {formatCompactCurrency(assetClass.totalValue)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Actifs</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.assets')}</p>
                         <p className="font-semibold text-[var(--color-text-primary)]">
                           {assetClass.assetCount}
                         </p>
@@ -298,13 +302,13 @@ const AssetsClasses: React.FC = () => {
                     {/* Amortissements cumulés + Valeur Nette Comptable */}
                     <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[var(--color-border)]">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulés</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.accumulatedDep')}</p>
                         <p className="font-medium text-red-500">
                           {formatCompactCurrency(assetClass.cumulAmort)}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Valeur nette (VNC)</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.netValue')}</p>
                         <p className={`font-semibold ${colors.text}`}>
                           {formatCompactCurrency(assetClass.netValue)}
                         </p>
@@ -313,7 +317,7 @@ const AssetsClasses: React.FC = () => {
 
                     {/* Depreciation Rate */}
                     <div className="flex items-center justify-between pt-3 border-t border-[var(--color-border)]">
-                      <span className="text-xs text-[var(--color-text-secondary)]">Taux d'amortissement</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.depreciationRate')}</span>
                       <span className={`text-sm font-medium ${colors.text}`}>
                         {assetClass.depreciationRate}
                       </span>
@@ -324,7 +328,7 @@ const AssetsClasses: React.FC = () => {
                       onClick={(e) => { e.stopPropagation(); setSelectedClass(assetClass.code); }}
                       className="w-full flex items-center justify-between text-xs text-[var(--color-primary)] hover:underline pt-1"
                     >
-                      <span>{assetClass.accounts.length} compte(s) — voir le détail</span>
+                      <span>{t('assetClasses.accountsDetail', { count: String(assetClass.accounts.length) })}</span>
                       <ChevronDown className="w-3 h-3 -rotate-90" />
                     </button>
                   </div>
@@ -340,14 +344,14 @@ const AssetsClasses: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Classe</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Nom</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Description</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Comptes</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Actifs</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Valeur</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Taux amort.</th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">Actions</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colClass')}</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colName')}</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colDescription')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colAccounts')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colAssets')}</th>
+                    <th className="text-right py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colValue')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colRate')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-[var(--color-text-secondary)]">{t('assetClasses.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -389,8 +393,8 @@ const AssetsClasses: React.FC = () => {
                                 sans fonction a été retiré — classes SYSCOHADA normatives). */}
                             <button
                               className="p-1 hover:bg-[var(--color-background)] rounded"
-                              aria-label="Voir le détail des comptes"
-                              title="Voir le détail des comptes"
+                              aria-label={t('assetClasses.viewAccountsDetail')}
+                              title={t('assetClasses.viewAccountsDetail')}
                               onClick={(e) => { e.stopPropagation(); setSelectedClass(assetClass.code); }}
                             >
                               <Info className="w-4 h-4 text-[var(--color-text-secondary)]" />
@@ -423,7 +427,7 @@ const AssetsClasses: React.FC = () => {
                     <Icon className={`w-5 h-5 ${colors.text}`} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Classe {cls.code} — {cls.name}</h2>
+                    <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('assetClasses.modalTitle', { code: cls.code, name: cls.name })}</h2>
                     <p className="text-sm text-[var(--color-text-secondary)]">{cls.description}</p>
                   </div>
                 </div>
@@ -433,25 +437,25 @@ const AssetsClasses: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-5 border-b border-[var(--color-border)]">
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Biens</p><p className="font-bold text-[var(--color-text-primary)]">{cls.assetCount}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Valeur brute</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(cls.totalValue)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p><p className="font-bold text-red-600">{formatCurrency(cls.cumulAmort)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">VNC</p><p className="font-bold text-green-600">{formatCurrency(cls.netValue)}</p></div>
-                <div><p className="text-xs text-[var(--color-text-secondary)]">Taux amort.</p><p className="font-bold text-[var(--color-text-primary)]">{cls.depreciationRate}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.kpiItems')}</p><p className="font-bold text-[var(--color-text-primary)]">{cls.assetCount}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.grossValue')}</p><p className="font-bold text-[var(--color-text-primary)]">{formatCurrency(cls.totalValue)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.kpiAccumulatedDep')}</p><p className="font-bold text-red-600">{formatCurrency(cls.cumulAmort)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.kpiNbv')}</p><p className="font-bold text-green-600">{formatCurrency(cls.netValue)}</p></div>
+                <div><p className="text-xs text-[var(--color-text-secondary)]">{t('assetClasses.colRate')}</p><p className="font-bold text-[var(--color-text-primary)]">{cls.depreciationRate}</p></div>
               </div>
 
               <div className="p-5">
-                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Comptes de la classe ({cls.accounts.length})</h3>
+                <h3 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">{t('assetClasses.classAccounts', { count: String(cls.accounts.length) })}</h3>
                 {cls.accounts.length === 0 ? (
-                  <p className="text-sm text-[var(--color-text-tertiary)]">Aucun compte mouvementé.</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('assetClasses.noMovedAccount')}</p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
-                          <th className="text-left py-2 pr-3 font-medium">Compte</th>
-                          <th className="text-left py-2 px-3 font-medium">Libellé</th>
-                          <th className="text-right py-2 pl-3 font-medium">Solde (brut)</th>
+                          <th className="text-left py-2 pr-3 font-medium">{t('assetClasses.colAccount')}</th>
+                          <th className="text-left py-2 px-3 font-medium">{t('assetClasses.colLabel')}</th>
+                          <th className="text-right py-2 pl-3 font-medium">{t('assetClasses.colGrossBalance')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -465,7 +469,7 @@ const AssetsClasses: React.FC = () => {
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 border-[var(--color-border)] font-bold">
-                          <td className="py-2 pr-3" colSpan={2}>Total brut classe {cls.code}</td>
+                          <td className="py-2 pr-3" colSpan={2}>{t('assetClasses.totalGrossClass', { code: cls.code })}</td>
                           <td className="py-2 pl-3 text-right font-mono">{formatCurrency(cls.totalValue)}</td>
                         </tr>
                       </tfoot>

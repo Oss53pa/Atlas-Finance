@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import {
   ArrowLeftRight, Search, Filter, Calendar,
@@ -102,6 +103,7 @@ const AssetsTransactions: React.FC = () => {
   });
 
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [dbAssets, setDbAssets] = useState<any[]>([]);
 
   // Load assets from DataAdapter
@@ -122,7 +124,7 @@ const AssetsTransactions: React.FC = () => {
       numeroDocument: asset.invoiceNumber || asset.documentNumber || '—',
       montant: asset.acquisitionValue || 0,
       categorieActifs: asset.category || '—',
-      dureeVie: asset.usefulLife ? `${asset.usefulLife} ans` : '—',
+      dureeVie: asset.usefulLife ? t('assetsTransactions.years', { count: String(asset.usefulLife) }) : '—',
       dureeVieAnnees: asset.usefulLife || 0,
       valeurResiduelle: asset.residualValue || 0,
       produitCession: asset.disposalPrice || 0,
@@ -169,7 +171,7 @@ const AssetsTransactions: React.FC = () => {
       amortissementMoisCout: asset.usefulLife > 0 ? ((asset.acquisitionValue || 0) - (asset.residualValue || 0)) / (asset.usefulLife * 12) : 0,
       amortCumuleCoutFinMoisPrec: 0,
     }));
-  }, [dbAssets]);
+  }, [dbAssets, t]);
 
   const getStatusBadge = (type: string) => {
     const config = {
@@ -184,10 +186,19 @@ const AssetsTransactions: React.FC = () => {
       text: 'text-gray-700',
       icon: FileText
     };
+    // La valeur stockée reste stable ('Acquisition', 'Cession'…) ; seul
+    // l'affichage est traduit.
+    const TYPE_KEY: Record<string, string> = {
+      Acquisition: 'assetsTransactions.typeAcquisition',
+      Cession: 'assetsTransactions.typeDisposal',
+      'Réévaluation': 'assetsTransactions.typeRevaluation',
+      Transfert: 'assetsTransactions.typeTransfer',
+      'Dépréciation': 'assetsTransactions.typeImpairment',
+    };
     return (
       <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full ${bg} ${text}`}>
         <Icon className="w-3 h-3" />
-        <span className="text-xs font-medium">{type}</span>
+        <span className="text-xs font-medium">{TYPE_KEY[type] ? t(TYPE_KEY[type]) : type}</span>
       </div>
     );
   };
@@ -217,22 +228,23 @@ const AssetsTransactions: React.FC = () => {
     currentPage * itemsPerPage
   );
 
+  // Libellés résolus au rendu (pas de table figée au chargement du module).
   const columnDefinitions = [
-    { key: 'dateTransaction', label: 'Date transaction', width: 'w-24' },
-    { key: 'typeTransaction', label: 'Type', width: 'w-32' },
-    { key: 'designation', label: 'Désignation', width: 'w-48' },
-    { key: 'numeroImmobilisation', label: 'N° Immobilisation', width: 'w-36' },
-    { key: 'fournisseur', label: 'Fournisseur', width: 'w-32' },
-    { key: 'numeroDocument', label: 'N° Document', width: 'w-28' },
-    { key: 'montant', label: 'Montant', width: 'w-24', align: 'text-right' },
-    { key: 'categorieActifs', label: 'Catégorie', width: 'w-32' },
-    { key: 'dureeVieAnnees', label: 'Durée vie', width: 'w-20', align: 'text-center' },
-    { key: 'valeurResiduelle', label: 'Val. résiduelle', width: 'w-24', align: 'text-right' },
-    { key: 'valeurNetteComptableActuelle', label: 'VNC actuelle', width: 'w-24', align: 'text-right' },
-    { key: 'amortissementCumuleActuel', label: 'Amort. cumulé', width: 'w-24', align: 'text-right' },
-    { key: 'coutHistorique', label: 'Coût historique', width: 'w-24', align: 'text-right' },
-    { key: 'produitCession', label: 'Produit cession', width: 'w-24', align: 'text-right' },
-    { key: 'profitPerteCession', label: 'Profit/Perte', width: 'w-24', align: 'text-right' }
+    { key: 'dateTransaction', label: t('assetsTransactions.colDate'), width: 'w-24' },
+    { key: 'typeTransaction', label: t('assetsTransactions.colType'), width: 'w-32' },
+    { key: 'designation', label: t('assetsTransactions.colDesignation'), width: 'w-48' },
+    { key: 'numeroImmobilisation', label: t('assetsTransactions.colAssetNumber'), width: 'w-36' },
+    { key: 'fournisseur', label: t('assetsTransactions.colSupplier'), width: 'w-32' },
+    { key: 'numeroDocument', label: t('assetsTransactions.colDocument'), width: 'w-28' },
+    { key: 'montant', label: t('assetsTransactions.colAmount'), width: 'w-24', align: 'text-right' },
+    { key: 'categorieActifs', label: t('assetsTransactions.colCategory'), width: 'w-32' },
+    { key: 'dureeVieAnnees', label: t('assetsTransactions.colUsefulLife'), width: 'w-20', align: 'text-center' },
+    { key: 'valeurResiduelle', label: t('assetsTransactions.colResidual'), width: 'w-24', align: 'text-right' },
+    { key: 'valeurNetteComptableActuelle', label: t('assetsTransactions.colNbv'), width: 'w-24', align: 'text-right' },
+    { key: 'amortissementCumuleActuel', label: t('assetsTransactions.colAccumDep'), width: 'w-24', align: 'text-right' },
+    { key: 'coutHistorique', label: t('assetsTransactions.colHistoricCost'), width: 'w-24', align: 'text-right' },
+    { key: 'produitCession', label: t('assetsTransactions.colDisposalProceeds'), width: 'w-24', align: 'text-right' },
+    { key: 'profitPerteCession', label: t('assetsTransactions.colGainLoss'), width: 'w-24', align: 'text-right' }
   ];
 
   const activeColumns = columnDefinitions.filter(col =>
@@ -253,10 +265,10 @@ const AssetsTransactions: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-            Transactions d'Immobilisations
+            {t('assetsTransactions.title')}
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            Historique complet des mouvements d'actifs
+            {t('assetsTransactions.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -267,33 +279,33 @@ const AssetsTransactions: React.FC = () => {
             onClick={() => setShowColumnSettings(!showColumnSettings)}
           >
             <Settings className="w-4 h-4 mr-1" />
-            Colonnes
+            {t('assetsTransactions.columns')}
           </ModernButton>
           <ExportMenu
             data={filteredTransactions as unknown as Record<string, unknown>[]}
             filename="transactions_immobilisations"
             columns={{
-              dateTransaction: 'Date',
-              typeTransaction: 'Type',
-              numeroImmobilisation: 'N° Immobilisation',
-              fournisseur: 'Fournisseur',
-              numeroDocument: 'N° Document',
-              montant: 'Montant',
-              categorieActifs: 'Catégorie',
-              dureeVieAnnees: 'Durée Vie (ans)',
-              valeurResiduelle: 'Valeur Résiduelle',
-              valeurNetteComptableActuelle: 'VNC Actuelle',
-              amortissementCumuleActuel: 'Amort. Cumulé',
-              coutHistorique: 'Coût Historique',
-              produitCession: 'Produit Cession',
-              profitPerteCession: 'Profit/Perte'
+              dateTransaction: t('assetsTransactions.colDate'),
+              typeTransaction: t('assetsTransactions.colType'),
+              numeroImmobilisation: t('assetsTransactions.colAssetNumber'),
+              fournisseur: t('assetsTransactions.colSupplier'),
+              numeroDocument: t('assetsTransactions.colDocument'),
+              montant: t('assetsTransactions.colAmount'),
+              categorieActifs: t('assetsTransactions.colCategory'),
+              dureeVieAnnees: t('assetsTransactions.colUsefulLife'),
+              valeurResiduelle: t('assetsTransactions.colResidual'),
+              valeurNetteComptableActuelle: t('assetsTransactions.colNbv'),
+              amortissementCumuleActuel: t('assetsTransactions.colAccumDep'),
+              coutHistorique: t('assetsTransactions.colHistoricCost'),
+              produitCession: t('assetsTransactions.colDisposalProceeds'),
+              profitPerteCession: t('assetsTransactions.colGainLoss')
             }}
-            buttonText="Exporter"
+            buttonText={t('assetsTransactions.export')}
             buttonVariant="outline"
           />
           <ModernButton variant="primary" size="sm">
             <Plus className="w-4 h-4 mr-1" />
-            Nouvelle transaction
+            {t('assetsTransactions.newTransaction')}
           </ModernButton>
         </div>
       </div>
@@ -303,7 +315,7 @@ const AssetsTransactions: React.FC = () => {
         <ModernCard>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Configuration des colonnes</h3>
+              <h3 className="text-lg font-semibold">{t('assetsTransactions.columnSettings')}</h3>
               <button
                 onClick={() => setShowColumnSettings(false)}
                 className="p-1 hover:bg-[var(--color-background-subtle)] rounded"
@@ -342,7 +354,7 @@ const AssetsTransactions: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
-                  placeholder="Rechercher par N° immob., fournisseur, document..."
+                  placeholder={t('assetsTransactions.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -354,12 +366,12 @@ const AssetsTransactions: React.FC = () => {
               onChange={(e) => setFilterType(e.target.value)}
               className="px-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-              <option value="all">Tous les types</option>
-              <option value="Acquisition">Acquisitions</option>
-              <option value="Cession">Cessions</option>
-              <option value="Réévaluation">Réévaluations</option>
-              <option value="Transfert">Transferts</option>
-              <option value="Dépréciation">Dépréciations</option>
+              <option value="all">{t('assetsTransactions.allTypes')}</option>
+              <option value="Acquisition">{t('assetsTransactions.filterAcquisitions')}</option>
+              <option value="Cession">{t('assetsTransactions.filterDisposals')}</option>
+              <option value="Réévaluation">{t('assetsTransactions.filterRevaluations')}</option>
+              <option value="Transfert">{t('assetsTransactions.filterTransfers')}</option>
+              <option value="Dépréciation">{t('assetsTransactions.filterImpairments')}</option>
             </select>
             <ModernButton
               variant="outline"
@@ -367,7 +379,7 @@ const AssetsTransactions: React.FC = () => {
               onClick={() => setShowPeriodModal(true)}
             >
               <Calendar className="w-4 h-4 mr-1" />
-              Période
+              {t('assetsTransactions.period')}
             </ModernButton>
           </div>
         </CardBody>
@@ -379,9 +391,9 @@ const AssetsTransactions: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Acquisitions</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsTransactions.kpiAcquisitions')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{summaryStats.acquisitions}</p>
-                <p className="text-xs text-green-500 mt-1">Acquisitions</p>
+                <p className="text-xs text-green-500 mt-1">{t('assetsTransactions.kpiAcquisitions')}</p>
               </div>
               <Plus className="w-8 h-8 text-green-500 opacity-20" />
             </div>
@@ -392,9 +404,9 @@ const AssetsTransactions: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Cessions</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsTransactions.kpiDisposals')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{summaryStats.cessions}</p>
-                <p className="text-xs text-red-500 mt-1">Cessions</p>
+                <p className="text-xs text-red-500 mt-1">{t('assetsTransactions.kpiDisposals')}</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-500 opacity-20" />
             </div>
@@ -405,9 +417,9 @@ const AssetsTransactions: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Réévaluations</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsTransactions.kpiRevaluations')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">—</p>
-                <p className="text-xs text-primary-500 mt-1">Non suivi à l'import</p>
+                <p className="text-xs text-primary-500 mt-1">{t('assetsTransactions.notTrackedAtImport')}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-primary-500 opacity-20" />
             </div>
@@ -418,9 +430,9 @@ const AssetsTransactions: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">VNC totale</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsTransactions.kpiTotalNbv')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{transactions.length ? formatCurrency(summaryStats.vncTotale) : '—'}</p>
-                <p className="text-xs text-blue-500 mt-1">VNC calculée</p>
+                <p className="text-xs text-blue-500 mt-1">{t('assetsTransactions.computedNbv')}</p>
               </div>
               <DollarSign className="w-8 h-8 text-blue-500 opacity-20" />
             </div>
@@ -431,9 +443,9 @@ const AssetsTransactions: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-[var(--color-text-secondary)]">Amort. cumulé</p>
+                <p className="text-xs text-[var(--color-text-secondary)]">{t('assetsTransactions.kpiAccumDep')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{transactions.length ? formatCurrency(summaryStats.amortCumule) : '—'}</p>
-                <p className="text-xs text-orange-500 mt-1">Calculé dynamiquement</p>
+                <p className="text-xs text-orange-500 mt-1">{t('assetsTransactions.computedDynamically')}</p>
               </div>
               <Clock className="w-8 h-8 text-orange-500 opacity-20" />
             </div>
@@ -457,7 +469,7 @@ const AssetsTransactions: React.FC = () => {
                     </th>
                   ))}
                   <th className="py-3 px-2 text-center text-xs font-medium text-[var(--color-text-secondary)] w-20">
-                    Actions
+                    {t('assetsTransactions.colActions')}
                   </th>
                 </tr>
               </thead>
@@ -475,7 +487,7 @@ const AssetsTransactions: React.FC = () => {
                         if (col.key === 'typeTransaction') {
                           displayValue = getStatusBadge(value as string);
                         } else if (col.key === 'dureeVieAnnees') {
-                          displayValue = `${value} ans`;
+                          displayValue = t('assetsTransactions.years', { count: String(value) });
                         } else if (['montant', 'valeurResiduelle', 'valeurNetteComptableActuelle',
                                    'amortissementCumuleActuel', 'coutHistorique', 'produitCession',
                                    'profitPerteCession'].includes(col.key)) {
@@ -500,7 +512,7 @@ const AssetsTransactions: React.FC = () => {
                           {/* Œil = ouvrir/fermer le détail de la ligne (le kebab sans action a été retiré). */}
                           <button
                             className="p-1 hover:bg-[var(--color-background)] rounded"
-                            title={expandedRow === transaction.id ? 'Fermer le détail' : 'Voir le détail'}
+                            title={t(expandedRow === transaction.id ? 'assetsTransactions.closeDetail' : 'assetsTransactions.viewDetail')}
                             onClick={(e) => {
                               e.stopPropagation();
                               setExpandedRow(expandedRow === transaction.id ? null : transaction.id);
@@ -519,23 +531,23 @@ const AssetsTransactions: React.FC = () => {
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-3">
                               <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
-                                Informations de base
+                                {t('assetsTransactions.basicInfo')}
                               </h4>
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Code erreur:</span>
-                                  <span>{transaction.codeErreur || 'Aucun'}</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.errorCode')}</span>
+                                  <span>{transaction.codeErreur || t('assetsTransactions.none')}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">ID transaction:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.transactionId')}</span>
                                   <span className="font-mono text-xs">{transaction.identifiantDateTransaction}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Date précédente:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.previousDate')}</span>
                                   <span>{transaction.dateTransactionPrecedente || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Date suivante:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.nextDate')}</span>
                                   <span>{transaction.dateTransactionSuivante || 'N/A'}</span>
                                 </div>
                               </div>
@@ -543,23 +555,23 @@ const AssetsTransactions: React.FC = () => {
 
                             <div className="space-y-3">
                               <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
-                                Amortissement
+                                {t('assetsTransactions.depreciationSection')}
                               </h4>
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Fin amort.:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.depEnd')}</span>
                                   <span>{transaction.dateFinAmortissement}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Amort. annuel:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.depAnnual')}</span>
                                   <span>{formatCurrency(transaction.amortissementAnnuelCout)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Amort. mensuel:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.depMonthly')}</span>
                                   <span>{formatCurrency(transaction.amortissementMoisCout)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Mois cumulés:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.monthsAccrued')}</span>
                                   <span>{transaction.nombreMoisAmortCumuleAnnuel}</span>
                                 </div>
                               </div>
@@ -567,23 +579,23 @@ const AssetsTransactions: React.FC = () => {
 
                             <div className="space-y-3">
                               <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
-                                Valeurs et réévaluation
+                                {t('assetsTransactions.valuesSection')}
                               </h4>
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Coût estimé préc.:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.previousCost')}</span>
                                   <span>{formatCurrency(transaction.coutEstimePrecedent)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Rééval. actuelle:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.currentRevaluation')}</span>
                                   <span>{formatCurrency(transaction.reevaluationActuelle)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Surplus rééval.:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.revaluationSurplus')}</span>
                                   <span>{formatCurrency(transaction.surplusReevaluation)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-[var(--color-text-secondary)]">Dépréciation:</span>
+                                  <span className="text-[var(--color-text-secondary)]">{t('assetsTransactions.impairment')}</span>
                                   <span>{formatCurrency(transaction.valeurDepreciation)}</span>
                                 </div>
                               </div>
@@ -601,9 +613,11 @@ const AssetsTransactions: React.FC = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--color-border)]">
             <div className="text-sm text-[var(--color-text-secondary)]">
-              Affichage {((currentPage - 1) * itemsPerPage) + 1} à{' '}
-              {Math.min(currentPage * itemsPerPage, filteredTransactions.length)} sur{' '}
-              {filteredTransactions.length} transactions
+              {t('assetsTransactions.pagination', {
+                from: String(((currentPage - 1) * itemsPerPage) + 1),
+                to: String(Math.min(currentPage * itemsPerPage, filteredTransactions.length)),
+                total: String(filteredTransactions.length),
+              })}
             </div>
             <div className="flex items-center gap-2">
               <button

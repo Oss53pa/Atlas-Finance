@@ -9,11 +9,13 @@ import { formatCurrency } from '../../utils/formatters';
 import { ArrowLeft, Layers, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Decimal from 'decimal.js';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ComposantsPage: React.FC = () => {
   const { adapter } = useData();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [components, setComponents] = useState<any[]>([]);
   const [parentAssets, setParentAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ const ComposantsPage: React.FC = () => {
     setLoading(true);
     try {
       await replaceComponent(adapter, replaceModal.id, {
-        name: fd.get('name') as string || replaceModal.libelle || 'Nouveau composant',
+        name: fd.get('name') as string || replaceModal.libelle || t('assetComponents.newComponent'),
         code: fd.get('code') as string || `COMP-${Date.now()}`,
         value: new Decimal(fd.get('value') as string),
         usefulLife: parseInt(fd.get('usefulLife') as string) || 10,
@@ -58,11 +60,11 @@ const ComposantsPage: React.FC = () => {
         componentType: replaceModal.componentType || 'structure',
         paymentAccountCode: '521',
       });
-      toast.success('Composant remplacé — écritures de sortie et d\'entrée générées');
+      toast.success(t('assetComponents.replaced'));
       setReplaceModal(null);
       load();
     } catch (err: any) {
-      toast.error(err.message || 'Erreur de remplacement');
+      toast.error(err.message || t('assetComponents.replaceError'));
     }
     setLoading(false);
   };
@@ -79,8 +81,8 @@ const ComposantsPage: React.FC = () => {
               <Layers className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-[var(--color-primary)]">Approche par Composants</h1>
-              <p className="text-sm text-[var(--color-text-tertiary)]">IAS 16 / SYSCOHADA révisé — Remplacement de composants majeurs</p>
+              <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('assetComponents.title')}</h1>
+              <p className="text-sm text-[var(--color-text-tertiary)]">{t('assetComponents.subtitle')}</p>
             </div>
             <PageHeaderActions className="ml-auto" />
           </div>
@@ -88,23 +90,23 @@ const ComposantsPage: React.FC = () => {
 
         <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-[var(--color-text-tertiary)]">Chargement...</div>
+            <div className="p-12 text-center text-[var(--color-text-tertiary)]">{t('assetComponents.loading')}</div>
           ) : components.length === 0 ? (
             <div className="p-12 text-center text-[var(--color-text-tertiary)]">
               <Layers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium">Aucun composant enregistré</p>
-              <p className="text-sm mt-1">Décomposez vos immobilisations en composants depuis le registre des actifs</p>
+              <p className="font-medium">{t('assetComponents.emptyTitle')}</p>
+              <p className="text-sm mt-1">{t('assetComponents.emptyHint')}</p>
             </div>
           ) : (
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-[var(--color-border)]">
-                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Composant</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Immobilisation parente</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Type</th>
-                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Valeur acquisition</th>
-                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">VNC</th>
-                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">Actions</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colComponent')}</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colParentAsset')}</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colType')}</th>
+                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colAcquisitionValue')}</th>
+                  <th className="p-3 text-right text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colNbv')}</th>
+                  <th className="p-3 text-left text-xs font-semibold text-[var(--color-text-tertiary)] uppercase">{t('assetComponents.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -134,18 +136,18 @@ const ComposantsPage: React.FC = () => {
         {replaceModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-lg font-bold mb-4">Remplacer : {replaceModal.libelle || replaceModal.name}</h2>
+              <h2 className="text-lg font-bold mb-4">{t('assetComponents.replaceTitle', { name: replaceModal.libelle || replaceModal.name })}</h2>
               <form onSubmit={handleReplace}>
                 <div className="space-y-3 mb-4">
-                  <div><label className="text-xs text-[var(--color-text-tertiary)]">Nom du nouveau composant</label><input name="name" defaultValue={replaceModal.libelle || replaceModal.name} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
-                  <div><label className="text-xs text-[var(--color-text-tertiary)]">Code</label><input name="code" defaultValue={replaceModal.code} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
-                  <div><label className="text-xs text-[var(--color-text-tertiary)]">Coût de remplacement (FCFA) *</label><input name="value" type="number" required className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
-                  <div><label className="text-xs text-[var(--color-text-tertiary)]">Durée de vie (années)</label><input name="usefulLife" type="number" defaultValue="10" className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
-                  <div><label className="text-xs text-[var(--color-text-tertiary)]">Date d'acquisition</label><input name="acquisitionDate" type="date" defaultValue={new Date().toISOString().split('T')[0]} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-[var(--color-text-tertiary)]">{t('assetComponents.newComponentName')}</label><input name="name" defaultValue={replaceModal.libelle || replaceModal.name} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-[var(--color-text-tertiary)]">{t('assetComponents.code')}</label><input name="code" defaultValue={replaceModal.code} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-[var(--color-text-tertiary)]">{t('assetComponents.replacementCost')}</label><input name="value" type="number" required className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-[var(--color-text-tertiary)]">{t('assetComponents.usefulLife')}</label><input name="usefulLife" type="number" defaultValue="10" className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
+                  <div><label className="text-xs text-[var(--color-text-tertiary)]">{t('assetComponents.acquisitionDate')}</label><input name="acquisitionDate" type="date" defaultValue={new Date().toISOString().split('T')[0]} className="w-full border border-[var(--color-border)] rounded px-3 py-2 text-sm" /></div>
                 </div>
                 <div className="flex justify-end gap-2">
-                  <button type="button" onClick={() => setReplaceModal(null)} className="px-4 py-2 text-sm border rounded-lg">Annuler</button>
-                  <button type="submit" className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg">Remplacer</button>
+                  <button type="button" onClick={() => setReplaceModal(null)} className="px-4 py-2 text-sm border rounded-lg">{t('assetComponents.cancel')}</button>
+                  <button type="submit" className="px-4 py-2 text-sm bg-orange-500 text-white rounded-lg">{t('assetComponents.replace')}</button>
                 </div>
               </form>
             </div>

@@ -28,16 +28,19 @@ import {
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
 import { formatCurrency, formatDate, formatPercentage } from '../../lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const CLASS_NAME_MAP: Record<string, string> = {
-  '20': 'Incorporelles', '21': 'Immobilier', '22': 'Terrains',
-  '23': 'Bâtiments / Constructions', '24': 'Matériel & Mobilier',
-  '25': 'Avances / Acomptes', '26': 'Titres de participation', '27': 'Autres immo. financières',
-  '28': 'Amortissements',
+// Clés résolues au rendu : la table est figée au chargement du module.
+const CLASS_NAME_KEY: Record<string, string> = {
+  '20': 'assetsDashboard.cls20', '21': 'assetsDashboard.cls21', '22': 'assetsDashboard.cls22',
+  '23': 'assetsDashboard.cls23', '24': 'assetsDashboard.cls24',
+  '25': 'assetsDashboard.cls25', '26': 'assetsDashboard.cls26', '27': 'assetsDashboard.cls27',
+  '28': 'assetsDashboard.cls28',
 };
 
 const AssetsDashboard: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [period, setPeriod] = useState<'month' | 'quarter' | 'year'>('year');
   const [dbAssets, setDbAssets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,7 +97,7 @@ const AssetsDashboard: React.FC = () => {
     const cats: Record<string, { code: string; nom: string; nombre: number; valeurNette: number }> = {};
     for (const a of dbAssets) {
       const code = String(a.accountCode || a.category || '').substring(0, 2) || '21';
-      if (!cats[code]) cats[code] = { code, nom: CLASS_NAME_MAP[code] || `Classe ${code}`, nombre: 0, valeurNette: 0 };
+      if (!cats[code]) cats[code] = { code, nom: CLASS_NAME_KEY[code] ? t(CLASS_NAME_KEY[code]) : t('assetsDashboard.classPrefix', { code }), nombre: 0, valeurNette: 0 };
       cats[code].nombre += 1;
       cats[code].valeurNette += (Number(a.acquisitionValue) || 0) - (Number(a.cumulDepreciation) || 0);
     }
@@ -102,7 +105,7 @@ const AssetsDashboard: React.FC = () => {
     return Object.values(cats)
       .map((c) => ({ ...c, pourcentage: totalVN > 0 ? (c.valeurNette / totalVN) * 100 : 0 }))
       .sort((a, b) => b.valeurNette - a.valeurNette);
-  }, [dbAssets]);
+  }, [dbAssets, t]);
 
   // Liste détaillée des actifs (top par valeur brute)
   const actifsPrincipaux = useMemo(() => {
@@ -115,7 +118,7 @@ const AssetsDashboard: React.FC = () => {
           id: a.id,
           designation: a.name || a.designation || a.label || '—',
           numeroSerie: a.serialNumber || a.numeroSerie || '',
-          categorie: CLASS_NAME_MAP[code] || a.category || `Classe ${code}`,
+          categorie: CLASS_NAME_KEY[code] ? t(CLASS_NAME_KEY[code]) : (a.category || t('assetsDashboard.classPrefix', { code })),
           dateAcquisition: a.acquisitionDate || '',
           valeurBrute: brute,
           amortissements: cumul,
@@ -125,7 +128,7 @@ const AssetsDashboard: React.FC = () => {
       })
       .sort((a, b) => b.valeurBrute - a.valeurBrute)
       .slice(0, 20);
-  }, [dbAssets]);
+  }, [dbAssets, t]);
 
   // Build chart data from real assets
   const categoryChartData = useMemo(() => {
@@ -138,8 +141,8 @@ const AssetsDashboard: React.FC = () => {
       value: c.valeurNette,
       color: colorMap[c.code] || 'bg-neutral-400',
     }));
-    return result.length > 0 ? result : [{ label: 'Aucun actif', value: 0, color: 'bg-neutral-300' }];
-  }, [repartition]);
+    return result.length > 0 ? result : [{ label: t('assetsDashboard.noAsset'), value: 0, color: 'bg-neutral-300' }];
+  }, [repartition, t]);
 
   const getCategoryIcon = (code: string) => {
     switch (code) {
@@ -173,8 +176,8 @@ const AssetsDashboard: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Tableau de Bord - Immobilisations"
-          subtitle="Vue d'ensemble des actifs immobilisés et amortissements"
+          title={t('assetsDashboard.title')}
+          subtitle={t('assetsDashboard.subtitle')}
           icon={Building}
           action={
             <div className="flex bg-white rounded-2xl p-1 shadow-lg border border-neutral-200">
@@ -188,7 +191,7 @@ const AssetsDashboard: React.FC = () => {
                       : 'text-neutral-600 hover:text-[var(--color-primary)]'
                   }`}
                 >
-                  {p === 'month' ? 'Mois' : p === 'quarter' ? 'Trimestre' : 'Année'}
+                  {p === 'month' ? t('assetsDashboard.periodMonth') : p === 'quarter' ? t('assetsDashboard.periodQuarter') : t('assetsDashboard.periodYear')}
                 </button>
               ))}
             </div>
@@ -198,36 +201,36 @@ const AssetsDashboard: React.FC = () => {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Valeur Brute"
+            title={t('assetsDashboard.kpiGrossValue')}
             value={formatCurrency(metrics.valeurBrute)}
-            subtitle="Valeur d'acquisition"
+            subtitle={t('assetsDashboard.kpiGrossValueSub')}
             icon={Building}
             color="primary"
             delay={0.1}
             withChart={true}
           />
           <KPICard
-            title="Amortissements"
+            title={t('assetsDashboard.kpiDepreciation')}
             value={formatCurrency(metrics.amortissements)}
-            subtitle="Cumul des dotations"
+            subtitle={t('assetsDashboard.kpiDepreciationSub')}
             icon={TrendingDown}
             color="warning"
             delay={0.2}
             withChart={true}
           />
           <KPICard
-            title="Valeur Nette"
+            title={t('assetsDashboard.kpiNetValue')}
             value={formatCurrency(metrics.valeurNette)}
-            subtitle="Valeur comptable actuelle"
+            subtitle={t('assetsDashboard.kpiNetValueSub')}
             icon={DollarSign}
             color="success"
             delay={0.3}
             withChart={true}
           />
           <KPICard
-            title="Dotations Annuelles"
+            title={t('assetsDashboard.kpiAnnualCharge')}
             value={formatCurrency(metrics.dotationsAnnuelles)}
-            subtitle="Dotation linéaire estimée"
+            subtitle={t('assetsDashboard.kpiAnnualChargeSub')}
             icon={TrendingUp}
             color="neutral"
             delay={0.4}
@@ -245,7 +248,7 @@ const AssetsDashboard: React.FC = () => {
             <UnifiedCard variant="elevated" size="md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-600">Nombre d'Actifs</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('assetsDashboard.assetCount')}</p>
                   <p className="text-lg font-bold text-neutral-900">
                     {metrics.nombreActifs}
                   </p>
@@ -265,7 +268,7 @@ const AssetsDashboard: React.FC = () => {
             <UnifiedCard variant="elevated" size="md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-600">Taux d'Amortissement</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('assetsDashboard.depreciationRate')}</p>
                   <p className="text-lg font-bold text-neutral-900">
                     {formatPercentage(metrics.tauxAmortissement)}
                   </p>
@@ -285,9 +288,9 @@ const AssetsDashboard: React.FC = () => {
             <UnifiedCard variant="elevated" size="md">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-600">Âge Moyen</p>
+                  <p className="text-sm font-medium text-neutral-600">{t('assetsDashboard.averageAge')}</p>
                   <p className="text-lg font-bold text-neutral-900">
-                    {metrics.ageMoyen != null ? `${metrics.ageMoyen.toFixed(1)} ans` : '—'}
+                    {metrics.ageMoyen != null ? t('assetsDashboard.ageYears', { value: metrics.ageMoyen.toFixed(1) }) : '—'}
                   </p>
                 </div>
                 <div className="p-3 bg-[var(--color-info-lighter)] rounded-2xl">
@@ -305,8 +308,8 @@ const AssetsDashboard: React.FC = () => {
           transition={{ delay: 0.8 }}
         >
           <ModernChartCard
-            title="Répartition par Catégorie d'Actifs"
-            subtitle="Distribution de la valeur nette par type d'immobilisation"
+            title={t('assetsDashboard.chartTitle')}
+            subtitle={t('assetsDashboard.chartSubtitle')}
             icon={PieChart}
           >
             <ColorfulBarChart
@@ -324,13 +327,13 @@ const AssetsDashboard: React.FC = () => {
                 <PieChart className="h-6 w-6 text-[var(--color-info)]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Répartition par Catégorie</h2>
-                <p className="text-neutral-600">Valeur et nombre d'actifs</p>
+                <h2 className="text-lg font-bold text-neutral-900">{t('assetsDashboard.breakdownTitle')}</h2>
+                <p className="text-neutral-600">{t('assetsDashboard.breakdownSubtitle')}</p>
               </div>
             </div>
             <div className="space-y-6">
               {repartition.length === 0 ? (
-                <p className="text-sm text-neutral-500 py-8 text-center">Aucune immobilisation.</p>
+                <p className="text-sm text-neutral-500 py-8 text-center">{t('assetsDashboard.noAssets')}</p>
               ) : repartition.map((category, index) => (
                 <motion.div
                   key={category.code}
@@ -345,7 +348,7 @@ const AssetsDashboard: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-neutral-900">{category.nom}</p>
-                      <p className="text-sm text-neutral-600">{category.nombre} actif(s)</p>
+                      <p className="text-sm text-neutral-600">{t('assetsDashboard.assetsCount', { count: String(category.nombre) })}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -368,8 +371,8 @@ const AssetsDashboard: React.FC = () => {
                 <TrendingDown className="h-6 w-6 text-[var(--color-warning)]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Derniers Amortissements</h2>
-                <p className="text-neutral-600">Dotations récentes</p>
+                <h2 className="text-lg font-bold text-neutral-900">{t('assetsDashboard.recentDepTitle')}</h2>
+                <p className="text-neutral-600">{t('assetsDashboard.recentDepSubtitle')}</p>
               </div>
             </div>
             <div className="space-y-6">
@@ -377,7 +380,7 @@ const AssetsDashboard: React.FC = () => {
                   (seul le cumul par immobilisation est disponible) → état vide honnête. */}
               <div className="p-6 border border-dashed border-neutral-200 rounded-2xl text-center">
                 <p className="text-sm text-neutral-500">
-                  Aucune dotation périodique — module non alimenté par l'import
+                  {t('assetsDashboard.noPeriodicCharge')}
                 </p>
               </div>
               <motion.div
@@ -388,7 +391,7 @@ const AssetsDashboard: React.FC = () => {
               >
                 <Link to="/assets/depreciation">
                   <ElegantButton variant="outline" className="w-full">
-                    Voir tous les amortissements
+                    {t('assetsDashboard.viewAllDepreciation')}
                   </ElegantButton>
                 </Link>
               </motion.div>
@@ -404,13 +407,13 @@ const AssetsDashboard: React.FC = () => {
                 <AlertCircle className="h-6 w-6 text-[var(--color-primary)]" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">État des Immobilisations</h2>
-                <p className="text-neutral-600">Suivi détaillé par actif</p>
+                <h2 className="text-lg font-bold text-neutral-900">{t('assetsDashboard.statusTitle')}</h2>
+                <p className="text-neutral-600">{t('assetsDashboard.statusSubtitle')}</p>
               </div>
             </div>
             <Link to="/assets/fixed">
               <ElegantButton variant="outline">
-                Voir tous les actifs
+                {t('assetsDashboard.viewAllAssets')}
               </ElegantButton>
             </Link>
           </div>
@@ -418,21 +421,21 @@ const AssetsDashboard: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-neutral-200">
-                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">Actif</th>
-                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">Catégorie</th>
-                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">Date d'Acquisition</th>
-                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">Valeur Brute</th>
-                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">Amortissements</th>
-                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">Valeur Nette</th>
-                  <th className="text-center py-4 px-2 font-semibold text-neutral-900">% Amorti</th>
-                  <th className="text-center py-4 px-2 font-semibold text-neutral-900">État</th>
+                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colAsset')}</th>
+                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colCategory')}</th>
+                  <th className="text-left py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colAcquisitionDate')}</th>
+                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colGrossValue')}</th>
+                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colDepreciation')}</th>
+                  <th className="text-right py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colNetValue')}</th>
+                  <th className="text-center py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colPctDepreciated')}</th>
+                  <th className="text-center py-4 px-2 font-semibold text-neutral-900">{t('assetsDashboard.colStatus')}</th>
                 </tr>
               </thead>
               <tbody>
                 {actifsPrincipaux.length === 0 ? (
                   <tr>
                     <td colSpan={8} className="py-8 text-center text-sm text-neutral-500">
-                      Aucune immobilisation.
+                      {t('assetsDashboard.noAssets')}
                     </td>
                   </tr>
                 ) : actifsPrincipaux.map((actif, index) => (
@@ -487,17 +490,17 @@ const AssetsDashboard: React.FC = () => {
                         {actif.pourcentageAmortissement >= 100 ? (
                           <>
                             <CheckCircle className="h-4 w-4 text-neutral-600" />
-                            <span className="text-sm font-medium text-neutral-600">Amorti</span>
+                            <span className="text-sm font-medium text-neutral-600">{t('assetsDashboard.statusDepreciated')}</span>
                           </>
                         ) : actif.pourcentageAmortissement >= 80 ? (
                           <>
                             <AlertCircle className="h-4 w-4 text-[var(--color-warning)]" />
-                            <span className="text-sm font-medium text-[var(--color-warning-dark)]">Fin de vie</span>
+                            <span className="text-sm font-medium text-[var(--color-warning-dark)]">{t('assetsDashboard.statusEndOfLife')}</span>
                           </>
                         ) : (
                           <>
                             <CheckCircle className="h-4 w-4 text-primary-600" />
-                            <span className="text-sm font-medium text-primary-700">Actif</span>
+                            <span className="text-sm font-medium text-primary-700">{t('assetsDashboard.colAsset')}</span>
                           </>
                         )}
                       </div>
@@ -512,8 +515,8 @@ const AssetsDashboard: React.FC = () => {
         {/* Quick Actions */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
-            <p className="text-neutral-600">Gestion des immobilisations et amortissements</p>
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">{t('assetsDashboard.quickActions')}</h2>
+            <p className="text-neutral-600">{t('assetsDashboard.quickActionsSubtitle')}</p>
           </div>
           <div className="grid gap-6 md:grid-cols-4">
             <Link to="/assets/fixed">
@@ -527,8 +530,8 @@ const AssetsDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <Building className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Gérer les Actifs</h3>
-                <p className="text-sm text-neutral-600">Ajouter, modifier, consulter</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('assetsDashboard.manageAssets')}</h3>
+                <p className="text-sm text-neutral-600">{t('assetsDashboard.manageAssetsSub')}</p>
               </motion.div>
             </Link>
 
@@ -543,8 +546,8 @@ const AssetsDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-warning-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <TrendingDown className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Amortissements</h3>
-                <p className="text-sm text-neutral-600">Calculs et suivi</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('assetsDashboard.depreciationCard')}</h3>
+                <p className="text-sm text-neutral-600">{t('assetsDashboard.depreciationCardSub')}</p>
               </motion.div>
             </Link>
 
@@ -559,8 +562,8 @@ const AssetsDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-info-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <BarChart3 className="h-6 w-6 text-[var(--color-info)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Rapports</h3>
-                <p className="text-sm text-neutral-600">États et analyses</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('assetsDashboard.reports')}</h3>
+                <p className="text-sm text-neutral-600">{t('assetsDashboard.reportsSub')}</p>
               </motion.div>
             </Link>
 
@@ -575,8 +578,8 @@ const AssetsDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-error-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <AlertCircle className="h-6 w-6 text-[var(--color-error)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Alertes</h3>
-                <p className="text-sm text-neutral-600">Maintenance et renouvellement</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('assetsDashboard.alerts')}</h3>
+                <p className="text-sm text-neutral-600">{t('assetsDashboard.alertsSub')}</p>
               </motion.div>
             </Link>
           </div>
