@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useData } from '../../contexts/DataContext';
+import CreancesDettesRatiosBlock from '../../components/dashboard/CreancesDettesRatiosBlock';
 import {
   Calculator, FileText, FolderOpen, Users, UserPlus, CreditCard,
   Settings, ArrowRight, CheckCircle, Clock, AlertTriangle, Zap,
@@ -25,6 +27,17 @@ const ClientHome: React.FC = () => {
     queryFn: () => getInvoices(tenant.id),
     enabled: !!tenant?.id && isAdmin,
   });
+
+  // Écritures comptables du tenant pour le bloc « Créances, dettes & ratios ».
+  const { adapter } = useData();
+  const [entries, setEntries] = useState<any[]>([]);
+  useEffect(() => {
+    let alive = true;
+    adapter.getAll<any>('journalEntries')
+      .then((e) => { if (alive) setEntries(e || []); })
+      .catch(() => { /* espace client sans comptabilité : bloc masqué */ });
+    return () => { alive = false; };
+  }, [adapter]);
 
   const activeSubs = subscriptions.filter((s: any) => s.status === 'active' || s.status === 'trialing');
   const trialSubs = subscriptions.filter((s: any) => s.status === 'trialing');
@@ -125,6 +138,11 @@ const ClientHome: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Aperçu financier — bloc partagé « Créances, dettes & ratios » */}
+      {entries.length > 0 && (
+        <CreancesDettesRatiosBlock entries={entries} />
+      )}
 
       {/* Raccourcis admin */}
       {isAdmin && (
