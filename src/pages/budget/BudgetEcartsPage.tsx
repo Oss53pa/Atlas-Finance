@@ -12,7 +12,8 @@ import { formatCurrency } from '../../utils/formatters';
 import { getBudgetVsActual, type BudgetVsActualRow } from '../../features/budget/services/budgetService';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
-import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { ArrowLeft, TrendingUp, AlertTriangle, Bot, Search, Download } from 'lucide-react';
 
 const MOIS_KEYS = [
   'ecarts.monJan', 'ecarts.monFeb', 'ecarts.monMar', 'ecarts.monApr', 'ecarts.monMay', 'ecarts.monJun',
@@ -169,6 +170,38 @@ const BudgetEcartsPage: React.FC = () => {
     } finally { setProphetLoading(false); }
   };
 
+  // Export CSV du détail budget vs réalisé (données réelles v_budget_vs_actual).
+  const handleExportCsv = () => {
+    if (rows.length === 0) { toast.error('Aucune donnée à exporter.'); return; }
+    const sep = ';';
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ['Année', 'Type', 'Compte', 'Section', 'Mois', 'Budget', 'Réalisé', 'Écart', 'Écart %'];
+    const lines = [header.map(esc).join(sep)];
+    const sorted = [...rows].sort((a, b) => a.account_code.localeCompare(b.account_code) || a.period - b.period);
+    for (const r of sorted) {
+      const mois = r.period >= 1 && r.period <= 12 ? tr(MOIS_KEYS[r.period - 1]) : String(r.period);
+      lines.push([
+        r.annee, r.budget_type, r.account_code, r.section_id ?? '', mois,
+        Math.round(r.budget), Math.round(r.realise), Math.round(r.ecart),
+        r.ecart_pct != null ? Math.round(r.ecart_pct) : '',
+      ].map(esc).join(sep));
+    }
+    const csv = '﻿' + lines.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ecarts_budgetaires_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Export généré — ${rows.length} ligne(s).`);
+  };
+
   // Heatmap : nature × mois
   const heatmap = useMemo(() => {
     const natures = [...new Set(rows.map(r => r.account_code.slice(0, 2)))].sort();
@@ -209,6 +242,9 @@ const BudgetEcartsPage: React.FC = () => {
           <h1 className="text-lg font-bold text-[var(--color-primary)]">{tr('ecarts.title')}</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">{tr('ecarts.subtitle')}</p>
         </div>
+        <button onClick={handleExportCsv} className="px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+          <Download className="w-4 h-4" /> Exporter (CSV)
+        </button>
         {isProph3tCoreConfigured() && (
           <button onClick={runProphet} disabled={prophetLoading} className="px-3 py-2 text-sm border border-[var(--color-primary)] text-[var(--color-primary)] rounded-lg hover:bg-[var(--color-primary)]/5 flex items-center gap-2 disabled:opacity-50">
             <Bot className="w-4 h-4" /> {prophetLoading ? tr('ecarts.analyzing') : tr('ecarts.prophetComment')}
