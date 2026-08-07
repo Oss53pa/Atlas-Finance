@@ -14,15 +14,17 @@ import {
   SectionHeader,
   PageContainer
 } from '../../components/ui/DesignSystem';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const FinancialStatementsIndexPage: React.FC = () => {
+  const { t } = useLanguage();
   return (
     <PageContainer background="pattern" padding="lg">
       <div className="space-y-12">
         {/* Header unifié */}
         <SectionHeader
-          title="États Financiers SYSCOHADA"
-          subtitle="États réglementaires conformes OHADA 2017"
+          title={t('financialStatementsIndex.title')}
+          subtitle={t('financialStatementsIndex.subtitle')}
           icon={FileText}
         />
 
@@ -44,8 +46,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                       <BarChart3 className="h-12 w-12 text-primary-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-primary-800 text-xl mb-2">Bilan SYSCOHADA</h3>
-                      <p className="text-primary-600">Situation patrimoniale détaillée</p>
+                      <h3 className="font-bold text-primary-800 text-xl mb-2">{t('financialStatementsIndex.balance')}</h3>
+                      <p className="text-primary-600">{t('financialStatementsIndex.balanceDesc')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -61,8 +63,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                       <TrendingUp className="h-12 w-12 text-green-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-green-800 text-xl mb-2">Compte de Résultat</h3>
-                      <p className="text-green-600">Performance économique</p>
+                      <h3 className="font-bold text-green-800 text-xl mb-2">{t('financialStatementsIndex.income')}</h3>
+                      <p className="text-green-600">{t('financialStatementsIndex.incomeDesc')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -78,8 +80,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                       <PieChart className="h-12 w-12 text-amber-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-amber-800 text-xl mb-2">Tableau de Flux</h3>
-                      <p className="text-amber-600">TAFIRE - Flux de trésorerie</p>
+                      <h3 className="font-bold text-amber-800 text-xl mb-2">{t('financialStatementsIndex.cashFlow')}</h3>
+                      <p className="text-amber-600">{t('financialStatementsIndex.cashFlowDesc')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -95,8 +97,8 @@ const FinancialStatementsIndexPage: React.FC = () => {
                       <Target className="h-12 w-12 text-violet-600" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-violet-800 text-xl mb-2">Analyse Financière</h3>
-                      <p className="text-violet-600">Ratios et indicateurs</p>
+                      <h3 className="font-bold text-violet-800 text-xl mb-2">{t('financialStatementsIndex.analysis')}</h3>
+                      <p className="text-violet-600">{t('financialStatementsIndex.analysisDesc')}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -118,40 +120,40 @@ const FinancialStatementsIndexPage: React.FC = () => {
                   <Calculator className="h-8 w-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-neutral-900">Conformité OHADA 2017</h2>
-                  <p className="text-neutral-600">États financiers certifiés pour l'Afrique</p>
+                  <h2 className="text-lg font-bold text-neutral-900">{t('financialStatementsIndex.ohadaCompliance')}</h2>
+                  <p className="text-neutral-600">{t('financialStatementsIndex.ohadaComplianceDesc')}</p>
                 </div>
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Format SYSCOHADA</h3>
+                    <h3 className="font-semibold text-neutral-800">{t('financialStatementsIndex.syscohadaFormat')}</h3>
                     <div className="p-2 bg-blue-100 rounded-xl">
                       <Target className="h-5 w-5 text-blue-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-neutral-600">Respect strict des normes comptables africaines</p>
+                  <p className="text-sm text-neutral-600">{t('financialStatementsIndex.syscohadaFormatDesc')}</p>
                 </div>
 
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Multi-devises</h3>
+                    <h3 className="font-semibold text-neutral-800">{t('financialStatementsIndex.multiCurrency')}</h3>
                     <div className="p-2 bg-primary-100 rounded-xl">
                       <TrendingUp className="h-5 w-5 text-primary-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-neutral-600">FCFA, EUR, USD - Conversion automatique</p>
+                  <p className="text-sm text-neutral-600">{t('financialStatementsIndex.multiCurrencyDesc')}</p>
                 </div>
 
                 <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 border border-white/40">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-neutral-800">Export PDF/Excel</h3>
+                    <h3 className="font-semibold text-neutral-800">{t('financialStatementsIndex.exportPdfExcel')}</h3>
                     <div className="p-2 bg-primary-100 rounded-xl">
                       <FileText className="h-5 w-5 text-primary-600" />
                     </div>
                   </div>
-                  <p className="text-sm text-neutral-600">Prêt pour audits et déclarations</p>
+                  <p className="text-sm text-neutral-600">{t('financialStatementsIndex.exportPdfExcelDesc')}</p>
                 </div>
               </div>
             </div>

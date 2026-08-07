@@ -88,26 +88,28 @@ const CompteResultatPage: React.FC = () => {
 
   const months = Object.keys(monthlyData);
 
-  // Structure des données du bilan SYSCOHADA
+  // Structure des données du bilan SYSCOHADA. Les intitulés de rubrique sont
+  // résolus au rendu : la structure est reconstruite à chaque rendu du
+  // composant, `t` y est donc bien la fonction de la langue courante.
   const bilanStructure = {
     actif: [
-      { code: '21', libelle: 'Immobilisations incorporelles' },
-      { code: '22/23', libelle: 'Terrains' },
-      { code: '24', libelle: 'Bâtiments' },
-      { code: '245', libelle: 'Matériel et outillage' },
-      { code: '31', libelle: 'Stocks de marchandises' },
-      { code: '41', libelle: 'Clients et comptes rattachés' },
-      { code: '52', libelle: 'Banques' },
-      { code: '53', libelle: 'Caisses' }
+      { code: '21', libelle: t('incomeStatement.acctIntangibles') },
+      { code: '22/23', libelle: t('incomeStatement.acctLand') },
+      { code: '24', libelle: t('incomeStatement.acctBuildings') },
+      { code: '245', libelle: t('incomeStatement.acctEquipment') },
+      { code: '31', libelle: t('incomeStatement.acctMerchandiseStock') },
+      { code: '41', libelle: t('incomeStatement.acctCustomers') },
+      { code: '52', libelle: t('incomeStatement.acctBanks') },
+      { code: '53', libelle: t('incomeStatement.acctCash') }
     ],
     passif: [
-      { code: '10', libelle: 'Capital social' },
-      { code: '11', libelle: 'Réserves' },
-      { code: '13', libelle: 'Résultat de l\'exercice' },
-      { code: '16', libelle: 'Emprunts et dettes financières' },
-      { code: '40', libelle: 'Fournisseurs et comptes rattachés' },
-      { code: '42', libelle: 'Personnel' },
-      { code: '44', libelle: 'État et collectivités' }
+      { code: '10', libelle: t('incomeStatement.acctShareCapital') },
+      { code: '11', libelle: t('incomeStatement.acctReserves') },
+      { code: '13', libelle: t('incomeStatement.acctYearResult') },
+      { code: '16', libelle: t('incomeStatement.acctBorrowings') },
+      { code: '40', libelle: t('incomeStatement.acctSuppliers') },
+      { code: '42', libelle: t('incomeStatement.acctStaff') },
+      { code: '44', libelle: t('incomeStatement.acctStateBodies') }
     ]
   };
 
@@ -159,18 +161,18 @@ const CompteResultatPage: React.FC = () => {
   // Structure des données du compte de résultat SYSCOHADA
   const compteResultatStructure = {
     produits: [
-      { code: '70', libelle: 'Ventes de marchandises' },
-      { code: '72', libelle: 'Production vendue' },
-      { code: '74', libelle: 'Subventions d\'exploitation' },
-      { code: '75', libelle: 'Autres produits de gestion' }
+      { code: '70', libelle: t('incomeStatement.acctMerchandiseSales') },
+      { code: '72', libelle: t('incomeStatement.acctProductionSold') },
+      { code: '74', libelle: t('incomeStatement.acctOperatingSubsidies') },
+      { code: '75', libelle: t('incomeStatement.acctOtherOperIncome') }
     ],
     charges: [
-      { code: '60', libelle: 'Achats de marchandises' },
-      { code: '61', libelle: 'Transports' },
-      { code: '62', libelle: 'Services extérieurs A' },
-      { code: '63', libelle: 'Services extérieurs B' },
-      { code: '64', libelle: 'Impôts et taxes' },
-      { code: '66', libelle: 'Charges de personnel' }
+      { code: '60', libelle: t('incomeStatement.acctMerchandisePurchases') },
+      { code: '61', libelle: t('incomeStatement.acctTransport') },
+      { code: '62', libelle: t('incomeStatement.acctExternalServicesA') },
+      { code: '63', libelle: t('incomeStatement.acctExternalServicesB') },
+      { code: '64', libelle: t('incomeStatement.acctTaxesAndDuties') },
+      { code: '66', libelle: t('incomeStatement.acctStaffCosts') }
     ]
   };
 
@@ -1035,51 +1037,51 @@ const CompteResultatPage: React.FC = () => {
             const dVariation = dFluxExploit + dFluxInvest + dFluxFinanc;
 
             const indirectRows = [
-              { section: 'A. FLUX LIÉS À L\'ACTIVITÉ', color: 'blue' },
-              { key: 'i-rn', label: 'Résultat net de l\'exercice', value: resultatNet, prefixes: ['6', '7'] },
-              { key: 'i-dot', label: '+ Dotations aux amortissements et provisions', value: dotations, prefixes: ['68', '69'] },
-              { key: 'i-rep', label: '- Reprises sur provisions', value: -reprises, prefixes: ['78', '79'] },
-              { key: 'i-pmv', label: '± Plus/moins-values de cession', value: plusMoinsValues, prefixes: ['81', '82'] },
-              { subtotal: true, label: '= Capacité d\'autofinancement (CAF)', value: caf },
-              { key: 'i-stk', label: '- Variation des stocks', value: -varStocks, prefixes: ['3'] },
-              { key: 'i-cli', label: '- Variation des créances clients', value: -varClients, prefixes: ['41'] },
-              { key: 'i-aut', label: '- Variation des autres créances', value: -varAutres, prefixes: ['46'] },
-              { key: 'i-frn', label: '+ Variation des dettes fournisseurs', value: varFournisseurs, prefixes: ['40'] },
-              { key: 'i-fis', label: '+ Variation des dettes fiscales et sociales', value: varFiscales, prefixes: ['42', '43', '44'] },
-              { total: true, label: '= FLUX NET LIÉ À L\'ACTIVITÉ (A)', value: fluxExploit },
-              { section: 'B. FLUX LIÉS AUX INVESTISSEMENTS', color: 'orange' },
-              { key: 'i-acq', label: '- Acquisitions d\'immobilisations', value: -acqImmos, prefixes: ['21', '22', '23', '24', '25'] },
-              { key: 'i-ces', label: '+ Cessions d\'immobilisations', value: cessImmos, prefixes: ['82'] },
-              { key: 'i-fin', label: '- Acquisitions financières', value: -acqFinanc, prefixes: ['26', '27'] },
-              { total: true, label: '= FLUX NET LIÉ AUX INVESTISSEMENTS (B)', value: fluxInvest },
-              { section: 'C. FLUX LIÉS AU FINANCEMENT', color: 'purple' },
-              { key: 'i-cap', label: '+ Augmentation de capital', value: augCapital, prefixes: ['10'] },
-              { key: 'i-emp', label: '+ Nouveaux emprunts', value: emprunts, prefixes: ['16'] },
-              { key: 'i-remb', label: '- Remboursements d\'emprunts', value: -rembEmprunts, prefixes: ['16'] },
-              { key: 'i-div', label: '- Dividendes versés', value: -dividendes, prefixes: ['465'] },
-              { total: true, label: '= FLUX NET LIÉ AU FINANCEMENT (C)', value: fluxFinanc },
+              { section: t('incomeStatement.tftSectionA'), color: 'blue' },
+              { key: 'i-rn', label: t('incomeStatement.tftNetResult'), value: resultatNet, prefixes: ['6', '7'] },
+              { key: 'i-dot', label: t('incomeStatement.tftDepreciation'), value: dotations, prefixes: ['68', '69'] },
+              { key: 'i-rep', label: t('incomeStatement.tftReversals'), value: -reprises, prefixes: ['78', '79'] },
+              { key: 'i-pmv', label: t('incomeStatement.tftGainsLosses'), value: plusMoinsValues, prefixes: ['81', '82'] },
+              { subtotal: true, label: t('incomeStatement.tftCaf'), value: caf },
+              { key: 'i-stk', label: t('incomeStatement.tftStockVar'), value: -varStocks, prefixes: ['3'] },
+              { key: 'i-cli', label: t('incomeStatement.tftReceivablesVar'), value: -varClients, prefixes: ['41'] },
+              { key: 'i-aut', label: t('incomeStatement.tftOtherReceivablesVar'), value: -varAutres, prefixes: ['46'] },
+              { key: 'i-frn', label: t('incomeStatement.tftPayablesVar'), value: varFournisseurs, prefixes: ['40'] },
+              { key: 'i-fis', label: t('incomeStatement.tftTaxPayablesVar'), value: varFiscales, prefixes: ['42', '43', '44'] },
+              { total: true, label: t('incomeStatement.tftNetOperating'), value: fluxExploit },
+              { section: t('incomeStatement.tftSectionB'), color: 'orange' },
+              { key: 'i-acq', label: t('incomeStatement.tftFixedAcq'), value: -acqImmos, prefixes: ['21', '22', '23', '24', '25'] },
+              { key: 'i-ces', label: t('incomeStatement.tftFixedDisp'), value: cessImmos, prefixes: ['82'] },
+              { key: 'i-fin', label: t('incomeStatement.tftFinAcq'), value: -acqFinanc, prefixes: ['26', '27'] },
+              { total: true, label: t('incomeStatement.tftNetInvesting'), value: fluxInvest },
+              { section: t('incomeStatement.tftSectionC'), color: 'purple' },
+              { key: 'i-cap', label: t('incomeStatement.tftCapitalIncrease'), value: augCapital, prefixes: ['10'] },
+              { key: 'i-emp', label: t('incomeStatement.tftNewBorrowings'), value: emprunts, prefixes: ['16'] },
+              { key: 'i-remb', label: t('incomeStatement.tftLoanRepayments'), value: -rembEmprunts, prefixes: ['16'] },
+              { key: 'i-div', label: t('incomeStatement.tftDividendsPaid'), value: -dividendes, prefixes: ['465'] },
+              { total: true, label: t('incomeStatement.tftNetFinancing'), value: fluxFinanc },
             ];
 
             const directRows = [
-              { section: 'A. FLUX LIÉS À L\'ACTIVITÉ', color: 'blue' },
-              { key: 'd-enc', label: '+ Encaissements reçus des clients', value: dEncClients, prefixes: ['41'] },
-              { key: 'd-aenc', label: '+ Autres encaissements d\'exploitation', value: dAutresEnc, prefixes: [] },
-              { key: 'd-frn', label: '- Décaissements aux fournisseurs', value: -dDecFournisseurs, prefixes: ['40'] },
-              { key: 'd-per', label: '- Décaissements au personnel', value: -dDecPersonnel, prefixes: ['42', '43'] },
-              { key: 'd-imp', label: '- Impôts payés', value: -dDecImpots, prefixes: ['44', '89'] },
-              { key: 'd-adec', label: '- Autres décaissements d\'exploitation', value: -dAutresDec, prefixes: [] },
-              { total: true, label: '= FLUX NET LIÉ À L\'ACTIVITÉ (A)', value: dFluxExploit },
-              { section: 'B. FLUX LIÉS AUX INVESTISSEMENTS', color: 'orange' },
-              { key: 'd-dacq', label: '- Décaissements sur acquisitions d\'immos', value: -dDecAcqImmos, prefixes: ['21', '22', '23', '24', '25'] },
-              { key: 'd-dfin', label: '- Décaissements sur acquisitions financières', value: -dDecAcqFinanc, prefixes: ['26', '27'] },
-              { key: 'd-eces', label: '+ Encaissements sur cessions', value: dEncCessions, prefixes: ['82'] },
-              { total: true, label: '= FLUX NET LIÉ AUX INVESTISSEMENTS (B)', value: dFluxInvest },
-              { section: 'C. FLUX LIÉS AU FINANCEMENT', color: 'purple' },
-              { key: 'd-ecap', label: '+ Encaissements augmentation capital', value: dEncCapital, prefixes: ['10'] },
-              { key: 'd-eemp', label: '+ Encaissements emprunts', value: dEncEmprunts, prefixes: ['16'] },
-              { key: 'd-dremp', label: '- Remboursements d\'emprunts', value: -dDecRembEmprunts, prefixes: ['16'] },
-              { key: 'd-ddiv', label: '- Dividendes versés', value: -dDecDividendes, prefixes: ['465'] },
-              { total: true, label: '= FLUX NET LIÉ AU FINANCEMENT (C)', value: dFluxFinanc },
+              { section: t('incomeStatement.tftSectionA'), color: 'blue' },
+              { key: 'd-enc', label: t('incomeStatement.tftCustomerReceipts'), value: dEncClients, prefixes: ['41'] },
+              { key: 'd-aenc', label: t('incomeStatement.tftOtherOperReceipts'), value: dAutresEnc, prefixes: [] },
+              { key: 'd-frn', label: t('incomeStatement.tftSupplierPayments'), value: -dDecFournisseurs, prefixes: ['40'] },
+              { key: 'd-per', label: t('incomeStatement.tftStaffPayments'), value: -dDecPersonnel, prefixes: ['42', '43'] },
+              { key: 'd-imp', label: t('incomeStatement.tftTaxPaid'), value: -dDecImpots, prefixes: ['44', '89'] },
+              { key: 'd-adec', label: t('incomeStatement.tftOtherOperPayments'), value: -dAutresDec, prefixes: [] },
+              { total: true, label: t('incomeStatement.tftNetOperating'), value: dFluxExploit },
+              { section: t('incomeStatement.tftSectionB'), color: 'orange' },
+              { key: 'd-dacq', label: t('incomeStatement.tftFixedAcqPayments'), value: -dDecAcqImmos, prefixes: ['21', '22', '23', '24', '25'] },
+              { key: 'd-dfin', label: t('incomeStatement.tftFinAcqPayments'), value: -dDecAcqFinanc, prefixes: ['26', '27'] },
+              { key: 'd-eces', label: t('incomeStatement.tftDisposalReceipts'), value: dEncCessions, prefixes: ['82'] },
+              { total: true, label: t('incomeStatement.tftNetInvesting'), value: dFluxInvest },
+              { section: t('incomeStatement.tftSectionC'), color: 'purple' },
+              { key: 'd-ecap', label: t('incomeStatement.tftCapitalReceipts'), value: dEncCapital, prefixes: ['10'] },
+              { key: 'd-eemp', label: t('incomeStatement.tftBorrowingReceipts'), value: dEncEmprunts, prefixes: ['16'] },
+              { key: 'd-dremp', label: t('incomeStatement.tftLoanRepayments'), value: -dDecRembEmprunts, prefixes: ['16'] },
+              { key: 'd-ddiv', label: t('incomeStatement.tftDividendsPaid'), value: -dDecDividendes, prefixes: ['465'] },
+              { total: true, label: t('incomeStatement.tftNetFinancing'), value: dFluxFinanc },
             ];
 
             const rows = tftMethod === 'indirect' ? indirectRows : directRows;

@@ -39,6 +39,7 @@ import {
   AreaChart
 } from 'recharts';
 import { AtlasRadar } from '../../components/charts';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FinancialData {
   tafire: TAFIREData;
@@ -86,14 +87,19 @@ interface FunctionalBalanceData {
   treasuryAutonomyDays: number;
 }
 
+// `code` identifie le ratio de façon stable ; `nameKey` / `unitKey` /
+// `interpretationKey` portent des CLÉS et non des libellés, le calcul des
+// ratios ne connaissant pas la langue d'affichage.
 interface RatioData {
   category: string;
-  name: string;
+  code: string;
+  nameKey: string;
   value: number;
   unit: string;
+  unitKey?: string;
   reference: number;
   variation: number;
-  interpretation: string;
+  interpretationKey: string;
   alert: boolean;
   alertLevel: string;
 }
@@ -106,6 +112,8 @@ interface CashFlowData {
 }
 
 interface MonthlyForecast {
+  /** Index 0..11 du mois : le libellé est localisé au rendu. */
+  monthIndex: number;
   month: string;
   inflows: number;
   outflows: number;
@@ -114,7 +122,7 @@ interface MonthlyForecast {
 }
 
 interface Scenario {
-  name: string;
+  nameKey: string;
   type: string;
   averageCashFlow: number;
   minimumCash: number;
@@ -123,6 +131,8 @@ interface Scenario {
 
 const FinancialAnalysisPage: React.FC = () => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
+  const numberLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [selectedView, setSelectedView] = useState<'overview' | 'tafire' | 'sig' | 'functional' | 'ratios' | 'forecast'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('current');
 
@@ -221,7 +231,6 @@ const FinancialAnalysisPage: React.FC = () => {
 
     // Monthly forecasts from entries grouped by month
     const monthlyMap = new Map<string, { inflows: number; outflows: number }>();
-    const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
     for (const e of entries) {
       const d = new Date(e.date);
       const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, '0')}`;
@@ -241,7 +250,8 @@ const FinancialAnalysisPage: React.FC = () => {
       const flow = val.inflows - val.outflows;
       cumulative += flow;
       return {
-        month: monthNames[monthIdx] || key,
+        monthIndex: monthIdx,
+        month: key,
         inflows: val.inflows,
         outflows: val.outflows,
         netFlow: flow,
@@ -294,18 +304,18 @@ const FinancialAnalysisPage: React.FC = () => {
         treasuryAutonomyDays: Math.abs(treasuryAutonomyDays),
       },
       ratios: [
-        { category: 'LIQUIDITE', name: 'Liquidité générale', value: liquiditeGenerale, unit: 'ratio', reference: 1.2, variation: 0, interpretation: liquiditeGenerale >= 1.2 ? 'Bonne liquidité' : 'Liquidité faible', alert: liquiditeGenerale < 1, alertLevel: liquiditeGenerale < 1 ? 'high' : '' },
-        { category: 'STRUCTURE', name: 'Autonomie financière', value: autonomieFinanciere, unit: '%', reference: 33, variation: 0, interpretation: autonomieFinanciere >= 33 ? 'Bonne autonomie' : 'Autonomie faible', alert: autonomieFinanciere < 20, alertLevel: autonomieFinanciere < 20 ? 'high' : '' },
-        { category: 'RENTABILITE', name: 'ROE', value: roe, unit: '%', reference: 10, variation: 0, interpretation: roe >= 10 ? 'Excellente rentabilité' : 'Rentabilité faible', alert: roe < 5, alertLevel: roe < 5 ? 'medium' : '' },
-        { category: 'ACTIVITE', name: 'Délai clients', value: Math.abs(dso), unit: 'jours', reference: 45, variation: 0, interpretation: Math.abs(dso) <= 45 ? 'Bon recouvrement' : 'Recouvrement lent', alert: Math.abs(dso) > 60, alertLevel: Math.abs(dso) > 60 ? 'medium' : '' },
-        { category: 'SOLVABILITE', name: 'Dette/EBITDA', value: Math.abs(debtToEbitda), unit: 'fois', reference: 4, variation: 0, interpretation: Math.abs(debtToEbitda) <= 4 ? 'Faible endettement' : 'Endettement élevé', alert: Math.abs(debtToEbitda) > 5, alertLevel: Math.abs(debtToEbitda) > 5 ? 'high' : '' },
+        { category: 'LIQUIDITE', code: 'liquidity', nameKey: 'financialAnalysis.ratioLiquidity', value: liquiditeGenerale, unit: '', unitKey: 'financialAnalysis.unitRatio', reference: 1.2, variation: 0, interpretationKey: liquiditeGenerale >= 1.2 ? 'financialAnalysis.interpGoodLiquidity' : 'financialAnalysis.interpWeakLiquidity', alert: liquiditeGenerale < 1, alertLevel: liquiditeGenerale < 1 ? 'high' : '' },
+        { category: 'STRUCTURE', code: 'autonomy', nameKey: 'financialAnalysis.ratioAutonomy', value: autonomieFinanciere, unit: '%', reference: 33, variation: 0, interpretationKey: autonomieFinanciere >= 33 ? 'financialAnalysis.interpGoodAutonomy' : 'financialAnalysis.interpWeakAutonomy', alert: autonomieFinanciere < 20, alertLevel: autonomieFinanciere < 20 ? 'high' : '' },
+        { category: 'RENTABILITE', code: 'roe', nameKey: 'financialAnalysis.ratioRoe', value: roe, unit: '%', reference: 10, variation: 0, interpretationKey: roe >= 10 ? 'financialAnalysis.interpExcellentReturn' : 'financialAnalysis.interpWeakReturn', alert: roe < 5, alertLevel: roe < 5 ? 'medium' : '' },
+        { category: 'ACTIVITE', code: 'dso', nameKey: 'financialAnalysis.ratioDso', value: Math.abs(dso), unit: '', unitKey: 'financialAnalysis.unitDays', reference: 45, variation: 0, interpretationKey: Math.abs(dso) <= 45 ? 'financialAnalysis.interpGoodCollection' : 'financialAnalysis.interpSlowCollection', alert: Math.abs(dso) > 60, alertLevel: Math.abs(dso) > 60 ? 'medium' : '' },
+        { category: 'SOLVABILITE', code: 'debtEbitda', nameKey: 'financialAnalysis.ratioDebtEbitda', value: Math.abs(debtToEbitda), unit: '', unitKey: 'financialAnalysis.unitTimes', reference: 4, variation: 0, interpretationKey: Math.abs(debtToEbitda) <= 4 ? 'financialAnalysis.interpLowDebt' : 'financialAnalysis.interpHighDebt', alert: Math.abs(debtToEbitda) > 5, alertLevel: Math.abs(debtToEbitda) > 5 ? 'high' : '' },
       ],
       cashFlowForecast: {
         monthlyForecasts,
         scenarios: [
-          { name: 'Optimiste', type: 'OPTIMISTIC', averageCashFlow: avgNetFlow * 1.3, minimumCash: disponibilites * 0.8, confidenceLevel: 75 },
-          { name: 'Réaliste', type: 'REALISTIC', averageCashFlow: avgNetFlow, minimumCash: disponibilites * 0.5, confidenceLevel: 85 },
-          { name: 'Pessimiste', type: 'PESSIMISTIC', averageCashFlow: avgNetFlow * 0.5, minimumCash: disponibilites * 0.2, confidenceLevel: 90 },
+          { nameKey: 'financialAnalysis.scenarioOptimistic', type: 'OPTIMISTIC', averageCashFlow: avgNetFlow * 1.3, minimumCash: disponibilites * 0.8, confidenceLevel: 75 },
+          { nameKey: 'financialAnalysis.scenarioRealistic', type: 'REALISTIC', averageCashFlow: avgNetFlow, minimumCash: disponibilites * 0.5, confidenceLevel: 85 },
+          { nameKey: 'financialAnalysis.scenarioPessimistic', type: 'PESSIMISTIC', averageCashFlow: avgNetFlow * 0.5, minimumCash: disponibilites * 0.2, confidenceLevel: 90 },
         ],
         burnRate: avgMonthlyOutflow,
         runway: Math.abs(runway),
@@ -320,8 +330,13 @@ const FinancialAnalysisPage: React.FC = () => {
   };
 
 
+  // Le mois est stocké sous forme d'index ; son libellé court est produit ici,
+  // dans la langue courante.
+  const monthLabel = (monthIndex: number) =>
+    new Intl.DateTimeFormat(numberLocale, { month: 'short' }).format(new Date(2000, monthIndex, 1));
+
   const formatNumber = (value: number, decimals: number = 1) => {
-    return new Intl.NumberFormat('fr-FR', {
+    return new Intl.NumberFormat(numberLocale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     }).format(value);
@@ -341,8 +356,8 @@ const FinancialAnalysisPage: React.FC = () => {
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-lg font-bold text-gray-900">Analyse Financière Avancée</h1>
-            <p className="text-gray-600">TAFIRE, SIG, Bilan Fonctionnel et Ratios SYSCOHADA</p>
+            <h1 className="text-lg font-bold text-gray-900">{t('financialAnalysis.title')}</h1>
+            <p className="text-gray-600">{t('financialAnalysis.subtitle')}</p>
           </div>
           <div className="flex space-x-4">
             <select
@@ -350,13 +365,13 @@ const FinancialAnalysisPage: React.FC = () => {
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
             >
-              <option value="current">Exercice courant</option>
-              <option value="previous">Exercice précédent</option>
-              <option value="comparison">Comparaison N/N-1</option>
+              <option value="current">{t('financialAnalysis.periodCurrent')}</option>
+              <option value="previous">{t('financialAnalysis.periodPrevious')}</option>
+              <option value="comparison">{t('financialAnalysis.periodComparison')}</option>
             </select>
             <button className="bg-primary hover:bg-primary-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
               <DocumentTextIcon className="h-5 w-5" />
-              <span>Exporter Rapport</span>
+              <span>{t('financialAnalysis.exportReport')}</span>
             </button>
           </div>
         </div>
@@ -366,12 +381,12 @@ const FinancialAnalysisPage: React.FC = () => {
       <div className="mb-8 border-b border-gray-200">
         <nav className="flex space-x-8">
           {[
-            { id: 'overview', label: 'Vue d\'ensemble', icon: ChartBarIcon },
+            { id: 'overview', label: t('financialAnalysis.tabOverview'), icon: ChartBarIcon },
             { id: 'tafire', label: 'TAFIRE', icon: CurrencyDollarIcon },
             { id: 'sig', label: 'SIG', icon: ChartBarIcon },
-            { id: 'functional', label: 'Bilan Fonctionnel', icon: DocumentTextIcon },
-            { id: 'ratios', label: 'Ratios', icon: ChartBarIcon },
-            { id: 'forecast', label: 'Prévisions', icon: ClockIcon }
+            { id: 'functional', label: t('financialAnalysis.tabFunctional'), icon: DocumentTextIcon },
+            { id: 'ratios', label: t('financialAnalysis.tabRatios'), icon: ChartBarIcon },
+            { id: 'forecast', label: t('financialAnalysis.tabForecast'), icon: ClockIcon }
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -397,11 +412,11 @@ const FinancialAnalysisPage: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Résultat Net</p>
+                  <p className="text-sm font-medium text-gray-600">{t('financialAnalysis.netResult')}</p>
                   <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.sig.netResult || 0)}</p>
                   <p className="text-sm text-green-600 flex items-center">
                     <ArrowUpIcon className="h-4 w-4 mr-1" />
-                    {formatNumber(financialData?.sig.netMarginRate || 0)}% marge
+                    {t('financialAnalysis.marginSuffix', { rate: formatNumber(financialData?.sig.netMarginRate || 0) })}
                   </p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -440,7 +455,7 @@ const FinancialAnalysisPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">ROE</p>
-                  <p className="text-lg font-bold text-gray-900">{formatNumber(financialData?.ratios.find(r => r.name === 'ROE')?.value || 0)}%</p>
+                  <p className="text-lg font-bold text-gray-900">{formatNumber(financialData?.ratios.find(r => r.code === 'roe')?.value || 0)}%</p>
                   <p className="text-sm text-orange-600">Ref: 10%</p>
                 </div>
                 <div className="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -454,15 +469,15 @@ const FinancialAnalysisPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Évolution SIG */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Cascade des SIG</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.sigCascade')}</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
-                  { name: 'Marge Comm.', value: financialData?.sig.commercialMargin || 0 },
-                  { name: 'Production', value: financialData?.sig.production || 0 },
-                  { name: 'Valeur Ajoutée', value: financialData?.sig.addedValue || 0 },
-                  { name: 'EBE', value: financialData?.sig.grossOperatingSurplus || 0 },
-                  { name: 'Rés. Exploit.', value: financialData?.sig.operatingResult || 0 },
-                  { name: 'Rés. Net', value: financialData?.sig.netResult || 0 }
+                  { name: t('financialAnalysis.sigCommercialMargin'), value: financialData?.sig.commercialMargin || 0 },
+                  { name: t('financialAnalysis.sigProduction'), value: financialData?.sig.production || 0 },
+                  { name: t('financialAnalysis.sigAddedValue'), value: financialData?.sig.addedValue || 0 },
+                  { name: t('financialAnalysis.sigEbe'), value: financialData?.sig.grossOperatingSurplus || 0 },
+                  { name: t('financialAnalysis.sigOperatingResult'), value: financialData?.sig.operatingResult || 0 },
+                  { name: t('financialAnalysis.sigNetResult'), value: financialData?.sig.netResult || 0 }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -475,12 +490,12 @@ const FinancialAnalysisPage: React.FC = () => {
 
             {/* Équilibre financier */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Équilibre Financier</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.financialBalance')}</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
                   { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#171717' },
                   { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#525252' },
-                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#737373' }
+                  { name: t('financialAnalysis.treasury'), value: financialData?.functionalBalance.netTreasury || 0, fill: '#737373' }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
@@ -494,12 +509,12 @@ const FinancialAnalysisPage: React.FC = () => {
 
           {/* Ratios radar */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Performance Globale</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.globalPerformance')}</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <AtlasRadar
                 height={380}
                 indicators={(financialData?.ratios || []).map((r) => ({ name: r.category, max: 100 }))}
-                series={[{ name: 'Performance', data: (financialData?.ratios || []).map((r) => Math.min(100, (r.value / r.reference) * 100)), color: '#235A6E' }]}
+                series={[{ name: t('financialAnalysis.performance'), data: (financialData?.ratios || []).map((r) => Math.min(100, (r.value / r.reference) * 100)), color: '#235A6E' }]}
               />
               
               <div className="space-y-4">
@@ -507,11 +522,11 @@ const FinancialAnalysisPage: React.FC = () => {
                   <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       {getStatusIcon(ratio.value, ratio.reference)}
-                      <span className="text-sm font-medium text-gray-900">{ratio.name}</span>
+                      <span className="text-sm font-medium text-gray-900">{t(ratio.nameKey)}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900">{formatNumber(ratio.value)}{ratio.unit}</p>
-                      <p className="text-xs text-gray-700">Réf: {formatNumber(ratio.reference)}{ratio.unit}</p>
+                      <p className="text-sm font-bold text-gray-900">{formatNumber(ratio.value)}{ratio.unitKey ? ` ${t(ratio.unitKey)}` : ratio.unit}</p>
+                      <p className="text-xs text-gray-700">{t('financialAnalysis.refShort', { value: `${formatNumber(ratio.reference)}${ratio.unitKey ? ` ${t(ratio.unitKey)}` : ratio.unit}` })}</p>
                     </div>
                   </div>
                 )) || []}
@@ -525,18 +540,18 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="space-y-8">
           {/* En-tête TAFIRE */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">TAFIRE - Tableau Financier des Ressources et Emplois</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t('financialAnalysis.tafireTitle')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-600 font-medium">Flux d'Exploitation</p>
+                <p className="text-sm text-green-600 font-medium">{t('financialAnalysis.operatingFlow')}</p>
                 <p className="text-lg font-bold text-green-700">{formatCurrency(financialData?.tafire.operatingCashFlow || 0)}</p>
               </div>
               <div className="text-center p-4 bg-red-50 rounded-lg">
-                <p className="text-sm text-red-600 font-medium">Flux d'Investissement</p>
+                <p className="text-sm text-red-600 font-medium">{t('financialAnalysis.investingFlow')}</p>
                 <p className="text-lg font-bold text-red-700">{formatCurrency(financialData?.tafire.investmentCashFlow || 0)}</p>
               </div>
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600 font-medium">Flux de Financement</p>
+                <p className="text-sm text-blue-600 font-medium">{t('financialAnalysis.financingFlow')}</p>
                 <p className="text-lg font-bold text-blue-700">{formatCurrency(financialData?.tafire.financingCashFlow || 0)}</p>
               </div>
             </div>
@@ -545,14 +560,14 @@ const FinancialAnalysisPage: React.FC = () => {
           {/* Analyse des flux */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Waterfall des Flux de Trésorerie</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.cashWaterfall')}</h3>
               <ResponsiveContainer width="100%" height={350}>
                 <ComposedChart data={[
-                  { name: 'Trésorerie début', value: financialData?.tafire.openingCash || 0, type: 'opening' },
-                  { name: 'Flux exploitation', value: financialData?.tafire.operatingCashFlow || 0, type: 'operating' },
-                  { name: 'Flux investissement', value: financialData?.tafire.investmentCashFlow || 0, type: 'investment' },
-                  { name: 'Flux financement', value: financialData?.tafire.financingCashFlow || 0, type: 'financing' },
-                  { name: 'Trésorerie fin', value: financialData?.tafire.closingCash || 0, type: 'closing' }
+                  { name: t('financialAnalysis.openingCash'), value: financialData?.tafire.openingCash || 0, type: 'opening' },
+                  { name: t('financialAnalysis.operatingFlowShort'), value: financialData?.tafire.operatingCashFlow || 0, type: 'operating' },
+                  { name: t('financialAnalysis.investingFlowShort'), value: financialData?.tafire.investmentCashFlow || 0, type: 'investment' },
+                  { name: t('financialAnalysis.financingFlowShort'), value: financialData?.tafire.financingCashFlow || 0, type: 'financing' },
+                  { name: t('financialAnalysis.closingCash'), value: financialData?.tafire.closingCash || 0, type: 'closing' }
                 ]}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
@@ -564,11 +579,11 @@ const FinancialAnalysisPage: React.FC = () => {
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Indicateurs Clés</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.keyIndicators')}</h3>
               <div className="space-y-6">
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Capacité d'Autofinancement</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financialAnalysis.selfFinancingCapacity')}</p>
                     <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.tafire.selfFinancingCapacity || 0)}</p>
                   </div>
                   <div className="text-right">
@@ -588,7 +603,7 @@ const FinancialAnalysisPage: React.FC = () => {
 
                 <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">Variation de Trésorerie</p>
+                    <p className="text-sm font-medium text-gray-600">{t('financialAnalysis.cashVariation')}</p>
                     <p className="text-lg font-bold text-gray-900">{formatCurrency(financialData?.tafire.netCashFlow || 0)}</p>
                   </div>
                   <div className="text-right">
@@ -608,60 +623,60 @@ const FinancialAnalysisPage: React.FC = () => {
         <div className="space-y-8">
           {/* Prévisions de trésorerie */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Cash Flow Prévisionnel</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t('financialAnalysis.forecastCashFlow')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-600 font-medium">Burn Rate Mensuel</p>
+                <p className="text-sm text-blue-600 font-medium">{t('financialAnalysis.monthlyBurnRate')}</p>
                 <p className="text-lg font-bold text-blue-700">{formatCurrency(financialData.cashFlowForecast.burnRate)}</p>
               </div>
               <div className="text-center p-4 bg-green-50 rounded-lg">
                 <p className="text-sm text-green-600 font-medium">Runway</p>
-                <p className="text-lg font-bold text-green-700">{formatNumber(financialData.cashFlowForecast.runway)} mois</p>
+                <p className="text-lg font-bold text-green-700">{t('financialAnalysis.runwayMonths', { value: formatNumber(financialData.cashFlowForecast.runway) })}</p>
               </div>
               <div className="text-center p-4 bg-primary-50 rounded-lg">
-                <p className="text-sm text-primary-600 font-medium">Scénarios</p>
+                <p className="text-sm text-primary-600 font-medium">{t('financialAnalysis.scenarios')}</p>
                 <p className="text-lg font-bold text-primary-700">{financialData.cashFlowForecast.scenarios.length}</p>
               </div>
             </div>
 
             {/* Graphique prévisionnel */}
             <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={financialData.cashFlowForecast.monthlyForecasts}>
+              <ComposedChart data={financialData.cashFlowForecast.monthlyForecasts.map(m => ({ ...m, month: monthLabel(m.monthIndex) }))}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip formatter={(value: number) => formatCurrency(value)} />
                 <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="inflows" fill="url(#gradPetrol)" name="Encaissements" />
-                <Bar radius={[6,6,0,0]} dataKey="outflows" fill="url(#gradRed)" name="Décaissements" />
-                <Line type="monotone" dataKey="cumulativeCash" stroke="#235A6E" strokeWidth={3} name="Trésorerie cumulative" />
+                <Bar radius={[6,6,0,0]} dataKey="inflows" fill="url(#gradPetrol)" name={t('financialAnalysis.inflows')} />
+                <Bar radius={[6,6,0,0]} dataKey="outflows" fill="url(#gradRed)" name={t('financialAnalysis.outflows')} />
+                <Line type="monotone" dataKey="cumulativeCash" stroke="#235A6E" strokeWidth={3} name={t('financialAnalysis.cumulativeCash')} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
 
           {/* Scénarios */}
           <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Analyse de Scénarios</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-4">{t('financialAnalysis.scenarioAnalysis')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {financialData.cashFlowForecast.scenarios.map((scenario, index) => (
                 <div key={index} className="p-4 border border-gray-200 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-900">{scenario.name}</h4>
+                    <h4 className="font-medium text-gray-900">{t(scenario.nameKey)}</h4>
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       scenario.type === 'OPTIMISTIC' ? 'bg-green-100 text-green-800' :
                       scenario.type === 'PESSIMISTIC' ? 'bg-red-100 text-red-800' :
                       'bg-blue-100 text-blue-800'
                     }`}>
-                      {scenario.confidenceLevel}% confiance
+                      {t('financialAnalysis.confidenceLevel', { level: String(scenario.confidenceLevel) })}
                     </span>
                   </div>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Cash Flow Moyen:</span>
+                      <span className="text-sm text-gray-600">{t('financialAnalysis.averageCashFlow')}</span>
                       <span className="text-sm font-medium">{formatCurrency(scenario.averageCashFlow)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Cash Minimum:</span>
+                      <span className="text-sm text-gray-600">{t('financialAnalysis.minimumCash')}</span>
                       <span className="text-sm font-medium">{formatCurrency(scenario.minimumCash)}</span>
                     </div>
                   </div>

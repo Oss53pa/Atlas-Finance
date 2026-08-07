@@ -163,25 +163,17 @@ const BilanSYSCOHADAPage: React.FC = () => {
   // résultat net). L'ancienne version bornait chaque poste à Math.max(0,…) et
   // omettait des comptes (46 créditeur de 8,36 Md, 47/48/49/17/19/55/57) → le
   // passif était sous-évalué et le bilan ne s'équilibrait pas.
-  const BILAN_LABELS: Record<string, string> = {
-    '10': 'Capital social', '11': 'Réserves', '12': 'Report à nouveau', '13': "Résultat de l'exercice",
-    '14': "Subventions d'investissement", '15': 'Provisions réglementées', '16': 'Emprunts et dettes financières',
-    '17': 'Dettes de crédit-bail', '18': 'Dettes liées aux participations', '19': 'Provisions pour risques et charges',
-    '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
-    '23': 'Bâtiments, installations et agencements', '24': 'Matériel, mobilier et transport',
-    '25': 'Avances et acomptes sur immobilisations', '26': 'Titres de participation', '27': 'Autres immobilisations financières',
-    '28': 'Amortissements', '29': 'Dépréciations des immobilisations',
-    '31': 'Stocks de marchandises', '32': 'Stocks de matières premières', '33': 'Autres approvisionnements',
-    '34': 'Produits et travaux en cours', '35': 'Produits finis', '36': 'Stocks en cours', '37': 'Stocks (autres)',
-    '38': 'Stocks en transit', '39': 'Dépréciations des stocks',
-    '40': 'Fournisseurs et comptes rattachés', '41': 'Clients et comptes rattachés', '42': 'Personnel',
-    '43': 'Organismes sociaux', '44': 'État et collectivités', '45': 'Organismes internationaux',
-    '46': 'Débiteurs et créditeurs divers', '47': 'Comptes transitoires ou d\'attente', '48': 'Créances et dettes HAO',
-    '49': 'Dépréciations des comptes de tiers',
-    '50': 'Titres de placement', '51': 'Valeurs à encaisser', '52': 'Banques', '53': 'Établissements financiers',
-    '54': 'Instruments de trésorerie', '55': 'Caisse (régies)', '56': 'Crédits de trésorerie', '57': 'Caisse',
-    '58': 'Régies d\'avances et virements internes', '59': 'Dépréciations de trésorerie',
-  };
+  // Intitulés normalisés SYSCOHADA des comptes à 2 chiffres. La table porte des
+  // CLÉS et non des libellés : elle est déclarée dans le corps du composant mais
+  // sert aussi de référentiel — la traduction est résolue à la construction du
+  // bilan, dans `bilanData`.
+  const BILAN_LABEL_KEYS: Record<string, string> = Object.fromEntries(
+    ['10','11','12','13','14','15','16','17','18','19','20','21','22','23','24',
+     '25','26','27','28','29','31','32','33','34','35','36','37','38','39','40',
+     '41','42','43','44','45','46','47','48','49','50','51','52','53','54','55',
+     '56','57','58','59'].map(c => [c, `bilan.acct${c}`])
+  );
+
   const CONTRA_ACTIF = new Set(['28', '29', '39', '49', '59']);
   // Comptes de nature fixe (présentation SYSCOHADA) ; le reste (tiers 40-48,
   // trésorerie 50-58) est placé selon le signe du solde. Quel que soit le côté,
@@ -211,10 +203,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
     for (const c2 of codes) {
       const vN = mN.get(c2) || 0;
       const vN1 = mN1.get(c2) || 0;
-      const libelle = BILAN_LABELS[c2] || `Classe ${c2}`;
+      const labelKey = BILAN_LABEL_KEYS[c2];
+      const libelle = labelKey ? t(labelKey) : t('bilan.acctClassFallback', { code: c2 });
       if (CONTRA_ACTIF.has(c2)) {
         // Contrepartie d'actif (solde créditeur) → en déduction de l'actif.
-        actif.push({ code: c2, libelle: `${libelle} (à déduire)`, exerciceN: vN, exerciceN1: vN1 });
+        actif.push({ code: c2, libelle: t('bilan.acctToDeduct', { label: libelle }), exerciceN: vN, exerciceN1: vN1 });
         continue;
       }
       if (ALWAYS_PASSIF.has(c2)) { passif.push({ code: c2, libelle, exerciceN: -vN, exerciceN1: -vN1 }); continue; }
@@ -226,34 +219,34 @@ const BilanSYSCOHADAPage: React.FC = () => {
       else passif.push({ code: c2, libelle, exerciceN: -vN, exerciceN1: -vN1 });
     }
     // Résultat NET d'impôt (− cl.89) au passif (capitaux propres).
-    passif.push({ code: '13', libelle: "Résultat net de l'exercice", exerciceN: creditNet(['7']) - net(['6']) - net(['89']), exerciceN1: creditNetN1(['13']) });
+    passif.push({ code: '13', libelle: t('bilan.netIncomeForYear'), exerciceN: creditNet(['7']) - net(['6']) - net(['89']), exerciceN1: creditNetN1(['13']) });
     return { actif, passif };
-  }, [rawEntries]);
+  }, [rawEntries, t]);
 
   // Compte de Résultat — N-1 not available from AN entries (income stmt doesn't carry forward)
   // We show 0 with a clear label; a full N-1 would require a prior-year dataset
   const compteResultatData = useMemo(() => ({
     produits: [
-      { code: '70', libelle: 'Ventes de marchandises', exerciceN: creditNet(['70']), exerciceN1: 0 },
-      { code: '72', libelle: 'Production vendue', exerciceN: creditNet(['72']), exerciceN1: 0 },
-      { code: '74', libelle: 'Subventions d\'exploitation', exerciceN: creditNet(['74']), exerciceN1: 0 },
-      { code: '75', libelle: 'Autres produits de gestion', exerciceN: creditNet(['75']), exerciceN1: 0 },
-      { code: '77', libelle: 'Revenus financiers', exerciceN: creditNet(['77']), exerciceN1: 0 },
-      { code: '78', libelle: 'Reprises de provisions', exerciceN: creditNet(['78']), exerciceN1: 0 },
+      { code: '70', libelle: t('bilan.acct70'), exerciceN: creditNet(['70']), exerciceN1: 0 },
+      { code: '72', libelle: t('bilan.acct72'), exerciceN: creditNet(['72']), exerciceN1: 0 },
+      { code: '74', libelle: t('bilan.acct74'), exerciceN: creditNet(['74']), exerciceN1: 0 },
+      { code: '75', libelle: t('bilan.acct75'), exerciceN: creditNet(['75']), exerciceN1: 0 },
+      { code: '77', libelle: t('bilan.acct77'), exerciceN: creditNet(['77']), exerciceN1: 0 },
+      { code: '78', libelle: t('bilan.acct78'), exerciceN: creditNet(['78']), exerciceN1: 0 },
     ],
     charges: [
-      { code: '60', libelle: 'Achats de marchandises', exerciceN: net(['60']), exerciceN1: 0 },
-      { code: '61', libelle: 'Transports', exerciceN: net(['61']), exerciceN1: 0 },
-      { code: '62', libelle: 'Services extérieurs A', exerciceN: net(['62']), exerciceN1: 0 },
-      { code: '63', libelle: 'Services extérieurs B', exerciceN: net(['63']), exerciceN1: 0 },
-      { code: '64', libelle: 'Impôts et taxes', exerciceN: net(['64']), exerciceN1: 0 },
-      { code: '65', libelle: 'Autres charges', exerciceN: net(['65']), exerciceN1: 0 },
-      { code: '66', libelle: 'Charges de personnel', exerciceN: net(['66']), exerciceN1: 0 },
-      { code: '68', libelle: 'Dotations aux amortissements', exerciceN: net(['68']), exerciceN1: 0 },
-      { code: '69', libelle: 'Dotations aux provisions', exerciceN: net(['69']), exerciceN1: 0 },
-      { code: '67', libelle: 'Charges financières', exerciceN: net(['67']), exerciceN1: 0 },
+      { code: '60', libelle: t('bilan.acct60'), exerciceN: net(['60']), exerciceN1: 0 },
+      { code: '61', libelle: t('bilan.acct61'), exerciceN: net(['61']), exerciceN1: 0 },
+      { code: '62', libelle: t('bilan.acct62'), exerciceN: net(['62']), exerciceN1: 0 },
+      { code: '63', libelle: t('bilan.acct63'), exerciceN: net(['63']), exerciceN1: 0 },
+      { code: '64', libelle: t('bilan.acct64'), exerciceN: net(['64']), exerciceN1: 0 },
+      { code: '65', libelle: t('bilan.acct65'), exerciceN: net(['65']), exerciceN1: 0 },
+      { code: '66', libelle: t('bilan.acct66'), exerciceN: net(['66']), exerciceN1: 0 },
+      { code: '68', libelle: t('bilan.acct68'), exerciceN: net(['68']), exerciceN1: 0 },
+      { code: '69', libelle: t('bilan.acct69'), exerciceN: net(['69']), exerciceN1: 0 },
+      { code: '67', libelle: t('bilan.acct67'), exerciceN: net(['67']), exerciceN1: 0 },
     ],
-  }), [rawEntries]);
+  }), [rawEntries, t]);
 
   // Bilan Fonctionnel
   const bilanFonctionnelData = useMemo(() => {
@@ -296,16 +289,18 @@ const BilanSYSCOHADAPage: React.FC = () => {
     const rc = re + creditNet(['77']) - net(['67']);
     const rn = rc - net(['89']);
     // Note: SIG N-1 requires a separate prior-year dataset (not carried in AN entries)
+    // `code` identifie le solde de gestion ; les consommateurs en aval doivent
+    // s'y référer et non au libellé, qui change avec la langue.
     return [
-      { libelle: 'Marge commerciale', exerciceN: mc, exerciceN1: 0, variation: '—' },
-      { libelle: 'Production de l\'exercice', exerciceN: prodExercice, exerciceN1: 0, variation: '—' },
-      { libelle: 'Valeur ajoutée', exerciceN: va, exerciceN1: 0, variation: '—' },
-      { libelle: 'Excédent brut d\'exploitation', exerciceN: ebe, exerciceN1: 0, variation: '—' },
-      { libelle: 'Résultat d\'exploitation', exerciceN: re, exerciceN1: 0, variation: '—' },
-      { libelle: 'Résultat courant avant impôt', exerciceN: rc, exerciceN1: 0, variation: '—' },
-      { libelle: 'Résultat net', exerciceN: rn, exerciceN1: 0, variation: '—' },
+      { code: 'MC', libelle: t('bilan.sigCommercialMargin'), exerciceN: mc, exerciceN1: 0, variation: '—' },
+      { code: 'PE', libelle: t('bilan.sigProductionOfYear'), exerciceN: prodExercice, exerciceN1: 0, variation: '—' },
+      { code: 'VA', libelle: t('bilan.sigValueAdded'), exerciceN: va, exerciceN1: 0, variation: '—' },
+      { code: 'EBE', libelle: t('bilan.sigEbitda'), exerciceN: ebe, exerciceN1: 0, variation: '—' },
+      { code: 'RE', libelle: t('bilan.sigOperatingIncome'), exerciceN: re, exerciceN1: 0, variation: '—' },
+      { code: 'RC', libelle: t('bilan.sigPretaxIncome'), exerciceN: rc, exerciceN1: 0, variation: '—' },
+      { code: 'RN', libelle: t('bilan.sigNetIncome'), exerciceN: rn, exerciceN1: 0, variation: '—' },
     ];
-  }, [rawEntries]);
+  }, [rawEntries, t]);
 
   // Flux de trésorerie (TFT méthode indirecte)
   const fluxTresorerieData = useMemo(() => {
@@ -1021,11 +1016,11 @@ const BilanSYSCOHADAPage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 {(() => {
-                  const mc = sigData.find(s => s.libelle.includes('Marge commerciale'))?.exerciceN || 0;
-                  const va = sigData.find(s => s.libelle.includes('Valeur ajoutée'))?.exerciceN || 0;
-                  const rn = sigData.find(s => s.libelle.includes('Résultat net'))?.exerciceN || 0;
+                  const mc = sigData.find(s => s.code === 'MC')?.exerciceN || 0;
+                  const va = sigData.find(s => s.code === 'VA')?.exerciceN || 0;
+                  const rn = sigData.find(s => s.code === 'RN')?.exerciceN || 0;
                   const ca = creditNet(['70', '71', '72']);
-                  const prodEx = sigData.find(s => s.libelle.includes('Production'))?.exerciceN || 1;
+                  const prodEx = sigData.find(s => s.code === 'PE')?.exerciceN || 1;
                   const ventesMarc = creditNet(['701']);
                   return (<>
                     <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
