@@ -162,7 +162,7 @@ const RapprochementBancaire: React.FC = () => {
 
   const handleSubmit = async () => {
     // TODO P0: Remplacer par service Dexie réel
-    toast.error('Service d\'import bancaire non encore connecté');
+    toast.error(t('bankRecon2.importServiceMissing'));
   };
 
   // Moyens de paiement — initialisés vides (configurés par l'utilisateur)
@@ -198,14 +198,14 @@ const RapprochementBancaire: React.FC = () => {
   const handleViewDetail = (operation: RapprochementItem) => {
     setSelectedOperation(operation);
     setShowDetailModal(true);
-    toast.success(`Affichage des détails: ${operation.libelle}`);
+    toast.success(t('bankRecon2.showDetails', { label: operation.libelle }));
   };
 
   // Honnêteté : cette vue est un APERÇU du rapprochement (comparaison comptable
   // vs relevé). La validation/liaison/IA nécessitent l'import d'un relevé bancaire
   // et un moteur de matching persisté, non encore câblés → pas de faux « validé ».
   const notImplemented = () =>
-    toast('Rapprochement bancaire : import de relevé + matching persisté à venir. Cette vue est un aperçu (aucune écriture modifiée).', { icon: 'ℹ️', duration: 5000 });
+    toast(t('bankRecon2.notImplemented'), { icon: 'ℹ️', duration: 5000 });
 
   const handleValidateSuggestion = (_operation: RapprochementItem) => notImplemented();
   const handleRejectSuggestion = (_operation: RapprochementItem) => notImplemented();
@@ -213,11 +213,11 @@ const RapprochementBancaire: React.FC = () => {
   const handleRapprochementIA = () => notImplemented();
 
   const handleRefresh = () => {
-    toast.success('Données actualisées');
+    toast.success(t('bankRecon2.dataRefreshed'));
   };
 
   const handleExport = () => {
-    toast.success('Export du rapport de rapprochement en cours...');
+    toast.success(t('bankRecon2.exportRunning'));
   };
 
   const itemsPerPage = 10;
@@ -232,23 +232,23 @@ const RapprochementBancaire: React.FC = () => {
     const bankAccounts: Record<string, { nom: string; solde: number }> = {};
     for (const op of operations) {
       const key = op.reference?.substring(0, 3) || 'default';
-      if (!bankAccounts[key]) bankAccounts[key] = { nom: `Compte ${key}`, solde: 0 };
+      if (!bankAccounts[key]) bankAccounts[key] = { nom: t('bankRecon2.accountPrefix', { key }), solde: 0 };
       bankAccounts[key].solde += op.montantBanque || 0;
     }
     if (Object.keys(bankAccounts).length === 0) {
-      return [{ id: '001', nom: 'Aucun compte bancaire', solde: 0 }];
+      return [{ id: '001', nom: t('bankRecon2.noBankAccount'), solde: 0 }];
     }
     return Object.entries(bankAccounts).map(([id, v]) => ({ id, nom: v.nom, solde: v.solde }));
-  }, [operations]);
+  }, [operations, t]);
 
   // Comptes SYSCOHADA pour les moyens de paiement
   const comptesSYSCOHADA = {
-    cb: { numero: '5711', libelle: 'Cartes de crédit à encaisser' },
-    mobile: { numero: '5712', libelle: 'Virements électroniques à recevoir' },
-    tpe: { numero: '5713', libelle: 'TPE à encaisser' },
-    virement: { numero: '521', libelle: 'Banques locales' },
-    cheque: { numero: '512', libelle: 'Chèques à encaisser' },
-    especes: { numero: '571', libelle: 'Caisse' }
+    cb: { numero: '5711', libelle: t('bankRecon2.accCb') },
+    mobile: { numero: '5712', libelle: t('bankRecon2.accMobile') },
+    tpe: { numero: '5713', libelle: t('bankRecon2.accTpe') },
+    virement: { numero: '521', libelle: t('bankRecon2.accTransfer') },
+    cheque: { numero: '512', libelle: t('bankRecon2.accCheque') },
+    especes: { numero: '571', libelle: t('bankRecon2.accCash') }
   };
 
   // Statistiques consolidées.
@@ -274,27 +274,27 @@ const RapprochementBancaire: React.FC = () => {
           <TabsList className="grid grid-cols-6 w-full">
             <TabsTrigger value="banques" className="flex items-center space-x-2">
               <Landmark className="w-4 h-4" />
-              <span>Comptes Bancaires</span>
+              <span>{t('bankRecon2.tabBanks')}</span>
             </TabsTrigger>
             <TabsTrigger value="cb" className="flex items-center space-x-2">
               <CreditCard className="w-4 h-4" />
-              <span>Cartes Bancaires</span>
+              <span>{t('bankRecon2.tabCards')}</span>
             </TabsTrigger>
             <TabsTrigger value="mobile" className="flex items-center space-x-2">
               <Smartphone className="w-4 h-4" />
-              <span>Mobile Money</span>
+              <span>{t('bankRecon2.tabMobile')}</span>
             </TabsTrigger>
             <TabsTrigger value="tpe" className="flex items-center space-x-2">
               <Monitor className="w-4 h-4" />
-              <span>TPE</span>
+              <span>{t('bankRecon2.tabTpe')}</span>
             </TabsTrigger>
             <TabsTrigger value="especes" className="flex items-center space-x-2">
               <Banknote className="w-4 h-4" />
-              <span>Espèces</span>
+              <span>{t('bankRecon2.tabCash')}</span>
             </TabsTrigger>
             <TabsTrigger value="consolidation" className="flex items-center space-x-2">
               <Shield className="w-4 h-4" />
-              <span>Consolidation</span>
+              <span>{t('bankRecon2.tabConsolidation')}</span>
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -307,17 +307,17 @@ const RapprochementBancaire: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Shield className="w-5 h-5 text-[var(--color-primary)]" />
-                <span>Vue Consolidée des Moyens de Paiement</span>
+                <span>{t('bankRecon2.consolidatedView')}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-5 gap-4">
                 {[
-                  { label: 'Banques', value: getConsolidationStats().totalBanques, icon: Landmark, color: 'blue' },
-                  { label: 'Mobile Money', value: getConsolidationStats().totalMobile, icon: Smartphone, color: 'green' },
-                  { label: 'Cartes Bancaires', value: getConsolidationStats().totalCB, icon: CreditCard, color: 'primary' },
-                  { label: 'TPE', value: getConsolidationStats().totalTPE, icon: Monitor, color: 'orange' },
-                  { label: 'Espèces', value: getConsolidationStats().totalEspeces, icon: Banknote, color: 'yellow' }
+                  { label: t('bankRecon2.banks'), value: getConsolidationStats().totalBanques, icon: Landmark, color: 'blue' },
+                  { label: t('bankRecon2.tabMobile'), value: getConsolidationStats().totalMobile, icon: Smartphone, color: 'green' },
+                  { label: t('bankRecon2.tabCards'), value: getConsolidationStats().totalCB, icon: CreditCard, color: 'primary' },
+                  { label: t('bankRecon2.tabTpe'), value: getConsolidationStats().totalTPE, icon: Monitor, color: 'orange' },
+                  { label: t('bankRecon2.tabCash'), value: getConsolidationStats().totalEspeces, icon: Banknote, color: 'yellow' }
                 ].map((item, index) => (
                   <div key={index} className={`p-4 rounded-lg border bg-${item.color}-50 border-${item.color}-200`}>
                     <div className="flex items-center justify-between mb-2">
@@ -328,17 +328,17 @@ const RapprochementBancaire: React.FC = () => {
                       {item.value === null ? '—' : formatCurrency(item.value)}
                     </p>
                     {item.value === null && (
-                      <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1">Non alimenté par l&apos;import</p>
+                      <p className="text-[10px] text-[var(--color-text-tertiary)] mt-1">{t('bankRecon2.notFedByImport')}</p>
                     )}
                   </div>
                 ))}
               </div>
 
               <div className="mt-6 p-4 bg-[var(--color-background-secondary)] rounded-lg">
-                <h4 className="font-medium mb-3">Répartition par Statut Global</h4>
+                <h4 className="font-medium mb-3">{t('bankRecon2.globalStatusBreakdown')}</h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">Rapprochés</span>
+                    <span className="text-sm">{t('bankRecon2.reconciled')}</span>
                     <span className="font-medium text-[var(--color-success)]">
                       {operations.filter(o => o.statut === 'rapproche').length} / {operations.length}
                     </span>
@@ -358,17 +358,19 @@ const RapprochementBancaire: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-bold text-[var(--color-primary)]">
-                  {selectedTab === 'banques' && 'Rapprochement Bancaire'}
-                  {selectedTab === 'cb' && 'Rapprochement Cartes Bancaires'}
-                  {selectedTab === 'mobile' && 'Rapprochement Mobile Money'}
-                  {selectedTab === 'tpe' && 'Rapprochement TPE'}
-                  {selectedTab === 'especes' && 'Rapprochement Caisse'}
+                  {selectedTab === 'banques' && t('bankRecon2.titleBanks')}
+                  {selectedTab === 'cb' && t('bankRecon2.titleCards')}
+                  {selectedTab === 'mobile' && t('bankRecon2.titleMobile')}
+                  {selectedTab === 'tpe' && t('bankRecon2.titleTpe')}
+                  {selectedTab === 'especes' && t('bankRecon2.titleCash')}
                 </h2>
-                <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Période: {selectedPeriod}</p>
+                <p className="text-sm text-[var(--color-text-tertiary)] mt-1">{t('bankRecon2.periodLabel', { period: selectedPeriod })}</p>
                 {selectedTab !== 'banques' && (
                   <p className="text-xs text-[var(--color-primary)] mt-1">
-                    Compte SYSCOHADA: {comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.numero} -
-                    {comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.libelle}
+                    {t('bankRecon2.syscohadaAccount', {
+                      number: comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.numero ?? '',
+                      label: comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.libelle ?? '',
+                    })}
                   </p>
                 )}
               </div>
@@ -377,14 +379,16 @@ const RapprochementBancaire: React.FC = () => {
                   const acc = selectedTab === 'banques'
                     ? (selectedBank || '521')
                     : (comptesSYSCOHADA[selectedTab as keyof typeof comptesSYSCOHADA]?.numero || '5');
-                  const label = `Rapprochement ${acc} · ${selectedPeriod}`;
+                  const label = t('bankRecon2.reconAnchor', { account: acc, period: selectedPeriod });
                   return (
                     <SpaceLinkBadge
                       context={{
                         anchorType: 'reconciliation', anchorLabel: label, accountCode: acc, period: selectedPeriod,
-                        title: `Écarts de rapprochement ${acc} — ${selectedPeriod}`,
-                        problem: `Écarts constatés au rapprochement du compte ${acc} sur la période ${selectedPeriod} (${stats.ecarts} opération(s) en écart).`,
-                        objective: `Justifier et solder les écarts du compte ${acc}.`,
+                        title: t('bankRecon2.gapTitle', { account: acc, period: selectedPeriod }),
+                        problem: t('bankRecon2.gapProblem', {
+                          account: acc, period: selectedPeriod, count: String(stats.ecarts),
+                        }),
+                        objective: t('bankRecon2.gapObjective', { account: acc }),
                       }}
                       match={{ accountCode: acc }}
                     />
@@ -398,7 +402,7 @@ const RapprochementBancaire: React.FC = () => {
                   >
                     {banques.map(bank => (
                       <option key={bank.id} value={bank.id}>
-                        {bank.nom} - Solde: {formatCurrency(bank.solde)}
+                        {t('bankRecon2.bankBalanceOption', { name: bank.nom, balance: formatCurrency(bank.solde) })}
                       </option>
                     ))}
                   </select>
@@ -425,11 +429,11 @@ const RapprochementBancaire: React.FC = () => {
                 >
                   <Upload className="w-4 h-4" />
                   <span>
-                    {selectedTab === 'mobile' && 'Importer transactions'}
-                    {selectedTab === 'cb' && 'Importer relevé CB'}
-                    {selectedTab === 'tpe' && 'Importer journal TPE'}
-                    {selectedTab === 'especes' && 'Importer journal caisse'}
-                    {selectedTab === 'banques' && 'Importer relevé'}
+                    {selectedTab === 'mobile' && t('bankRecon2.importMobile')}
+                    {selectedTab === 'cb' && t('bankRecon2.importCards')}
+                    {selectedTab === 'tpe' && t('bankRecon2.importTpe')}
+                    {selectedTab === 'especes' && t('bankRecon2.importCash')}
+                    {selectedTab === 'banques' && t('bankRecon2.importStatement')}
                   </span>
                 </button>
               </div>
@@ -441,23 +445,23 @@ const RapprochementBancaire: React.FC = () => {
               <div className="mb-4 p-4 bg-[var(--color-primary)]/10 rounded-lg border border-[var(--color-primary)]/20">
                 <div className="grid grid-cols-4 gap-4">
                   <div>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Volume Jour</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('bankRecon2.volumeDay')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Volume Mois</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('bankRecon2.volumeMonth')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Transactions</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('bankRecon2.transactions')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
                   </div>
                   <div>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Commission Moyenne</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('bankRecon2.avgCommission')}</p>
                     <p className="text-lg font-bold text-[#E89A2E]">—</p>
                   </div>
                 </div>
-                <p className="text-xs text-[var(--color-text-tertiary)] mt-2">Aucune donnée — module non alimenté par l&apos;import.</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-2">{t('bankRecon2.noDataModule')}</p>
               </div>
             )}
 
@@ -465,7 +469,7 @@ const RapprochementBancaire: React.FC = () => {
             <div className="grid grid-cols-5 gap-4">
               <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg border border-[var(--color-success-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--color-success-dark)]">Rapprochés</span>
+                  <span className="text-sm text-[var(--color-success-dark)]">{t('bankRecon2.reconciled')}</span>
                   <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                 </div>
                 <p className="text-lg font-bold text-[var(--color-success-darker)]">{stats.rapproches}</p>
@@ -479,24 +483,24 @@ const RapprochementBancaire: React.FC = () => {
               </div>
               <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg border border-[var(--color-error-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--color-error-dark)]">Écarts</span>
+                  <span className="text-sm text-[var(--color-error-dark)]">{t('bankRecon2.gaps')}</span>
                   <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
                 </div>
                 <p className="text-lg font-bold text-red-800">{stats.ecarts}</p>
               </div>
               <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg border border-[var(--color-primary-light)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-[var(--color-primary-dark)]">Taux rapprochement</span>
+                  <span className="text-sm text-[var(--color-primary-dark)]">{t('bankRecon2.reconRate')}</span>
                   <TrendingUp className="w-4 h-4 text-[var(--color-primary)]" />
                 </div>
                 <p className="text-lg font-bold text-[var(--color-primary-darker)]">{stats.tauxRapprochement}%</p>
               </div>
               <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-primary-700">IA Active</span>
+                  <span className="text-sm text-primary-700">{t('bankRecon2.aiActive')}</span>
                   <Bot className="w-4 h-4 text-primary-600" />
                 </div>
-                <p className="text-sm font-bold text-primary-800">Auto-matching</p>
+                <p className="text-sm font-bold text-primary-800">{t('bankRecon2.autoMatching')}</p>
               </div>
             </div>
           </div>
@@ -510,24 +514,24 @@ const RapprochementBancaire: React.FC = () => {
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2"
                 >
                   <Zap className="w-4 h-4" />
-                  <span>Rapprochement IA</span>
+                  <span>{t('bankRecon2.aiReconciliation')}</span>
                 </button>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
                 >
-                  <option value="tous">Tous les statuts</option>
-                  <option value="rapproche">Rapprochés</option>
+                  <option value="tous">{t('bankRecon2.allStatuses')}</option>
+                  <option value="rapproche">{t('bankRecon2.reconciled')}</option>
                   <option value="en_attente">{t('status.pending')}</option>
-                  <option value="ecart">Écarts</option>
-                  <option value="suggere">Suggestions IA</option>
+                  <option value="ecart">{t('bankRecon2.gaps')}</option>
+                  <option value="suggere">{t('bankRecon2.aiSuggestions')}</option>
                 </select>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                   <input
                     type="text"
-                    placeholder="Rechercher..."
+                    placeholder={t('bankRecon2.searchPlaceholder')}
                     className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg w-64"
                   />
                 </div>
@@ -536,14 +540,14 @@ const RapprochementBancaire: React.FC = () => {
                 <button
                   onClick={handleRefresh}
                   className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
-                  aria-label="Actualiser"
+                  aria-label={t('bankRecon2.refreshAria')}
                 >
                   <RefreshCw className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
                 <button
                   onClick={handleExport}
                   className="p-2 hover:bg-[var(--color-background-hover)] rounded-lg"
-                  aria-label="Télécharger"
+                  aria-label={t('bankRecon2.downloadAria')}
                 >
                   <Download className="w-5 h-5 text-[var(--color-text-tertiary)]" />
                 </button>
@@ -559,14 +563,14 @@ const RapprochementBancaire: React.FC = () => {
                   <tr>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('common.date')}</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('accounting.label')}</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Référence</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">Montant Banque</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">Montant Compta</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colReference')}</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colBankAmount')}</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colBookAmount')}</th>
                     {(selectedTab === 'cb' || selectedTab === 'mobile' || selectedTab === 'tpe') && (
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">Commission</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colCommission')}</th>
                     )}
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">Statut</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">Actions</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colStatus')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">{t('bankRecon2.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -577,8 +581,8 @@ const RapprochementBancaire: React.FC = () => {
                         className="py-10 text-center text-sm text-[var(--color-text-tertiary)]"
                       >
                         {selectedTab === 'banques'
-                          ? 'Aucune opération bancaire pour l’exercice actif.'
-                          : 'Aucune donnée — module non alimenté par l’import.'}
+                          ? t('bankRecon2.emptyBanks')
+                          : t('bankRecon2.emptyOther')}
                       </td>
                     </tr>
                   )}
@@ -626,7 +630,7 @@ const RapprochementBancaire: React.FC = () => {
                         {op.statut === 'rapproche' && (
                           <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]">
                             <CheckCircle className="w-3 h-3" />
-                            <span>Rapproché</span>
+                            <span>{t('bankRecon2.statusReconciled')}</span>
                           </span>
                         )}
                         {op.statut === 'en_attente' && (
@@ -638,7 +642,7 @@ const RapprochementBancaire: React.FC = () => {
                         {op.statut === 'ecart' && (
                           <span className="inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]">
                             <AlertTriangle className="w-3 h-3" />
-                            <span>Écart</span>
+                            <span>{t('bankRecon2.statusGap')}</span>
                           </span>
                         )}
                         {op.statut === 'suggere' && (
@@ -655,14 +659,14 @@ const RapprochementBancaire: React.FC = () => {
                               <button
                                 onClick={() => handleValidateSuggestion(op)}
                                 className="p-1 text-[var(--color-success)] hover:bg-[var(--color-success-lightest)] rounded"
-                                aria-label="Valider"
+                                aria-label={t('bankRecon2.validateAria')}
                               >
                                 <Check className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleRejectSuggestion(op)}
                                 className="p-1 text-[var(--color-error)] hover:bg-[var(--color-error-lightest)] rounded"
-                                aria-label="Fermer"
+                                aria-label={t('bankRecon2.rejectAria')}
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -679,7 +683,7 @@ const RapprochementBancaire: React.FC = () => {
                           <button
                             onClick={() => handleViewDetail(op)}
                             className="p-1 text-[var(--color-text-tertiary)] hover:bg-[var(--color-background-hover)] rounded"
-                            aria-label="Voir les détails"
+                            aria-label={t('bankRecon2.viewDetailsAria')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -694,7 +698,11 @@ const RapprochementBancaire: React.FC = () => {
             {/* Footer avec pagination */}
             <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
               <span className="text-sm text-[var(--color-text-tertiary)]">
-                Affichage de {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredOperations.length)} sur {filteredOperations.length} opérations
+                {t('bankRecon2.pagination', {
+                  from: String(((currentPage - 1) * itemsPerPage) + 1),
+                  to: String(Math.min(currentPage * itemsPerPage, filteredOperations.length)),
+                  total: String(filteredOperations.length),
+                })}
               </span>
               <div className="flex items-center space-x-2">
                 <button
@@ -702,7 +710,7 @@ const RapprochementBancaire: React.FC = () => {
                   disabled={currentPage === 1}
                   className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Précédent
+                  {t('bankRecon2.previous')}
                 </button>
                 {Array.from({ length: Math.min(totalPages, 3) }, (_, i) => i + 1).map(page => (
                   <button
@@ -718,7 +726,7 @@ const RapprochementBancaire: React.FC = () => {
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Suivant
+                  {t('bankRecon2.next')}
                 </button>
               </div>
             </div>
@@ -732,12 +740,12 @@ const RapprochementBancaire: React.FC = () => {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[var(--color-primary)]">Assistant IA de Rapprochement</h3>
-                  <p className="text-sm text-[var(--color-text-tertiary)]">Pattern matching & Machine Learning activés</p>
+                  <h3 className="font-bold text-[var(--color-primary)]">{t('bankRecon2.aiAssistantTitle')}</h3>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('bankRecon2.aiAssistantSubtitle')}</p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-[var(--color-text-tertiary)]">Auto-rapprochement</span>
+                <span className="text-sm text-[var(--color-text-tertiary)]">{t('bankRecon2.autoRecon')}</span>
                 <button
                   onClick={() => setAutoRapprochement(!autoRapprochement)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full ${
@@ -753,20 +761,20 @@ const RapprochementBancaire: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Taux de matching</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('bankRecon2.matchingRate')}</p>
                 <p className="font-semibold">—</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Suggestions validées</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('bankRecon2.validatedSuggestions')}</p>
                 <p className="font-semibold">—</p>
               </div>
               <div className="bg-white/50 rounded-lg p-3">
-                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Temps économisé</p>
+                <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('bankRecon2.timeSaved')}</p>
                 <p className="font-semibold">—</p>
               </div>
             </div>
             <p className="text-xs text-[var(--color-text-tertiary)] mt-3">
-              Aucune statistique — moteur de rapprochement automatique non alimenté par l&apos;import.
+              {t('bankRecon2.noAiStats')}
             </p>
           </div>
         </>
@@ -781,7 +789,7 @@ const RapprochementBancaire: React.FC = () => {
                 <div className="bg-primary-100 text-primary-600 p-2 rounded-lg">
                   <Upload className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Import Relevé Bancaire</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('bankRecon2.importModalTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -803,42 +811,42 @@ const RapprochementBancaire: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <Landmark className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-primary-900 mb-1">Import de Relevé</h4>
-                      <p className="text-sm text-primary-800">Importez automatiquement les relevés bancaires pour le rapprochement comptable.</p>
+                      <h4 className="text-sm font-medium text-primary-900 mb-1">{t('bankRecon2.importInfoTitle')}</h4>
+                      <p className="text-sm text-primary-800">{t('bankRecon2.importInfoText')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Bank Selection */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection du Compte</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('bankRecon2.accountSelection')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Banque</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.bank')}</label>
                       <select
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.compte_bancaire}
                         onChange={(e) => handleInputChange('compte_bancaire', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="">-- Sélectionner banque --</option>
+                        <option value="">{t('bankRecon2.selectBank')}</option>
                         <option value="bgfi">BGFI Bank</option>
                         <option value="uba">UBA</option>
                         <option value="ecobank">Ecobank</option>
                         <option value="bicec">BICEC</option>
-                        <option value="sgbc">Société Générale</option>
+                        <option value="sgbc">Societe Generale</option>
                       </select>
                       {errors.compte_bancaire && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.compte_bancaire}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Numéro de Compte</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.accountNumber')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value="">-- Sélectionner compte --</option>
-                        <option value="40000001">40000001 - Compte Principal</option>
-                        <option value="40000002">40000002 - Compte USD</option>
-                        <option value="40000003">40000003 - Compte Épargne</option>
+                        <option value="">{t('bankRecon2.selectAccount')}</option>
+                        <option value="40000001">40000001 - {t('bankRecon2.mainAccount')}</option>
+                        <option value="40000002">40000002 - {t('bankRecon2.usdAccount')}</option>
+                        <option value="40000003">40000003 - {t('bankRecon2.savingsAccount')}</option>
                       </select>
                     </div>
                   </div>
@@ -846,13 +854,13 @@ const RapprochementBancaire: React.FC = () => {
 
                 {/* File Upload */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Fichier de Relevé</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('bankRecon2.statementFile')}</h3>
                   <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center">
                     <Upload className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
                     <div className="mt-4">
                       <label htmlFor="file-upload" className="cursor-pointer">
                         <span className="mt-2 block text-sm font-medium text-[var(--color-text-primary)]">
-                          Glissez votre relevé ici ou cliquez pour parcourir
+                          {t('bankRecon2.dropHint')}
                         </span>
                         <input
                           id="file-upload"
@@ -865,31 +873,31 @@ const RapprochementBancaire: React.FC = () => {
                         />
                       {formData.fichier && (
                         <p className="mt-1 text-sm text-[var(--color-success)]">
-                          Fichier sélectionné: {formData.fichier.name}
+                          {t('bankRecon2.fileSelected', { name: formData.fichier.name })}
                         </p>
                       )}
                       {errors.fichier && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.fichier}</p>
                       )}
                       </label>
-                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">Formats acceptés: CSV, Excel, QIF, OFX, MT940</p>
+                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{t('bankRecon2.acceptedFormats')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Import Parameters */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Paramètres d&apos;Import</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('bankRecon2.importParams')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Format de Fichier</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.fileFormat')}</label>
                       <select
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.format_fichier}
                         onChange={(e) => handleInputChange('format_fichier', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="csv">CSV avec en-têtes</option>
+                        <option value="csv">{t('bankRecon2.formatCsv')}</option>
                         <option value="excel">Excel (.xlsx)</option>
                         <option value="qif">QIF (Quicken)</option>
                         <option value="ofx">OFX (Open Financial Exchange)</option>
@@ -900,15 +908,15 @@ const RapprochementBancaire: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Séparateur (CSV)</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.separator')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value=";">;  (Point-virgule)</option>
-                        <option value=",">,  (Virgule)</option>
-                        <option value="tab">Tab (Tabulation)</option>
+                        <option value=";">{t('bankRecon2.sepSemicolon')}</option>
+                        <option value=",">{t('bankRecon2.sepComma')}</option>
+                        <option value="tab">{t('bankRecon2.sepTab')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période de Début</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.startPeriod')}</label>
                       <input
                         type="date"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -921,7 +929,7 @@ const RapprochementBancaire: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période de Fin</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.endPeriod')}</label>
                       <input
                         type="date"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -938,7 +946,7 @@ const RapprochementBancaire: React.FC = () => {
 
                 {/* Options */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Options d&apos;Import</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('bankRecon2.importOptions')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <input
@@ -949,7 +957,7 @@ const RapprochementBancaire: React.FC = () => {
                         onChange={(e) => handleInputChange('ignorer_doublons', e.target.checked)}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="ignore_duplicates" className="text-sm text-[var(--color-text-primary)]">Ignorer les doublons</label>
+                      <label htmlFor="ignore_duplicates" className="text-sm text-[var(--color-text-primary)]">{t('bankRecon2.ignoreDuplicates')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -960,38 +968,38 @@ const RapprochementBancaire: React.FC = () => {
                         onChange={(e) => handleInputChange('auto_lettrage', e.target.checked)}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="auto_matching" className="text-sm text-[var(--color-text-primary)]">Rapprochement automatique</label>
+                      <label htmlFor="auto_matching" className="text-sm text-[var(--color-text-primary)]">{t('bankRecon2.autoReconOption')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="validate_amounts" className="rounded border-[var(--color-border-dark)] text-primary-500" />
-                      <label htmlFor="validate_amounts" className="text-sm text-[var(--color-text-primary)]">Validation des montants</label>
+                      <label htmlFor="validate_amounts" className="text-sm text-[var(--color-text-primary)]">{t('bankRecon2.validateAmounts')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="backup_before" className="rounded border-[var(--color-border-dark)] text-primary-500" defaultChecked />
-                      <label htmlFor="backup_before" className="text-sm text-[var(--color-text-primary)]">Sauvegarde avant import</label>
+                      <label htmlFor="backup_before" className="text-sm text-[var(--color-text-primary)]">{t('bankRecon2.backupBefore')}</label>
                     </div>
                   </div>
                 </div>
 
                 {/* Mapping */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Correspondance des Colonnes</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('bankRecon2.columnMapping')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Date</label>
-                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ex: Date, Date opération" />
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.colDate')}</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder={t('bankRecon2.colDatePlaceholder')} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Montant</label>
-                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ex: Montant, Amount" />
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.colAmount')}</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder={t('bankRecon2.colAmountPlaceholder')} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Libellé</label>
-                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ex: Libellé, Description" />
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.colLabelCol')}</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder={t('bankRecon2.colLabelPlaceholder')} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Colonne Référence</label>
-                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Ex: Référence, Ref" />
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('bankRecon2.colRefCol')}</label>
+                      <input type="text" className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder={t('bankRecon2.colRefPlaceholder')} />
                     </div>
                   </div>
                 </div>
@@ -1008,7 +1016,7 @@ const RapprochementBancaire: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('bankRecon2.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -1018,12 +1026,12 @@ const RapprochementBancaire: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Import en cours...</span>
+                    <span>{t('bankRecon2.importing')}</span>
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    <span>Importer le Relevé</span>
+                    <span>{t('bankRecon2.importStatementAction')}</span>
                   </>
                 )}
               </button>
@@ -1041,7 +1049,7 @@ const RapprochementBancaire: React.FC = () => {
                 <div className="bg-[var(--color-primary-lighter)] text-[var(--color-primary)] p-2 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Détail de l'Opération Bancaire</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('bankRecon2.detailModalTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -1060,36 +1068,36 @@ const RapprochementBancaire: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
                     <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                    Informations Générales
+                    {t('bankRecon2.generalInfo')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Référence Bancaire</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.bankReference')}</p>
                       <p className="font-medium font-mono">{selectedOperation.reference}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Date Opération</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.operationDate')}</p>
                       <p className="font-medium">{selectedOperation.date}</p>
                     </div>
                     <div className="col-span-2">
-                      <p className="text-sm text-[var(--color-text-secondary)]">Libellé</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.label')}</p>
                       <p className="font-medium">{selectedOperation.libelle}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Moyen de Paiement</p>
-                      <p className="font-medium capitalize">{selectedOperation.moyenPaiement || 'Non spécifié'}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.paymentMethod')}</p>
+                      <p className="font-medium capitalize">{selectedOperation.moyenPaiement || t('bankRecon2.notSpecified')}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Statut</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.colStatus')}</p>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         selectedOperation.statut === 'rapproche' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
                         selectedOperation.statut === 'en_attente' ? 'bg-[var(--color-warning-lighter)] text-yellow-800' :
                         selectedOperation.statut === 'ecart' ? 'bg-[var(--color-error-lighter)] text-red-800' :
                         'bg-primary-100 text-primary-800'
                       }`}>
-                        {selectedOperation.statut === 'rapproche' ? 'Rapproché' :
-                         selectedOperation.statut === 'en_attente' ? 'En attente' :
-                         selectedOperation.statut === 'ecart' ? 'Écart' : 'Suggéré'}
+                        {selectedOperation.statut === 'rapproche' ? t('bankRecon2.statusReconciled') :
+                         selectedOperation.statut === 'en_attente' ? t('bankRecon2.statusPending') :
+                         selectedOperation.statut === 'ecart' ? t('bankRecon2.statusGap') : t('bankRecon2.statusSuggested')}
                       </span>
                     </div>
                   </div>
@@ -1099,24 +1107,24 @@ const RapprochementBancaire: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
                     <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                    Montants
+                    {t('bankRecon2.amounts')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Montant Relevé Banque</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.bankStatementAmount')}</p>
                       <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                         {selectedOperation.typeOperation === 'credit' ? '+' : ''}{formatCurrency(selectedOperation.montantBanque)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Montant Comptabilisé</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.bookedAmount')}</p>
                       <p className={`font-medium font-mono text-lg ${selectedOperation.typeOperation === 'credit' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
                         {selectedOperation.montantCompta ? `${selectedOperation.typeOperation === 'credit' ? '+' : ''}${formatCurrency(selectedOperation.montantCompta)}` : '-'}
                       </p>
                     </div>
                     {selectedOperation.commission && (
                       <div>
-                        <p className="text-sm text-[var(--color-text-secondary)]">Commission</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.colCommission')}</p>
                         <p className="font-medium font-mono text-[var(--color-warning)]">
                           -{formatCurrency(selectedOperation.commission)}
                         </p>
@@ -1124,7 +1132,7 @@ const RapprochementBancaire: React.FC = () => {
                     )}
                     {selectedOperation.montantCompta && selectedOperation.montantBanque !== selectedOperation.montantCompta && (
                       <div>
-                        <p className="text-sm text-[var(--color-text-secondary)]">Écart</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.statusGap')}</p>
                         <p className="font-medium font-mono text-[var(--color-error)]">
                           {formatCurrency((selectedOperation.montantBanque - selectedOperation.montantCompta))}
                         </p>
@@ -1137,31 +1145,31 @@ const RapprochementBancaire: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
                     <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                    Informations Comptables
+                    {t('bankRecon2.accountingInfo')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">N° Pièce Comptable</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.voucherNumber')}</p>
                       <p className="font-medium font-mono">{selectedOperation.pieceComptable || '-'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Code Journal</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.journalCode')}</p>
                       <p className="font-medium font-mono">{selectedOperation.journalCode || '-'}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Compte Bancaire</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.bankAccount')}</p>
                       <p className="font-medium font-mono bg-[var(--color-background-secondary)] px-2 py-1 rounded inline-block">
                         {selectedOperation.compteBancaire || '-'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Compte Contrepartie</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.counterpartAccount')}</p>
                       <p className="font-medium font-mono bg-[var(--color-background-secondary)] px-2 py-1 rounded inline-block">
                         {selectedOperation.compteContrepartie || '-'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-[var(--color-text-secondary)]">Date Comptabilisation</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.bookingDate')}</p>
                       <p className="font-medium">{selectedOperation.dateComptabilisation || '-'}</p>
                     </div>
                   </div>
@@ -1172,15 +1180,15 @@ const RapprochementBancaire: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-[var(--color-primary)] pb-2 flex items-center gap-2">
                       <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                      Tiers
+                      {t('bankRecon2.thirdParty')}
                     </h3>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-[var(--color-text-secondary)]">Code Tiers</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.thirdPartyCode')}</p>
                         <p className="font-medium font-mono">{selectedOperation.tierCode || '-'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--color-text-secondary)]">Nom du Tiers</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.thirdPartyName')}</p>
                         <p className="font-medium">{selectedOperation.tiers || '-'}</p>
                       </div>
                     </div>
@@ -1192,12 +1200,12 @@ const RapprochementBancaire: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 border-b border-primary-400 pb-2 flex items-center gap-2">
                       <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                      Analyse IA
+                      {t('bankRecon2.aiAnalysis')}
                     </h3>
                     <div className="flex items-center gap-4 bg-primary-50 p-3 rounded-lg">
                       <Bot className="w-8 h-8 text-primary-600" />
                       <div className="flex-1">
-                        <p className="text-sm text-[var(--color-text-secondary)]">Niveau de Confiance</p>
+                        <p className="text-sm text-[var(--color-text-secondary)]">{t('bankRecon2.confidenceLevel')}</p>
                         <div className="flex items-center gap-2">
                           <Progress value={selectedOperation.confidence} className="flex-1 h-2" />
                           <span className="font-bold text-primary-600">{selectedOperation.confidence}%</span>
@@ -1217,7 +1225,7 @@ const RapprochementBancaire: React.FC = () => {
                 }}
                 className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors"
               >
-                Fermer
+                {t('bankRecon2.close')}
               </button>
               {selectedOperation.statut === 'en_attente' && (
                 <button
@@ -1229,7 +1237,7 @@ const RapprochementBancaire: React.FC = () => {
                   className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
                 >
                   <Link className="w-4 h-4" />
-                  <span>Lier à une écriture</span>
+                  <span>{t('bankRecon2.linkToEntry')}</span>
                 </button>
               )}
             </div>
