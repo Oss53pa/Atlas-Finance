@@ -3,8 +3,9 @@
  * Mode Mensuelle (6 onglets, réversible) + Mode Annuelle (7 onglets, irréversible).
  * Source de vérité: Dexie via DataAdapter.
  */
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { getClosureSessions } from '../../services/closureService';
 import { closureOrchestrator } from '../../services/cloture/closureOrchestrator';
@@ -82,11 +83,15 @@ interface FYStats {
 // HELPERS
 // ============================================================================
 
-const PERIODICITE_LABEL: Record<Periodicite, { noun: string; adj: string; count: number }> = {
-  mensuelle:     { noun: 'Mensuelle',     adj: 'mensuelles',     count: 12 },
-  trimestrielle: { noun: 'Trimestrielle', adj: 'trimestrielles', count: 4 },
-  semestrielle:  { noun: 'Semestrielle',  adj: 'semestrielles',  count: 2 },
-};
+type Translate = (key: string, params?: Record<string, string>) => string;
+
+const buildPeriodiciteLabel = (
+  t: Translate,
+): Record<Periodicite, { noun: string; adj: string; count: number }> => ({
+  mensuelle:     { noun: t('periodicClosure.periodicityMonthlyNoun'),    adj: t('periodicClosure.periodicityMonthlyAdj'),    count: 12 },
+  trimestrielle: { noun: t('periodicClosure.periodicityQuarterlyNoun'),  adj: t('periodicClosure.periodicityQuarterlyAdj'),  count: 4 },
+  semestrielle:  { noun: t('periodicClosure.periodicityHalfYearlyNoun'), adj: t('periodicClosure.periodicityHalfYearlyAdj'), count: 2 },
+});
 
 const STEP_ICON: Record<string, React.ReactNode> = {
   pending:  <ChevronRight className="w-4 h-4 text-gray-400" />,
@@ -96,27 +101,27 @@ const STEP_ICON: Record<string, React.ReactNode> = {
   skipped:  <Info className="w-4 h-4 text-gray-400" />,
 };
 
-const MONTHLY_TABS: { id: MonthlyTabId; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',        label: 'Tableau de bord',   icon: <BarChart3 className="w-4 h-4" /> },
-  { id: 'cycle',            label: 'Cycle de clôture',  icon: <Play className="w-4 h-4" /> },
-  { id: 'verification',     label: 'Vérification',      icon: <ClipboardCheck className="w-4 h-4" /> },
-  { id: 'regularisations',  label: 'Régularisations',   icon: <BookOpen className="w-4 h-4" /> },
-  { id: 'controles',        label: 'Contrôles',         icon: <Shield className="w-4 h-4" /> },
-  { id: 'verrouillage',     label: 'Verrouillage',      icon: <Lock className="w-4 h-4" /> },
-  { id: 'etats',            label: 'États de gestion',  icon: <FileText className="w-4 h-4" /> },
-  { id: 'sessions',         label: 'Sessions',          icon: <History className="w-4 h-4" /> },
+const buildMonthlyTabs = (t: Translate): { id: MonthlyTabId; label: string; icon: React.ReactNode }[] => [
+  { id: 'dashboard',        label: t('periodicClosure.tabDashboard'),      icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'cycle',            label: t('periodicClosure.tabCycle'),          icon: <Play className="w-4 h-4" /> },
+  { id: 'verification',     label: t('periodicClosure.tabVerification'),   icon: <ClipboardCheck className="w-4 h-4" /> },
+  { id: 'regularisations',  label: t('periodicClosure.tabAdjustments'),    icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'controles',        label: t('periodicClosure.tabControls'),       icon: <Shield className="w-4 h-4" /> },
+  { id: 'verrouillage',     label: t('periodicClosure.tabLocking'),        icon: <Lock className="w-4 h-4" /> },
+  { id: 'etats',            label: t('periodicClosure.tabMgmtStatements'), icon: <FileText className="w-4 h-4" /> },
+  { id: 'sessions',         label: t('periodicClosure.tabSessions'),       icon: <History className="w-4 h-4" /> },
 ];
 
-const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',   label: 'Tableau de bord',       icon: <BarChart3 className="w-4 h-4" /> },
-  { id: 'cycle',       label: 'Cycle de clôture',       icon: <Play className="w-4 h-4" /> },
-  { id: 'travaux',     label: 'Travaux préparatoires',  icon: <Settings className="w-4 h-4" /> },
-  { id: 'inventaire',  label: 'Écritures d\'inventaire', icon: <BookOpen className="w-4 h-4" /> },
-  { id: 'controles',   label: 'Contrôles',              icon: <Shield className="w-4 h-4" /> },
-  { id: 'etats',       label: 'États financiers',       icon: <FileText className="w-4 h-4" /> },
-  { id: 'validation',  label: 'Validation finale',      icon: <CheckCircle className="w-4 h-4" /> },
-  { id: 'affectation', label: 'Affectation & Reports',  icon: <ArrowRight className="w-4 h-4" /> },
-  { id: 'sessions',    label: 'Sessions',               icon: <History className="w-4 h-4" /> },
+const buildAnnualTabs = (t: Translate): { id: AnnualTabId; label: string; icon: React.ReactNode }[] => [
+  { id: 'dashboard',   label: t('periodicClosure.tabDashboard'),       icon: <BarChart3 className="w-4 h-4" /> },
+  { id: 'cycle',       label: t('periodicClosure.tabCycle'),           icon: <Play className="w-4 h-4" /> },
+  { id: 'travaux',     label: t('periodicClosure.tabPrepWork'),        icon: <Settings className="w-4 h-4" /> },
+  { id: 'inventaire',  label: t('periodicClosure.tabInventoryEntries'), icon: <BookOpen className="w-4 h-4" /> },
+  { id: 'controles',   label: t('periodicClosure.tabControls'),        icon: <Shield className="w-4 h-4" /> },
+  { id: 'etats',       label: t('periodicClosure.tabFinStatements'),   icon: <FileText className="w-4 h-4" /> },
+  { id: 'validation',  label: t('periodicClosure.tabFinalValidation'), icon: <CheckCircle className="w-4 h-4" /> },
+  { id: 'affectation', label: t('periodicClosure.tabAllocation'),      icon: <ArrowRight className="w-4 h-4" /> },
+  { id: 'sessions',    label: t('periodicClosure.tabSessions'),        icon: <History className="w-4 h-4" /> },
 ];
 
 // ============================================================================
@@ -126,6 +131,8 @@ const ANNUAL_TABS: { id: AnnualTabId; label: string; icon: React.ReactNode }[] =
 function CloturesPeriodiquesPage() {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const PERIODICITE_LABEL = useMemo(() => buildPeriodiciteLabel(t), [t]);
   const [mode, setMode] = useState<ClotureMode>('mensuelle');
   const [tab, setTab] = useState<TabId>('dashboard');
 
@@ -248,9 +255,9 @@ function CloturesPeriodiquesPage() {
       .catch((err) => {
         setGenState('error');
         console.error('[auto-gen periods]', err);
-        toast.error(err instanceof Error ? err.message : 'Échec de génération des périodes');
+        toast.error(err instanceof Error ? err.message : t('periodicClosure.periodGenFailed'));
       });
-  }, [mode, selectedFYId, periodsLoading, periods.length, periodicite, createPeriodsForFY, genState]);
+  }, [mode, selectedFYId, periodsLoading, periods.length, periodicite, createPeriodsForFY, genState, t]);
 
   // Retry manuel après un échec de génération.
   const handleRetryGen = () => {
@@ -269,10 +276,13 @@ function CloturesPeriodiquesPage() {
       if (periods.length > 0) await deletePeriodsForFY(selectedFYId);
       const created = await createPeriodsForFY(selectedFYId, next);
       setSelectedPeriodId('');
-      toast.success(`${created.length} période(s) ${PERIODICITE_LABEL[next].adj} générée(s)`);
+      toast.success(t('periodicClosure.periodsGenerated', {
+        count: String(created.length),
+        adj: PERIODICITE_LABEL[next].adj,
+      }));
     } catch (err) {
       setPeriodicite(prev); // rollback UI si la régénération est refusée
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('periodicClosure.genericError'));
     }
   };
 
@@ -282,7 +292,7 @@ function CloturesPeriodiquesPage() {
    *        verrouillage pour rester opposable même si celui-ci échoue ensuite.
    */
   const handleLockPeriod = async (derogation?: { blockers: number; controles: string[] }) => {
-    if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
+    if (!selectedPeriodId) { toast.error(t('periodicClosure.selectPeriod')); return; }
     try {
       if (derogation) {
         const period = periods.find(p => p.id === selectedPeriodId);
@@ -300,19 +310,21 @@ function CloturesPeriodiquesPage() {
         );
       }
       await lockPeriod(selectedPeriodId, user?.id);
-      toast.success(derogation ? 'Période verrouillée par dérogation (tracée)' : 'Période verrouillée');
+      toast.success(derogation
+        ? t('periodicClosure.lockedByOverride')
+        : t('periodicClosure.periodLocked'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('periodicClosure.genericError'));
     }
   };
 
   const handleUnlockPeriod = async () => {
-    if (!selectedPeriodId) { toast.error('Sélectionnez une période'); return; }
+    if (!selectedPeriodId) { toast.error(t('periodicClosure.selectPeriod')); return; }
     try {
       await unlockPeriod(selectedPeriodId, user?.id);
-      toast.success('Période réouverte');
+      toast.success(t('periodicClosure.periodReopened'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('periodicClosure.genericError'));
     }
   };
 
@@ -342,22 +354,22 @@ function CloturesPeriodiquesPage() {
   };
 
   const handleExecuteStep = async (stepId: string) => {
-    if (!selectedFYId) { toast.error('Sélectionnez un exercice'); return; }
+    if (!selectedFYId) { toast.error(t('periodicClosure.selectYear')); return; }
     setExecuting(true);
     try {
       const result = await closureOrchestrator.executeStep(stepId, buildCtx());
       setSteps(prev => prev.map(s => s.id === result.id ? result : s));
-      if (result.status === 'done') toast.success(result.message || 'OK');
-      else if (result.status === 'error') toast.error(result.message || 'Erreur');
+      if (result.status === 'done') toast.success(result.message || t('periodicClosure.ok'));
+      else if (result.status === 'error') toast.error(result.message || t('periodicClosure.genericError'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur inattendue');
+      toast.error(err instanceof Error ? err.message : t('periodicClosure.unexpectedError'));
     } finally {
       setExecuting(false);
     }
   };
 
   const handleExecuteAll = async () => {
-    if (!selectedFYId) { toast.error('Sélectionnez un exercice'); return; }
+    if (!selectedFYId) { toast.error(t('periodicClosure.selectYear')); return; }
     setExecuting(true);
     try {
       const results = mode === 'annuelle'
@@ -366,13 +378,13 @@ function CloturesPeriodiquesPage() {
       setSteps(results);
       const errors = results.filter(s => s.status === 'error');
       if (errors.length === 0) {
-        toast.success('Clôture terminée avec succès');
+        toast.success(t('periodicClosure.closingDone'));
         loadDashboard();
       } else {
-        toast.error(`${errors.length} étape(s) en erreur`);
+        toast.error(t('periodicClosure.stepsInError', { count: String(errors.length) }));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur inattendue');
+      toast.error(err instanceof Error ? err.message : t('periodicClosure.unexpectedError'));
     } finally {
       setExecuting(false);
     }
@@ -380,7 +392,7 @@ function CloturesPeriodiquesPage() {
 
   const selectedFY = fiscalYears.find(f => f.id === selectedFYId) || null;
   const selectedPeriod = periods.find(p => p.id === selectedPeriodId) || null;
-  const tabs = mode === 'mensuelle' ? MONTHLY_TABS : ANNUAL_TABS;
+  const tabs = mode === 'mensuelle' ? buildMonthlyTabs(t) : buildAnnualTabs(t);
 
   // =========================================================================
   // RENDER
@@ -390,7 +402,7 @@ function CloturesPeriodiquesPage() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Clôtures Périodiques</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('periodicClosure.pageTitle')}</h1>
         {/* Mode selector */}
         <div className="flex bg-gray-100 rounded-lg p-0.5">
           {(['mensuelle', 'annuelle'] as const).map(m => (
@@ -401,7 +413,7 @@ function CloturesPeriodiquesPage() {
                 mode === m ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {m === 'mensuelle' ? 'Mensuelle' : 'Annuelle'}
+              {m === 'mensuelle' ? t('periodicClosure.modeMonthly') : t('periodicClosure.modeAnnual')}
             </button>
           ))}
         </div>
@@ -411,16 +423,16 @@ function CloturesPeriodiquesPage() {
       <div className="bg-white border border-gray-200 rounded-lg p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Exercice fiscal</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('periodicClosure.fiscalYear')}</label>
             <select
               value={selectedFYId}
               onChange={e => { setSelectedFYId(e.target.value); setSelectedPeriodId(''); }}
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
             >
-              <option value="">-- Sélectionner --</option>
+              <option value="">{t('periodicClosure.selectPlaceholder')}</option>
               {fiscalYears.map(fy => (
                 <option key={fy.id} value={fy.id}>
-                  {fy.name} ({fy.startDate} → {fy.endDate}) {fy.isClosed ? '[Clôturé]' : ''}
+                  {fy.name} ({fy.startDate} → {fy.endDate}) {fy.isClosed ? t('periodicClosure.closedTag') : ''}
                 </option>
               ))}
             </select>
@@ -429,7 +441,7 @@ function CloturesPeriodiquesPage() {
           {mode === 'mensuelle' && (
             <div className="space-y-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Périodicité</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('periodicClosure.periodicity')}</label>
                 <select
                   value={periodicite}
                   onChange={e => handlePeriodiciteChange(e.target.value as Periodicite)}
@@ -437,20 +449,23 @@ function CloturesPeriodiquesPage() {
                 >
                   {(['mensuelle', 'trimestrielle', 'semestrielle'] as const).map(p => (
                     <option key={p} value={p}>
-                      {PERIODICITE_LABEL[p].noun} ({PERIODICITE_LABEL[p].count} périodes)
+                      {t('periodicClosure.periodicityOption', {
+                        noun: PERIODICITE_LABEL[p].noun,
+                        count: String(PERIODICITE_LABEL[p].count),
+                      })}
                     </option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Période à clôturer</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('periodicClosure.periodToClose')}</label>
                 {periods.length > 0 ? (
                   <select
                     value={selectedPeriodId}
                     onChange={e => setSelectedPeriodId(e.target.value)}
                     className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                   >
-                    <option value="">-- Sélectionner --</option>
+                    <option value="">{t('periodicClosure.selectPlaceholder')}</option>
                     {periods.map(p => (
                       <option key={p.id} value={p.id}>
                         {p.label} [{p.status}]
@@ -461,20 +476,20 @@ function CloturesPeriodiquesPage() {
                   <div className="w-full px-3 py-2 text-sm border border-red-200 rounded bg-red-50 text-red-700 flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5">
                       <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
-                      Échec de génération
+                      {t('periodicClosure.genFailed')}
                     </span>
                     <button
                       onClick={handleRetryGen}
                       className="flex items-center gap-1 px-2 py-0.5 text-xs bg-white border border-red-300 rounded hover:bg-red-100"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      Réessayer
+                      {t('periodicClosure.retry')}
                     </button>
                   </div>
                 ) : (
                   <div className="w-full px-3 py-2 text-sm border border-gray-200 rounded bg-gray-50 text-gray-400 flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    {selectedFYId ? 'Génération des périodes…' : 'Sélectionnez un exercice'}
+                    {selectedFYId ? t('periodicClosure.generatingPeriods') : t('periodicClosure.selectYear')}
                   </div>
                 )}
               </div>
@@ -483,13 +498,13 @@ function CloturesPeriodiquesPage() {
 
           {mode === 'annuelle' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Exercice N+1 (reports)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('periodicClosure.nextYearCarry')}</label>
               <select
                 value={openingFYId}
                 onChange={e => setOpeningFYId(e.target.value)}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
               >
-                <option value="">-- Optionnel --</option>
+                <option value="">{t('periodicClosure.optionalPlaceholder')}</option>
                 {fiscalYears.filter(fy => fy.id !== selectedFYId).map(fy => (
                   <option key={fy.id} value={fy.id}>{fy.name}</option>
                 ))}
@@ -503,7 +518,7 @@ function CloturesPeriodiquesPage() {
               className="flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-300 rounded hover:bg-gray-50"
             >
               <RefreshCw className="w-4 h-4" />
-              Actualiser
+              {t('periodicClosure.refresh')}
             </button>
           </div>
         </div>
@@ -512,7 +527,10 @@ function CloturesPeriodiquesPage() {
         {mode === 'mensuelle' && periods.length > 0 && (
           <div className="mt-4 border-t border-gray-100 pt-3">
             <p className="text-xs font-medium text-gray-500 mb-2">
-              {periods.length} période(s) — {PERIODICITE_LABEL[periods[0].type].noun}
+              {t('periodicClosure.periodsSummary', {
+                count: String(periods.length),
+                noun: PERIODICITE_LABEL[periods[0].type].noun,
+              })}
             </p>
             <div className="flex flex-wrap gap-2">
               {periods.map(p => (
@@ -623,9 +641,9 @@ function CloturesPeriodiquesPage() {
           <div className="space-y-4">
             <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5 w-fit">
               {[
-                { id: 'controle' as const, label: 'Contrôle Périodes' },
-                { id: 'immobilisations' as const, label: 'Immobilisations' },
-                { id: 'rapprochement' as const, label: 'Rapprochement Bancaire' },
+                { id: 'controle' as const, label: t('periodicClosure.subTabPeriodControl') },
+                { id: 'immobilisations' as const, label: t('periodicClosure.subTabFixedAssets') },
+                { id: 'rapprochement' as const, label: t('periodicClosure.subTabBankRecon') },
               ].map(st => (
                 <button
                   key={st.id}
@@ -704,6 +722,7 @@ function CycleExecutionSection({
   const allDone = completedSteps === totalSteps && totalSteps > 0;
   const hasErrors = errorSteps > 0;
 
+  const { t } = useLanguage();
   const missingSelection = !selectedFYId || (mode === 'mensuelle' && !selectedPeriodId);
 
   // Détail des éléments bloquants (écritures non rapprochées, lignes non lettrées...) —
@@ -715,9 +734,9 @@ function CycleExecutionSection({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <Play className="w-5 h-5 text-blue-600" />
-          Cycle de clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'}
+          {mode === 'mensuelle' ? t('periodicClosure.cycleTitleMonthly') : t('periodicClosure.cycleTitleAnnual')}
           <span className="text-sm font-normal text-gray-500">
-            ({totalSteps} étapes)
+            {t('periodicClosure.stepsCount', { count: String(totalSteps) })}
           </span>
         </h2>
         <button
@@ -730,7 +749,7 @@ function CycleExecutionSection({
           ) : (
             <Play className="w-4 h-4" />
           )}
-          Tout exécuter
+          {t('periodicClosure.runAll')}
         </button>
       </div>
 
@@ -738,8 +757,8 @@ function CycleExecutionSection({
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4 text-sm text-yellow-800 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           {!selectedFYId
-            ? 'Sélectionnez un exercice fiscal pour démarrer le cycle de clôture.'
-            : 'Sélectionnez une période pour démarrer le cycle de clôture mensuelle.'}
+            ? t('periodicClosure.selectYearForCycle')
+            : t('periodicClosure.selectPeriodForCycle')}
         </div>
       )}
 
@@ -819,7 +838,10 @@ function CycleExecutionSection({
                           : isRunning ? 'bg-blue-100 text-blue-700'
                           : 'bg-gray-100 text-gray-500'
                       }`}>
-                        {isDone ? 'Terminé' : isError ? 'Erreur' : isRunning ? 'En cours...' : step.status}
+                        {isDone ? t('periodicClosure.stepDone')
+                          : isError ? t('periodicClosure.stepError')
+                          : isRunning ? t('periodicClosure.stepRunning')
+                          : step.status}
                       </span>
                     )}
                   </div>
@@ -835,7 +857,9 @@ function CycleExecutionSection({
                       onClick={() => setExpandedStepId(isExpanded ? null : step.id)}
                       className="text-xs text-red-700 underline hover:no-underline mt-0.5"
                     >
-                      {isExpanded ? 'Masquer le détail' : `Voir le détail (${step.detail!.length})`}
+                      {isExpanded
+                        ? t('periodicClosure.hideDetail')
+                        : t('periodicClosure.showDetail', { count: String(step.detail!.length) })}
                     </button>
                   )}
                 </div>
@@ -844,7 +868,7 @@ function CycleExecutionSection({
                 <button
                   onClick={() => onExecuteStep(step.id)}
                   disabled={executing || missingSelection || isDone || lockBlocked}
-                  title={lockBlocked ? 'Terminez les étapes précédentes avant de verrouiller' : undefined}
+                  title={lockBlocked ? t('periodicClosure.lockBlockedTitle') : undefined}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors flex-shrink-0 ${
                     isDone
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -862,7 +886,7 @@ function CycleExecutionSection({
                   ) : (
                     <Play className="w-3 h-3" />
                   )}
-                  {isDone ? 'OK' : isError ? 'Réessayer' : 'Exécuter'}
+                  {isDone ? t('periodicClosure.ok') : isError ? t('periodicClosure.retry') : t('periodicClosure.run')}
                 </button>
               </div>
 
@@ -887,13 +911,13 @@ function CycleExecutionSection({
       {allDone && (
         <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800 flex items-center gap-2">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
-          Cycle de clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'} terminé avec succès.
+          {mode === 'mensuelle' ? t('periodicClosure.cycleDoneMonthly') : t('periodicClosure.cycleDoneAnnual')}
         </div>
       )}
       {hasErrors && !executing && (
         <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          {errorSteps} étape(s) en erreur. Corrigez les problèmes puis réessayez.
+          {t('periodicClosure.cycleErrors', { count: String(errorSteps) })}
         </div>
       )}
     </div>
@@ -921,11 +945,13 @@ function DashboardSection({
   selectedPeriod: DBFiscalPeriod | null;
   onNavigateTab: (tab: TabId) => void;
 }) {
+  const { t } = useLanguage();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Chargement...</span>
+        <span className="ml-2 text-gray-500">{t('periodicClosure.loading')}</span>
       </div>
     );
   }
@@ -939,59 +965,59 @@ function DashboardSection({
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2 mb-4">
           <Calendar className="w-5 h-5" />
-          {mode === 'mensuelle' ? 'Période sélectionnée' : 'Exercice'}
+          {mode === 'mensuelle' ? t('periodicClosure.selectedPeriod') : t('periodicClosure.exercise')}
         </h2>
         {activeFY ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-sm text-gray-500">Exercice</p>
+              <p className="text-sm text-gray-500">{t('periodicClosure.exercise')}</p>
               <p className="font-medium">{activeFY.name}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Période</p>
+              <p className="text-sm text-gray-500">{t('periodicClosure.period')}</p>
               <p className="font-medium">{activeFY.startDate} → {activeFY.endDate}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">Statut</p>
+              <p className="text-sm text-gray-500">{t('periodicClosure.status')}</p>
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium ${
                 activeFY.isClosed ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-700'
               }`}>
                 {activeFY.isClosed ? <Lock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                {activeFY.isClosed ? 'Clôturé' : 'Ouvert'}
+                {activeFY.isClosed ? t('periodicClosure.closed') : t('periodicClosure.open')}
               </span>
             </div>
             {mode === 'mensuelle' && selectedPeriod && (
               <div>
-                <p className="text-sm text-gray-500">Période courante</p>
+                <p className="text-sm text-gray-500">{t('periodicClosure.currentPeriod')}</p>
                 <p className="font-medium">{selectedPeriod.label} [{selectedPeriod.status}]</p>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-gray-500">Aucun exercice sélectionné</p>
+          <p className="text-gray-500">{t('periodicClosure.noYearSelected')}</p>
         )}
       </div>
 
       {/* Key metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard label="Écritures" value={stats ? String(stats.totalEntries) : '—'} />
-        <MetricCard label="Brouillons" value={stats ? String(stats.drafts) : '—'} alert={!!stats && stats.drafts > 0} />
-        <MetricCard label="Produits (cl.7)" value={stats ? formatCurrency(stats.produits) : '—'} />
+        <MetricCard label={t('periodicClosure.metricEntries')} value={stats ? String(stats.totalEntries) : '—'} />
+        <MetricCard label={t('periodicClosure.metricDrafts')} value={stats ? String(stats.drafts) : '—'} alert={!!stats && stats.drafts > 0} />
+        <MetricCard label={t('periodicClosure.metricRevenue')} value={stats ? formatCurrency(stats.produits) : '—'} />
         <MetricCard
-          label="Résultat"
+          label={t('periodicClosure.metricResult')}
           value={stats ? formatCurrency(stats.resultat) : '—'}
-          subtitle={stats ? (stats.resultat >= 0 ? 'Bénéfice' : 'Perte') : undefined}
+          subtitle={stats ? (stats.resultat >= 0 ? t('periodicClosure.profit') : t('periodicClosure.loss')) : undefined}
         />
       </div>
 
       {/* Monthly: period progress */}
       {mode === 'mensuelle' && (
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Progression des périodes</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('periodicClosure.periodProgress')}</h3>
           {totalPeriods > 0 ? (
             <>
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-sm text-gray-600">{closedPeriods}/{totalPeriods} périodes clôturées</span>
+                <span className="text-sm text-gray-600">{t('periodicClosure.periodsClosedRatio', { closed: String(closedPeriods), total: String(totalPeriods) })}</span>
                 <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-blue-600 rounded-full transition-all"
@@ -1016,7 +1042,7 @@ function DashboardSection({
               </div>
             </>
           ) : (
-            <p className="text-sm text-gray-500">Les périodes sont générées automatiquement à la sélection de l'exercice. Ajustez la périodicité (mensuelle, trimestrielle ou semestrielle) via le sélecteur ci-dessus.</p>
+            <p className="text-sm text-gray-500">{t('periodicClosure.periodsAutoHint')}</p>
           )}
         </div>
       )}
@@ -1035,11 +1061,13 @@ function SessionsSection({ sessions, loading }: {
   sessions: DBClosureSession[];
   loading: boolean;
 }) {
+  const { t } = useLanguage();
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Chargement...</span>
+        <span className="ml-2 text-gray-500">{t('periodicClosure.loading')}</span>
       </div>
     );
   }
@@ -1048,23 +1076,23 @@ function SessionsSection({ sessions, loading }: {
     <div className="bg-white border border-gray-200 rounded-lg p-5">
       <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <History className="w-5 h-5 text-gray-500" />
-        Sessions de clôture
+        {t('periodicClosure.sessionsTitle')}
         <span className="text-sm font-normal text-gray-500">({sessions.length})</span>
       </h2>
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b text-left text-gray-500">
-            <th className="pb-2">Type</th>
-            <th className="pb-2">Période</th>
-            <th className="pb-2">Statut</th>
-            <th className="pb-2">Progression</th>
-            <th className="pb-2">Date</th>
+            <th className="pb-2">{t('periodicClosure.colType')}</th>
+            <th className="pb-2">{t('periodicClosure.period')}</th>
+            <th className="pb-2">{t('periodicClosure.status')}</th>
+            <th className="pb-2">{t('periodicClosure.colProgress')}</th>
+            <th className="pb-2">{t('periodicClosure.colDate')}</th>
           </tr>
         </thead>
         <tbody>
           {sessions.length === 0 ? (
             <tr>
-              <td colSpan={5} className="py-6 text-center text-gray-400">Aucune session de clôture enregistrée</td>
+              <td colSpan={5} className="py-6 text-center text-gray-400">{t('periodicClosure.noSessions')}</td>
             </tr>
           ) : (
             sessions.map(s => (
@@ -1125,163 +1153,163 @@ interface SectionDef {
   controlIds?: string[];
 }
 
-const MONTHLY_SECTIONS: SectionDef[] = [
+const buildMonthlySections = (t: Translate): SectionDef[] => [
   {
     tab: 'verification' as MonthlyTabId,
-    title: 'Vérification',
-    description: '6 règles de pré-requis évaluées sur les écritures réelles de chaque période, avec le détail des pièces bloquantes.',
+    title: t('periodicClosure.secVerifTitle'),
+    description: t('periodicClosure.secVerifDesc'),
     icon: <ClipboardCheck className="w-5 h-5" />,
     details: [
-      'R1 — Période terminée',
-      'R2 — Ordre chronologique des périodes',
-      'R3 — Délai légal OHADA (10 jours)',
-      'R4 — Aucune écriture en brouillon',
-      'R5 — Pièces validées équilibrées',
-      'R6 — Lettrage des comptes de tiers',
+      t('periodicClosure.secVerifD1'),
+      t('periodicClosure.secVerifD2'),
+      t('periodicClosure.secVerifD3'),
+      t('periodicClosure.secVerifD4'),
+      t('periodicClosure.secVerifD5'),
+      t('periodicClosure.secVerifD6'),
     ],
   },
   {
     tab: 'regularisations' as MonthlyTabId,
-    title: 'Régularisations',
-    description: 'Saisie et génération des écritures de régularisation conformes au SYSCOHADA révisé.',
+    title: t('periodicClosure.secAdjTitle'),
+    description: t('periodicClosure.secAdjDesc'),
     icon: <BookOpen className="w-5 h-5" />,
     details: [
-      'CCA — Charges constatées d\'avance',
-      'PCA — Produits constatés d\'avance',
-      'FNP — Fournisseurs, factures non parvenues',
-      'FAE — Clients, factures à établir',
-      'Calcul prorata temporis automatique',
-      'Régularisations déjà comptabilisées (lues au grand livre)',
-      'Génération des extournes au cut-off N+1',
+      t('periodicClosure.secAdjD1'),
+      t('periodicClosure.secAdjD2'),
+      t('periodicClosure.secAdjD3'),
+      t('periodicClosure.secAdjD4'),
+      t('periodicClosure.secAdjD5'),
+      t('periodicClosure.secAdjD6'),
+      t('periodicClosure.secAdjD7'),
     ],
   },
   {
     tab: 'controles' as MonthlyTabId,
-    title: 'Contrôles de cohérence',
-    description: '9 contrôles de cohérence mensuels — chacun dépliable, avec le détail des éléments fautifs et les corrections applicables.',
+    title: t('periodicClosure.secCtrlTitle'),
+    description: t('periodicClosure.secCtrlDescMonthly'),
     icon: <Shield className="w-5 h-5" />,
     details: [
-      'C1 — Équilibre de la balance générale',
-      'C2 — Écritures déséquilibrées (débit ≠ crédit)',
-      'C3 — Soldes clients (411) anormalement créditeurs',
-      'C5 — Cohérence temporelle (hors exercice, date future)',
-      'C6 — Soldes fournisseurs (401) anormalement débiteurs',
-      'C8 — Écritures encore en brouillon',
-      'C10 — Résultat de l\'exercice (classes 6 et 7)',
-      'C11 — Soldes de trésorerie (classe 5 hors 58/59)',
-      'C13 — Lettrage des comptes de tiers',
+      t('periodicClosure.secCtrlD1'),
+      t('periodicClosure.secCtrlD2'),
+      t('periodicClosure.secCtrlD3'),
+      t('periodicClosure.secCtrlD5'),
+      t('periodicClosure.secCtrlD6'),
+      t('periodicClosure.secCtrlD8'),
+      t('periodicClosure.secCtrlD10'),
+      t('periodicClosure.secCtrlD11'),
+      t('periodicClosure.secCtrlD13'),
     ],
     controlIds: MONTHLY_CONTROL_IDS,
   },
   {
     tab: 'verrouillage' as MonthlyTabId,
-    title: 'Verrouillage',
-    description: 'Verrouillage/réouverture de la période. Opération réversible, tracée dans la piste d\'audit.',
+    title: t('periodicClosure.secLockTitle'),
+    description: t('periodicClosure.secLockDesc'),
     icon: <Lock className="w-5 h-5" />,
     details: [
-      'Pré-vol : les 9 contrôles rejoués SUR LA PÉRIODE',
-      'Verrouillage refusé tant qu\'un contrôle est non conforme',
-      'Corrections automatiques applicables depuis le pré-vol',
-      'Dérogation explicite, journalisée (CLOSURE_LOCK_OVERRIDE)',
-      'Statuts: ouverte → en clôture → clôturée → rouverte',
+      t('periodicClosure.secLockD1'),
+      t('periodicClosure.secLockD2'),
+      t('periodicClosure.secLockD3'),
+      t('periodicClosure.secLockD4'),
+      t('periodicClosure.secLockD5'),
     ],
   },
   {
     tab: 'etats' as MonthlyTabId,
-    title: 'États de gestion',
-    description: 'Génération des états financiers SYSCOHADA pour la période.',
+    title: t('periodicClosure.secMgmtTitle'),
+    description: t('periodicClosure.secMgmtDesc'),
     icon: <FileText className="w-5 h-5" />,
     details: [
-      'Bilan — équilibre Actif = Passif vérifié',
-      'Compte de résultat — sens des comptes + IS classe 8 déduit',
-      'TAFIRE — non calculable sans comparatif N-1 (annoncé comme tel)',
-      'Notes annexes',
-      'Taux de conformité calculé sur des contrôles réels',
+      t('periodicClosure.secMgmtD1'),
+      t('periodicClosure.secMgmtD2'),
+      t('periodicClosure.secMgmtD3'),
+      t('periodicClosure.secMgmtD4'),
+      t('periodicClosure.secMgmtD5'),
     ],
   },
 ];
 
-const ANNUAL_SECTIONS: SectionDef[] = [
+const buildAnnualSections = (t: Translate): SectionDef[] => [
   {
     tab: 'travaux' as AnnualTabId,
-    title: 'Travaux préparatoires',
-    description: 'Vérifications et contrôles avant la clôture annuelle.',
+    title: t('periodicClosure.secPrepTitle'),
+    description: t('periodicClosure.secPrepDesc'),
     icon: <Settings className="w-5 h-5" />,
     details: [
-      'Contrôle des périodes (toutes doivent être clôturées)',
-      'Immobilisations — inventaire, amortissements, cessions',
-      'Rapprochement bancaire — lettrage, écarts, moyens de paiement',
+      t('periodicClosure.secPrepD1'),
+      t('periodicClosure.secPrepD2'),
+      t('periodicClosure.secPrepD3'),
     ],
   },
   {
     tab: 'inventaire' as AnnualTabId,
-    title: 'Écritures d\'inventaire',
-    description: 'Régularisations, amortissements, provisions et impôts de fin d\'exercice.',
+    title: t('periodicClosure.secInvTitle'),
+    description: t('periodicClosure.secInvDesc'),
     icon: <BookOpen className="w-5 h-5" />,
     details: [
-      'Régularisations CCA/PCA/FNP/FAE',
-      'Dotations aux amortissements (linéaire, dégressif)',
-      'Provisions pour créances douteuses',
-      'Calcul de l\'impôt sur les sociétés (IS)',
-      'Extournes automatiques',
+      t('periodicClosure.secInvD1'),
+      t('periodicClosure.secInvD2'),
+      t('periodicClosure.secInvD3'),
+      t('periodicClosure.secInvD4'),
+      t('periodicClosure.secInvD5'),
     ],
   },
   {
     tab: 'controles' as AnnualTabId,
-    title: 'Contrôles de cohérence',
-    description: `17 contrôles, dont ${ANNUAL_BLOCKING_IDS.length} bloquants qui interdisent la validation finale tant qu'ils sont non conformes.`,
+    title: t('periodicClosure.secCtrlTitle'),
+    description: t('periodicClosure.secCtrlDescAnnual', { count: String(ANNUAL_BLOCKING_IDS.length) }),
     icon: <Shield className="w-5 h-5" />,
     details: [
-      'Les 9 contrôles mensuels + 8 contrôles annuels',
-      'C4 — Dotations aux amortissements comptabilisées',
-      'C7 / C9 / C12 — Stocks, paie, rapprochement (selon modules actifs)',
-      'C14 — Équilibre du bilan (Actif = Passif)',
-      'C15 — Cohérence TVA collectée / déductible',
-      'C16 — Comptes de régularisation (CCA, PCA, FNP, FAE)',
-      'C17 — Comptes à solde anormal',
-      `Bloquants : ${ANNUAL_BLOCKING_IDS.join(', ')}`,
+      t('periodicClosure.secCtrlAnnualD1'),
+      t('periodicClosure.secCtrlAnnualD2'),
+      t('periodicClosure.secCtrlAnnualD3'),
+      t('periodicClosure.secCtrlAnnualD4'),
+      t('periodicClosure.secCtrlAnnualD5'),
+      t('periodicClosure.secCtrlAnnualD6'),
+      t('periodicClosure.secCtrlAnnualD7'),
+      t('periodicClosure.secCtrlAnnualD8', { ids: ANNUAL_BLOCKING_IDS.join(', ') }),
     ],
     controlIds: ALL_CONTROL_IDS,
   },
   {
     tab: 'etats' as AnnualTabId,
-    title: 'États financiers',
-    description: 'Génération complète des états SYSCOHADA (bilan, compte de résultat, TAFIRE, notes).',
+    title: t('periodicClosure.secFinTitle'),
+    description: t('periodicClosure.secFinDesc'),
     icon: <FileText className="w-5 h-5" />,
     details: [
-      'Bilan actif/passif conforme plan comptable OHADA',
-      'Compte de résultat (charges/produits par nature)',
-      'TAFIRE (flux de trésorerie)',
-      'Notes annexes réglementaires',
-      'Export PDF horodaté',
+      t('periodicClosure.secFinD1'),
+      t('periodicClosure.secFinD2'),
+      t('periodicClosure.secFinD3'),
+      t('periodicClosure.secFinD4'),
+      t('periodicClosure.secFinD5'),
     ],
   },
   {
     tab: 'validation' as AnnualTabId,
-    title: 'Validation finale',
-    description: 'Validation irréversible de la clôture annuelle avec contrôles bloquants.',
+    title: t('periodicClosure.secValidTitle'),
+    description: t('periodicClosure.secValidDesc'),
     icon: <CheckCircle className="w-5 h-5" />,
     details: [
-      'Vérification finale des contrôles bloquants',
-      'Signature du responsable comptable',
-      'Verrouillage définitif de l\'exercice',
-      'Horodatage et traçabilité complète',
-      'Opération irréversible',
+      t('periodicClosure.secValidD1'),
+      t('periodicClosure.secValidD2'),
+      t('periodicClosure.secValidD3'),
+      t('periodicClosure.secValidD4'),
+      t('periodicClosure.secValidD5'),
     ],
   },
   {
     tab: 'affectation' as AnnualTabId,
-    title: 'Affectation & Reports',
-    description: 'Affectation du résultat post-AG et génération des reports à nouveau N+1.',
+    title: t('periodicClosure.secAllocTitle'),
+    description: t('periodicClosure.secAllocDesc'),
     icon: <ArrowRight className="w-5 h-5" />,
     details: [
-      'Résultat net (bénéfice/perte)',
-      'Réserve légale (10%, plafond 20% capital)',
-      'Réserves statutaires et facultatives',
-      'Dividendes',
-      'Report à nouveau',
-      'Reports à nouveau vers exercice N+1',
-      'Assistant IA (Proph3t) + Archives',
+      t('periodicClosure.secAllocD1'),
+      t('periodicClosure.secAllocD2'),
+      t('periodicClosure.secAllocD3'),
+      t('periodicClosure.secAllocD4'),
+      t('periodicClosure.secAllocD5'),
+      t('periodicClosure.secAllocD6'),
+      t('periodicClosure.secAllocD7'),
     ],
   },
 ];
@@ -1292,7 +1320,8 @@ const ANNUAL_SECTIONS: SectionDef[] = [
  * disponibles) et ouvre l'onglet correspondant.
  */
 function SectionsOverview({ mode, onNavigateTab }: { mode: ClotureMode; onNavigateTab: (tab: TabId) => void }) {
-  const sections = mode === 'mensuelle' ? MONTHLY_SECTIONS : ANNUAL_SECTIONS;
+  const { t } = useLanguage();
+  const sections = mode === 'mensuelle' ? buildMonthlySections(t) : buildAnnualSections(t);
   const { controles, loading } = useControlesCoherence(
     mode === 'mensuelle' ? MONTHLY_CONTROL_IDS : ALL_CONTROL_IDS,
   );
@@ -1303,7 +1332,7 @@ function SectionsOverview({ mode, onNavigateTab }: { mode: ClotureMode; onNaviga
     <div className="bg-white border border-gray-200 rounded-lg p-5">
       <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
         <Info className="w-5 h-5 text-blue-500" />
-        Détail des sections — Clôture {mode === 'mensuelle' ? 'mensuelle' : 'annuelle'}
+        {mode === 'mensuelle' ? t('periodicClosure.sectionsTitleMonthly') : t('periodicClosure.sectionsTitleAnnual')}
         {loading && <Loader2 className="w-4 h-4 animate-spin text-gray-300" />}
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1332,21 +1361,21 @@ function SectionsOverview({ mode, onNavigateTab }: { mode: ClotureMode; onNaviga
                 </h3>
                 {sectionControls.length > 0 && !loading && (
                   ko > 0
-                    ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">{ko} non conforme(s)</span>
+                    ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">{t('periodicClosure.nonCompliantCount', { count: String(ko) })}</span>
                     : warn > 0
-                      ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">{warn} attention</span>
-                      : <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">Conforme</span>
+                      ? <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">{t('periodicClosure.warnCount', { count: String(warn) })}</span>
+                      : <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">{t('periodicClosure.compliant')}</span>
                 )}
               </div>
               <p className="text-xs text-gray-500 mb-3">{section.description}</p>
 
               {sectionControls.length > 0 && !loading && (
                 <div className="flex flex-wrap items-center gap-2 mb-3 text-[11px]">
-                  <span className="text-gray-500">{anomalies} anomalie(s) détaillée(s)</span>
+                  <span className="text-gray-500">{t('periodicClosure.detailedAnomalies', { count: String(anomalies) })}</span>
                   {autoFixes > 0 && (
                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium">
                       <Wand2 className="w-3 h-3" />
-                      {autoFixes} correction(s) automatique(s)
+                      {t('periodicClosure.autoFixes', { count: String(autoFixes) })}
                     </span>
                   )}
                 </div>
@@ -1373,7 +1402,7 @@ function SectionsOverview({ mode, onNavigateTab }: { mode: ClotureMode; onNaviga
               </ul>
 
               <p className="mt-3 text-[11px] text-blue-600 flex items-center gap-1">
-                Ouvrir la section
+                {t('periodicClosure.openSection')}
                 <ArrowRight className="w-3 h-3" />
               </p>
             </button>
@@ -1404,6 +1433,8 @@ function VerrouillageSection({
 }) {
   // Pré-vol : contrôles non conformes SUR LA PÉRIODE. Tant qu'il en reste,
   // le verrouillage est refusé — sauf dérogation explicite et journalisée.
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [blockerIds, setBlockerIds] = useState<string[]>([]);
   const [force, setForce] = useState(false);
   const blockers = blockerIds.length;
@@ -1413,7 +1444,7 @@ function VerrouillageSection({
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
         <Lock className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-        <p>Sélectionnez une période pour gérer le verrouillage</p>
+        <p>{t('periodicClosure.selectPeriodForLock')}</p>
       </div>
     );
   }
@@ -1426,20 +1457,20 @@ function VerrouillageSection({
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Lock className="w-5 h-5" />
-          Verrouillage de la période
+          {t('periodicClosure.lockSectionTitle')}
         </h3>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div>
-            <p className="text-sm text-gray-500">Période</p>
+            <p className="text-sm text-gray-500">{t('periodicClosure.period')}</p>
             <p className="font-medium">{period.label}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Code</p>
+            <p className="text-sm text-gray-500">{t('periodicClosure.colCode')}</p>
             <p className="font-mono">{period.code}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Statut</p>
+            <p className="text-sm text-gray-500">{t('periodicClosure.status')}</p>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium ${
               isClosed ? 'bg-green-100 text-green-700'
                 : isReopened ? 'bg-orange-100 text-orange-700'
@@ -1450,19 +1481,25 @@ function VerrouillageSection({
             </span>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Progression</p>
+            <p className="text-sm text-gray-500">{t('periodicClosure.colProgress')}</p>
             <p className="font-medium">{period.progression}%</p>
           </div>
         </div>
 
         {period.closedAt && (
           <p className="text-xs text-gray-400 mb-4">
-            Clôturé le {new Date(period.closedAt).toLocaleString('fr-FR')} par {period.closedBy}
+            {t('periodicClosure.closedOnBy', {
+              date: new Date(period.closedAt).toLocaleString(dateLocale),
+              user: period.closedBy ?? '—',
+            })}
           </p>
         )}
         {period.reopenedAt && (
           <p className="text-xs text-orange-500 mb-4">
-            Réouvert le {new Date(period.reopenedAt).toLocaleString('fr-FR')} par {period.reopenedBy}
+            {t('periodicClosure.reopenedOnBy', {
+              date: new Date(period.reopenedAt).toLocaleString(dateLocale),
+              user: period.reopenedBy ?? '—',
+            })}
           </p>
         )}
 
@@ -1473,12 +1510,12 @@ function VerrouillageSection({
                 onClick={() => onLock(blockers > 0 ? { blockers, controles: blockerIds } : undefined)}
                 disabled={executing || (blockers > 0 && !force)}
                 title={blockers > 0 && !force
-                  ? `${blockers} contrôle(s) non conforme(s) sur la période — corrigez-les ou cochez la dérogation.`
+                  ? t('periodicClosure.lockBlockedByControls', { count: String(blockers) })
                   : undefined}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
-                Verrouiller la période
+                {t('periodicClosure.lockPeriod')}
               </button>
               {blockers > 0 && (
                 <label className="flex items-center gap-2 text-xs text-red-700">
@@ -1488,7 +1525,7 @@ function VerrouillageSection({
                     onChange={e => setForce(e.target.checked)}
                     className="rounded border-red-300"
                   />
-                  Forcer malgré {blockers} contrôle(s) non conforme(s)
+                  {t('periodicClosure.forceDespite', { count: String(blockers) })}
                 </label>
               )}
             </>
@@ -1500,7 +1537,7 @@ function VerrouillageSection({
               className="flex items-center gap-2 px-4 py-2 border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-50 disabled:opacity-50"
             >
               {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
-              Réouvrir la période
+              {t('periodicClosure.reopenPeriod')}
             </button>
           )}
         </div>
@@ -1522,8 +1559,7 @@ function VerrouillageSection({
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-sm text-yellow-800 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
-            La réouverture d'une période clôturée est une opération réversible mais doit être justifiée.
-            Toute réouverture est tracée dans la piste d'audit.
+            {t('periodicClosure.reopenWarning')}
           </p>
         </div>
       )}
