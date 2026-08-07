@@ -14,7 +14,13 @@ import {
   Download,
   RefreshCw,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Wallet,
+  Receipt,
+  Clock,
+  Scale,
+  Percent,
+  Landmark
 } from 'lucide-react';
 
 const ManagerDashboard: React.FC = () => {
@@ -26,7 +32,14 @@ const ManagerDashboard: React.FC = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   // KPIs dérivés de la SOURCE UNIQUE (glHelpers via computeDashboardMetrics).
-  const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0 });
+  const [liveKpiData, setLiveKpiData] = useState<{
+    revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number;
+    receivables: number; payables: number; stocks: number; bfr: number;
+    dso: number; dpo: number; margeBrute: number; ratioCD: number | null;
+  }>({
+    revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0,
+    receivables: 0, payables: 0, stocks: 0, bfr: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null,
+  });
   const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
 
   const handleExport = () => {
@@ -37,6 +50,14 @@ const ManagerDashboard: React.FC = () => {
       ['Résultat net', String(liveKpiData.resultatNet)],
       ['Marge nette (%)', liveKpiData.margin.toFixed(2)],
       ['Trésorerie nette', String(liveKpiData.treasury)],
+      ['Créances clients (41)', String(liveKpiData.receivables)],
+      ['Dettes fournisseurs (40)', String(liveKpiData.payables)],
+      ['Stocks (classe 3)', String(liveKpiData.stocks)],
+      ['BFR', String(liveKpiData.bfr)],
+      ['DSO (jours)', String(liveKpiData.dso)],
+      ['DPO (jours)', String(liveKpiData.dpo)],
+      ['Marge brute (%)', liveKpiData.margeBrute.toFixed(2)],
+      ['Ratio créances/dettes', liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : 'n/a'],
       ['Écritures en attente', String(liveKpiData.pendingCount)],
     ];
     const csv = '﻿' + rows.map(r => r.join(';')).join('\n');
@@ -60,7 +81,33 @@ const ManagerDashboard: React.FC = () => {
       }
       const m = computeDashboardMetrics(entries, range);
       const pendingCount = entries.filter((e: any) => e.status === 'draft').length;
-      setLiveKpiData({ revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount });
+
+      // Postes de bilan : soldes CUMULÉS jusqu'à la fin de la période (les
+      // créances/dettes/stocks sont des encours, pas des flux de période).
+      const mBal = computeDashboardMetrics(entries, range.to ? { to: range.to } : undefined);
+      const receivables = mBal.h.net('41');        // clients — solde débiteur (41x)
+      const payables = mBal.h.creditNet('40');     // fournisseurs — solde créditeur (40x)
+      const stocks = mBal.classNet['3'] || 0;      // stocks (classe 3)
+      const bfr = receivables + stocks - payables; // besoin en fonds de roulement (approché)
+
+      // Ratios : flux de la période (CA, achats cl.60) rapportés aux encours.
+      const achats = m.h.net('60');
+      const days = (() => {
+        if (range.from && range.to) {
+          const d = (new Date(range.to).getTime() - new Date(range.from).getTime()) / 86400000 + 1;
+          return d > 0 ? d : 365;
+        }
+        return 365;
+      })();
+      const dso = m.ca > 0 ? Math.round((receivables / m.ca) * days) : 0;   // délai recouvrement clients
+      const dpo = achats > 0 ? Math.round((payables / achats) * days) : 0;  // délai paiement fournisseurs
+      const margeBrute = m.ca > 0 ? ((m.ca - achats) / m.ca) * 100 : 0;     // marge brute %
+      const ratioCD = payables !== 0 ? receivables / payables : null;       // créances / dettes
+
+      setLiveKpiData({
+        revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount,
+        receivables, payables, stocks, bfr, dso, dpo, margeBrute, ratioCD,
+      });
       // Top clients RÉELS = montants facturés (débit des comptes 411) agrégés par tiers.
       const byClient = new Map<string, number>();
       for (const e of entries) {
@@ -201,6 +248,37 @@ const ManagerDashboard: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Créances, dettes & ratios — postes de bilan (cumulés) et ratios réels */}
+        <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
+            <span className="text-xs text-[var(--color-text-secondary)]">Encours cumulés · ratios sur la période</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
+            {[
+              { label: 'Créances clients', value: fmt(liveKpiData.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
+              { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
+              { label: 'BFR', value: fmt(liveKpiData.bfr), sub: 'Créances + stocks − dettes', icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
+              { label: 'DSO', value: `${liveKpiData.dso} j`, sub: 'Délai recouvrement clients', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: 'Délai paiement fourn.', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
+              { label: 'Créances / Dettes', value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
+            ].map((r) => {
+              const Icon = r.icon;
+              return (
+                <div key={r.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)]">
+                  <div className="flex items-center gap-2 mb-2 text-[var(--color-text-secondary)]">
+                    <Icon className="w-4 h-4" />
+                    <span className="text-xs font-medium">{r.label}</span>
+                  </div>
+                  <p className={`text-base font-bold ${r.tone}`}>{r.value}</p>
+                  <p className="text-[11px] text-[var(--color-text-secondary)] mt-1">{r.sub}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Graphique principal */}
