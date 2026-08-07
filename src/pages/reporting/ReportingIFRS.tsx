@@ -95,6 +95,15 @@ const ReportingIFRS: React.FC = () => {
   const { adapter } = useData();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Deep-link registre IFRS → état financier réel calculé depuis le grand livre.
+  const STATEMENT_ROUTES: Partial<Record<IFRSReport['reportType'], string>> = {
+    balance_sheet: '/financial-statements/balance',
+    income_statement: '/financial-statements/income',
+    cash_flow: '/financial-statements/cash-flow',
+    equity_changes: '/financial-statements',
+    notes: '/accounting/financial-statements',
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -869,6 +878,14 @@ const ReportingIFRS: React.FC = () => {
                   >
                     {reportModal.mode === 'view' ? 'Fermer' : 'Annuler'}
                   </ElegantButton>
+                  {reportModal.mode === 'view' && reportModal.report && STATEMENT_ROUTES[reportModal.report.reportType] && (
+                    <ElegantButton
+                      variant="primary"
+                      onClick={() => navigate(STATEMENT_ROUTES[reportModal.report!.reportType]!)}
+                    >
+                      Ouvrir l'état
+                    </ElegantButton>
+                  )}
                   {reportModal.mode !== 'view' && (
                     <ElegantButton variant="primary" onClick={() => navigate('/reporting/builder')}>
                       Ouvrir le générateur de rapports
