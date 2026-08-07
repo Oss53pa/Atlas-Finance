@@ -29,6 +29,7 @@ import { Line, Doughnut } from 'react-chartjs-2';
 import { useData } from '../../contexts/DataContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
+import CreancesDettesRatiosBlock from '../../components/dashboard/CreancesDettesRatiosBlock';
 import {
   loadSchedule, saveSchedule, sendTestReport, isValidEmail,
   DEFAULT_SCHEDULE, type ExecutiveReportSchedule, type ReportFrequency, type ReportPeriode,
@@ -428,6 +429,11 @@ const ExecutiveDigest: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* ═══ Bloc partagé « Créances, dettes & ratios » ═══ */}
+      <div className="mt-6">
+        <CreancesDettesRatiosBlock entries={entries} period={activePeriod} />
       </div>
 
       {/* ═══ Panneau de programmation (modal) ═══ */}
