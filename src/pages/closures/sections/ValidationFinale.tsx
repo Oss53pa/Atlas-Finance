@@ -114,7 +114,8 @@ interface PeriodeCloture {
 }
 
 const ValidationFinale: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { adapter } = useData();
   const [selectedTab, setSelectedTab] = useState('progression');
   const [selectedPeriode, setSelectedPeriode] = useState<PeriodeCloture | null>(null);
@@ -180,12 +181,12 @@ const ValidationFinale: React.FC = () => {
   const handleSubmit = async () => {
     const activeFY = fiscalYears.find(fy => fy.isActive) || fiscalYears[0];
     if (!activeFY) {
-      toast.error('Aucun exercice fiscal sélectionné');
+      toast.error(t('closureFinal.noYearSelected'));
       return;
     }
 
     if (!formData.verrouillage_definitif) {
-      toast.error('Vous devez confirmer le verrouillage définitif');
+      toast.error(t('closureFinal.confirmLockRequired'));
       return;
     }
 
@@ -205,7 +206,7 @@ const ValidationFinale: React.FC = () => {
           setOrchSteps(prev => prev.map(s => s.id === step.id ? { ...step } : s));
         },
         onError: (step, error) => {
-          toast.error(`Étape "${step.label}" : ${error.message}`);
+          toast.error(t('closureFinal.stepError', { label: step.label, message: error.message }));
         },
       });
 
@@ -213,17 +214,17 @@ const ValidationFinale: React.FC = () => {
       const errors = results.filter(s => s.status === 'error');
 
       if (allDone) {
-        toast.success('Clôture complète — toutes les étapes réussies');
+        toast.success(t('closureFinal.closingComplete'));
         setShowValidationModal(false);
         resetForm();
         const fys = await adapter.getAll<DBFiscalYear>('fiscalYears');
         setFiscalYears(fys);
         setOrchSteps(closureOrchestrator.getSteps());
       } else if (errors.length > 0) {
-        toast.error(`${errors.length} étape(s) en erreur — vérifiez le détail`);
+        toast.error(t('closureFinal.stepsInError', { count: String(errors.length) }));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur lors de la clôture');
+      toast.error(err instanceof Error ? err.message : t('closureFinal.closingError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -233,7 +234,7 @@ const ValidationFinale: React.FC = () => {
   const handleExecuteStep = async (stepId: string) => {
     const activeFY = fiscalYears.find(fy => fy.isActive) || fiscalYears[0];
     if (!activeFY) {
-      toast.error('Aucun exercice fiscal sélectionné');
+      toast.error(t('closureFinal.noYearSelected'));
       return;
     }
 
@@ -261,7 +262,7 @@ const ValidationFinale: React.FC = () => {
         toast.error(`${result.label} : ${result.message}`);
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('closureFinal.genericError'));
       setOrchSteps(prev => prev.map(s => s.id === stepId ? { ...s, status: 'error', message: String(err) } : s));
     }
   };
@@ -275,19 +276,22 @@ const ValidationFinale: React.FC = () => {
     dateFin: fy.endDate,
     dateEcheance: fy.endDate,
     statut: fy.isClosed ? 'cloturee' as const : fy.isActive ? 'en_cours' as const : 'ouverte' as const,
-    responsableFinal: 'Directeur Financier',
+    responsableFinal: t('closureFinal.cfoResponsible'),
     progression: fy.isClosed ? 100 : (preview && fy.isActive ? 50 : 0),
     etapes: fy.isActive && preview ? [
       {
         id: 'e1',
-        nom: 'Vérification des pré-requis',
-        description: `${preview.totalEntries} écritures, ${preview.entriesToLock} à verrouiller`,
-        responsable: 'Système',
+        nom: t('closureFinal.step1Name'),
+        description: t('closureFinal.step1Desc', {
+          entries: String(preview.totalEntries),
+          toLock: String(preview.entriesToLock),
+        }),
+        responsable: t('closureFinal.systemResponsible'),
         dateEcheance: fy.endDate,
         statut: preview.warnings.length === 0 ? 'complete' as const : 'en_cours' as const,
         progression: preview.warnings.length === 0 ? 100 : 50,
         controles: [{
-          id: 'c1', nom: 'Équilibre écritures', type: 'automatique' as const,
+          id: 'c1', nom: t('closureFinal.check1Name'), type: 'automatique' as const,
           criticite: 'critique' as const,
           statut: preview.warnings.length === 0 ? 'reussi' as const : 'alerte' as const,
           resultat: preview.warnings.length === 0 ? 'OK' : preview.warnings.join(', '),
@@ -298,19 +302,22 @@ const ValidationFinale: React.FC = () => {
       },
       {
         id: 'e2',
-        nom: 'Calcul du résultat',
-        description: `Produits: ${formatCurrency(preview.totalProduits)} — Charges: ${formatCurrency(preview.totalCharges)}`,
-        responsable: 'Système',
+        nom: t('closureFinal.step2Name'),
+        description: t('closureFinal.step2Desc', {
+          revenue: formatCurrency(preview.totalProduits),
+          expenses: formatCurrency(preview.totalCharges),
+        }),
+        responsable: t('closureFinal.systemResponsible'),
         dateEcheance: fy.endDate,
         statut: 'en_attente' as const,
         progression: 0,
         controles: [{
-          id: 'c2', nom: 'Résultat net', type: 'automatique' as const,
+          id: 'c2', nom: t('closureFinal.check2Name'), type: 'automatique' as const,
           criticite: 'elevee' as const, statut: 'non_execute' as const,
-          resultat: `Résultat prévisionnel: ${formatCurrency(preview.resultatNet)}`,
+          resultat: t('closureFinal.check2Result', { amount: formatCurrency(preview.resultatNet) }),
         }],
         dependances: ['e1'],
-        documentsRequis: ['Bilan', 'Compte de résultat'],
+        documentsRequis: [t('closureFinal.docBalanceSheet'), t('closureFinal.docIncomeStatement')],
         documentsJoints: [],
       },
     ] : [],
@@ -386,7 +393,7 @@ const ValidationFinale: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Progression Globale</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.kpiOverallProgress')}</p>
                 <p className="text-lg font-bold">{kpis.progressionGlobale}%</p>
                 <Progress value={kpis.progressionGlobale} className="mt-2" />
               </div>
@@ -399,9 +406,11 @@ const ValidationFinale: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Étapes Complètes</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.kpiCompletedSteps')}</p>
                 <p className="text-lg font-bold">{kpis.etapesCompletes}/{kpis.totalEtapes}</p>
-                <p className="text-xs text-[var(--color-success)]">{kpis.totalEtapes > 0 ? Math.round((kpis.etapesCompletes / kpis.totalEtapes) * 100) : 0}% terminées</p>
+                <p className="text-xs text-[var(--color-success)]">{t('closureFinal.kpiPercentDone', {
+                  percent: String(kpis.totalEtapes > 0 ? Math.round((kpis.etapesCompletes / kpis.totalEtapes) * 100) : 0),
+                })}</p>
               </div>
               <CheckSquare className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -412,9 +421,9 @@ const ValidationFinale: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Approbations Pendantes</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.kpiPendingApprovals')}</p>
                 <p className="text-lg font-bold">{kpis.approbationsPendantes}</p>
-                <p className="text-xs text-[var(--color-warning)]">En attente validation</p>
+                <p className="text-xs text-[var(--color-warning)]">{t('closureFinal.kpiAwaitingValidation')}</p>
               </div>
               <Users className="w-8 h-8 text-orange-500" />
             </div>
@@ -425,9 +434,9 @@ const ValidationFinale: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Temps Restant</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.kpiTimeLeft')}</p>
                 <p className="text-lg font-bold">{kpis.tempsRestant}j</p>
-                <p className="text-xs text-[var(--color-error)]">Échéance proche</p>
+                <p className="text-xs text-[var(--color-error)]">{t('closureFinal.kpiDeadlineNear')}</p>
               </div>
               <Clock className="w-8 h-8 text-[var(--color-error)]" />
             </div>
@@ -440,8 +449,8 @@ const ValidationFinale: React.FC = () => {
         <Alert className="border-l-4 border-l-red-500">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Attention:</strong> {kpis.alertesCritiques} alertes critiques nécessitent votre attention immédiate.
-            Vérifiez les contrôles en échec avant la validation finale.
+            <strong>{t('closureFinal.warningLabel')}</strong>{' '}
+            {t('closureFinal.criticalAlerts', { count: String(kpis.alertesCritiques) })}
           </AlertDescription>
         </Alert>
       )}
@@ -449,18 +458,18 @@ const ValidationFinale: React.FC = () => {
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="progression">Progression</TabsTrigger>
-          <TabsTrigger value="etapes">Étapes de Validation</TabsTrigger>
-          <TabsTrigger value="controles">Contrôles</TabsTrigger>
-          <TabsTrigger value="approbations">Approbations</TabsTrigger>
-          <TabsTrigger value="historique">Historique</TabsTrigger>
+          <TabsTrigger value="progression">{t('closureFinal.tabProgress')}</TabsTrigger>
+          <TabsTrigger value="etapes">{t('closureFinal.tabSteps')}</TabsTrigger>
+          <TabsTrigger value="controles">{t('closureFinal.tabControls')}</TabsTrigger>
+          <TabsTrigger value="approbations">{t('closureFinal.tabApprovals')}</TabsTrigger>
+          <TabsTrigger value="historique">{t('closureFinal.tabHistory')}</TabsTrigger>
         </TabsList>
 
         {/* Progression — Orchestrator Steps */}
         <TabsContent value="progression" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tableau de Bord de Validation</CardTitle>
+              <CardTitle>{t('closureFinal.dashboardTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -468,11 +477,14 @@ const ValidationFinale: React.FC = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-lg font-semibold">
-                      Période: {periodes[0]?.periode || '—'}
+                      {t('closureFinal.periodLabel', { period: periodes[0]?.periode || '—' })}
                     </h3>
                     {preview && (
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        {preview.totalEntries} écritures — Résultat: {formatCurrency(preview.resultatNet)}
+                        {t('closureFinal.previewLine', {
+                          entries: String(preview.totalEntries),
+                          result: formatCurrency(preview.resultatNet),
+                        })}
                       </p>
                     )}
                   </div>
@@ -487,7 +499,7 @@ const ValidationFinale: React.FC = () => {
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
-                        Manuel
+                        {t('closureFinal.modeManual')}
                       </button>
                       <button
                         onClick={() => setClotureMode('proph3t')}
@@ -497,7 +509,7 @@ const ValidationFinale: React.FC = () => {
                             : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
                         }`}
                       >
-                        Proph3t IA
+                        {t('closureFinal.modeProph3t')}
                       </button>
                     </div>
                     <button
@@ -506,7 +518,7 @@ const ValidationFinale: React.FC = () => {
                       className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2 disabled:opacity-50"
                     >
                       <Shield className="w-4 h-4" />
-                      Tout Exécuter
+                      {t('closureFinal.runAll')}
                     </button>
                   </div>
                 </div>
@@ -516,7 +528,7 @@ const ValidationFinale: React.FC = () => {
                   <Alert className="border-l-4 border-l-orange-500">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Pré-requis non satisfaits :</strong>
+                      <strong>{t('closureFinal.prereqNotMet')}</strong>
                       <ul className="list-disc ml-4 mt-1 text-sm">
                         {canCloseResult.reasons.map((r, i) => <li key={i}>{r}</li>)}
                       </ul>
@@ -527,7 +539,9 @@ const ValidationFinale: React.FC = () => {
                 {/* Orchestrator Steps Workflow */}
                 <div className="space-y-4">
                   <h4 className="font-medium">
-                    Workflow de Clôture — Mode {clotureMode === 'manual' ? 'Manuel' : 'Proph3t IA'}
+                    {t('closureFinal.workflowTitle', {
+                      mode: clotureMode === 'manual' ? t('closureFinal.modeManual') : t('closureFinal.modeProph3t'),
+                    })}
                   </h4>
                   <div className="space-y-3">
                     {orchSteps.map((step, index) => (
@@ -564,7 +578,7 @@ const ValidationFinale: React.FC = () => {
                               )}
                               {step.timestamp && (
                                 <p className="text-xs text-[var(--color-text-secondary)]">
-                                  {new Date(step.timestamp).toLocaleTimeString()}
+                                  {new Date(step.timestamp).toLocaleTimeString(dateLocale)}
                                 </p>
                               )}
                             </div>
@@ -575,10 +589,10 @@ const ValidationFinale: React.FC = () => {
                                 step.status === 'error' ? 'bg-[var(--color-error-lighter)] text-red-800' :
                                 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                               }>
-                                {step.status === 'done' ? 'Terminé' :
-                                 step.status === 'running' ? 'En cours...' :
-                                 step.status === 'error' ? 'Erreur' :
-                                 'En attente'}
+                                {step.status === 'done' ? t('closureFinal.statusDone') :
+                                 step.status === 'running' ? t('closureFinal.statusRunning') :
+                                 step.status === 'error' ? t('closureFinal.statusError') :
+                                 t('closureFinal.statusPending')}
                               </Badge>
                               {/* Manual mode: execute single step */}
                               {clotureMode === 'manual' && step.status === 'pending' && !isSubmitting && (
@@ -587,7 +601,7 @@ const ValidationFinale: React.FC = () => {
                                   className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary-dark)] flex items-center gap-1"
                                 >
                                   <Play className="w-3 h-3" />
-                                  Exécuter
+                                  {t('closureFinal.run')}
                                 </button>
                               )}
                               {/* Retry on error */}
@@ -597,7 +611,7 @@ const ValidationFinale: React.FC = () => {
                                   className="px-3 py-1.5 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 flex items-center gap-1"
                                 >
                                   <RotateCcw className="w-3 h-3" />
-                                  Réessayer
+                                  {t('closureFinal.retry')}
                                 </button>
                               )}
                             </div>
@@ -615,13 +629,13 @@ const ValidationFinale: React.FC = () => {
                 <div className="flex items-center justify-between p-3 bg-[var(--color-background-secondary)] rounded-lg">
                   <div className="flex gap-4 text-sm">
                     <span className="text-[var(--color-success)]">
-                      {orchSteps.filter(s => s.status === 'done').length} terminée(s)
+                      {t('closureFinal.doneCount', { count: String(orchSteps.filter(s => s.status === 'done').length) })}
                     </span>
                     <span className="text-[var(--color-error)]">
-                      {orchSteps.filter(s => s.status === 'error').length} erreur(s)
+                      {t('closureFinal.errorCount', { count: String(orchSteps.filter(s => s.status === 'error').length) })}
                     </span>
                     <span className="text-[var(--color-text-secondary)]">
-                      {orchSteps.filter(s => s.status === 'pending').length} en attente
+                      {t('closureFinal.pendingCount', { count: String(orchSteps.filter(s => s.status === 'pending').length) })}
                     </span>
                   </div>
                   <Progress
@@ -638,17 +652,17 @@ const ValidationFinale: React.FC = () => {
         <TabsContent value="etapes" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Détail des Étapes</CardTitle>
+              <CardTitle>{t('closureFinal.stepsDetail')}</CardTitle>
               <div className="flex gap-2">
                 <select className="px-3 py-2 border rounded-lg text-sm">
-                  <option value="tous">Tous les statuts</option>
+                  <option value="tous">{t('closureFinal.allStatuses')}</option>
                   <option value="en_attente">{t('status.pending')}</option>
                   <option value="en_cours">{t('status.inProgress')}</option>
-                  <option value="complete">Complète</option>
-                  <option value="bloque">Bloquée</option>
+                  <option value="complete">{t('closureFinal.statusComplete')}</option>
+                  <option value="bloque">{t('closureFinal.statusBlocked')}</option>
                 </select>
                 <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] text-sm">
-                  Actualiser
+                  {t('closureFinal.refresh')}
                 </button>
               </div>
             </CardHeader>
@@ -656,7 +670,7 @@ const ValidationFinale: React.FC = () => {
               <div className="space-y-4">
                 {(periodeActive?.etapes ?? []).length === 0 && (
                   <p className="text-sm text-[var(--color-text-secondary)] py-8 text-center">
-                    Aucun exercice / clôture à valider
+                    {t('closureFinal.nothingToValidate')}
                   </p>
                 )}
                 {(periodeActive?.etapes ?? []).map(etape => (
@@ -673,15 +687,15 @@ const ValidationFinale: React.FC = () => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Responsable</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('closureFinal.responsible')}</p>
                         <p className="text-sm font-medium">{etape.responsable}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Échéance</p>
-                        <p className="text-sm">{new Date(etape.dateEcheance).toLocaleDateString()}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('closureFinal.deadline')}</p>
+                        <p className="text-sm">{new Date(etape.dateEcheance).toLocaleDateString(dateLocale)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Progression</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('closureFinal.progress')}</p>
                         <div className="flex items-center gap-2">
                           <Progress value={etape.progression} className="flex-1 h-2" />
                           <span className="text-sm font-medium">{etape.progression}%</span>
@@ -690,7 +704,7 @@ const ValidationFinale: React.FC = () => {
                     </div>
 
                     <div className="mb-4">
-                      <p className="text-xs text-[var(--color-text-secondary)] mb-2">Contrôles ({etape.controles.length})</p>
+                      <p className="text-xs text-[var(--color-text-secondary)] mb-2">{t('closureFinal.controlsCount', { count: String(etape.controles.length) })}</p>
                       <div className="space-y-2">
                         {etape.controles.map(controle => (
                           <div key={controle.id} className="flex items-center justify-between p-2 bg-[var(--color-background-secondary)] rounded">
@@ -712,11 +726,14 @@ const ValidationFinale: React.FC = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex gap-2">
                         <span className="text-xs bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] px-2 py-1 rounded">
-                          {etape.documentsJoints.length}/{etape.documentsRequis.length} documents
+                          {t('closureFinal.documentsRatio', {
+                            attached: String(etape.documentsJoints.length),
+                            required: String(etape.documentsRequis.length),
+                          })}
                         </span>
                         {etape.dependances.length > 0 && (
                           <span className="text-xs bg-[var(--color-background-hover)] text-[var(--color-text-primary)] px-2 py-1 rounded">
-                            {etape.dependances.length} dépendances
+                            {t('closureFinal.dependenciesCount', { count: String(etape.dependances.length) })}
                           </span>
                         )}
                       </div>
@@ -745,7 +762,7 @@ const ValidationFinale: React.FC = () => {
         <TabsContent value="controles" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Matrice des Contrôles</CardTitle>
+              <CardTitle>{t('closureFinal.controlsMatrix')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -755,15 +772,15 @@ const ValidationFinale: React.FC = () => {
                     <div className="grid grid-cols-4 gap-4 text-center">
                       <div className="p-3 bg-[var(--color-success-lightest)] rounded-lg">
                         <p className="text-lg font-bold text-[var(--color-success)]">{allControles.filter(c => c.statut === 'reussi').length}</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Réussis</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.passed')}</p>
                       </div>
                       <div className="p-3 bg-[var(--color-error-lightest)] rounded-lg">
                         <p className="text-lg font-bold text-[var(--color-error)]">{allControles.filter(c => c.statut === 'echec').length}</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Échecs</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.failed')}</p>
                       </div>
                       <div className="p-3 bg-[var(--color-warning-lightest)] rounded-lg">
                         <p className="text-lg font-bold text-[var(--color-warning)]">{allControles.filter(c => c.statut === 'alerte').length}</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Alertes</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.alerts')}</p>
                       </div>
                       <div className="p-3 bg-[var(--color-primary-lightest)] rounded-lg">
                         <p className="text-lg font-bold text-[var(--color-primary)]">{allControles.filter(c => c.statut === 'en_cours' || c.statut === 'non_execute').length}</p>
@@ -789,15 +806,15 @@ const ValidationFinale: React.FC = () => {
                                 {controle.type}
                               </Badge>
                             </div>
-                            <p className="text-sm text-[var(--color-text-primary)] mb-2">Étape: {etape.nom}</p>
+                            <p className="text-sm text-[var(--color-text-primary)] mb-2">{t('closureFinal.stepPrefix', { name: etape.nom })}</p>
                             {controle.resultat && (
                               <p className="text-sm text-[var(--color-text-primary)]">{controle.resultat}</p>
                             )}
                             {controle.valeurAttendue && controle.valeurObtenue && (
                               <div className="mt-2 text-xs">
-                                <span className="text-[var(--color-text-secondary)]">Attendu: </span>
+                                <span className="text-[var(--color-text-secondary)]">{t('closureFinal.expectedLabel')}</span>
                                 <span>{controle.valeurAttendue}</span>
-                                <span className="text-[var(--color-text-secondary)] ml-4">Obtenu: </span>
+                                <span className="text-[var(--color-text-secondary)] ml-4">{t('closureFinal.obtainedLabel')}</span>
                                 <span className={controle.statut === 'echec' ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}>
                                   {controle.valeurObtenue}
                                 </span>
@@ -807,14 +824,14 @@ const ValidationFinale: React.FC = () => {
                           <div className="text-right">
                             {controle.dernierExecution && (
                               <p className="text-xs text-[var(--color-text-secondary)]">
-                                {new Date(controle.dernierExecution).toLocaleDateString()}
+                                {new Date(controle.dernierExecution).toLocaleDateString(dateLocale)}
                               </p>
                             )}
                             <div className="flex gap-2 mt-2">
-                              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Actualiser">
+                              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureFinal.refreshAria')}>
                                 <RefreshCw className="w-4 h-4 text-[var(--color-text-primary)]" />
                               </button>
-                              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Information">
+                              <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureFinal.infoAria')}>
                                 <Info className="w-4 h-4 text-[var(--color-text-primary)]" />
                               </button>
                             </div>
@@ -833,14 +850,14 @@ const ValidationFinale: React.FC = () => {
         <TabsContent value="approbations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Circuit d'Approbation</CardTitle>
+              <CardTitle>{t('closureFinal.approvalCircuit')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg text-center">
                     <p className="text-lg font-bold text-[var(--color-success)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'approuve').length}</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Approuvées</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.approved')}</p>
                   </div>
                   <div className="p-4 bg-orange-50 rounded-lg text-center">
                     <p className="text-lg font-bold text-[var(--color-warning)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'en_attente').length}</p>
@@ -848,12 +865,12 @@ const ValidationFinale: React.FC = () => {
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg text-center">
                     <p className="text-lg font-bold text-[var(--color-error)]">{(periodeActive?.approbations ?? []).filter(a => a.statut === 'refuse').length}</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Refusées</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.refused')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-medium">Approbations requises</h4>
+                  <h4 className="font-medium">{t('closureFinal.requiredApprovals')}</h4>
                   {(periodeActive?.etapes ?? [])
                     .filter(etape => etape.statut === 'complete')
                     .map(etape => {
@@ -863,25 +880,25 @@ const ValidationFinale: React.FC = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <h5 className="font-medium">{etape.nom}</h5>
-                              <p className="text-sm text-[var(--color-text-primary)]">Responsable: {etape.responsable}</p>
+                              <p className="text-sm text-[var(--color-text-primary)]">{t('closureFinal.responsibleLabel', { name: etape.responsable })}</p>
                             </div>
                             <div className="text-right">
                               {approbation ? (
                                 <div>
                                   <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">
-                                    Approuvé
+                                    {t('closureFinal.approvedBadge')}
                                   </Badge>
                                   <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                                    {approbation.utilisateur} - {new Date(approbation.dateApprobation).toLocaleDateString()}
+                                    {approbation.utilisateur} - {new Date(approbation.dateApprobation).toLocaleDateString(dateLocale)}
                                   </p>
                                 </div>
                               ) : (
                                 <div className="flex gap-2">
                                   <button className="px-3 py-1 bg-[var(--color-success)] text-white rounded text-sm hover:bg-[var(--color-success-dark)]">
-                                    Approuver
+                                    {t('closureFinal.approve')}
                                   </button>
                                   <button className="px-3 py-1 bg-[var(--color-error)] text-white rounded text-sm hover:bg-[var(--color-error-dark)]">
-                                    Refuser
+                                    {t('closureFinal.refuse')}
                                   </button>
                                 </div>
                               )}
@@ -901,9 +918,9 @@ const ValidationFinale: React.FC = () => {
                 <div className="border-t pt-6">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h4 className="font-medium">Validation Finale</h4>
+                      <h4 className="font-medium">{t('closureFinal.finalValidation')}</h4>
                       <p className="text-sm text-[var(--color-text-primary)]">
-                        Toutes les étapes doivent être approuvées avant la validation finale
+                        {t('closureFinal.finalValidationHint')}
                       </p>
                     </div>
                     <button
@@ -912,7 +929,7 @@ const ValidationFinale: React.FC = () => {
                       onClick={() => setShowValidationModal(true)}
                     >
                       <Shield className="w-5 h-5" />
-                      Valider Définitivement
+                      {t('closureFinal.validateDefinitively')}
                     </button>
                   </div>
                 </div>
@@ -925,17 +942,17 @@ const ValidationFinale: React.FC = () => {
         <TabsContent value="historique" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Historique des Validations</CardTitle>
+              <CardTitle>{t('closureFinal.historyTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <div className="flex gap-2">
                     <select className="px-3 py-2 border rounded-lg text-sm">
-                      <option value="tous">Toutes les périodes</option>
-                      <option value="mensuelle">Mensuelles</option>
-                      <option value="trimestrielle">Trimestrielles</option>
-                      <option value="annuelle">Annuelles</option>
+                      <option value="tous">{t('closureFinal.allPeriods')}</option>
+                      <option value="mensuelle">{t('closureFinal.monthlyPeriods')}</option>
+                      <option value="trimestrielle">{t('closureFinal.quarterlyPeriods')}</option>
+                      <option value="annuelle">{t('closureFinal.annualPeriods')}</option>
                     </select>
                     <select className="px-3 py-2 border rounded-lg text-sm">
                       {fiscalYears.length === 0 ? (
@@ -949,14 +966,14 @@ const ValidationFinale: React.FC = () => {
                   </div>
                   <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                     <Download className="w-4 h-4" />
-                    Exporter
+                    {t('closureFinal.export')}
                   </button>
                 </div>
 
                 <div className="space-y-3">
                   {historiqueClotures.length === 0 ? (
                     <p className="text-sm text-[var(--color-text-secondary)] py-8 text-center">
-                      Aucune clôture validée
+                      {t('closureFinal.noValidatedClosure')}
                     </p>
                   ) : (
                     historiqueClotures.map((item, index) => (
@@ -966,9 +983,9 @@ const ValidationFinale: React.FC = () => {
                             <Award className="w-5 h-5 text-[var(--color-success)]" />
                           </div>
                           <div>
-                            <p className="font-medium">Période {item.periode}</p>
+                            <p className="font-medium">{t('closureFinal.periodPrefix', { period: item.periode })}</p>
                             <p className="text-sm text-[var(--color-text-primary)]">
-                              Validée le {new Date(item.dateValidation).toLocaleDateString()}
+                              {t('closureFinal.validatedOn', { date: new Date(item.dateValidation).toLocaleDateString(dateLocale) })}
                             </p>
                           </div>
                         </div>
@@ -996,7 +1013,7 @@ const ValidationFinale: React.FC = () => {
                 <div className="bg-[var(--color-success-lighter)] text-[var(--color-success)] p-2 rounded-lg">
                   <Shield className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Validation Finale de Clôture</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('closureFinal.modalTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -1018,20 +1035,20 @@ const ValidationFinale: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <CheckCircle className="w-5 h-5 text-[var(--color-success)] flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-green-900 mb-1">Validation Définitive</h4>
-                      <p className="text-sm text-[var(--color-success-darker)]">Validez définitivement la clôture comptable après vérification de tous les contrôles.</p>
+                      <h4 className="text-sm font-medium text-green-900 mb-1">{t('closureFinal.modalInfoTitle')}</h4>
+                      <p className="text-sm text-[var(--color-success-darker)]">{t('closureFinal.modalInfoText')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Validation Details */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Détails de Validation</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureFinal.validationDetails')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Période ID *</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{t('closureFinal.periodIdLabel')}</label>
                       <Input
-                        placeholder="Ex: per-2024-12"
+                        placeholder={t('closureFinal.periodIdPlaceholder')}
                         value={formData.periode_id}
                         onChange={(e) => handleInputChange('periode_id', e.target.value)}
                         disabled={isSubmitting}
@@ -1041,19 +1058,19 @@ const ValidationFinale: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Niveau de validation *</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{t('closureFinal.levelLabel')}</label>
                       <Select
                         value={formData.niveau}
                         onValueChange={(value) => handleInputChange('niveau', value)}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le niveau" />
+                          <SelectValue placeholder={t('closureFinal.levelPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="comptable">Comptable</SelectItem>
-                          <SelectItem value="chef_comptable">Chef Comptable</SelectItem>
-                          <SelectItem value="directeur_financier">Directeur Financier</SelectItem>
-                          <SelectItem value="cac">Commissaire aux Comptes</SelectItem>
+                          <SelectItem value="comptable">{t('closureFinal.levelAccountant')}</SelectItem>
+                          <SelectItem value="chef_comptable">{t('closureFinal.levelChiefAccountant')}</SelectItem>
+                          <SelectItem value="directeur_financier">{t('closureFinal.levelCfo')}</SelectItem>
+                          <SelectItem value="cac">{t('closureFinal.levelAuditor')}</SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.niveau && (
@@ -1061,9 +1078,9 @@ const ValidationFinale: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Signature électronique</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{t('closureFinal.signatureLabel')}</label>
                       <Input
-                        placeholder="Signature ou code"
+                        placeholder={t('closureFinal.signaturePlaceholder')}
                         value={formData.signature_electronique}
                         onChange={(e) => handleInputChange('signature_electronique', e.target.value)}
                         disabled={isSubmitting}
@@ -1074,7 +1091,7 @@ const ValidationFinale: React.FC = () => {
 
                 {/* Validation Checklist */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Validation Obligatoire *</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureFinal.mandatoryValidation')}</h3>
                   <div className="p-4 border border-[var(--color-border)] rounded-lg">
                     <div className="flex items-center space-x-2">
                       <input
@@ -1086,7 +1103,7 @@ const ValidationFinale: React.FC = () => {
                         disabled={isSubmitting}
                       />
                       <label htmlFor="checklist_complete" className="text-sm text-[var(--color-text-primary)] font-medium">
-                        Je certifie que tous les contrôles ont été effectués et que la clôture est complète
+                        {t('closureFinal.certifyText')}
                       </label>
                     </div>
                     {errors.checklist_complete && (
@@ -1097,7 +1114,7 @@ const ValidationFinale: React.FC = () => {
 
                 {/* Advanced Options */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Options Avancées</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureFinal.advancedOptions')}</h3>
                   <div className="p-4 border border-[var(--color-error-light)] rounded-lg bg-[var(--color-error-lightest)]">
                     <div className="flex items-center space-x-2">
                       <input
@@ -1109,22 +1126,22 @@ const ValidationFinale: React.FC = () => {
                         disabled={isSubmitting}
                       />
                       <label htmlFor="verrouillage_definitif" className="text-sm text-[var(--color-error-dark)] font-medium">
-                        Verrouillage définitif (irréversible)
+                        {t('closureFinal.permanentLock')}
                       </label>
                     </div>
                     <p className="text-xs text-[var(--color-error)] mt-1">
-                      Attention: Cette option empêche toute modification ultérieure de la période.
+                      {t('closureFinal.permanentLockWarning')}
                     </p>
                   </div>
                 </div>
 
                 {/* Comments */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Commentaires</label>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">{t('closureFinal.comments')}</label>
                   <textarea
                     className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                     rows={4}
-                    placeholder="Commentaires et observations sur la validation finale..."
+                    placeholder={t('closureFinal.commentsPlaceholder')}
                     value={formData.commentaire}
                     onChange={(e) => handleInputChange('commentaire', e.target.value)}
                     disabled={isSubmitting}
@@ -1146,7 +1163,7 @@ const ValidationFinale: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('closureFinal.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -1156,12 +1173,12 @@ const ValidationFinale: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Traitement...</span>
+                    <span>{t('closureFinal.processing')}</span>
                   </>
                 ) : (
                   <>
                     <Shield className="w-4 h-4" />
-                    <span>Valider Définitivement</span>
+                    <span>{t('closureFinal.validateDefinitively')}</span>
                   </>
                 )}
               </button>
