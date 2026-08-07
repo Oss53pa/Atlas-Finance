@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import type { DBAuditLog } from '../../lib/db';
+import CreancesDettesRatiosBlock from '../../components/dashboard/CreancesDettesRatiosBlock';
 
 const AdminDashboard: React.FC = () => {
   const { adapter } = useData();
@@ -39,21 +40,23 @@ const AdminDashboard: React.FC = () => {
   const [liveMetrics, setLiveMetrics] = useState<{ entries: number; accounts: number; thirdParties: number; assets: number } | null>(null);
   const [lastBackup, setLastBackup] = useState<string | null>(null);
   const [liveAuditLogs, setLiveAuditLogs] = useState<Array<{ time: string; event: string; user: string; ip: string; type: string }>>([]);
+  const [entries, setEntries] = useState<any[]>([]); // écritures pour le bloc « Créances, dettes & ratios »
 
   // Load real data from IndexedDB on mount
   const loadLiveData = useCallback(async () => {
     try {
-      const [entriesCount, accountsCount, tpCount, assetsCount, allLogs] = await Promise.all([
-        adapter.count('journalEntries'),
+      const [allEntries, accountsCount, tpCount, assetsCount, allLogs] = await Promise.all([
+        adapter.getAll<any>('journalEntries'),
         adapter.count('accounts'),
         adapter.count('thirdParties'),
         adapter.count('assets'),
         adapter.getAll<DBAuditLog>('auditLogs'),
       ]);
+      setEntries(allEntries);
       const logs = allLogs
         .sort((a, b) => (b.timestamp > a.timestamp ? 1 : -1))
         .slice(0, 10);
-      setLiveMetrics({ entries: entriesCount, accounts: accountsCount, thirdParties: tpCount, assets: assetsCount });
+      setLiveMetrics({ entries: allEntries.length, accounts: accountsCount, thirdParties: tpCount, assets: assetsCount });
       setLiveAuditLogs(logs.map(l => ({
         time: new Date(l.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
         event: l.action,
@@ -295,6 +298,11 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
+            </div>
+
+            {/* Bloc partagé « Créances, dettes & ratios » (composant réutilisable) */}
+            <div className="mt-8">
+              <CreancesDettesRatiosBlock entries={entries} />
             </div>
           </>
         )}
