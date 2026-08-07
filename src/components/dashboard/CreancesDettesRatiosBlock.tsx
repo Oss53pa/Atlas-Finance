@@ -26,6 +26,7 @@ const DSO_THRESHOLD_DEFAULT = 60; const DSO_THRESHOLD_KEY = 'manager-dso-thresho
 const DPO_THRESHOLD_DEFAULT = 60; const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
 const TRESO_THRESHOLD_DEFAULT = 0; const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
 const BFR_DAYS_THRESHOLD_DEFAULT = 90; const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
+const MARGE_BRUTE_THRESHOLD_DEFAULT = 20; const MARGE_BRUTE_THRESHOLD_KEY = 'manager-marge-brute-threshold'; // % — alerte si en dessous
 
 const readNum = (key: string, def: number, positiveOnly = true): number => {
   try {
@@ -82,6 +83,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   const [dpoThreshold, setDpoThreshold] = useState<number>(() => readNum(DPO_THRESHOLD_KEY, DPO_THRESHOLD_DEFAULT));
   const [tresoThreshold, setTresoThreshold] = useState<number>(() => readNum(TRESO_THRESHOLD_KEY, TRESO_THRESHOLD_DEFAULT, false));
   const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => readNum(BFR_DAYS_THRESHOLD_KEY, BFR_DAYS_THRESHOLD_DEFAULT));
+  const [margeThreshold, setMargeThreshold] = useState<number>(() => readNum(MARGE_BRUTE_THRESHOLD_KEY, MARGE_BRUTE_THRESHOLD_DEFAULT));
 
   const persist = (key: string, setter: (n: number) => void, v: number, min: number, max: number) => {
     const val = Math.max(min, Math.min(max, Math.round(v || 0)));
@@ -94,6 +96,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   if (data.dpo > dpoThreshold) alerts.push(`DPO élevé : ${data.dpo} j (seuil ${dpoThreshold} j)`);
   if (data.revenue > 0 && data.bfrDays > bfrDaysThreshold) alerts.push(`BFR en forte hausse : ${data.bfrDays} j de CA (${fmt(data.bfr)}), seuil ${bfrDaysThreshold} j`);
   if (data.treasury < tresoThreshold) alerts.push(`Trésorerie sous le seuil : ${fmt(data.treasury)} (seuil ${fmt(tresoThreshold)})`);
+  if (data.revenue > 0 && data.margeBrute < margeThreshold) alerts.push(`Marge brute faible : ${data.margeBrute.toFixed(1)} % (seuil ${margeThreshold} %)`);
 
   const cards = [
     { label: 'Créances clients', value: fmt(data.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
@@ -101,7 +104,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
     { label: 'BFR', value: fmt(data.bfr), sub: `${data.bfrDays} j de CA · seuil ${bfrDaysThreshold} j`, icon: Scale, tone: (data.revenue > 0 && data.bfrDays > bfrDaysThreshold) ? 'text-[var(--color-error)]' : (data.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]') },
     { label: 'DSO', value: `${data.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: data.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
     { label: 'DPO', value: `${data.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: data.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
-    { label: 'Marge brute', value: `${data.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
+    { label: 'Marge brute', value: `${data.margeBrute.toFixed(1)} %`, sub: `(CA − achats) / CA · seuil ${margeThreshold} %`, icon: Percent, tone: (data.revenue > 0 && data.margeBrute < margeThreshold) ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
     { label: 'Créances / Dettes', value: data.ratioCD != null ? data.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: data.ratioCD != null && data.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
   ];
 
@@ -127,6 +130,10 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
           <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             Seuil BFR
             <input type="number" min={1} max={1000} value={bfrDaysThreshold} onChange={(e) => persist(BFR_DAYS_THRESHOLD_KEY, setBfrDaysThreshold, Number(e.target.value), 1, 1000)} className={`w-16 ${inputCls}`} aria-label="Seuil BFR en jours de CA" /> j de CA
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            Seuil marge brute
+            <input type="number" min={0} max={100} value={margeThreshold} onChange={(e) => persist(MARGE_BRUTE_THRESHOLD_KEY, setMargeThreshold, Number(e.target.value), 0, 100)} className={`w-14 ${inputCls}`} aria-label="Seuil marge brute en pourcent" /> %
           </label>
         </div>
       </div>
