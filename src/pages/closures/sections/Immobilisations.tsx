@@ -398,7 +398,7 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Valeur Brute Totale</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.grossValue')}</p>
                 <p className="text-lg font-bold">{(kpis.valeurBruteTotale / 1000000).toFixed(1)}M FCFA</p>
                 <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.nombreImmobilisations} immobilisations</p>
               </div>
@@ -411,9 +411,9 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Valeur Nette</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.netValue')}</p>
                 <p className="text-lg font-bold">{(kpis.valeurNetteTotale / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-success)] mt-1">Après amortissements</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">{t('fixedAssetsClosure.afterDepreciation')}</p>
               </div>
               <Calculator className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -424,7 +424,7 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Taux Amortissement</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.depreciationRate')}</p>
                 <p className="text-lg font-bold">{kpis.tauxAmortissementMoyen.toFixed(1)}%</p>
                 <Progress value={kpis.tauxAmortissementMoyen} className="mt-2" />
               </div>
@@ -437,9 +437,9 @@ const Immobilisations: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Dotations Annuelles</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.annualCharges')}</p>
                 <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-text-primary)] mt-1">Dotation annuelle théorique</p>
+                <p className="text-xs text-[var(--color-text-primary)] mt-1">{t('fixedAssetsClosure.theoreticalAnnual')}</p>
               </div>
               <Calendar className="w-8 h-8 text-primary-500" />
             </div>
@@ -451,12 +451,12 @@ const Immobilisations: React.FC = () => {
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="vue-ensemble">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="registre">Registre</TabsTrigger>
-          <TabsTrigger value="amortissements">Amortissements</TabsTrigger>
-          <TabsTrigger value="mouvements">Mouvements</TabsTrigger>
-          <TabsTrigger value="depreciation">Dépréciation</TabsTrigger>
-          <TabsTrigger value="conformite">Conformité</TabsTrigger>
+          <TabsTrigger value="vue-ensemble">{t('fixedAssetsClosure.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="registre">{t('fixedAssetsClosure.tabRegister')}</TabsTrigger>
+          <TabsTrigger value="amortissements">{t('fixedAssetsClosure.tabDepreciation')}</TabsTrigger>
+          <TabsTrigger value="mouvements">{t('fixedAssetsClosure.tabMovements')}</TabsTrigger>
+          <TabsTrigger value="depreciation">{t('fixedAssetsClosure.tabImpairment')}</TabsTrigger>
+          <TabsTrigger value="conformite">{t('fixedAssetsClosure.tabCompliance')}</TabsTrigger>
         </TabsList>
 
         {/* Vue d'ensemble */}
@@ -464,7 +464,7 @@ const Immobilisations: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Répartition par Catégorie</CardTitle>
+                <CardTitle>{t('fixedAssetsClosure.byCategory')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -472,8 +472,8 @@ const Immobilisations: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <Building className="w-5 h-5 text-[var(--color-primary)]" />
                       <div>
-                        <p className="font-medium">Immobilisations Corporelles</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.corporelle.count} élément(s)</p>
+                        <p className="font-medium">{t('fixedAssetsClosure.tangible')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.itemsCount', { count: String(repartitionCategorie.corporelle.count) })}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -485,8 +485,8 @@ const Immobilisations: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <HardDrive className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
-                        <p className="font-medium">Immobilisations Incorporelles</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.incorporelle.count} élément(s)</p>
+                        <p className="font-medium">{t('fixedAssetsClosure.intangible')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.itemsCount', { count: String(repartitionCategorie.incorporelle.count) })}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -498,8 +498,8 @@ const Immobilisations: React.FC = () => {
                     <div className="flex items-center gap-3">
                       <PiggyBank className="w-5 h-5 text-[var(--color-warning)]" />
                       <div>
-                        <p className="font-medium">Immobilisations Financières</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">{repartitionCategorie.financiere.count} élément(s)</p>
+                        <p className="font-medium">{t('fixedAssetsClosure.financial')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.itemsCount', { count: String(repartitionCategorie.financiere.count) })}</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -513,23 +513,23 @@ const Immobilisations: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>État des Amortissements</CardTitle>
+                <CardTitle>{t('fixedAssetsClosure.depreciationState')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--color-text-primary)]">Progression globale</span>
+                    <span className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.globalProgress')}</span>
                     <span className="font-medium">{kpis.tauxAmortissementMoyen.toFixed(1)}%</span>
                   </div>
                   <Progress value={kpis.tauxAmortissementMoyen} className="h-3" />
 
                   <div className="grid grid-cols-2 gap-4 mt-4">
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Amortissements Cumulés</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.accumulated')}</p>
                       <p className="text-lg font-bold">{(kpis.amortissementsCumules / 1000000).toFixed(1)}M</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-background-secondary)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Dotation annuelle</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.annualCharge')}</p>
                       <p className="text-lg font-bold">{(kpis.dotationsAnnuelles / 1000000).toFixed(1)}M</p>
                     </div>
                   </div>
@@ -540,12 +540,12 @@ const Immobilisations: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Immobilisations par Durée d'Amortissement</CardTitle>
+              <CardTitle>{t('fixedAssetsClosure.byDuration')}</CardTitle>
             </CardHeader>
             <CardContent>
               {repartitionDuree.length === 0 ? (
                 <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
-                  Aucune donnée — module non alimenté par l'import
+                  {t('fixedAssetsClosure.noDataImport')}
                 </p>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -571,7 +571,7 @@ const Immobilisations: React.FC = () => {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
-                  placeholder="Rechercher une immobilisation..."
+                  placeholder={t('fixedAssetsClosure.searchPlaceholder')}
                   className="pl-10 pr-4 py-2 border rounded-lg"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -582,31 +582,31 @@ const Immobilisations: React.FC = () => {
                 value={filterCategorie}
                 onChange={(e) => setFilterCategorie(e.target.value)}
               >
-                <option value="toutes">Toutes catégories</option>
-                <option value="corporelle">Corporelles</option>
-                <option value="incorporelle">Incorporelles</option>
-                <option value="financiere">Financières</option>
+                <option value="toutes">{t('fixedAssetsClosure.allCategories')}</option>
+                <option value="corporelle">{t('fixedAssetsClosure.catTangible')}</option>
+                <option value="incorporelle">{t('fixedAssetsClosure.catIntangible')}</option>
+                <option value="financiere">{t('fixedAssetsClosure.catFinancial')}</option>
               </select>
               <select
                 className="px-4 py-2 border rounded-lg"
                 value={filterStatut}
                 onChange={(e) => setFilterStatut(e.target.value)}
               >
-                <option value="tous">Tous statuts</option>
-                <option value="actif">Actif</option>
-                <option value="totalement_amorti">Totalement amorti</option>
-                <option value="cede">Cédé</option>
-                <option value="reforme">Réformé</option>
+                <option value="tous">{t('fixedAssetsClosure.allStatuses')}</option>
+                <option value="actif">{t('fixedAssetsClosure.statusActive')}</option>
+                <option value="totalement_amorti">{t('fixedAssetsClosure.statusFullyDepreciated')}</option>
+                <option value="cede">{t('fixedAssetsClosure.statusDisposed')}</option>
+                <option value="reforme">{t('fixedAssetsClosure.statusRetired')}</option>
               </select>
             </div>
             <div className="flex gap-2">
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Plus className="w-4 h-4" />
-                Nouvelle Immobilisation
+                {t('fixedAssetsClosure.newAsset')}
               </button>
               <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Exporter Registre
+                {t('fixedAssetsClosure.exportRegister')}
               </button>
             </div>
           </div>
@@ -616,15 +616,15 @@ const Immobilisations: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Immobilisation</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Catégorie</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Acquisition</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur Brute</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Amort. Cumulés</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Valeur Nette</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">État</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Statut</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAsset')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colCategory')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAcquisition')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colGrossValue')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAccumulated')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.netValue')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colCondition')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colStatus')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -670,23 +670,23 @@ const Immobilisations: React.FC = () => {
                         <div className="flex justify-center gap-2">
                           <button
                             className="p-1 hover:bg-[var(--color-background-hover)] rounded"
-                            aria-label="Voir les détails"
+                            aria-label={t('fixedAssetsClosure.viewDetails')}
                             onClick={() => handleViewDetail(immo)}
-                            title="Voir les détails"
+                            title={t('fixedAssetsClosure.viewDetails')}
                           >
                             <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                           </button>
                           <button
                             className="p-1 hover:bg-[var(--color-background-hover)] rounded"
                             onClick={() => handleEditImmo(immo)}
-                            title="Modifier"
+                            title={t('fixedAssetsClosure.edit')}
                           >
                             <Edit className="w-4 h-4 text-[var(--color-primary)]" />
                           </button>
                           <button
                             className="p-1 hover:bg-[var(--color-background-hover)] rounded"
                             onClick={() => handleCalculateAmortissement(immo)}
-                            title="Calculer amortissement"
+                            title={t('fixedAssetsClosure.computeDepreciation')}
                           >
                             <Calculator className="w-4 h-4 text-[var(--color-success)]" />
                           </button>
@@ -707,7 +707,7 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Méthode Linéaire</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.methodStraightLine')}</p>
                     <p className="text-lg font-bold">{repartitionMethode.lineaire.nb}</p>
                     <p className="text-xs text-[var(--color-success)] mt-1">{repartitionMethode.lineaire.pct}% des immobilisations</p>
                   </div>
@@ -719,7 +719,7 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Méthode Dégressive</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.methodDeclining')}</p>
                     <p className="text-lg font-bold">{repartitionMethode.degressive.nb}</p>
                     <p className="text-xs text-[var(--color-primary)] mt-1">{repartitionMethode.degressive.pct}% des immobilisations</p>
                   </div>
@@ -731,7 +731,7 @@ const Immobilisations: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[var(--color-text-primary)]">Unité d'Œuvre</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.methodUnits')}</p>
                     <p className="text-lg font-bold">{repartitionMethode.uniteOeuvre.nb}</p>
                     <p className="text-xs text-[var(--color-text-primary)] mt-1">{repartitionMethode.uniteOeuvre.pct}% des immobilisations</p>
                   </div>
@@ -751,26 +751,26 @@ const Immobilisations: React.FC = () => {
               <CardContent>
                 {(() => {
                   const logiciel = immobilisations[0];
-                  if (!logiciel) return <p className="text-sm text-[var(--color-text-secondary)] py-4">Aucune immobilisation disponible</p>;
+                  if (!logiciel) return <p className="text-sm text-[var(--color-text-secondary)] py-4">{t('fixedAssetsClosure.noAssetAvailable')}</p>;
 
                   const plan = genererPlanAmortissement(logiciel);
                   return (
                     <div className="space-y-4">
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p className="text-[var(--color-text-primary)]">Valeur d'acquisition</p>
+                          <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.acquisitionValue')}</p>
                           <p className="font-bold">{(logiciel.valeurAcquisition / 1000000).toFixed(1)}M FCFA</p>
                         </div>
                         <div>
-                          <p className="text-[var(--color-text-primary)]">Durée d'amortissement</p>
+                          <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.depreciationPeriod')}</p>
                           <p className="font-bold">{logiciel.dureeAmortissement} ans</p>
                         </div>
                         <div>
-                          <p className="text-[var(--color-text-primary)]">Méthode</p>
+                          <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.method')}</p>
                           <p className="font-bold capitalize">{logiciel.methodeAmortissement}</p>
                         </div>
                         <div>
-                          <p className="text-[var(--color-text-primary)]">Taux annuel</p>
+                          <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.annualRate')}</p>
                           <p className="font-bold">{logiciel.tauxAmortissement}%</p>
                         </div>
                       </div>
@@ -779,9 +779,9 @@ const Immobilisations: React.FC = () => {
                         <table className="w-full text-sm">
                           <thead className="bg-[var(--color-background-secondary)]">
                             <tr>
-                              <th className="px-2 py-2 text-left">Exercice</th>
-                              <th className="px-2 py-2 text-right">Dotation</th>
-                              <th className="px-2 py-2 text-right">Cumul</th>
+                              <th className="px-2 py-2 text-left">{t('fixedAssetsClosure.colFiscalYear')}</th>
+                              <th className="px-2 py-2 text-right">{t('fixedAssetsClosure.colCharge')}</th>
+                              <th className="px-2 py-2 text-right">{t('fixedAssetsClosure.colCumulative')}</th>
                               <th className="px-2 py-2 text-right">VN</th>
                             </tr>
                           </thead>
@@ -805,11 +805,11 @@ const Immobilisations: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Dotations par Exercice</CardTitle>
+                <CardTitle>{t('fixedAssetsClosure.chargesByYear')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
-                  Aucune donnée — l'historique des dotations par exercice n'est pas alimenté par l'import
+                  {t('fixedAssetsClosure.noChargeHistory')}
                 </p>
               </CardContent>
             </Card>
@@ -818,8 +818,8 @@ const Immobilisations: React.FC = () => {
           <Alert className="border-l-4 border-l-blue-500">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              <strong>Conformité SYSCOHADA:</strong> Les plans d'amortissement respectent les durées minimales et maximales
-              définies par le référentiel comptable. Tous les calculs sont conformes.
+              <strong>{t('fixedAssetsClosure.complianceLabel')}</strong>{' '}
+              {t('fixedAssetsClosure.complianceText')}
             </AlertDescription>
           </Alert>
         </TabsContent>
@@ -835,7 +835,7 @@ const Immobilisations: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Acquisitions</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.acquisitions')}</p>
                         <p className="text-lg font-bold text-[var(--color-success)]">{countByType('acquisition')}</p>
                       </div>
                       <ArrowUpRight className="w-6 h-6 text-[var(--color-success)]" />
@@ -846,7 +846,7 @@ const Immobilisations: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Cessions</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.disposals')}</p>
                         <p className="text-lg font-bold text-[var(--color-error)]">{countByType('cession')}</p>
                       </div>
                       <ArrowDownRight className="w-6 h-6 text-[var(--color-error)]" />
@@ -857,7 +857,7 @@ const Immobilisations: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Dotations</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.charges')}</p>
                         <p className="text-lg font-bold text-[var(--color-primary)]">{countByType('amortissement')}</p>
                       </div>
                       <TrendingDown className="w-6 h-6 text-[var(--color-primary)]" />
@@ -868,7 +868,7 @@ const Immobilisations: React.FC = () => {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Réévaluations</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.revaluations')}</p>
                         <p className="text-lg font-bold text-primary-600">{countByType('reevaluation')}</p>
                       </div>
                       <TrendingUp className="w-6 h-6 text-primary-500" />
@@ -881,26 +881,26 @@ const Immobilisations: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Historique des Mouvements</CardTitle>
+              <CardTitle>{t('fixedAssetsClosure.movementHistory')}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <table className="w-full">
                 <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('common.date')}</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Type</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Immobilisation</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">Montant</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Référence</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">Impact Comptable</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colType')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAsset')}</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAmount')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colReference')}</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colAccountingImpact')}</th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {mouvementsImmo.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-4 py-8 text-center text-sm text-[var(--color-text-secondary)]">
-                        Aucune donnée — module non alimenté par l'import
+                        {t('fixedAssetsClosure.noDataImport')}
                       </td>
                     </tr>
                   )}
@@ -927,12 +927,12 @@ const Immobilisations: React.FC = () => {
                       <td className="px-4 py-3">{mouvement.reference}</td>
                       <td className="px-4 py-3">
                         <div className="text-xs">
-                          <p>Débit: {mouvement.impactComptable.compteDebit}</p>
-                          <p>Crédit: {mouvement.impactComptable.compteCredit}</p>
+                          <p>{t('fixedAssetsClosure.debitLabel', { account: mouvement.impactComptable.compteDebit })}</p>
+                          <p>{t('fixedAssetsClosure.creditLabel', { account: mouvement.impactComptable.compteCredit })}</p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('fixedAssetsClosure.viewDetails')}>
                           <Eye className="w-4 h-4 text-[var(--color-text-primary)]" />
                         </button>
                       </td>
@@ -948,14 +948,14 @@ const Immobilisations: React.FC = () => {
         <TabsContent value="depreciation" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tests de Dépréciation SYSCOHADA</CardTitle>
+              <CardTitle>{t('fixedAssetsClosure.impairmentTests')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <Alert className="border-l-4 border-l-blue-500">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Tests de dépréciation obligatoires selon SYSCOHADA pour les immobilisations présentant des indices de perte de valeur.
+                    {t('fixedAssetsClosure.impairmentIntro')}
                   </AlertDescription>
                 </Alert>
 
@@ -963,43 +963,43 @@ const Immobilisations: React.FC = () => {
                   <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <CheckCircle className="w-5 h-5 text-[var(--color-success)]" />
-                      <span className="text-sm text-[var(--color-text-secondary)]">Conformes</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.compliant')}</span>
                     </div>
-                    <p className="font-medium">Aucune Dépréciation</p>
+                    <p className="font-medium">{t('fixedAssetsClosure.noImpairment')}</p>
                     <p className="text-lg font-bold text-[var(--color-success)]">
                       {testsDepreciation.filter(t => t.resultatTest === 'aucune_depreciation').length}
                     </p>
-                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations testées</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.assetsTested')}</p>
                   </div>
                   <div className="p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <AlertTriangle className="w-5 h-5 text-[var(--color-warning)]" />
-                      <span className="text-sm text-[var(--color-text-secondary)]">À surveiller</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.toWatch')}</span>
                     </div>
-                    <p className="font-medium">Reprise Possible</p>
+                    <p className="font-medium">{t('fixedAssetsClosure.reversalPossible')}</p>
                     <p className="text-lg font-bold text-[var(--color-warning)]">
                       {testsDepreciation.filter(t => t.resultatTest === 'reprise_possible').length}
                     </p>
-                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.assetsWord')}</p>
                   </div>
                   <div className="p-4 bg-[var(--color-error-lightest)] rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <XCircle className="w-5 h-5 text-[var(--color-error)]" />
-                      <span className="text-sm text-[var(--color-text-secondary)]">Dépréciées</span>
+                      <span className="text-sm text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.impaired')}</span>
                     </div>
-                    <p className="font-medium">Dépréciation Requise</p>
+                    <p className="font-medium">{t('fixedAssetsClosure.impairmentRequired')}</p>
                     <p className="text-lg font-bold text-[var(--color-error)]">
                       {testsDepreciation.filter(t => t.resultatTest === 'depreciation_requise').length}
                     </p>
-                    <p className="text-sm text-[var(--color-text-primary)]">immobilisations</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.assetsWord')}</p>
                   </div>
                 </div>
 
                 <div className="mt-6">
-                  <h4 className="font-medium mb-3">Résultats des Tests</h4>
+                  <h4 className="font-medium mb-3">{t('fixedAssetsClosure.testResults')}</h4>
                   {testsDepreciation.length === 0 && (
                     <p className="text-sm text-[var(--color-text-secondary)] text-center py-6">
-                      Aucune donnée — aucun test de dépréciation n'est alimenté par l'import
+                      {t('fixedAssetsClosure.noTestData')}
                     </p>
                   )}
                   <div className="space-y-3">
@@ -1017,27 +1017,27 @@ const Immobilisations: React.FC = () => {
                               test.resultatTest === 'depreciation_requise' ? 'bg-[var(--color-error-lighter)] text-red-800' :
                               'bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]'
                             }>
-                              {test.resultatTest === 'aucune_depreciation' ? 'Aucune dépréciation' :
-                               test.resultatTest === 'depreciation_requise' ? 'Dépréciation requise' :
+                              {test.resultatTest === 'aucune_depreciation' ? t('fixedAssetsClosure.resultNoImpairment') :
+                               test.resultatTest === 'depreciation_requise' ? t('fixedAssetsClosure.resultImpairmentRequired') :
                                'Reprise possible'}
                             </Badge>
                           </div>
 
                           <div className="grid grid-cols-4 gap-4 text-sm">
                             <div>
-                              <p className="text-[var(--color-text-primary)]">Valeur comptable</p>
+                              <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.bookValue')}</p>
                               <p className="font-bold">{(test.valeurComptable / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-[var(--color-text-primary)]">Valeur recouvrable</p>
+                              <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.recoverableValue')}</p>
                               <p className="font-bold">{(test.valeurRecouvrable / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-[var(--color-text-primary)]">Juste valeur</p>
+                              <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.fairValue')}</p>
                               <p className="font-bold">{(test.justeValeur / 1000000).toFixed(1)}M</p>
                             </div>
                             <div>
-                              <p className="text-[var(--color-text-primary)]">Prochain test</p>
+                              <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.nextTest')}</p>
                               <p className="font-bold">{new Date(test.prochainTest).toLocaleDateString()}</p>
                             </div>
                           </div>
@@ -1059,51 +1059,51 @@ const Immobilisations: React.FC = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-[var(--color-success)]" />
-                Contrôles de Conformité SYSCOHADA
+                {t('fixedAssetsClosure.complianceChecks')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium mb-3">Règles d'Amortissement</h4>
+                    <h4 className="font-medium mb-3">{t('fixedAssetsClosure.depreciationRules')}</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Durées d'amortissement conformes</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.rule1')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Méthodes autorisées utilisées</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.rule2')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Calculs mathématiquement corrects</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.rule3')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Cohérence des taux appliqués</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.rule4')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-medium mb-3">Documentation et Justification</h4>
+                    <h4 className="font-medium mb-3">{t('fixedAssetsClosure.documentation')}</h4>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Pièces justificatives archivées</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.doc1')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Plans d'amortissement documentés</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.doc2')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-warning-lightest)] rounded">
-                        <span className="text-sm">Tests de dépréciation à jour</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.doc3')}</span>
                         <AlertTriangle className="w-4 h-4 text-[var(--color-warning)]" />
                       </div>
                       <div className="flex items-center justify-between p-2 bg-[var(--color-success-lightest)] rounded">
-                        <span className="text-sm">Registre des immobilisations tenu</span>
+                        <span className="text-sm">{t('fixedAssetsClosure.doc4')}</span>
                         <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                       </div>
                     </div>
@@ -1113,20 +1113,20 @@ const Immobilisations: React.FC = () => {
                 <div className="mt-6 p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                   <h4 className="font-medium mb-3 flex items-center gap-2">
                     <Brain className="w-4 h-4 text-[var(--color-primary)]" />
-                    Recommandations d'Amélioration
+                    {t('fixedAssetsClosure.improvementRecos')}
                   </h4>
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
-                      <span>Planifier les tests de dépréciation annuels pour toutes les immobilisations de plus de 5 ans</span>
+                      <span>{t('fixedAssetsClosure.reco1')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
-                      <span>Mettre en place une procédure automatisée de calcul des dotations aux amortissements</span>
+                      <span>{t('fixedAssetsClosure.reco2')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <div className="w-2 h-2 bg-[var(--color-primary)] rounded-full mt-2" />
-                      <span>Réviser périodiquement les durées d'amortissement en fonction de l'évolution technologique</span>
+                      <span>{t('fixedAssetsClosure.reco3')}</span>
                     </li>
                   </ul>
                 </div>
@@ -1134,15 +1134,15 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
                     <p className="text-lg font-bold text-[var(--color-success)]">—</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Taux de Conformité Global</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.globalComplianceRate')}</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
                     <p className="text-lg font-bold text-[var(--color-primary)]">—</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Non-conformités Critiques</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.criticalNonCompliance')}</p>
                   </div>
                   <div className="text-center p-4 bg-[var(--color-background-secondary)] rounded">
                     <p className="text-lg font-bold text-[var(--color-warning)]">—</p>
-                    <p className="text-sm text-[var(--color-text-primary)]">Points d'Amélioration</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.improvementPoints')}</p>
                   </div>
                 </div>
               </div>
@@ -1175,66 +1175,66 @@ const Immobilisations: React.FC = () => {
               {/* Informations Générales */}
               <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 border-b pb-2">Identification</h3>
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">{t('fixedAssetsClosure.identification')}</h3>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Catégorie</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.colCategory')}</p>
                     <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                       {selectedImmobilisation.categorie}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Sous-catégorie</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.subCategory')}</p>
                     <p className="font-semibold">{selectedImmobilisation.sousCategorie}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Localisation</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.location')}</p>
                     <p>{selectedImmobilisation.localisation}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Responsable</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.owner')}</p>
                     <p>{selectedImmobilisation.responsable}</p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 border-b pb-2">Acquisition</h3>
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">{t('fixedAssetsClosure.colAcquisition')}</h3>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Date d'Acquisition</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.acquisitionDate')}</p>
                     <p className="font-semibold">{new Date(selectedImmobilisation.dateAcquisition).toLocaleDateString('fr-FR')}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Date de Mise en Service</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.inServiceDate')}</p>
                     <p>{new Date(selectedImmobilisation.dateMiseEnService).toLocaleDateString('fr-FR')}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Fournisseur</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.supplier')}</p>
                     <p>{selectedImmobilisation.fournisseur}</p>
                   </div>
                   {selectedImmobilisation.numeroSerie && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">N° Série</p>
+                      <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.serialNumber')}</p>
                       <p className="font-mono text-sm">{selectedImmobilisation.numeroSerie}</p>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900 border-b pb-2">État</h3>
+                  <h3 className="font-semibold text-gray-900 border-b pb-2">{t('fixedAssetsClosure.colCondition')}</h3>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">État Physique</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.physicalCondition')}</p>
                     <Badge className={getEtatPhysiqueBadge(selectedImmobilisation.etatPhysique)}>
                       {selectedImmobilisation.etatPhysique}
                     </Badge>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Statut Comptable</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.accountingStatus')}</p>
                     <Badge className={getStatutBadge(selectedImmobilisation.statutComptable)}>
                       {selectedImmobilisation.statutComptable}
                     </Badge>
                   </div>
                   {selectedImmobilisation.garantieJusquau && (
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Garantie jusqu'au</p>
+                      <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.warrantyUntil')}</p>
                       <p>{new Date(selectedImmobilisation.garantieJusquau).toLocaleDateString('fr-FR')}</p>
                     </div>
                   )}
@@ -1243,28 +1243,28 @@ const Immobilisations: React.FC = () => {
 
               {/* Valeurs Financières */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-4">Valeurs Financières</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('fixedAssetsClosure.financialValues')}</h3>
                 <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-sm font-medium text-gray-500">Valeur d'Acquisition</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.acquisitionValueCap')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {(selectedImmobilisation.valeurAcquisition / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-sm font-medium text-gray-500">Valeur Brute</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.colGrossValue')}</p>
                     <p className="text-lg font-bold">
                       {(selectedImmobilisation.valeurBrute / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-sm font-medium text-gray-500">Amortissements Cumulés</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.accumulated')}</p>
                     <p className="text-lg font-bold text-[var(--color-error)]">
                       -{(selectedImmobilisation.amortissementsCumules / 1000000).toFixed(1)}M FCFA
                     </p>
                   </div>
                   <div className="bg-white rounded-lg p-3 border">
-                    <p className="text-sm font-medium text-gray-500">Valeur Nette Comptable</p>
+                    <p className="text-sm font-medium text-gray-500">{t('fixedAssetsClosure.netBookValue')}</p>
                     <p className="text-lg font-bold text-[var(--color-success)]">
                       {(selectedImmobilisation.valeurNette / 1000000).toFixed(1)}M FCFA
                     </p>
@@ -1274,27 +1274,27 @@ const Immobilisations: React.FC = () => {
 
               {/* Amortissement */}
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold text-gray-900 mb-4">Paramètres d'Amortissement</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">{t('fixedAssetsClosure.depreciationParams')}</h3>
                 <div className="grid grid-cols-4 gap-4 text-sm">
                   <div>
-                    <p className="text-gray-500">Méthode</p>
+                    <p className="text-gray-500">{t('fixedAssetsClosure.method')}</p>
                     <p className="font-semibold capitalize">{selectedImmobilisation.methodeAmortissement}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Durée</p>
+                    <p className="text-gray-500">{t('fixedAssetsClosure.duration')}</p>
                     <p className="font-semibold">{selectedImmobilisation.dureeAmortissement} ans</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Taux Annuel</p>
+                    <p className="text-gray-500">{t('fixedAssetsClosure.annualRateCap')}</p>
                     <p className="font-semibold">{selectedImmobilisation.tauxAmortissement}%</p>
                   </div>
                   <div>
-                    <p className="text-gray-500">Dotation Annuelle</p>
+                    <p className="text-gray-500">{t('fixedAssetsClosure.annualChargeCap')}</p>
                     <p className="font-semibold">{(selectedImmobilisation.amortissementAnnuel / 1000000).toFixed(2)}M FCFA</p>
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="text-sm text-gray-500 mb-2">Progression de l'amortissement</p>
+                  <p className="text-sm text-gray-500 mb-2">{t('fixedAssetsClosure.depreciationProgress')}</p>
                   <Progress
                     value={(selectedImmobilisation.amortissementsCumules / selectedImmobilisation.valeurBrute) * 100}
                     className="h-3"
@@ -1308,17 +1308,17 @@ const Immobilisations: React.FC = () => {
               {/* Maintenance */}
               {(selectedImmobilisation.derniereMaintenance || selectedImmobilisation.prochaineMaintenance) && (
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Maintenance</h3>
+                  <h3 className="font-semibold text-gray-900 mb-3">{t('fixedAssetsClosure.maintenance')}</h3>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {selectedImmobilisation.derniereMaintenance && (
                       <div>
-                        <p className="text-gray-500">Dernière Maintenance</p>
+                        <p className="text-gray-500">{t('fixedAssetsClosure.lastMaintenance')}</p>
                         <p className="font-semibold">{new Date(selectedImmobilisation.derniereMaintenance).toLocaleDateString('fr-FR')}</p>
                       </div>
                     )}
                     {selectedImmobilisation.prochaineMaintenance && (
                       <div>
-                        <p className="text-gray-500">Prochaine Maintenance</p>
+                        <p className="text-gray-500">{t('fixedAssetsClosure.nextMaintenance')}</p>
                         <p className="font-semibold text-[var(--color-warning)]">{new Date(selectedImmobilisation.prochaineMaintenance).toLocaleDateString('fr-FR')}</p>
                       </div>
                     )}
@@ -1338,7 +1338,7 @@ const Immobilisations: React.FC = () => {
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  Fermer
+                  {t('fixedAssetsClosure.close')}
                 </button>
                 <button
                   onClick={() => {
@@ -1348,7 +1348,7 @@ const Immobilisations: React.FC = () => {
                   className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
                 >
                   <Calculator className="w-4 h-4" />
-                  Plan d'Amortissement
+                  {t('fixedAssetsClosure.depreciationSchedule')}
                 </button>
                 <button
                   onClick={() => {
@@ -1357,7 +1357,7 @@ const Immobilisations: React.FC = () => {
                   }}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors"
                 >
-                  Modifier
+                  {t('fixedAssetsClosure.edit')}
                 </button>
               </div>
             </div>
@@ -1370,30 +1370,30 @@ const Immobilisations: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Modifier l'Immobilisation</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('fixedAssetsClosure.editAsset')}</h2>
               <button onClick={() => setShowEditModal(false)} className="text-gray-700 hover:text-gray-600">
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
             <div className="p-6">
-              <p className="text-gray-600 mb-4">Édition de: {selectedImmobilisation.designation}</p>
-              <p className="text-sm text-gray-500">Formulaire d'édition en cours de développement...</p>
+              <p className="text-gray-600 mb-4">{t('fixedAssetsClosure.editingOf', { name: selectedImmobilisation.designation })}</p>
+              <p className="text-sm text-gray-500">{t('fixedAssetsClosure.editFormWip')}</p>
             </div>
             <div className="flex justify-end space-x-3 p-6 border-t">
               <button
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100"
                 onClick={() => setShowEditModal(false)}
               >
-                Annuler
+                {t('fixedAssetsClosure.cancel')}
               </button>
               <button
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
                 onClick={() => {
-                  toast.success('Modifications sauvegardées (simulation)');
+                  toast.success(t('fixedAssetsClosure.savedSimulation'));
                   setShowEditModal(false);
                 }}
               >
-                Enregistrer
+                {t('fixedAssetsClosure.save')}
               </button>
             </div>
           </div>
@@ -1411,8 +1411,8 @@ const Immobilisations: React.FC = () => {
                     <Calculator className="w-5 h-5 text-primary-600" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Calcul d'amortissement</h3>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Calculer l'amortissement d'une immobilisation</p>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('fixedAssetsClosure.depreciationCalc')}</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.depreciationCalcSub')}</p>
                   </div>
                 </div>
                 <button
@@ -1432,9 +1432,9 @@ const Immobilisations: React.FC = () => {
                   <div className="flex gap-3">
                     <TrendingDown className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-primary-900">Amortissement comptable</p>
+                      <p className="text-sm font-medium text-primary-900">{t('fixedAssetsClosure.accountingDepreciation')}</p>
                       <p className="text-sm text-primary-700 mt-1">
-                        Enregistrez la dépréciation annuelle de vos immobilisations
+                        {t('fixedAssetsClosure.accountingDepreciationSub')}
                       </p>
                     </div>
                   </div>
@@ -1442,10 +1442,10 @@ const Immobilisations: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Immobilisation <span className="text-[var(--color-error)]">*</span>
+                    {t('fixedAssetsClosure.colAsset')} <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                    <option value="">Sélectionner une immobilisation</option>
+                    <option value="">{t('fixedAssetsClosure.selectAsset')}</option>
                     {immobilisations.map(immo => (
                       <option key={immo.id} value={immo.id}>{immo.designation} - {immo.code}</option>
                     ))}
@@ -1453,22 +1453,22 @@ const Immobilisations: React.FC = () => {
                 </div>
 
                 <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
-                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Informations de l'immobilisation</h4>
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">{t('fixedAssetsClosure.assetInfo')}</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Date d'acquisition:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.acquisitionDateLabel')}</p>
                       <p className="font-semibold">—</p>
                     </div>
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.originalValueLabel')}</p>
                       <p className="font-semibold">—</p>
                     </div>
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Durée d'amortissement:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.depreciationPeriodLabel')}</p>
                       <p className="font-semibold">—</p>
                     </div>
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Méthode:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.methodLabel')}</p>
                       <p className="font-semibold">—</p>
                     </div>
                   </div>
@@ -1488,7 +1488,7 @@ const Immobilisations: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Date de clôture <span className="text-[var(--color-error)]">*</span>
+                      {t('fixedAssetsClosure.closingDate')} <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <input
                       type="date"
@@ -1498,22 +1498,22 @@ const Immobilisations: React.FC = () => {
                 </div>
 
                 <div className="border border-primary-200 rounded-lg p-4 bg-primary-50">
-                  <h4 className="font-semibold text-sm text-primary-900 mb-3">Calcul de l'amortissement</h4>
+                  <h4 className="font-semibold text-sm text-primary-900 mb-3">{t('fixedAssetsClosure.depreciationComputation')}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-[var(--color-text-primary)]">Dotation annuelle:</span>
+                      <span className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.annualChargeLabel')}</span>
                       <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[var(--color-text-primary)]">Dotation prorata (365 jours):</span>
+                      <span className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.prorataChargeLabel')}</span>
                       <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-primary-200">
-                      <span className="text-primary-900 font-medium">Amortissements cumulés:</span>
+                      <span className="text-primary-900 font-medium">{t('fixedAssetsClosure.accumulatedLabel')}</span>
                       <span className="font-bold text-primary-900">—</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-primary-900 font-medium">Valeur nette comptable:</span>
+                      <span className="text-primary-900 font-medium">{t('fixedAssetsClosure.netBookValueLabel')}</span>
                       <span className="font-bold text-primary-900">—</span>
                     </div>
                   </div>
@@ -1521,21 +1521,21 @@ const Immobilisations: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Méthode d'amortissement
+                    {t('fixedAssetsClosure.depreciationMethod')}
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                       <input type="radio" name="methode-amort" value="lineaire" className="mr-3" defaultChecked />
                       <div>
-                        <p className="font-medium text-sm">Linéaire</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Dotation constante</p>
+                        <p className="font-medium text-sm">{t('fixedAssetsClosure.straightLine')}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.constantCharge')}</p>
                       </div>
                     </label>
                     <label className="flex items-center p-3 border border-[var(--color-border-dark)] rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
                       <input type="radio" name="methode-amort" value="degressif" className="mr-3" />
                       <div>
-                        <p className="font-medium text-sm">Dégressif</p>
-                        <p className="text-xs text-[var(--color-text-secondary)]">Dotation décroissante</p>
+                        <p className="font-medium text-sm">{t('fixedAssetsClosure.declining')}</p>
+                        <p className="text-xs text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.decreasingCharge')}</p>
                       </div>
                     </label>
                   </div>
@@ -1544,36 +1544,36 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Compte amortissement <span className="text-[var(--color-error)]">*</span>
+                      {t('fixedAssetsClosure.depreciationAccount')} <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm">
-                      <option value="">Sélectionner</option>
-                      <option value="2813">2813 - Amortissement bâtiments</option>
-                      <option value="2818">2818 - Amortissement matériel</option>
-                      <option value="2815">2815 - Amortissement mobilier</option>
+                      <option value="">{t('fixedAssetsClosure.select')}</option>
+                      <option value="2813">{t('fixedAssetsClosure.acc2813')}</option>
+                      <option value="2818">{t('fixedAssetsClosure.acc2818')}</option>
+                      <option value="2815">{t('fixedAssetsClosure.acc2815')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Compte dotation <span className="text-[var(--color-error)]">*</span>
+                      {t('fixedAssetsClosure.chargeAccount')} <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent font-mono text-sm">
-                      <option value="">Sélectionner</option>
-                      <option value="6811">6811 - Dotation amortissement</option>
-                      <option value="6871">6871 - Dotation exceptionnelle</option>
+                      <option value="">{t('fixedAssetsClosure.select')}</option>
+                      <option value="6811">{t('fixedAssetsClosure.acc6811')}</option>
+                      <option value="6871">{t('fixedAssetsClosure.acc6871')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Commentaires
+                    {t('fixedAssetsClosure.comments')}
                   </label>
                   <textarea
                     rows={2}
                     className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Notes sur cet amortissement..."
+                    placeholder={t('fixedAssetsClosure.commentsPlaceholder')}
                   />
                 </div>
               </div>
@@ -1584,11 +1584,11 @@ const Immobilisations: React.FC = () => {
                 onClick={() => setShowAmortissementModal(false)}
                 className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
               >
-                Annuler
+                {t('fixedAssetsClosure.cancel')}
               </button>
               <button className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors flex items-center gap-2">
                 <Calculator className="w-4 h-4" />
-                Enregistrer l'amortissement
+                {t('fixedAssetsClosure.saveDepreciation')}
               </button>
             </div>
           </div>
@@ -1606,8 +1606,8 @@ const Immobilisations: React.FC = () => {
                     <Archive className="w-5 h-5 text-[var(--color-error)]" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Cession d'immobilisation</h3>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Enregistrer une sortie d'immobilisation</p>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('fixedAssetsClosure.assetDisposal')}</h3>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('fixedAssetsClosure.assetDisposalSub')}</p>
                   </div>
                 </div>
                 <button
@@ -1627,9 +1627,9 @@ const Immobilisations: React.FC = () => {
                   <div className="flex gap-3">
                     <AlertCircle className="w-5 h-5 text-[var(--color-error)] flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-red-900">Sortie d'immobilisation</p>
+                      <p className="text-sm font-medium text-red-900">{t('fixedAssetsClosure.assetExit')}</p>
                       <p className="text-sm text-[var(--color-error-dark)] mt-1">
-                        Enregistrez la vente, la mise au rebut ou la destruction d'une immobilisation
+                        {t('fixedAssetsClosure.assetExitSub')}
                       </p>
                     </div>
                   </div>
@@ -1637,10 +1637,10 @@ const Immobilisations: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Immobilisation à céder <span className="text-[var(--color-error)]">*</span>
+                    {t('fixedAssetsClosure.assetToDispose')} <span className="text-[var(--color-error)]">*</span>
                   </label>
                   <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                    <option value="">Sélectionner</option>
+                    <option value="">{t('fixedAssetsClosure.select')}</option>
                     {immobilisations.map(immo => (
                       <option key={immo.id} value={immo.id}>{immo.designation} - {immo.code}</option>
                     ))}
@@ -1648,18 +1648,18 @@ const Immobilisations: React.FC = () => {
                 </div>
 
                 <div className="border border-[var(--color-border)] rounded-lg p-4 bg-[var(--color-background-secondary)]">
-                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Valeurs comptables</h4>
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">{t('fixedAssetsClosure.bookValues')}</h4>
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Valeur d'origine:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.originalValueLabel')}</p>
                       <p className="font-semibold">—</p>
                     </div>
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Amortissements:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.depreciationLabel')}</p>
                       <p className="font-semibold text-[var(--color-warning)]">—</p>
                     </div>
                     <div>
-                      <p className="text-[var(--color-text-primary)]">Valeur nette:</p>
+                      <p className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.netValueLabel')}</p>
                       <p className="font-semibold text-[var(--color-primary)]">—</p>
                     </div>
                   </div>
@@ -1668,7 +1668,7 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Date de cession <span className="text-[var(--color-error)]">*</span>
+                      {t('fixedAssetsClosure.disposalDate')} <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <input
                       type="date"
@@ -1678,15 +1678,15 @@ const Immobilisations: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Type de cession <span className="text-[var(--color-error)]">*</span>
+                      {t('fixedAssetsClosure.disposalType')} <span className="text-[var(--color-error)]">*</span>
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                      <option value="">Sélectionner</option>
-                      <option value="vente">Vente</option>
-                      <option value="rebut">Mise au rebut</option>
-                      <option value="don">Don</option>
-                      <option value="destruction">Destruction</option>
-                      <option value="vol">Vol / Perte</option>
+                      <option value="">{t('fixedAssetsClosure.select')}</option>
+                      <option value="vente">{t('fixedAssetsClosure.typeSale')}</option>
+                      <option value="rebut">{t('fixedAssetsClosure.typeScrap')}</option>
+                      <option value="don">{t('fixedAssetsClosure.typeDonation')}</option>
+                      <option value="destruction">{t('fixedAssetsClosure.typeDestruction')}</option>
+                      <option value="vol">{t('fixedAssetsClosure.typeTheft')}</option>
                     </select>
                   </div>
                 </div>
@@ -1694,7 +1694,7 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Prix de cession (FCFA)
+                      {t('fixedAssetsClosure.disposalPrice')}
                     </label>
                     <input
                       type="number"
@@ -1706,29 +1706,29 @@ const Immobilisations: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Acheteur / Bénéficiaire
+                      {t('fixedAssetsClosure.buyer')}
                     </label>
                     <input
                       type="text"
                       className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Nom de l'acheteur"
+                      placeholder={t('fixedAssetsClosure.buyerPlaceholder')}
                     />
                   </div>
                 </div>
 
                 <div className="border border-[var(--color-border)] rounded-lg p-4">
-                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">Calcul du résultat de cession</h4>
+                  <h4 className="font-semibold text-sm text-[var(--color-text-primary)] mb-3">{t('fixedAssetsClosure.disposalResultCalc')}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-[var(--color-text-primary)]">Prix de cession:</span>
+                      <span className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.disposalPriceLabel')}</span>
                       <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[var(--color-text-primary)]">Valeur nette comptable:</span>
+                      <span className="text-[var(--color-text-primary)]">{t('fixedAssetsClosure.netBookValueLabel')}</span>
                       <span className="font-semibold">—</span>
                     </div>
                     <div className="flex justify-between pt-2 border-t border-[var(--color-border-dark)]">
-                      <span className="font-medium text-[var(--color-text-primary)]">Résultat de cession:</span>
+                      <span className="font-medium text-[var(--color-text-primary)]">{t('fixedAssetsClosure.disposalResultLabel')}</span>
                       <span className="font-bold text-[var(--color-error)]">—</span>
                     </div>
                   </div>
@@ -1737,46 +1737,46 @@ const Immobilisations: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Compte produit cession
+                      {t('fixedAssetsClosure.disposalIncomeAccount')}
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm">
-                      <option value="">Sélectionner</option>
-                      <option value="775">775 - Produits cession immo</option>
-                      <option value="771">771 - Produits exceptionnels</option>
+                      <option value="">{t('fixedAssetsClosure.select')}</option>
+                      <option value="775">{t('fixedAssetsClosure.acc775')}</option>
+                      <option value="771">{t('fixedAssetsClosure.acc771')}</option>
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                      Compte charge cession
+                      {t('fixedAssetsClosure.disposalExpenseAccount')}
                     </label>
                     <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono text-sm">
-                      <option value="">Sélectionner</option>
-                      <option value="675">675 - Valeur comptable immo cédées</option>
-                      <option value="671">671 - Charges exceptionnelles</option>
+                      <option value="">{t('fixedAssetsClosure.select')}</option>
+                      <option value="675">{t('fixedAssetsClosure.acc675')}</option>
+                      <option value="671">{t('fixedAssetsClosure.acc671')}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Justificatif de cession
+                    {t('fixedAssetsClosure.disposalEvidence')}
                   </label>
                   <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center hover:border-[var(--color-error)] transition-colors cursor-pointer">
                     <FileText className="w-8 h-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
-                    <p className="text-sm text-[var(--color-text-primary)]">Charger le justificatif</p>
-                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">Facture, certificat de destruction, PV...</p>
+                    <p className="text-sm text-[var(--color-text-primary)]">{t('fixedAssetsClosure.uploadEvidence')}</p>
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('fixedAssetsClosure.evidenceHint')}</p>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">
-                    Observations
+                    {t('fixedAssetsClosure.observations')}
                   </label>
                   <textarea
                     rows={2}
                     className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    placeholder="Détails sur la cession..."
+                    placeholder={t('fixedAssetsClosure.disposalPlaceholder')}
                   />
                 </div>
 
@@ -1784,9 +1784,9 @@ const Immobilisations: React.FC = () => {
                   <div className="flex gap-3">
                     <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-yellow-900">Action définitive</p>
+                      <p className="text-sm font-medium text-yellow-900">{t('fixedAssetsClosure.permanentAction')}</p>
                       <p className="text-sm text-[var(--color-warning-dark)] mt-1">
-                        La cession sortira définitivement l'immobilisation de votre actif
+                        {t('fixedAssetsClosure.permanentActionText')}
                       </p>
                     </div>
                   </div>
@@ -1799,11 +1799,11 @@ const Immobilisations: React.FC = () => {
                 onClick={() => setShowCessionModal(false)}
                 className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-background-hover)] rounded-lg transition-colors"
               >
-                Annuler
+                {t('fixedAssetsClosure.cancel')}
               </button>
               <button className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-error)] hover:bg-[var(--color-error-dark)] rounded-lg transition-colors flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                Enregistrer la cession
+                {t('fixedAssetsClosure.saveDisposal')}
               </button>
             </div>
           </div>
