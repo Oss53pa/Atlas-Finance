@@ -34,6 +34,7 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
+import CreancesDettesRatiosBlock from '../../components/dashboard/CreancesDettesRatiosBlock';
 
 // Libellés exécutifs (FR inline — cf. entête).
 const M = {
@@ -431,6 +432,9 @@ const PremiumOverview: React.FC = () => {
             })()}
           </section>
         )}
+
+        {/* ═════ Bloc partagé « Créances, dettes & ratios » ═════ */}
+        <CreancesDettesRatiosBlock entries={entries} period={aux.period} />
 
         {/* ═════ Footer ═════ */}
         <footer className="flex items-center justify-between pt-6 flex-wrap gap-3" style={{ borderTop: '1px solid var(--color-border-light)' }}>
