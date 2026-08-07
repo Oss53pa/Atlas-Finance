@@ -4510,7 +4510,15 @@
     "notes": "Notes",
     "close": "Close",
     "create": "Create",
-    "save": "Save"
+    "save": "Save",
+    "class20": "Capitalised expenses",
+    "class21": "Intangible assets",
+    "class22": "Land",
+    "class23": "Buildings & plant",
+    "class24": "Equipment, furniture & vehicles",
+    "class25": "Advances & prepayments",
+    "class26": "Equity investments",
+    "class27": "Other financial assets"
   },
   "depreciation": {
     "title": "Depreciation",
@@ -4643,7 +4651,8 @@
     "noCumulChange": "No change to accumulated depreciation.",
     "adjustSuccess": "Depreciation adjusted (adjusting journal entry posted)",
     "updateError": "Error while updating",
-    "formErrors": "Please correct the errors in the form"
+    "formErrors": "Please correct the errors in the form",
+    "accumulatedDepreciationAccount": "Accumulated depreciation"
   },
   "assetsInventory": {
     "title": "Physical Inventory",
@@ -8768,7 +8777,25 @@
     "monSep": "Sep",
     "monOct": "Oct",
     "monNov": "Nov",
-    "monDec": "Dec"
+    "monDec": "Dec",
+    "rub60": "Purchases and changes in inventories",
+    "rub61": "Transport",
+    "rub62": "External services A",
+    "rub63": "External services B",
+    "rub64": "Taxes and duties",
+    "rub65": "Other expenses",
+    "rub66": "Employee benefits expense",
+    "rub67": "Finance costs",
+    "rub68": "Depreciation & provision charges",
+    "rub69": "Non-operating charges / income tax",
+    "rub70": "Sales",
+    "rub71": "Operating subsidies",
+    "rub72": "Capitalised production",
+    "rub73": "Changes in inventories of finished goods",
+    "rub75": "Other income",
+    "rub77": "Financial income",
+    "rub78": "Expense transfers",
+    "rub79": "Reversals of provisions"
   },
   "budgetPnl": {
     "loadError": "Loading error",
@@ -14195,7 +14222,11 @@
     "analyticsCollection": "Analytics data collection",
     "pageSubtitle": "Manage the Atlas FnA mobile app and the connected devices",
     "codeCopied": "Code copied to the clipboard.",
-    "confirmDisconnect": "Confirm the disconnection"
+    "confirmDisconnect": "Confirm the disconnection",
+    "downloadOn": "Download on the",
+    "syncEntries": "Journal entries",
+    "syncAttachments": "Attachments",
+    "biometrics": "Biometrics (Touch/Face ID)"
   },
   "offlineMode": {
     "opRetried": "Operation retried",
@@ -14270,7 +14301,13 @@
     "localValue": "Local value",
     "serverValue": "Server value",
     "manualMergeValue": "Manual merge value",
-    "mergePlaceholder": "Enter the JSON value to resolve the conflict…"
+    "mergePlaceholder": "Enter the JSON value to resolve the conflict…",
+    "reduceBandwidth": "Reduce bandwidth usage",
+    "resolvedAutoServer": "Resolved automatically — server version",
+    "resolvedManualMerge": "Resolved manually — merge",
+    "entryRef": "Entry {ref}",
+    "resolvedAutoLocal": "Resolved automatically — local version",
+    "manualConflictResolution": "Manual conflict resolution"
   },
   "importExport": {
     "tplBalance": "General trial balance",
@@ -14390,7 +14427,10 @@
     "supportedFormatsTitle": "Supported formats",
     "save": "Save",
     "settingsSaved": "Settings saved",
-    "availableExportOptions": "Available export options"
+    "availableExportOptions": "Available export options",
+    "jobTypeChartOfAccounts": "Chart of accounts",
+    "jobTypeCustomers": "Customers",
+    "jobTypeEntries": "Journal entries"
   },
   "planSyscohada": {
     "codeRequired": "Code required",
@@ -14697,7 +14737,8 @@
     "kpiInvesting": "Investing cash flow",
     "kpiInvestingSub": "Net acquisitions",
     "kpiFinancing": "Financing cash flow",
-    "kpiFinancingSub": "Net borrowings"
+    "kpiFinancingSub": "Net borrowings",
+    "kpiOperatingCaf": "CAF: {value}"
   },
   "adminBackup": {
     "grpEntries": "📒 Journal entries",
@@ -15599,5 +15640,45 @@
     "fiscalYearUpdated": "Fiscal year updated",
     "updateError": "Error while updating",
     "fiscalYearActive": "Active fiscal year"
+  },
+  "iaConfig": {
+    "scoreFormula": "0.4 × rules_score + 0.6 × ml_score + correlation_boost"
+  },
+  "trackChange": {
+    "viewDetails": "View details",
+    "fullDetails": "Full details"
+  },
+  "assetsJournal": {
+    "colDate": "Date",
+    "colReference": "Reference",
+    "colDescription": "Description",
+    "colType": "Type",
+    "colStatus": "Status",
+    "colTotalDebit": "Total debit",
+    "colTotalCredit": "Total credit",
+    "export": "Export",
+    "searchPlaceholder": "Search by description or reference…",
+    "allCategories": "All categories",
+    "assetEntries": "Asset entries",
+    "totalDebit": "Total debit",
+    "totalCredit": "Total credit",
+    "accumulatedDepreciation": "Accum. depreciation"
+  },
+  "assetsMaintenance": {
+    "scheduledDateRequired": "The scheduled date is required",
+    "durationPositive": "The estimated duration must be greater than 0",
+    "costPositive": "The estimated cost must be positive",
+    "updated": "Maintenance updated",
+    "created": "Maintenance created",
+    "totalCost": "Total cost",
+    "averageDuration": "Average duration",
+    "statusChartTitle": "Maintenance status",
+    "statusChartSubtitle": "Breakdown by status",
+    "typeChartSubtitle": "Breakdown by intervention type",
+    "allPriorities": "All priorities",
+    "unassigned": "Unassigned",
+    "estimatedCost": "Estimated cost",
+    "catItEquipment": "IT equipment",
+    "additionalNotes": "Additional notes…"
   }
 }

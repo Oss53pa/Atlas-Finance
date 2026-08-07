@@ -129,6 +129,11 @@ function buildDepreciationRecord(a: Record<string, any>, currentYear: number): D
  * (Dr 681x / Cr 28x sur les VRAIS comptes de l'actif), idempotente (le numéro
  * de pièce AMORT-{exercice}-{code} est unique → safeAddEntry bloque les
  * doublons), et synchronise `cumulDepreciation` sur la fiche.
+ *
+ * Les libellés des lignes (`accountName`, `label`) sont PERSISTÉS dans le
+ * journal : ils restent en français canonique et ne suivent pas la langue
+ * d'interface — une écriture ne doit pas changer de libellé selon qui l'a
+ * saisie. Seul l'affichage du tableau récapitulatif est traduit.
  */
 async function postDepreciation(adapter: any, rec: DepreciationRecord): Promise<number> {
   const montant = rec.montant_dotation;
@@ -1483,7 +1488,7 @@ const DepreciationPage: React.FC = () => {
                     </tr>
                     <tr className="border-b border-neutral-100">
                       <td className="py-2 px-2 font-mono text-neutral-700">2813</td>
-                      <td className="py-2 px-2 text-neutral-700">Amortissements cumulés</td>
+                      <td className="py-2 px-2 text-neutral-700">{t('depreciation.accumulatedDepreciationAccount')}</td>
                       <td className="py-2 px-2 text-right font-mono text-neutral-400">—</td>
                       <td className="py-2 px-2 text-right font-mono font-semibold text-neutral-900">{formatCurrency(selectedDepreciation.montant_dotation)}</td>
                     </tr>

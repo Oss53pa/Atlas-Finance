@@ -1044,7 +1044,7 @@ const IAConfigPage: React.FC = () => {
                 <p className="text-sm text-[var(--color-text-secondary)]">{t('aiConfig.correlationScoringDesc')}</p>
                 <div className="mt-2 p-2 bg-white rounded border border-[var(--color-border)] font-mono text-xs">
                   <span className="text-[var(--color-text-tertiary)]">score_final = </span>
-                  <span className="text-[var(--color-primary)]">0.4 * score_règles + 0.6 * score_ml + correlation_boost</span>
+                  <span className="text-[var(--color-primary)]">{t('iaConfig.scoreFormula')}</span>
                 </div>
               </div>
             </div>

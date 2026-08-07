@@ -673,11 +673,10 @@ const AssetsRegistry: React.FC = () => {
   // seule valeur en base → tout tombait dans « Autre »). On dérive la classe du
   // n° de compte (asset_class « 23 - … » → 23) et on l'étiquette officiellement.
   const assetCategories: AssetCategory[] = useMemo(() => {
-    const CLASS_LABELS: Record<string, string> = {
-      '20': 'Charges immobilisées', '21': 'Immobilisations incorporelles', '22': 'Terrains',
-      '23': 'Bâtiments & installations', '24': 'Matériel, mobilier & transport',
-      '25': 'Avances & acomptes', '26': 'Titres de participation', '27': 'Autres immo. financières',
-    };
+    // Clés (et non libellés) : l'intitulé de classe est résolu au rendu.
+    const CLASS_LABEL_KEYS: Record<string, string> = Object.fromEntries(
+      ['20', '21', '22', '23', '24', '25', '26', '27'].map(c => [c, `assetsRegistry.class${c}`])
+    );
     const catMap: Record<string, { count: number; totalValue: number; totalAge: number; totalRate: number }> = {};
     const now = new Date();
     for (const asset of assets) {
@@ -693,7 +692,7 @@ const AssetsRegistry: React.FC = () => {
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([code, data]) => ({
         code,
-        name: CLASS_LABELS[code] || t('assetsRegistry.classPrefix', { code }),
+        name: CLASS_LABEL_KEYS[code] ? t(CLASS_LABEL_KEYS[code]) : t('assetsRegistry.classPrefix', { code }),
         count: data.count,
         totalValue: data.totalValue,
         averageAge: data.count > 0 ? new Money(data.totalAge).divide(data.count).round(1).toNumber() : 0,

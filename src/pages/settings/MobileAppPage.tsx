@@ -248,7 +248,7 @@ const MobileAppPage: React.FC = () => {
                 <button className="flex items-center justify-center gap-3 p-4 bg-[var(--color-text-primary)] text-[var(--color-text-inverse)] rounded-lg hover:bg-[var(--color-text-secondary)] transition-colors">
                   <Apple className="w-6 h-6" />
                   <div className="text-left">
-                    <div className="text-xs opacity-80">Télécharger sur</div>
+                    <div className="text-xs opacity-80">{t('mobileApp.downloadOn')}</div>
                     <div className="font-semibold">App Store</div>
                   </div>
                 </button>
@@ -470,11 +470,11 @@ const MobileAppPage: React.FC = () => {
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="rounded" />
-                      <span className="text-sm">Écritures comptables</span>
+                      <span className="text-sm">{t('mobileApp.syncEntries')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Pièces jointes</span>
+                      <span className="text-sm">{t('mobileApp.syncAttachments')}</span>
                     </label>
                   </div>
                 </div>
@@ -545,7 +545,7 @@ const MobileAppPage: React.FC = () => {
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Biométrie (Touch/Face ID)</span>
+                    <span className="text-sm">{t('mobileApp.biometrics')}</span>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" defaultChecked className="sr-only peer" />
                       <div className="w-9 h-5 bg-[var(--color-border)] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-success)]"></div>

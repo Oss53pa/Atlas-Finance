@@ -4510,7 +4510,15 @@
     "notes": "Notas",
     "close": "Cerrar",
     "create": "Crear",
-    "save": "Guardar"
+    "save": "Guardar",
+    "class20": "Gastos capitalizados",
+    "class21": "Inmovilizado intangible",
+    "class22": "Terrenos",
+    "class23": "Edificios e instalaciones",
+    "class24": "Maquinaria, mobiliario y transporte",
+    "class25": "Anticipos y pagos a cuenta",
+    "class26": "Participaciones",
+    "class27": "Otro inmovilizado financiero"
   },
   "depreciation": {
     "title": "Amortizaciones",
@@ -4643,7 +4651,8 @@
     "noCumulChange": "Sin cambios en el acumulado.",
     "adjustSuccess": "Amortización ajustada (asiento de ajuste contabilizado)",
     "updateError": "Error al actualizar",
-    "formErrors": "Corrija los errores del formulario"
+    "formErrors": "Corrija los errores del formulario",
+    "accumulatedDepreciationAccount": "Amortizaciones acumuladas"
   },
   "assetsInventory": {
     "title": "Inventario físico",
@@ -8768,7 +8777,25 @@
     "monSep": "Sep",
     "monOct": "Oct",
     "monNov": "Nov",
-    "monDec": "Dic"
+    "monDec": "Dic",
+    "rub60": "Compras y variaciones de existencias",
+    "rub61": "Transportes",
+    "rub62": "Servicios exteriores A",
+    "rub63": "Servicios exteriores B",
+    "rub64": "Impuestos y tasas",
+    "rub65": "Otros gastos",
+    "rub66": "Gastos de personal",
+    "rub67": "Gastos financieros",
+    "rub68": "Dotaciones a amortizaciones y provisiones",
+    "rub69": "Dotaciones HAO / impuesto sobre resultados",
+    "rub70": "Ventas",
+    "rub71": "Subvenciones de explotación",
+    "rub72": "Producción inmovilizada",
+    "rub73": "Variaciones de existencias de productos",
+    "rub75": "Otros ingresos",
+    "rub77": "Ingresos financieros",
+    "rub78": "Transferencias de gastos",
+    "rub79": "Reversiones de provisiones"
   },
   "budgetPnl": {
     "loadError": "Error de carga",
@@ -14195,7 +14222,11 @@
     "analyticsCollection": "Recopilación de datos analíticos",
     "pageSubtitle": "Gestione la aplicación móvil Atlas FnA y los dispositivos conectados",
     "codeCopied": "Código copiado al portapapeles.",
-    "confirmDisconnect": "Confirmar la desconexión"
+    "confirmDisconnect": "Confirmar la desconexión",
+    "downloadOn": "Descargar en",
+    "syncEntries": "Asientos contables",
+    "syncAttachments": "Archivos adjuntos",
+    "biometrics": "Biometría (Touch/Face ID)"
   },
   "offlineMode": {
     "opRetried": "Operación reintentada",
@@ -14270,7 +14301,13 @@
     "localValue": "Valor local",
     "serverValue": "Valor del servidor",
     "manualMergeValue": "Valor de fusión manual",
-    "mergePlaceholder": "Introduzca el valor JSON para resolver el conflicto…"
+    "mergePlaceholder": "Introduzca el valor JSON para resolver el conflicto…",
+    "reduceBandwidth": "Reducir el uso de ancho de banda",
+    "resolvedAutoServer": "Resuelto automáticamente — versión del servidor",
+    "resolvedManualMerge": "Resuelto manualmente — fusión",
+    "entryRef": "Asiento {ref}",
+    "resolvedAutoLocal": "Resuelto automáticamente — versión local",
+    "manualConflictResolution": "Resolución manual del conflicto"
   },
   "importExport": {
     "tplBalance": "Balance general",
@@ -14390,7 +14427,10 @@
     "supportedFormatsTitle": "Formatos admitidos",
     "save": "Guardar",
     "settingsSaved": "Ajustes guardados",
-    "availableExportOptions": "Opciones de exportación disponibles"
+    "availableExportOptions": "Opciones de exportación disponibles",
+    "jobTypeChartOfAccounts": "Plan contable",
+    "jobTypeCustomers": "Clientes",
+    "jobTypeEntries": "Asientos contables"
   },
   "planSyscohada": {
     "codeRequired": "Código obligatorio",
@@ -14697,7 +14737,8 @@
     "kpiInvesting": "Flujo de inversión",
     "kpiInvestingSub": "Adquisiciones netas",
     "kpiFinancing": "Flujo de financiación",
-    "kpiFinancingSub": "Préstamos netos"
+    "kpiFinancingSub": "Préstamos netos",
+    "kpiOperatingCaf": "CAF: {value}"
   },
   "adminBackup": {
     "grpEntries": "📒 Asientos contables",
@@ -15599,5 +15640,45 @@
     "fiscalYearUpdated": "Ejercicio actualizado",
     "updateError": "Error al actualizar",
     "fiscalYearActive": "Ejercicio activo"
+  },
+  "iaConfig": {
+    "scoreFormula": "0,4 × puntuación_reglas + 0,6 × puntuación_ml + refuerzo_correlación"
+  },
+  "trackChange": {
+    "viewDetails": "Ver detalles",
+    "fullDetails": "Detalles completos"
+  },
+  "assetsJournal": {
+    "colDate": "Fecha",
+    "colReference": "Referencia",
+    "colDescription": "Descripción",
+    "colType": "Tipo",
+    "colStatus": "Estado",
+    "colTotalDebit": "Total debe",
+    "colTotalCredit": "Total haber",
+    "export": "Exportar",
+    "searchPlaceholder": "Buscar por descripción o referencia…",
+    "allCategories": "Todas las categorías",
+    "assetEntries": "Asientos de inmovilizado",
+    "totalDebit": "Total debe",
+    "totalCredit": "Total haber",
+    "accumulatedDepreciation": "Amort. acumulada"
+  },
+  "assetsMaintenance": {
+    "scheduledDateRequired": "La fecha planificada es obligatoria",
+    "durationPositive": "La duración estimada debe ser mayor que 0",
+    "costPositive": "El coste estimado debe ser positivo",
+    "updated": "Mantenimiento actualizado",
+    "created": "Mantenimiento creado",
+    "totalCost": "Coste total",
+    "averageDuration": "Duración media",
+    "statusChartTitle": "Estado de los mantenimientos",
+    "statusChartSubtitle": "Desglose por estado",
+    "typeChartSubtitle": "Desglose por tipo de intervención",
+    "allPriorities": "Todas las prioridades",
+    "unassigned": "Sin asignar",
+    "estimatedCost": "Coste estimado",
+    "catItEquipment": "Equipo informático",
+    "additionalNotes": "Notas adicionales…"
   }
 }

@@ -4510,7 +4510,15 @@
     "notes": "Notes",
     "close": "Fermer",
     "create": "Créer",
-    "save": "Sauvegarder"
+    "save": "Sauvegarder",
+    "class20": "Charges immobilisées",
+    "class21": "Immobilisations incorporelles",
+    "class22": "Terrains",
+    "class23": "Bâtiments & installations",
+    "class24": "Matériel, mobilier & transport",
+    "class25": "Avances & acomptes",
+    "class26": "Titres de participation",
+    "class27": "Autres immo. financières"
   },
   "depreciation": {
     "title": "Amortissements",
@@ -4643,7 +4651,8 @@
     "noCumulChange": "Aucun changement de cumul.",
     "adjustSuccess": "Amortissement ajusté (écriture d'ajustement comptabilisée)",
     "updateError": "Erreur lors de la mise à jour",
-    "formErrors": "Veuillez corriger les erreurs du formulaire"
+    "formErrors": "Veuillez corriger les erreurs du formulaire",
+    "accumulatedDepreciationAccount": "Amortissements cumulés"
   },
   "assetsInventory": {
     "title": "Inventaire Physique",
@@ -8768,7 +8777,25 @@
     "monSep": "Sep",
     "monOct": "Oct",
     "monNov": "Nov",
-    "monDec": "Déc"
+    "monDec": "Déc",
+    "rub60": "Achats et variations de stocks",
+    "rub61": "Transports",
+    "rub62": "Services extérieurs A",
+    "rub63": "Services extérieurs B",
+    "rub64": "Impôts et taxes",
+    "rub65": "Autres charges",
+    "rub66": "Charges de personnel",
+    "rub67": "Frais financiers",
+    "rub68": "Dotations aux amort. & provisions",
+    "rub69": "Dotations HAO / Impôts sur le résultat",
+    "rub70": "Ventes",
+    "rub71": "Subventions d'exploitation",
+    "rub72": "Production immobilisée",
+    "rub73": "Variations de stocks de produits",
+    "rub75": "Autres produits",
+    "rub77": "Revenus financiers",
+    "rub78": "Transferts de charges",
+    "rub79": "Reprises de provisions"
   },
   "budgetPnl": {
     "loadError": "Erreur de chargement",
@@ -14195,7 +14222,11 @@
     "analyticsCollection": "Collecte de données analytics",
     "pageSubtitle": "Gérez l'application mobile Atlas FnA et les appareils connectés",
     "codeCopied": "Code copié dans le presse-papier !",
-    "confirmDisconnect": "Confirmer la déconnexion"
+    "confirmDisconnect": "Confirmer la déconnexion",
+    "downloadOn": "Télécharger sur",
+    "syncEntries": "Écritures comptables",
+    "syncAttachments": "Pièces jointes",
+    "biometrics": "Biométrie (Touch/Face ID)"
   },
   "offlineMode": {
     "opRetried": "Opération relancée",
@@ -14270,7 +14301,13 @@
     "localValue": "Valeur locale",
     "serverValue": "Valeur serveur",
     "manualMergeValue": "Valeur de fusion manuelle",
-    "mergePlaceholder": "Entrez la valeur JSON pour résoudre le conflit..."
+    "mergePlaceholder": "Entrez la valeur JSON pour résoudre le conflit...",
+    "reduceBandwidth": "Réduire l'utilisation de la bande passante",
+    "resolvedAutoServer": "Résolu automatiquement - Version serveur",
+    "resolvedManualMerge": "Résolu manuellement - Fusion",
+    "entryRef": "Écriture {ref}",
+    "resolvedAutoLocal": "Résolu automatiquement - Version locale",
+    "manualConflictResolution": "Résolution Manuelle du Conflit"
   },
   "importExport": {
     "tplBalance": "Balance Générale",
@@ -14390,7 +14427,10 @@
     "supportedFormatsTitle": "Formats supportés",
     "save": "Sauvegarder",
     "settingsSaved": "Paramètres sauvegardés",
-    "availableExportOptions": "Options d'export disponibles"
+    "availableExportOptions": "Options d'export disponibles",
+    "jobTypeChartOfAccounts": "Plan Comptable",
+    "jobTypeCustomers": "Clients",
+    "jobTypeEntries": "Écritures Comptables"
   },
   "planSyscohada": {
     "codeRequired": "Code requis",
@@ -14697,7 +14737,8 @@
     "kpiInvesting": "Flux d'Investissement",
     "kpiInvestingSub": "Acquisitions nettes",
     "kpiFinancing": "Flux de Financement",
-    "kpiFinancingSub": "Emprunts nets"
+    "kpiFinancingSub": "Emprunts nets",
+    "kpiOperatingCaf": "CAF : {value}"
   },
   "adminBackup": {
     "grpEntries": "📒 Écritures comptables",
@@ -15599,5 +15640,45 @@
     "fiscalYearUpdated": "Exercice mis à jour",
     "updateError": "Erreur lors de la mise à jour",
     "fiscalYearActive": "Exercice actif"
+  },
+  "iaConfig": {
+    "scoreFormula": "0,4 × score_règles + 0,6 × score_ml + boost_corrélation"
+  },
+  "trackChange": {
+    "viewDetails": "Voir les détails",
+    "fullDetails": "Détails complets"
+  },
+  "assetsJournal": {
+    "colDate": "Date",
+    "colReference": "Référence",
+    "colDescription": "Description",
+    "colType": "Type",
+    "colStatus": "Statut",
+    "colTotalDebit": "Total Débit",
+    "colTotalCredit": "Total Crédit",
+    "export": "Exporter",
+    "searchPlaceholder": "Rechercher par description ou référence…",
+    "allCategories": "Toutes les catégories",
+    "assetEntries": "Écritures immo",
+    "totalDebit": "Total débit",
+    "totalCredit": "Total crédit",
+    "accumulatedDepreciation": "Amort. cumulé"
+  },
+  "assetsMaintenance": {
+    "scheduledDateRequired": "La date planifiée est requise",
+    "durationPositive": "La durée estimée doit être supérieure à 0",
+    "costPositive": "Le coût estimé doit être positif",
+    "updated": "Maintenance mise à jour",
+    "created": "Maintenance créée",
+    "totalCost": "Coût Total",
+    "averageDuration": "Durée Moyenne",
+    "statusChartTitle": "État des Maintenances",
+    "statusChartSubtitle": "Répartition par statut",
+    "typeChartSubtitle": "Répartition par type d'intervention",
+    "allPriorities": "Toutes les priorités",
+    "unassigned": "Non assigné",
+    "estimatedCost": "Coût Estimé",
+    "catItEquipment": "Matériel Informatique",
+    "additionalNotes": "Notes supplémentaires…"
   }
 }

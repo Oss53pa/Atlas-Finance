@@ -283,15 +283,15 @@ const AssetsJournal: React.FC = () => {
             data={filteredEntries}
             filename="journal_immobilisations"
             columns={{
-              date: 'Date',
-              reference: 'Référence',
-              description: 'Description',
-              type: 'Type',
-              status: 'Statut',
-              totalDebit: 'Total Débit',
-              totalCredit: 'Total Crédit'
+              date: t('assetsJournal.colDate'),
+              reference: t('assetsJournal.colReference'),
+              description: t('assetsJournal.colDescription'),
+              type: t('assetsJournal.colType'),
+              status: t('assetsJournal.colStatus'),
+              totalDebit: t('assetsJournal.colTotalDebit'),
+              totalCredit: t('assetsJournal.colTotalCredit')
             }}
-            buttonText="Exporter"
+            buttonText={t('assetsJournal.export')}
             buttonVariant="outline"
           />
         </div>
@@ -306,7 +306,7 @@ const AssetsJournal: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-secondary)]" />
                 <input
                   type="text"
-                  placeholder="Rechercher par description ou référence..."
+                  placeholder={t('assetsJournal.searchPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
@@ -331,7 +331,7 @@ const AssetsJournal: React.FC = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t('assetsJournal.allCategories')}</option>
               {assetJournalConfig.categories.map(cat => (
                 <option key={cat.code} value={cat.code}>
                   {cat.code} - {cat.description}
@@ -356,7 +356,7 @@ const AssetsJournal: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Écritures immo</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsJournal.assetEntries')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{journalEntries.length}</p>
               </div>
               <Book className="w-8 h-8 text-[var(--color-text-secondary)] opacity-20" />
@@ -368,7 +368,7 @@ const AssetsJournal: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Total débit</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsJournal.totalDebit')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalDebit, 0))}</p>
               </div>
               <ArrowUpRight className="w-8 h-8 text-green-500 opacity-50" />
@@ -380,7 +380,7 @@ const AssetsJournal: React.FC = () => {
           <CardBody>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-secondary)]">Total crédit</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('assetsJournal.totalCredit')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)] mt-1">{formatCurrency(journalEntries.reduce((s, e) => s + e.totalCredit, 0))}</p>
               </div>
               <ArrowDownLeft className="w-8 h-8 text-red-500 opacity-50" />
@@ -418,7 +418,7 @@ const AssetsJournal: React.FC = () => {
                     <th className="text-left p-2">Description</th>
                     <th className="text-right p-2">Valeur d'acquisition</th>
                     <th className="text-right p-2">Dotation annuelle</th>
-                    <th className="text-right p-2">Amort. cumulé</th>
+                    <th className="text-right p-2">{t('assetsJournal.accumulatedDepreciation')}</th>
                     <th className="text-right p-2">Additions</th>
                     <th className="text-right p-2">Cessions</th>
                     <th className="text-right p-2">Provisions</th>

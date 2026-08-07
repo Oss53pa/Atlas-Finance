@@ -364,7 +364,7 @@ const TrackChangePage: React.FC = () => {
                         <button
                           onClick={() => handleViewDetails(log)}
                           className="p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center justify-center"
-                          title="Voir les détails"
+                          title={t('trackChange.viewDetails')}
                         >
                           <Eye className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                         </button>
@@ -520,7 +520,7 @@ const TrackChangePage: React.FC = () => {
 
                 {/* Détails */}
                 <div>
-                  <label className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase">Détails complets</label>
+                  <label className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase">{t('trackChange.fullDetails')}</label>
                   <div className="mt-1 text-sm text-[var(--color-text-primary)] bg-gray-50 p-3 rounded-lg">
                     {selectedLog.details}
                   </div>

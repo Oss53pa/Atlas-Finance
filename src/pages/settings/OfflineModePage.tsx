@@ -679,7 +679,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>{t('offlineMode.dataSaver')}</Label>
-                    <p className="text-sm text-[var(--color-text-secondary)]">Réduire l'utilisation de la bande passante</p>
+                    <p className="text-sm text-[var(--color-text-secondary)]">{t('offlineMode.reduceBandwidth')}</p>
                   </div>
                   <Switch />
                 </div>
@@ -1070,7 +1070,7 @@ const OfflineModePage: React.FC = () => {
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm">Client CLI-2024-042</p>
-                        <p className="text-xs text-gray-600">Résolu automatiquement - Version serveur</p>
+                        <p className="text-xs text-gray-600">{t('offlineMode.resolvedAutoServer')}</p>
                       </div>
                       <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 2h</span>
                     </div>
@@ -1078,15 +1078,15 @@ const OfflineModePage: React.FC = () => {
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm">Article ART-2024-098</p>
-                        <p className="text-xs text-gray-600">Résolu manuellement - Fusion</p>
+                        <p className="text-xs text-gray-600">{t('offlineMode.resolvedManualMerge')}</p>
                       </div>
                       <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 5h</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
-                        <p className="font-medium text-sm">Écriture ECR-2024-156</p>
-                        <p className="text-xs text-gray-600">Résolu automatiquement - Version locale</p>
+                        <p className="font-medium text-sm">{t('offlineMode.entryRef', { ref: 'ECR-2024-156' })}</p>
+                        <p className="text-xs text-gray-600">{t('offlineMode.resolvedAutoLocal')}</p>
                       </div>
                       <span className="text-xs text-[var(--color-text-tertiary)]">{t('common.yesterday')}</span>
                     </div>
@@ -1108,7 +1108,7 @@ const OfflineModePage: React.FC = () => {
                 <div className="bg-[var(--color-primary)] bg-opacity-10 p-2 rounded-lg">
                   <GitMerge className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Résolution Manuelle du Conflit</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('offlineMode.manualConflictResolution')}</h2>
               </div>
               <button
                 onClick={() => {

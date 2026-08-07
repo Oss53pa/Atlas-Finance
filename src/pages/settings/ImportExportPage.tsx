@@ -63,6 +63,8 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 
 interface ImportJob {
+  /** CLÉ de traduction du type d'import, pas un libellé : l'état est initialisé
+   *  une seule fois, il serait figé à la langue du premier rendu. */
   id: string;
   type: string;
   fileName: string;
@@ -104,7 +106,7 @@ const ImportExportPage: React.FC = () => {
   const [importJobs] = useState<ImportJob[]>([
     {
       id: '1',
-      type: 'Plan Comptable',
+      type: 'importExport.jobTypeChartOfAccounts',
       fileName: 'plan_comptable_syscohada.xlsx',
       size: '245 KB',
       status: 'completed',
@@ -116,7 +118,7 @@ const ImportExportPage: React.FC = () => {
     },
     {
       id: '2',
-      type: 'Clients',
+      type: 'importExport.jobTypeCustomers',
       fileName: 'clients_janvier_2024.csv',
       size: '1.2 MB',
       status: 'processing',
@@ -127,7 +129,7 @@ const ImportExportPage: React.FC = () => {
     },
     {
       id: '3',
-      type: 'Écritures Comptables',
+      type: 'importExport.jobTypeEntries',
       fileName: 'ecritures_q4_2023.xlsx',
       size: '5.8 MB',
       status: 'failed',
@@ -523,7 +525,7 @@ const ImportExportPage: React.FC = () => {
                 <TableBody>
                   {importJobs.map((job) => (
                     <TableRow key={job.id}>
-                      <TableCell className="font-medium">{job.type}</TableCell>
+                      <TableCell className="font-medium">{t(job.type)}</TableCell>
                       <TableCell>
                         <div>
                           <p className="text-sm">{job.fileName}</p>
@@ -987,7 +989,7 @@ const ImportExportPage: React.FC = () => {
                       {selectedJob.status === 'failed' && <AlertCircle className="mr-1 h-4 w-4" />}
                       {selectedJob.status}
                     </Badge>
-                    <span className="font-semibold text-gray-900">{selectedJob.type}</span>
+                    <span className="font-semibold text-gray-900">{t(selectedJob.type)}</span>
                   </div>
                 </div>
               </div>

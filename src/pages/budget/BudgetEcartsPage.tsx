@@ -20,16 +20,11 @@ const MOIS_KEYS = [
 ];
 
 // Libellés SYSCOHADA des rubriques (préfixe 2 chiffres) — charges & produits.
-const RUB_LABELS: Record<string, string> = {
-  '60': 'Achats et variations de stocks', '61': 'Transports', '62': 'Services extérieurs A',
-  '63': 'Services extérieurs B', '64': 'Impôts et taxes', '65': 'Autres charges',
-  '66': 'Charges de personnel', '67': 'Frais financiers', '68': 'Dotations aux amort. & provisions',
-  '69': 'Dotations HAO / Impôts sur le résultat',
-  '70': 'Ventes', '71': 'Subventions d’exploitation', '72': 'Production immobilisée',
-  '73': 'Variations de stocks de produits', '75': 'Autres produits', '77': 'Revenus financiers',
-  '78': 'Transferts de charges', '79': 'Reprises de provisions',
-};
-const rubLabel = (code: string) => RUB_LABELS[code] || '';
+// Clés (et non libellés) : la table est figée au chargement du module.
+const RUB_LABEL_KEYS: Record<string, string> = Object.fromEntries(
+  ['60','61','62','63','64','65','66','67','68','69','70','71','72','73','75','77','78','79']
+    .map(c => [c, `ecarts.rub${c}`])
+);
 
 // Vrai graphique waterfall : Budget (départ) → écarts par rubrique (montées orange /
 // descentes rouges) → Réalisé (arrivée). Reconcilie car Budget + Σécarts = Réalisé.
@@ -80,6 +75,8 @@ const Waterfall: React.FC<{ budget: number; realise: number; steps: { code: stri
 const BudgetEcartsPage: React.FC = () => {
   const { adapter } = useData();
   const { t: tr } = useLanguage();
+  // Résolu au rendu : la table `RUB_LABEL_KEYS` ne porte que des clés.
+  const rubLabel = (code: string) => (RUB_LABEL_KEYS[code] ? tr(RUB_LABEL_KEYS[code]) : '');
   const { format: fmtAccount } = useAccountNames();
   const navigate = useNavigate();
   const [rows, setRows] = useState<BudgetVsActualRow[]>([]);

@@ -334,7 +334,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: t('cashFlowStatement.kpiOperating'), value: d.operatingCashFlow, sub: activeTab === 'indirect' && indirectData ? `CAF: ${fmt(indirectData.selfFinancingCapacity)}` : 'Encaiss. - Décaiss.' },
+          { label: t('cashFlowStatement.kpiOperating'), value: d.operatingCashFlow, sub: activeTab === 'indirect' && indirectData ? t('cashFlowStatement.kpiOperatingCaf', { value: fmt(indirectData.selfFinancingCapacity) }) : t('cashFlowStatement.kpiOperatingSub') },
           { label: t('cashFlowStatement.kpiInvesting'), value: d.investmentCashFlow, sub: t('cashFlowStatement.kpiInvestingSub') },
           { label: t('cashFlowStatement.kpiFinancing'), value: d.financingCashFlow, sub: t('cashFlowStatement.kpiFinancingSub') },
           { label: t('cashFlowStatement.kpiVariation'), value: d.cashFlowVariation, sub: t('cashFlowStatement.kpiVariationSub') },
