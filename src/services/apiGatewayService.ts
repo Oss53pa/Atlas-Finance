@@ -220,3 +220,43 @@ export async function deleteWebhook(id: string): Promise<void> {
   const { error } = await db.from('webhooks').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+// ── Logs API ─────────────────────────────────────────────────────────────────
+
+export interface ApiLogRecord {
+  id: string;
+  keyName: string | null;
+  endpoint: string;
+  method: string;
+  statusCode: number;
+  ipAddress: string | null;
+  userAgent: string | null;
+  responseTimeMs: number | null;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+/**
+ * Journal des appels à la passerelle (table api_logs). Visible par les membres
+ * de la société via RLS (jointure sur api_keys.tenant_id).
+ */
+export async function listApiLogs(limit = 100): Promise<ApiLogRecord[]> {
+  const { data, error } = await db
+    .from('api_logs')
+    .select('id, endpoint, method, status_code, ip_address, user_agent, response_time_ms, error_message, created_at, api_keys(name)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data || []).map((r: Record<string, any>) => ({
+    id: r.id,
+    keyName: r.api_keys?.name ?? null,
+    endpoint: r.endpoint,
+    method: r.method,
+    statusCode: r.status_code,
+    ipAddress: r.ip_address ?? null,
+    userAgent: r.user_agent ?? null,
+    responseTimeMs: r.response_time_ms ?? null,
+    errorMessage: r.error_message ?? null,
+    createdAt: r.created_at,
+  }));
+}

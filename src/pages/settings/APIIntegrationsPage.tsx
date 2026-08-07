@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { useData } from '../../contexts/DataContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
@@ -8,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import {
   listApiKeys, createApiKey, setApiKeyActive, deleteApiKey,
   listWebhooks, createWebhook, toggleWebhook, deleteWebhook,
+  listApiLogs,
   type ApiKeyRecord, type WebhookRecord,
 } from '../../services/apiGatewayService';
 import {
@@ -76,7 +76,6 @@ type DeletableItem = APIKeyData | WebhookData | IntegrationData;
 
 const APIIntegrationsPage: React.FC = () => {
   const { t } = useLanguage();
-  const { adapter } = useData();
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedAPI, setSelectedAPI] = useState<APIKeyData | null>(null);
   const [showAPIKey, setShowAPIKey] = useState<{ [key: string]: boolean }>({});
@@ -168,25 +167,44 @@ const APIIntegrationsPage: React.FC = () => {
     { id: 6, name: 'Microsoft Teams', category: t('apiIntegrations.catCommunication'), status: 'disconnected', icon: '👥', description: t('apiIntegrations.integTeamsDesc'), lastSync: null, dataPoints: 0 },
   ];
 
-  // Logs API — depuis la table auditLogs de l'adaptateur
-  const [apiLogs, setApiLogs] = useState<Array<{ id: number; timestamp: string; method: string; endpoint: string; status: number; duration: string; ip: string; userAgent: string; error?: string }>>([]);
+  // Logs API — journal réel des appels à la passerelle (table api_logs).
+  const [apiLogs, setApiLogs] = useState<Array<{ id: string; timestamp: string; method: string; endpoint: string; status: number; duration: string; ip: string; keyName: string | null; error?: string }>>([]);
+  const [logStatusFilter, setLogStatusFilter] = useState<'all' | 'success' | 'client' | 'server'>('all');
+  const [logsLoading, setLogsLoading] = useState(false);
+
+  const reloadLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const rows = await listApiLogs(100);
+      setApiLogs(rows.map((l) => ({
+        id: l.id,
+        timestamp: new Date(l.createdAt).toLocaleString('fr-FR'),
+        method: l.method,
+        endpoint: l.endpoint,
+        status: l.statusCode,
+        duration: l.responseTimeMs != null ? `${l.responseTimeMs}ms` : '—',
+        ip: l.ipAddress || '—',
+        keyName: l.keyName,
+        error: l.errorMessage || undefined,
+      })));
+    } catch {
+      setApiLogs([]);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    adapter.getAll<any>('auditLogs').then(logs => {
-      const mapped = logs.slice(0, 50).map((log: any, i: number) => ({
-        id: i + 1,
-        timestamp: log.timestamp || log.createdAt || new Date().toISOString(),
-        method: log.method || 'GET',
-        endpoint: log.endpoint || log.action || '/api/v1/unknown',
-        status: log.statusCode || 200,
-        duration: log.duration ? `${log.duration}ms` : '-',
-        ip: log.ip || '-',
-        userAgent: log.userAgent || log.source || 'Atlas FnA',
-        error: log.error || undefined,
-      }));
-      setApiLogs(mapped);
-    }).catch(() => { /* afficher liste vide */ });
-  }, [adapter]);
+    reloadLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const visibleLogs = apiLogs.filter((l) => {
+    if (logStatusFilter === 'success') return l.status >= 200 && l.status < 300;
+    if (logStatusFilter === 'client') return l.status >= 400 && l.status < 500;
+    if (logStatusFilter === 'server') return l.status >= 500;
+    return true;
+  });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -878,14 +896,20 @@ const APIIntegrationsPage: React.FC = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">{t('apiIntegrations.apiLogsTitle')}</h3>
               <div className="flex items-center gap-2">
-                <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm">
-                  <option>{t('apiIntegrations.allStatuses')}</option>
-                  <option>{t('apiIntegrations.successStatus')}</option>
-                  <option>{t('apiIntegrations.clientErrors')}</option>
-                  <option>{t('apiIntegrations.serverErrors')}</option>
+                <select
+                  value={logStatusFilter}
+                  onChange={(e) => setLogStatusFilter(e.target.value as typeof logStatusFilter)}
+                  className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm">
+                  <option value="all">{t('apiIntegrations.allStatuses')}</option>
+                  <option value="success">{t('apiIntegrations.successStatus')}</option>
+                  <option value="client">{t('apiIntegrations.clientErrors')}</option>
+                  <option value="server">{t('apiIntegrations.serverErrors')}</option>
                 </select>
-                <button className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-surface-hover)]" aria-label={t('apiIntegrations.refresh')}>
-                  <RefreshCw className="w-4 h-4" />
+                <button
+                  onClick={reloadLogs}
+                  disabled={logsLoading}
+                  className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm hover:bg-[var(--color-surface-hover)] disabled:opacity-50" aria-label={t('apiIntegrations.refresh')}>
+                  <RefreshCw className={`w-4 h-4 ${logsLoading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>
@@ -903,10 +927,10 @@ const APIIntegrationsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border-light)]">
-                  {apiLogs.length === 0 && (
+                  {visibleLogs.length === 0 && (
                     <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-400">{t('apiIntegrations.noLogs')}</td></tr>
                   )}
-                  {apiLogs.map((log) => (
+                  {visibleLogs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-[var(--color-text-secondary)]">{log.timestamp}</td>
                       <td className="px-4 py-3">
@@ -936,7 +960,7 @@ const APIIntegrationsPage: React.FC = () => {
 
             <div className="flex items-center justify-between">
               <div className="text-sm text-[var(--color-text-tertiary)]">
-                {apiLogs.length === 0 ? t('apiIntegrations.noEntries') : t('apiIntegrations.logsShowing', { count: String(apiLogs.length) })}
+                {visibleLogs.length === 0 ? t('apiIntegrations.noEntries') : t('apiIntegrations.logsShowing', { count: String(visibleLogs.length) })}
               </div>
               <div className="flex items-center gap-2">
                 <button className="px-3 py-1 border border-[var(--color-border)] rounded text-sm hover:bg-[var(--color-surface-hover)]">
