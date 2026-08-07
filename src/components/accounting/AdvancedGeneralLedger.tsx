@@ -102,6 +102,7 @@ const AdvancedGeneralLedger: React.FC = () => {
 
   // Nouvelles fonctionnalités intelligentes
   const [searchQuery, setSearchQuery] = useState('');
+  const [glPage, setGlPage] = useState(1); // pagination du grand livre (50 lignes/page)
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<AccountData[] | null>(null);
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
@@ -419,6 +420,15 @@ const AdvancedGeneralLedger: React.FC = () => {
       return true;
     });
   }, [flatEntries, searchQuery]);
+
+  // ─── Pagination réelle du grand livre (50 lignes/page) ───
+  const GL_PAGE_SIZE = 50;
+  const glTotalPages = Math.max(1, Math.ceil(searchedEntries.length / GL_PAGE_SIZE));
+  // Réinitialise à la page 1 quand la recherche change (sinon page hors limites).
+  useEffect(() => { setGlPage(1); }, [searchQuery]);
+  const glCurrentPage = Math.min(glPage, glTotalPages);
+  const glStart = (glCurrentPage - 1) * GL_PAGE_SIZE;
+  const pagedEntries = searchedEntries.slice(glStart, glStart + GL_PAGE_SIZE);
 
   const searchComptesConcernes = useMemo(
     () => new Set(searchedEntries.map((e) => e.compte)).size,
@@ -899,7 +909,7 @@ const AdvancedGeneralLedger: React.FC = () => {
                       </td>
                     </tr>
                   ) : null}
-                  {searchedEntries.slice(0, 50).map((entry, index) => (
+                  {pagedEntries.map((entry, index) => (
                     <tr key={entry.id} className="hover:bg-gray-50 group">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(entry.date).toLocaleDateString('fr-FR')}
@@ -1033,22 +1043,26 @@ const AdvancedGeneralLedger: React.FC = () => {
                 <div className="px-6 py-4 border-t bg-gray-50">
                   <div className="flex justify-between items-center">
                     <div className="text-sm text-gray-700">
-                      {t('gl.paginationShowing', { to: String(Math.min(50, flatEntries.length)), total: flatEntries.length.toLocaleString('fr-FR') })}
+                      {t('gl.paginationShowing', {
+                        to: `${searchedEntries.length === 0 ? 0 : glStart + 1}–${Math.min(glStart + GL_PAGE_SIZE, searchedEntries.length)}`,
+                        total: searchedEntries.length.toLocaleString('fr-FR'),
+                      })}
                     </div>
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={() => {}}
-                        disabled
+                        onClick={() => setGlPage((p) => Math.max(1, p - 1))}
+                        disabled={glCurrentPage <= 1}
                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('gl.previous')}
                       </button>
-                      <span className="px-3 py-1 text-sm bg-primary-100 text-primary-800 rounded font-medium">1</span>
-                      <span className="px-2 py-1 text-sm text-gray-700">...</span>
-                      <span className="px-2 py-1 text-sm text-gray-700">25</span>
+                      <span className="px-3 py-1 text-sm bg-primary-100 text-primary-800 rounded font-medium">
+                        {glCurrentPage} / {glTotalPages}
+                      </span>
                       <button
-                        onClick={() => {}}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50"
+                        onClick={() => setGlPage((p) => Math.min(glTotalPages, p + 1))}
+                        disabled={glCurrentPage >= glTotalPages}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {t('gl.next')}
                       </button>
