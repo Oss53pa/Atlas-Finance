@@ -24,7 +24,8 @@ import {
 } from 'lucide-react';
 
 const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-const DSO_THRESHOLD = 60; // seuil d'alerte du délai de recouvrement clients (jours)
+const DSO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de recouvrement clients (jours), par défaut
+const DSO_THRESHOLD_KEY = 'manager-dso-threshold';
 
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -45,6 +46,14 @@ const ManagerDashboard: React.FC = () => {
   });
   const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
   const [balHistory, setBalHistory] = useState<Array<{ label: string; creances: number; dettes: number }>>([]);
+  const [dsoThreshold, setDsoThreshold] = useState<number>(() => {
+    try { const v = Number(localStorage.getItem(DSO_THRESHOLD_KEY)); return v > 0 ? v : DSO_THRESHOLD_DEFAULT; } catch { return DSO_THRESHOLD_DEFAULT; }
+  });
+  const updateDsoThreshold = (v: number) => {
+    const val = Math.max(1, Math.min(365, Math.round(v || 0)));
+    setDsoThreshold(val);
+    try { localStorage.setItem(DSO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
+  };
 
   const handleExport = () => {
     const rows = [
@@ -172,11 +181,11 @@ const ManagerDashboard: React.FC = () => {
 
   // Alertes dérivées d'indicateurs réels (pas de notifications factices).
   const alerts: Array<{ type: string; title: string; message: string; action: string; time: string }> = [];
-  if (liveKpiData.dso > DSO_THRESHOLD) {
+  if (liveKpiData.dso > dsoThreshold) {
     alerts.push({
       type: 'warning',
       title: 'DSO élevé',
-      message: `Délai de recouvrement clients de ${liveKpiData.dso} jours (seuil ${DSO_THRESHOLD} j). Pensez à relancer les créances.`,
+      message: `Délai de recouvrement clients de ${liveKpiData.dso} jours (seuil ${dsoThreshold} j). Pensez à relancer les créances.`,
       action: 'Voir les créances',
       time: '',
     });
@@ -293,16 +302,32 @@ const ManagerDashboard: React.FC = () => {
 
         {/* Créances, dettes & ratios — postes de bilan (cumulés) et ratios réels */}
         <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
-            <span className="text-xs text-[var(--color-text-secondary)]">Encours cumulés · ratios sur la période</span>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-xs text-[var(--color-text-secondary)]">
+                <Clock className="w-3.5 h-3.5" />
+                Seuil alerte DSO
+                <input
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={dsoThreshold}
+                  onChange={(e) => updateDsoThreshold(Number(e.target.value))}
+                  className="w-16 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
+                  aria-label="Seuil d'alerte DSO en jours"
+                />
+                j
+              </label>
+              <span className="text-xs text-[var(--color-text-secondary)]">Encours cumulés · ratios sur la période</span>
+            </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
             {[
               { label: 'Créances clients', value: fmt(liveKpiData.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
               { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
               { label: 'BFR', value: fmt(liveKpiData.bfr), sub: 'Créances + stocks − dettes', icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
-              { label: 'DSO', value: `${liveKpiData.dso} j`, sub: 'Délai recouvrement clients', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: 'DSO', value: `${liveKpiData.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: liveKpiData.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
               { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: 'Délai paiement fourn.', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
               { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
               { label: 'Créances / Dettes', value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
