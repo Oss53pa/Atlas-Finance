@@ -23,6 +23,9 @@ import {
   Landmark
 } from 'lucide-react';
 
+const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+const DSO_THRESHOLD = 60; // seuil d'alerte du délai de recouvrement clients (jours)
+
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
   const fmt = useMoneyFormat();
@@ -41,6 +44,7 @@ const ManagerDashboard: React.FC = () => {
     receivables: 0, payables: 0, stocks: 0, bfr: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null,
   });
   const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
+  const [balHistory, setBalHistory] = useState<Array<{ label: string; creances: number; dettes: number }>>([]);
 
   const handleExport = () => {
     const rows = [
@@ -108,6 +112,17 @@ const ManagerDashboard: React.FC = () => {
         revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount,
         receivables, payables, stocks, bfr, dso, dpo, margeBrute, ratioCD,
       });
+
+      // Historique 6 mois : encours créances/dettes cumulés à la fin de chaque mois.
+      const anchor = range.to ? new Date(range.to) : new Date();
+      const hist: Array<{ label: string; creances: number; dettes: number }> = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthEnd = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - i + 1, 0));
+        const iso = monthEnd.toISOString().slice(0, 10);
+        const mm = computeDashboardMetrics(entries, { to: iso });
+        hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
+      }
+      setBalHistory(hist);
       // Top clients RÉELS = montants facturés (débit des comptes 411) agrégés par tiers.
       const byClient = new Map<string, number>();
       for (const e of entries) {
@@ -155,8 +170,35 @@ const ManagerDashboard: React.FC = () => {
     }
   ];
 
-  // TODO: wire alerts to real audit/notification system
+  // Alertes dérivées d'indicateurs réels (pas de notifications factices).
   const alerts: Array<{ type: string; title: string; message: string; action: string; time: string }> = [];
+  if (liveKpiData.dso > DSO_THRESHOLD) {
+    alerts.push({
+      type: 'warning',
+      title: 'DSO élevé',
+      message: `Délai de recouvrement clients de ${liveKpiData.dso} jours (seuil ${DSO_THRESHOLD} j). Pensez à relancer les créances.`,
+      action: 'Voir les créances',
+      time: '',
+    });
+  }
+  if (liveKpiData.treasury < 0) {
+    alerts.push({
+      type: 'warning',
+      title: 'Trésorerie négative',
+      message: `Trésorerie nette de ${fmt(liveKpiData.treasury)}.`,
+      action: 'Analyser',
+      time: '',
+    });
+  }
+  if (liveKpiData.pendingCount > 0) {
+    alerts.push({
+      type: 'info',
+      title: 'Écritures en attente',
+      message: `${liveKpiData.pendingCount} brouillon(s) à valider.`,
+      action: 'Valider',
+      time: '',
+    });
+  }
 
   const tabs = [
     { id: 'financial', label: 'Financier', icon: DollarSign },
@@ -278,6 +320,41 @@ const ManagerDashboard: React.FC = () => {
               );
             })}
           </div>
+
+          {/* Évolution créances vs dettes (6 derniers mois, encours de fin de mois) */}
+          {balHistory.length > 0 && (() => {
+            const maxVal = Math.max(1, ...balHistory.flatMap(h => [h.creances, h.dettes]));
+            return (
+              <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Évolution créances vs dettes (6 mois)</h3>
+                  <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-primary)]" /> Créances</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-warning)]" /> Dettes</span>
+                  </div>
+                </div>
+                <div className="flex items-end justify-between gap-3" style={{ height: 160 }}>
+                  {balHistory.map((h) => (
+                    <div key={h.label} className="flex-1 flex flex-col items-center justify-end h-full">
+                      <div className="flex items-end justify-center gap-1 w-full" style={{ height: 130 }}>
+                        <div
+                          className="rounded-t bg-[var(--color-primary)] transition-all"
+                          style={{ width: '38%', height: `${Math.max(2, (h.creances / maxVal) * 130)}px` }}
+                          title={`Créances ${h.label} : ${fmt(h.creances)}`}
+                        />
+                        <div
+                          className="rounded-t bg-[var(--color-warning)] transition-all"
+                          style={{ width: '38%', height: `${Math.max(2, (h.dettes / maxVal) * 130)}px` }}
+                          title={`Dettes ${h.label} : ${fmt(h.dettes)}`}
+                        />
+                      </div>
+                      <span className="text-[11px] text-[var(--color-text-secondary)] mt-2">{h.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -311,6 +388,9 @@ const ManagerDashboard: React.FC = () => {
             </div>
             
             <div className="space-y-4">
+              {alerts.length === 0 && (
+                <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">Aucune alerte — indicateurs dans les seuils.</p>
+              )}
               {alerts.map((alert, index) => (
                 <div key={index} className={`p-4 rounded-lg border-l-4 ${
                   alert.type === 'warning' ? 'bg-[var(--color-warning-lightest)] border-yellow-400' :
@@ -332,7 +412,7 @@ const ManagerDashboard: React.FC = () => {
                         }`}>
                           {alert.action} →
                         </button>
-                        <span className="text-xs text-[var(--color-text-secondary)]">Il y a {alert.time}</span>
+                        {alert.time && <span className="text-xs text-[var(--color-text-secondary)]">Il y a {alert.time}</span>}
                       </div>
                     </div>
                   </div>
