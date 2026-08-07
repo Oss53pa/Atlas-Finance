@@ -8,11 +8,13 @@
  */
 export type CumulView = 'exercice' | 'ytd' | 'glissant12';
 
-export interface CumulViewDef { key: CumulView; label: string }
+/** `labelKey` et non `label` : la table est figée au chargement du module, la
+ *  traduction doit être résolue au rendu via `t(v.labelKey)`. */
+export interface CumulViewDef { key: CumulView; labelKey: string }
 export const CUMUL_VIEWS: CumulViewDef[] = [
-  { key: 'exercice', label: 'Exercice' },
-  { key: 'ytd', label: 'Cumul YTD' },
-  { key: 'glissant12', label: '12 mois glissants' },
+  { key: 'exercice', labelKey: 'cumulView.fiscalYear' },
+  { key: 'ytd', labelKey: 'cumulView.ytd' },
+  { key: 'glissant12', labelKey: 'cumulView.rolling12' },
 ];
 
 const iso = (d: Date) => d.toISOString().slice(0, 10);

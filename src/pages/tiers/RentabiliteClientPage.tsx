@@ -18,6 +18,7 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { cumulRange, CUMUL_VIEWS as VIEWS, type CumulView } from '../../utils/cumulRange';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getClientRevenue, withCostToServe, buildWhaleCurve,
   type ClientNet, type ClientStatut, type WhalePoint,
@@ -32,6 +33,7 @@ const STATUT_STYLE: Record<ClientStatut, { label: string; cls: string }> = {
 const RentabiliteClientPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<CumulView>('exercice');
   const [refYear, setRefYear] = useState('');
@@ -85,7 +87,7 @@ const RentabiliteClientPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg border border-gray-300 overflow-hidden">
             {VIEWS.map(v => (
-              <button key={v.key} onClick={() => setView(v.key)} className={`px-3 py-1.5 text-sm ${view === v.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{v.label}</button>
+              <button key={v.key} onClick={() => setView(v.key)} className={`px-3 py-1.5 text-sm ${view === v.key ? 'bg-[var(--color-primary)] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>{t(v.labelKey)}</button>
             ))}
           </div>
           <button onClick={() => void load(view)} className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-2 text-sm">
@@ -117,7 +119,7 @@ const RentabiliteClientPage: React.FC = () => {
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">
-          <p className="text-xs text-gray-500">CA total ({VIEWS.find(v => v.key === view)?.label})</p>
+          <p className="text-xs text-gray-500">CA total ({t(VIEWS.find(v => v.key === view)?.labelKey ?? '')})</p>
           <p className="text-lg font-semibold text-gray-900">{formatCurrency(meta.caTotal)}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)] shadow-sm">

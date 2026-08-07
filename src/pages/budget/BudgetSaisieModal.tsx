@@ -16,10 +16,10 @@ import {
 } from '../../features/budget/services/budgetService';
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
 import { Plus, Save, Trash2, Table2, Lock, X } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 /** Comptes budgétables : investissement (classe 2) + exploitation (classes 6 & 7). */
 const BUDGET_CLASSES = ['2', '6', '7'];
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 type Row = BudgetLineEdit & { _dirty?: boolean; _new?: boolean };
 
 interface Props { open: boolean; onClose: () => void; onSaved?: () => void }
@@ -27,6 +27,8 @@ interface Props { open: boolean; onClose: () => void; onSaved?: () => void }
 const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
   const { adapter } = useData();
   const { toast } = useToast();
+  const { t } = useLanguage();
+  const MOIS = React.useMemo(() => t('budgetEntry.monthsShort').split(','), [t]);
   const [versionId, setVersionId] = useState('');
   const [annee, setAnnee] = useState('');
   const [statut, setStatut] = useState('brouillon');
@@ -40,7 +42,7 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
     setLoading(true);
     try {
       const fy = await getActiveFiscalYear(adapter);
-      if (!fy) { toast.error('Aucun exercice fiscal'); setLoading(false); return; }
+      if (!fy) { toast.error(t('budgetEntry.noFiscalYear')); setLoading(false); return; }
       setAnnee(fy.code);
       const vid = await ensureActiveVersion(adapter, fy.id, `Budget ${fy.code}`);
       setVersionId(vid);
@@ -52,7 +54,7 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
       setStatut(v?.statut || 'brouillon');
       setRows(lignes);
       setSections(secs);
-    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    } catch (e: any) { toast.error(e?.message || t('budgetEntry.error')); }
     finally { setLoading(false); }
   };
   useEffect(() => { if (open) load(); /* eslint-disable-next-line */ }, [open, adapter]);
@@ -69,16 +71,16 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
 
   const saveAll = async () => {
     const dirty = rows.filter(r => r._dirty && r.account_code.trim());
-    if (dirty.length === 0) { toast.info('Rien à enregistrer'); return; }
+    if (dirty.length === 0) { toast.info(t('budgetEntry.nothingToSave')); return; }
     setSaving(true);
     try {
       for (const row of dirty) {
         const id = await saveBudgetLine(adapter, versionId, { id: row.id || undefined, budget_type: row.budget_type, account_code: row.account_code, section_id: row.section_id, periods: row.periods });
         row.id = id; row._dirty = false; row._new = false;
       }
-      toast.success(`${dirty.length} ligne(s) enregistrée(s)`);
+      toast.success(t('budgetEntry.linesSaved', { count: String(dirty.length) }));
       onSaved?.(); load();
-    } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    } catch (e: any) { toast.error(e?.message || t('budgetEntry.error')); }
     finally { setSaving(false); }
   };
   const remove = async (idx: number) => {
@@ -94,49 +96,49 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center"><Table2 className="w-5 h-5 text-[var(--color-primary)]" /></div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">Saisie du Budget</h3>
-              <p className="text-xs text-gray-500">Exercice {annee} {locked && <span className="text-amber-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" />verrouillé</span>}</p>
+              <h3 className="text-base font-bold text-gray-900">{t('budgetEntry.title')}</h3>
+              <p className="text-xs text-gray-500">{t('budgetEntry.fiscalYear', { year: annee })} {locked && <span className="text-amber-700 inline-flex items-center gap-1"><Lock className="w-3 h-3" />{t('budgetEntry.lockedBadge')}</span>}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {!locked && <>
-              <button onClick={addRow} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1"><Plus className="w-4 h-4" />Ligne</button>
-              <button onClick={saveAll} disabled={saving} className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"><Save className="w-4 h-4" />{saving ? '…' : 'Enregistrer'}</button>
+              <button onClick={addRow} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1"><Plus className="w-4 h-4" />{t('budgetEntry.addLine')}</button>
+              <button onClick={saveAll} disabled={saving} className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-1.5"><Save className="w-4 h-4" />{saving ? '…' : t('budgetEntry.save')}</button>
             </>}
             <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
           </div>
         </div>
 
-        {locked && <div className="bg-amber-50 text-amber-800 px-4 py-2 text-xs">Version verrouillée : saisie désactivée (déverrouillez depuis « Versions & Validation »).</div>}
+        {locked && <div className="bg-amber-50 text-amber-800 px-4 py-2 text-xs">{t('budgetEntry.lockedNotice')}</div>}
 
         <div className="overflow-x-auto max-h-[60vh]">
           <table className="text-xs border-collapse min-w-[1000px]">
             <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
               <tr>
-                <th className="px-2 py-2 text-left font-semibold text-gray-600 sticky left-0 bg-gray-50 w-44">Compte</th>
-                <th className="px-2 py-2 text-left font-semibold text-gray-600 w-24">Type</th>
-                <th className="px-2 py-2 text-left font-semibold text-gray-600 w-40">Section / Centre</th>
+                <th className="px-2 py-2 text-left font-semibold text-gray-600 sticky left-0 bg-gray-50 w-44">{t('budgetEntry.colAccount')}</th>
+                <th className="px-2 py-2 text-left font-semibold text-gray-600 w-24">{t('budgetEntry.colType')}</th>
+                <th className="px-2 py-2 text-left font-semibold text-gray-600 w-40">{t('budgetEntry.colSection')}</th>
                 {MOIS.map(m => <th key={m} className="px-1 py-2 text-right font-semibold text-gray-600 w-20">{m}</th>)}
-                <th className="px-2 py-2 text-right font-semibold text-gray-600 w-24">Total</th>
+                <th className="px-2 py-2 text-right font-semibold text-gray-600 w-24">{t('budgetEntry.colTotal')}</th>
                 <th className="px-1 py-2 w-8"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {loading && <tr><td colSpan={17} className="px-4 py-8 text-center text-gray-400">Chargement…</td></tr>}
-              {!loading && rows.length === 0 && <tr><td colSpan={17} className="px-4 py-8 text-center text-gray-400">Aucune ligne. Ajoutez-en une.</td></tr>}
+              {loading && <tr><td colSpan={17} className="px-4 py-8 text-center text-gray-400">{t('budgetEntry.loading')}</td></tr>}
+              {!loading && rows.length === 0 && <tr><td colSpan={17} className="px-4 py-8 text-center text-gray-400">{t('budgetEntry.emptyRows')}</td></tr>}
               {rows.map((row, idx) => (
                 <tr key={row.id || `new-${idx}`} className={row._dirty ? 'bg-amber-50/40' : ''}>
                   <td className="px-2 py-1 sticky left-0 bg-white">
                     <AccountCombobox value={row.account_code} onChange={(code) => setCell(idx, 'account_code', code)}
-                      classPrefix={BUDGET_CLASSES} disabled={locked} placeholder="Compte…" inputClassName="w-36" />
+                      classPrefix={BUDGET_CLASSES} disabled={locked} placeholder={t('budgetEntry.accountPlaceholder')} inputClassName="w-36" />
                     <div className="text-[10px] text-gray-400 truncate max-w-[140px]" title={accountName(row.account_code)}>
-                      {row.account_code ? (accountName(row.account_code) || 'Compte hors référentiel') : ''}
+                      {row.account_code ? (accountName(row.account_code) || t('budgetEntry.accountOffChart')) : ''}
                     </div>
                   </td>
-                  <td className="px-2 py-1"><select value={row.budget_type} disabled={locked} onChange={e => setCell(idx, 'budget_type', e.target.value)} className="border border-gray-200 rounded px-1 py-1 disabled:bg-gray-50"><option value="exploitation">Exploit.</option><option value="investissement">Invest.</option></select></td>
+                  <td className="px-2 py-1"><select value={row.budget_type} disabled={locked} onChange={e => setCell(idx, 'budget_type', e.target.value)} className="border border-gray-200 rounded px-1 py-1 disabled:bg-gray-50"><option value="exploitation">{t('budgetEntry.typeOpex')}</option><option value="investissement">{t('budgetEntry.typeCapex')}</option></select></td>
                   <td className="px-2 py-1">
                     <select value={row.section_id || ''} disabled={locked} onChange={e => setSection(idx, e.target.value)} className="w-36 border border-gray-200 rounded px-1 py-1 disabled:bg-gray-50">
-                      <option value="">— Aucune —</option>
+                      <option value="">{t('budgetEntry.sectionNone')}</option>
                       {sections.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}
                     </select>
                   </td>
@@ -150,7 +152,7 @@ const BudgetSaisieModal: React.FC<Props> = ({ open, onClose, onSaved }) => {
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-gray-400 px-4 py-2">Compte : tapez pour rechercher dans le plan comptable (classes 2/6/7). Section/Centre : optionnel (gérez-les dans Comptabilité Analytique). Type déduit du compte, modifiable.</p>
+        <p className="text-[11px] text-gray-400 px-4 py-2">{t('budgetEntry.footnote')}</p>
       </DialogContent>
     </Dialog>
   );

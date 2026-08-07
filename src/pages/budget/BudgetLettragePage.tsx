@@ -15,9 +15,11 @@ import {
 } from '../../features/budget/services/engagementService';
 import { listCandidateLines, type CandidateLine } from '../../features/budget/services/lettrageService';
 import { Link2, Loader2, Sparkles, FileSignature, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const BudgetLettragePage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [engagements, setEngagements] = useState<BudgetEngagement[]>([]);
   const [selected, setSelected] = useState<BudgetEngagement | null>(null);
   const [candidates, setCandidates] = useState<CandidateLine[]>([]);
@@ -39,13 +41,13 @@ const BudgetLettragePage: React.FC = () => {
         // conserve la sélection si toujours présente
         setSelected((s) => (s ? eng.find((e) => e.id === s.id) ?? null : null));
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetMatching.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [adapter, refreshKey]);
+  }, [adapter, refreshKey, t]);
 
   const loadCandidates = useCallback(async (eng: BudgetEngagement) => {
     setSelected(eng); setLoadingCand(true); setCandidates([]); setError(null); setNotice(null);
@@ -53,11 +55,11 @@ const BudgetLettragePage: React.FC = () => {
       const c = await listCandidateLines(adapter, { accountCode: eng.account_code, resteAFacturer: engagementRestant(eng) });
       setCandidates(c);
     } catch (e: any) {
-      setError(e?.message || 'Erreur de chargement des candidats');
+      setError(e?.message || t('budgetMatching.candidatesLoadError'));
     } finally {
       setLoadingCand(false);
     }
-  }, [adapter]);
+  }, [adapter, t]);
 
   const rapprocher = useCallback(async (line: CandidateLine) => {
     if (!selected) return;
@@ -66,18 +68,18 @@ const BudgetLettragePage: React.FC = () => {
       const reste = engagementRestant(selected);
       const montant = Math.min(line.montant, reste > 0 ? reste : line.montant);
       await createRapprochement(adapter, { journalLineId: line.id, engagementId: selected.id, montant, mode: 'lettrage' });
-      setNotice(`Écriture ${line.entry_number ?? ''} rapprochée (${formatCurrency(montant)}).`);
+      setNotice(t('budgetMatching.matched', { entry: line.entry_number ?? '', amount: formatCurrency(montant) }));
       setRefreshKey((k) => k + 1);
       // recharge les candidats de l'engagement (statut/reste peuvent changer)
       const eng = (await listEngagements(adapter, { statut: ['ouvert', 'partiellement_facture', 'surfacture'] }))
         .find((e) => e.id === selected.id);
       if (eng) await loadCandidates(eng); else { setSelected(null); setCandidates([]); }
     } catch (e: any) {
-      setError(e?.message || 'Échec du rapprochement');
+      setError(e?.message || t('budgetMatching.matchFailed'));
     } finally {
       setBusyLine(null);
     }
-  }, [adapter, selected, loadCandidates]);
+  }, [adapter, selected, loadCandidates, t]);
 
   const suggestedCount = useMemo(() => candidates.filter((c) => c.suggested).length, [candidates]);
 
@@ -85,10 +87,10 @@ const BudgetLettragePage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header>
         <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-          <Link2 className="w-6 h-6 text-[var(--color-primary)]" /> Lettrage budgétaire a posteriori
+          <Link2 className="w-6 h-6 text-[var(--color-primary)]" /> {t('budgetMatching.title')}
         </h1>
         <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
-          Rapproche des écritures GL validées avec des engagements ouverts (lien non fait à la saisie).
+          {t('budgetMatching.subtitle')}
         </p>
       </header>
 
@@ -99,12 +101,12 @@ const BudgetLettragePage: React.FC = () => {
         {/* Engagements ouverts */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] flex items-center gap-2">
-            <FileSignature className="w-4 h-4" /> Engagements ouverts
+            <FileSignature className="w-4 h-4" /> {t('budgetMatching.openCommitments')}
           </div>
           {loading ? (
-            <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+            <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('budgetMatching.loading')}</div>
           ) : engagements.length === 0 ? (
-            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">Aucun engagement ouvert à lettrer.</div>
+            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t('budgetMatching.noOpenCommitment')}</div>
           ) : (
             <ul className="divide-y divide-[var(--color-border-light)] max-h-[520px] overflow-y-auto">
               {engagements.map((e) => {
@@ -132,15 +134,15 @@ const BudgetLettragePage: React.FC = () => {
         {/* Candidats GL */}
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-[var(--color-border)] text-xs font-medium uppercase tracking-wide text-[var(--color-text-secondary)] flex items-center justify-between">
-            <span>Écritures GL candidates</span>
-            {suggestedCount > 0 && <span className="inline-flex items-center gap-1 text-[var(--color-secondary)]"><Sparkles className="w-3.5 h-3.5" /> {suggestedCount} suggérée(s)</span>}
+            <span>{t('budgetMatching.candidateEntries')}</span>
+            {suggestedCount > 0 && <span className="inline-flex items-center gap-1 text-[var(--color-secondary)]"><Sparkles className="w-3.5 h-3.5" /> {t('budgetMatching.suggestedCount', { count: String(suggestedCount) })}</span>}
           </div>
           {!selected ? (
-            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">Sélectionnez un engagement à gauche.</div>
+            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t('budgetMatching.selectCommitment')}</div>
           ) : loadingCand ? (
-            <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Recherche…</div>
+            <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-10 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('budgetMatching.searching')}</div>
           ) : candidates.length === 0 ? (
-            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">Aucune écriture validée non rapprochée sur le compte {selected.account_code}.</div>
+            <div className="py-10 text-center text-sm text-[var(--color-text-secondary)]">{t('budgetMatching.noCandidate', { account: selected.account_code })}</div>
           ) : (
             <ul className="divide-y divide-[var(--color-border-light)] max-h-[520px] overflow-y-auto">
               {candidates.map((c) => (
@@ -154,7 +156,7 @@ const BudgetLettragePage: React.FC = () => {
                   </div>
                   <button onClick={() => rapprocher(c)} disabled={busyLine === c.id}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium hover:opacity-90 disabled:opacity-50 shrink-0">
-                    {busyLine === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />} Rapprocher
+                    {busyLine === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />} {t('budgetMatching.match')}
                   </button>
                 </li>
               ))}

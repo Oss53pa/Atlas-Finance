@@ -13,10 +13,12 @@ import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { getProjet, getProjetExecution, type CapexProjet, type ProjetExecution } from '../../features/budget/services/carService';
 import { commissionProject, type CommissioningResult } from '../../features/budget/services/commissioningService';
 import { Rocket, Loader2, ArrowLeft, AlertTriangle, PackageCheck, ClipboardCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
 const SCurve: React.FC<{ exec: ProjetExecution }> = ({ exec }) => {
+  const { t } = useLanguage();
   const W = 640, H = 240, pad = 36;
   const max = Math.max(exec.approprie, ...exec.points.map((p) => Math.max(p.planCumul, p.engageCumul, p.realiseCumul)), 1);
   const x = (i: number) => pad + (i / 11) * (W - 2 * pad);
@@ -25,13 +27,13 @@ const SCurve: React.FC<{ exec: ProjetExecution }> = ({ exec }) => {
     exec.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
   const yApp = y(exec.approprie);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Courbe en S">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label={t('projectCockpit.sCurveAria')}>
       {/* axes */}
       <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="currentColor" className="text-neutral-200 dark:text-neutral-700" />
       <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="currentColor" className="text-neutral-200 dark:text-neutral-700" />
       {/* montant approprié */}
       <line x1={pad} y1={yApp} x2={W - pad} y2={yApp} stroke="#C94A4A" strokeDasharray="4 3" strokeWidth="1" />
-      <text x={W - pad} y={yApp - 4} textAnchor="end" className="fill-[#C94A4A] text-[9px]">approprié</text>
+      <text x={W - pad} y={yApp - 4} textAnchor="end" className="fill-[#C94A4A] text-[9px]">{t('projectCockpit.appropriatedAxis')}</text>
       {/* séries : plan (sarcelle clair), engagé (bleu), réalisé (sarcelle) */}
       <path d={path('planCumul')} fill="none" stroke="var(--color-primary)" strokeOpacity="0.35" strokeWidth="2" />
       <path d={path('engageCumul')} fill="none" stroke="#3D6FA8" strokeWidth="2" />
@@ -45,6 +47,7 @@ const ProjetCockpitPage: React.FC = () => {
   const { id = '' } = useParams();
   const { adapter } = useData();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [projet, setProjet] = useState<CapexProjet | null>(null);
   const [exec, setExec] = useState<ProjetExecution | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,34 +62,34 @@ const ProjetCockpitPage: React.FC = () => {
       setLoading(true); setError(null);
       try {
         const p = await getProjet(adapter, id);
-        if (!p) { if (!cancelled) { setError('Projet introuvable.'); setLoading(false); } return; }
+        if (!p) { if (!cancelled) { setError(t('projectCockpit.projectNotFound')); setLoading(false); } return; }
         const a = await getDefaultAnnee(adapter);
         const e = await getProjetExecution(adapter, p, a);
         if (cancelled) return;
         setProjet(p); setExec(e);
-      } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      } catch (e: any) { if (!cancelled) setError(e?.message || t('projectCockpit.error')); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [adapter, id, refreshKey]);
+  }, [adapter, id, refreshKey, t]);
 
   const commission = useCallback(async () => {
     setBusy(true); setError(null);
     try { const r = await commissionProject(adapter, id); setComm(r); setRefreshKey((k) => k + 1); }
-    catch (e: any) { setError(e?.message || 'Échec mise en service'); } finally { setBusy(false); }
-  }, [adapter, id]);
+    catch (e: any) { setError(e?.message || t('projectCockpit.commissionFailed')); } finally { setBusy(false); }
+  }, [adapter, id, t]);
 
   const reste = useMemo(() => exec ? exec.approprie - exec.engage - exec.realise : 0, [exec]);
   const alerts = useMemo(() => {
     if (!exec || exec.approprie <= 0) return [] as { sev: 'danger' | 'warning'; msg: string }[];
     const out: { sev: 'danger' | 'warning'; msg: string }[] = [];
-    if (exec.engage + exec.realise > exec.approprie) out.push({ sev: 'danger', msg: 'CPX-DEP : projection > montant approprié (engagement à bloquer).' });
-    else if (exec.engage >= 0.9 * exec.approprie) out.push({ sev: 'warning', msg: 'CPX-ENG-90 : engagé cumulé ≥ 90 % du montant approprié.' });
+    if (exec.engage + exec.realise > exec.approprie) out.push({ sev: 'danger', msg: t('projectCockpit.alertOverrun') });
+    else if (exec.engage >= 0.9 * exec.approprie) out.push({ sev: 'warning', msg: t('projectCockpit.alertNear90') });
     return out;
-  }, [exec]);
+  }, [exec, t]);
 
-  if (loading) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
-  if (error || !projet || !exec) return <div className="p-6 text-center text-sm text-[var(--color-text-secondary)]">{error || 'Projet introuvable.'}</div>;
+  if (loading) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('projectCockpit.loading')}</div>;
+  if (error || !projet || !exec) return <div className="p-6 text-center text-sm text-[var(--color-text-secondary)]">{error || t('projectCockpit.projectNotFound')}</div>;
 
   const Kpi: React.FC<{ label: string; value: number; accent?: string }> = ({ label, value, accent = 'text-[var(--color-text-primary)]' }) => (
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
@@ -101,12 +104,12 @@ const ProjetCockpitPage: React.FC = () => {
         <button onClick={() => navigate('/capex')} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
         <div>
           <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Rocket className="w-5 h-5 text-[var(--color-primary)]" /> {projet.code} · {projet.libelle}</h1>
-          <p className="text-xs text-[var(--color-text-secondary)]">statut {projet.statut}{projet.date_mise_en_service_cible && ` · mise en service cible ${projet.date_mise_en_service_cible}`}</p>
+          <p className="text-xs text-[var(--color-text-secondary)]">{t('projectCockpit.statusLine', { status: projet.statut })}{projet.date_mise_en_service_cible && t('projectCockpit.targetInService', { date: projet.date_mise_en_service_cible })}</p>
         </div>
         <div className="flex-1" />
         {projet.statut === 'en_execution' && (
           <button onClick={commission} disabled={busy} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-secondary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />} Mettre en service
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <PackageCheck className="w-4 h-4" />} {t('projectCockpit.commission')}
           </button>
         )}
         {projet.statut === 'mis_en_service' && (
@@ -118,9 +121,9 @@ const ProjetCockpitPage: React.FC = () => {
 
       {comm && (
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-900 px-4 py-3 text-sm space-y-1">
-          <div className="font-medium text-emerald-700 dark:text-emerald-300">Immobilisation {comm.assetCode} créée (base {formatCurrency(comm.base)}).</div>
+          <div className="font-medium text-emerald-700 dark:text-emerald-300">{t('projectCockpit.assetCreated', { code: comm.assetCode, base: formatCurrency(comm.base) })}</div>
           <div className="text-xs text-emerald-700/80 dark:text-emerald-300/80 font-mono">
-            Écriture à valider en comptabilité : débit {comm.ecriture.debit_account} / crédit {comm.ecriture.credit_account} · {formatCurrency(comm.ecriture.montant)}
+            {t('projectCockpit.entryToPost', { debit: comm.ecriture.debit_account, credit: comm.ecriture.credit_account, amount: formatCurrency(comm.ecriture.montant) })}
           </div>
         </div>
       )}
@@ -132,19 +135,19 @@ const ProjetCockpitPage: React.FC = () => {
       ))}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Kpi label="Approprié" value={exec.approprie} accent="text-[var(--color-primary)] dark:text-[var(--color-primary)]" />
-        <Kpi label="Engagé" value={exec.engage} accent="text-[#3D6FA8]" />
-        <Kpi label="Réalisé" value={exec.realise} />
-        <Kpi label="Reste" value={reste} accent={reste < 0 ? 'text-red-600' : 'text-emerald-600'} />
+        <Kpi label={t('projectCockpit.kpiAppropriated')} value={exec.approprie} accent="text-[var(--color-primary)] dark:text-[var(--color-primary)]" />
+        <Kpi label={t('projectCockpit.kpiCommitted')} value={exec.engage} accent="text-[#3D6FA8]" />
+        <Kpi label={t('projectCockpit.kpiActual')} value={exec.realise} />
+        <Kpi label={t('projectCockpit.kpiRemaining')} value={reste} accent={reste < 0 ? 'text-red-600' : 'text-emerald-600'} />
       </div>
 
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">Courbe en S</h2>
+          <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">{t('projectCockpit.sCurve')}</h2>
           <div className="flex items-center gap-3 text-[11px] text-[var(--color-text-secondary)]">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] opacity-40 inline-block" /> Plan</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[#3D6FA8] inline-block" /> Engagé</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] inline-block" /> Réalisé</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] opacity-40 inline-block" /> {t('projectCockpit.legendPlan')}</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[#3D6FA8] inline-block" /> {t('projectCockpit.legendCommitted')}</span>
+            <span className="inline-flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-primary)] inline-block" /> {t('projectCockpit.legendActual')}</span>
           </div>
         </div>
         <SCurve exec={exec} />
