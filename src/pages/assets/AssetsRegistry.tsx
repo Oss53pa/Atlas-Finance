@@ -1,8 +1,9 @@
 
-import React, { useState, useMemo } from 'react'; // Palette Atlas FnA appliquée
+import React, { useState, useMemo, useRef } from 'react'; // Palette Atlas FnA appliquée
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import type { DBAsset } from '../../lib/db';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 import { supabase } from '@/lib/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -172,6 +173,24 @@ const AssetsRegistry: React.FC = () => {
 
   // États pour les modales Asset Master Data
   const [showAssetModal, setShowAssetModal] = useState(false);
+  const [qrAsset, setQrAsset] = useState<Asset | null>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
+
+  // Télécharge le QR affiché en fichier SVG (étiquetage physique des immobilisations).
+  const downloadQr = () => {
+    const svg = qrRef.current?.querySelector('svg');
+    if (!svg || !qrAsset) return;
+    const xml = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `qr_${qrAsset.asset_number || qrAsset.id}.svg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
   const [assetToEdit, setAssetToEdit] = useState<Asset | null>(null);
   const [rawAsset, setRawAsset] = useState<any>(null); // actif brut (toutes colonnes) pour préremplir le formulaire
@@ -496,9 +515,7 @@ const AssetsRegistry: React.FC = () => {
   };
 
   const handleQrCode = (asset: Asset) => {
-    // Générer ou afficher le QR Code
-    toast(t('assetsRegistry.qrCodeForAsset', { number: String(asset.asset_number) }));
-    // TODO: Implémenter la génération de QR Code
+    setQrAsset(asset);
   };
 
   const handleDuplicate = (asset: Asset) => {
@@ -527,9 +544,40 @@ const AssetsRegistry: React.FC = () => {
   };
 
   const handleExport = (asset: Asset) => {
-    // Exporter les données de l'actif
+    const sep = ';';
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const fields: Array<[string, unknown]> = [
+      ['Numéro', asset.asset_number],
+      ['Désignation', asset.description],
+      ['Classe', asset.asset_class],
+      ['Catégorie', asset.asset_category],
+      ['Identification', asset.asset_identification],
+      ['Localisation', asset.location],
+      ['Responsable', asset.employee || asset.technician],
+      ["Date d'acquisition", asset.acquisition_date],
+      ['Date de capitalisation', asset.capitalization_date],
+      ['Fin de garantie', asset.warranty_end],
+      ["Valeur d'acquisition", Math.round(asset.acquisition_cost || 0)],
+      ['Amortissements cumulés', Math.round(asset.historical_apc || 0)],
+      ['Valeur nette comptable', Math.round(asset.net_book_value || 0)],
+      ['Dotation ordinaire', Math.round(asset.ordinary_depreciation || 0)],
+      ['Valeur résiduelle', Math.round(asset.salvage_value || 0)],
+    ];
+    const rows = [['Champ', 'Valeur'].map(esc).join(sep), ...fields.map(([k, v]) => [k, v].map(esc).join(sep))];
+    const csv = '﻿' + rows.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `immobilisation_${asset.asset_number || asset.id}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
     toast.success(t('assetsRegistry.exportAssetData', { number: String(asset.asset_number) }));
-    // TODO: Implémenter l'export
   };
 
   const handleEditAssetModal = async (asset: Asset) => {
@@ -2044,6 +2092,28 @@ const AssetsRegistry: React.FC = () => {
             } as Record<string, string>;
           })() : undefined}
         />
+
+        {/* Modal QR Code — étiquette scannable de l'immobilisation */}
+        {qrAsset && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setQrAsset(null)}>
+            <div className="bg-white rounded-2xl p-6 w-full max-w-xs text-center" onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-base font-semibold text-gray-900 mb-0.5">QR Code — {qrAsset.asset_number}</h3>
+              <p className="text-xs text-gray-500 mb-4 truncate" title={qrAsset.description}>{qrAsset.description}</p>
+              <div ref={qrRef} className="flex justify-center mb-3">
+                <QRCodeSVG
+                  value={JSON.stringify({ type: 'asset', number: qrAsset.asset_number, id: qrAsset.id })}
+                  size={200}
+                  level="M"
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 mb-4">Scannez pour identifier l'immobilisation.</p>
+              <div className="flex gap-2">
+                <button onClick={() => setQrAsset(null)} className="flex-1 py-2 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50">Fermer</button>
+                <button onClick={downloadQr} className="flex-1 py-2 rounded-lg text-sm font-bold text-white" style={{ background: 'var(--color-primary)' }}>Télécharger (SVG)</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageContainer>
   );
