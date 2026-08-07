@@ -127,8 +127,8 @@ const AnalyticalAxesPage: React.FC = () => {
 
   useEffect(() => { loadAxes(); }, [adapter]);
 
-  // Compute filtered & paginated axesData from Dexie
-  const axesData = useMemo(() => {
+  // Axes filtrés (hors pagination) — réutilisés par le tableau ET l'export.
+  const filteredAxes = useMemo(() => {
     let filtered = allAxes;
     if (filters.search) {
       const s = filters.search.toLowerCase();
@@ -146,6 +146,12 @@ const AnalyticalAxesPage: React.FC = () => {
     if (filters.niveau) {
       filtered = filtered.filter((a: AxeData) => String(a.niveau) === filters.niveau);
     }
+    return filtered;
+  }, [allAxes, filters]);
+
+  // Compute filtered & paginated axesData from Dexie
+  const axesData = useMemo(() => {
+    const filtered = filteredAxes;
     const pageSize = 20;
     const start = (page - 1) * pageSize;
     const results = filtered.slice(start, start + pageSize);
@@ -342,6 +348,36 @@ const AnalyticalAxesPage: React.FC = () => {
     return colors[Math.min(niveau - 1, colors.length - 1)] || 'bg-gray-100 text-gray-800';
   };
 
+  // Export CSV des axes analytiques (respecte les filtres actifs).
+  const handleExportAxes = () => {
+    if (filteredAxes.length === 0) { toast.error('Aucun axe analytique à exporter.'); return; }
+    const sep = ';';
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ['Code', 'Libellé', 'Type', 'Niveau', 'Statut', 'Nb centres', 'Nb ventilations', 'Montant total', 'Responsable', 'Email responsable', 'Description'];
+    const lines = [header.map(esc).join(sep)];
+    for (const a of filteredAxes) {
+      lines.push([
+        a.code, a.libelle, a.type, a.niveau, a.statut,
+        a.nb_centres, a.nb_ventilations, Math.round(a.montant_total || 0),
+        a.responsable, a.email_responsable, a.description,
+      ].map(esc).join(sep));
+    }
+    const csv = '﻿' + lines.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `axes_analytiques_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Export généré — ${filteredAxes.length} axe(s).`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -362,7 +398,7 @@ const AnalyticalAxesPage: React.FC = () => {
               filtersOpen={showFilters}
               activeFilters={[filters.search, filters.type, filters.statut, filters.niveau].filter(Boolean).length}
             />
-            <Button variant="outline" onClick={() => toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' })}>
+            <Button variant="outline" onClick={handleExportAxes}>
               <Download className="mr-2 h-4 w-4" />
               Exporter
             </Button>
