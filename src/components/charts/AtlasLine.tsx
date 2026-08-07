@@ -17,6 +17,8 @@ export interface AtlasLineProps {
   series: LineSeries[];
   smooth?: boolean;
   showPoints?: boolean;
+  /** lignes de repère de l'axe des valeurs (défaut : oui) */
+  showGrid?: boolean;
   valueFormatter?: (n: number) => string;
   colors?: string[];
   height?: number;
@@ -28,7 +30,7 @@ export interface AtlasLineProps {
  * repères d'axe discrets. Couleurs Atlas.
  */
 const AtlasLine: React.FC<AtlasLineProps> = ({
-  categories, series, smooth = true, showPoints = true, valueFormatter,
+  categories, series, smooth = true, showPoints = true, showGrid = true, valueFormatter,
   colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => ({
@@ -42,7 +44,7 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
       axisLabel: { fontFamily: FONT_SANS, color: ATLAS_INK3, fontSize: 11, fontWeight: 600 },
     },
     yAxis: {
-      type: 'value', splitLine: { lineStyle: { color: ATLAS_HAIRLINE } },
+      type: 'value', splitLine: showGrid ? { lineStyle: { color: ATLAS_HAIRLINE } } : { show: false },
       axisLabel: { fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10 },
       axisLine: { show: false }, axisTick: { show: false },
     },
@@ -60,7 +62,7 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
         } : undefined,
       };
     }),
-  }), [categories, series, smooth, showPoints, valueFormatter, colors]);
+  }), [categories, series, smooth, showPoints, showGrid, valueFormatter, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };

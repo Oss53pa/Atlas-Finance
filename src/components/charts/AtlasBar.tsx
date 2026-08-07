@@ -15,6 +15,8 @@ export interface AtlasBarProps {
   horizontal?: boolean;
   stacked?: boolean;
   showValues?: boolean;
+  /** lignes de repère de l'axe des valeurs (défaut : oui) */
+  showGrid?: boolean;
   valueFormatter?: (n: number) => string;
   colors?: string[];
   height?: number;
@@ -27,7 +29,7 @@ export interface AtlasBarProps {
  */
 const AtlasBar: React.FC<AtlasBarProps> = ({
   categories, series, horizontal = false, stacked = false, showValues = true,
-  valueFormatter, colors = ATLAS_SERIES, height = 300, className,
+  showGrid = true, valueFormatter, colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => {
     const catAxis = {
@@ -36,7 +38,7 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
       axisLabel: { fontFamily: FONT_SANS, color: ATLAS_INK3, fontSize: 11, fontWeight: 600 },
     };
     const valAxis = {
-      type: 'value' as const, splitLine: { lineStyle: { color: ATLAS_HAIRLINE } },
+      type: 'value' as const, splitLine: showGrid ? { lineStyle: { color: ATLAS_HAIRLINE } } : { show: false },
       axisLabel: { fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10 },
       axisLine: { show: false }, axisTick: { show: false },
     };
@@ -60,7 +62,7 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
         } : undefined,
       })),
     };
-  }, [categories, series, horizontal, stacked, showValues, valueFormatter, colors]);
+  }, [categories, series, horizontal, stacked, showValues, showGrid, valueFormatter, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };

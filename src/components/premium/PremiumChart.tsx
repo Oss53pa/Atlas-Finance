@@ -1,8 +1,7 @@
-import React from 'react';
-import {
-  ResponsiveContainer, AreaChart, Area, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Legend,
-} from 'recharts';
+import React, { useMemo } from 'react';
+import type { EChartsOption } from 'echarts';
+import * as echarts from 'echarts';
+import { EChart, ATLAS_HAIRLINE, FONT_SANS, FONT_MONO } from '../charts';
 
 export type PremiumSeries = {
   key: string;
@@ -14,12 +13,12 @@ export type PremiumSeries = {
 };
 
 // Petrol Cream — 'gold' = pétrole (série principale), 'obsidian' = ambre (série spark)
-const TONE: Record<NonNullable<PremiumSeries['tone']>, { stroke: string; fill: string }> = {
-  gold:     { stroke: '#235A6E', fill: 'rgba(35,90,110,0.16)' },
-  obsidian: { stroke: '#E89A2E', fill: 'rgba(232,154,46,0.16)' },
-  success:  { stroke: '#15803D', fill: 'rgba(21,128,61,0.14)' },
-  danger:   { stroke: '#C0322B', fill: 'rgba(192,50,43,0.12)' },
-  muted:    { stroke: '#8A8170', fill: 'rgba(138,129,112,0.10)' },
+const TONE: Record<NonNullable<PremiumSeries['tone']>, string> = {
+  gold:     '#235A6E',
+  obsidian: '#E89A2E',
+  success:  '#15803D',
+  danger:   '#C0322B',
+  muted:    '#8A8170',
 };
 
 export interface PremiumChartProps {
@@ -31,148 +30,93 @@ export interface PremiumChartProps {
   showLegend?: boolean;
 }
 
-const CustomTooltip: React.FC<any> = ({ active, payload, label, yFormatter }) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div
-      style={{
-        background: '#13323D',
-        color: '#F7F5EF',
-        borderRadius: 10,
-        padding: '0.625rem 0.75rem',
-        fontSize: 12,
-        boxShadow: '0 12px 24px -8px rgba(38,30,21,0.34)',
-        border: '1px solid rgba(232,154,46,0.22)',
-        minWidth: 140,
-      }}
-    >
-      <div className="eyebrow-gold mb-1.5" style={{ fontSize: 9, color: '#E89A2E' }}>{label}</div>
-      {payload.map((p: any, i: number) => (
-        <div key={i} className="flex items-center justify-between gap-3" style={{ marginTop: 2 }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 8, height: 2, background: p.color, display: 'inline-block', borderRadius: 1 }} />
-            <span style={{ color: 'rgba(247,245,239,0.65)' }}>{p.name}</span>
-          </span>
-          <span className="num-tabular font-semibold" style={{ color: '#F7F5EF' }}>
-            {yFormatter ? yFormatter(p.value) : p.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
+/**
+ * PremiumChart — courbes/aplats « Daylight Pro » sur le socle ECharts du kit Atlas.
+ * Conserve l'API historique (xLabels + séries à tonalité/variante) et l'infobulle
+ * sombre de la maquette. Les couleurs sont en hex : un canvas ne résout pas les
+ * var(--color-*) (rendu noir).
+ */
 const PremiumChart: React.FC<PremiumChartProps> = ({
   xLabels, series, height = 240, yFormatter, showGrid = true, showLegend = false,
 }) => {
-  // Merge data into an array of objects keyed by series.key
-  const data = xLabels.map((label, idx) => {
-    const row: Record<string, any> = { x: label };
-    series.forEach((s) => { row[s.key] = s.data[idx] ?? null; });
-    return row;
-  });
+  const option = useMemo<EChartsOption>(() => {
+    const plotted = series.filter((s) => !s.reference);
+    const refs = series.filter((s) => s.reference);
 
-  const hasArea = series.some((s) => s.variant === 'area' || !s.variant);
-  const ChartComp: any = hasArea ? AreaChart : LineChart;
+    return {
+      grid: { left: 4, right: 16, top: showLegend ? 30 : 12, bottom: 4, containLabel: true },
+      legend: showLegend
+        ? {
+            top: 0, itemWidth: 14, itemHeight: 3, icon: 'roundRect',
+            textStyle: { fontFamily: FONT_SANS, fontSize: 11, fontWeight: 600, color: '#8B8272' },
+            data: plotted.map((s) => s.label),
+          }
+        : undefined,
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: '#13323D',
+        borderColor: 'rgba(232,154,46,0.22)',
+        borderWidth: 1,
+        padding: [10, 12],
+        extraCssText: 'border-radius:10px;box-shadow:0 12px 24px -8px rgba(38,30,21,0.34);',
+        textStyle: { color: '#F7F5EF', fontFamily: FONT_SANS, fontSize: 12 },
+        valueFormatter: yFormatter ? (v) => yFormatter(Number(v)) : undefined,
+      },
+      xAxis: {
+        type: 'category', boundaryGap: false, data: xLabels,
+        axisLine: { lineStyle: { color: ATLAS_HAIRLINE } }, axisTick: { show: false },
+        axisLabel: { fontFamily: FONT_SANS, color: '#8B8272', fontSize: 11 },
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: showGrid ? { lineStyle: { color: ATLAS_HAIRLINE, type: 'dashed' } } : { show: false },
+        axisLine: { show: false }, axisTick: { show: false },
+        axisLabel: {
+          fontFamily: FONT_MONO, color: '#8B8272', fontSize: 10,
+          formatter: yFormatter ? (v: number) => yFormatter(Number(v)) : undefined,
+        },
+      },
+      series: [
+        ...plotted.map((s) => {
+          const col = TONE[s.tone ?? 'gold'];
+          const isArea = s.variant === 'area' || !s.variant;
+          return {
+            name: s.label, type: 'line' as const, data: s.data, smooth: true,
+            symbol: 'circle', symbolSize: 0, showSymbol: false,
+            emphasis: { focus: 'series' as const, itemStyle: { borderColor: '#fff', borderWidth: 2 } },
+            itemStyle: { color: col, borderColor: '#fff', borderWidth: 2 },
+            lineStyle: { width: 2, color: col, type: s.variant === 'dashed' ? ('dashed' as const) : ('solid' as const) },
+            areaStyle: isArea
+              ? {
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: col + '52' }, { offset: 1, color: col + '00' },
+                  ]),
+                }
+              : undefined,
+          };
+        }),
+        // Cibles : une ligne horizontale à la dernière valeur de la série repère.
+        ...(refs.length
+          ? [{
+              type: 'line' as const, data: [] as number[], silent: true,
+              markLine: {
+                symbol: 'none',
+                data: refs.map((r) => ({
+                  yAxis: r.data[r.data.length - 1] ?? 0,
+                  lineStyle: { color: TONE[r.tone ?? 'muted'], type: 'dashed' as const, width: 1.5 },
+                  label: {
+                    formatter: r.label, position: 'insideEndTop' as const,
+                    fontFamily: FONT_SANS, fontSize: 10, color: TONE[r.tone ?? 'muted'],
+                  },
+                })),
+              },
+            }]
+          : []),
+      ],
+    };
+  }, [xLabels, series, yFormatter, showGrid, showLegend]);
 
-  return (
-    <div style={{ width: '100%', height }}>
-      <ResponsiveContainer>
-        <ChartComp data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-          <defs>
-            {series.map((s) => {
-              const tone = TONE[s.tone ?? 'gold'];
-              return (
-                <linearGradient key={s.key} id={`grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={tone.stroke} stopOpacity={0.32} />
-                  <stop offset="100%" stopColor={tone.stroke} stopOpacity={0} />
-                </linearGradient>
-              );
-            })}
-          </defs>
-
-          {showGrid && (
-            <CartesianGrid
-              strokeDasharray="2 4"
-              stroke="var(--color-border)"
-              vertical={false}
-            />
-          )}
-
-          <XAxis
-            dataKey="x"
-            tick={{ fill: 'var(--color-text-tertiary)', fontSize: 11 }}
-            tickLine={false}
-            axisLine={{ stroke: 'var(--color-border)' }}
-            interval="preserveStartEnd"
-          />
-          <YAxis
-            tick={{ fill: 'var(--color-text-tertiary)', fontSize: 11 }}
-            tickLine={false}
-            axisLine={false}
-            tickFormatter={yFormatter}
-            width={42}
-          />
-
-          <Tooltip content={<CustomTooltip yFormatter={yFormatter} />} cursor={{ stroke: 'var(--color-accent)', strokeWidth: 1, strokeDasharray: '3 3' }} />
-
-          {showLegend && (
-            <Legend
-              iconType="plainline"
-              wrapperStyle={{ fontSize: 11, color: 'var(--color-text-tertiary)' }}
-            />
-          )}
-
-          {series.map((s) => {
-            const tone = TONE[s.tone ?? 'gold'];
-            if (s.reference) {
-              const ref = s.data[s.data.length - 1] ?? 0;
-              return (
-                <ReferenceLine
-                  key={s.key}
-                  y={ref}
-                  stroke={tone.stroke}
-                  strokeDasharray="4 4"
-                  strokeWidth={1.5}
-                  ifOverflow="extendDomain"
-                  label={{ value: s.label, position: 'right', fill: tone.stroke, fontSize: 10 }}
-                />
-              );
-            }
-            if (s.variant === 'line' || s.variant === 'dashed' || ChartComp === LineChart) {
-              return (
-                <Line
-                  key={s.key}
-                  type="monotone"
-                  dataKey={s.key}
-                  name={s.label}
-                  stroke={tone.stroke}
-                  strokeWidth={2}
-                  strokeDasharray={s.variant === 'dashed' ? '5 4' : undefined}
-                  dot={false}
-                  activeDot={{ r: 4, fill: tone.stroke, stroke: '#FFFFFF', strokeWidth: 2 }}
-                  isAnimationActive
-                />
-              );
-            }
-            return (
-              <Area
-                key={s.key}
-                type="monotone"
-                dataKey={s.key}
-                name={s.label}
-                stroke={tone.stroke}
-                strokeWidth={2}
-                fill={`url(#grad-${s.key})`}
-                activeDot={{ r: 4, fill: tone.stroke, stroke: '#FFFFFF', strokeWidth: 2 }}
-                isAnimationActive
-              />
-            );
-          })}
-        </ChartComp>
-      </ResponsiveContainer>
-    </div>
-  );
+  return <EChart option={option} height={height} />;
 };
 
 export default PremiumChart;
