@@ -5,7 +5,9 @@ import { ATLAS_SERIES, ATLAS_INK, ATLAS_INK3, ATLAS_HAIRLINE, FONT_SANS, FONT_MO
 
 export interface BarSeries {
   name: string;
-  data: number[];
+  /** `null` = pas de valeur pour cette catégorie (mois à venir, période non close) :
+   *  la barre est absente, ce qui ne se confond pas avec un zéro mesuré. */
+  data: (number | null)[];
   color?: string;
   /** couleur par barre (une entrée par catégorie) — prime sur `color` */
   itemColors?: (string | undefined)[];
@@ -22,6 +24,8 @@ export interface AtlasBarProps {
   valueFormatter?: (n: number) => string;
   /** formateur des graduations de l'axe des valeurs (défaut : `valueFormatter`) */
   axisFormatter?: (n: number) => string;
+  /** repère horizontal (cible, seuil, 100 % consommé…) */
+  referenceLine?: { value: number; label?: string; color?: string };
   colors?: string[];
   height?: number;
   className?: string;
@@ -33,7 +37,7 @@ export interface AtlasBarProps {
  */
 const AtlasBar: React.FC<AtlasBarProps> = ({
   categories, series, horizontal = false, stacked = false, showValues = true,
-  showGrid = true, valueFormatter, axisFormatter, colors = ATLAS_SERIES, height = 300, className,
+  showGrid = true, valueFormatter, axisFormatter, referenceLine, colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => {
     const catAxis = {
@@ -56,7 +60,7 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, valueFormatter: valueFormatter ? (v) => valueFormatter(Number(v)) : undefined, textStyle: { fontFamily: FONT_SANS } },
       xAxis: horizontal ? valAxis : catAxis,
       yAxis: horizontal ? catAxis : valAxis,
-      series: series.map((s, i) => ({
+      series: series.map((s, i, all) => ({
         name: s.name, type: 'bar' as const,
         data: s.itemColors
           ? s.data.map((v, k) => ({ value: v, itemStyle: { color: s.itemColors![k] || s.color || colors[i % colors.length] } }))
@@ -67,12 +71,24 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
         showBackground: !stacked, backgroundStyle: { color: ATLAS_HAIRLINE, borderRadius: 12 },
         label: showValues && !stacked ? {
           show: true, position: horizontal ? 'right' : 'top',
-          formatter: (p: any) => (valueFormatter ? valueFormatter(Number(p.value)) : String(p.value)),
+          formatter: (p: any) => (p.value == null ? '' : valueFormatter ? valueFormatter(Number(p.value)) : String(p.value)),
           fontFamily: FONT_MONO, color: ATLAS_INK, fontWeight: 700, fontSize: 10.5,
+        } : undefined,
+        // Le repère est porté par la dernière série pour rester au-dessus des barres.
+        markLine: referenceLine && i === all.length - 1 ? {
+          silent: true, symbol: 'none',
+          data: [{ [horizontal ? 'xAxis' : 'yAxis']: referenceLine.value }],
+          lineStyle: { color: referenceLine.color || ATLAS_INK3, type: 'dashed', width: 1.5 },
+          label: {
+            show: !!referenceLine.label, formatter: referenceLine.label ?? '',
+            position: horizontal ? 'end' : 'insideEndTop',
+            fontFamily: FONT_SANS, fontSize: 10, fontWeight: 700,
+            color: referenceLine.color || ATLAS_INK3,
+          },
         } : undefined,
       })),
     };
-  }, [categories, series, horizontal, stacked, showValues, showGrid, valueFormatter, axisFormatter, colors]);
+  }, [categories, series, horizontal, stacked, showValues, showGrid, valueFormatter, axisFormatter, referenceLine, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };

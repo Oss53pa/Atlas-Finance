@@ -13,33 +13,26 @@ import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { getProjet, getProjetExecution, type CapexProjet, type ProjetExecution } from '../../features/budget/services/carService';
 import { commissionProject, type CommissioningResult } from '../../features/budget/services/commissioningService';
 import { Rocket, Loader2, ArrowLeft, AlertTriangle, PackageCheck, ClipboardCheck } from 'lucide-react';
+import { AtlasLine, ATLAS_AMBER, ATLAS_ERROR, ATLAS_PETROL } from '../../components/charts';
 
 const MOIS = ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 
-const SCurve: React.FC<{ exec: ProjetExecution }> = ({ exec }) => {
-  const W = 640, H = 240, pad = 36;
-  const max = Math.max(exec.approprie, ...exec.points.map((p) => Math.max(p.planCumul, p.engageCumul, p.realiseCumul)), 1);
-  const x = (i: number) => pad + (i / 11) * (W - 2 * pad);
-  const y = (v: number) => H - pad - (v / max) * (H - 2 * pad);
-  const path = (key: 'planCumul' | 'engageCumul' | 'realiseCumul') =>
-    exec.points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(p[key]).toFixed(1)}`).join(' ');
-  const yApp = y(exec.approprie);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Courbe en S">
-      {/* axes */}
-      <line x1={pad} y1={H - pad} x2={W - pad} y2={H - pad} stroke="currentColor" className="text-neutral-200 dark:text-neutral-700" />
-      <line x1={pad} y1={pad} x2={pad} y2={H - pad} stroke="currentColor" className="text-neutral-200 dark:text-neutral-700" />
-      {/* montant approprié */}
-      <line x1={pad} y1={yApp} x2={W - pad} y2={yApp} stroke="#C94A4A" strokeDasharray="4 3" strokeWidth="1" />
-      <text x={W - pad} y={yApp - 4} textAnchor="end" className="fill-[#C94A4A] text-[9px]">approprié</text>
-      {/* séries : plan (sarcelle clair), engagé (bleu), réalisé (sarcelle) */}
-      <path d={path('planCumul')} fill="none" stroke="var(--color-primary)" strokeOpacity="0.35" strokeWidth="2" />
-      <path d={path('engageCumul')} fill="none" stroke="#3D6FA8" strokeWidth="2" />
-      <path d={path('realiseCumul')} fill="none" stroke="var(--color-primary)" strokeWidth="2.5" />
-      {MOIS.map((m, i) => <text key={i} x={x(i)} y={H - pad + 14} textAnchor="middle" className="fill-neutral-400 text-[9px]">{m}</text>)}
-    </svg>
-  );
-};
+// Courbe en S : plan / engagé / réalisé en cumulé, sous le plafond approprié.
+// Le tracé maison n'avait aucune légende — trois courbes de couleurs différentes
+// sans clé de lecture — ni valeur au survol.
+const SCurve: React.FC<{ exec: ProjetExecution }> = ({ exec }) => (
+  <AtlasLine
+    categories={MOIS}
+    series={[
+      { name: 'Plan', data: exec.points.map((p) => p.planCumul), color: '#7FA3AF' },
+      { name: 'Engagé', data: exec.points.map((p) => p.engageCumul), color: ATLAS_AMBER },
+      { name: 'Réalisé', data: exec.points.map((p) => p.realiseCumul), color: ATLAS_PETROL, area: true },
+    ]}
+    referenceLine={{ value: exec.approprie, label: 'approprié', color: ATLAS_ERROR }}
+    valueFormatter={(v) => formatCurrency(Math.round(v))}
+    height={260}
+  />
+);
 
 const ProjetCockpitPage: React.FC = () => {
   const { id = '' } = useParams();
