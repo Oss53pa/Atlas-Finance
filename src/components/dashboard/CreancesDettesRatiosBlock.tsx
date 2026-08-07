@@ -125,6 +125,10 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   if (consecutiveNegTreso >= tresoPersistThreshold) alerts.push(`Trésorerie négative persistante : ${consecutiveNegTreso} mois consécutifs (seuil ${tresoPersistThreshold})`);
   if (data.ratioCD != null && data.ratioCD < ratioCdThreshold) alerts.push(`Ratio créances/dettes dégradé : ${data.ratioCD.toFixed(2)} (seuil ${ratioCdThreshold})`);
 
+  // Alertes informatives (conditions notables, non alarmantes).
+  const infoAlerts: string[] = [];
+  if (data.bfr < 0) infoAlerts.push(`BFR négatif : ${fmt(data.bfr)} — ressource en fonds de roulement (le cycle d'exploitation finance l'activité)`);
+
   const cards = [
     { label: 'Créances clients', value: fmt(data.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
     { label: 'Dettes fournisseurs', value: fmt(data.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
@@ -186,6 +190,16 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
           {alerts.map((a, i) => (
             <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-[var(--color-warning-lightest)] border-l-4 border-yellow-400 text-[var(--color-text-primary)]">
               <span className="font-medium">⚠ {a}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showAlerts && infoAlerts.length > 0 && (
+        <div className="mb-4 space-y-2">
+          {infoAlerts.map((a, i) => (
+            <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-lg bg-[var(--color-primary-lightest)] border-l-4 border-blue-400 text-[var(--color-text-primary)]">
+              <span className="font-medium">ℹ {a}</span>
             </div>
           ))}
         </div>
