@@ -95,6 +95,15 @@ const ReportingSyscohada: React.FC = () => {
   const { adapter } = useData();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  // Deep-link registre → état réel calculé depuis le grand livre.
+  const STATEMENT_ROUTES: Partial<Record<SyscohadaReport['reportType'], string>> = {
+    bilan_syscohada: '/financial-statements/balance',
+    compte_resultat_syscohada: '/financial-statements/income',
+    tableau_tresorerie: '/financial-statements/cash-flow',
+    tafire: '/financial-statements/cash-flow',
+    notes_annexes: '/accounting/financial-statements',
+  };
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -912,6 +921,14 @@ const ReportingSyscohada: React.FC = () => {
                   >
                     {reportModal.mode === 'view' ? 'Fermer' : 'Annuler'}
                   </ElegantButton>
+                  {reportModal.mode === 'view' && reportModal.report && STATEMENT_ROUTES[reportModal.report.reportType] && (
+                    <ElegantButton
+                      variant="primary"
+                      onClick={() => navigate(STATEMENT_ROUTES[reportModal.report!.reportType]!)}
+                    >
+                      Ouvrir l'état
+                    </ElegantButton>
+                  )}
                   {reportModal.mode !== 'view' && (
                     <ElegantButton variant="primary" onClick={() => navigate('/reporting/builder')}>
                       Ouvrir le générateur de rapports
