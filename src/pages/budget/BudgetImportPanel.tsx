@@ -23,8 +23,15 @@ import {
   classifyImportRows, buildImportContext, type RawImportRow, type RejectedRow, type ClassifyContext,
 } from '../../features/budget/services/budgetImportService';
 import { Upload, Download, FileSpreadsheet, CheckCircle, AlertTriangle, X, GitBranch, LayoutTemplate, XCircle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+// Alias de détection : un fichier peut arriver avec des en-têtes FR, EN ou ES.
+const MONTH_ALIASES: string[][] = [
+  ['Janvier', 'January', 'Enero'], ['Février', 'February', 'Febrero'], ['Mars', 'March', 'Marzo'],
+  ['Avril', 'April', 'Abril'], ['Mai', 'May', 'Mayo'], ['Juin', 'June', 'Junio'],
+  ['Juillet', 'July', 'Julio'], ['Août', 'August', 'Agosto'], ['Septembre', 'September', 'Septiembre'],
+  ['Octobre', 'October', 'Octubre'], ['Novembre', 'November', 'Noviembre'], ['Décembre', 'December', 'Diciembre'],
+];
 const norm = (s: string) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 function parseNumber(v: any): number {
   if (v == null || v === '') return 0;
@@ -46,6 +53,7 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   const { adapter } = useData();
   const { format: fmtAccount } = useAccountNames();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<BudgetImportLine[]>([]);
   const [fileName, setFileName] = useState('');
@@ -71,7 +79,7 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
 
   // Modèle Excel = STRUCTURE STANDARD complète (référentiel SYSCOHADA).
   const downloadTemplate = () => {
-    const { budget, notice } = buildStandardTemplateSheets(MONTHS);
+    const { budget, notice } = buildStandardTemplateSheets(t('budgetImport.monthsLong').split(','));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(budget), 'Budget');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(notice), 'Notice');
@@ -82,13 +90,13 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   const loadStandardSkeleton = () => {
     setRows(buildStandardImportLines());
     setRejected([]);
-    setFileName('Structure standard SYSCOHADA');
-    setWarnings(['Squelette à 0 : chiffrez ensuite les montants via « Saisir » ou par ré-import.']);
-    toast.success(`${standardCounts().total} lignes standard chargées`);
+    setFileName(t('budgetImport.standardSkeletonName'));
+    setWarnings([t('budgetImport.skeletonWarning')]);
+    toast.success(t('budgetImport.standardLinesLoaded', { count: String(standardCounts().total) }));
   };
 
   const downloadReport = () => {
-    const header = 'Ligne;Compte;Motifs\n';
+    const header = [t('budgetImport.colRow'), t('budgetImport.colAccount'), t('budgetImport.colReasons')].join(';') + '\n';
     const body = rejected.map((r) => `${r.rowNumber};${r.account_code};"${r.reasons.join(' | ')}"`).join('\n');
     const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -102,15 +110,18 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       const buf = await file.arrayBuffer();
       const wb = XLSX.read(buf, { type: 'array' });
       const data = XLSX.utils.sheet_to_json<any>(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-      if (data.length === 0) { toast.error('Fichier vide'); return; }
+      if (data.length === 0) { toast.error(t('budgetImport.emptyFile')); return; }
       const cols = Object.keys(data[0]);
       const find = (...cands: string[]) => cols.find(c => cands.includes(norm(c)));
       const compteCol = find('compte', 'account', 'accountcode', 'numerocompte', 'numerodecompte');
       const typeCol = find('type', 'typeexploitationinvestissement', 'budgettype');
       const sectionCol = find('section', 'sectionoptionnel', 'sectionanalytique');
-      const monthCols = MONTHS.map((m, i) => cols.find(c => [norm(m), norm(m.slice(0, 3)), String(i + 1), `m${i + 1}`, `mois${i + 1}`].includes(norm(c))));
+      const monthCols = MONTH_ALIASES.map((names, i) => cols.find(c => [
+        ...names.flatMap(n => [norm(n), norm(n.slice(0, 3))]),
+        String(i + 1), `m${i + 1}`, `mois${i + 1}`, `month${i + 1}`, `mes${i + 1}`,
+      ].includes(norm(c))));
       const annualCol = find('annuel', 'total', 'montant', 'montantannuel');
-      if (!compteCol) { toast.error('Colonne « Compte » introuvable'); return; }
+      if (!compteCol) { toast.error(t('budgetImport.accountColMissing')); return; }
       const localWarnings: string[] = [];
       const parsed: BudgetImportLine[] = [];
       for (const r of data) {
@@ -125,17 +136,17 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
         if (!hasMonthly && annualCol) { const per = Math.round((parseNumber(r[annualCol]) / 12) * 100) / 100; for (let i = 1; i <= 12; i++) periods[i] = per; }
         parsed.push({ account_code, budget_type, section_code, periods });
       }
-      if (parsed.length === 0) { toast.error('Aucune ligne exploitable'); return; }
-      if (!monthCols.some(Boolean) && !annualCol) localWarnings.push('Aucune colonne de montant détectée (mois ou Annuel) — les montants seront à 0.');
+      if (parsed.length === 0) { toast.error(t('budgetImport.noUsableRow')); return; }
+      if (!monthCols.some(Boolean) && !annualCol) localWarnings.push(t('budgetImport.noAmountColumn'));
       // Validation 3 passes (structure/référentiels/montants) → valides vs rejetées.
       const ctx = ctxRef.current ?? await buildImportContext(adapter);
       ctxRef.current = ctx;
       const raw: RawImportRow[] = parsed.map((p, i) => ({ rowNumber: i + 1, account_code: p.account_code, section_code: p.section_code, periods: p.periods }));
       const { valid, rejected: rej } = classifyImportRows(raw, ctx);
       setRows(valid); setRejected(rej); setWarnings(localWarnings);
-      if (rej.length) toast.error(`${valid.length} valide(s) · ${rej.length} rejetée(s) — voir le rapport`);
-      else toast.success(`${valid.length} ligne(s) valide(s)`);
-    } catch (e: any) { toast.error('Lecture impossible : ' + (e?.message || 'fichier invalide')); }
+      if (rej.length) toast.error(t('budgetImport.validAndRejected', { valid: String(valid.length), rejected: String(rej.length) }));
+      else toast.success(t('budgetImport.validLines', { count: String(valid.length) }));
+    } catch (e: any) { toast.error(t('budgetImport.readFailed', { message: e?.message || t('budgetImport.invalidFile') })); }
   };
 
   const totals = useMemo(() => {
@@ -145,29 +156,32 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
   }, [rows]);
 
   const handleImport = async () => {
-    if (rows.length === 0) { toast.error('Aucune ligne valide à importer'); return; }
-    if (allOrNothing && rejected.length > 0) { toast.error(`${rejected.length} ligne(s) rejetée(s) : corrigez le fichier ou décochez « tout ou rien ».`); return; }
-    if (target === 'new' && !newLabel.trim()) { toast.error('Libellé de la nouvelle version requis'); return; }
+    if (rows.length === 0) { toast.error(t('budgetImport.noValidLine')); return; }
+    if (allOrNothing && rejected.length > 0) { toast.error(t('budgetImport.allOrNothingBlocked', { count: String(rejected.length) })); return; }
+    if (target === 'new' && !newLabel.trim()) { toast.error(t('budgetImport.newVersionLabelRequired')); return; }
     setImporting(true);
     try {
       const fy = await getActiveFiscalYear(adapter);
-      if (!fy) throw new Error('Aucun exercice fiscal trouvé.');
+      if (!fy) throw new Error(t('budgetImport.noFiscalYear'));
       let versionId: string | undefined;
       let cibleLabel: string;
       if (target === 'new') {
         versionId = await createBudgetVersion(adapter, { fiscalYearId: fy.id, libelle: newLabel.trim(), type: newType, setActive: true });
-        cibleLabel = `nouvelle version « ${newLabel.trim()} »`;
+        cibleLabel = t('budgetImport.targetNewVersion', { name: newLabel.trim() });
       } else if (target) {
         versionId = target;
-        cibleLabel = `version « ${versions.find(v => v.id === target)?.libelle || target} »`;
+        cibleLabel = t('budgetImport.targetVersion', { name: versions.find(v => v.id === target)?.libelle || target });
       } else {
-        cibleLabel = 'version active';
+        cibleLabel = t('budgetImport.targetActiveVersion');
       }
-      if (!window.confirm(`Importer ${rows.length} ligne(s) dans la ${cibleLabel} (exercice ${fy.code}) ?\n${replace ? '⚠️ Mode REMPLACER : les lignes existantes de cette version seront supprimées.' : 'Mode AJOUT (fusion).'}`)) { setImporting(false); return; }
+      if (!window.confirm(t('budgetImport.confirmImport', {
+        count: String(rows.length), target: cibleLabel, year: fy.code,
+        mode: replace ? t('budgetImport.modeReplace') : t('budgetImport.modeMerge'),
+      }))) { setImporting(false); return; }
       const res = await importBudget(adapter, { fiscalYearId: fy.id, versionLibelle: `Budget ${fy.code}`, lines: rows, replace, versionId });
-      toast.success(`Budget importé : ${res.linesCreated} ligne(s), ${res.periodsCreated} période(s).`);
+      toast.success(t('budgetImport.importDone', { lines: String(res.linesCreated), periods: String(res.periodsCreated) }));
       reset(); onImported?.(); onClose?.();
-    } catch (e: any) { toast.error('Import échoué : ' + (e?.message || 'erreur')); }
+    } catch (e: any) { toast.error(t('budgetImport.importFailed', { message: e?.message || t('budgetImport.errorWord') })); }
     finally { setImporting(false); }
   };
 
@@ -177,13 +191,13 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center"><FileSpreadsheet className="w-5 h-5 text-[var(--color-primary)]" /></div>
           <div>
-            <h3 className="text-base font-bold text-gray-900">Importer un Budget</h3>
-            <p className="text-xs text-gray-500">Excel / CSV : Compte · Type · Section · 12 mois (ou colonne Annuel)</p>
+            <h3 className="text-base font-bold text-gray-900">{t('budgetImport.title')}</h3>
+            <p className="text-xs text-gray-500">{t('budgetImport.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={loadStandardSkeleton} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5" title="Charger toutes les rubriques standard (montants à 0)"><LayoutTemplate className="w-4 h-4" />Structure standard</button>
-          <button onClick={downloadTemplate} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"><Download className="w-4 h-4" />Modèle Excel</button>
+          <button onClick={loadStandardSkeleton} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5" title={t('budgetImport.standardStructureTitle')}><LayoutTemplate className="w-4 h-4" />{t('budgetImport.standardStructure')}</button>
+          <button onClick={downloadTemplate} className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"><Download className="w-4 h-4" />{t('budgetImport.excelTemplate')}</button>
           {onClose && <button onClick={() => { reset(); onClose(); }} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>}
         </div>
       </div>
@@ -191,36 +205,40 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       {/* Versioning : version cible de l'import */}
       {initialVersionId ? (
         <div className="mb-4 bg-gray-50 rounded-lg p-3 text-xs text-gray-600 flex items-center gap-1.5">
-          <GitBranch className="w-3.5 h-3.5" />Import dans la version « {versions.find(v => v.id === initialVersionId)?.libelle || 'courante'} »
+          <GitBranch className="w-3.5 h-3.5" />{t('budgetImport.importIntoVersion', { name: versions.find(v => v.id === initialVersionId)?.libelle || t('budgetImport.currentVersion') })}
         </div>
       ) : (
         <div className="mb-4 bg-gray-50 rounded-lg p-3">
-          <span className="text-xs font-medium text-gray-600 flex items-center gap-1 mb-1.5"><GitBranch className="w-3.5 h-3.5" />Version budgétaire cible</span>
+          <span className="text-xs font-medium text-gray-600 flex items-center gap-1 mb-1.5"><GitBranch className="w-3.5 h-3.5" />{t('budgetImport.targetVersionLabel')}</span>
           <select value={target} onChange={e => setTarget(e.target.value)} className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-            <option value="">Version active {versions.find(v => v.is_active) ? `(« ${versions.find(v => v.is_active)!.libelle} »)` : '(créée si absente)'}</option>
+            <option value="">{t('budgetImport.activeVersionOption', {
+              suffix: versions.find(v => v.is_active)
+                ? t('budgetImport.activeVersionName', { name: versions.find(v => v.is_active)!.libelle })
+                : t('budgetImport.createdIfMissing'),
+            })}</option>
             {versions.filter(v => !v.is_active && v.statut !== 'verrouille').map(v => (
               <option key={v.id} value={v.id}>{v.libelle} — {v.type} ({v.statut})</option>
             ))}
-            <option value="new">➕ Nouvelle version…</option>
+            <option value="new">{t('budgetImport.newVersionOption')}</option>
           </select>
           {target === 'new' && (
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="Libellé (ex. Budget révisé S2)" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+              <input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder={t('budgetImport.newVersionPlaceholder')} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
               <select value={newType} onChange={e => setNewType(e.target.value as any)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm">
-                <option value="initial">Initial</option>
-                <option value="revise">Révisé</option>
-                <option value="atterrissage">Atterrissage</option>
+                <option value="initial">{t('budgetImport.typeInitial')}</option>
+                <option value="revise">{t('budgetImport.typeRevised')}</option>
+                <option value="atterrissage">{t('budgetImport.typeLanding')}</option>
               </select>
             </div>
           )}
-          <p className="text-[10px] text-gray-400 mt-1.5">L'import est versionné : choisissez la version active, une version existante, ou créez-en une nouvelle (devient active).</p>
+          <p className="text-[10px] text-gray-400 mt-1.5">{t('budgetImport.versioningHint')}</p>
         </div>
       )}
 
       <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
       <button onClick={() => fileRef.current?.click()} className="w-full border-2 border-dashed border-gray-300 rounded-xl py-8 flex flex-col items-center justify-center hover:border-[var(--color-primary)] transition-colors">
         <Upload className="w-8 h-8 text-gray-400 mb-2" />
-        <span className="text-sm font-medium text-[var(--color-primary)]">{fileName || 'Choisir un fichier budget (.xlsx / .csv)'}</span>
+        <span className="text-sm font-medium text-[var(--color-primary)]">{fileName || t('budgetImport.chooseFile')}</span>
       </button>
       {warnings.map((w, i) => (
         <div key={i} className="mt-3 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2"><AlertTriangle className="w-3.5 h-3.5" />{w}</div>
@@ -229,15 +247,15 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       {rejected.length > 0 && (
         <div className="mt-3 border border-red-200 rounded-xl overflow-hidden">
           <div className="p-3 border-b border-red-200 bg-red-50 flex items-center justify-between flex-wrap gap-2">
-            <span className="text-xs font-medium text-red-700 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />{rejected.length} ligne(s) rejetée(s) — aucune écriture partielle silencieuse</span>
+            <span className="text-xs font-medium text-red-700 flex items-center gap-1.5"><XCircle className="w-3.5 h-3.5" />{t('budgetImport.rejectedLines', { count: String(rejected.length) })}</span>
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" checked={allOrNothing} onChange={(e) => setAllOrNothing(e.target.checked)} className="rounded border-gray-300" />Tout ou rien</label>
-              <button onClick={downloadReport} className="text-xs text-red-700 underline">Télécharger le rapport</button>
+              <label className="flex items-center gap-1.5 text-xs text-gray-600"><input type="checkbox" checked={allOrNothing} onChange={(e) => setAllOrNothing(e.target.checked)} className="rounded border-gray-300" />{t('budgetImport.allOrNothing')}</label>
+              <button onClick={downloadReport} className="text-xs text-red-700 underline">{t('budgetImport.downloadReport')}</button>
             </div>
           </div>
           <div className="max-h-48 overflow-y-auto">
             <table className="w-full text-xs">
-              <thead className="bg-red-50/50 sticky top-0"><tr><th className="px-3 py-1.5 text-left text-red-700">Ligne</th><th className="px-3 py-1.5 text-left text-red-700">Compte</th><th className="px-3 py-1.5 text-left text-red-700">Motifs</th></tr></thead>
+              <thead className="bg-red-50/50 sticky top-0"><tr><th className="px-3 py-1.5 text-left text-red-700">{t('budgetImport.colRow')}</th><th className="px-3 py-1.5 text-left text-red-700">{t('budgetImport.colAccount')}</th><th className="px-3 py-1.5 text-left text-red-700">{t('budgetImport.colReasons')}</th></tr></thead>
               <tbody className="divide-y divide-red-100">
                 {rejected.slice(0, 200).map((r) => (
                   <tr key={r.rowNumber}><td className="px-3 py-1.5">{r.rowNumber}</td><td className="px-3 py-1.5 font-mono">{r.account_code || '—'}</td><td className="px-3 py-1.5 text-red-600">{r.reasons.join(' · ')}</td></tr>
@@ -251,12 +269,16 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       {rows.length > 0 && (
         <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden">
           <div className="p-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-            <p className="text-xs text-gray-600">{totals.count} ligne(s) · Exploitation {formatCurrency(totals.exploitation)} · Invest. {formatCurrency(totals.investissement)}</p>
-            <label className="flex items-center gap-2 text-xs text-gray-600"><input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} className="rounded border-gray-300" />Remplacer l'existant</label>
+            <p className="text-xs text-gray-600">{t('budgetImport.summaryLine', {
+              count: String(totals.count),
+              opex: formatCurrency(totals.exploitation),
+              capex: formatCurrency(totals.investissement),
+            })}</p>
+            <label className="flex items-center gap-2 text-xs text-gray-600"><input type="checkbox" checked={replace} onChange={(e) => setReplace(e.target.checked)} className="rounded border-gray-300" />{t('budgetImport.replaceExisting')}</label>
           </div>
           <div className="max-h-64 overflow-y-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 sticky top-0"><tr><th className="px-3 py-2 text-left text-gray-600">Compte</th><th className="px-3 py-2 text-left text-gray-600">Type</th><th className="px-3 py-2 text-right text-gray-600">Total annuel</th></tr></thead>
+              <thead className="bg-gray-50 sticky top-0"><tr><th className="px-3 py-2 text-left text-gray-600">{t('budgetImport.colAccount')}</th><th className="px-3 py-2 text-left text-gray-600">{t('budgetImport.colType')}</th><th className="px-3 py-2 text-right text-gray-600">{t('budgetImport.colAnnualTotal')}</th></tr></thead>
               <tbody className="divide-y divide-gray-100">
                 {rows.slice(0, 200).map((r, i) => (
                   <tr key={i}><td className="px-3 py-1.5 font-mono">{fmtAccount(r.account_code)}</td><td className="px-3 py-1.5">{r.budget_type}</td><td className="px-3 py-1.5 text-right">{formatCurrency(Object.values(r.periods).reduce((s, v) => s + v, 0))}</td></tr>
@@ -268,8 +290,8 @@ const BudgetImportPanel: React.FC<BudgetImportPanelProps> = ({ initialVersionId,
       )}
 
       <div className="flex justify-end gap-2 mt-5">
-        {onClose && <button onClick={() => { reset(); onClose(); }} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Annuler</button>}
-        <button onClick={handleImport} disabled={importing || rows.length === 0} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{importing ? 'Import…' : 'Importer'}</button>
+        {onClose && <button onClick={() => { reset(); onClose(); }} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">{t('budgetImport.cancel')}</button>}
+        <button onClick={handleImport} disabled={importing || rows.length === 0} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{importing ? t('budgetImport.importing') : t('budgetImport.import')}</button>
       </div>
     </div>
   );
