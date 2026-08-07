@@ -10,6 +10,7 @@ import type { ThemeType } from '../../styles/theme';
 import SecurityActions from '../../components/security/SecurityActions';
 import { formatNumber } from '../../utils/formatters';
 import { toast } from 'sonner';
+import { supabase } from '../../lib/supabase';
 
 const APP_VERSION = __APP_VERSION__ || '3.0.0';
 
@@ -64,7 +65,26 @@ const AdminWorkspace: React.FC = () => {
   const [adminSubTab, setAdminSubTab] = useState(0);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) { toast.error('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+    if (newPassword !== confirmPassword) { toast.error('Les mots de passe ne correspondent pas.'); return; }
+    setPasswordSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Mot de passe mis à jour.');
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e: any) {
+      toast.error(e?.message || 'Échec de la mise à jour du mot de passe.');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
   const [maintenanceMode, setMaintenanceMode] = useState(false);
 
   const changeSection = (section: string) => { setActiveSection(section); setAdminSubTab(0); };
@@ -194,6 +214,21 @@ const AdminWorkspace: React.FC = () => {
             <span>Mode maintenance {maintenanceMode ? '(actif)' : '(inactif)'}</span><AlertTriangle className="w-5 h-5" />
           </button>
         </div>
+      </div>
+      <div className="bg-white rounded-xl p-6 border">
+        <h4 className="font-semibold mb-4">Sécurité</h4>
+        {!showPasswordModal ? (
+          <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">Changer le mot de passe</button>
+        ) : (
+          <div className="space-y-3 max-w-sm">
+            <input type="password" autoComplete="new-password" placeholder="Nouveau mot de passe (min. 8 caractères)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <input type="password" autoComplete="new-password" placeholder="Confirmer le mot de passe" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <div className="flex gap-2">
+              <button onClick={handleChangePassword} disabled={passwordSaving} className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold disabled:opacity-60">{passwordSaving ? 'Enregistrement…' : 'Enregistrer'}</button>
+              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">Annuler</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
