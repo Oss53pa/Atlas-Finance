@@ -18,6 +18,7 @@ import {
   Info, Loader2, RefreshCw, Wand2, XCircle,
 } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { DBFiscalPeriod, DBFiscalYear, DBJournalEntry } from '../../../lib/db';
 import {
@@ -58,6 +59,7 @@ export interface VerificationPrerequisProps {
 export default function VerificationPrerequis({ fiscalYear, periods }: VerificationPrerequisProps) {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [resultats, setResultats] = useState<PeriodeVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [openPeriod, setOpenPeriod] = useState<string | null>(null);
@@ -103,12 +105,14 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
           const equilibree = Math.abs(ecart) <= 1;
           return {
             ref: e.entryNumber || e.id,
-            libelle: e.label || 'Écriture sans libellé',
+            libelle: e.label || t('closurePrereq.entryNoLabel'),
             montant: Number(e.totalDebit) || 0,
             ecart: equilibree ? undefined : ecart,
             date: e.date,
             entryId: e.id,
-            info: equilibree ? 'Équilibrée — validable' : `Déséquilibrée de ${formatCurrency(Math.abs(ecart))}`,
+            info: equilibree
+              ? t('closurePrereq.balancedValidatable')
+              : t('closurePrereq.unbalancedBy', { amount: formatCurrency(Math.abs(ecart)) }),
             corrigeable: equilibree,
           };
         });
@@ -118,7 +122,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
           .filter((e: any) => Math.abs((e.totalDebit || 0) - (e.totalCredit || 0)) > 1)
           .map((e: any) => ({
             ref: e.entryNumber || e.id,
-            libelle: e.label || 'Écriture sans libellé',
+            libelle: e.label || t('closurePrereq.entryNoLabel'),
             montant: Number(((e.totalDebit || 0) - (e.totalCredit || 0)).toFixed(2)),
             date: e.date,
             entryId: e.id,
@@ -136,14 +140,16 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
             if (l.lettrageCode) continue;
             tiersLines.push({
               ref: e.entryNumber || e.id,
-              libelle: l.label || l.accountName || 'Ligne non lettrée',
+              libelle: l.label || l.accountName || t('closurePrereq.unmatchedLine'),
               montant: (l.debit || 0) - (l.credit || 0),
               date: e.date,
               entryId: e.id,
               lineId: l.id,
               accountCode: l.accountCode,
               thirdPartyCode: l.thirdPartyCode,
-              info: l.thirdPartyCode ? `Tiers ${l.thirdPartyCode}` : 'Sans tiers renseigné',
+              info: l.thirdPartyCode
+                ? t('closurePrereq.thirdPartyRef', { code: l.thirdPartyCode })
+                : t('closurePrereq.noThirdParty'),
               corrigeable: true,
             });
           }
@@ -155,83 +161,91 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
         const regles: RegleResultat[] = [
           {
             id: 'R1',
-            nom: 'Période terminée',
-            regle: 'Une période ne peut être clôturée qu\'après sa date de fin.',
+            nom: t('closurePrereq.r1Name'),
+            regle: t('closurePrereq.r1Rule'),
             statut: terminee ? 'ok' : 'bloquant',
             message: terminee
-              ? `Terminée depuis le ${period.endDate}`
-              : `La période court jusqu'au ${period.endDate}`,
+              ? t('closurePrereq.r1Ended', { date: period.endDate })
+              : t('closurePrereq.r1Running', { date: period.endDate }),
             anomalies: [],
             controle: null,
           },
           {
             id: 'R2',
-            nom: 'Ordre chronologique',
-            regle: 'Toutes les périodes antérieures doivent être clôturées.',
+            nom: t('closurePrereq.r2Name'),
+            regle: t('closurePrereq.r2Rule'),
             statut: anterieuresOuvertes.length === 0 ? 'ok' : 'bloquant',
             message: anterieuresOuvertes.length === 0
-              ? 'Toutes les périodes antérieures sont clôturées'
-              : `${anterieuresOuvertes.length} période(s) antérieure(s) non clôturée(s)`,
+              ? t('closurePrereq.r2Ok')
+              : t('closurePrereq.r2Ko', { count: String(anterieuresOuvertes.length) }),
             anomalies: anterieuresOuvertes.map(p => ({
               ref: p.code,
               libelle: p.label,
               date: p.endDate,
-              info: `Statut : ${p.status}`,
+              info: t('closurePrereq.statusLabel', { status: p.status }),
             })),
             controle: null,
           },
           {
             id: 'R3',
-            nom: `Délai légal OHADA (${DELAI_LEGAL_JOURS} j)`,
-            regle: `La clôture doit intervenir dans les ${DELAI_LEGAL_JOURS} jours suivant la fin de période.`,
+            nom: t('closurePrereq.r3Name', { days: String(DELAI_LEGAL_JOURS) }),
+            regle: t('closurePrereq.r3Rule', { days: String(DELAI_LEGAL_JOURS) }),
             statut: period.status === 'cloturee' ? 'ok' : enRetard ? 'avertissement' : terminee ? 'ok' : 'na',
             message: period.status === 'cloturee'
-              ? 'Période clôturée'
+              ? t('closurePrereq.r3Closed')
               : enRetard
-                ? `Délai dépassé — échéance au ${dateLimite}`
-                : terminee ? `Échéance au ${dateLimite}` : 'Sans objet — période en cours',
+                ? t('closurePrereq.r3Overdue', { date: dateLimite })
+                : terminee
+                  ? t('closurePrereq.r3Due', { date: dateLimite })
+                  : t('closurePrereq.r3Na'),
             anomalies: [],
             controle: null,
           },
           {
             id: 'R4',
-            nom: 'Aucune écriture en brouillon',
-            regle: 'Toute écriture doit être validée avant la clôture de la période.',
+            nom: t('closurePrereq.r4Name'),
+            regle: t('closurePrereq.r4Rule'),
             statut: drafts.length === 0 ? 'ok' : 'bloquant',
             message: drafts.length === 0
-              ? 'Aucun brouillon sur la période'
-              : `${drafts.length} brouillon(s) — ${draftAnomalies.filter(a => a.corrigeable).length} validable(s) automatiquement`,
+              ? t('closurePrereq.r4Ok')
+              : t('closurePrereq.r4Ko', {
+                count: String(drafts.length),
+                auto: String(draftAnomalies.filter(a => a.corrigeable).length),
+              }),
             anomalies: draftAnomalies,
             controle: drafts.length === 0 ? null : {
-              id: 'C8', nom: 'Écritures non validées', statut: 'attention',
+              id: 'C8', nom: t('closurePrereq.c8Name'), statut: 'attention',
               anomalies: draftAnomalies, anomaliesTotal: draftAnomalies.length,
             },
           },
           {
             id: 'R5',
-            nom: 'Pièces équilibrées',
-            regle: 'Débit = Crédit sur chaque pièce validée de la période.',
+            nom: t('closurePrereq.r5Name'),
+            regle: t('closurePrereq.r5Rule'),
             statut: desequilibrees.length === 0 ? 'ok' : 'bloquant',
             message: desequilibrees.length === 0
-              ? `${validees.length} pièce(s) validée(s), toutes équilibrées`
-              : `${desequilibrees.length} pièce(s) validée(s) déséquilibrée(s)`,
+              ? t('closurePrereq.r5Ok', { count: String(validees.length) })
+              : t('closurePrereq.r5Ko', { count: String(desequilibrees.length) }),
             anomalies: desequilibrees,
             controle: desequilibrees.length === 0 ? null : {
-              id: 'C2', nom: 'Écritures déséquilibrées', statut: 'non_conforme',
+              id: 'C2', nom: t('closurePrereq.c2Name'), statut: 'non_conforme',
               anomalies: desequilibrees, anomaliesTotal: desequilibrees.length,
             },
           },
           {
             id: 'R6',
-            nom: 'Lettrage des comptes de tiers',
-            regle: 'Les comptes 401 / 411 mouvementés sur la période doivent être lettrés.',
+            nom: t('closurePrereq.r6Name'),
+            regle: t('closurePrereq.r6Rule'),
             statut: tiersTotal === 0 ? 'na' : tauxLettrage >= 80 ? 'ok' : 'avertissement',
             message: tiersTotal === 0
-              ? 'Aucun mouvement de tiers sur la période'
-              : `Taux de lettrage ${tauxLettrage}% (${tiersLines.length} ligne(s) non lettrée(s))`,
+              ? t('closurePrereq.r6Na')
+              : t('closurePrereq.r6Rate', {
+                rate: String(tauxLettrage),
+                count: String(tiersLines.length),
+              }),
             anomalies: tiersLines,
             controle: tiersLines.length === 0 ? null : {
-              id: 'C13', nom: 'Lettrage comptes tiers', statut: 'attention',
+              id: 'C13', nom: t('closurePrereq.c13Name'), statut: 'attention',
               anomalies: tiersLines, anomaliesTotal: tiersLines.length,
             },
           },
@@ -249,7 +263,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
     } finally {
       setLoading(false);
     }
-  }, [adapter, fiscalYear, periods]);
+  }, [adapter, fiscalYear, periods, t]);
 
   useEffect(() => { analyser(); }, [analyser]);
 
@@ -267,7 +281,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
       else toast.error(outcome.message);
       await analyser();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Correction impossible');
+      toast.error(err instanceof Error ? err.message : t('closurePrereq.fixFailed'));
     } finally {
       setApplying(null);
     }
@@ -283,7 +297,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
         <Info className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-        <p>Sélectionnez un exercice pour vérifier les pré-requis de clôture.</p>
+        <p>{t('closurePrereq.selectYear')}</p>
       </div>
     );
   }
@@ -292,7 +306,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Vérification des pré-requis…</span>
+        <span className="ml-2 text-gray-500">{t('closurePrereq.checking')}</span>
       </div>
     );
   }
@@ -303,31 +317,31 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
         <div>
           <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <CalendarCheck className="w-5 h-5 text-blue-600" />
-            Pré-requis de clôture — {fiscalYear.name}
+            {t('closurePrereq.heading', { year: fiscalYear.name })}
           </h3>
           <p className="text-sm text-gray-500">
-            6 règles évaluées sur les écritures réelles de chaque période.
+            {t('closurePrereq.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className={totalBloquants > 0 ? 'text-red-700 font-medium' : 'text-green-700 font-medium'}>
-            {totalBloquants} bloquant(s)
+            {t('closurePrereq.blockingCount', { count: String(totalBloquants) })}
           </span>
-          <span className="text-gray-500">{pretes} période(s) prête(s)</span>
+          <span className="text-gray-500">{t('closurePrereq.readyCount', { count: String(pretes) })}</span>
           <button
             onClick={analyser}
             disabled={applying !== null}
             className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Relancer
+            {t('closurePrereq.rerun')}
           </button>
         </div>
       </div>
 
       {resultats.length === 0 && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-sm text-gray-500">
-          Aucune période générée pour cet exercice.
+          {t('closurePrereq.noPeriods')}
         </div>
       )}
 
@@ -348,17 +362,17 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
                   {res.period.startDate} → {res.period.endDate}
                 </span>
                 {cloturee ? (
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">Clôturée</span>
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">{t('closurePrereq.closed')}</span>
                 ) : res.bloquants > 0 ? (
                   <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
-                    {res.bloquants} bloquant(s)
+                    {t('closurePrereq.blockingCount', { count: String(res.bloquants) })}
                   </span>
                 ) : res.avertissements > 0 ? (
                   <span className="px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                    {res.avertissements} avertissement(s)
+                    {t('closurePrereq.warningCount', { count: String(res.avertissements) })}
                   </span>
                 ) : (
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">Prête</span>
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">{t('closurePrereq.ready')}</span>
                 )}
               </button>
 
@@ -400,7 +414,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
                               {applying === regle.id + proposal.id
                                 ? <Loader2 className="w-3 h-3 animate-spin" />
                                 : <Wand2 className="w-3 h-3" />}
-                              Corriger ({proposal.cibles})
+                              {t('closurePrereq.fixAction', { count: String(proposal.cibles) })}
                             </button>
                           )}
                         </div>
@@ -425,7 +439,7 @@ export default function VerificationPrerequis({ fiscalYear, periods }: Verificat
                             </table>
                             {regle.anomalies.length > 50 && (
                               <p className="px-2 py-1 text-[11px] text-gray-400 border-t">
-                                … {regle.anomalies.length - 50} élément(s) supplémentaire(s)
+                                {t('closurePrereq.moreItems', { count: String(regle.anomalies.length - 50) })}
                               </p>
                             )}
                           </div>

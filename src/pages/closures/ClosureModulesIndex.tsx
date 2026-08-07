@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Lock,
   Calendar,
@@ -22,57 +23,59 @@ interface ClosureModule {
 }
 
 const ClosureModulesIndex: React.FC = () => {
+  const { t } = useLanguage();
+
   const modules: ClosureModule[] = [
     {
       id: 'periodic',
-      title: 'Clôture Mensuelle & Annuelle',
-      description: 'Module unifié : clôture mensuelle réversible (6 étapes) et annuelle irréversible (7 étapes) conformes SYSCOHADA',
+      title: t('closureHub.periodicTitle'),
+      description: t('closureHub.periodicDesc'),
       path: '/closures/periodic',
       icon: Calendar,
       color: 'bg-primary-500',
       features: [
-        'Clôture mensuelle (vérification, régularisations, verrouillage)',
-        '17 contrôles de cohérence (9 mensuels, 7 bloquants annuels)',
-        'Affectation du résultat, reports à nouveau, états financiers'
+        t('closureHub.periodicFeature1'),
+        t('closureHub.periodicFeature2'),
+        t('closureHub.periodicFeature3')
       ]
     },
     {
       id: 'revisions',
-      title: 'Révisions Comptables',
-      description: 'Cycle de révision conforme aux normes ISA avec assertions et ajustements',
+      title: t('closureHub.revisionsTitle'),
+      description: t('closureHub.revisionsDesc'),
       path: '/closures/revisions',
       icon: Search,
       color: 'bg-blue-500',
       features: [
-        'Assertions par cycle comptable',
-        'Ajustements d\'audit',
-        'Rapports de révision'
+        t('closureHub.revisionsFeature1'),
+        t('closureHub.revisionsFeature2'),
+        t('closureHub.revisionsFeature3')
       ]
     },
     {
       id: 'carry-forward',
-      title: 'Reports à Nouveau',
-      description: 'Ouverture d\'exercice avec report automatique des soldes et validation',
+      title: t('closureHub.carryForwardTitle'),
+      description: t('closureHub.carryForwardDesc'),
       path: '/closures/carry-forward',
       icon: RefreshCw,
       color: 'bg-amber-500',
       features: [
-        'Report automatique des soldes',
-        'Validation des à-nouveaux',
-        'Journal d\'ouverture AN'
+        t('closureHub.carryForwardFeature1'),
+        t('closureHub.carryForwardFeature2'),
+        t('closureHub.carryForwardFeature3')
       ]
     },
     {
       id: 'audit-trail',
-      title: 'Piste d\'Audit',
-      description: 'Traçabilité complète des opérations pour conformité réglementaire',
+      title: t('closureHub.auditTrailTitle'),
+      description: t('closureHub.auditTrailDesc'),
       path: '/closures/audit-trail',
       icon: Shield,
       color: 'bg-green-600',
       features: [
-        'Historique complet des modifications',
-        'Export PDF horodaté',
-        'Conformité DGI / CEMAC'
+        t('closureHub.auditTrailFeature1'),
+        t('closureHub.auditTrailFeature2'),
+        t('closureHub.auditTrailFeature3')
       ]
     }
   ];
@@ -87,10 +90,10 @@ const ClosureModulesIndex: React.FC = () => {
               <div>
                 <h1 className="text-lg font-bold text-[var(--color-text-primary)] flex items-center">
                   <Lock className="h-8 w-8 mr-3 text-primary-600" />
-                  Gestion des Clôtures
+                  {t('closureHub.title')}
                 </h1>
                 <p className="mt-2 text-[var(--color-text-secondary)]">
-                  Outils de clôture comptable conformes SYSCOHADA
+                  {t('closureHub.subtitle')}
                 </p>
               </div>
             </div>
@@ -134,7 +137,7 @@ const ClosureModulesIndex: React.FC = () => {
                 </div>
 
                 <div className="flex items-center text-[var(--color-primary)] font-medium text-sm group-hover:text-[var(--color-primary-dark)]">
-                  <span>Accéder au module</span>
+                  <span>{t('closureHub.openModule')}</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </div>
               </Link>
@@ -146,7 +149,7 @@ const ClosureModulesIndex: React.FC = () => {
         <div className="mt-12 bg-white rounded-xl border border-[var(--color-border)] p-6">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-6 flex items-center">
             <Zap className="h-6 w-6 mr-3 text-yellow-500" />
-            Accès Rapides
+            {t('closureHub.quickAccess')}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -156,8 +159,8 @@ const ClosureModulesIndex: React.FC = () => {
             >
               <Calendar className="h-8 w-8 text-primary-600" />
               <div>
-                <div className="font-medium text-primary-900">Démarrer Clôture</div>
-                <div className="text-sm text-primary-700">Workflow périodique</div>
+                <div className="font-medium text-primary-900">{t('closureHub.shortcutStartTitle')}</div>
+                <div className="text-sm text-primary-700">{t('closureHub.shortcutStartDesc')}</div>
               </div>
             </Link>
 
@@ -167,8 +170,8 @@ const ClosureModulesIndex: React.FC = () => {
             >
               <Search className="h-8 w-8 text-blue-600" />
               <div>
-                <div className="font-medium text-blue-900">Révisions</div>
-                <div className="text-sm text-blue-700">Cycle de révision</div>
+                <div className="font-medium text-blue-900">{t('closureHub.shortcutRevisionsTitle')}</div>
+                <div className="text-sm text-blue-700">{t('closureHub.shortcutRevisionsDesc')}</div>
               </div>
             </Link>
 
@@ -178,8 +181,8 @@ const ClosureModulesIndex: React.FC = () => {
             >
               <RefreshCw className="h-8 w-8 text-amber-600" />
               <div>
-                <div className="font-medium text-amber-900">Reports AN</div>
-                <div className="text-sm text-amber-700">Ouverture exercice</div>
+                <div className="font-medium text-amber-900">{t('closureHub.shortcutCarryTitle')}</div>
+                <div className="text-sm text-amber-700">{t('closureHub.shortcutCarryDesc')}</div>
               </div>
             </Link>
 
@@ -189,8 +192,8 @@ const ClosureModulesIndex: React.FC = () => {
             >
               <Shield className="h-8 w-8 text-green-600" />
               <div>
-                <div className="font-medium text-green-900">Piste d'Audit</div>
-                <div className="text-sm text-green-700">Traçabilité</div>
+                <div className="font-medium text-green-900">{t('closureHub.shortcutAuditTitle')}</div>
+                <div className="text-sm text-green-700">{t('closureHub.shortcutAuditDesc')}</div>
               </div>
             </Link>
           </div>

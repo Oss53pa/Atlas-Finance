@@ -2,8 +2,9 @@
  * RegularisationsTab — Saisie et génération des régularisations mensuelles/annuelles.
  * Types: CCA, PCA, FNP, FAE (SYSCOHADA révisé).
  */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   creerRegularisation,
   genererEcrituresRegularisation,
@@ -32,11 +33,13 @@ interface RegularisationsTabProps {
   periodeCode?: string;
 }
 
-const TYPES: { value: TypeRegularisation; label: string; desc: string }[] = [
-  { value: 'CCA', label: 'CCA', desc: 'Charges constatées d\'avance' },
-  { value: 'PCA', label: 'PCA', desc: 'Produits constatés d\'avance' },
-  { value: 'FNP', label: 'FNP', desc: 'Fournisseurs, factures non parvenues' },
-  { value: 'FAE', label: 'FAE', desc: 'Clients, factures à établir' },
+type TypeOption = { value: TypeRegularisation; label: string; desc: string };
+
+const buildTypes = (t: (key: string) => string): TypeOption[] => [
+  { value: 'CCA', label: 'CCA', desc: t('closureAdjust.ccaDesc') },
+  { value: 'PCA', label: 'PCA', desc: t('closureAdjust.pcaDesc') },
+  { value: 'FNP', label: 'FNP', desc: t('closureAdjust.fnpDesc') },
+  { value: 'FAE', label: 'FAE', desc: t('closureAdjust.faeDesc') },
 ];
 
 interface RegulForm {
@@ -65,6 +68,8 @@ const emptyForm: RegulForm = {
 
 function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: RegularisationsTabProps) {
   const { adapter } = useData();
+  const { t } = useLanguage();
+  const TYPES = useMemo(() => buildTypes(t), [t]);
   const [regularisations, setRegularisations] = useState<Regularisation[]>([]);
   const [form, setForm] = useState<RegulForm>(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -80,7 +85,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
   const handleAdd = useCallback(() => {
     const montant = parseFloat(form.montant);
     if (!form.libelle || isNaN(montant) || montant <= 0 || !form.compteCharge) {
-      toast.error('Remplissez tous les champs obligatoires');
+      toast.error(t('closureAdjust.fillRequired'));
       return;
     }
 
@@ -94,7 +99,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
         dateClotureExercice,
       });
       if (montantFinal === 0) {
-        toast.error('Prorata nul — la charge est entièrement dans l\'exercice');
+        toast.error(t('closureAdjust.prorataZero'));
         return;
       }
     }
@@ -112,8 +117,8 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
     setRegularisations(prev => [...prev, regul]);
     setForm(emptyForm);
     setShowForm(false);
-    toast.success(`Régularisation ${form.type} ajoutée (${formatCurrency(montantFinal)})`);
-  }, [form, dateClotureExercice, periodeCode]);
+    toast.success(t('closureAdjust.added', { type: form.type, amount: formatCurrency(montantFinal) }));
+  }, [form, dateClotureExercice, periodeCode, t]);
 
   const handleRemove = (id: string) => {
     setRegularisations(prev => prev.filter(r => r.id !== id));
@@ -121,7 +126,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
 
   const handleGenerate = useCallback(async () => {
     if (regularisations.length === 0) {
-      toast.error('Aucune régularisation à comptabiliser');
+      toast.error(t('closureAdjust.noneToPost'));
       return;
     }
     setExecuting(true);
@@ -132,17 +137,17 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
         regularisations,
       });
       if (result.success) {
-        toast.success(`${regularisations.length} écriture(s) de régularisation générée(s)`);
+        toast.success(t('closureAdjust.generated', { count: String(regularisations.length) }));
         setRegularisations([]);
       } else {
-        toast.error(result.error || 'Erreur');
+        toast.error(result.error || t('closureAdjust.genericError'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('closureAdjust.genericError'));
     } finally {
       setExecuting(false);
     }
-  }, [adapter, exerciceId, dateClotureExercice, regularisations]);
+  }, [adapter, exerciceId, dateClotureExercice, regularisations, t]);
 
   const chargerComptabilisees = useCallback(async () => {
     if (!exerciceId) { setComptabilisees([]); return; }
@@ -151,11 +156,11 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
       const result = await previewExtournes(adapter, exerciceId);
       setComptabilisees(result.regularisations);
     } catch (err) {
-      toast.error('Erreur de lecture des régularisations');
+      toast.error(t('closureAdjust.readError'));
     } finally {
       setPreviewLoading(false);
     }
-  }, [adapter, exerciceId]);
+  }, [adapter, exerciceId, t]);
 
   useEffect(() => { chargerComptabilisees(); }, [chargerComptabilisees]);
 
@@ -166,7 +171,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
    */
   const handleGenererExtournes = useCallback(async () => {
     if (comptabilisees.length === 0) {
-      toast.error('Aucune régularisation à extourner');
+      toast.error(t('closureAdjust.noneToReverse'));
       return;
     }
     const cloture = new Date(dateClotureExercice);
@@ -177,17 +182,17 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
     try {
       const result = await genererExtournes(adapter, { exerciceClotureId: exerciceId, dateExtourne });
       if (result.success) {
-        toast.success(`${result.count ?? 0} extourne(s) générée(s) au ${dateExtourne}`);
+        toast.success(t('closureAdjust.reversalsGenerated', { count: String(result.count ?? 0), date: dateExtourne }));
         await chargerComptabilisees();
       } else {
-        toast.error(result.error || 'Erreur');
+        toast.error(result.error || t('closureAdjust.genericError'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('closureAdjust.genericError'));
     } finally {
       setExtourneLoading(false);
     }
-  }, [adapter, exerciceId, dateClotureExercice, comptabilisees.length, chargerComptabilisees]);
+  }, [adapter, exerciceId, dateClotureExercice, comptabilisees.length, chargerComptabilisees, t]);
 
   const totalComptabilise = comptabilisees.reduce((s, r) => s + (r.entry.totalDebit || 0), 0);
 
@@ -198,8 +203,8 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">Régularisations</h3>
-          <p className="text-sm text-gray-500">CCA, PCA, FNP, FAE — SYSCOHADA révisé</p>
+          <h3 className="text-lg font-semibold text-gray-800">{t('closureAdjust.title')}</h3>
+          <p className="text-sm text-gray-500">{t('closureAdjust.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -208,14 +213,14 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
           >
             {previewLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-            Actualiser
+            {t('closureAdjust.refresh')}
           </button>
           <button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" />
-            Ajouter
+            {t('closureAdjust.add')}
           </button>
         </div>
       </div>
@@ -228,24 +233,23 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
         >
           <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
             <FileText className="w-4 h-4 text-gray-400" />
-            Régularisations comptabilisées sur l'exercice
+            {t('closureAdjust.postedTitle')}
             <span className="font-normal text-gray-400">
               ({comptabilisees.length} — {formatCurrency(totalComptabilise)})
             </span>
           </span>
-          <span className="text-xs text-blue-600">{showComptabilisees ? 'Masquer' : 'Afficher'}</span>
+          <span className="text-xs text-blue-600">{showComptabilisees ? t('closureAdjust.hide') : t('closureAdjust.show')}</span>
         </button>
 
         {showComptabilisees && (
           <div className="border-t border-gray-100">
             {previewLoading ? (
               <p className="px-4 py-6 text-sm text-gray-400 flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" /> Lecture du grand livre…
+                <Loader2 className="w-4 h-4 animate-spin" /> {t('closureAdjust.readingLedger')}
               </p>
             ) : comptabilisees.length === 0 ? (
               <p className="px-4 py-6 text-sm text-gray-400">
-                Aucune écriture sur les comptes de régularisation (476 / 477 / 486 / 487 / 408 / 418)
-                non encore extournée sur cet exercice.
+                {t('closureAdjust.noPostedEntries')}
               </p>
             ) : (
               <>
@@ -253,11 +257,11 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                   <table className="w-full text-xs">
                     <thead className="sticky top-0 bg-gray-50">
                       <tr className="text-left text-gray-500 border-b">
-                        <th className="px-4 py-1.5">Pièce</th>
-                        <th className="px-4 py-1.5 w-16">Type</th>
-                        <th className="px-4 py-1.5 w-24">Date</th>
-                        <th className="px-4 py-1.5">Libellé</th>
-                        <th className="px-4 py-1.5 w-32 text-right">Montant</th>
+                        <th className="px-4 py-1.5">{t('closureAdjust.colDocument')}</th>
+                        <th className="px-4 py-1.5 w-16">{t('closureAdjust.colType')}</th>
+                        <th className="px-4 py-1.5 w-24">{t('closureAdjust.colDate')}</th>
+                        <th className="px-4 py-1.5">{t('closureAdjust.colLabel')}</th>
+                        <th className="px-4 py-1.5 w-32 text-right">{t('closureAdjust.colAmount')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -279,8 +283,9 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                 </div>
                 <div className="px-4 py-2 border-t bg-gray-50 flex flex-wrap items-center justify-between gap-2">
                   <p className="text-xs text-gray-500">
-                    Ces {comptabilisees.length} écriture(s) doivent être extournées au 1<sup>er</sup> jour
-                    de l'exercice suivant (cut-off SYSCOHADA).
+                    {t('closureAdjust.cutOffNoticePrefix', { count: String(comptabilisees.length) })}
+                    <sup>{t('closureAdjust.cutOffNoticeSup')}</sup>
+                    {t('closureAdjust.cutOffNoticeSuffix')}
                   </p>
                   <button
                     onClick={handleGenererExtournes}
@@ -288,7 +293,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50"
                   >
                     {extourneLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                    Générer les {comptabilisees.length} extourne(s)
+                    {t('closureAdjust.generateReversals', { count: String(comptabilisees.length) })}
                   </button>
                 </div>
               </>
@@ -300,10 +305,10 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
       {/* Form */}
       {showForm && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <h4 className="font-medium text-gray-700">Nouvelle régularisation</h4>
+          <h4 className="font-medium text-gray-700">{t('closureAdjust.newAdjustment')}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Type</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.colType')}</label>
               <select
                 value={form.type}
                 onChange={e => setForm(f => ({ ...f, type: e.target.value as TypeRegularisation }))}
@@ -315,16 +320,16 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Libellé</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.colLabel')}</label>
               <input
                 value={form.libelle}
                 onChange={e => setForm(f => ({ ...f, libelle: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                placeholder="Description de la régularisation"
+                placeholder={t('closureAdjust.labelPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Montant</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.colAmount')}</label>
               <input
                 type="number"
                 value={form.montant}
@@ -335,18 +340,18 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Compte de charge/produit</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.expenseOrIncomeAccount')}</label>
               <input
                 value={form.compteCharge}
                 onChange={e => setForm(f => ({ ...f, compteCharge: e.target.value }))}
                 className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                placeholder="ex: 613, 706..."
+                placeholder={t('closureAdjust.accountPlaceholder')}
               />
             </div>
             {(form.type === 'CCA' || form.type === 'PCA') && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Date début prestation</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.serviceStartDate')}</label>
                   <input
                     type="date"
                     value={form.dateDebut}
@@ -355,7 +360,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-1">Date fin prestation</label>
+                  <label className="block text-sm font-medium text-gray-600 mb-1">{t('closureAdjust.serviceEndDate')}</label>
                   <input
                     type="date"
                     value={form.dateFin}
@@ -373,7 +378,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                 className="rounded border-gray-300"
                 id="extourne-auto"
               />
-              <label htmlFor="extourne-auto" className="text-sm text-gray-600">Extourne automatique</label>
+              <label htmlFor="extourne-auto" className="text-sm text-gray-600">{t('closureAdjust.autoReversal')}</label>
             </div>
           </div>
           <div className="flex gap-2 pt-2">
@@ -381,13 +386,13 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
               onClick={handleAdd}
               className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
-              Ajouter
+              {t('closureAdjust.add')}
             </button>
             <button
               onClick={() => { setShowForm(false); setForm(emptyForm); }}
               className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Annuler
+              {t('closureAdjust.cancel')}
             </button>
           </div>
         </div>
@@ -399,11 +404,11 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 border-b text-left text-gray-500">
-                <th className="px-4 py-2">Type</th>
-                <th className="px-4 py-2">Libellé</th>
-                <th className="px-4 py-2">Compte</th>
-                <th className="px-4 py-2 text-right">Montant</th>
-                <th className="px-4 py-2">Extourne</th>
+                <th className="px-4 py-2">{t('closureAdjust.colType')}</th>
+                <th className="px-4 py-2">{t('closureAdjust.colLabel')}</th>
+                <th className="px-4 py-2">{t('closureAdjust.colAccount')}</th>
+                <th className="px-4 py-2 text-right">{t('closureAdjust.colAmount')}</th>
+                <th className="px-4 py-2">{t('closureAdjust.colReversal')}</th>
                 <th className="px-4 py-2 w-12"></th>
               </tr>
             </thead>
@@ -420,7 +425,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
                     {r.extourneAuto ? (
                       <CheckCircle className="w-4 h-4 text-green-500" />
                     ) : (
-                      <span className="text-gray-400 text-xs">Non</span>
+                      <span className="text-gray-400 text-xs">{t('closureAdjust.no')}</span>
                     )}
                   </td>
                   <td className="px-4 py-2">
@@ -433,7 +438,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
             </tbody>
             <tfoot>
               <tr className="bg-gray-50 font-medium">
-                <td colSpan={3} className="px-4 py-2">Total ({regularisations.length} régularisation(s))</td>
+                <td colSpan={3} className="px-4 py-2">{t('closureAdjust.totalRow', { count: String(regularisations.length) })}</td>
                 <td className="px-4 py-2 text-right">{formatCurrency(totalRegul)}</td>
                 <td colSpan={2}></td>
               </tr>
@@ -443,8 +448,8 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
       ) : (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center text-gray-500">
           <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-          <p>Aucune régularisation en attente</p>
-          <p className="text-xs mt-1">Cliquez sur « Ajouter » pour saisir une régularisation</p>
+          <p>{t('closureAdjust.emptyTitle')}</p>
+          <p className="text-xs mt-1">{t('closureAdjust.emptyHint')}</p>
         </div>
       )}
 
@@ -456,7 +461,7 @@ function RegularisationsTab({ exerciceId, dateClotureExercice, periodeCode }: Re
           className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
         >
           {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-          Comptabiliser {regularisations.length} régularisation(s)
+          {t('closureAdjust.postAction', { count: String(regularisations.length) })}
         </button>
       )}
     </div>

@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   proposerAffectation,
   validerVentilation,
@@ -38,6 +39,7 @@ interface AffectationTabProps {
 
 function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) {
   const { adapter } = useData();
+  const { t } = useLanguage();
 
   // Closure preview (result)
   const [resultatNet, setResultatNet] = useState(0);
@@ -102,11 +104,11 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
       const proposition = proposerAffectation(preview.resultatNet, capitalSocial, reserveLegaleActuelle);
       setVentilation(proposition.ventilation);
     } catch (err) {
-      toast.error('Erreur chargement résultat');
+      toast.error(t('closureAllocation.loadResultError'));
     } finally {
       setLoading(false);
     }
-  }, [adapter, exerciceId, capitalSocial, reserveLegaleActuelle]);
+  }, [adapter, exerciceId, capitalSocial, reserveLegaleActuelle, t]);
 
   useEffect(() => { loadPreview(); }, [loadPreview]);
 
@@ -114,7 +116,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
     const proposition = proposerAffectation(resultatNet, capitalSocial, reserveLegaleActuelle);
     setVentilation(proposition.ventilation);
     setValidationErrors([]);
-    toast.success('Proposition automatique appliquée');
+    toast.success(t('closureAllocation.autoProposalApplied'));
   };
 
   const handleValidate = () => {
@@ -135,13 +137,13 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
         ventilation,
       });
       if (result.success) {
-        toast.success('Écritures d\'affectation générées');
+        toast.success(t('closureAllocation.entriesGenerated'));
         setAffectationDone(true);
       } else {
-        toast.error(result.error || 'Erreur');
+        toast.error(result.error || t('closureAllocation.genericError'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('closureAllocation.genericError'));
     } finally {
       setExecuting(false);
     }
@@ -149,13 +151,13 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
 
   const handleCarryForward = async () => {
     if (!openingExerciceId) {
-      toast.error('Exercice N+1 non sélectionné');
+      toast.error(t('closureAllocation.nextYearNotSelected'));
       return;
     }
     setCfExecuting(true);
     try {
       const openingFY = await adapter.getById<DBFiscalYear>('fiscalYears', openingExerciceId);
-      if (!openingFY) throw new Error('Exercice N+1 introuvable');
+      if (!openingFY) throw new Error(t('closureAllocation.nextYearNotFound'));
 
       const result = await executerCarryForward(adapter, {
         closingExerciceId: exerciceId,
@@ -164,13 +166,13 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
       });
 
       if (result.success) {
-        toast.success(`${result.lineCount} compte(s) reporté(s)`);
+        toast.success(t('closureAllocation.accountsCarried', { count: String(result.lineCount) }));
         setCfDone(true);
       } else {
         toast.error(result.errors.join(', '));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur');
+      toast.error(err instanceof Error ? err.message : t('closureAllocation.genericError'));
     } finally {
       setCfExecuting(false);
     }
@@ -187,7 +189,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
     return (
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Chargement du résultat...</span>
+        <span className="ml-2 text-gray-500">{t('closureAllocation.loadingResult')}</span>
       </div>
     );
   }
@@ -198,29 +200,29 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <DollarSign className="w-5 h-5" />
-          Résultat de l'exercice
+          {t('closureAllocation.resultTitle')}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Produits (cl. 7)</p>
+            <p className="text-sm text-gray-500">{t('closureAllocation.revenues')}</p>
             <p className="text-lg font-semibold">{formatCurrency(totalProduits)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Charges (cl. 6)</p>
+            <p className="text-sm text-gray-500">{t('closureAllocation.expenses')}</p>
             <p className="text-lg font-semibold">{formatCurrency(totalCharges)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Résultat net</p>
+            <p className="text-sm text-gray-500">{t('closureAllocation.netResult')}</p>
             <p className={`text-lg font-semibold ${isBenefice ? 'text-green-700' : 'text-red-700'}`}>
               {formatCurrency(resultatNet)}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Nature</p>
+            <p className="text-sm text-gray-500">{t('closureAllocation.nature')}</p>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-sm font-medium ${
               isBenefice ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
             }`}>
-              {isBenefice ? 'Bénéfice' : 'Perte'}
+              {isBenefice ? t('closureAllocation.profit') : t('closureAllocation.loss')}
             </span>
           </div>
         </div>
@@ -228,10 +230,10 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
 
       {/* Capital info */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <h4 className="font-medium text-gray-700 mb-3">Paramètres d'affectation</h4>
+        <h4 className="font-medium text-gray-700 mb-3">{t('closureAllocation.paramsTitle')}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Capital social</label>
+            <label className="block text-sm text-gray-600 mb-1">{t('closureAllocation.shareCapital')}</label>
             <input
               type="number"
               value={capitalSocial}
@@ -240,7 +242,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Réserve légale actuelle</label>
+            <label className="block text-sm text-gray-600 mb-1">{t('closureAllocation.currentLegalReserve')}</label>
             <input
               type="number"
               value={reserveLegaleActuelle}
@@ -254,20 +256,20 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
       {/* Ventilation form */}
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="font-medium text-gray-700">Ventilation du résultat</h4>
+          <h4 className="font-medium text-gray-700">{t('closureAllocation.breakdownTitle')}</h4>
           <button onClick={handleAutoPropose} className="flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50">
             <Zap className="w-4 h-4" />
-            Proposition auto
+            {t('closureAllocation.autoProposal')}
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
-            { key: 'reserveLegale' as const, label: 'Réserve légale (10% plafond 20%)' },
-            { key: 'reservesStatutaires' as const, label: 'Réserves statutaires' },
-            { key: 'reservesFacultatives' as const, label: 'Réserves facultatives' },
-            { key: 'dividendes' as const, label: 'Dividendes' },
-            { key: 'reportANouveau' as const, label: 'Report à nouveau' },
+            { key: 'reserveLegale' as const, label: t('closureAllocation.legalReserve') },
+            { key: 'reservesStatutaires' as const, label: t('closureAllocation.statutoryReserves') },
+            { key: 'reservesFacultatives' as const, label: t('closureAllocation.optionalReserves') },
+            { key: 'dividendes' as const, label: t('closureAllocation.dividends') },
+            { key: 'reportANouveau' as const, label: t('closureAllocation.retainedEarnings') },
           ].map(({ key, label }) => (
             <div key={key}>
               <label className="block text-sm text-gray-600 mb-1">{label}</label>
@@ -282,18 +284,18 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
         </div>
 
         <div className="mt-4 flex items-center gap-4 text-sm">
-          <span className="text-gray-600">Total affecté: <strong>{formatCurrency(totalAffecte)}</strong></span>
-          <span className="text-gray-600">Résultat: <strong>{formatCurrency(resultatNet)}</strong></span>
+          <span className="text-gray-600">{t('closureAllocation.totalAllocated')} <strong>{formatCurrency(totalAffecte)}</strong></span>
+          <span className="text-gray-600">{t('closureAllocation.resultLabel')} <strong>{formatCurrency(resultatNet)}</strong></span>
           {ecart > 0.01 && (
             <span className="text-red-600 flex items-center gap-1">
               <AlertTriangle className="w-4 h-4" />
-              Écart: {formatCurrency(ecart)}
+              {t('closureAllocation.gap', { amount: formatCurrency(ecart) })}
             </span>
           )}
           {ecart <= 0.01 && (
             <span className="text-green-600 flex items-center gap-1">
               <CheckCircle className="w-4 h-4" />
-              Équilibré
+              {t('closureAllocation.balanced')}
             </span>
           )}
         </div>
@@ -313,7 +315,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             {executing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-            {affectationDone ? 'Affectation enregistrée' : 'Générer les écritures'}
+            {affectationDone ? t('closureAllocation.allocationSaved') : t('closureAllocation.generateEntries')}
           </button>
         </div>
       </div>
@@ -322,10 +324,10 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
       <div className="bg-white border border-gray-200 rounded-lg p-5">
         <h4 className="font-medium text-gray-700 mb-3 flex items-center gap-2">
           <RefreshCw className="w-4 h-4" />
-          Reports à nouveau N+1
+          {t('closureAllocation.carryForwardTitle')}
         </h4>
         {!openingExerciceId ? (
-          <p className="text-sm text-gray-500">Sélectionnez un exercice N+1 pour activer les reports.</p>
+          <p className="text-sm text-gray-500">{t('closureAllocation.selectNextYear')}</p>
         ) : (
           <div className="flex items-center gap-3">
             <button
@@ -334,7 +336,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
               {cfExecuting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-              {cfDone ? 'Reports générés' : 'Exécuter les reports à nouveau'}
+              {cfDone ? t('closureAllocation.carryDone') : t('closureAllocation.runCarry')}
             </button>
             {cfDone && <CheckCircle className="w-5 h-5 text-green-600" />}
           </div>
@@ -347,7 +349,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
           onClick={() => setShowIA(!showIA)}
           className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
         >
-          <span className="font-medium text-gray-700">Assistant IA (Proph3t)</span>
+          <span className="font-medium text-gray-700">{t('closureAllocation.aiAssistant')}</span>
           <ArrowRight className={`w-4 h-4 text-gray-400 transition-transform ${showIA ? 'rotate-90' : ''}`} />
         </button>
         {showIA && (
@@ -360,7 +362,7 @@ function AffectationTab({ exerciceId, openingExerciceId }: AffectationTabProps) 
           onClick={() => setShowArchives(!showArchives)}
           className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
         >
-          <span className="font-medium text-gray-700">Documents & Archives</span>
+          <span className="font-medium text-gray-700">{t('closureAllocation.documentsArchives')}</span>
           <ArrowRight className={`w-4 h-4 text-gray-400 transition-transform ${showArchives ? 'rotate-90' : ''}`} />
         </button>
         {showArchives && (
