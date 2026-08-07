@@ -171,7 +171,8 @@ interface RisqueControle {
 // ==================== COMPOSANT PRINCIPAL ====================
 
 const RevisionsModule: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { adapter } = useData();
   const { format: fmtAccount } = useAccountNames();
   const [activeMainTab, setActiveMainTab] = useState<'revisions' | 'lead_schedule' | 'risques' | 'ajustements' | 'analytique'>('revisions');
@@ -208,49 +209,49 @@ const RevisionsModule: React.FC = () => {
   // Assertions d'audit ISA avec descriptions
   const assertionsAudit: Record<AssertionAudit, { libelle: string; description: string }> = {
     existence: {
-      libelle: 'Existence / Réalité',
-      description: 'Les actifs, passifs et capitaux propres existent à la date du bilan. Les transactions enregistrées se sont réellement produites.'
+      libelle: t('accountingReview.assertExistence'),
+      description: t('accountingReview.assertExistenceDesc')
     },
     exhaustivite: {
-      libelle: 'Exhaustivité',
-      description: 'Toutes les transactions et événements qui auraient dû être enregistrés l\'ont été. Il n\'y a pas d\'omission.'
+      libelle: t('accountingReview.assertCompleteness'),
+      description: t('accountingReview.assertCompletenessDesc')
     },
     droits_obligations: {
-      libelle: 'Droits et Obligations',
-      description: 'L\'entité détient les droits sur les actifs et est redevable des passifs enregistrés.'
+      libelle: t('accountingReview.assertRights'),
+      description: t('accountingReview.assertRightsDesc')
     },
     valorisation: {
-      libelle: 'Valorisation / Évaluation',
-      description: 'Les actifs, passifs, produits et charges sont enregistrés à leur juste valeur selon le référentiel applicable.'
+      libelle: t('accountingReview.assertValuation'),
+      description: t('accountingReview.assertValuationDesc')
     },
     presentation: {
-      libelle: 'Présentation et Information',
-      description: 'Les informations sont présentées, classées et décrites conformément au référentiel comptable.'
+      libelle: t('accountingReview.assertPresentation'),
+      description: t('accountingReview.assertPresentationDesc')
     },
     exactitude: {
-      libelle: 'Exactitude',
-      description: 'Les montants et autres données relatives aux transactions sont correctement enregistrés.'
+      libelle: t('accountingReview.assertAccuracy'),
+      description: t('accountingReview.assertAccuracyDesc')
     },
     cut_off: {
-      libelle: 'Séparation des exercices (Cut-off)',
-      description: 'Les transactions sont comptabilisées dans la bonne période comptable.'
+      libelle: t('accountingReview.assertCutoff'),
+      description: t('accountingReview.assertCutoffDesc')
     },
     classification: {
-      libelle: 'Classification',
-      description: 'Les transactions sont enregistrées dans les comptes appropriés.'
+      libelle: t('accountingReview.assertClassification'),
+      description: t('accountingReview.assertClassificationDesc')
     }
   };
 
   // Cycles de révision SYSCOHADA
   const cyclesRevision = [
-    { id: 'immobilisations', label: 'Immobilisations (Classe 2)', comptes: ['20', '21', '22', '23', '24', '27', '28'] },
-    { id: 'stocks', label: 'Stocks (Classe 3)', comptes: ['31', '32', '33', '34', '35', '36', '37', '38', '39'] },
-    { id: 'tiers', label: 'Tiers (Classe 4)', comptes: ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49'] },
-    { id: 'tresorerie', label: 'Trésorerie (Classe 5)', comptes: ['50', '51', '52', '53', '54', '55', '56', '57', '58', '59'] },
-    { id: 'charges', label: 'Charges (Classe 6)', comptes: ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69'] },
-    { id: 'produits', label: 'Produits (Classe 7)', comptes: ['70', '71', '72', '73', '74', '75', '76', '77', '78', '79'] },
-    { id: 'capitaux', label: 'Capitaux (Classe 1)', comptes: ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19'] },
-    { id: 'comptes_speciaux', label: 'Comptes Spéciaux (Classe 8)', comptes: ['80', '81', '82', '83', '84', '85', '86', '87', '88'] }
+    { id: 'immobilisations', label: t('accountingReview.cycleAssets'), comptes: ['20', '21', '22', '23', '24', '27', '28'] },
+    { id: 'stocks', label: t('accountingReview.cycleStocks'), comptes: ['31', '32', '33', '34', '35', '36', '37', '38', '39'] },
+    { id: 'tiers', label: t('accountingReview.cycleThirdParties'), comptes: ['40', '41', '42', '43', '44', '45', '46', '47', '48', '49'] },
+    { id: 'tresorerie', label: t('accountingReview.cycleTreasury'), comptes: ['50', '51', '52', '53', '54', '55', '56', '57', '58', '59'] },
+    { id: 'charges', label: t('accountingReview.cycleExpenses'), comptes: ['60', '61', '62', '63', '64', '65', '66', '67', '68', '69'] },
+    { id: 'produits', label: t('accountingReview.cycleIncome'), comptes: ['70', '71', '72', '73', '74', '75', '76', '77', '78', '79'] },
+    { id: 'capitaux', label: t('accountingReview.cycleEquity'), comptes: ['10', '11', '12', '13', '14', '15', '16', '17', '18', '19'] },
+    { id: 'comptes_speciaux', label: t('accountingReview.cycleSpecial'), comptes: ['80', '81', '82', '83', '84', '85', '86', '87', '88'] }
   ];
 
   // Données de révision — initialement vides, créées via le bouton "Nouvelle Révision"
@@ -276,8 +277,8 @@ const RevisionsModule: React.FC = () => {
         });
 
         setLeadSchedules([
-          mkLS('LS-001', 'Trésorerie', ['521', '531', '571'], net('52', '53', '57'), 'modere', 'faible'),
-          mkLS('LS-002', 'Clients et Comptes rattachés', ['411', '416', '491'], net('41'), 'eleve', 'modere'),
+          mkLS('LS-001', t('accountingReview.lsTreasury'), ['521', '531', '571'], net('52', '53', '57'), 'modere', 'faible'),
+          mkLS('LS-002', t('accountingReview.lsCustomers'), ['411', '416', '491'], net('41'), 'eleve', 'modere'),
           mkLS('LS-003', 'Stocks', ['311', '321', '331', '391'], net('31', '32', '33'), 'eleve', 'eleve'),
           mkLS('LS-004', 'Fournisseurs', ['401', '408', '409'], creditN('40'), 'modere', 'faible'),
         ]);
@@ -298,7 +299,7 @@ const RevisionsModule: React.FC = () => {
 
   const handleSaveNewRisk = async () => {
     if (!newRiskForm.cycle.trim() || !newRiskForm.risque.trim() || !newRiskForm.controleExistant.trim()) {
-      toast.error('Veuillez remplir les champs obligatoires (Cycle, Risque, Contrôle existant)');
+      toast.error(t('accountingReview.fillRequired'));
       return;
     }
     const newRisk: RisqueControle = {
@@ -320,7 +321,7 @@ const RevisionsModule: React.FC = () => {
     }
     setShowNewRiskModal(false);
     setNewRiskForm({ cycle: '', risque: '', assertion: 'existence', probabilite: 'modere', impact: 'eleve', controleExistant: '', efficaciteControle: 'efficace', recommandation: '' });
-    toast.success('Risque ajouté à la matrice');
+    toast.success(t('accountingReview.riskAdded'));
   };
 
   // ==================== STATISTIQUES ====================
@@ -345,7 +346,7 @@ const RevisionsModule: React.FC = () => {
 
   const handleCreateRevision = () => {
     setShowCreateModal(true);
-    toast.success('Ouverture du formulaire de création');
+    toast.success(t('accountingReview.openCreateForm'));
   };
 
   const handleEditRevision = (revision: RevisionItem) => {
@@ -354,11 +355,11 @@ const RevisionsModule: React.FC = () => {
   };
 
   const handleValidateRevision = (revision: RevisionItem) => {
-    toast.success(`Révision ${revision.id} validée avec succès`);
+    toast.success(t('accountingReview.reviewValidated', { id: revision.id }));
   };
 
   const handleRejectRevision = (revision: RevisionItem) => {
-    toast.error(`Révision ${revision.id} rejetée`);
+    toast.error(t('accountingReview.reviewRejected', { id: revision.id }));
   };
 
   const handleCreateAjustement = (revision: RevisionItem) => {
@@ -367,7 +368,7 @@ const RevisionsModule: React.FC = () => {
   };
 
   const handleExportRevisions = () => {
-    toast.success('Export des révisions en cours...');
+    toast.success(t('accountingReview.exportRunning'));
   };
 
   const handleLancerAnalyseIA = () => {
@@ -377,11 +378,11 @@ const RevisionsModule: React.FC = () => {
       setAuditResult(result);
       setIsAnalyzing(false);
       if (result.criticalCount > 0) {
-        toast.error(`Analyse terminée — ${result.criticalCount} constat(s) critique(s) détecté(s) (Note: ${result.globalGrade})`);
+        toast.error(t('accountingReview.analysisCritical', { count: String(result.criticalCount), grade: result.globalGrade }));
       } else if (result.errorCount > 0) {
-        toast(`Analyse terminée — ${result.errorCount} erreur(s) identifiée(s) (Note: ${result.globalGrade})`, { icon: '⚠️' });
+        toast(t('accountingReview.analysisErrors', { count: String(result.errorCount), grade: result.globalGrade }), { icon: '⚠️' });
       } else {
-        toast.success(`Analyse terminée — Note: ${result.globalGrade} (${result.globalScore}/100)`);
+        toast.success(t('accountingReview.analysisDone', { grade: result.globalGrade, score: String(result.globalScore) }));
       }
     }, 0);
   };
@@ -546,10 +547,10 @@ const RevisionsModule: React.FC = () => {
           <div>
             <h1 className="text-lg font-bold text-[var(--color-primary)] flex items-center gap-3">
               <FileSearch className="w-7 h-7 text-[var(--color-primary)]" />
-              Module de Révisions Comptables
+              {t('accountingReview.moduleTitle')}
             </h1>
             <p className="text-[var(--color-text-tertiary)] mt-1">
-              Conforme aux normes ISA (International Standards on Auditing) et SYSCOHADA révisé
+              {t('accountingReview.moduleSubtitle')}
             </p>
           </div>
           <div className="flex items-center space-x-3">
@@ -567,14 +568,14 @@ const RevisionsModule: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
             >
               <Download className="w-4 h-4" />
-              <span>Exporter</span>
+              <span>{t('accountingReview.export')}</span>
             </button>
             <button
               onClick={handleCreateRevision}
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
             >
               <Plus className="w-4 h-4" />
-              <span>Nouvelle révision</span>
+              <span>{t('accountingReview.newReview')}</span>
             </button>
           </div>
         </div>
@@ -582,11 +583,11 @@ const RevisionsModule: React.FC = () => {
         {/* Onglets Principaux */}
         <div className="flex items-center space-x-1 mb-6 border-b border-[var(--color-border)]">
           {[
-            { id: 'revisions', label: 'Points de Révision', icon: FileSearch },
-            { id: 'lead_schedule', label: 'Lead Schedules', icon: Layers },
-            { id: 'risques', label: 'Matrice des Risques', icon: Shield },
-            { id: 'ajustements', label: 'Ajustements (PAJE/AAJE)', icon: Scale },
-            { id: 'analytique', label: 'Revue Analytique', icon: TrendingUp }
+            { id: 'revisions', label: t('accountingReview.tabPoints'), icon: FileSearch },
+            { id: 'lead_schedule', label: t('accountingReview.tabLead'), icon: Layers },
+            { id: 'risques', label: t('accountingReview.tabRisks'), icon: Shield },
+            { id: 'ajustements', label: t('accountingReview.tabAdjustments'), icon: Scale },
+            { id: 'analytique', label: t('accountingReview.tabAnalytical'), icon: TrendingUp }
           ].map(tab => (
             <button
               key={tab.id}
@@ -607,7 +608,7 @@ const RevisionsModule: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
           <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-blue-700">Total Points</span>
+              <span className="text-sm text-blue-700">{t('accountingReview.totalPoints')}</span>
               <FileSearch className="w-5 h-5 text-blue-600" />
             </div>
             <p className="text-lg font-bold text-blue-900">{formatNumber(stats.total)}</p>
@@ -615,7 +616,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-orange-700">En cours</span>
+              <span className="text-sm text-orange-700">{t('accountingReview.inProgress')}</span>
               <Clock className="w-5 h-5 text-orange-600" />
             </div>
             <p className="text-lg font-bold text-orange-900">{stats.enCours}</p>
@@ -623,7 +624,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-green-700">Validées</span>
+              <span className="text-sm text-green-700">{t('accountingReview.validated')}</span>
               <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
             <p className="text-lg font-bold text-green-900">{stats.validees}</p>
@@ -631,7 +632,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-red-700">Critiques</span>
+              <span className="text-sm text-red-700">{t('accountingReview.critical')}</span>
               <AlertOctagon className="w-5 h-5 text-red-600" />
             </div>
             <p className="text-lg font-bold text-red-900">{stats.critiques}</p>
@@ -639,7 +640,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">Impact Total</span>
+              <span className="text-sm text-primary-700">{t('accountingReview.totalImpact')}</span>
               <TrendingDown className="w-5 h-5 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-900">{formatMontant(stats.montantTotal)}</p>
@@ -647,7 +648,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">PAJE Proposés</span>
+              <span className="text-sm text-primary-700">{t('accountingReview.pajeProposed')}</span>
               <Scale className="w-5 h-5 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-900">{formatMontant(stats.montantAjustements)}</p>
@@ -655,7 +656,7 @@ const RevisionsModule: React.FC = () => {
 
           <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg p-4 border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">Complétion</span>
+              <span className="text-sm text-primary-700">{t('accountingReview.completion')}</span>
               <Activity className="w-5 h-5 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-900">{stats.tauxCompletion}%</p>
@@ -681,11 +682,11 @@ const RevisionsModule: React.FC = () => {
                 {/* Onglets de statut */}
                 <div className="flex items-center space-x-1">
                   {[
-                    { id: 'tous', label: 'Toutes' },
-                    { id: 'en-cours', label: 'En cours' },
-                    { id: 'critiques', label: 'Critiques' },
-                    { id: 'validees', label: 'Validées' },
-                    { id: 'rejetees', label: 'Rejetées' }
+                    { id: 'tous', label: t('accountingReview.filterAll') },
+                    { id: 'en-cours', label: t('accountingReview.inProgress') },
+                    { id: 'critiques', label: t('accountingReview.critical') },
+                    { id: 'validees', label: t('accountingReview.validated') },
+                    { id: 'rejetees', label: t('accountingReview.filterRejected') }
                   ].map(tab => (
                     <button
                       key={tab.id}
@@ -707,12 +708,12 @@ const RevisionsModule: React.FC = () => {
                   onChange={(e) => setFilterType(e.target.value)}
                   className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="tous">Tous types</option>
-                  <option value="anomalie">Anomalies</option>
-                  <option value="correction">Corrections</option>
-                  <option value="ajustement">Ajustements</option>
-                  <option value="regularisation">Régularisations</option>
-                  <option value="reclassement">Reclassements</option>
+                  <option value="tous">{t('accountingReview.allTypes')}</option>
+                  <option value="anomalie">{t('accountingReview.typeAnomalies')}</option>
+                  <option value="correction">{t('accountingReview.typeCorrections')}</option>
+                  <option value="ajustement">{t('accountingReview.typeAdjustments')}</option>
+                  <option value="regularisation">{t('accountingReview.typeRegularisations')}</option>
+                  <option value="reclassement">{t('accountingReview.typeReclass')}</option>
                 </select>
 
                 <select
@@ -720,7 +721,7 @@ const RevisionsModule: React.FC = () => {
                   onChange={(e) => setFilterCycle(e.target.value)}
                   className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="tous">Tous cycles</option>
+                  <option value="tous">{t('accountingReview.allCycles')}</option>
                   {cyclesRevision.map(cycle => (
                     <option key={cycle.id} value={cycle.id}>{cycle.label}</option>
                   ))}
@@ -731,7 +732,7 @@ const RevisionsModule: React.FC = () => {
                   onChange={(e) => setFilterAssertion(e.target.value)}
                   className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="tous">Toutes assertions</option>
+                  <option value="tous">{t('accountingReview.allAssertions')}</option>
                   {Object.entries(assertionsAudit).map(([code, info]) => (
                     <option key={code} value={code}>{info.libelle}</option>
                   ))}
@@ -742,11 +743,11 @@ const RevisionsModule: React.FC = () => {
                   onChange={(e) => setFilterPriorite(e.target.value)}
                   className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="tous">Toutes priorités</option>
-                  <option value="critique">Critique</option>
-                  <option value="haute">Haute</option>
-                  <option value="moyenne">Moyenne</option>
-                  <option value="basse">Basse</option>
+                  <option value="tous">{t('accountingReview.allPriorities')}</option>
+                  <option value="critique">{t('accountingReview.prioCritical')}</option>
+                  <option value="haute">{t('accountingReview.prioHigh')}</option>
+                  <option value="moyenne">{t('accountingReview.prioMedium')}</option>
+                  <option value="basse">{t('accountingReview.prioLow')}</option>
                 </select>
               </div>
 
@@ -755,7 +756,7 @@ const RevisionsModule: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Rechercher par compte, référence..."
+                  placeholder={t('accountingReview.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg text-sm w-64"
@@ -770,16 +771,16 @@ const RevisionsModule: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Statut</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Réf.</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Compte</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Type</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Description</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Assertions ISA</th>
-                    <th className="text-right p-4 font-semibold text-[var(--color-primary)]">Montant</th>
-                    <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Risque</th>
-                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Responsable</th>
-                    <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Actions</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colStatus')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colRef')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colAccount')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colType')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colDescription')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colAssertions')}</th>
+                    <th className="text-right p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colAmount')}</th>
+                    <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colRisk')}</th>
+                    <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colOwner')}</th>
+                    <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -846,7 +847,7 @@ const RevisionsModule: React.FC = () => {
                         <p className="text-sm text-[var(--color-primary)]">{revision.responsable || '-'}</p>
                         {revision.dateEcheance && (
                           <p className="text-xs text-[var(--color-text-tertiary)]">
-                            Éch: {new Date(revision.dateEcheance).toLocaleDateString('fr-FR')}
+                            {t('accountingReview.dueAbbr', { date: new Date(revision.dateEcheance).toLocaleDateString(dateLocale) })}
                           </p>
                         )}
                       </td>
@@ -855,14 +856,14 @@ const RevisionsModule: React.FC = () => {
                           <button
                             onClick={(e) => { e.stopPropagation(); openDetail(revision); }}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded"
-                            title="Voir détails"
+                            title={t('accountingReview.viewDetails')}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); handleEditRevision(revision); }}
                             className="p-1.5 text-gray-600 hover:bg-gray-100 rounded"
-                            title="Modifier"
+                            title={t('accountingReview.edit')}
                           >
                             <Edit className="w-4 h-4" />
                           </button>
@@ -870,7 +871,7 @@ const RevisionsModule: React.FC = () => {
                             <button
                               onClick={(e) => { e.stopPropagation(); handleCreateAjustement(revision); }}
                               className="p-1.5 text-primary-600 hover:bg-primary-50 rounded"
-                              title="Créer PAJE"
+                              title={t('accountingReview.createPaje')}
                             >
                               <Scale className="w-4 h-4" />
                             </button>
@@ -885,7 +886,7 @@ const RevisionsModule: React.FC = () => {
               {filteredRevisions.length === 0 && (
                 <div className="text-center py-12">
                   <FileSearch className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">Aucune révision trouvée</p>
+                  <p className="text-gray-500">{t('accountingReview.noReviewFound')}</p>
                 </div>
               )}
             </div>
@@ -902,15 +903,15 @@ const RevisionsModule: React.FC = () => {
               <div>
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center gap-2">
                   <Layers className="w-5 h-5 text-[var(--color-primary)]" />
-                  Lead Schedules par Cycle
+                  {t('accountingReview.leadByCycle')}
                 </h2>
                 <p className="text-sm text-[var(--color-text-tertiary)]">
-                  Feuilles de travail principales selon la méthodologie ISA
+                  {t('accountingReview.leadSubtitle')}
                 </p>
               </div>
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
-                <span>Nouveau cycle</span>
+                <span>{t('accountingReview.newCycle')}</span>
               </button>
             </div>
           </div>
@@ -937,21 +938,21 @@ const RevisionsModule: React.FC = () => {
                 <div className="p-4">
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">Solde N-1</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.prevBalance')}</p>
                       <p className="font-mono font-semibold">{formatMontant(ls.soldePrecedent)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">Solde N</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.currentBalance')}</p>
                       <p className="font-mono font-semibold">{formatMontant(ls.soldeActuel)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">Variation</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.variation')}</p>
                       <p className={`font-mono font-semibold ${ls.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {ls.variation >= 0 ? '+' : ''}{formatMontant(ls.variation)} ({ls.variationPourcent}%)
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">Seuil significativité</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.materialityThreshold')}</p>
                       <p className="font-mono text-sm">{formatMontant(ls.seuilSignificativite)}</p>
                     </div>
                   </div>
@@ -959,19 +960,19 @@ const RevisionsModule: React.FC = () => {
                   {/* Évaluation des risques */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[var(--color-text-tertiary)]">RI:</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.riAbbr')}</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueInherent)}`}>
                         {ls.risqueInherent}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[var(--color-text-tertiary)]">RC:</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.rcAbbr')}</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueControle)}`}>
                         {ls.risqueControle}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-[var(--color-text-tertiary)]">RD:</span>
+                      <span className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.rdAbbr')}</span>
                       <span className={`px-1.5 py-0.5 rounded text-xs ${getRisqueColor(ls.risqueDetection)}`}>
                         {ls.risqueDetection}
                       </span>
@@ -980,7 +981,7 @@ const RevisionsModule: React.FC = () => {
 
                   {/* Assertions testées */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-[var(--color-text-tertiary)]">Assertions testées:</p>
+                    <p className="text-xs font-medium text-[var(--color-text-tertiary)]">{t('accountingReview.assertionsTested')}</p>
                     <div className="flex flex-wrap gap-2">
                       {ls.assertions.map((assertion) => (
                         <div
@@ -1006,7 +1007,7 @@ const RevisionsModule: React.FC = () => {
                   <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-[var(--color-text-tertiary)]">
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />
-                      <span>{ls.preparePar || 'Non assigné'}</span>
+                      <span>{ls.preparePar || t('accountingReview.notAssigned')}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
@@ -1029,10 +1030,10 @@ const RevisionsModule: React.FC = () => {
               <div>
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center gap-2">
                   <Shield className="w-5 h-5 text-[var(--color-primary)]" />
-                  Matrice des Risques et Contrôles
+                  {t('accountingReview.riskMatrixTitle')}
                 </h2>
                 <p className="text-sm text-[var(--color-text-tertiary)]">
-                  Évaluation selon ISA 315 - Identification et évaluation des risques
+                  {t('accountingReview.riskMatrixSubtitle')}
                 </p>
               </div>
               <button
@@ -1040,7 +1041,7 @@ const RevisionsModule: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Nouveau risque</span>
+                <span>{t('accountingReview.newRisk')}</span>
               </button>
             </div>
           </div>
@@ -1049,14 +1050,14 @@ const RevisionsModule: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Cycle</th>
-                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Risque Identifié</th>
-                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Assertion</th>
-                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Probabilité</th>
-                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Impact</th>
-                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Contrôle Existant</th>
-                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">Efficacité</th>
-                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">Recommandation</th>
+                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colCycle')}</th>
+                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colRiskIdentified')}</th>
+                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colAssertion')}</th>
+                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colProbability')}</th>
+                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colImpact')}</th>
+                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colExistingControl')}</th>
+                  <th className="text-center p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colEffectiveness')}</th>
+                  <th className="text-left p-4 font-semibold text-[var(--color-primary)]">{t('accountingReview.colRecommendation')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -1064,8 +1065,8 @@ const RevisionsModule: React.FC = () => {
                   <tr>
                     <td colSpan={8} className="py-12 text-center text-sm text-[var(--color-text-tertiary)]">
                       <Shield className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                      <p className="font-medium">Aucun risque identifié</p>
-                      <p className="text-xs mt-1">Cliquez sur « + Nouveau risque » pour commencer à documenter la matrice des risques</p>
+                      <p className="font-medium">{t('accountingReview.noRiskIdentified')}</p>
+                      <p className="text-xs mt-1">{t('accountingReview.noRiskHint')}</p>
                     </td>
                   </tr>
                 )}
@@ -1118,10 +1119,10 @@ const RevisionsModule: React.FC = () => {
               <div>
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center gap-2">
                   <Scale className="w-5 h-5 text-[var(--color-primary)]" />
-                  Écritures d'Ajustement (PAJE / AAJE)
+                  {t('accountingReview.adjustmentsTitle')}
                 </h2>
                 <p className="text-sm text-[var(--color-text-tertiary)]">
-                  Proposed Adjusting Journal Entries / Actual Adjusting Journal Entries
+                  {t('accountingReview.adjustmentsSubtitle')}
                 </p>
               </div>
             </div>
@@ -1129,25 +1130,25 @@ const RevisionsModule: React.FC = () => {
             {/* Résumé des ajustements */}
             <div className="grid grid-cols-4 gap-4 mb-6">
               <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-                <p className="text-sm text-orange-700">PAJE Proposés</p>
+                <p className="text-sm text-orange-700">{t('accountingReview.pajeProposed')}</p>
                 <p className="text-lg font-bold text-orange-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'propose').length}
                 </p>
               </div>
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <p className="text-sm text-green-700">AAJE Acceptés</p>
+                <p className="text-sm text-green-700">{t('accountingReview.aajeAccepted')}</p>
                 <p className="text-lg font-bold text-green-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'accepte').length}
                 </p>
               </div>
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <p className="text-sm text-blue-700">Comptabilisés</p>
+                <p className="text-sm text-blue-700">{t('accountingReview.posted')}</p>
                 <p className="text-lg font-bold text-blue-900">
                   {revisions.filter(r => r.ecritureProposee?.statut === 'comptabilise').length}
                 </p>
               </div>
               <div className="bg-primary-50 rounded-lg p-4 border border-primary-200">
-                <p className="text-sm text-primary-700">Montant Total</p>
+                <p className="text-sm text-primary-700">{t('accountingReview.totalAmount')}</p>
                 <p className="text-lg font-bold text-primary-900">
                   {formatMontant(stats.montantAjustements)}
                 </p>
@@ -1168,7 +1169,7 @@ const RevisionsModule: React.FC = () => {
                     </span>
                     <div>
                       <p className="font-medium text-[var(--color-primary)]">{revision.ecritureProposee?.id}</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Révision: {revision.id}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('accountingReview.reviewLabel', { id: revision.id })}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1191,10 +1192,10 @@ const RevisionsModule: React.FC = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="text-xs text-[var(--color-text-tertiary)] border-b border-gray-100">
-                        <th className="text-left py-2">Compte</th>
-                        <th className="text-left py-2">Libellé</th>
-                        <th className="text-right py-2">Débit</th>
-                        <th className="text-right py-2">Crédit</th>
+                        <th className="text-left py-2">{t('accountingReview.colAccount')}</th>
+                        <th className="text-left py-2">{t('accountingReview.colLabel')}</th>
+                        <th className="text-right py-2">{t('accountingReview.colDebit')}</th>
+                        <th className="text-right py-2">{t('accountingReview.colCredit')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1217,10 +1218,10 @@ const RevisionsModule: React.FC = () => {
                 {revision.ecritureProposee?.statut === 'propose' && (
                   <div className="p-4 border-t border-gray-100 flex justify-end gap-3">
                     <button className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">
-                      Refuser
+                      {t('accountingReview.refuse')}
                     </button>
                     <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                      Accepter
+                      {t('accountingReview.accept')}
                     </button>
                   </div>
                 )}
@@ -1239,15 +1240,15 @@ const RevisionsModule: React.FC = () => {
               <div>
                 <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-[var(--color-primary)]" />
-                  Procédures Analytiques (ISA 520)
+                  {t('accountingReview.analyticalTitle')}
                 </h2>
                 <p className="text-sm text-[var(--color-text-tertiary)]">
-                  Analyse des variations significatives et des ratios clés
+                  {t('accountingReview.analyticalSubtitle')}
                 </p>
               </div>
               <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2">
                 <Zap className="w-4 h-4" />
-                <span>Lancer analyse IA</span>
+                <span>{t('accountingReview.runAiAnalysis')}</span>
               </button>
             </div>
           </div>
@@ -1256,7 +1257,7 @@ const RevisionsModule: React.FC = () => {
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-6">
             <h3 className="font-bold text-[var(--color-primary)] mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-orange-600" />
-              Variations Significatives Détectées
+              {t('accountingReview.significantVariations')}
             </h3>
             <div className="space-y-4">
               {leadSchedules.filter(ls => Math.abs(ls.variationPourcent) > 15).map((ls) => (
@@ -1276,7 +1277,7 @@ const RevisionsModule: React.FC = () => {
                     </p>
                   </div>
                   <button className="px-3 py-2 bg-white border border-orange-300 text-orange-700 rounded-lg hover:bg-orange-100">
-                    Analyser
+                    {t('accountingReview.analyse')}
                   </button>
                 </div>
               ))}
@@ -1287,18 +1288,18 @@ const RevisionsModule: React.FC = () => {
           <div className="bg-white rounded-lg border border-[var(--color-border)] shadow-sm p-6">
             <h3 className="font-bold text-[var(--color-primary)] mb-4 flex items-center gap-2">
               <PieChart className="w-5 h-5 text-blue-600" />
-              Ratios Clés SYSCOHADA
+              {t('accountingReview.keyRatios')}
             </h3>
             <div className="grid grid-cols-4 gap-4">
               {[
-                { nom: 'Ratio de liquidité générale', valeur: '—', norme: '> 1', statut: 'unknown' },
+                { nom: t('accountingReview.ratioLiquidity'), valeur: '—', norme: '> 1', statut: 'unknown' },
                 { nom: 'Ratio d\'endettement', valeur: '—', norme: '< 50%', statut: 'unknown' },
-                { nom: 'Rotation des stocks (jours)', valeur: '—', norme: '< 60', statut: 'unknown' },
-                { nom: 'Délai clients (jours)', valeur: '—', norme: '< 45', statut: 'unknown' },
-                { nom: 'Délai fournisseurs (jours)', valeur: '—', norme: '> 30', statut: 'unknown' },
-                { nom: 'Marge brute', valeur: '—', norme: '> 25%', statut: 'unknown' },
-                { nom: 'Rentabilité des capitaux', valeur: '—', norme: '> 10%', statut: 'unknown' },
-                { nom: 'Capacité d\'autofinancement', valeur: '—', norme: '> 0', statut: 'unknown' }
+                { nom: t('accountingReview.ratioStockRotation'), valeur: '—', norme: '< 60', statut: 'unknown' },
+                { nom: t('accountingReview.ratioCustomerDays'), valeur: '—', norme: '< 45', statut: 'unknown' },
+                { nom: t('accountingReview.ratioSupplierDays'), valeur: '—', norme: '> 30', statut: 'unknown' },
+                { nom: t('accountingReview.ratioGrossMargin'), valeur: '—', norme: '> 25%', statut: 'unknown' },
+                { nom: t('accountingReview.ratioReturnEquity'), valeur: '—', norme: '> 10%', statut: 'unknown' },
+                { nom: t('accountingReview.ratioSelfFinancing'), valeur: '—', norme: '> 0', statut: 'unknown' }
               ].map((ratio, index) => (
                 <div
                   key={index}
@@ -1307,7 +1308,7 @@ const RevisionsModule: React.FC = () => {
                   <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{ratio.nom}</p>
                   <p className="text-lg font-bold text-[var(--color-text-secondary)]">{ratio.valeur}</p>
                   <p className="text-xs text-[var(--color-text-tertiary)]">Norme: {ratio.norme}</p>
-                  <p className="text-xs text-[var(--color-text-tertiary)] italic mt-1">Calcul en cours...</p>
+                  <p className="text-xs text-[var(--color-text-tertiary)] italic mt-1">{t('accountingReview.computing')}</p>
                 </div>
               ))}
             </div>
@@ -1327,7 +1328,7 @@ const RevisionsModule: React.FC = () => {
                   <FileSearch className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-[var(--color-primary)]">Détail de la Révision</h2>
+                  <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('accountingReview.reviewDetail')}</h2>
                   <p className="text-sm text-[var(--color-text-tertiary)]">{selectedRevision.id} - {selectedRevision.referentiel}</p>
                 </div>
               </div>
@@ -1350,7 +1351,7 @@ const RevisionsModule: React.FC = () => {
                   >
                     <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide flex items-center gap-2">
                       <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                      Informations Générales
+                      {t('accountingReview.generalInfo')}
                     </h3>
                     {expandedSections.includes('general') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </button>
@@ -1358,54 +1359,54 @@ const RevisionsModule: React.FC = () => {
                     <div className="p-4">
                       <div className="grid grid-cols-3 gap-4">
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Compte</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colAccount')}</p>
                           <p className="font-mono font-medium">{selectedRevision.compte}</p>
                           <p className="text-sm text-[var(--color-text-tertiary)]">{selectedRevision.libelleCompte}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Type</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colType')}</p>
                           <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium border ${getTypeColor(selectedRevision.type)}`}>
                             {selectedRevision.type}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Statut</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colStatus')}</p>
                           <div className="flex items-center gap-2">
                             {getStatutIcon(selectedRevision.statut)}
                             <span className="text-sm">{selectedRevision.statut.replace('_', ' ')}</span>
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Priorité</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.priority')}</p>
                           <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${getPrioriteColor(selectedRevision.priorite)}`}>
                             {selectedRevision.priorite}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Niveau de Risque</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.riskLevel')}</p>
                           <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${getRisqueColor(selectedRevision.niveauRisque)}`}>
                             {selectedRevision.niveauRisque.replace('_', ' ')}
                           </span>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Type de Test</p>
-                          <p className="text-sm capitalize">{selectedRevision.typeTest || 'Non défini'}</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.testType')}</p>
+                          <p className="text-sm capitalize">{selectedRevision.typeTest || t('accountingReview.notDefined')}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Montant</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colAmount')}</p>
                           <p className="text-lg font-bold text-[var(--color-primary)]">{formatMontant(selectedRevision.montant)}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Impact</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colImpact')}</p>
                           <p className="text-sm">{selectedRevision.impact}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Responsable</p>
+                          <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colOwner')}</p>
                           <p className="text-sm">{selectedRevision.responsable || '-'}</p>
                         </div>
                       </div>
                       <div className="mt-4">
-                        <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Description</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('accountingReview.colDescription')}</p>
                         <p className="text-sm bg-gray-50 p-3 rounded-lg">{selectedRevision.description}</p>
                       </div>
                     </div>
@@ -1420,7 +1421,7 @@ const RevisionsModule: React.FC = () => {
                   >
                     <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide flex items-center gap-2">
                       <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                      Assertions d'Audit (ISA)
+                      {t('accountingReview.auditAssertions')}
                     </h3>
                     {expandedSections.includes('assertions') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </button>
@@ -1450,7 +1451,7 @@ const RevisionsModule: React.FC = () => {
                     >
                       <h3 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide flex items-center gap-2">
                         <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                        Écriture d'Ajustement ({selectedRevision.ecritureProposee.type})
+                        {t('accountingReview.adjustingEntryOf', { type: selectedRevision.ecritureProposee.type })}
                       </h3>
                       {expandedSections.includes('comptable') ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                     </button>
@@ -1462,10 +1463,10 @@ const RevisionsModule: React.FC = () => {
                         <table className="w-full">
                           <thead>
                             <tr className="text-xs text-[var(--color-text-tertiary)] border-b border-gray-200">
-                              <th className="text-left py-2 px-3">Compte</th>
-                              <th className="text-left py-2 px-3">Libellé</th>
-                              <th className="text-right py-2 px-3">Débit</th>
-                              <th className="text-right py-2 px-3">Crédit</th>
+                              <th className="text-left py-2 px-3">{t('accountingReview.colAccount')}</th>
+                              <th className="text-left py-2 px-3">{t('accountingReview.colLabel')}</th>
+                              <th className="text-right py-2 px-3">{t('accountingReview.colDebit')}</th>
+                              <th className="text-right py-2 px-3">{t('accountingReview.colCredit')}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1482,7 +1483,7 @@ const RevisionsModule: React.FC = () => {
                               </tr>
                             ))}
                             <tr className="font-bold bg-gray-50">
-                              <td colSpan={2} className="py-2 px-3 text-right">Total:</td>
+                              <td colSpan={2} className="py-2 px-3 text-right">{t('accountingReview.totalLabel')}</td>
                               <td className="py-2 px-3 text-right font-mono">{formatMontant(selectedRevision.ecritureProposee.montantTotal)}</td>
                               <td className="py-2 px-3 text-right font-mono">{formatMontant(selectedRevision.ecritureProposee.montantTotal)}</td>
                             </tr>
@@ -1535,7 +1536,7 @@ const RevisionsModule: React.FC = () => {
                   <div className="border border-gray-200 rounded-lg p-4">
                     <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                       <FileText className="w-4 h-4" />
-                      Documents Associés ({selectedRevision.documents.length})
+                      {t('accountingReview.linkedDocuments', { count: String(selectedRevision.documents.length) })}
                     </h3>
                     <div className="space-y-2">
                       {selectedRevision.documents.map((doc) => (
@@ -1562,18 +1563,18 @@ const RevisionsModule: React.FC = () => {
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg flex justify-between">
               <div className="flex gap-3">
                 <button
-                  onClick={() => toast.success('Impression en cours...')}
+                  onClick={() => toast.success(t('accountingReview.printing'))}
                   className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Printer className="w-4 h-4" />
-                  <span>Imprimer</span>
+                  <span>{t('accountingReview.print')}</span>
                 </button>
                 <button
-                  onClick={() => toast.success('Export en cours...')}
+                  onClick={() => toast.success(t('accountingReview.exporting'))}
                   className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Exporter</span>
+                  <span>{t('accountingReview.export')}</span>
                 </button>
               </div>
               <div className="flex gap-3">
@@ -1584,14 +1585,14 @@ const RevisionsModule: React.FC = () => {
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      <span>Valider</span>
+                      <span>{t('accountingReview.validate')}</span>
                     </button>
                     <button
                       onClick={() => { handleRejectRevision(selectedRevision); setShowDetailModal(false); }}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
                     >
                       <XCircle className="w-4 h-4" />
-                      <span>Rejeter</span>
+                      <span>{t('accountingReview.reject')}</span>
                     </button>
                   </>
                 )}
@@ -1599,7 +1600,7 @@ const RevisionsModule: React.FC = () => {
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                 >
-                  Fermer
+                  {t('accountingReview.close')}
                 </button>
               </div>
             </div>
@@ -1618,7 +1619,7 @@ const RevisionsModule: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-[var(--color-primary)]">Lead Schedule - {selectedLeadSchedule.cycle}</h2>
-                  <p className="text-sm text-[var(--color-text-tertiary)]">Feuille de travail principale</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)]">{t('accountingReview.workingPaper')}</p>
                 </div>
               </div>
               <button
@@ -1634,43 +1635,43 @@ const RevisionsModule: React.FC = () => {
                 {/* Soldes et variations */}
                 <div className="grid grid-cols-4 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Solde N-1</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.prevBalance')}</p>
                     <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldePrecedent)}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Solde N</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.currentBalance')}</p>
                     <p className="text-lg font-bold">{formatMontant(selectedLeadSchedule.soldeActuel)}</p>
                   </div>
                   <div className={`p-4 rounded-lg ${selectedLeadSchedule.variation >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Variation</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.variation')}</p>
                     <p className={`text-lg font-bold ${selectedLeadSchedule.variation >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {selectedLeadSchedule.variation >= 0 ? '+' : ''}{selectedLeadSchedule.variationPourcent}%
                     </p>
                   </div>
                   <div className="p-4 bg-primary-50 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)]">Seuil de significativité</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.materialityThresholdFull')}</p>
                     <p className="text-lg font-bold text-primary-800">{formatMontant(selectedLeadSchedule.seuilSignificativite)}</p>
                   </div>
                 </div>
 
                 {/* Évaluation des risques */}
                 <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <h3 className="font-bold text-orange-800 mb-3">Évaluation des Risques (ISA 315)</h3>
+                  <h3 className="font-bold text-orange-800 mb-3">{t('accountingReview.riskAssessment')}</h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <p className="text-xs text-orange-700">Risque Inhérent</p>
+                      <p className="text-xs text-orange-700">{t('accountingReview.inherentRisk')}</p>
                       <span className={`inline-block mt-1 px-3 py-1 rounded ${getRisqueColor(selectedLeadSchedule.risqueInherent)}`}>
                         {selectedLeadSchedule.risqueInherent}
                       </span>
                     </div>
                     <div>
-                      <p className="text-xs text-orange-700">Risque de Contrôle</p>
+                      <p className="text-xs text-orange-700">{t('accountingReview.controlRisk')}</p>
                       <span className={`inline-block mt-1 px-3 py-1 rounded ${getRisqueColor(selectedLeadSchedule.risqueControle)}`}>
                         {selectedLeadSchedule.risqueControle}
                       </span>
                     </div>
                     <div>
-                      <p className="text-xs text-orange-700">Risque de Détection</p>
+                      <p className="text-xs text-orange-700">{t('accountingReview.detectionRisk')}</p>
                       <span className={`inline-block mt-1 px-3 py-1 rounded ${getRisqueColor(selectedLeadSchedule.risqueDetection)}`}>
                         {selectedLeadSchedule.risqueDetection}
                       </span>
@@ -1680,7 +1681,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions testées */}
                 <div>
-                  <h3 className="font-bold text-[var(--color-primary)] mb-3">Assertions Testées</h3>
+                  <h3 className="font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.assertionsTestedTitle')}</h3>
                   <div className="space-y-3">
                     {selectedLeadSchedule.assertions.map((assertion) => (
                       <div key={assertion.code} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1699,13 +1700,13 @@ const RevisionsModule: React.FC = () => {
                           <span className={`px-2 py-1 rounded text-xs ${
                             assertion.testEffectue ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                           }`}>
-                            {assertion.testEffectue ? 'Testé' : 'En attente'}
+                            {assertion.testEffectue ? t('accountingReview.tested') : t('accountingReview.pending')}
                           </span>
                         </div>
                         <p className="text-sm text-[var(--color-text-tertiary)]">{assertion.description}</p>
                         {assertion.conclusion && (
                           <p className="text-sm text-green-700 mt-2 bg-green-50 p-2 rounded">
-                            <strong>Conclusion:</strong> {assertion.conclusion}
+                            <strong>{t('accountingReview.conclusionLabel')}</strong> {assertion.conclusion}
                           </p>
                         )}
                       </div>
@@ -1716,7 +1717,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Conclusion */}
                 {selectedLeadSchedule.conclusion && (
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="font-bold text-blue-800 mb-2">Conclusion</h3>
+                    <h3 className="font-bold text-blue-800 mb-2">{t('accountingReview.conclusion')}</h3>
                     <p className="text-sm text-blue-900">{selectedLeadSchedule.conclusion}</p>
                   </div>
                 )}
@@ -1724,7 +1725,7 @@ const RevisionsModule: React.FC = () => {
                 {/* Recommandations */}
                 {selectedLeadSchedule.recommandations && selectedLeadSchedule.recommandations.length > 0 && (
                   <div>
-                    <h3 className="font-bold text-[var(--color-primary)] mb-3">Recommandations</h3>
+                    <h3 className="font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.recommendations')}</h3>
                     <ul className="space-y-2">
                       {selectedLeadSchedule.recommandations.map((rec, index) => (
                         <li key={index} className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -1743,7 +1744,7 @@ const RevisionsModule: React.FC = () => {
                 onClick={() => setShowLeadScheduleModal(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
-                Fermer
+                {t('accountingReview.close')}
               </button>
             </div>
           </div>
@@ -1755,7 +1756,7 @@ const RevisionsModule: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
-              <h2 className="text-lg font-bold text-[var(--color-primary)]">Nouvelle Révision Comptable</h2>
+              <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('accountingReview.newReviewTitle')}</h2>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
@@ -1768,60 +1769,60 @@ const RevisionsModule: React.FC = () => {
               <div className="space-y-6">
                 {/* Informations de base */}
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">Informations de Base</h3>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.basicInfo')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte SYSCOHADA *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.syscohadaAccount')}</label>
                       <input
                         type="text"
-                        placeholder="Ex: 401100"
+                        placeholder={t('accountingReview.accountPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Libellé du compte</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.accountLabel')}</label>
                       <input
                         type="text"
-                        placeholder="Libellé automatique"
+                        placeholder={t('accountingReview.accountLabelPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
                         disabled
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Type de révision *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.reviewType')}</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="">Sélectionner...</option>
-                        <option value="anomalie">Anomalie</option>
-                        <option value="correction">Correction</option>
-                        <option value="ajustement">Ajustement</option>
-                        <option value="regularisation">Régularisation</option>
-                        <option value="reclassement">Reclassement</option>
+                        <option value="">{t('accountingReview.selectDots')}</option>
+                        <option value="anomalie">{t('accountingReview.typeAnomaly')}</option>
+                        <option value="correction">{t('accountingReview.typeCorrection')}</option>
+                        <option value="ajustement">{t('accountingReview.typeAdjustment')}</option>
+                        <option value="regularisation">{t('accountingReview.typeRegularisation')}</option>
+                        <option value="reclassement">{t('accountingReview.typeReclassification')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Priorité *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.priorityRequired')}</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="basse">Basse</option>
-                        <option value="moyenne">Moyenne</option>
-                        <option value="haute">Haute</option>
-                        <option value="critique">Critique</option>
+                        <option value="basse">{t('accountingReview.prioLow')}</option>
+                        <option value="moyenne">{t('accountingReview.prioMedium')}</option>
+                        <option value="haute">{t('accountingReview.prioHigh')}</option>
+                        <option value="critique">{t('accountingReview.prioCritical')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Montant (FCFA) *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.amountRequired')}</label>
                       <input
                         type="number"
-                        placeholder="Montant"
+                        placeholder={t('accountingReview.colAmount')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Niveau de risque</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.riskLevelLabel')}</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="faible">Faible</option>
-                        <option value="modere">Modéré</option>
-                        <option value="eleve">Élevé</option>
-                        <option value="tres_eleve">Très élevé</option>
+                        <option value="faible">{t('accountingReview.levelLow')}</option>
+                        <option value="modere">{t('accountingReview.levelModerate')}</option>
+                        <option value="eleve">{t('accountingReview.levelHigh')}</option>
+                        <option value="tres_eleve">{t('accountingReview.levelVeryHigh')}</option>
                       </select>
                     </div>
                   </div>
@@ -1829,7 +1830,7 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assertions ISA */}
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">Assertions ISA Concernées</h3>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.isaAssertionsConcerned')}</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(assertionsAudit).map(([code, info]) => (
                       <label key={code} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
@@ -1842,21 +1843,21 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Description et impact */}
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">Description et Impact</h3>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.descriptionImpact')}</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Description détaillée *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.detailedDescription')}</label>
                       <textarea
                         rows={3}
-                        placeholder="Décrivez l'anomalie ou l'ajustement..."
+                        placeholder={t('accountingReview.descriptionPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Impact</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.colImpact')}</label>
                       <input
                         type="text"
-                        placeholder="Ex: Impact sur le résultat net"
+                        placeholder={t('accountingReview.impactPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -1865,18 +1866,18 @@ const RevisionsModule: React.FC = () => {
 
                 {/* Assignation */}
                 <div>
-                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">Assignation</h3>
+                  <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3">{t('accountingReview.assignment')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Responsable</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.colOwner')}</label>
                       <input
                         type="text"
-                        placeholder="Nom du responsable"
+                        placeholder={t('accountingReview.ownerPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date d'échéance</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.dueDate')}</label>
                       <input
                         type="date"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
@@ -1892,19 +1893,19 @@ const RevisionsModule: React.FC = () => {
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
-                Annuler
+                {t('accountingReview.cancel')}
               </button>
               <button
                 onClick={() => {
                   // Honnêteté : pas de faux « créée avec succès » sans persistance.
                   // La revue de comptes (lead schedules, findings) se pilote depuis
                   // le service de révision sur la balance réelle.
-                  toast('Revue de comptes : les feuilles maîtresses et anomalies sont générées automatiquement depuis la balance réelle (analyse ci-dessus). La saisie manuelle de fiche de révision n\'est pas persistée dans cette vue.', { icon: 'ℹ️', duration: 6000 });
+                  toast(t('accountingReview.accountReviewNotice'), { icon: 'ℹ️', duration: 6000 });
                   setShowCreateModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
               >
-                Fermer
+                {t('accountingReview.close')}
               </button>
             </div>
           </div>
@@ -1923,9 +1924,9 @@ const RevisionsModule: React.FC = () => {
                     <Scale className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[var(--color-primary)]">Créer une Écriture d'Ajustement</h2>
+                    <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('accountingReview.createAdjustment')}</h2>
                     <p className="text-sm text-[var(--color-text-tertiary)]">
-                      Révision: {selectedRevision.id} - {selectedRevision.compte} {selectedRevision.libelleCompte}
+                      {t('accountingReview.reviewHeader', { id: selectedRevision.id, account: selectedRevision.compte, label: selectedRevision.libelleCompte })}
                     </p>
                   </div>
                 </div>
@@ -1945,23 +1946,23 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                    Type d'Écriture
+                    {t('accountingReview.entryType')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <label className="flex items-center gap-3 p-4 border-2 border-orange-300 bg-orange-50 rounded-lg cursor-pointer hover:bg-orange-100">
                       <input type="radio" name="typeAjustement" value="PAJE" defaultChecked className="w-4 h-4 text-orange-600" />
                       <div>
                         <p className="font-semibold text-orange-800">PAJE</p>
-                        <p className="text-xs text-orange-700">Proposed Adjusting Journal Entry</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Écriture proposée en attente de validation</p>
+                        <p className="text-xs text-orange-700">{t('accountingReview.pajeDesc')}</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('accountingReview.pajeHint')}</p>
                       </div>
                     </label>
                     <label className="flex items-center gap-3 p-4 border-2 border-green-300 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100">
                       <input type="radio" name="typeAjustement" value="AAJE" className="w-4 h-4 text-green-600" />
                       <div>
                         <p className="font-semibold text-green-800">AAJE</p>
-                        <p className="text-xs text-green-700">Actual Adjusting Journal Entry</p>
-                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Écriture validée à comptabiliser</p>
+                        <p className="text-xs text-green-700">{t('accountingReview.aajeDesc')}</p>
+                        <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('accountingReview.aajeHint')}</p>
                       </div>
                     </label>
                   </div>
@@ -1971,11 +1972,11 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-blue-500 rounded"></span>
-                    Informations de l'Ajustement
+                    {t('accountingReview.adjustmentInfo')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Référence *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.referenceRequired')}</label>
                       <input
                         type="text"
                         defaultValue={`PAJE-${new Date().getFullYear()}-001`}
@@ -1983,7 +1984,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date de l'écriture</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.entryDate')}</label>
                       <input
                         type="date"
                         defaultValue={new Date().toISOString().split('T')[0]}
@@ -1991,11 +1992,11 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div className="col-span-2">
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Justification *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.justificationRequired')}</label>
                       <textarea
                         rows={2}
                         defaultValue={selectedRevision.description}
-                        placeholder="Justification de l'ajustement..."
+                        placeholder={t('accountingReview.justificationPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
@@ -2007,11 +2008,11 @@ const RevisionsModule: React.FC = () => {
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-bold text-[var(--color-primary)] flex items-center gap-2">
                       <span className="w-1 h-4 bg-green-500 rounded"></span>
-                      Lignes d'Écriture Comptable
+                      {t('accountingReview.entryLines')}
                     </h3>
                     <button className="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 flex items-center gap-1 text-sm">
                       <Plus className="w-4 h-4" />
-                      Ajouter une ligne
+                      {t('accountingReview.addLine')}
                     </button>
                   </div>
 
@@ -2019,11 +2020,11 @@ const RevisionsModule: React.FC = () => {
                     <table className="w-full">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left p-3 font-semibold text-[var(--color-primary)]">Compte</th>
-                          <th className="text-left p-3 font-semibold text-[var(--color-primary)]">Libellé</th>
-                          <th className="text-right p-3 font-semibold text-[var(--color-primary)]">Débit (FCFA)</th>
-                          <th className="text-right p-3 font-semibold text-[var(--color-primary)]">Crédit (FCFA)</th>
-                          <th className="text-center p-3 font-semibold text-[var(--color-primary)]">Actions</th>
+                          <th className="text-left p-3 font-semibold text-[var(--color-primary)]">{t('accountingReview.colAccount')}</th>
+                          <th className="text-left p-3 font-semibold text-[var(--color-primary)]">{t('accountingReview.colLabel')}</th>
+                          <th className="text-right p-3 font-semibold text-[var(--color-primary)]">{t('accountingReview.colDebitXof')}</th>
+                          <th className="text-right p-3 font-semibold text-[var(--color-primary)]">{t('accountingReview.colCreditXof')}</th>
+                          <th className="text-center p-3 font-semibold text-[var(--color-primary)]">{t('accountingReview.colActions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2033,7 +2034,7 @@ const RevisionsModule: React.FC = () => {
                             <input
                               type="text"
                               defaultValue={selectedRevision.type === 'anomalie' ? '6' + selectedRevision.compte.substring(1) : selectedRevision.compte}
-                              placeholder="N° compte"
+                              placeholder={t('accountingReview.accountNumPlaceholder')}
                               className="w-full px-2 py-1.5 border border-gray-300 rounded font-mono text-sm"
                             />
                           </td>
@@ -2041,7 +2042,7 @@ const RevisionsModule: React.FC = () => {
                             <input
                               type="text"
                               defaultValue={selectedRevision.libelleCompte}
-                              placeholder="Libellé"
+                              placeholder={t('accountingReview.colLabel')}
                               className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
                             />
                           </td>
@@ -2072,7 +2073,7 @@ const RevisionsModule: React.FC = () => {
                             <input
                               type="text"
                               defaultValue={selectedRevision.compte}
-                              placeholder="N° compte"
+                              placeholder={t('accountingReview.accountNumPlaceholder')}
                               className="w-full px-2 py-1.5 border border-gray-300 rounded font-mono text-sm"
                             />
                           </td>
@@ -2080,7 +2081,7 @@ const RevisionsModule: React.FC = () => {
                             <input
                               type="text"
                               defaultValue={selectedRevision.libelleCompte}
-                              placeholder="Libellé"
+                              placeholder={t('accountingReview.colLabel')}
                               className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm"
                             />
                           </td>
@@ -2107,7 +2108,7 @@ const RevisionsModule: React.FC = () => {
                         </tr>
                         {/* Totaux */}
                         <tr className="bg-gray-50 font-bold">
-                          <td colSpan={2} className="p-3 text-right">TOTAL :</td>
+                          <td colSpan={2} className="p-3 text-right">{t('accountingReview.totalColon')}</td>
                           <td className="p-3 text-right font-mono text-green-700">{formatMontant(selectedRevision.montant)}</td>
                           <td className="p-3 text-right font-mono text-green-700">{formatMontant(selectedRevision.montant)}</td>
                           <td className="p-3"></td>
@@ -2119,7 +2120,7 @@ const RevisionsModule: React.FC = () => {
                   {/* Vérification équilibre */}
                   <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-sm text-green-800">L'écriture est équilibrée (Débit = Crédit)</span>
+                    <span className="text-sm text-green-800">{t('accountingReview.entryBalanced')}</span>
                   </div>
                 </div>
 
@@ -2127,7 +2128,7 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                    Assertions ISA Concernées
+                    {t('accountingReview.isaAssertionsConcerned')}
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedRevision.assertions.map((assertion) => (
@@ -2145,16 +2146,16 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-orange-500 rounded"></span>
-                    Pièces Justificatives
+                    {t('accountingReview.supportingDocs')}
                   </h3>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[var(--color-primary)] hover:bg-gray-50 cursor-pointer transition-colors">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Glissez-déposez vos fichiers ici ou cliquez pour parcourir</p>
-                    <p className="text-xs text-gray-400 mt-1">PDF, Excel, Images (max 10 MB)</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('accountingReview.dropHint')}</p>
+                    <p className="text-xs text-gray-400 mt-1">{t('accountingReview.fileFormats')}</p>
                   </div>
                   {selectedRevision.documents && selectedRevision.documents.length > 0 && (
                     <div className="mt-3 space-y-2">
-                      <p className="text-xs text-[var(--color-text-tertiary)]">Documents de la révision :</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.reviewDocuments')}</p>
                       {selectedRevision.documents.map((doc) => (
                         <div key={doc.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                           <FileText className="w-4 h-4 text-gray-500" />
@@ -2170,11 +2171,11 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-gray-500 rounded"></span>
-                    Notes et Commentaires
+                    {t('accountingReview.notesComments')}
                   </h3>
                   <textarea
                     rows={3}
-                    placeholder="Ajoutez des notes ou commentaires supplémentaires..."
+                    placeholder={t('accountingReview.notesPlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -2186,33 +2187,33 @@ const RevisionsModule: React.FC = () => {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2 text-sm text-[var(--color-text-tertiary)]">
                   <Info className="w-4 h-4" />
-                  <span>L'écriture sera soumise à validation avant comptabilisation</span>
+                  <span>{t('accountingReview.submitWarning')}</span>
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowAjustementModal(false)}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                   >
-                    Annuler
+                    {t('accountingReview.cancel')}
                   </button>
                   <button
                     onClick={() => {
-                      toast.success('Écriture d\'ajustement enregistrée en brouillon');
+                      toast.success(t('accountingReview.draftSaved'));
                       setShowAjustementModal(false);
                     }}
                     className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
                   >
-                    Enregistrer brouillon
+                    {t('accountingReview.saveDraft')}
                   </button>
                   <button
                     onClick={() => {
-                      toast.success('PAJE créé et soumis à validation');
+                      toast.success(t('accountingReview.pajeCreated'));
                       setShowAjustementModal(false);
                     }}
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2"
                   >
                     <Scale className="w-4 h-4" />
-                    Créer le PAJE
+                    {t('accountingReview.createPajeAction')}
                   </button>
                 </div>
               </div>
@@ -2233,7 +2234,7 @@ const RevisionsModule: React.FC = () => {
                     <Edit className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-[var(--color-primary)]">Modifier la Révision</h2>
+                    <h2 className="text-lg font-bold text-[var(--color-primary)]">{t('accountingReview.editReview')}</h2>
                     <p className="text-sm text-[var(--color-text-tertiary)]">{selectedRevision.id}</p>
                   </div>
                 </div>
@@ -2253,11 +2254,11 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                    Informations du Compte
+                    {t('accountingReview.accountInfo')}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Compte SYSCOHADA *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.syscohadaAccount')}</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.compte}
@@ -2265,7 +2266,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Libellé du compte</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.accountLabel')}</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.libelleCompte}
@@ -2279,45 +2280,45 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-orange-500 rounded"></span>
-                    Classification
+                    {t('accountingReview.assertClassification')}
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Type de révision *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.reviewType')}</label>
                       <select
                         defaultValue={selectedRevision.type}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       >
-                        <option value="anomalie">Anomalie</option>
-                        <option value="correction">Correction</option>
-                        <option value="ajustement">Ajustement</option>
-                        <option value="regularisation">Régularisation</option>
-                        <option value="reclassement">Reclassement</option>
+                        <option value="anomalie">{t('accountingReview.typeAnomaly')}</option>
+                        <option value="correction">{t('accountingReview.typeCorrection')}</option>
+                        <option value="ajustement">{t('accountingReview.typeAdjustment')}</option>
+                        <option value="regularisation">{t('accountingReview.typeRegularisation')}</option>
+                        <option value="reclassement">{t('accountingReview.typeReclassification')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Priorité *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.priorityRequired')}</label>
                       <select
                         defaultValue={selectedRevision.priorite}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       >
-                        <option value="basse">Basse</option>
-                        <option value="moyenne">Moyenne</option>
-                        <option value="haute">Haute</option>
-                        <option value="critique">Critique</option>
+                        <option value="basse">{t('accountingReview.prioLow')}</option>
+                        <option value="moyenne">{t('accountingReview.prioMedium')}</option>
+                        <option value="haute">{t('accountingReview.prioHigh')}</option>
+                        <option value="critique">{t('accountingReview.prioCritical')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Statut</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.colStatus')}</label>
                       <select
                         defaultValue={selectedRevision.statut}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       >
-                        <option value="en_attente">En attente</option>
-                        <option value="en_cours">En cours</option>
-                        <option value="valide">Validé</option>
-                        <option value="rejete">Rejeté</option>
-                        <option value="revise">Révisé</option>
+                        <option value="en_attente">{t('accountingReview.statusPending')}</option>
+                        <option value="en_cours">{t('accountingReview.inProgress')}</option>
+                        <option value="valide">{t('accountingReview.statusValidated')}</option>
+                        <option value="rejete">{t('accountingReview.statusRejected')}</option>
+                        <option value="revise">{t('accountingReview.statusReviewed')}</option>
                       </select>
                     </div>
                   </div>
@@ -2327,11 +2328,11 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                    Montant et Évaluation
+                    {t('accountingReview.amountEvaluation')}
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Montant (FCFA) *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.amountRequired')}</label>
                       <input
                         type="number"
                         defaultValue={selectedRevision.montant}
@@ -2339,31 +2340,31 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Niveau de risque</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.riskLevelLabel')}</label>
                       <select
                         defaultValue={selectedRevision.niveauRisque}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       >
-                        <option value="faible">Faible</option>
-                        <option value="modere">Modéré</option>
-                        <option value="eleve">Élevé</option>
-                        <option value="tres_eleve">Très élevé</option>
+                        <option value="faible">{t('accountingReview.levelLow')}</option>
+                        <option value="modere">{t('accountingReview.levelModerate')}</option>
+                        <option value="eleve">{t('accountingReview.levelHigh')}</option>
+                        <option value="tres_eleve">{t('accountingReview.levelVeryHigh')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Type de test</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.testTypeLabel')}</label>
                       <select
                         defaultValue={selectedRevision.typeTest || ''}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       >
-                        <option value="">Non défini</option>
-                        <option value="substantif">Test substantif</option>
-                        <option value="analytique">Procédure analytique</option>
-                        <option value="controle">Test de contrôle</option>
-                        <option value="circularisation">Circularisation</option>
-                        <option value="inspection">Inspection physique</option>
-                        <option value="recalcul">Recalcul</option>
-                        <option value="observation">Observation</option>
+                        <option value="">{t('accountingReview.testUndefined')}</option>
+                        <option value="substantif">{t('accountingReview.testSubstantive')}</option>
+                        <option value="analytique">{t('accountingReview.testAnalytical')}</option>
+                        <option value="controle">{t('accountingReview.testControl')}</option>
+                        <option value="circularisation">{t('accountingReview.testCircularisation')}</option>
+                        <option value="inspection">{t('accountingReview.testPhysical')}</option>
+                        <option value="recalcul">{t('accountingReview.testRecompute')}</option>
+                        <option value="observation">{t('accountingReview.testObservation')}</option>
                       </select>
                     </div>
                   </div>
@@ -2373,11 +2374,11 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-blue-500 rounded"></span>
-                    Description et Impact
+                    {t('accountingReview.descriptionImpact')}
                   </h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Description détaillée *</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.detailedDescription')}</label>
                       <textarea
                         rows={3}
                         defaultValue={selectedRevision.description}
@@ -2385,7 +2386,7 @@ const RevisionsModule: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Impact</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.colImpact')}</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.impact}
@@ -2399,7 +2400,7 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                    Assertions ISA Concernées
+                    {t('accountingReview.isaAssertionsConcerned')}
                   </h3>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.entries(assertionsAudit).map(([code, info]) => (
@@ -2419,29 +2420,29 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-green-500 rounded"></span>
-                    Assignation et Délais
+                    {t('accountingReview.assignmentDeadlines')}
                   </h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Responsable</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.colOwner')}</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.responsable || ''}
-                        placeholder="Nom du responsable"
+                        placeholder={t('accountingReview.ownerPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Réviseur</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.reviewer')}</label>
                       <input
                         type="text"
                         defaultValue={selectedRevision.reviseur || ''}
-                        placeholder="Nom du réviseur"
+                        placeholder={t('accountingReview.reviewerPlaceholder')}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Date d'échéance</label>
+                      <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('accountingReview.dueDate')}</label>
                       <input
                         type="date"
                         defaultValue={selectedRevision.dateEcheance || ''}
@@ -2455,12 +2456,12 @@ const RevisionsModule: React.FC = () => {
                 <div>
                   <h3 className="text-sm font-bold text-[var(--color-primary)] mb-3 flex items-center gap-2">
                     <span className="w-1 h-4 bg-yellow-500 rounded"></span>
-                    Pièce Justificative
+                    {t('accountingReview.supportingDoc')}
                   </h3>
                   <input
                     type="text"
                     defaultValue={selectedRevision.pieceJustificative || ''}
-                    placeholder="Référence de la pièce justificative"
+                    placeholder={t('accountingReview.supportingDocPlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                   />
                 </div>
@@ -2471,24 +2472,24 @@ const RevisionsModule: React.FC = () => {
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 rounded-b-lg">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-[var(--color-text-tertiary)]">
-                  Dernière modification: {new Date(selectedRevision.dateDetection).toLocaleDateString('fr-FR')}
+                  {t('accountingReview.lastModified', { date: new Date(selectedRevision.dateDetection).toLocaleDateString(dateLocale) })}
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setShowEditModal(false)}
                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                   >
-                    Annuler
+                    {t('accountingReview.cancel')}
                   </button>
                   <button
                     onClick={() => {
-                      toast.success(`Révision ${selectedRevision.id} mise à jour avec succès`);
+                      toast.success(t('accountingReview.reviewUpdated', { id: selectedRevision.id }));
                       setShowEditModal(false);
                     }}
                     className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
                   >
                     <CheckCircle className="w-4 h-4" />
-                    Enregistrer les modifications
+                    {t('accountingReview.saveChanges')}
                   </button>
                 </div>
               </div>
@@ -2507,8 +2508,8 @@ const RevisionsModule: React.FC = () => {
                   <Shield className="w-5 h-5 text-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[var(--color-primary)]">Nouveau Risque</h2>
-                  <p className="text-xs text-[var(--color-text-tertiary)]">Matrice des risques — ISA 315</p>
+                  <h2 className="text-base font-bold text-[var(--color-primary)]">{t('accountingReview.newRiskTitle')}</h2>
+                  <p className="text-xs text-[var(--color-text-tertiary)]">{t('accountingReview.newRiskSubtitle')}</p>
                 </div>
               </div>
               <button onClick={() => setShowNewRiskModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
@@ -2518,101 +2519,101 @@ const RevisionsModule: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Cycle <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.colCycle')} <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={newRiskForm.cycle}
                     onChange={e => setNewRiskForm(f => ({ ...f, cycle: e.target.value }))}
-                    placeholder="ex: Ventes / Clients"
+                    placeholder={t('accountingReview.cyclePlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Risque identifié <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.riskIdentified')} <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={newRiskForm.risque}
                     onChange={e => setNewRiskForm(f => ({ ...f, risque: e.target.value }))}
-                    placeholder="Description du risque"
+                    placeholder={t('accountingReview.riskPlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Assertion</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.colAssertion')}</label>
                   <select
                     value={newRiskForm.assertion}
                     onChange={e => setNewRiskForm(f => ({ ...f, assertion: e.target.value as AssertionAudit }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="existence">Existence / Réalité</option>
-                    <option value="exhaustivite">Exhaustivité</option>
-                    <option value="valorisation">Valorisation</option>
-                    <option value="cut_off">Séparation des exercices (Cut-off)</option>
-                    <option value="exactitude">Exactitude</option>
-                    <option value="classification">Classification</option>
-                    <option value="droits_obligations">Droits & Obligations</option>
-                    <option value="presentation">Présentation</option>
+                    <option value="existence">{t('accountingReview.assertExistence')}</option>
+                    <option value="exhaustivite">{t('accountingReview.assertCompleteness')}</option>
+                    <option value="valorisation">{t('accountingReview.assertValuationShort')}</option>
+                    <option value="cut_off">{t('accountingReview.assertCutoff')}</option>
+                    <option value="exactitude">{t('accountingReview.assertAccuracy')}</option>
+                    <option value="classification">{t('accountingReview.assertClassification')}</option>
+                    <option value="droits_obligations">{t('accountingReview.assertRightsShort')}</option>
+                    <option value="presentation">{t('accountingReview.assertPresentationShort')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Probabilité</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.colProbability')}</label>
                   <select
                     value={newRiskForm.probabilite}
                     onChange={e => setNewRiskForm(f => ({ ...f, probabilite: e.target.value as NiveauRisque }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="faible">Faible</option>
-                    <option value="modere">Modéré</option>
-                    <option value="eleve">Élevé</option>
-                    <option value="tres_eleve">Très élevé</option>
+                    <option value="faible">{t('accountingReview.levelLow')}</option>
+                    <option value="modere">{t('accountingReview.levelModerate')}</option>
+                    <option value="eleve">{t('accountingReview.levelHigh')}</option>
+                    <option value="tres_eleve">{t('accountingReview.levelVeryHigh')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Impact</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.colImpact')}</label>
                   <select
                     value={newRiskForm.impact}
                     onChange={e => setNewRiskForm(f => ({ ...f, impact: e.target.value as NiveauRisque }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="faible">Faible</option>
-                    <option value="modere">Modéré</option>
-                    <option value="eleve">Élevé</option>
-                    <option value="tres_eleve">Très élevé</option>
+                    <option value="faible">{t('accountingReview.levelLow')}</option>
+                    <option value="modere">{t('accountingReview.levelModerate')}</option>
+                    <option value="eleve">{t('accountingReview.levelHigh')}</option>
+                    <option value="tres_eleve">{t('accountingReview.levelVeryHigh')}</option>
                   </select>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Contrôle existant <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.existingControl')} <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={newRiskForm.controleExistant}
                   onChange={e => setNewRiskForm(f => ({ ...f, controleExistant: e.target.value }))}
-                  placeholder="Description du contrôle en place"
+                  placeholder={t('accountingReview.controlPlaceholder')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Efficacité du contrôle</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.controlEffectiveness')}</label>
                   <select
                     value={newRiskForm.efficaciteControle}
                     onChange={e => setNewRiskForm(f => ({ ...f, efficaciteControle: e.target.value as 'efficace' | 'partiellement_efficace' | 'inefficace' }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   >
-                    <option value="efficace">Efficace</option>
-                    <option value="partiellement_efficace">Partiellement efficace</option>
-                    <option value="inefficace">Inefficace</option>
+                    <option value="efficace">{t('accountingReview.effEffective')}</option>
+                    <option value="partiellement_efficace">{t('accountingReview.effPartial')}</option>
+                    <option value="inefficace">{t('accountingReview.effIneffective')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Recommandation</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{t('accountingReview.colRecommendation')}</label>
                   <input
                     type="text"
                     value={newRiskForm.recommandation}
                     onChange={e => setNewRiskForm(f => ({ ...f, recommandation: e.target.value }))}
-                    placeholder="Amélioration suggérée (optionnel)"
+                    placeholder={t('accountingReview.recommendationPlaceholder')}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                   />
                 </div>
@@ -2623,14 +2624,14 @@ const RevisionsModule: React.FC = () => {
                 onClick={() => setShowNewRiskModal(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50"
               >
-                Annuler
+                {t('accountingReview.cancel')}
               </button>
               <button
                 onClick={handleSaveNewRisk}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Ajouter le risque
+                {t('accountingReview.addRisk')}
               </button>
             </div>
           </div>
