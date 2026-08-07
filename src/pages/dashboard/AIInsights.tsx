@@ -12,9 +12,8 @@ import {
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
 import { askProph3t, isProph3tCoreConfigured } from '../../lib/proph3t';
-import { LineChart as RechartsLineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { StatBadgeCard } from '../../components/premium';
-import { AtlasRadar } from '../../components/charts';
+import { AtlasForecast, AtlasRadar, AtlasScatter } from '../../components/charts';
 
 interface Prediction {
   id: string;
@@ -592,25 +591,18 @@ const AIInsights: React.FC = () => {
             {t('aiInsights.insufficientHistory')}
           </div>
         ) : (
-        <ResponsiveContainer width="100%" height={350}>
-          <AreaChart data={forecastData}>
-            <defs>
-              <linearGradient id="colorPredicted" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#171717" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="#171717" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-            <XAxis dataKey="date" stroke="#235A6E" />
-            <YAxis stroke="#235A6E" />
-            <Tooltip />
-            <Legend />
-            <Area type="monotone" dataKey="upper" stroke="transparent" fill="#E0E7FF" name={t('aiInsights.upperBound')} />
-            <Area type="monotone" dataKey="lower" stroke="transparent" fill="#FFFFFF" name={t('aiInsights.lowerBound')} />
-            <Line type="monotone" dataKey="actual" stroke="#15803D" strokeWidth={2} dot={false} name={t('aiInsights.actual')} />
-            <Line type="monotone" dataKey="predicted" stroke="#235A6E" strokeWidth={2} strokeDasharray="5 5" dot={false} name={t('aiInsights.predicted')} />
-          </AreaChart>
-        </ResponsiveContainer>
+        /* La borne haute était un aplat posé PAR-DESSUS la borne basse peinte en
+           blanc : l'intervalle masquait la grille et se lisait comme une série.
+           AtlasForecast rend la bande par empilement base + épaisseur. */
+        <AtlasForecast
+          categories={forecastData.map((d: any) => d.date)}
+          actual={forecastData.map((d: any) => d.actual ?? null)}
+          predicted={forecastData.map((d: any) => d.predicted ?? null)}
+          lower={forecastData.map((d: any) => d.lower ?? null)}
+          upper={forecastData.map((d: any) => d.upper ?? null)}
+          labels={{ actual: t('aiInsights.actual'), predicted: t('aiInsights.predicted') }}
+          height={350}
+        />
         )}
       </div>
     </div>
@@ -815,18 +807,18 @@ const AIInsights: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('aiInsights.correlationAnalysis')}</h2>
-          <ResponsiveContainer width="100%" height={350}>
-            <ScatterChart>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-              <XAxis dataKey="x" name={t('aiInsights.sales')} unit={t('aiInsights.unitThousands')} stroke="#235A6E" />
-              <YAxis dataKey="y" name={t('aiInsights.margin')} unit="%" stroke="#235A6E" />
-              <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-              <Legend />
-              <Scatter name={t('aiInsights.productsA')} data={correlationData.filter(d => d.category === 'A')} fill="#235A6E" />
-              <Scatter name={t('aiInsights.productsB')} data={correlationData.filter(d => d.category === 'B')} fill="#15803D" />
-              <Scatter name={t('aiInsights.productsC')} data={correlationData.filter(d => d.category === 'C')} fill="#4E7E8D" />
-            </ScatterChart>
-          </ResponsiveContainer>
+          <AtlasScatter
+            xName={t('aiInsights.sales')}
+            yName={t('aiInsights.margin')}
+            xFormatter={(v) => `${v}${t('aiInsights.unitThousands')}`}
+            yFormatter={(v) => `${v} %`}
+            series={[
+              { name: t('aiInsights.productsA'), points: correlationData.filter(d => d.category === 'A').map(d => ({ x: d.x, y: d.y })), color: '#235A6E' },
+              { name: t('aiInsights.productsB'), points: correlationData.filter(d => d.category === 'B').map(d => ({ x: d.x, y: d.y })), color: '#15803D' },
+              { name: t('aiInsights.productsC'), points: correlationData.filter(d => d.category === 'C').map(d => ({ x: d.x, y: d.y })), color: '#4E7E8D' },
+            ]}
+            height={350}
+          />
         </div>
       </div>
 

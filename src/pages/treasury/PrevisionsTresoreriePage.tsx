@@ -7,9 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import PeriodSelectorModal from '../../components/shared/PeriodSelectorModal';
 import ExportMenu from '../../components/shared/ExportMenu';
 import { formatCurrency } from '../../utils/formatters';
-import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from 'recharts';
+import { AtlasCombo, ATLAS_PETROL } from '../../components/charts';
 
 // ──────────── Types ────────────
 
@@ -915,18 +913,18 @@ const PrevisionsTresoreriePage: React.FC = () => {
           {chartData.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">{tr('cashForecast.chartTitle')}</h3>
-              <ResponsiveContainer width="100%" height={320}>
-                <ComposedChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={v => `${(v / 1_000_000).toFixed(1)}M`} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Legend />
-                  <Bar radius={[6,6,0,0]} dataKey="encaissements" fill="url(#gradGreen)" name={tr('cashForecast.receipts')} />
-                  <Bar radius={[6,6,0,0]} dataKey="decaissements" fill="url(#gradRed)" name={tr('cashForecast.payments')} />
-                  <Line type="monotone" dataKey="soldeFin" stroke="#235A6E" strokeWidth={2} name={tr('cashForecast.closingBalanceShort')} dot={{ r: 4 }} />
-                </ComposedChart>
-              </ResponsiveContainer>
+              <AtlasCombo
+                categories={chartData.map((d: any) => d.name)}
+                bars={[
+                  { name: tr('cashForecast.receipts'), data: chartData.map((d: any) => d.encaissements), color: '#15803D' },
+                  { name: tr('cashForecast.payments'), data: chartData.map((d: any) => d.decaissements), color: '#C0322B' },
+                ]}
+                lines={[
+                  { name: tr('cashForecast.closingBalanceShort'), data: chartData.map((d: any) => d.soldeFin), color: ATLAS_PETROL, onRightAxis: false },
+                ]}
+                valueFormatter={(v) => formatCurrency(v)}
+                height={320}
+              />
             </div>
           )}
 

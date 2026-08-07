@@ -136,17 +136,28 @@ export async function exportToPDF(
     .text-positive { color: ${document.theme.positive}; }
   `;
 
-  // Fige la taille des graphiques (recharts via ResponsiveContainer calcule sa largeur au
-  // runtime ; dans une fenêtre détachée sans layout, ils rendraient vides). On stamp la
-  // taille rendue en pixels sur le DOM VIVANT (visuellement identique) puis on restaure.
+  // Les graphiques sont rendus par ECharts dans un <canvas>. cloneNode() ne copie PAS
+  // le bitmap d'un canvas : tel quel, les graphes sortiraient blancs à l'impression.
+  // On remplace chaque canvas par son instantané <img> dans le DOM VIVANT (visuellement
+  // identique), on imprime, puis on restaure.
   const restore: Array<() => void> = [];
-  window.document.querySelectorAll<HTMLElement>('[data-report-canvas] .recharts-responsive-container').forEach(el => {
-    const r = el.getBoundingClientRect();
+  window.document.querySelectorAll<HTMLCanvasElement>('[data-report-canvas] canvas').forEach(cv => {
+    const r = cv.getBoundingClientRect();
     if (r.width < 1 || r.height < 1) return;
-    const prevW = el.style.width, prevH = el.style.height;
-    el.style.width = `${Math.round(r.width)}px`;
-    el.style.height = `${Math.round(r.height)}px`;
-    restore.push(() => { el.style.width = prevW; el.style.height = prevH; });
+    let snapshot: string;
+    try {
+      snapshot = cv.toDataURL('image/png');
+    } catch {
+      return; // canvas « tainted » : on laisse le canvas d'origine plutôt que de casser l'export
+    }
+    const img = window.document.createElement('img');
+    img.src = snapshot;
+    img.style.width = `${Math.round(r.width)}px`;
+    img.style.height = `${Math.round(r.height)}px`;
+    const parent = cv.parentNode;
+    if (!parent) return;
+    parent.replaceChild(img, cv);
+    restore.push(() => { img.parentNode?.replaceChild(cv, img); });
   });
 
   // Write to print window using DOM construction (avoids document.write XSS risk)
@@ -185,7 +196,7 @@ export async function exportToPDF(
     printDoc.body.appendChild(page);
   });
 
-  // Restaure le DOM vivant (tailles de charts).
+  // Restaure le DOM vivant (canvas des graphiques).
   restore.forEach(fn => fn());
 
   // Laisse le temps aux feuilles de style/polices de charger, puis imprime.

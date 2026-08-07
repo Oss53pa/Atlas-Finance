@@ -77,7 +77,7 @@ export default defineConfig({
           // Animation — chunk séparé pour lazy-loading
           if (id.includes('framer-motion')) return 'vendor-animation';
           // Charts — séparés pour éviter de tout charger d'un coup
-          if (id.includes('node_modules/recharts')) return 'vendor-charts';
+          if (id.includes('node_modules/echarts') || id.includes('node_modules/zrender')) return 'vendor-charts';
           if (
             id.includes('node_modules/d3/') ||
             id.includes('node_modules/d3-')
@@ -126,7 +126,7 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-router-dom',
-      'recharts',
+      'echarts',
       'chart.js',
       'react-chartjs-2',
       'd3',

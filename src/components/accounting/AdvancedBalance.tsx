@@ -950,16 +950,12 @@ const AdvancedBalance: React.FC = () => {
                   <br />{t('advBalance.assignCostCenters')}
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={analyticsData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="centre" />
-                    <YAxis tickFormatter={(value) => fmt(value)} />
-                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                    <Legend />
-                    <Bar radius={[6,6,0,0]} dataKey="reel" fill="url(#gradPetrol)" name={t('advBalance.actual')} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <AtlasBar
+                  categories={analyticsData.map((a) => a.centre)}
+                  series={[{ name: t('advBalance.actual'), data: analyticsData.map((a) => a.reel), color: CHART_SERIES.mass }]}
+                  valueFormatter={(v) => fmt(v)}
+                  height={300}
+                />
               )}
             </div>
 
@@ -970,16 +966,12 @@ const AdvancedBalance: React.FC = () => {
                   {t('advBalance.insufficientData')}
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={analyticsData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="centre" />
-                    <YAxis tickFormatter={(value) => fmt(value)} />
-                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                    <Legend />
-                    <Line type="monotone" dataKey="reel" stroke="#235A6E" name={t('advBalance.actual')} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={analyticsData.map((a) => a.centre)}
+                  series={[{ name: t('advBalance.actual'), data: analyticsData.map((a) => a.reel), color: CHART_SERIES.produits }]}
+                  valueFormatter={(v) => fmt(v)}
+                  height={300}
+                />
               )}
             </div>
           </div>

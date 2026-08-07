@@ -4,7 +4,7 @@ import { useAccountNames } from '@/hooks/useAccountNames';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../../contexts/DataContext';
 import { StatBadgeCard } from '../../components/premium';
-import { AtlasDonut } from '../../components/charts';
+import { AtlasBar, AtlasDonut, AtlasLine } from '../../components/charts';
 import type { DBAsset } from '../../lib/db';
 import { listMaintenance } from '../../services/immobilisations/maintenanceService';
 import { motion } from 'framer-motion';
@@ -43,25 +43,6 @@ import {
   Map,
   Settings
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  LineChart as RechartsLineChart,
-  Line,
-  PieChart as RechartsPieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  RadialBarChart,
-  RadialBar
-} from 'recharts';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 
@@ -743,48 +724,17 @@ const AssetsSummary: React.FC = () => {
           <LineChart className="w-5 h-5 text-primary-500" />
         </div>
 
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <RechartsLineChart data={depreciationChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => [`${formatCurrency(value)}`, '']}
-                labelFormatter={(label) => `Mois: ${label}`}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="acquisition"
-                stroke="#235A6E"
-                strokeWidth={2}
-                name="Acquisitions"
-              />
-              <Line
-                type="monotone"
-                dataKey="depreciation"
-                stroke="#C0322B"
-                strokeWidth={2}
-                name="Amortissements"
-              />
-              <Line
-                type="monotone"
-                dataKey="netValue"
-                stroke="#15803D"
-                strokeWidth={2}
-                name="Valeur nette"
-              />
-              <Line
-                type="monotone"
-                dataKey="disposal"
-                stroke="#E89A2E"
-                strokeWidth={2}
-                name="Cessions"
-              />
-            </RechartsLineChart>
-          </ResponsiveContainer>
-        </div>
+        <AtlasLine
+          categories={depreciationChartData.map((d: any) => d.month)}
+          series={[
+            { name: 'Acquisitions', data: depreciationChartData.map((d: any) => d.acquisition), color: '#235A6E' },
+            { name: 'Amortissements', data: depreciationChartData.map((d: any) => d.depreciation), color: '#C0322B' },
+            { name: 'Valeur nette', data: depreciationChartData.map((d: any) => d.netValue), color: '#15803D' },
+            { name: 'Cessions', data: depreciationChartData.map((d: any) => d.disposal), color: '#E89A2E' },
+          ]}
+          valueFormatter={(v) => formatCurrency(v)}
+          height={320}
+        />
       </motion.div>
     </div>
   );
@@ -868,19 +818,12 @@ const AssetsSummary: React.FC = () => {
           <BarChart3 className="w-5 h-5 text-primary-500" />
         </div>
 
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={geographicData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="location" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip
-                formatter={(value: number) => [`${formatCurrency(value)}`, 'Valeur']}
-              />
-              <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <AtlasBar
+          categories={geographicData.map((g: any) => g.location)}
+          series={[{ name: 'Valeur', data: geographicData.map((g: any) => g.value), color: '#235A6E' }]}
+          valueFormatter={(v) => formatCurrency(v)}
+          height={320}
+        />
       </motion.div>
     </div>
   );

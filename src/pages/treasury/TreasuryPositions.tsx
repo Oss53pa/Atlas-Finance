@@ -35,9 +35,7 @@ import {
   Layers,
   ExternalLink
 } from 'lucide-react';
-import {
-  AreaChart, Area, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
-} from 'recharts';
+import { AtlasLine } from '../../components/charts';
 import {
   UnifiedCard,
   SectionHeader,
@@ -784,24 +782,14 @@ const TreasuryPositions: React.FC = () => {
                     ? t('treasuryPos.forecastWithPlan')
                     : t('treasuryPos.forecastNoPlan')}
                 </p>
-                <div style={{ height: 240 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={series} margin={{ top: 10, right: 12, left: 4, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="atterGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={AMBER} stopOpacity={0.3} />
-                          <stop offset="100%" stopColor={AMBER} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="jour" tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={{ stroke: 'var(--color-border)' }} tickLine={false} interval="preserveStartEnd" minTickGap={28} />
-                      <YAxis tickFormatter={fmtCourt} tick={{ fill: 'var(--color-text-secondary)', fontSize: 11 }} axisLine={false} tickLine={false} width={62} />
-                      <RTooltip formatter={(v: any) => [formatCurrency(Number(v)), t('treasuryPos.projectedBalance')]} />
-                      <ReferenceLine y={0} stroke={ROUGE} strokeDasharray="4 4" />
-                      <Area type="monotone" dataKey="solde" stroke={AMBER} strokeWidth={2} fill="url(#atterGrad)" dot={false} />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                <AtlasLine
+                  categories={series.map((s: any) => String(s.jour))}
+                  series={[{ name: t('treasuryPos.projectedBalance'), data: series.map((s: any) => s.solde), color: AMBER, area: true }]}
+                  showPoints={false}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  axisFormatter={fmtCourt}
+                  height={240}
+                />
               </div>
               {/* Concentration bancaire — Top 5, côte à côte avec l'atterrissage. */}
               <div className="bg-white rounded-xl border border-[var(--color-border)] p-4">

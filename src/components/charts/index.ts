@@ -13,6 +13,15 @@ export type { AtlasBarProps, BarSeries } from './AtlasBar';
 export { default as AtlasLine } from './AtlasLine';
 export type { AtlasLineProps, LineSeries } from './AtlasLine';
 
+export { default as AtlasWaterfall } from './AtlasWaterfall';
+export type { AtlasWaterfallProps, WaterfallItem } from './AtlasWaterfall';
+
+export { default as AtlasScatter } from './AtlasScatter';
+export type { AtlasScatterProps, ScatterPoint, ScatterSeries } from './AtlasScatter';
+
+export { default as AtlasForecast } from './AtlasForecast';
+export type { AtlasForecastProps } from './AtlasForecast';
+
 export { default as AtlasFunnel } from './AtlasFunnel';
 export type { AtlasFunnelProps, FunnelStage } from './AtlasFunnel';
 

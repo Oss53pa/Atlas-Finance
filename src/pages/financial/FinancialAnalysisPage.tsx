@@ -15,30 +15,7 @@ import {
   ArrowUpIcon,
   ArrowDownIcon
 } from '@heroicons/react/24/outline';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  ComposedChart,
-  Area,
-  AreaChart
-} from 'recharts';
-import { AtlasRadar } from '../../components/charts';
+import { AtlasBar, AtlasCombo, AtlasRadar, AtlasWaterfall, ATLAS_PETROL } from '../../components/charts';
 
 interface FinancialData {
   tafire: TAFIREData;
@@ -455,40 +432,42 @@ const FinancialAnalysisPage: React.FC = () => {
             {/* Évolution SIG */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Cascade des SIG</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={[
-                  { name: 'Marge Comm.', value: financialData?.sig.commercialMargin || 0 },
-                  { name: 'Production', value: financialData?.sig.production || 0 },
-                  { name: 'Valeur Ajoutée', value: financialData?.sig.addedValue || 0 },
-                  { name: 'EBE', value: financialData?.sig.grossOperatingSurplus || 0 },
-                  { name: 'Rés. Exploit.', value: financialData?.sig.operatingResult || 0 },
-                  { name: 'Rés. Net', value: financialData?.sig.netResult || 0 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
-                </BarChart>
-              </ResponsiveContainer>
+              <AtlasBar
+                categories={['Marge Comm.', 'Production', 'Valeur Ajoutée', 'EBE', 'Rés. Exploit.', 'Rés. Net']}
+                series={[{
+                  name: 'SIG',
+                  data: [
+                    financialData?.sig.commercialMargin || 0,
+                    financialData?.sig.production || 0,
+                    financialData?.sig.addedValue || 0,
+                    financialData?.sig.grossOperatingSurplus || 0,
+                    financialData?.sig.operatingResult || 0,
+                    financialData?.sig.netResult || 0,
+                  ],
+                  color: ATLAS_PETROL,
+                }]}
+                valueFormatter={(v) => formatCurrency(v)}
+                height={300}
+              />
             </div>
 
             {/* Équilibre financier */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Équilibre Financier</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={[
-                  { name: 'FRNG', value: financialData?.functionalBalance.workingCapitalFund || 0, fill: '#171717' },
-                  { name: 'BFR', value: financialData?.functionalBalance.totalWorkingCapitalNeed || 0, fill: '#525252' },
-                  { name: 'Trésorerie', value: financialData?.functionalBalance.netTreasury || 0, fill: '#737373' }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar radius={[6,6,0,0]} dataKey="value" />
-                </BarChart>
-              </ResponsiveContainer>
+              <AtlasBar
+                categories={['FRNG', 'BFR', 'Trésorerie']}
+                series={[{
+                  name: 'Équilibre financier',
+                  data: [
+                    financialData?.functionalBalance.workingCapitalFund || 0,
+                    financialData?.functionalBalance.totalWorkingCapitalNeed || 0,
+                    financialData?.functionalBalance.netTreasury || 0,
+                  ],
+                  itemColors: ['#235A6E', '#E89A2E', '#15803D'],
+                }]}
+                valueFormatter={(v) => formatCurrency(v)}
+                height={300}
+              />
             </div>
           </div>
 
@@ -546,21 +525,20 @@ const FinancialAnalysisPage: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Waterfall des Flux de Trésorerie</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <ComposedChart data={[
-                  { name: 'Trésorerie début', value: financialData?.tafire.openingCash || 0, type: 'opening' },
-                  { name: 'Flux exploitation', value: financialData?.tafire.operatingCashFlow || 0, type: 'operating' },
-                  { name: 'Flux investissement', value: financialData?.tafire.investmentCashFlow || 0, type: 'investment' },
-                  { name: 'Flux financement', value: financialData?.tafire.financingCashFlow || 0, type: 'financing' },
-                  { name: 'Trésorerie fin', value: financialData?.tafire.closingCash || 0, type: 'closing' }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-                  <YAxis />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                  <Bar radius={[6,6,0,0]} dataKey="value" fill="url(#gradPetrol)" />
-                </ComposedChart>
-              </ResponsiveContainer>
+              {/* Le bloc s'intitulait « Waterfall » mais dessinait cinq barres
+                  indépendantes : rien ne reliait le solde d'ouverture aux flux ni
+                  au solde de clôture. Vraie cascade. */}
+              <AtlasWaterfall
+                items={[
+                  { name: 'Trésorerie début', value: financialData?.tafire.openingCash || 0, isTotal: true },
+                  { name: 'Flux exploitation', value: financialData?.tafire.operatingCashFlow || 0 },
+                  { name: 'Flux investissement', value: financialData?.tafire.investmentCashFlow || 0 },
+                  { name: 'Flux financement', value: financialData?.tafire.financingCashFlow || 0 },
+                  { name: 'Trésorerie fin', value: financialData?.tafire.closingCash || 0, isTotal: true },
+                ]}
+                valueFormatter={(v) => formatCurrency(v)}
+                height={350}
+              />
             </div>
 
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -625,18 +603,18 @@ const FinancialAnalysisPage: React.FC = () => {
             </div>
 
             {/* Graphique prévisionnel */}
-            <ResponsiveContainer width="100%" height={400}>
-              <ComposedChart data={financialData.cashFlowForecast.monthlyForecasts}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="inflows" fill="url(#gradPetrol)" name="Encaissements" />
-                <Bar radius={[6,6,0,0]} dataKey="outflows" fill="url(#gradRed)" name="Décaissements" />
-                <Line type="monotone" dataKey="cumulativeCash" stroke="#235A6E" strokeWidth={3} name="Trésorerie cumulative" />
-              </ComposedChart>
-            </ResponsiveContainer>
+            <AtlasCombo
+              categories={financialData.cashFlowForecast.monthlyForecasts.map((m: any) => m.month)}
+              bars={[
+                { name: 'Encaissements', data: financialData.cashFlowForecast.monthlyForecasts.map((m: any) => m.inflows), color: '#15803D' },
+                { name: 'Décaissements', data: financialData.cashFlowForecast.monthlyForecasts.map((m: any) => m.outflows), color: '#C0322B' },
+              ]}
+              lines={[
+                { name: 'Trésorerie cumulative', data: financialData.cashFlowForecast.monthlyForecasts.map((m: any) => m.cumulativeCash), color: ATLAS_PETROL, onRightAxis: false },
+              ]}
+              valueFormatter={(v) => formatCurrency(v)}
+              height={400}
+            />
           </div>
 
           {/* Scénarios */}

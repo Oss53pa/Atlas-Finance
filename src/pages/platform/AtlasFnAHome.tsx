@@ -12,7 +12,7 @@ import {
   Banknote, FileBarChart, Briefcase, FileText, Calendar,
   BookOpen, CheckCircle2, Database, Package, ScrollText,
 } from 'lucide-react';
-import { Area, AreaChart, ResponsiveContainer } from 'recharts';
+import { AtlasSparkline } from '../../components/charts';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import CompanyOnboardingModal from '../../components/onboarding/CompanyOnboardingModal';
@@ -22,23 +22,7 @@ import CompanyOnboardingModal from '../../components/onboarding/CompanyOnboardin
 // ─────────────────────────────────────────────────────────────
 const Sparkline: React.FC<{ data: number[]; color?: string; height?: number }> = ({
   data, color = '#235A6E', height = 56,
-}) => {
-  const series = data.map((y, i) => ({ x: i, y }));
-  const id = React.useId();
-  return (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={series} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.30} />
-            <stop offset="100%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area type="monotone" dataKey="y" stroke={color} strokeWidth={1.75} fill={`url(#${id})`} isAnimationActive={false} dot={false} />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-};
+}) => <AtlasSparkline data={data} color={color} strokeWidth={1.75} height={height} />;
 
 // ─────────────────────────────────────────────────────────────
 // Delta pill
