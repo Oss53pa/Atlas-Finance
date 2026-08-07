@@ -28,6 +28,7 @@ const TRESO_THRESHOLD_DEFAULT = 0; const TRESO_THRESHOLD_KEY = 'manager-treso-th
 const BFR_DAYS_THRESHOLD_DEFAULT = 90; const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
 const MARGE_BRUTE_THRESHOLD_DEFAULT = 20; const MARGE_BRUTE_THRESHOLD_KEY = 'manager-marge-brute-threshold'; // % — alerte si en dessous
 const TRESO_PERSIST_THRESHOLD_DEFAULT = 3; const TRESO_PERSIST_THRESHOLD_KEY = 'manager-treso-persist-threshold'; // mois consécutifs de trésorerie négative
+const RATIO_CD_THRESHOLD_DEFAULT = 1; const RATIO_CD_THRESHOLD_KEY = 'manager-ratio-cd-threshold'; // créances/dettes — alerte si en dessous
 
 const readNum = (key: string, def: number, positiveOnly = true): number => {
   try {
@@ -86,6 +87,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => readNum(BFR_DAYS_THRESHOLD_KEY, BFR_DAYS_THRESHOLD_DEFAULT));
   const [margeThreshold, setMargeThreshold] = useState<number>(() => readNum(MARGE_BRUTE_THRESHOLD_KEY, MARGE_BRUTE_THRESHOLD_DEFAULT));
   const [tresoPersistThreshold, setTresoPersistThreshold] = useState<number>(() => readNum(TRESO_PERSIST_THRESHOLD_KEY, TRESO_PERSIST_THRESHOLD_DEFAULT));
+  const [ratioCdThreshold, setRatioCdThreshold] = useState<number>(() => readNum(RATIO_CD_THRESHOLD_KEY, RATIO_CD_THRESHOLD_DEFAULT));
 
   // Nombre de mois négatifs consécutifs les plus récents (fin de mois).
   const consecutiveNegTreso = (() => {
@@ -101,6 +103,12 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
     setter(val);
     try { localStorage.setItem(key, String(val)); } catch { /* ignore */ }
   };
+  // Variante décimale (ratios) : pas d'arrondi entier, 2 décimales max.
+  const persistFloat = (key: string, setter: (n: number) => void, v: number, min: number, max: number) => {
+    const val = Math.max(min, Math.min(max, Math.round((v || 0) * 100) / 100));
+    setter(val);
+    try { localStorage.setItem(key, String(val)); } catch { /* ignore */ }
+  };
 
   const alerts: string[] = [];
   if (data.dso > dsoThreshold) alerts.push(`DSO élevé : ${data.dso} j (seuil ${dsoThreshold} j)`);
@@ -109,6 +117,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   if (data.treasury < tresoThreshold) alerts.push(`Trésorerie sous le seuil : ${fmt(data.treasury)} (seuil ${fmt(tresoThreshold)})`);
   if (data.revenue > 0 && data.margeBrute < margeThreshold) alerts.push(`Marge brute faible : ${data.margeBrute.toFixed(1)} % (seuil ${margeThreshold} %)`);
   if (consecutiveNegTreso >= tresoPersistThreshold) alerts.push(`Trésorerie négative persistante : ${consecutiveNegTreso} mois consécutifs (seuil ${tresoPersistThreshold})`);
+  if (data.ratioCD != null && data.ratioCD < ratioCdThreshold) alerts.push(`Ratio créances/dettes dégradé : ${data.ratioCD.toFixed(2)} (seuil ${ratioCdThreshold})`);
 
   const cards = [
     { label: 'Créances clients', value: fmt(data.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
@@ -117,7 +126,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
     { label: 'DSO', value: `${data.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: data.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
     { label: 'DPO', value: `${data.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: data.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
     { label: 'Marge brute', value: `${data.margeBrute.toFixed(1)} %`, sub: `(CA − achats) / CA · seuil ${margeThreshold} %`, icon: Percent, tone: (data.revenue > 0 && data.margeBrute < margeThreshold) ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
-    { label: 'Créances / Dettes', value: data.ratioCD != null ? data.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: data.ratioCD != null && data.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
+    { label: 'Créances / Dettes', value: data.ratioCD != null ? data.ratioCD.toFixed(2) : '—', sub: `Couverture des dettes · seuil ${ratioCdThreshold}`, icon: Landmark, tone: data.ratioCD != null && data.ratioCD < ratioCdThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
   ];
 
   const inputCls = 'px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500';
@@ -150,6 +159,10 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
           <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             Trésorerie nég. persistante
             <input type="number" min={1} max={12} value={tresoPersistThreshold} onChange={(e) => persist(TRESO_PERSIST_THRESHOLD_KEY, setTresoPersistThreshold, Number(e.target.value), 1, 12)} className={`w-14 ${inputCls}`} aria-label="Seuil trésorerie négative persistante en mois" /> mois
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            Seuil créances/dettes
+            <input type="number" min={0} max={10} step={0.1} value={ratioCdThreshold} onChange={(e) => persistFloat(RATIO_CD_THRESHOLD_KEY, setRatioCdThreshold, Number(e.target.value), 0, 10)} className={`w-14 ${inputCls}`} aria-label="Seuil ratio créances/dettes" />
           </label>
         </div>
       </div>
