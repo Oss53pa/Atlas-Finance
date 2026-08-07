@@ -234,7 +234,25 @@ const TreasuryDashboard: React.FC = () => {
           subtitle="EBICS, SWIFT MT940/942, Rapprochement IA, Prévisions Monte Carlo"
           icon={Banknote}
           action={
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {/* Horizon de prévision — pilote la requête cash-flow-prediction */}
+              <div className="inline-flex rounded-lg border border-neutral-200 overflow-hidden" role="group" aria-label="Horizon de prévision">
+                {(['7d', '30d', '90d'] as const).map((tf) => (
+                  <button
+                    key={tf}
+                    onClick={() => setSelectedTimeframe(tf)}
+                    aria-pressed={selectedTimeframe === tf}
+                    className={
+                      'px-3 py-1.5 text-sm font-medium transition-colors ' +
+                      (selectedTimeframe === tf
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'bg-white text-neutral-600 hover:bg-neutral-50')
+                    }
+                  >
+                    {tf === '7d' ? '7 j' : tf === '30d' ? '30 j' : '90 j'}
+                  </button>
+                ))}
+              </div>
               <Link to="/treasury/connections">
                 <ElegantButton variant="outline" icon={Shield}>
                   Connexions EBICS
@@ -312,7 +330,7 @@ const TreasuryDashboard: React.FC = () => {
         >
           <ModernChartCard
             title="Évolution de Trésorerie"
-            subtitle="Flux mensuels et prévisions ML"
+            subtitle={`Prévisions ML — horizon ${selectedTimeframe === '7d' ? '7 jours' : selectedTimeframe === '30d' ? '30 jours' : '90 jours'}`}
             icon={TrendingUp}
           >
             {loadingForecast ? (
@@ -331,19 +349,28 @@ const TreasuryDashboard: React.FC = () => {
               </div>
             ) : (
               <ColorfulBarChart
-                data={(cashFlowPrediction?.predictions || []).slice(0, 7).map((pred: any, idx: number) => {
-                  const date = new Date(pred.forecast_date);
+                data={(() => {
+                  const horizon = selectedTimeframe === '30d' ? 30 : selectedTimeframe === '90d' ? 90 : 7;
                   const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-                  const prevBalance = cashFlowPrediction?.predictions?.[idx - 1]?.predicted_balance ?? 0;
-                  const color = pred.predicted_balance > prevBalance
-                    ? 'bg-[var(--color-success)]'
-                    : 'bg-[var(--color-warning)]';
-                  return {
-                    label: `${monthNames[date.getMonth()]} ${date.getDate()}`,
-                    value: Math.round(pred.predicted_balance / 1000000),
-                    color,
-                  };
-                })}
+                  const all = (cashFlowPrediction?.predictions || []).slice(0, horizon);
+                  // Échantillonne à ~12 barres max pour rester lisible sur 30/90 jours.
+                  const step = Math.max(1, Math.ceil(all.length / 12));
+                  return all
+                    .filter((_: any, i: number) => i % step === 0)
+                    .map((pred: any) => {
+                      const globalIdx = (cashFlowPrediction?.predictions || []).indexOf(pred);
+                      const date = new Date(pred.forecast_date);
+                      const prevBalance = cashFlowPrediction?.predictions?.[globalIdx - 1]?.predicted_balance ?? pred.predicted_balance;
+                      const color = pred.predicted_balance >= prevBalance
+                        ? 'bg-[var(--color-success)]'
+                        : 'bg-[var(--color-warning)]';
+                      return {
+                        label: `${monthNames[date.getMonth()]} ${date.getDate()}`,
+                        value: Math.round(pred.predicted_balance / 1000000),
+                        color,
+                      };
+                    });
+                })()}
                 height={160}
               />
             )}

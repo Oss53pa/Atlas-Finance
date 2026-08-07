@@ -586,7 +586,18 @@ const FundCallsPage: React.FC = () => {
                   className="pl-10 w-80"
                 />
               </div>
-              
+
+              <select
+                value={groupBy}
+                onChange={(e) => setGroupBy(e.target.value as typeof groupBy)}
+                aria-label="Regrouper les comptes à payer"
+                className="h-9 px-3 rounded-md border border-gray-300 text-sm bg-white text-gray-700"
+              >
+                <option value="vendor">Regrouper : Fournisseur</option>
+                <option value="type">Regrouper : Type</option>
+                <option value="priority">Regrouper : Priorité</option>
+                <option value="none">Sans regroupement</option>
+              </select>
             </div>
             
             <div className="flex items-center gap-2">
