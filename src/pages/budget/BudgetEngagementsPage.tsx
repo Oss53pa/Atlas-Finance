@@ -9,6 +9,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
 import {
@@ -35,9 +36,10 @@ const STATUT_STYLE: Record<EngagementStatut, string> = {
   annule: 'bg-neutral-100 text-[var(--color-text-tertiary)] line-through dark:bg-neutral-800',
   surfacture: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300',
 };
-const STATUT_LABEL: Record<EngagementStatut, string> = {
-  ouvert: 'Ouvert', partiellement_facture: 'Part. facturé', solde: 'Soldé',
-  annule: 'Annulé', surfacture: 'Surfacturé',
+const STATUT_LABEL_KEY: Record<EngagementStatut, string> = {
+  ouvert: 'budgetCommitments.statusOpen', partiellement_facture: 'budgetCommitments.statusPartial',
+  solde: 'budgetCommitments.statusSettled', annule: 'budgetCommitments.statusCancelled',
+  surfacture: 'budgetCommitments.statusOverInvoiced',
 };
 
 const emptyForm = {
@@ -49,6 +51,8 @@ const INP = 'w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-
 
 const BudgetEngagementsPage: React.FC = () => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
+  const numberLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [rows, setRows] = useState<BudgetEngagement[]>([]);
   const [sections, setSections] = useState<SectionOrgNode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,10 +72,15 @@ const BudgetEngagementsPage: React.FC = () => {
     try {
       const annee = await getDefaultAnnee(adapter);
       const r = await runYearEndCarryover(adapter, annee, policy);
-      setNotice(`Clôture ${annee} : ${r.discharged} engagement(s) dégagé(s)${policy === 'report' ? `, ${r.recreated} reporté(s) sur N+1` : ''} (reliquat ${r.totalReliquat.toLocaleString('fr-FR')}).`);
+      setNotice(t('budgetCommitments.carryoverDone', {
+        year: String(annee),
+        discharged: String(r.discharged),
+        carried: policy === 'report' ? t('budgetCommitments.carriedSuffix', { count: String(r.recreated) }) : '',
+        remainder: r.totalReliquat.toLocaleString(numberLocale),
+      }));
       setShowClose(false); setRefreshKey((k) => k + 1);
-    } catch (e: any) { setError(e?.message || 'Échec de la clôture.'); } finally { setClosing(false); }
-  }, [adapter]);
+    } catch (e: any) { setError(e?.message || t('budgetCommitments.carryoverFailed')); } finally { setClosing(false); }
+  }, [adapter, t, numberLocale]);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,11 +135,11 @@ const BudgetEngagementsPage: React.FC = () => {
   const submitForm = useCallback(async () => {
     setSaving(true); setError(null); setNotice(null);
     try {
-      if (!form.accountCode.trim()) throw new Error('Compte obligatoire.');
-      if (!form.periode) throw new Error('Période obligatoire.');
-      if (!form.motif.trim()) throw new Error('Motif obligatoire.');
+      if (!form.accountCode.trim()) throw new Error(t('budgetCommitments.errAccount'));
+      if (!form.periode) throw new Error(t('budgetCommitments.errPeriod'));
+      if (!form.motif.trim()) throw new Error(t('budgetCommitments.errReason'));
       const montant = Number(form.montant);
-      if (!(montant > 0)) throw new Error('Montant invalide.');
+      if (!(montant > 0)) throw new Error(t('budgetCommitments.errAmount'));
       const input = {
         accountCode: form.accountCode, sectionId: form.sectionId || null,
         periode: `${form.periode}-01`, montant, fournisseur: form.fournisseur || null,
@@ -138,14 +147,14 @@ const BudgetEngagementsPage: React.FC = () => {
       };
       if (form.recurrent) {
         const ids = await createRecurringEngagement(adapter, input, Number(form.months) || 12);
-        setNotice(`${ids.length} mensualité(s) d'engagement créées.`);
+        setNotice(t('budgetCommitments.recurringCreated', { count: String(ids.length) }));
       } else {
         await createManualEngagement(adapter, input);
-        setNotice('Engagement manuel créé.');
+        setNotice(t('budgetCommitments.manualCreated'));
       }
       setForm({ ...emptyForm }); setShowForm(false); setRefreshKey((k) => k + 1);
     } catch (e: any) {
-      setError(e?.message || 'Échec de la saisie.');
+      setError(e?.message || t('budgetCommitments.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -154,11 +163,11 @@ const BudgetEngagementsPage: React.FC = () => {
   const doAction = useCallback(async (id: string, action: 'degage' | 'annule') => {
     setBusyId(id); setError(null); setNotice(null);
     try {
-      if (action === 'degage') { await degageEngagement(adapter, id); setNotice('Reliquat dégagé, disponible libéré.'); }
-      else { await annulerEngagement(adapter, id); setNotice('Engagement annulé.'); }
+      if (action === 'degage') { await degageEngagement(adapter, id); setNotice(t('budgetCommitments.remainderReleased')); }
+      else { await annulerEngagement(adapter, id); setNotice(t('budgetCommitments.commitmentCancelled')); }
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
-      setError(e?.message || "Échec de l'action.");
+      setError(e?.message || t('budgetCommitments.actionFailed'));
     } finally {
       setBusyId(null);
     }
@@ -172,12 +181,12 @@ const BudgetEngagementsPage: React.FC = () => {
             <FileSignature className="w-6 h-6 text-[var(--color-primary)]" /> Registre des engagements
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
-            Externes ingérés + saisis manuellement · pivot de l'équation budgétaire
+            {t('budgetCommitments.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowClose((s) => !s)} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--color-border)] text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
-            <CalendarX className="w-4 h-4" /> Clôture d'exercice
+            <CalendarX className="w-4 h-4" /> {t('budgetCommitments.yearEndClosing')}
           </button>
           <button onClick={() => setShowForm((s) => !s)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition">
             <Plus className="w-4 h-4" /> Engagement manuel
@@ -188,12 +197,15 @@ const BudgetEngagementsPage: React.FC = () => {
       {showClose && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900 px-4 py-3 text-sm space-y-2">
           <div className="text-amber-800 dark:text-amber-200">
-            Dégagement de fin d'exercice — {carryoverSummary(rows).count} engagement(s) ouvert(s), reliquat {carryoverSummary(rows).totalReliquat.toLocaleString('fr-FR')}. Politique :
+            {t('budgetCommitments.yearEndRelease', {
+              count: String(carryoverSummary(rows).count),
+              remainder: carryoverSummary(rows).totalReliquat.toLocaleString(numberLocale),
+            })}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button disabled={closing} onClick={() => runCarryover('report')} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-medium disabled:opacity-50">{closing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null} Reporter sur N+1</button>
-            <button disabled={closing} onClick={() => runCarryover('annulation')} className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs disabled:opacity-50">Annuler les reliquats</button>
-            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-[var(--color-text-secondary)]">Fermer</button>
+            <button disabled={closing} onClick={() => runCarryover('annulation')} className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-600 text-xs disabled:opacity-50">{t('budgetCommitments.cancelRemainders')}</button>
+            <button onClick={() => setShowClose(false)} className="px-3 py-1.5 text-xs text-[var(--color-text-secondary)]">{t('budgetCommitments.close')}</button>
           </div>
         </div>
       )}
@@ -204,36 +216,36 @@ const BudgetEngagementsPage: React.FC = () => {
       {showForm && (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Field label="Compte (classe 6/2)">
+            <Field label={t('budgetCommitments.fieldAccount')}>
               <input value={form.accountCode} onChange={(e) => setForm({ ...form, accountCode: e.target.value })}
                 placeholder="6132" className={INP} />
             </Field>
-            <Field label="Section analytique">
+            <Field label={t('budgetCommitments.fieldSection')}>
               <select value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })} className={INP}>
-                <option value="">— (aucune)</option>
+                <option value="">{t('budgetCommitments.noneOption')}</option>
                 {sections.map((s) => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}
               </select>
             </Field>
-            <Field label="Période (mois)">
+            <Field label={t('budgetCommitments.fieldPeriod')}>
               <input type="month" value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })} className={INP} />
             </Field>
-            <Field label="Montant (FCFA)">
+            <Field label={t('budgetCommitments.fieldAmount')}>
               <input type="number" value={form.montant} onChange={(e) => setForm({ ...form, montant: e.target.value })} className={`${INP} font-mono`} />
             </Field>
-            <Field label="Fournisseur">
+            <Field label={t('budgetCommitments.fieldSupplier')}>
               <input value={form.fournisseur} onChange={(e) => setForm({ ...form, fournisseur: e.target.value })} className={INP} />
             </Field>
-            <Field label="Référence (PO / contrat)">
+            <Field label={t('budgetCommitments.fieldReference')}>
               <input value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} className={INP} />
             </Field>
-            <Field label="Motif (obligatoire)" className="lg:col-span-3">
+            <Field label={t('budgetCommitments.fieldReason')} className="lg:col-span-3">
               <input value={form.motif} onChange={(e) => setForm({ ...form, motif: e.target.value })}
-                placeholder="Bail annuel, marché signé…" className={INP} />
+                placeholder={t('budgetCommitments.reasonPlaceholder')} className={INP} />
             </Field>
           </div>
           {preview && (
             <div className="rounded-xl bg-[var(--color-surface-hover)] border border-[var(--color-border)] p-3">
-              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">Disponible de la maille (informatif)</div>
+              <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-2">{t('budgetCommitments.availableInfo')}</div>
               <BudgetEquationBar
                 budget={preview.maille.budget} engage={preview.maille.engage}
                 realise={preview.maille.realise} disponible={preview.maille.disponible}
@@ -245,17 +257,17 @@ const BudgetEngagementsPage: React.FC = () => {
           <div className="flex items-center gap-4 flex-wrap">
             <label className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
               <input type="checkbox" checked={form.recurrent} onChange={(e) => setForm({ ...form, recurrent: e.target.checked })} />
-              <Repeat className="w-4 h-4" /> Récurrent (contrat)
+              <Repeat className="w-4 h-4" /> {t('budgetCommitments.recurring')}
             </label>
             {form.recurrent && (
               <label className="inline-flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                Mensualités
+                {t('budgetCommitments.instalments')}
                 <input type="number" value={form.months} onChange={(e) => setForm({ ...form, months: e.target.value })}
                   className={`${INP} w-20`} min={1} max={60} />
               </label>
             )}
             <div className="flex-1" />
-            <button onClick={() => { setShowForm(false); setForm({ ...emptyForm }); }} className="px-4 py-2 rounded-xl text-sm text-[var(--color-text-secondary)] hover:bg-neutral-100 dark:hover:bg-neutral-700">Annuler</button>
+            <button onClick={() => { setShowForm(false); setForm({ ...emptyForm }); }} className="px-4 py-2 rounded-xl text-sm text-[var(--color-text-secondary)] hover:bg-neutral-100 dark:hover:bg-neutral-700">{t('budgetCommitments.cancel')}</button>
             <button onClick={submitForm} disabled={saving}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Enregistrer
@@ -269,22 +281,22 @@ const BudgetEngagementsPage: React.FC = () => {
           <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
         ) : rows.length === 0 ? (
           <div className="py-12 text-center text-sm text-[var(--color-text-secondary)]">
-            Aucun engagement. La colonne « Engagé » de l'équation vaut 0 tant qu'aucun engagement (externe ou manuel) n'existe.
+            {t('budgetCommitments.empty')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                  <th className="px-4 py-3">Compte</th>
-                  <th className="px-4 py-3">Section</th>
-                  <th className="px-4 py-3">Période</th>
-                  <th className="px-4 py-3">Fournisseur</th>
-                  <th className="px-4 py-3 text-right">Initial</th>
-                  <th className="px-4 py-3 text-right">Facturé</th>
-                  <th className="px-4 py-3 text-right">Restant</th>
-                  <th className="px-4 py-3">Statut</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3">{t('budgetCommitments.colAccount')}</th>
+                  <th className="px-4 py-3">{t('budgetCommitments.colSection')}</th>
+                  <th className="px-4 py-3">{t('budgetCommitments.colPeriod')}</th>
+                  <th className="px-4 py-3">{t('budgetCommitments.fieldSupplier')}</th>
+                  <th className="px-4 py-3 text-right">{t('budgetCommitments.colInitial')}</th>
+                  <th className="px-4 py-3 text-right">{t('budgetCommitments.colInvoiced')}</th>
+                  <th className="px-4 py-3 text-right">{t('budgetCommitments.colRemaining')}</th>
+                  <th className="px-4 py-3">{t('budgetCommitments.colStatus')}</th>
+                  <th className="px-4 py-3 text-right">{t('budgetCommitments.colActions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,18 +321,18 @@ const BudgetEngagementsPage: React.FC = () => {
                       <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)]">{formatCurrency(r.montant_facture)}</td>
                       <td className="px-4 py-3 text-right font-mono font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(restant)}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUT_STYLE[r.statut]}`}>{STATUT_LABEL[r.statut]}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUT_STYLE[r.statut]}`}>{t(STATUT_LABEL_KEY[r.statut])}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-1">
                           {canAct && (
                             <>
-                              <button title="Dégager le reliquat" disabled={busyId === r.id}
+                              <button title={t('budgetCommitments.releaseRemainder')} disabled={busyId === r.id}
                                 onClick={() => doAction(r.id, 'degage')}
                                 className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
                                 {busyId === r.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Unlock className="w-4 h-4" />}
                               </button>
-                              <button title="Annuler l'engagement" disabled={busyId === r.id}
+                              <button title={t('budgetCommitments.cancelCommitment')} disabled={busyId === r.id}
                                 onClick={() => doAction(r.id, 'annule')}
                                 className="p-1.5 rounded-lg text-[var(--color-text-tertiary)] hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 disabled:opacity-40">
                                 <XCircle className="w-4 h-4" />
@@ -335,7 +347,7 @@ const BudgetEngagementsPage: React.FC = () => {
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-[var(--color-border)] font-medium text-[var(--color-text-primary)]">
-                  <td className="px-4 py-3" colSpan={4}>Total ({rows.length})</td>
+                  <td className="px-4 py-3" colSpan={4}>{t('budgetCommitments.totalRow', { count: String(rows.length) })}</td>
                   <td className="px-4 py-3 text-right font-mono">{formatCurrency(totals.initial)}</td>
                   <td className="px-4 py-3 text-right font-mono text-[var(--color-text-secondary)]">{formatCurrency(totals.facture)}</td>
                   <td className="px-4 py-3 text-right font-mono text-[var(--color-primary)] dark:text-[var(--color-primary)]">{formatCurrency(totals.restant)}</td>

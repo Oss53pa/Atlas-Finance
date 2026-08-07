@@ -8,6 +8,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import { KPICard, ColorfulBarChart } from '../../components/ui/DesignSystem';
 import {
@@ -21,10 +22,11 @@ import BudgetImportModal from './BudgetImportModal';
 import BudgetSaisieModal from './BudgetSaisieModal';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
 const BudgetCockpitPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
+  const MOIS = React.useMemo(() => t('budgetCockpit.monthsShort').split(','), [t]);
   const navigate = useNavigate();
   const [annee, setAnnee] = useState<string>('');
   const [version, setVersion] = useState<BudgetVersion | null>(null);
@@ -84,14 +86,14 @@ const BudgetCockpitPage: React.FC = () => {
   }, [summary]);
 
   if (loading) {
-    return <div className="p-8 text-center text-[var(--color-text-tertiary)]">Chargement du cockpit budgétaire…</div>;
+    return <div className="p-8 text-center text-[var(--color-text-tertiary)]">{t('budgetCockpit.loading')}</div>;
   }
   if (error) {
     return (
       <div className="p-8">
         <div className="bg-[var(--color-error-light,#FEECEC)] text-[var(--color-error)] rounded-lg p-4 text-sm">
-          Impossible de charger les données budgétaires : {error}
-          <div className="text-xs mt-1 text-[var(--color-text-tertiary)]">Vérifiez que les vues budgétaires sont déployées.</div>
+          {t('budgetCockpit.loadError', { error })}
+          <div className="text-xs mt-1 text-[var(--color-text-tertiary)]">{t('budgetCockpit.loadErrorHint')}</div>
         </div>
       </div>
     );
@@ -108,31 +110,31 @@ const BudgetCockpitPage: React.FC = () => {
           <Gauge className="w-5 h-5 text-[var(--color-primary)]" />
         </div>
         <div className="flex-1 min-w-[200px]">
-          <h1 className="text-lg font-bold text-[var(--color-primary)]">Cockpit Budgétaire</h1>
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('budgetCockpit.title')}</h1>
           <p className="text-sm text-[var(--color-text-tertiary)]">
-            Exercice {annee} · {version
-              ? <>version « {version.libelle} » <span className="inline-block px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600 align-middle">{version.statut}</span></>
-              : 'aucun budget actif — réalisé seul'}
+            {t('budgetCockpit.subtitlePrefix', { year: annee })}{version
+              ? <>{t('budgetCockpit.versionLabel', { name: version.libelle })} <span className="inline-block px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600 align-middle">{version.statut}</span></>
+              : t('budgetCockpit.noActiveBudget')}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setShowSaisie(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Target className="w-4 h-4" />Saisir</button>
-          <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />Importer</button>
-          <button onClick={() => navigate('/budget/versions')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><GitBranch className="w-4 h-4" />Versions</button>
-          <button onClick={() => navigate('/budget/exploitation')} className="px-3 py-2 text-sm font-medium bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 flex items-center gap-2">Budget vs Réalisé →</button>
+          <button onClick={() => setShowSaisie(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Target className="w-4 h-4" />{t('budgetCockpit.enter')}</button>
+          <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />{t('budgetCockpit.import')}</button>
+          <button onClick={() => navigate('/budget/versions')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><GitBranch className="w-4 h-4" />{t('budgetCockpit.versions')}</button>
+          <button onClick={() => navigate('/budget/exploitation')} className="px-3 py-2 text-sm font-medium bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 flex items-center gap-2">{t('budgetCockpit.budgetVsActual')}</button>
           <PageHeaderActions
             onToggleFilters={() => setFiltersOpen(o => !o)}
             filtersOpen={filtersOpen}
             activeFilters={ecartsScope !== 'all' ? 1 : 0}
-            printTitle={`Cockpit Budgétaire ${annee}`}
+            printTitle={t('budgetCockpit.printTitle', { year: annee })}
           />
         </div>
       </div>
 
       {filtersOpen && (
         <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-3 print-hide">
-          <span className="text-sm text-gray-600">Top écarts :</span>
-          {([['all', 'Tous'], ['6', 'Charges (6)'], ['7', 'Produits (7)']] as const).map(([k, lbl]) => (
+          <span className="text-sm text-gray-600">{t('budgetCockpit.topGaps')}</span>
+          {([['all', t('budgetCockpit.scopeAll')], ['6', t('budgetCockpit.scopeExpenses')], ['7', t('budgetCockpit.scopeIncome')]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setEcartsScope(k)} className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${ecartsScope === k ? 'border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] text-gray-600 hover:bg-gray-50'}`}>{lbl}</button>
           ))}
         </div>
@@ -140,15 +142,15 @@ const BudgetCockpitPage: React.FC = () => {
 
       {/* KPIs réalisé */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="Chiffre d'affaires (réalisé)" value={formatCurrency(s.caRealise)} icon={TrendingUp} color="primary" valueFontSize="1.125rem" />
-        <KPICard title="Charges (réalisé)" value={formatCurrency(s.chargesRealise)} icon={TrendingDown} color="warning" valueFontSize="1.125rem" />
+        <KPICard title={t('budgetCockpit.kpiRevenue')} value={formatCurrency(s.caRealise)} icon={TrendingUp} color="primary" valueFontSize="1.125rem" />
+        <KPICard title={t('budgetCockpit.kpiExpenses')} value={formatCurrency(s.chargesRealise)} icon={TrendingDown} color="warning" valueFontSize="1.125rem" />
         <KPICard
-          title="Résultat (réalisé)" value={formatCurrency(s.resultatRealise)} icon={Target}
+          title={t('budgetCockpit.kpiResult')} value={formatCurrency(s.resultatRealise)} icon={Target}
           color={s.resultatRealise >= 0 ? 'success' : 'error'} valueFontSize="1.125rem"
-          subtitle={hasBudget ? `Budget : ${formatCurrency(s.resultatBudget)}` : undefined}
+          subtitle={hasBudget ? t('budgetCockpit.budgetSubtitle', { amount: formatCurrency(s.resultatBudget) }) : undefined}
         />
         <KPICard
-          title="Trésorerie nette (flux réalisé)" value={formatCurrency(tresorerieNette)} icon={PiggyBank}
+          title={t('budgetCockpit.kpiCash')} value={formatCurrency(tresorerieNette)} icon={PiggyBank}
           color={tresorerieNette >= 0 ? 'success' : 'error'} valueFontSize="1.125rem"
         />
       </div>
@@ -156,14 +158,14 @@ const BudgetCockpitPage: React.FC = () => {
       {/* Bandeau budget si version active */}
       {hasBudget && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <KPICard title="Résultat budgété" value={formatCurrency(s.resultatBudget)} icon={Wallet} color="neutral" valueFontSize="1.125rem" />
+          <KPICard title={t('budgetCockpit.kpiBudgetedResult')} value={formatCurrency(s.resultatBudget)} icon={Wallet} color="neutral" valueFontSize="1.125rem" />
           <KPICard
-            title="Taux de réalisation (résultat)"
+            title={t('budgetCockpit.kpiAchievementRate')}
             value={s.tauxRealisationResultat != null ? `${s.tauxRealisationResultat}%` : '—'}
             icon={Gauge} color="primary"
           />
           <KPICard
-            title="Écart résultat (réalisé − budget)"
+            title={t('budgetCockpit.kpiResultGap')}
             value={formatCurrency(s.resultatRealise - s.resultatBudget)}
             icon={AlertTriangle}
             color={s.resultatRealise - s.resultatBudget >= 0 ? 'success' : 'error'} valueFontSize="1.125rem"
@@ -175,20 +177,20 @@ const BudgetCockpitPage: React.FC = () => {
       {hasBudget && atterr && (
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm flex flex-col md:flex-row md:items-center gap-4">
           <div className="flex-1">
-            <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2"><Gauge className="w-4 h-4" />Atterrissage prévisionnel (LFT)</h2>
-            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Résultat estimé fin d'exercice = réalisé cumulé + budget des mois restants.</p>
+            <h2 className="font-semibold text-[var(--color-primary)] flex items-center gap-2"><Gauge className="w-4 h-4" />{t('budgetCockpit.landingTitle')}</h2>
+            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">{t('budgetCockpit.landingSubtitle')}</p>
           </div>
           <div className="flex gap-6">
             <div className="text-right">
-              <p className="text-xs text-[var(--color-text-tertiary)]">Résultat budgété</p>
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('budgetCockpit.kpiBudgetedResult')}</p>
               <p className="text-lg font-bold text-gray-700">{formatCurrency(atterr.resultatBudget)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-[var(--color-text-tertiary)]">Atterrissage</p>
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('budgetCockpit.landing')}</p>
               <p className={`text-lg font-bold ${atterr.resultatAtterrissage >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(atterr.resultatAtterrissage)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs text-[var(--color-text-tertiary)]">Δ vs budget</p>
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('budgetCockpit.deltaVsBudget')}</p>
               <p className={`text-lg font-bold ${atterr.resultatAtterrissage - atterr.resultatBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {atterr.resultatAtterrissage - atterr.resultatBudget >= 0 ? '+' : ''}{formatCurrency(atterr.resultatAtterrissage - atterr.resultatBudget)}
               </p>
@@ -200,20 +202,20 @@ const BudgetCockpitPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Résultat mensuel */}
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-          <h2 className="font-semibold text-[var(--color-primary)] mb-1">Résultat mensuel réalisé</h2>
-          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">Produits − charges par mois (en milliers FCFA)</p>
+          <h2 className="font-semibold text-[var(--color-primary)] mb-1">{t('budgetCockpit.monthlyResult')}</h2>
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">{t('budgetCockpit.monthlyResultSub')}</p>
           {resultatChart.some(d => d.value !== 0)
             ? <ColorfulBarChart data={resultatChart} height={220} />
-            : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">Aucun mouvement de gestion sur l'exercice.</div>}
+            : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">{t('budgetCockpit.noMovement')}</div>}
         </div>
 
         {/* Top écarts */}
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-          <h2 className="font-semibold text-[var(--color-primary)] mb-1">Top écarts budgétaires</h2>
-          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">Postes les plus écartés du budget (cumul annuel)</p>
+          <h2 className="font-semibold text-[var(--color-primary)] mb-1">{t('budgetCockpit.topGapsTitle')}</h2>
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">{t('budgetCockpit.topGapsSub')}</p>
           {topEcarts.length === 0 ? (
             <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">
-              {hasBudget ? 'Aucun écart significatif.' : 'Aucun budget saisi — saisissez un budget pour suivre les écarts.'}
+              {hasBudget ? t('budgetCockpit.noSignificantGap') : t('budgetCockpit.noBudgetEntered')}
             </div>
           ) : (
             <div className="space-y-2">
