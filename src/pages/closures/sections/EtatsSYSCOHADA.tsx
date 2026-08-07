@@ -131,7 +131,8 @@ interface DocumentReglementaire {
 }
 
 const EtatsSYSCOHADA: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [selectedTab, setSelectedTab] = useState('vue-ensemble');
   const [selectedEtat, setSelectedEtat] = useState<string>('bilan');
   const [periodeComparaison, setPeriodeComparaison] = useState<string>('N-1');
@@ -191,11 +192,11 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   const handleSubmit = async () => {
     if (!formData.etats_selectionnes.length) {
-      toast.error('Veuillez sélectionner au moins un état');
+      toast.error(t('syscohadaStatements.selectAtLeastOne'));
       return;
     }
     etatsData.refresh();
-    toast.success('États financiers recalculés à partir des données comptables');
+    toast.success(t('syscohadaStatements.recomputed'));
     setShowGenerationModal(false);
   };
 
@@ -238,55 +239,66 @@ const EtatsSYSCOHADA: React.FC = () => {
 
   const etatsFinanciers: EtatFinancier[] = [
     {
-      id: '1', nom: 'Bilan SYSCOHADA', codeSYSCOHADA: 'BILAN-SYS',
-      description: 'État de situation financière conforme au référentiel SYSCOHADA',
+      id: '1', nom: t('syscohadaStatements.balanceSheetName'), codeSYSCOHADA: 'BILAN-SYS',
+      description: t('syscohadaStatements.balanceSheetDesc'),
       typeEtat: 'bilan', obligatoire: true, periodicite: 'annuel',
       statutGeneration: totalEntries > 0 ? 'definitif' : 'brouillon',
       dateGeneration: new Date().toISOString().split('T')[0],
       conformiteSYSCOHADA: isBalanced,
       controlesCritiques: [
         {
-          nom: 'Équilibre Actif/Passif',
+          nom: t('syscohadaStatements.checkBalanceName'),
           statut: isBalanced ? 'conforme' : 'non_conforme',
           message: isBalanced
-            ? `Bilan équilibré — Actif = Passif = ${formatCurrency(realTotalActif)}`
-            : `Déséquilibre de ${formatCurrency(ecartBilan)} (Actif ${formatCurrency(realTotalActif)} ≠ Passif ${formatCurrency(realTotalPassif)})`,
+            ? t('syscohadaStatements.checkBalanceOk', { amount: formatCurrency(realTotalActif) })
+            : t('syscohadaStatements.checkBalanceKo', {
+              gap: formatCurrency(ecartBilan),
+              assets: formatCurrency(realTotalActif),
+              liabilities: formatCurrency(realTotalPassif),
+            }),
         },
         {
-          nom: 'Résultat porté au passif',
+          nom: t('syscohadaStatements.checkResultName'),
           statut: 'conforme',
-          message: `Résultat net ${formatCurrency(realResultat)} inclus dans le total passif`,
+          message: t('syscohadaStatements.checkResultMsg', { amount: formatCurrency(realResultat) }),
         },
       ],
     },
     {
-      id: '2', nom: 'Compte de Résultat', codeSYSCOHADA: 'CRESULT-SYS',
-      description: 'Compte de résultat par nature conforme SYSCOHADA',
+      id: '2', nom: t('syscohadaStatements.incomeStatementName'), codeSYSCOHADA: 'CRESULT-SYS',
+      description: t('syscohadaStatements.incomeStatementDesc'),
       typeEtat: 'compte_resultat', obligatoire: true, periodicite: 'annuel',
       statutGeneration: totalEntries > 0 ? 'definitif' : 'brouillon',
       dateGeneration: new Date().toISOString().split('T')[0],
       conformiteSYSCOHADA: comptesGestionInverses.length === 0 && impotsClasse8 !== 0,
       controlesCritiques: [
         {
-          nom: 'Comptes de gestion à sens normal',
+          nom: t('syscohadaStatements.checkSignName'),
           statut: comptesGestionInverses.length === 0 ? 'conforme' : 'non_conforme',
           message: comptesGestionInverses.length === 0
-            ? 'Charges débitrices et produits créditeurs'
-            : `${comptesGestionInverses.length} compte(s) à solde inversé : ${comptesGestionInverses.slice(0, 5).join(', ')}`,
+            ? t('syscohadaStatements.checkSignOk')
+            : t('syscohadaStatements.checkSignKo', {
+              count: String(comptesGestionInverses.length),
+              accounts: comptesGestionInverses.slice(0, 5).join(', '),
+            }),
         },
         {
           // Gotcha projet : oublier la classe 89 (IMF/IS) casse l'équilibre du bilan.
-          nom: 'Impôt (classe 8) déduit',
+          nom: t('syscohadaStatements.checkTaxName'),
           statut: impotsClasse8 !== 0 ? 'conforme' : 'attention',
           message: impotsClasse8 !== 0
-            ? `Résultat avant impôt ${formatCurrency(resultatAvantImpot)} − classe 8 ${formatCurrency(impotsClasse8)} = net ${formatCurrency(realResultat)}`
-            : 'Aucun montant en classe 8 — vérifier que l\'IMF / IS de l\'exercice a été comptabilisé',
+            ? t('syscohadaStatements.checkTaxOk', {
+              before: formatCurrency(resultatAvantImpot),
+              tax: formatCurrency(impotsClasse8),
+              net: formatCurrency(realResultat),
+            })
+            : t('syscohadaStatements.checkTaxKo'),
         },
       ],
     },
     {
       id: '3', nom: 'TAFIRE', codeSYSCOHADA: 'TAFIRE-SYS',
-      description: 'Tableau Financier des Ressources et Emplois',
+      description: t('syscohadaStatements.tafireDesc'),
       typeEtat: 'tafire', obligatoire: true, periodicite: 'annuel',
       statutGeneration: tafireCalculable ? 'provisoire' : 'brouillon',
       dateGeneration: new Date().toISOString().split('T')[0],
@@ -295,11 +307,11 @@ const EtatsSYSCOHADA: React.FC = () => {
       conformiteSYSCOHADA: tafireCalculable,
       controlesCritiques: [
         {
-          nom: 'Données de calcul disponibles',
+          nom: t('syscohadaStatements.checkTafireName'),
           statut: tafireCalculable ? 'conforme' : 'non_conforme',
           message: tafireCalculable
-            ? 'Variations de bilan N/N-1 disponibles'
-            : 'TAFIRE non calculable ici — les variations de bilan N/N-1 ne sont pas disponibles (comparatif N-1 absent de l\'import)',
+            ? t('syscohadaStatements.checkTafireOk')
+            : t('syscohadaStatements.checkTafireKo'),
         },
       ],
     },
@@ -433,17 +445,17 @@ const EtatsSYSCOHADA: React.FC = () => {
     const roa = (realResultat / totalActifVal) * 100;
     const roe = (realResultat / capitauxPropresVal) * 100;
     return [
-      { nom: 'Ratio de liquidité générale', valeur: new Money(liquidite).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: 'Capacité à honorer les dettes à court terme', seuil: 1.5, statut: liquidite >= 1.5 ? 'bon' as const : liquidite >= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Actif Circulant / Dettes CT' },
-      { nom: 'Ratio d\'endettement', valeur: new Money(endettement).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: 'Endettement / Capitaux propres', seuil: 0.7, statut: endettement <= 0.7 ? 'bon' as const : endettement <= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: 'Dettes / Capitaux Propres' },
-      { nom: 'Rentabilité économique (ROA)', valeur: new Money(roa).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des actifs', seuil: 5.0, statut: roa >= 5 ? 'bon' as const : roa >= 2 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / Total Actif) × 100' },
-      { nom: 'Rentabilité financière (ROE)', valeur: new Money(roe).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: 'Rentabilité des capitaux propres', seuil: 10.0, statut: roe >= 10 ? 'bon' as const : roe >= 5 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: '(Résultat / CP) × 100' },
+      { nom: t('syscohadaStatements.ratioLiquidityName'), valeur: new Money(liquidite).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: t('syscohadaStatements.ratioLiquidityInterp'), seuil: 1.5, statut: liquidite >= 1.5 ? 'bon' as const : liquidite >= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: t('syscohadaStatements.ratioLiquidityFormula') },
+      { nom: t('syscohadaStatements.ratioDebtName'), valeur: new Money(endettement).round().toNumber(), valeurPrecedente: 0, unite: '', interpretation: t('syscohadaStatements.ratioDebtInterp'), seuil: 0.7, statut: endettement <= 0.7 ? 'bon' as const : endettement <= 1 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: t('syscohadaStatements.ratioDebtFormula') },
+      { nom: t('syscohadaStatements.ratioRoaName'), valeur: new Money(roa).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: t('syscohadaStatements.ratioRoaInterp'), seuil: 5.0, statut: roa >= 5 ? 'bon' as const : roa >= 2 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: t('syscohadaStatements.ratioRoaFormula') },
+      { nom: t('syscohadaStatements.ratioRoeName'), valeur: new Money(roe).round(1).toNumber(), valeurPrecedente: 0, unite: '%', interpretation: t('syscohadaStatements.ratioRoeInterp'), seuil: 10.0, statut: roe >= 10 ? 'bon' as const : roe >= 5 ? 'moyen' as const : 'mauvais' as const, evolution: 'stable' as const, formuleCalcul: t('syscohadaStatements.ratioRoeFormula') },
     ];
-  }, [etatsData.balances]);
+  }, [etatsData.balances, t]);
 
   // Documents réglementaires — static
   const documentsReglementaires: DocumentReglementaire[] = [
-    { nom: 'Déclaration statistique et fiscale (DSF)', description: 'Déclaration annuelle obligatoire', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-04-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Direction Générale des Impôts', sanctions: 'Amende de 50 000 à 500 000 FCFA' },
-    { nom: 'États financiers OHADA', description: 'Transmission des états financiers certifiés', obligatoire: true, frequence: 'Annuelle', dateLimite: `${new Date().getFullYear() + 1}-06-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: 'Greffe du Tribunal de Commerce' },
+    { nom: t('syscohadaStatements.docDsfName'), description: t('syscohadaStatements.docDsfDesc'), obligatoire: true, frequence: t('syscohadaStatements.frequencyAnnual'), dateLimite: `${new Date().getFullYear() + 1}-04-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: t('syscohadaStatements.authorityDgi'), sanctions: t('syscohadaStatements.sanctionsDsf') },
+    { nom: t('syscohadaStatements.docOhadaName'), description: t('syscohadaStatements.docOhadaDesc'), obligatoire: true, frequence: t('syscohadaStatements.frequencyAnnual'), dateLimite: `${new Date().getFullYear() + 1}-06-30`, statut: totalEntries > 0 ? 'en_cours' : 'non_commence', autoriteDestinataire: t('syscohadaStatements.authorityRegistry') },
   ];
 
   // Calculs des KPIs
@@ -528,7 +540,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               <div>
                 <p className="text-sm text-[var(--color-text-primary)]">Total Actif</p>
                 <p className="text-lg font-bold">{(kpis.totalActif / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Exercice {exerciceLabel}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('syscohadaStatements.kpiFiscalYear', { year: exerciceLabel })}</p>
               </div>
               <Building className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
@@ -539,9 +551,9 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.kpiNetResult')}</p>
                 <p className="text-lg font-bold text-[var(--color-success)]">{(kpis.resultatNet / 1000000).toFixed(1)}M FCFA</p>
-                <p className="text-xs text-[var(--color-text-secondary)] mt-1">Exercice {exerciceLabel}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">{t('syscohadaStatements.kpiFiscalYear', { year: exerciceLabel })}</p>
               </div>
               <TrendingUp className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -552,9 +564,9 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">États Générés</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.kpiGenerated')}</p>
                 <p className="text-lg font-bold">{kpis.etatsGeneres}</p>
-                <p className="text-xs text-[var(--color-primary)] mt-1">{kpis.etatsConformes} conformes SYSCOHADA</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">{t('syscohadaStatements.kpiCompliantCount', { count: String(kpis.etatsConformes) })}</p>
               </div>
               <FileText className="w-8 h-8 text-primary-500" />
             </div>
@@ -565,7 +577,7 @@ const EtatsSYSCOHADA: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Conformité</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.kpiCompliance')}</p>
                 <p className="text-lg font-bold">{kpis.tauxConformite.toFixed(0)}%</p>
                 <Progress value={kpis.tauxConformite} className="mt-2" />
               </div>
@@ -580,15 +592,16 @@ const EtatsSYSCOHADA: React.FC = () => {
         <Alert className="border-l-4 border-l-green-500">
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Conformité SYSCOHADA:</strong> Tous les états financiers respectent le référentiel comptable.
-            Format et présentation conformes aux exigences réglementaires.
+            <strong>{t('syscohadaStatements.alertComplianceLabel')}</strong>{' '}
+            {t('syscohadaStatements.alertComplianceText')}
           </AlertDescription>
         </Alert>
 
         <Alert className="border-l-4 border-l-blue-500">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Échéances:</strong> DSF à transmettre avant le 30 avril {exerciceLabel !== '—' ? Number(exerciceLabel) + 1 : 'N+1'}.
+            <strong>{t('syscohadaStatements.alertDeadlineLabel')}</strong>{' '}
+            {t('syscohadaStatements.alertDeadlineText', { year: exerciceLabel !== '—' ? String(Number(exerciceLabel) + 1) : 'N+1' })}
           </AlertDescription>
         </Alert>
       </div>
@@ -596,12 +609,12 @@ const EtatsSYSCOHADA: React.FC = () => {
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="vue-ensemble">Vue d'ensemble</TabsTrigger>
-          <TabsTrigger value="bilan">Bilan</TabsTrigger>
-          <TabsTrigger value="compte-resultat">Compte de Résultat</TabsTrigger>
-          <TabsTrigger value="ratios">Ratios & Analyse</TabsTrigger>
-          <TabsTrigger value="etats-annexes">États Annexes</TabsTrigger>
-          <TabsTrigger value="obligations">Obligations</TabsTrigger>
+          <TabsTrigger value="vue-ensemble">{t('syscohadaStatements.tabOverview')}</TabsTrigger>
+          <TabsTrigger value="bilan">{t('syscohadaStatements.tabBalanceSheet')}</TabsTrigger>
+          <TabsTrigger value="compte-resultat">{t('syscohadaStatements.tabIncome')}</TabsTrigger>
+          <TabsTrigger value="ratios">{t('syscohadaStatements.tabRatios')}</TabsTrigger>
+          <TabsTrigger value="etats-annexes">{t('syscohadaStatements.tabAnnexes')}</TabsTrigger>
+          <TabsTrigger value="obligations">{t('syscohadaStatements.tabObligations')}</TabsTrigger>
         </TabsList>
 
         {/* Vue d'ensemble */}
@@ -609,7 +622,7 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>États Financiers - Statut de Génération</CardTitle>
+                <CardTitle>{t('syscohadaStatements.generationStatus')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -639,17 +652,17 @@ const EtatsSYSCOHADA: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Indicateurs Clés de Performance</CardTitle>
+                <CardTitle>{t('syscohadaStatements.kpiTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-3 bg-[var(--color-primary-lightest)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Chiffre d'affaires</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.revenue')}</p>
                       <p className="text-lg font-bold text-[var(--color-primary)]">{formatNumber(kpis.chiffreAffaires)}</p>
                     </div>
                     <div className="text-center p-3 bg-[var(--color-success-lightest)] rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Résultat Net</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.kpiNetResult')}</p>
                       <p className="text-lg font-bold text-[var(--color-success)]">{formatNumber(kpis.resultatNet)}</p>
                     </div>
                   </div>
@@ -659,7 +672,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                       <p className="text-lg font-bold text-primary-600">{ratios.find(r => r.nom.includes('ROE'))?.valeur.toFixed(1) || '0'}%</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
-                      <p className="text-sm text-[var(--color-text-primary)]">Endettement</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.debtRatio')}</p>
                       <p className="text-lg font-bold text-[var(--color-warning)]">{ratios.find(r => r.nom.includes('endettement'))?.valeur.toFixed(0) || '0'}%</p>
                     </div>
                   </div>
@@ -670,15 +683,15 @@ const EtatsSYSCOHADA: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Évolution des Grands Équilibres</CardTitle>
+              <CardTitle>{t('syscohadaStatements.balancesEvolution')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-4 gap-6">
                 {[
-                  { label: 'Actif Immobilisé', value: totalImmo, total: totalGenActif, color: '#235A6E' },
-                  { label: 'Actif Circulant', value: totalCirculant, total: totalGenActif, color: '#15803D' },
-                  { label: 'Capitaux Propres', value: capitauxPropres, total: totalGenPassif, color: '#C77E2C' },
-                  { label: 'Total Dettes', value: totalDettes, total: totalGenPassif, color: '#dc2626' },
+                  { label: t('syscohadaStatements.fixedAssets'), value: totalImmo, total: totalGenActif, color: '#235A6E' },
+                  { label: t('syscohadaStatements.currentAssets'), value: totalCirculant, total: totalGenActif, color: '#15803D' },
+                  { label: t('syscohadaStatements.equity'), value: capitauxPropres, total: totalGenPassif, color: '#C77E2C' },
+                  { label: t('syscohadaStatements.totalDebt'), value: totalDettes, total: totalGenPassif, color: '#dc2626' },
                 ].map((item, idx) => {
                   const pct = item.total > 0 ? Math.round(item.value / item.total * 100) : 0;
                   const circumference = 2 * Math.PI * 40;
@@ -711,20 +724,20 @@ const EtatsSYSCOHADA: React.FC = () => {
         {/* Bilan */}
         <TabsContent value="bilan" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Bilan SYSCOHADA au {dateClotureLabel}</h3>
+            <h3 className="text-lg font-semibold">{t('syscohadaStatements.balanceSheetAt', { date: dateClotureLabel })}</h3>
             <div className="flex gap-2">
               <select
                 className="px-4 py-2 border rounded-lg"
                 value={periodeComparaison}
                 onChange={(e) => setPeriodeComparaison(e.target.value)}
               >
-                <option value="N-1">Comparaison N-1</option>
-                <option value="N-2">Comparaison N-2</option>
-                <option value="budget">Comparaison Budget</option>
+                <option value="N-1">{t('syscohadaStatements.compareN1')}</option>
+                <option value="N-2">{t('syscohadaStatements.compareN2')}</option>
+                <option value="budget">{t('syscohadaStatements.compareBudget')}</option>
               </select>
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Exporter PDF
+                {t('syscohadaStatements.exportPdf')}
               </button>
             </div>
           </div>
@@ -733,17 +746,17 @@ const EtatsSYSCOHADA: React.FC = () => {
             {/* ACTIF */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-center bg-[var(--color-primary-lightest)] py-2">ACTIF</CardTitle>
+                <CardTitle className="text-center bg-[var(--color-primary-lightest)] py-2">{t('syscohadaStatements.assets')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--color-background-secondary)]">
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
-                      <th className="px-3 py-2 text-right font-medium">Note</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('syscohadaStatements.colNote')}</th>
                       <th className="px-3 py-2 text-right font-medium">{exerciceLabel}</th>
                       <th className="px-3 py-2 text-right font-medium">N-1</th>
-                      <th className="px-3 py-2 text-right font-medium">Var %</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('syscohadaStatements.colVarPct')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -781,17 +794,17 @@ const EtatsSYSCOHADA: React.FC = () => {
             {/* PASSIF */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-center bg-[var(--color-success-lightest)] py-2">PASSIF</CardTitle>
+                <CardTitle className="text-center bg-[var(--color-success-lightest)] py-2">{t('syscohadaStatements.liabilities')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <table className="w-full text-sm">
                   <thead className="bg-[var(--color-background-secondary)]">
                     <tr>
                       <th className="px-3 py-2 text-left font-medium">{t('accounting.label')}</th>
-                      <th className="px-3 py-2 text-right font-medium">Note</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('syscohadaStatements.colNote')}</th>
                       <th className="px-3 py-2 text-right font-medium">{exerciceLabel}</th>
                       <th className="px-3 py-2 text-right font-medium">N-1</th>
-                      <th className="px-3 py-2 text-right font-medium">Var %</th>
+                      <th className="px-3 py-2 text-right font-medium">{t('syscohadaStatements.colVarPct')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -830,8 +843,9 @@ const EtatsSYSCOHADA: React.FC = () => {
           <Alert className="border-l-4 border-l-blue-500">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Bilan {exerciceLabel} :</strong> {isBalanced ? 'Actif = Passif, le bilan est équilibré.' : 'Déséquilibre Actif/Passif détecté.'}
-              {' '}Comparatif N-1 non disponible (l'exercice précédent n'est pas alimenté par l'import).
+              <strong>{t('syscohadaStatements.balanceSheetAlertLabel', { year: exerciceLabel })}</strong>{' '}
+              {isBalanced ? t('syscohadaStatements.balancedText') : t('syscohadaStatements.unbalancedText')}
+              {' '}{t('syscohadaStatements.noPriorYear')}
             </AlertDescription>
           </Alert>
         </TabsContent>
@@ -839,15 +853,15 @@ const EtatsSYSCOHADA: React.FC = () => {
         {/* Compte de Résultat */}
         <TabsContent value="compte-resultat" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Compte de Résultat - Exercice {exerciceLabel}</h3>
+            <h3 className="text-lg font-semibold">{t('syscohadaStatements.incomeStatementFor', { year: exerciceLabel })}</h3>
             <div className="flex gap-2">
               <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
-                Graphiques
+                {t('syscohadaStatements.charts')}
               </button>
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Exporter
+                {t('syscohadaStatements.export')}
               </button>
             </div>
           </div>
@@ -858,10 +872,10 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">{t('accounting.label')}</th>
-                    <th className="px-4 py-3 text-right font-medium">Note</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('syscohadaStatements.colNote')}</th>
                     <th className="px-4 py-3 text-right font-medium">{exerciceLabel}</th>
                     <th className="px-4 py-3 text-right font-medium">N-1</th>
-                    <th className="px-4 py-3 text-right font-medium">Variation</th>
+                    <th className="px-4 py-3 text-right font-medium">{t('syscohadaStatements.colVariation')}</th>
                     <th className="px-4 py-3 text-right font-medium">%</th>
                   </tr>
                 </thead>
@@ -905,16 +919,16 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-center text-sm">Soldes Intermédiaires de Gestion</CardTitle>
+                <CardTitle className="text-center text-sm">{t('syscohadaStatements.sigTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center p-2 bg-[var(--color-primary-lightest)] rounded">
-                    <span>Marge Commerciale</span>
+                    <span>{t('syscohadaStatements.grossMargin')}</span>
                     <span className="font-bold">{formatNumber(margeCommerciale)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-primary-50 rounded">
-                    <span>Valeur Ajoutée</span>
+                    <span>{t('syscohadaStatements.valueAdded')}</span>
                     <span className="font-bold">{formatNumber(VA)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-success-lightest)] rounded">
@@ -922,11 +936,11 @@ const EtatsSYSCOHADA: React.FC = () => {
                     <span className="font-bold">{formatNumber(EBE)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-error-lightest)] rounded">
-                    <span>Résultat d'Exploitation</span>
+                    <span>{t('syscohadaStatements.operatingResult')}</span>
                     <span className={`font-bold ${resultatExploit < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>{formatNumber(resultatExploit)}</span>
                   </div>
                   <div className="flex justify-between items-center p-2 bg-[var(--color-background-secondary)] rounded">
-                    <span>Résultat HAO</span>
+                    <span>{t('syscohadaStatements.haoResult')}</span>
                     <span className={`font-bold ${resultatHAO < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>{formatNumber(resultatHAO)}</span>
                   </div>
                 </div>
@@ -935,28 +949,28 @@ const EtatsSYSCOHADA: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-center text-sm">Ratios d'Activité</CardTitle>
+                <CardTitle className="text-center text-sm">{t('syscohadaStatements.activityRatios')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between items-center">
-                    <span>Taux de Marge Commerciale</span>
+                    <span>{t('syscohadaStatements.grossMarginRate')}</span>
                     <span className="font-bold">{CA > 0 ? `${(margeCommerciale / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Taux de Valeur Ajoutée</span>
+                    <span>{t('syscohadaStatements.valueAddedRate')}</span>
                     <span className="font-bold">{CA > 0 ? `${(VA / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Taux d'EBE</span>
+                    <span>{t('syscohadaStatements.ebeRate')}</span>
                     <span className="font-bold">{CA > 0 ? `${(EBE / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Charges Personnel/VA</span>
+                    <span>{t('syscohadaStatements.payrollOverVa')}</span>
                     <span className="font-bold">{VA > 0 ? `${(chargesPersonnel / VA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Taux de Résultat Net</span>
+                    <span>{t('syscohadaStatements.netResultRate')}</span>
                     <span className="font-bold">{CA > 0 ? `${(realResultat / CA * 100).toFixed(1)}%` : '—'}</span>
                   </div>
                 </div>
@@ -965,11 +979,11 @@ const EtatsSYSCOHADA: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-center text-sm">Évolution Annuelle</CardTitle>
+                <CardTitle className="text-center text-sm">{t('syscohadaStatements.annualEvolution')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
-                  Aucune donnée — l'exercice précédent (N-1) n'est pas alimenté par l'import.
+                  {t('syscohadaStatements.noPriorYearData')}
                 </div>
               </CardContent>
             </Card>
@@ -981,7 +995,7 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Ratios Financiers</CardTitle>
+                <CardTitle>{t('syscohadaStatements.financialRatios')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -1002,19 +1016,19 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                       <div className="grid grid-cols-3 gap-4 mt-3">
                         <div className="text-center">
-                          <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.currentValue')}</p>
                           <p className={`text-lg font-bold ${getRatioStatutColor(ratio.statut)}`}>
                             {ratio.valeur.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm text-[var(--color-text-primary)]">Valeur N-1</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.priorValue')}</p>
                           <p className="text-lg font-bold text-[var(--color-text-primary)]">
                             {ratio.valeurPrecedente.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm text-[var(--color-text-primary)]">Seuil</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.threshold')}</p>
                           <p className="text-lg font-bold text-[var(--color-primary)]">
                             {ratio.seuil?.toFixed(ratio.unite === '%' ? 1 : 2)}{ratio.unite}
                           </p>
@@ -1022,7 +1036,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                       </div>
 
                       <div className="mt-3 text-xs text-[var(--color-text-secondary)]">
-                        <strong>Formule:</strong> {ratio.formuleCalcul}
+                        <strong>{t('syscohadaStatements.formulaLabel')}</strong> {ratio.formuleCalcul}
                       </div>
                     </div>
                   ))}
@@ -1032,11 +1046,11 @@ const EtatsSYSCOHADA: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Analyse Sectorielle</CardTitle>
+                <CardTitle>{t('syscohadaStatements.sectorAnalysis')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
-                  Aucune donnée — aucun référentiel sectoriel (moyennes / quartiles) n'est alimenté.
+                  {t('syscohadaStatements.noSectorData')}
                 </div>
               </CardContent>
             </Card>
@@ -1045,8 +1059,8 @@ const EtatsSYSCOHADA: React.FC = () => {
           <Alert className="border-l-4 border-l-primary-500">
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Ratios :</strong> calculés sur les soldes de l'exercice {exerciceLabel}. La colonne
-              « Valeur N-1 » reste vide tant que l'exercice précédent n'est pas alimenté par l'import.
+              <strong>{t('syscohadaStatements.ratiosAlertLabel')}</strong>{' '}
+              {t('syscohadaStatements.ratiosAlertText', { year: exerciceLabel })}
             </AlertDescription>
           </Alert>
         </TabsContent>
@@ -1056,24 +1070,22 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>TAFIRE - Tableau de Financement</CardTitle>
+                <CardTitle>{t('syscohadaStatements.tafireTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
-                  Aucune donnée — le TAFIRE nécessite les variations de bilan N/N-1, non disponibles
-                  (l'exercice précédent n'est pas alimenté par l'import).
+                  {t('syscohadaStatements.noTafireData')}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>État des Flux de Trésorerie</CardTitle>
+                <CardTitle>{t('syscohadaStatements.cashFlowTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="py-8 text-center text-sm text-[var(--color-text-secondary)]">
-                  Aucune donnée — le tableau des flux nécessite les variations de bilan N/N-1, non
-                  disponibles (l'exercice précédent n'est pas alimenté par l'import).
+                  {t('syscohadaStatements.noCashFlowData')}
                 </div>
               </CardContent>
             </Card>
@@ -1081,25 +1093,25 @@ const EtatsSYSCOHADA: React.FC = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Notes aux États Financiers - Principales</CardTitle>
+              <CardTitle>{t('syscohadaStatements.notesTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-medium mb-3">Méthodes Comptables</h4>
+                  <h4 className="font-medium mb-3">{t('syscohadaStatements.accountingMethods')}</h4>
                   <div className="space-y-2 text-sm">
-                    <p><strong>Note 1:</strong> Référentiel SYSCOHADA appliqué intégralement</p>
-                    <p><strong>Note 2:</strong> Immobilisations évaluées au coût historique</p>
-                    <p><strong>Note 3:</strong> Amortissements linéaires et dégressifs</p>
-                    <p><strong>Note 4:</strong> Stocks évalués au coût moyen pondéré</p>
-                    <p><strong>Note 5:</strong> Provisions évaluées selon risques identifiés</p>
+                    <p><strong>Note 1:</strong> {t('syscohadaStatements.note1')}</p>
+                    <p><strong>Note 2:</strong> {t('syscohadaStatements.note2')}</p>
+                    <p><strong>Note 3:</strong> {t('syscohadaStatements.note3')}</p>
+                    <p><strong>Note 4:</strong> {t('syscohadaStatements.note4')}</p>
+                    <p><strong>Note 5:</strong> {t('syscohadaStatements.note5')}</p>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Événements Significatifs</h4>
+                  <h4 className="font-medium mb-3">{t('syscohadaStatements.significantEvents')}</h4>
                   <div className="py-4 text-sm text-[var(--color-text-secondary)]">
-                    Aucun événement significatif saisi — module non alimenté par l'import.
+                    {t('syscohadaStatements.noSignificantEvents')}
                   </div>
                 </div>
               </div>
@@ -1111,7 +1123,7 @@ const EtatsSYSCOHADA: React.FC = () => {
         <TabsContent value="obligations" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Calendrier des Obligations Réglementaires</CardTitle>
+              <CardTitle>{t('syscohadaStatements.obligationsCalendar')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1122,12 +1134,12 @@ const EtatsSYSCOHADA: React.FC = () => {
                         <h4 className="font-medium">{doc.nom}</h4>
                         <p className="text-sm text-[var(--color-text-primary)]">{doc.description}</p>
                         <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-                          Destinataire: {doc.autoriteDestinataire}
+                          {t('syscohadaStatements.recipientLabel', { name: doc.autoriteDestinataire })}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {doc.obligatoire && (
-                          <Badge className="bg-[var(--color-error-lighter)] text-red-800">Obligatoire</Badge>
+                          <Badge className="bg-[var(--color-error-lighter)] text-red-800">{t('syscohadaStatements.mandatory')}</Badge>
                         )}
                         <Badge className={
                           doc.statut === 'complete' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]' :
@@ -1142,20 +1154,20 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Fréquence</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.frequency')}</p>
                         <p className="font-medium">{doc.frequence}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Date limite</p>
-                        <p className="font-medium">{new Date(doc.dateLimite).toLocaleDateString()}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.dueDate')}</p>
+                        <p className="font-medium">{new Date(doc.dateLimite).toLocaleDateString(dateLocale)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Délai restant</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.timeLeft')}</p>
                         <p className={`font-medium ${
                           new Date(doc.dateLimite) < new Date(Date.now() + 30*24*60*60*1000) ?
                           'text-[var(--color-error)]' : 'text-[var(--color-success)]'
                         }`}>
-                          {Math.ceil((new Date(doc.dateLimite).getTime() - Date.now()) / (24*60*60*1000))} jours
+                          {t('syscohadaStatements.daysCount', { count: String(Math.ceil((new Date(doc.dateLimite).getTime() - Date.now()) / (24*60*60*1000))) })}
                         </p>
                       </div>
                     </div>
@@ -1163,7 +1175,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                     {doc.sanctions && (
                       <div className="mt-3 p-2 bg-[var(--color-error-lightest)] rounded">
                         <p className="text-sm text-red-800">
-                          <strong>Sanctions:</strong> {doc.sanctions}
+                          <strong>{t('syscohadaStatements.sanctionsLabel')}</strong> {doc.sanctions}
                         </p>
                       </div>
                     )}
@@ -1176,25 +1188,25 @@ const EtatsSYSCOHADA: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Checklist de Clôture</CardTitle>
+                <CardTitle>{t('syscohadaStatements.closureChecklist')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {[
-                    'Inventaire physique des stocks',
-                    'Rapprochements bancaires',
-                    'Contrôle des créances clients',
-                    'Calcul des amortissements',
-                    'Provisions pour risques',
-                    'Charges et produits à payer/recevoir',
-                    'Génération des états SYSCOHADA',
-                    'Contrôles de cohérence',
-                    'Validation expert-comptable',
-                    'Préparation rapport de gestion'
+                    t('syscohadaStatements.task1'),
+                    t('syscohadaStatements.task2'),
+                    t('syscohadaStatements.task3'),
+                    t('syscohadaStatements.task4'),
+                    t('syscohadaStatements.task5'),
+                    t('syscohadaStatements.task6'),
+                    t('syscohadaStatements.task7'),
+                    t('syscohadaStatements.task8'),
+                    t('syscohadaStatements.task9'),
+                    t('syscohadaStatements.task10')
                   ].map((tache, index) => (
                     <div key={index} className="flex items-center justify-between p-2 border rounded">
                       <span className="text-sm">{tache}</span>
-                      <span className="text-xs text-[var(--color-text-secondary)]">Non renseigné</span>
+                      <span className="text-xs text-[var(--color-text-secondary)]">{t('syscohadaStatements.notFilled')}</span>
                     </div>
                   ))}
                 </div>
@@ -1205,7 +1217,7 @@ const EtatsSYSCOHADA: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-primary-600" />
-                  Recommandations Finales
+                  {t('syscohadaStatements.finalRecommendations')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1213,29 +1225,31 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <Alert className={`border-l-4 ${isBalanced ? 'border-l-green-500' : 'border-l-red-500'}`}>
                     {isBalanced ? <CheckCircle className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
                     <AlertDescription>
-                      <strong>Équilibre du bilan :</strong> {isBalanced
-                        ? `Actif = Passif sur l'exercice ${exerciceLabel}.`
-                        : 'Déséquilibre Actif/Passif détecté — à corriger avant arrêté des comptes.'}
+                      <strong>{t('syscohadaStatements.balanceRecoLabel')}</strong>{' '}
+                      {isBalanced
+                        ? t('syscohadaStatements.balanceRecoOk', { year: exerciceLabel })
+                        : t('syscohadaStatements.balanceRecoKo')}
                     </AlertDescription>
                   </Alert>
 
                   <Alert className="border-l-4 border-l-blue-500">
                     <Info className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Échéance DSF :</strong> transmission à la DGI avant le 30 avril {exerciceLabel !== '—' ? Number(exerciceLabel) + 1 : 'N+1'}.
+                      <strong>{t('syscohadaStatements.dsfDeadlineLabel')}</strong>{' '}
+                      {t('syscohadaStatements.dsfDeadlineText', { year: exerciceLabel !== '—' ? String(Number(exerciceLabel) + 1) : 'N+1' })}
                     </AlertDescription>
                   </Alert>
 
                   <div className="p-3 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg">
-                    <h4 className="font-medium mb-2">Prochaines Échéances réglementaires</h4>
+                    <h4 className="font-medium mb-2">{t('syscohadaStatements.nextDeadlines')}</h4>
                     {documentsReglementaires.length > 0 ? (
                       <ul className="text-sm space-y-1">
                         {documentsReglementaires.map((doc, i) => (
-                          <li key={i}>• {new Date(doc.dateLimite).toLocaleDateString('fr-FR')} : {doc.nom}</li>
+                          <li key={i}>• {new Date(doc.dateLimite).toLocaleDateString(dateLocale)} : {doc.nom}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-[var(--color-text-secondary)]">Aucune échéance enregistrée.</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t('syscohadaStatements.noDeadline')}</p>
                     )}
                   </div>
                 </div>
@@ -1254,7 +1268,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 <div className="bg-primary-100 text-primary-600 p-2 rounded-lg">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Génération États SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('syscohadaStatements.modalTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -1276,15 +1290,15 @@ const EtatsSYSCOHADA: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <AlertTriangle className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-primary-900 mb-1">Génération d&apos;États</h4>
-                      <p className="text-sm text-primary-800">Générez automatiquement les états financiers conformes au référentiel SYSCOHADA.</p>
+                      <h4 className="text-sm font-medium text-primary-900 mb-1">{t('syscohadaStatements.modalInfoTitle')}</h4>
+                      <p className="text-sm text-primary-800">{t('syscohadaStatements.modalInfoText')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Statement Selection */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection des États</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('syscohadaStatements.statementSelection')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <input
@@ -1295,7 +1309,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                         onChange={(e) => handleInputChange('etats_selectionnes', 'bilan')}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="bilan" className="text-sm text-[var(--color-text-primary)]">Bilan (Actif/Passif)</label>
+                      <label htmlFor="bilan" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.optBalanceSheet')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -1306,7 +1320,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                         onChange={(e) => handleInputChange('etats_selectionnes', 'compte_resultat')}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="compte_resultat" className="text-sm text-[var(--color-text-primary)]">Compte de Résultat</label>
+                      <label htmlFor="compte_resultat" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.incomeStatementName')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -1317,7 +1331,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                         onChange={(e) => handleInputChange('etats_selectionnes', 'tafire')}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="tafire" className="text-sm text-[var(--color-text-primary)]">TAFIRE (Flux de Trésorerie)</label>
+                      <label htmlFor="tafire" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.optTafire')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -1328,7 +1342,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                         onChange={(e) => handleInputChange('etats_selectionnes', 'annexes')}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="annexes" className="text-sm text-[var(--color-text-primary)]">Notes Annexes</label>
+                      <label htmlFor="annexes" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.optNotes')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input
@@ -1339,7 +1353,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                         onChange={(e) => handleInputChange('etats_selectionnes', 'etats_fiscaux')}
                         disabled={isSubmitting}
                       />
-                      <label htmlFor="etats_fiscaux" className="text-sm text-[var(--color-text-primary)]">États Fiscaux</label>
+                      <label htmlFor="etats_fiscaux" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.optTaxStatements')}</label>
                     </div>
                       {errors.etats_selectionnes && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.etats_selectionnes}</p>
@@ -1349,39 +1363,39 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                 {/* Generation Parameters */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Paramètres de Génération</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('syscohadaStatements.generationParams')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('syscohadaStatements.period')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value="">-- Sélectionner période --</option>
-                        <option value="mensuelle">Mensuelle</option>
-                        <option value="trimestrielle">Trimestrielle</option>
-                        <option value="semestrielle">Semestrielle</option>
-                        <option value="annuelle">Annuelle</option>
+                        <option value="">{t('syscohadaStatements.selectPeriod')}</option>
+                        <option value="mensuelle">{t('syscohadaStatements.periodMonthly')}</option>
+                        <option value="trimestrielle">{t('syscohadaStatements.periodQuarterly')}</option>
+                        <option value="semestrielle">{t('syscohadaStatements.periodHalfYearly')}</option>
+                        <option value="annuelle">{t('syscohadaStatements.periodAnnual')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Exercice</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('syscohadaStatements.fiscalYearLabel')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
                         <option value={exerciceLabel}>{exerciceLabel}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Format de Sortie</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('syscohadaStatements.outputFormat')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
                         <option value="pdf">PDF</option>
                         <option value="excel">Excel</option>
                         <option value="xml">XML SYSCOHADA</option>
-                        <option value="all">Tous les formats</option>
+                        <option value="all">{t('syscohadaStatements.allFormats')}</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Niveau de Détail</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('syscohadaStatements.detailLevel')}</label>
                       <select className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                        <option value="synthese">Synthèse</option>
-                        <option value="detaille">Détaillé</option>
-                        <option value="complet">Complet avec notes</option>
+                        <option value="synthese">{t('syscohadaStatements.levelSummary')}</option>
+                        <option value="detaille">{t('syscohadaStatements.levelDetailed')}</option>
+                        <option value="complet">{t('syscohadaStatements.levelFull')}</option>
                       </select>
                     </div>
                   </div>
@@ -1389,27 +1403,27 @@ const EtatsSYSCOHADA: React.FC = () => {
 
                 {/* Options */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Options Avancées</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('syscohadaStatements.advancedOptions')}</h3>
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="comparaison" className="rounded border-[var(--color-border-dark)] text-primary-500" />
-                      <label htmlFor="comparaison" className="text-sm text-[var(--color-text-primary)]">Inclure comparaison N-1</label>
+                      <label htmlFor="comparaison" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.includeComparison')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="signature" className="rounded border-[var(--color-border-dark)] text-primary-500" defaultChecked />
-                      <label htmlFor="signature" className="text-sm text-[var(--color-text-primary)]">Signature électronique</label>
+                      <label htmlFor="signature" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.eSignature')}</label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="archivage" className="rounded border-[var(--color-border-dark)] text-primary-500" defaultChecked />
-                      <label htmlFor="archivage" className="text-sm text-[var(--color-text-primary)]">Archivage automatique</label>
+                      <label htmlFor="archivage" className="text-sm text-[var(--color-text-primary)]">{t('syscohadaStatements.autoArchiving')}</label>
                     </div>
                   </div>
                 </div>
 
                 {/* Comments */}
                 <div>
-                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Commentaires</label>
-                  <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" rows={3} placeholder="Notes sur la génération d'états..."></textarea>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('syscohadaStatements.comments')}</label>
+                  <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" rows={3} placeholder={t('syscohadaStatements.commentsPlaceholder')}></textarea>
                 </div>
               </div>
             </div>
@@ -1424,7 +1438,7 @@ const EtatsSYSCOHADA: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('syscohadaStatements.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -1434,12 +1448,12 @@ const EtatsSYSCOHADA: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Génération...</span>
+                    <span>{t('syscohadaStatements.generating')}</span>
                   </>
                 ) : (
                   <>
                     <FileText className="w-4 h-4" />
-                    <span>Générer les États</span>
+                    <span>{t('syscohadaStatements.generateStatements')}</span>
                   </>
                 )}
               </button>
