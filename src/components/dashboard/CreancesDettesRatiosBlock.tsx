@@ -24,6 +24,7 @@ const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 
 // Seuils d'alerte — clés localStorage partagées entre les dashboards.
 const DSO_THRESHOLD_DEFAULT = 60; const DSO_THRESHOLD_KEY = 'manager-dso-threshold';
 const DPO_THRESHOLD_DEFAULT = 60; const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
+const DPO_MIN_THRESHOLD_DEFAULT = 30; const DPO_MIN_THRESHOLD_KEY = 'manager-dpo-min-threshold'; // j — alerte si DPO en dessous (paiement trop rapide)
 const TRESO_THRESHOLD_DEFAULT = 0; const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
 const BFR_DAYS_THRESHOLD_DEFAULT = 90; const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
 const MARGE_BRUTE_THRESHOLD_DEFAULT = 20; const MARGE_BRUTE_THRESHOLD_KEY = 'manager-marge-brute-threshold'; // % — alerte si en dessous
@@ -83,6 +84,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
 
   const [dsoThreshold, setDsoThreshold] = useState<number>(() => readNum(DSO_THRESHOLD_KEY, DSO_THRESHOLD_DEFAULT));
   const [dpoThreshold, setDpoThreshold] = useState<number>(() => readNum(DPO_THRESHOLD_KEY, DPO_THRESHOLD_DEFAULT));
+  const [dpoMinThreshold, setDpoMinThreshold] = useState<number>(() => readNum(DPO_MIN_THRESHOLD_KEY, DPO_MIN_THRESHOLD_DEFAULT));
   const [tresoThreshold, setTresoThreshold] = useState<number>(() => readNum(TRESO_THRESHOLD_KEY, TRESO_THRESHOLD_DEFAULT, false));
   const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => readNum(BFR_DAYS_THRESHOLD_KEY, BFR_DAYS_THRESHOLD_DEFAULT));
   const [margeThreshold, setMargeThreshold] = useState<number>(() => readNum(MARGE_BRUTE_THRESHOLD_KEY, MARGE_BRUTE_THRESHOLD_DEFAULT));
@@ -113,6 +115,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   const alerts: string[] = [];
   if (data.dso > dsoThreshold) alerts.push(`DSO élevé : ${data.dso} j (seuil ${dsoThreshold} j)`);
   if (data.dpo > dpoThreshold) alerts.push(`DPO élevé : ${data.dpo} j (seuil ${dpoThreshold} j)`);
+  if (data.dpo > 0 && data.dpo < dpoMinThreshold) alerts.push(`DPO trop court : ${data.dpo} j (min ${dpoMinThreshold} j) — vous payez les fournisseurs trop vite`);
   if (data.revenue > 0 && data.bfrDays > bfrDaysThreshold) alerts.push(`BFR en forte hausse : ${data.bfrDays} j de CA (${fmt(data.bfr)}), seuil ${bfrDaysThreshold} j`);
   if (data.treasury < tresoThreshold) alerts.push(`Trésorerie sous le seuil : ${fmt(data.treasury)} (seuil ${fmt(tresoThreshold)})`);
   if (data.revenue > 0 && data.margeBrute < margeThreshold) alerts.push(`Marge brute faible : ${data.margeBrute.toFixed(1)} % (seuil ${margeThreshold} %)`);
@@ -124,7 +127,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
     { label: 'Dettes fournisseurs', value: fmt(data.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
     { label: 'BFR', value: fmt(data.bfr), sub: `${data.bfrDays} j de CA · seuil ${bfrDaysThreshold} j`, icon: Scale, tone: (data.revenue > 0 && data.bfrDays > bfrDaysThreshold) ? 'text-[var(--color-error)]' : (data.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]') },
     { label: 'DSO', value: `${data.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: data.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
-    { label: 'DPO', value: `${data.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: data.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
+    { label: 'DPO', value: `${data.dpo} j`, sub: `Paiement fourn. · cible ${dpoMinThreshold}–${dpoThreshold} j`, icon: Clock, tone: (data.dpo > dpoThreshold || (data.dpo > 0 && data.dpo < dpoMinThreshold)) ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
     { label: 'Marge brute', value: `${data.margeBrute.toFixed(1)} %`, sub: `(CA − achats) / CA · seuil ${margeThreshold} %`, icon: Percent, tone: (data.revenue > 0 && data.margeBrute < margeThreshold) ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
     { label: 'Créances / Dettes', value: data.ratioCD != null ? data.ratioCD.toFixed(2) : '—', sub: `Couverture des dettes · seuil ${ratioCdThreshold}`, icon: Landmark, tone: data.ratioCD != null && data.ratioCD < ratioCdThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
   ];
@@ -143,6 +146,10 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
           <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             Seuil DPO
             <input type="number" min={1} max={365} value={dpoThreshold} onChange={(e) => persist(DPO_THRESHOLD_KEY, setDpoThreshold, Number(e.target.value), 1, 365)} className={`w-14 ${inputCls}`} aria-label="Seuil DPO en jours" /> j
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            DPO min
+            <input type="number" min={0} max={365} value={dpoMinThreshold} onChange={(e) => persist(DPO_MIN_THRESHOLD_KEY, setDpoMinThreshold, Number(e.target.value), 0, 365)} className={`w-14 ${inputCls}`} aria-label="Seuil DPO minimum en jours" /> j
           </label>
           <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             Seuil trésorerie
