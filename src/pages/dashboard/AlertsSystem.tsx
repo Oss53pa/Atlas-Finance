@@ -6,12 +6,13 @@ import {
   TrendingDown, Clock, DollarSign, Users, Package, Settings,
   Filter, Search, Calendar, Download, ChevronRight, Eye,
   EyeOff, Volume2, VolumeX, Mail, MessageSquare, Smartphone,
-  Shield, Zap, AlertCircle, Activity, BarChart3, Target
+  Shield, Zap, AlertCircle, Activity, BarChart3, Target, Plus, Trash2, X
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
 import { useFormattedCurrency } from '../../hooks/useMoneyFormat';
 import { formatNumber } from '../../utils/formatters';
+import { computeDashboardMetrics } from '../../utils/dashboardMetrics';
 
 interface Alert {
   id: string;
@@ -46,6 +47,44 @@ interface AlertRule {
   recipients: string[];
 }
 
+// ─── Indicateurs réels sur lesquels une règle peut porter (tirés du grand livre) ───
+type MetricKind = 'currency' | 'percent' | 'count';
+interface MetricDef { key: string; label: string; kind: MetricKind }
+const METRIC_DEFS: MetricDef[] = [
+  { key: 'ca', label: "Chiffre d'affaires", kind: 'currency' },
+  { key: 'charges', label: 'Charges totales', kind: 'currency' },
+  { key: 'resultatNet', label: 'Résultat net', kind: 'currency' },
+  { key: 'treasury', label: 'Trésorerie', kind: 'currency' },
+  { key: 'margeNette', label: 'Marge nette (%)', kind: 'percent' },
+  { key: 'creances', label: 'Créances clients', kind: 'currency' },
+  { key: 'draftCount', label: 'Écritures en brouillon', kind: 'count' },
+  { key: 'overdueReceivables', label: 'Créances > 60 jours', kind: 'currency' },
+];
+const metricDef = (key: string): MetricDef | undefined => METRIC_DEFS.find((d) => d.key === key);
+
+const ALERT_RULES_KEY = 'atlas_alert_rules';
+function loadRules(): AlertRule[] {
+  try { const v = JSON.parse(localStorage.getItem(ALERT_RULES_KEY) || '[]'); return Array.isArray(v) ? v : []; }
+  catch { return []; }
+}
+function saveRules(rules: AlertRule[]): void {
+  localStorage.setItem(ALERT_RULES_KEY, JSON.stringify(rules));
+}
+function compareValue(value: number, comparison: AlertRule['comparison'], threshold: number): boolean {
+  if (comparison === 'greater') return value > threshold;
+  if (comparison === 'less') return value < threshold;
+  return Math.abs(value - threshold) < 0.0001;
+}
+const EMPTY_RULE_FORM = {
+  name: '',
+  condition: METRIC_DEFS[0].key,
+  comparison: 'greater' as AlertRule['comparison'],
+  threshold: 0,
+  frequency: 'daily' as AlertRule['frequency'],
+  notifications: ['dashboard'] as AlertRule['notifications'],
+  recipients: '' as string, // saisie brute (emails séparés par virgule)
+};
+
 const AlertsSystem: React.FC = () => {
   const { t } = useLanguage();
   const { adapter } = useData();
@@ -53,6 +92,38 @@ const AlertsSystem: React.FC = () => {
   const [alerts, setAlerts] = useState<Alert[]>([]);
 
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
+  const [metrics, setMetrics] = useState<Record<string, number>>({});
+  // Incrémenté à chaque CRUD de règle → relance l'évaluation des alertes.
+  const [rulesVersion, setRulesVersion] = useState(0);
+  const [ruleForm, setRuleForm] = useState({ ...EMPTY_RULE_FORM });
+
+  // Charge les règles persistées (localStorage) au montage et après chaque CRUD.
+  useEffect(() => { setAlertRules(loadRules()); }, [rulesVersion]);
+
+  const persistRules = (rules: AlertRule[]) => {
+    saveRules(rules);
+    setAlertRules(rules);
+    setRulesVersion((v) => v + 1);
+  };
+  const createRule = () => {
+    const rule: AlertRule = {
+      id: `${Date.now()}`,
+      name: ruleForm.name.trim() || 'Règle sans nom',
+      condition: ruleForm.condition,
+      threshold: Number(ruleForm.threshold) || 0,
+      comparison: ruleForm.comparison,
+      frequency: ruleForm.frequency,
+      enabled: true,
+      notifications: ruleForm.notifications.length ? ruleForm.notifications : ['dashboard'],
+      recipients: ruleForm.recipients.split(',').map((r) => r.trim()).filter(Boolean),
+    };
+    persistRules([...alertRules, rule]);
+    setRuleForm({ ...EMPTY_RULE_FORM });
+    setShowCreateRule(false);
+  };
+  const toggleRule = (id: string) =>
+    persistRules(alertRules.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
+  const deleteRule = (id: string) => persistRules(alertRules.filter((r) => r.id !== id));
 
   // Statuts d'alerte persistés (reconnu/résolu/ignoré) par id STABLE, dans localStorage :
   // les alertes sont recalculées depuis le GL à chaque montage, donc sans persistance
@@ -191,13 +262,57 @@ const AlertsSystem: React.FC = () => {
           });
         }
 
+        // ─── Snapshot des indicateurs réels (grand livre) pour les règles ───
+        const dm = computeDashboardMetrics(entries);
+        const metricSnapshot: Record<string, number> = {
+          ca: dm.ca,
+          charges: dm.charges,
+          resultatNet: dm.resultatNet,
+          treasury: dm.treasury,
+          margeNette: dm.margeNette,
+          creances: dm.h.net('41'),
+          draftCount: draftEntries.length,
+          overdueReceivables: overdueTotal,
+        };
+        setMetrics(metricSnapshot);
+
+        // ─── Évaluation des règles personnalisées → alertes déclenchées ───
+        for (const rule of loadRules()) {
+          if (!rule.enabled) continue;
+          const def = metricDef(rule.condition);
+          if (!def) continue;
+          const value = metricSnapshot[rule.condition];
+          if (value === undefined) continue;
+          if (!compareValue(value, rule.comparison, rule.threshold)) continue;
+          const fmtVal = def.kind === 'currency' ? formatCurrency(value)
+            : def.kind === 'percent' ? `${value.toFixed(1)} %` : String(Math.round(value));
+          const fmtThr = def.kind === 'currency' ? formatCurrency(rule.threshold)
+            : def.kind === 'percent' ? `${rule.threshold} %` : String(rule.threshold);
+          const op = rule.comparison === 'greater' ? '>' : rule.comparison === 'less' ? '<' : '=';
+          generatedAlerts.push({
+            id: `rule-${rule.id}`,
+            type: 'warning',
+            category: 'performance',
+            title: `Règle déclenchée : ${rule.name}`,
+            message: `${def.label} = ${fmtVal} ${op} seuil ${fmtThr}`,
+            timestamp: new Date(),
+            priority: 'medium',
+            status: statusMap[`rule-${rule.id}`] || 'new',
+            source: 'Règle personnalisée',
+            impact: 'Seuil défini par l\'utilisateur',
+            suggestedAction: 'Vérifier l\'indicateur concerné',
+            value,
+            threshold: rule.threshold,
+          });
+        }
+
         setAlerts(generatedAlerts);
       } catch (err) {
         setAlerts([]);
       }
     };
     loadAlerts();
-  }, [adapter]);
+  }, [adapter, rulesVersion]);
 
   const [filter, setFilter] = useState({
     type: 'all',
@@ -570,37 +685,171 @@ const AlertsSystem: React.FC = () => {
               <p className="text-xs mt-1">Cliquez sur "Configurer Règles" pour créer vos premières règles</p>
             </div>
           )}
-          {alertRules.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className={cn(
-                  "w-3 h-3 rounded-full",
-                  rule.enabled ? "bg-green-500" : "bg-gray-300"
-                )} />
-                <div>
-                  <h4 className="font-medium text-gray-900">{rule.name}</h4>
-                  <p className="text-sm text-gray-600">
-                    {rule.condition} {rule.comparison === 'greater' ? '>' : rule.comparison === 'less' ? '<' : '='} {rule.threshold}
-                  </p>
+          {alertRules.map((rule) => {
+            const def = metricDef(rule.condition);
+            const kind = def?.kind;
+            const fmtByKind = (v: number) => kind === 'currency' ? formatCurrency(v)
+              : kind === 'percent' ? `${v.toFixed(1)} %` : String(Math.round(v));
+            const thr = kind === 'currency' ? formatCurrency(rule.threshold)
+              : kind === 'percent' ? `${rule.threshold} %` : String(rule.threshold);
+            const cur = metrics[rule.condition];
+            const triggered = cur !== undefined && rule.enabled && compareValue(cur, rule.comparison, rule.threshold);
+            return (
+              <div key={rule.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => toggleRule(rule.id)}
+                    className={cn("w-3 h-3 rounded-full shrink-0", rule.enabled ? "bg-green-500" : "bg-gray-300")}
+                    title={rule.enabled ? 'Règle active — cliquer pour désactiver' : 'Règle inactive — cliquer pour activer'}
+                    aria-label={rule.enabled ? 'Désactiver la règle' : 'Activer la règle'}
+                  />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium text-gray-900">{rule.name}</h4>
+                      {triggered && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700">Déclenchée</span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {def?.label || rule.condition} {rule.comparison === 'greater' ? '>' : rule.comparison === 'less' ? '<' : '='} {thr}
+                      {cur !== undefined && <span className="text-gray-400"> · actuel : {fmtByKind(cur)}</span>}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {rule.notifications.map((notif) => (
+                    <span key={notif} className="p-1" title={notif}>
+                      {notif === 'email' && <Mail className="w-4 h-4 text-gray-700" />}
+                      {notif === 'sms' && <MessageSquare className="w-4 h-4 text-gray-700" />}
+                      {notif === 'push' && <Smartphone className="w-4 h-4 text-gray-700" />}
+                      {notif === 'dashboard' && <Bell className="w-4 h-4 text-gray-700" />}
+                    </span>
+                  ))}
+                  <button onClick={() => deleteRule(rule.id)} className="p-1 hover:bg-red-50 rounded" aria-label="Supprimer la règle">
+                    <Trash2 className="w-4 h-4 text-red-500" />
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {rule.notifications.map((notif) => (
-                  <span key={notif} className="p-1" title={notif}>
-                    {notif === 'email' && <Mail className="w-4 h-4 text-gray-700" />}
-                    {notif === 'sms' && <MessageSquare className="w-4 h-4 text-gray-700" />}
-                    {notif === 'push' && <Smartphone className="w-4 h-4 text-gray-700" />}
-                    {notif === 'dashboard' && <Bell className="w-4 h-4 text-gray-700" />}
-                  </span>
-                ))}
-                <button className="p-1 hover:bg-gray-100 rounded" aria-label="Paramètres">
-                  <Settings className="w-4 h-4 text-gray-700" />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
+
+      {/* ─── Modal : configurer une règle d'alerte ─── */}
+      {showCreateRule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }} onClick={() => setShowCreateRule(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-[var(--color-primary)]" /> Nouvelle règle d'alerte
+              </h2>
+              <button onClick={() => setShowCreateRule(false)} className="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Fermer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom de la règle</label>
+                <input
+                  type="text" value={ruleForm.name}
+                  onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
+                  placeholder="Ex : Trésorerie critique"
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Indicateur surveillé</label>
+                <select
+                  value={ruleForm.condition}
+                  onChange={(e) => setRuleForm({ ...ruleForm, condition: e.target.value })}
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
+                >
+                  {METRIC_DEFS.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Condition</label>
+                  <select
+                    value={ruleForm.comparison}
+                    onChange={(e) => setRuleForm({ ...ruleForm, comparison: e.target.value as AlertRule['comparison'] })}
+                    className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
+                  >
+                    <option value="greater">Supérieur à (&gt;)</option>
+                    <option value="less">Inférieur à (&lt;)</option>
+                    <option value="equal">Égal à (=)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Seuil</label>
+                  <input
+                    type="number" value={ruleForm.threshold}
+                    onChange={(e) => setRuleForm({ ...ruleForm, threshold: Number(e.target.value) })}
+                    className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fréquence d'évaluation</label>
+                <select
+                  value={ruleForm.frequency}
+                  onChange={(e) => setRuleForm({ ...ruleForm, frequency: e.target.value as AlertRule['frequency'] })}
+                  className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
+                >
+                  <option value="realtime">Temps réel</option>
+                  <option value="hourly">Horaire</option>
+                  <option value="daily">Quotidienne</option>
+                  <option value="weekly">Hebdomadaire</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Notifications</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {(['dashboard', 'email'] as AlertRule['notifications']).map((n) => {
+                    const active = ruleForm.notifications.includes(n);
+                    return (
+                      <button
+                        key={n} type="button"
+                        onClick={() => setRuleForm({
+                          ...ruleForm,
+                          notifications: active
+                            ? ruleForm.notifications.filter((x) => x !== n)
+                            : [...ruleForm.notifications, n],
+                        })}
+                        className={cn(
+                          "px-3 py-1.5 rounded-full text-xs font-medium border",
+                          active ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]" : "bg-white text-gray-600 border-gray-300"
+                        )}
+                      >
+                        {n === 'dashboard' ? 'Tableau de bord' : 'Email'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              {ruleForm.notifications.includes('email') && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Destinataires email (séparés par virgule)</label>
+                  <input
+                    type="text" value={ruleForm.recipients}
+                    onChange={(e) => setRuleForm({ ...ruleForm, recipients: e.target.value })}
+                    placeholder="dg@societe.com, daf@societe.com"
+                    className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t flex gap-2">
+              <button onClick={() => setShowCreateRule(false)} className="flex-1 py-2.5 rounded-lg text-sm font-semibold border border-gray-300 text-gray-700 hover:bg-gray-50">
+                Annuler
+              </button>
+              <button onClick={createRule} className="flex-1 py-2.5 rounded-lg text-sm font-bold text-white flex items-center justify-center gap-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
+                <Plus className="w-4 h-4" /> Créer la règle
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
