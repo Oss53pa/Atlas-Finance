@@ -27,6 +27,7 @@ const DPO_THRESHOLD_DEFAULT = 60; const DPO_THRESHOLD_KEY = 'manager-dpo-thresho
 const TRESO_THRESHOLD_DEFAULT = 0; const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
 const BFR_DAYS_THRESHOLD_DEFAULT = 90; const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
 const MARGE_BRUTE_THRESHOLD_DEFAULT = 20; const MARGE_BRUTE_THRESHOLD_KEY = 'manager-marge-brute-threshold'; // % — alerte si en dessous
+const TRESO_PERSIST_THRESHOLD_DEFAULT = 3; const TRESO_PERSIST_THRESHOLD_KEY = 'manager-treso-persist-threshold'; // mois consécutifs de trésorerie négative
 
 const readNum = (key: string, def: number, positiveOnly = true): number => {
   try {
@@ -69,12 +70,12 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
 
   const balHistory = useMemo(() => {
     const anchor = to ? new Date(to) : new Date();
-    const hist: Array<{ label: string; creances: number; dettes: number }> = [];
+    const hist: Array<{ label: string; creances: number; dettes: number; treasury: number }> = [];
     for (let i = 5; i >= 0; i--) {
       const monthEnd = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - i + 1, 0));
       const iso = monthEnd.toISOString().slice(0, 10);
       const mm = computeDashboardMetrics(entries, { to: iso });
-      hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
+      hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40'), treasury: mm.treasury });
     }
     return hist;
   }, [entries, to]);
@@ -84,6 +85,16 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   const [tresoThreshold, setTresoThreshold] = useState<number>(() => readNum(TRESO_THRESHOLD_KEY, TRESO_THRESHOLD_DEFAULT, false));
   const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => readNum(BFR_DAYS_THRESHOLD_KEY, BFR_DAYS_THRESHOLD_DEFAULT));
   const [margeThreshold, setMargeThreshold] = useState<number>(() => readNum(MARGE_BRUTE_THRESHOLD_KEY, MARGE_BRUTE_THRESHOLD_DEFAULT));
+  const [tresoPersistThreshold, setTresoPersistThreshold] = useState<number>(() => readNum(TRESO_PERSIST_THRESHOLD_KEY, TRESO_PERSIST_THRESHOLD_DEFAULT));
+
+  // Nombre de mois négatifs consécutifs les plus récents (fin de mois).
+  const consecutiveNegTreso = (() => {
+    let n = 0;
+    for (let i = balHistory.length - 1; i >= 0; i--) {
+      if (balHistory[i].treasury < 0) n++; else break;
+    }
+    return n;
+  })();
 
   const persist = (key: string, setter: (n: number) => void, v: number, min: number, max: number) => {
     const val = Math.max(min, Math.min(max, Math.round(v || 0)));
@@ -97,6 +108,7 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
   if (data.revenue > 0 && data.bfrDays > bfrDaysThreshold) alerts.push(`BFR en forte hausse : ${data.bfrDays} j de CA (${fmt(data.bfr)}), seuil ${bfrDaysThreshold} j`);
   if (data.treasury < tresoThreshold) alerts.push(`Trésorerie sous le seuil : ${fmt(data.treasury)} (seuil ${fmt(tresoThreshold)})`);
   if (data.revenue > 0 && data.margeBrute < margeThreshold) alerts.push(`Marge brute faible : ${data.margeBrute.toFixed(1)} % (seuil ${margeThreshold} %)`);
+  if (consecutiveNegTreso >= tresoPersistThreshold) alerts.push(`Trésorerie négative persistante : ${consecutiveNegTreso} mois consécutifs (seuil ${tresoPersistThreshold})`);
 
   const cards = [
     { label: 'Créances clients', value: fmt(data.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
@@ -134,6 +146,10 @@ const CreancesDettesRatiosBlock: React.FC<Props> = ({ entries, period, showAlert
           <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
             Seuil marge brute
             <input type="number" min={0} max={100} value={margeThreshold} onChange={(e) => persist(MARGE_BRUTE_THRESHOLD_KEY, setMargeThreshold, Number(e.target.value), 0, 100)} className={`w-14 ${inputCls}`} aria-label="Seuil marge brute en pourcent" /> %
+          </label>
+          <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+            Trésorerie nég. persistante
+            <input type="number" min={1} max={12} value={tresoPersistThreshold} onChange={(e) => persist(TRESO_PERSIST_THRESHOLD_KEY, setTresoPersistThreshold, Number(e.target.value), 1, 12)} className={`w-14 ${inputCls}`} aria-label="Seuil trésorerie négative persistante en mois" /> mois
           </label>
         </div>
       </div>
