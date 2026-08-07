@@ -28,6 +28,7 @@ import {
 import { Line, Doughnut } from 'react-chartjs-2';
 import { useData } from '../../contexts/DataContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
 import {
   loadSchedule, saveSchedule, sendTestReport, isValidEmail,
@@ -36,8 +37,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler);
 
-const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-const WEEKDAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+
 
 // Palette (cohérente avec la maquette dirigeant : marine + or + accents teal).
 const C = {
@@ -47,13 +47,14 @@ const C = {
 const CHARGE_COLORS = [C.teal, C.gold, C.navy, C.tealSoft, C.slate, C.mist];
 
 // ─── Répartition des charges (classe 6) par nature SYSCOHADA ───
-const CHARGE_GROUPS: { label: string; prefixes: string[] }[] = [
-  { label: 'Achats / Marchandises', prefixes: ['60'] },
-  { label: 'Charges de personnel', prefixes: ['66'] },
-  { label: 'Services extérieurs', prefixes: ['61', '62', '63'] },
-  { label: 'Impôts & taxes', prefixes: ['64'] },
-  { label: 'Charges financières', prefixes: ['67'] },
-  { label: 'Autres charges', prefixes: ['65', '68', '69'] },
+// Clés (et non libellés) : la table est figée au chargement du module.
+const CHARGE_GROUPS: { labelKey: string; prefixes: string[] }[] = [
+  { labelKey: 'executiveDigest.expPurchases', prefixes: ['60'] },
+  { labelKey: 'executiveDigest.expPayroll', prefixes: ['66'] },
+  { labelKey: 'executiveDigest.expExternal', prefixes: ['61', '62', '63'] },
+  { labelKey: 'executiveDigest.expTaxes', prefixes: ['64'] },
+  { labelKey: 'executiveDigest.expFinancial', prefixes: ['67'] },
+  { labelKey: 'executiveDigest.expOther', prefixes: ['65', '68', '69'] },
 ];
 
 function pctDelta(cur: number, prev: number): { value: string; up: boolean | null } {
@@ -107,6 +108,9 @@ interface Monthly {
 const ExecutiveDigest: React.FC = () => {
   const { adapter } = useData();
   const fmt = useMoneyFormat();
+  const { t } = useLanguage();
+  const MONTH_LABELS = React.useMemo(() => t('executiveDigest.monthsShort').split(','), [t]);
+  const WEEKDAYS = React.useMemo(() => t('executiveDigest.weekdays').split(','), [t]);
 
   const [entries, setEntries] = useState<any[]>([]);
   const [exercice, setExercice] = useState<{ fyYear: number; period: DashboardPeriod; label: string }>(
@@ -217,39 +221,39 @@ const ExecutiveDigest: React.FC = () => {
   // ─── Répartition des charges (classe 6) sur la période ───
   const chargeBreakdown = useMemo(() => {
     const items = CHARGE_GROUPS.map((g, i) => ({
-      label: g.label,
+      label: t(g.labelKey),
       value: g.prefixes.reduce((s, p) => s + m.h.net(p), 0),
       color: CHARGE_COLORS[i % CHARGE_COLORS.length],
     })).filter((x) => x.value > 0);
     const total = items.reduce((s, x) => s + x.value, 0);
     return { items, total };
-  }, [m]);
+  }, [m, t]);
 
   const hasData = m.count > 0;
   const resultPositive = m.resultatNet >= 0;
   const periodLabel = selMonth === 'all'
-    ? `Exercice ${exercice.label}`
+    ? `${t('executiveDigest.periodFullYear')} ${exercice.label}`
     : `${MONTH_LABELS[selMonth as number]} ${exercice.fyYear}`;
 
   // ─── Indicateurs détaillés (10) — tous réels/dérivés du grand livre ───
   const kpis = [
-    { label: 'Chiffre d\'affaires', value: fmt(m.ca), unit: 'FCFA', icon: Landmark, series: caSeries, delta: deltaOf(caSeries) },
-    { label: 'Marge brute', value: fmt(margeBrute), unit: 'FCFA', icon: Percent, series: margeBruteSeries, delta: deltaOf(margeBruteSeries) },
-    { label: 'Résultat net', value: fmt(m.resultatNet), unit: 'FCFA', icon: TrendingUp, series: resultSeries, delta: deltaOf(resultSeries) },
-    { label: 'Trésorerie', value: fmt(m.treasury), unit: 'FCFA', icon: Wallet, series: tresoCumSeries, delta: deltaOf(tresoCumSeries) },
-    { label: 'Charges totales', value: fmt(m.charges), unit: 'FCFA', icon: Receipt, series: chargesSeries, delta: deltaOf(chargesSeries) },
-    { label: 'Marge nette', value: `${m.margeNette.toFixed(1).replace('.', ',')} %`, unit: '', icon: Activity, series: marginPctSeries, delta: deltaOf(marginPctSeries) },
-    { label: 'Nouveaux clients', value: String(newClientSeries.reduce((s, x) => s + x, 0)), unit: '', icon: UserPlus, series: newClientSeries, delta: deltaOf(newClientSeries) },
-    { label: 'Panier moyen', value: fmt(panierMoyen), unit: 'FCFA', icon: ShoppingCart, series: panierSeries, delta: deltaOf(panierSeries) },
-    { label: 'Délai paiement (DSO)', value: `${dso}`, unit: 'jours', icon: Timer, series: invoiceSeries, delta: deltaOf(invoiceSeries) },
-    { label: 'Délai paiement (DPO)', value: `${dpo}`, unit: 'jours', icon: Timer, series: achatsSeries, delta: deltaOf(achatsSeries) },
+    { label: t('executiveDigest.kpiRevenue'), value: fmt(m.ca), unit: 'FCFA', icon: Landmark, series: caSeries, delta: deltaOf(caSeries) },
+    { label: t('executiveDigest.kpiGrossMargin'), value: fmt(margeBrute), unit: 'FCFA', icon: Percent, series: margeBruteSeries, delta: deltaOf(margeBruteSeries) },
+    { label: t('executiveDigest.kpiNetResult'), value: fmt(m.resultatNet), unit: 'FCFA', icon: TrendingUp, series: resultSeries, delta: deltaOf(resultSeries) },
+    { label: t('executiveDigest.kpiCash'), value: fmt(m.treasury), unit: 'FCFA', icon: Wallet, series: tresoCumSeries, delta: deltaOf(tresoCumSeries) },
+    { label: t('executiveDigest.kpiTotalExpenses'), value: fmt(m.charges), unit: 'FCFA', icon: Receipt, series: chargesSeries, delta: deltaOf(chargesSeries) },
+    { label: t('executiveDigest.kpiNetMargin'), value: `${m.margeNette.toFixed(1).replace('.', ',')} %`, unit: '', icon: Activity, series: marginPctSeries, delta: deltaOf(marginPctSeries) },
+    { label: t('executiveDigest.kpiNewClients'), value: String(newClientSeries.reduce((s, x) => s + x, 0)), unit: '', icon: UserPlus, series: newClientSeries, delta: deltaOf(newClientSeries) },
+    { label: t('executiveDigest.kpiAvgBasket'), value: fmt(panierMoyen), unit: 'FCFA', icon: ShoppingCart, series: panierSeries, delta: deltaOf(panierSeries) },
+    { label: t('executiveDigest.kpiDso'), value: `${dso}`, unit: t('executiveDigest.unitDays'), icon: Timer, series: invoiceSeries, delta: deltaOf(invoiceSeries) },
+    { label: t('executiveDigest.kpiDpo'), value: `${dpo}`, unit: t('executiveDigest.unitDays'), icon: Timer, series: achatsSeries, delta: deltaOf(achatsSeries) },
   ];
 
   // ─── Graphe : évolution du CA ───
   const caChartData = {
     labels: MONTH_LABELS,
     datasets: [{
-      label: 'Chiffre d\'affaires',
+      label: t('executiveDigest.kpiRevenue'),
       data: caSeries,
       borderColor: C.navy,
       backgroundColor: (ctx: any) => {
@@ -286,23 +290,23 @@ const ExecutiveDigest: React.FC = () => {
   const addEmail = () => {
     const e = emailInput.trim();
     if (!e) return;
-    if (!isValidEmail(e)) { toast.error('Email invalide.'); return; }
+    if (!isValidEmail(e)) { toast.error(t('executiveDigest.invalidEmail')); return; }
     if (!schedule.recipients.includes(e)) patch({ recipients: [...schedule.recipients, e] });
     setEmailInput('');
   };
   const removeEmail = (e: string) => patch({ recipients: schedule.recipients.filter((r) => r !== e) });
   const onSave = async () => {
-    if (schedule.enabled && validRecipients.length === 0) { toast.error('Ajoutez au moins un destinataire.'); return; }
+    if (schedule.enabled && validRecipients.length === 0) { toast.error(t('executiveDigest.addRecipient')); return; }
     setSaving(true);
-    try { setSchedule(await saveSchedule(schedule)); toast.success('Planification enregistrée.'); }
-    catch (err: any) { toast.error(err?.message || 'Échec de l\'enregistrement.'); }
+    try { setSchedule(await saveSchedule(schedule)); toast.success(t('executiveDigest.scheduleSaved')); }
+    catch (err: any) { toast.error(err?.message || t('executiveDigest.saveFailed')); }
     finally { setSaving(false); }
   };
   const onSendNow = async () => {
-    if (validRecipients.length === 0) { toast.error('Ajoutez au moins un destinataire.'); return; }
+    if (validRecipients.length === 0) { toast.error(t('executiveDigest.addRecipient')); return; }
     setSending(true);
     try { await sendTestReport(validRecipients, schedule.frequency, schedule.periode); toast.success(`Rapport envoyé à ${validRecipients.length} destinataire(s).`); }
-    catch (err: any) { toast.error(err?.message || 'Échec de l\'envoi.'); }
+    catch (err: any) { toast.error(err?.message || t('executiveDigest.sendFailed')); }
     finally { setSending(false); }
   };
 
@@ -311,7 +315,7 @@ const ExecutiveDigest: React.FC = () => {
       <div className="p-6 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 mx-auto mb-4" style={{ borderColor: 'var(--color-primary)' }} />
-          <p style={{ color: 'var(--color-text-secondary)' }}>Chargement du tableau de bord…</p>
+          <p style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.loading')}</p>
         </div>
       </div>
     );
@@ -326,21 +330,21 @@ const ExecutiveDigest: React.FC = () => {
             <Mail className="w-6 h-6" style={{ color: 'var(--color-primary)' }} />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold tracking-tight" style={{ color: C.navy }}>TABLEAU DE BORD</h1>
-            <p className="text-xs font-bold uppercase tracking-widest mt-0.5" style={{ color: C.gold }}>Vue Dirigeant</p>
+            <h1 className="text-xl font-extrabold tracking-tight" style={{ color: C.navy }}>{t('executiveDigest.title')}</h1>
+            <p className="text-xs font-bold uppercase tracking-widest mt-0.5" style={{ color: C.gold }}>{t('executiveDigest.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {/* Sélecteur de période */}
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg border" style={{ background: 'var(--color-surface, #fff)', borderColor: 'var(--color-border)' }}>
             <Calendar className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Période</span>
+            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.period')}</span>
             <select
               value={String(selMonth)}
               onChange={(e) => setSelMonth(e.target.value === 'all' ? 'all' : Number(e.target.value))}
               className="text-sm font-semibold bg-transparent outline-none" style={{ color: 'var(--color-text-primary)' }}
             >
-              <option value="all">Exercice {exercice.label}</option>
+              <option value="all">{t('executiveDigest.periodFullYear')} {exercice.label}</option>
               {MONTH_LABELS.map((mo, i) => <option key={i} value={i}>{mo} {exercice.fyYear}</option>)}
             </select>
           </div>
@@ -348,14 +352,14 @@ const ExecutiveDigest: React.FC = () => {
             <RefreshCw className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
           </button>
           <button onClick={() => setScheduleOpen(true)} className="px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2" style={{ background: C.navy, color: '#fff' }}>
-            <Send className="w-4 h-4" /> Programmer l'envoi
+            <Send className="w-4 h-4" /> {t('executiveDigest.scheduleSend')}
           </button>
         </div>
       </div>
 
       {!hasData && (
         <div className="p-4 rounded-lg border mb-6 text-sm" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface, #fff)', color: 'var(--color-text-secondary)' }}>
-          Aucune écriture comptabilisée sur cette période : les indicateurs s'afficheront dès les premières saisies validées.
+          {t('executiveDigest.noEntries')}
         </div>
       )}
 
@@ -371,21 +375,21 @@ const ExecutiveDigest: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="rounded-xl p-5 border" style={{ background: 'var(--color-surface, #fff)', borderColor: 'var(--color-border)' }}>
           <h3 className="text-sm font-bold uppercase tracking-wide mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
-            <BarChart3 className="w-4 h-4" /> Évolution du chiffre d'affaires
+            <BarChart3 className="w-4 h-4" /> {t('executiveDigest.revenueChart')}
           </h3>
           <div style={{ position: 'relative', height: 240 }}><Line data={caChartData as any} options={caChartOptions as any} /></div>
         </div>
 
         <div className="rounded-xl p-5 border" style={{ background: 'var(--color-surface, #fff)', borderColor: 'var(--color-border)' }}>
           <h3 className="text-sm font-bold uppercase tracking-wide mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
-            <PieIcon className="w-4 h-4" /> Répartition des charges
+            <PieIcon className="w-4 h-4" /> {t('executiveDigest.expenseBreakdown')}
           </h3>
           {chargeBreakdown.items.length > 0 ? (
             <div className="flex items-center gap-5 flex-wrap">
               <div style={{ position: 'relative', width: 160, height: 160 }}>
                 <Doughnut data={donutData as any} options={donutOptions as any} />
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Total</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.total')}</span>
                   <span className="text-base font-extrabold" style={{ color: C.navy }}>{fmt(chargeBreakdown.total)}</span>
                 </div>
               </div>
@@ -400,7 +404,7 @@ const ExecutiveDigest: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="h-[160px] flex items-center justify-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune charge sur la période.</div>
+            <div className="h-[160px] flex items-center justify-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.noExpenses')}</div>
           )}
         </div>
       </div>
@@ -422,7 +426,7 @@ const ExecutiveDigest: React.FC = () => {
               <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold" style={{ color: k.delta.up === true ? 'var(--color-success)' : k.delta.up === false ? 'var(--color-error)' : 'var(--color-text-secondary)' }}>
                 {k.delta.up === true ? <TrendingUp className="w-3 h-3" /> : k.delta.up === false ? <TrendingDown className="w-3 h-3" /> : null}
                 {k.delta.value}
-                <span className="font-normal" style={{ color: 'var(--color-text-secondary)' }}>vs mois préc.</span>
+                <span className="font-normal" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.vsPreviousMonth')}</span>
               </div>
               <div className="mt-2"><Sparkline data={k.series} up={k.delta.up} /></div>
             </div>
@@ -436,15 +440,15 @@ const ExecutiveDigest: React.FC = () => {
           <div className="w-full max-w-md rounded-2xl border overflow-hidden" style={{ background: 'var(--color-surface, #fff)', borderColor: 'var(--color-border)' }} onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: 'var(--color-border)' }}>
               <div>
-                <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}><Calendar className="w-4 h-4" style={{ color: 'var(--color-primary)' }} /> Programmer l'envoi</h2>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>Recevez cette synthèse par email (HTML).</p>
+                <h2 className="text-base font-bold flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}><Calendar className="w-4 h-4" style={{ color: 'var(--color-primary)' }} /> {t('executiveDigest.scheduleSend')}</h2>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.scheduleHint')}</p>
               </div>
-              <button onClick={() => setScheduleOpen(false)} className="p-1.5 rounded-lg hover:opacity-70" aria-label="Fermer"><X className="w-4 h-4" /></button>
+              <button onClick={() => setScheduleOpen(false)} className="p-1.5 rounded-lg hover:opacity-70" aria-label={t('executiveDigest.close')}><X className="w-4 h-4" /></button>
             </div>
             <div className="p-5 space-y-5 max-h-[70vh] overflow-y-auto">
               {/* Fréquence */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Fréquence</label>
+                <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.frequency')}</label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
                   {(['weekly', 'monthly'] as ReportFrequency[]).map((f) => (
                     <button key={f} type="button" onClick={() => patch({ frequency: f })}
@@ -452,7 +456,7 @@ const ExecutiveDigest: React.FC = () => {
                       style={schedule.frequency === f
                         ? { background: 'var(--color-primary)', color: '#fff', borderColor: 'var(--color-primary)' }
                         : { background: 'var(--color-background)', color: 'var(--color-text-secondary)', borderColor: 'var(--color-border)' }}>
-                      {f === 'weekly' ? 'Hebdomadaire' : 'Mensuelle'}
+                      {t(f === 'weekly' ? 'executiveDigest.weekly' : 'executiveDigest.monthly')}
                     </button>
                   ))}
                 </div>
@@ -461,14 +465,14 @@ const ExecutiveDigest: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 {schedule.frequency === 'weekly' ? (
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Jour d'envoi</label>
+                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.sendDay')}</label>
                     <select value={schedule.weekday} onChange={(e) => patch({ weekday: Number(e.target.value) })} className="mt-2 w-full px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
                       {WEEKDAYS.map((d, i) => <option key={i} value={i}>{d}</option>)}
                     </select>
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Jour du mois</label>
+                    <label className="text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.dayOfMonth')}</label>
                     <select value={schedule.month_day} onChange={(e) => patch({ month_day: Number(e.target.value) })} className="mt-2 w-full px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
                       {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{d}</option>)}
                     </select>
@@ -483,21 +487,21 @@ const ExecutiveDigest: React.FC = () => {
               </div>
               {/* Période couverte par la synthèse */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wide flex items-center gap-1" style={{ color: 'var(--color-text-secondary)' }}><Calendar className="w-3 h-3" /> Période</label>
+                <label className="text-xs font-bold uppercase tracking-wide flex items-center gap-1" style={{ color: 'var(--color-text-secondary)' }}><Calendar className="w-3 h-3" /> {t('executiveDigest.period')}</label>
                 <select value={schedule.periode} onChange={(e) => patch({ periode: e.target.value as ReportPeriode })} className="mt-2 w-full px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }}>
-                  <option value="exercice">Exercice complet</option>
-                  <option value="mois">Mois en cours</option>
-                  <option value="trimestre">Trimestre en cours</option>
-                  <option value="cumul">Cumul annuel à date</option>
+                  <option value="exercice">{t('executiveDigest.periodFullYear')}</option>
+                  <option value="mois">{t('executiveDigest.periodMonth')}</option>
+                  <option value="trimestre">{t('executiveDigest.periodQuarter')}</option>
+                  <option value="cumul">{t('executiveDigest.periodYtd')}</option>
                 </select>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>Période couverte par la synthèse envoyée.</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{t('executiveDigest.periodHint')}</p>
               </div>
               {/* Destinataires */}
               <div>
-                <label className="text-xs font-bold uppercase tracking-wide flex items-center gap-1" style={{ color: 'var(--color-text-secondary)' }}><Users className="w-3 h-3" /> Destinataires</label>
+                <label className="text-xs font-bold uppercase tracking-wide flex items-center gap-1" style={{ color: 'var(--color-text-secondary)' }}><Users className="w-3 h-3" /> {t('executiveDigest.recipients')}</label>
                 <div className="flex gap-2 mt-2">
-                  <input type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEmail(); } }} placeholder="Ajouter un email…" className="flex-1 px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} />
-                  <button type="button" onClick={addEmail} className="px-3 rounded-lg" style={{ background: 'var(--color-primary)', color: '#fff' }} aria-label="Ajouter"><Plus className="w-4 h-4" /></button>
+                  <input type="email" value={emailInput} onChange={(e) => setEmailInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addEmail(); } }} placeholder={t('executiveDigest.addEmailPlaceholder')} className="flex-1 px-3 py-2 rounded-lg text-sm border" style={{ background: 'var(--color-background)', borderColor: 'var(--color-border)', color: 'var(--color-text-primary)' }} />
+                  <button type="button" onClick={addEmail} className="px-3 rounded-lg" style={{ background: 'var(--color-primary)', color: '#fff' }} aria-label={t('executiveDigest.add')}><Plus className="w-4 h-4" /></button>
                 </div>
                 {schedule.recipients.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3">
@@ -511,15 +515,15 @@ const ExecutiveDigest: React.FC = () => {
               </div>
               {/* Activer */}
               <label className="flex items-center justify-between gap-3 cursor-pointer">
-                <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>Activer l'envoi programmé</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>{t('executiveDigest.enableSchedule')}</span>
                 <button type="button" role="switch" aria-checked={schedule.enabled} onClick={() => patch({ enabled: !schedule.enabled })} className="relative w-11 h-6 rounded-full transition-colors shrink-0" style={{ background: schedule.enabled ? 'var(--color-success)' : 'var(--color-border)' }}>
                   <span className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform" style={{ transform: schedule.enabled ? 'translateX(20px)' : 'translateX(0)' }} />
                 </button>
               </label>
               {/* Actions */}
               <div className="flex flex-col gap-2">
-                <button type="button" onClick={onSave} disabled={saving} className="w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'var(--color-primary)', color: '#fff' }}><Save className="w-4 h-4" /> {saving ? 'Enregistrement…' : 'Enregistrer'}</button>
-                <button type="button" onClick={onSendNow} disabled={sending || validRecipients.length === 0} className="w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 border disabled:opacity-60" style={{ background: 'transparent', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}><Send className="w-4 h-4" /> {sending ? 'Envoi…' : 'Envoyer maintenant'}</button>
+                <button type="button" onClick={onSave} disabled={saving} className="w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-60" style={{ background: 'var(--color-primary)', color: '#fff' }}><Save className="w-4 h-4" /> {t(saving ? 'executiveDigest.saving' : 'executiveDigest.save')}</button>
+                <button type="button" onClick={onSendNow} disabled={sending || validRecipients.length === 0} className="w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 border disabled:opacity-60" style={{ background: 'transparent', color: 'var(--color-text-primary)', borderColor: 'var(--color-border)' }}><Send className="w-4 h-4" /> {t(sending ? 'executiveDigest.sending' : 'executiveDigest.sendNow')}</button>
               </div>
               <p className="text-[11px] leading-relaxed flex items-start gap-1.5" style={{ color: 'var(--color-text-secondary)' }}>
                 <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: 'var(--color-success)' }} />

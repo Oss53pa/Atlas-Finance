@@ -11,6 +11,7 @@ import {
 import { cn } from '../../lib/utils';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { AtlasRadar } from '../../components/charts';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface KPIMetric {
   id: string;
@@ -33,12 +34,15 @@ interface RealTimeData {
   conversion: number;
 }
 
-/** Format compact FR pour les axes/tooltips (1 234 567 → « 1,2 M »). */
-const compactNumber = (n: number): string =>
-  new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0);
+/** Format compact pour les axes/tooltips (1 234 567 → « 1,2 M »), dans la
+ *  locale de l'utilisateur. */
+const compactNumber = (n: number, locale: string): string =>
+  new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0);
 
 const KPIsRealTime: React.FC = () => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { activityType } = useActivityType();
   const [realTimeData, setRealTimeData] = useState<RealTimeData[]>([]);
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null);
@@ -49,9 +53,9 @@ const KPIsRealTime: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'kpis' | 'charts' | 'alerts'>('kpis');
 
   const tabsList = [
-    { key: 'kpis' as const, label: 'Indicateurs', icon: Activity },
-    { key: 'charts' as const, label: 'Graphiques', icon: BarChart3 },
-    { key: 'alerts' as const, label: 'Alertes', icon: Bell },
+    { key: 'kpis' as const, label: t('kpisRealTime.tabKpis'), icon: Activity },
+    { key: 'charts' as const, label: t('kpisRealTime.tabCharts'), icon: BarChart3 },
+    { key: 'alerts' as const, label: t('kpisRealTime.tabAlerts'), icon: Bell },
   ];
 
   // KPIs computed from real data
@@ -59,12 +63,12 @@ const KPIsRealTime: React.FC = () => {
 
   // Radar data computed from real entries
   const [radarData, setRadarData] = useState([
-    { subject: 'Ventes', A: 0, fullMark: 100 },
-    { subject: 'Clients', A: 0, fullMark: 100 },
-    { subject: 'Qualité', A: 0, fullMark: 100 },
-    { subject: 'Finance', A: 0, fullMark: 100 },
-    { subject: 'Opérations', A: 0, fullMark: 100 },
-    { subject: 'Trésorerie', A: 0, fullMark: 100 }
+    { subject: 'axisSales', A: 0, fullMark: 100 },
+    { subject: 'axisClients', A: 0, fullMark: 100 },
+    { subject: 'axisQuality', A: 0, fullMark: 100 },
+    { subject: 'axisFinance', A: 0, fullMark: 100 },
+    { subject: 'axisOperations', A: 0, fullMark: 100 },
+    { subject: 'axisCash', A: 0, fullMark: 100 }
   ]);
 
   // Ref to the KPI computation function (allows polling without re-creating the effect)
@@ -204,7 +208,7 @@ const KPIsRealTime: React.FC = () => {
         const computedKPIs: KPIMetric[] = [
           {
             id: 'revenue',
-            name: 'Chiffre d\'Affaires',
+            name: t('kpisRealTime.kpiRevenue'),
             value: Math.round(totalCA),
             unit: '',
             target: totalCA > 0 ? Math.round(totalCA * 0.9) : 1,
@@ -216,7 +220,7 @@ const KPIsRealTime: React.FC = () => {
           },
           {
             id: 'margin',
-            name: 'Marge Brute',
+            name: t('kpisRealTime.kpiGrossMargin'),
             value: Math.round(marge * 10) / 10,
             unit: '%',
             target: 30,
@@ -236,7 +240,7 @@ const KPIsRealTime: React.FC = () => {
           },
           {
             id: 'cashflow',
-            name: 'Trésorerie',
+            name: t('kpisRealTime.kpiCash'),
             value: Math.round(totalTresorerie),
             unit: '',
             target: totalTresorerie > 0 ? Math.round(totalTresorerie * 0.8) : 1,
@@ -249,7 +253,7 @@ const KPIsRealTime: React.FC = () => {
           // Additional KPIs for ALL activity types
           {
             id: 'charges-exploitation',
-            name: 'Charges d\'exploitation',
+            name: t('kpisRealTime.kpiOpex'),
             value: Math.round(totalCharges),
             unit: '',
             target: totalCA > 0 ? Math.round(totalCA * 0.7) : 1,
@@ -261,7 +265,7 @@ const KPIsRealTime: React.FC = () => {
           },
           {
             id: 'resultat-net',
-            name: 'Résultat Net',
+            name: t('kpisRealTime.kpiNetResult'),
             value: Math.round(resultatNet),
             unit: '',
             target: resultatNet > 0 ? Math.round(resultatNet * 0.9) : 1,
@@ -279,7 +283,7 @@ const KPIsRealTime: React.FC = () => {
           },
           {
             id: 'creances-clients',
-            name: 'Créances clients',
+            name: t('kpisRealTime.kpiReceivables'),
             value: Math.round(creancesClients),
             unit: '',
             target: totalCA > 0 ? Math.round(totalCA * 0.3) : 1,
@@ -291,7 +295,7 @@ const KPIsRealTime: React.FC = () => {
           },
           {
             id: 'dettes-fournisseurs',
-            name: 'Dettes fournisseurs',
+            name: t('kpisRealTime.kpiPayables'),
             value: Math.round(dettesFournisseurs),
             unit: '',
             target: totalCharges > 0 ? Math.round(totalCharges * 0.3) : 1,
@@ -308,7 +312,7 @@ const KPIsRealTime: React.FC = () => {
           computedKPIs.push(
             {
               id: 'cout-production',
-              name: 'Coût de Production',
+              name: t('kpisRealTime.kpiProductionCost'),
               value: Math.round(coutProduction),
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.6) : 1,
@@ -320,7 +324,7 @@ const KPIsRealTime: React.FC = () => {
             },
             {
               id: 'consommation-matieres',
-              name: 'Consommation Matières',
+              name: t('kpisRealTime.kpiMaterials'),
               value: Math.round(consommationMatieres),
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.4) : 1,
@@ -340,7 +344,7 @@ const KPIsRealTime: React.FC = () => {
           computedKPIs.push(
             {
               id: 'achats-marchandises',
-              name: 'Achats Marchandises',
+              name: t('kpisRealTime.kpiGoodsPurchases'),
               value: Math.round(achatsMarchandises),
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.65) : 1,
@@ -352,7 +356,7 @@ const KPIsRealTime: React.FC = () => {
             },
             {
               id: 'marge-commerciale',
-              name: 'Marge Commerciale',
+              name: t('kpisRealTime.kpiTradeMargin'),
               value: Math.round(margeCommerciale),
               unit: '',
               target: margeCommerciale > 0 ? Math.round(margeCommerciale * 0.9) : 1,
@@ -377,7 +381,7 @@ const KPIsRealTime: React.FC = () => {
           computedKPIs.push(
             {
               id: 'ca-prestations',
-              name: 'CA Prestations',
+              name: t('kpisRealTime.kpiServiceRevenue'),
               value: Math.round(caPrestations),
               unit: '',
               target: caPrestations > 0 ? Math.round(caPrestations * 0.9) : 1,
@@ -389,7 +393,7 @@ const KPIsRealTime: React.FC = () => {
             },
             {
               id: 'charges-personnel',
-              name: 'Charges Personnel',
+              name: t('kpisRealTime.kpiPayroll'),
               value: Math.round(chargesPersonnel),
               unit: '',
               target: totalCA > 0 ? Math.round(totalCA * 0.5) : 1,
@@ -417,12 +421,12 @@ const KPIsRealTime: React.FC = () => {
           : 0;
 
         setRadarData([
-          { subject: 'Ventes', A: caMomentum, fullMark: 100 },
-          { subject: 'Rentabilité', A: marge > 0 ? Math.min(100, Math.round(marge * 2.5)) : 0, fullMark: 100 },
-          { subject: 'Liquidité', A: totalTresorerie > 0 ? Math.min(100, Math.round((totalTresorerie / (totalCharges || 1)) * 100)) : 0, fullMark: 100 },
-          { subject: 'Créances', A: Math.max(0, Math.min(100, Math.round(100 - receivablesRatio * 2))), fullMark: 100 },
-          { subject: 'Charges', A: Math.max(0, Math.min(100, Math.round(100 - costRatio))), fullMark: 100 },
-          { subject: 'Trésorerie', A: treasuryScore, fullMark: 100 }
+          { subject: 'axisSales', A: caMomentum, fullMark: 100 },
+          { subject: 'axisProfitability', A: marge > 0 ? Math.min(100, Math.round(marge * 2.5)) : 0, fullMark: 100 },
+          { subject: 'axisLiquidity', A: totalTresorerie > 0 ? Math.min(100, Math.round((totalTresorerie / (totalCharges || 1)) * 100)) : 0, fullMark: 100 },
+          { subject: 'axisReceivables', A: Math.max(0, Math.min(100, Math.round(100 - receivablesRatio * 2))), fullMark: 100 },
+          { subject: 'axisExpenses', A: Math.max(0, Math.min(100, Math.round(100 - costRatio))), fullMark: 100 },
+          { subject: 'axisCash', A: treasuryScore, fullMark: 100 }
         ]);
       } catch (err) {
         setKpis([]);
@@ -470,8 +474,8 @@ const KPIsRealTime: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">KPIs Temps Réel</h1>
-          <p className="text-gray-600 mt-1">Surveillance en direct des indicateurs clés</p>
+          <h1 className="text-lg font-bold text-gray-900">{t('kpisRealTime.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('kpisRealTime.subtitle')}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -487,7 +491,7 @@ const KPIsRealTime: React.FC = () => {
               />
               <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--color-border)] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--color-primary)]"></div>
             </label>
-            <span className="text-sm font-medium">Live</span>
+            <span className="text-sm font-medium">{t('kpisRealTime.live')}</span>
           </div>
 
           {/* Refresh Interval */}
@@ -509,7 +513,7 @@ const KPIsRealTime: React.FC = () => {
             className="flex items-center gap-2 px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
           >
             <Download className="w-4 h-4" />
-            Exporter
+            {t('kpisRealTime.export')}
           </button>
         </div>
       </div>
@@ -554,7 +558,7 @@ const KPIsRealTime: React.FC = () => {
                       : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   )}
                 >
-                  {cat === 'all' ? 'Tous' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  {cat === 'all' ? t('kpisRealTime.filterAll') : cat.charAt(0).toUpperCase() + cat.slice(1)}
                 </button>
               ))}
             </div>
@@ -660,8 +664,8 @@ const KPIsRealTime: React.FC = () => {
       {activeTab === 'charts' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Performance Temps Réel</h2>
-            <p className="text-xs text-gray-500 mb-4">Ventes &amp; encaissements mensuels et marge nette — 8 derniers mois (données réelles)</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('kpisRealTime.realTimePerformance')}</h2>
+            <p className="text-xs text-gray-500 mb-4">{t('kpisRealTime.realTimeSubtitle')}</p>
             {realTimeData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={realTimeData} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
@@ -670,35 +674,35 @@ const KPIsRealTime: React.FC = () => {
                     dataKey="timestamp"
                     stroke="#235A6E"
                     tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
+                    tickFormatter={(value) => new Date(value).toLocaleDateString(dateLocale, { month: 'short', year: '2-digit' })}
                   />
-                  <YAxis yAxisId="left" stroke="#235A6E" tick={{ fontSize: 11 }} width={64} tickFormatter={(v) => compactNumber(Number(v))} />
+                  <YAxis yAxisId="left" stroke="#235A6E" tick={{ fontSize: 11 }} width={64} tickFormatter={(v) => compactNumber(Number(v), dateLocale)} />
                   <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="#E89A2E" tick={{ fontSize: 11 }} width={40} tickFormatter={(v) => `${v}%`} />
                   <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-                    formatter={(value: number, name: string) => [name === 'Marge nette (%)' ? `${value} %` : `${compactNumber(Number(value))} FCFA`, name]}
+                    labelFormatter={(value) => new Date(value).toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })}
+                    formatter={(value: number, name: string) => [name === t('kpisRealTime.seriesNetMargin') ? `${value} %` : `${compactNumber(Number(value), dateLocale)} FCFA`, name]}
                   />
                   <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="sales" stroke="#235A6E" name="Ventes (CA)" strokeWidth={2.5} dot={false} />
-                  <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#15803D" name="Encaissements" strokeWidth={2} dot={false} />
-                  <Line yAxisId="right" type="monotone" dataKey="conversion" stroke="#E89A2E" name="Marge nette (%)" strokeWidth={2} dot={false} />
+                  <Line yAxisId="left" type="monotone" dataKey="sales" stroke="#235A6E" name={t('kpisRealTime.seriesSales')} strokeWidth={2.5} dot={false} />
+                  <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#15803D" name={t('kpisRealTime.seriesCollections')} strokeWidth={2} dot={false} />
+                  <Line yAxisId="right" type="monotone" dataKey="conversion" stroke="#E89A2E" name={t('kpisRealTime.seriesNetMargin')} strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-[300px] flex flex-col items-center justify-center text-center text-gray-400">
                 <BarChart3 className="w-10 h-10 mb-3" />
-                <p className="text-sm">Aucune écriture comptabilisée pour l'instant.</p>
-                <p className="text-xs mt-1">La courbe se remplit dès les premières ventes validées.</p>
+                <p className="text-sm">{t('kpisRealTime.noEntriesYet')}</p>
+                <p className="text-xs mt-1">{t('kpisRealTime.curveFillsHint')}</p>
               </div>
             )}
           </div>
 
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Score Global Performance</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('kpisRealTime.globalScore')}</h2>
             <AtlasRadar
               height={380}
-              indicators={(radarData as any[]).map((d) => ({ name: d.subject, max: 100 }))}
-              series={[{ name: 'Performance', data: (radarData as any[]).map((d) => d.A), color: '#235A6E' }]}
+              indicators={(radarData as any[]).map((d) => ({ name: t(`kpisRealTime.${d.subject}`), max: 100 }))}
+              series={[{ name: t('kpisRealTime.performance'), data: (radarData as any[]).map((d) => d.A), color: '#235A6E' }]}
             />
           </div>
         </div>
@@ -709,12 +713,12 @@ const KPIsRealTime: React.FC = () => {
         <div className="space-y-6">
           {/* Top Performers */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Performances</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('kpisRealTime.topPerformances')}</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {kpis.length === 0 ? (
                 <div className="col-span-3 text-center py-8 text-gray-500">
                   <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                  <p>Aucune donnée disponible</p>
+                  <p>{t('kpisRealTime.noDataAvailable')}</p>
                 </div>
               ) : kpis.slice(0, 3).map((kpi, index) => (
                 <div key={kpi.id} className="text-center">
@@ -744,7 +748,7 @@ const KPIsRealTime: React.FC = () => {
           <div className="bg-gradient-to-r from-[var(--color-surface-hover)] to-primary-50 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-4">
               <Bell className="w-6 h-6 text-[var(--color-primary)]" />
-              <h2 className="text-lg font-semibold text-gray-900">Alertes KPI</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('kpisRealTime.kpiAlerts')}</h2>
             </div>
             {(() => {
               const hasData = kpis.some(k => k.value !== 0);
@@ -756,9 +760,9 @@ const KPIsRealTime: React.FC = () => {
                     <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                       <BarChart3 className="w-8 h-8 text-gray-400" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Aucune donnée comptable</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">{t('kpisRealTime.noAccountingData')}</h4>
                     <p className="text-sm text-gray-500 max-w-md mx-auto">
-                      Les alertes KPI s'activeront automatiquement lorsque des écritures comptables seront saisies et validées dans le système.
+                      {t('kpisRealTime.alertsWillActivate')}
                     </p>
                   </div>
                 );
@@ -769,9 +773,9 @@ const KPIsRealTime: React.FC = () => {
                   <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-5 h-5 text-green-500" />
-                      <h4 className="font-medium text-gray-900">Tous les indicateurs sont dans les seuils normaux</h4>
+                      <h4 className="font-medium text-gray-900">{t('kpisRealTime.allWithinThresholds')}</h4>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1 ml-7">Aucune alerte active</p>
+                    <p className="text-sm text-gray-600 mt-1 ml-7">{t('kpisRealTime.noActiveAlert')}</p>
                   </div>
                 );
               }
@@ -798,7 +802,7 @@ const KPIsRealTime: React.FC = () => {
                             "px-2 py-0.5 rounded-full text-xs font-medium",
                             kpi.status === 'danger' ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
                           )}>
-                            {kpi.status === 'danger' ? 'Critique' : 'Attention'}
+                            {t(kpi.status === 'danger' ? 'kpisRealTime.statusCritical' : 'kpisRealTime.statusWarning')}
                           </span>
                         </div>
                         <div className="flex items-baseline gap-2 mb-2">

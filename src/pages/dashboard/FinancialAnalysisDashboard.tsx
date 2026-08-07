@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
   TrendingUp, TrendingDown, DollarSign, PieChart, BarChart3,
@@ -46,6 +47,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const toggleRow = (key: string) => setExpanded(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
 
@@ -232,15 +234,15 @@ const FinancialAnalysisDashboard: React.FC = () => {
   // P&L computed from live data — chaque ligne porte sa ventilation par sous-classe
   // (2 chiffres) pour le drill-down « détail des comptes ».
   const plData = [
-    { key: 'prod', category: 'Produits (classe 7)', actual: liveFinancials.revenue, budget: 0, previous: 0, byClass: liveFinancials.revenueByClass, sign: 1 },
-    { key: 'charges', category: 'Charges (classe 6)', actual: -liveFinancials.expenses, budget: 0, previous: 0, byClass: liveFinancials.expenseByClass, sign: -1 },
+    { key: 'prod', category: t('financialAnalysis.catRevenue'), actual: liveFinancials.revenue, budget: 0, previous: 0, byClass: liveFinancials.revenueByClass, sign: 1 },
+    { key: 'charges', category: t('financialAnalysis.catExpenses'), actual: -liveFinancials.expenses, budget: 0, previous: 0, byClass: liveFinancials.expenseByClass, sign: -1 },
   ];
 
   // Cash Flow from live treasury
   const cashFlowData = {
-    labels: ['Trésorerie nette'],
+    labels: [t('financialAnalysis.netCash')],
     datasets: [{
-      label: 'Flux de Trésorerie',
+      label: t('financialAnalysis.cashFlow'),
       data: [liveFinancials.treasury],
       backgroundColor: (context: any) => {
         const value = context.raw;
@@ -251,15 +253,15 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
   // Revenue mix computed from real entries grouped by account class
   const revAccountLabels: Record<string, string> = {
-    '70': 'Ventes marchandises', '71': 'Production vendue', '72': 'Production stockée',
-    '73': 'Production immob.', '74': 'Subventions', '75': 'Autres produits',
-    '76': 'Produits financiers', '77': 'Produits except.', '78': 'Reprises', '79': 'Transferts',
+    '70': t('financialAnalysis.acc70'), '71': t('financialAnalysis.acc71'), '72': t('financialAnalysis.acc72'),
+    '73': t('financialAnalysis.acc73'), '74': t('financialAnalysis.acc74'), '75': t('financialAnalysis.acc75'),
+    '76': t('financialAnalysis.acc76'), '77': t('financialAnalysis.acc77'), '78': t('financialAnalysis.acc78'), '79': t('financialAnalysis.acc79'),
   };
   const revColors = ['#235A6E','#E89A2E','#15803D','#4E7E8D','#C77E2C','#7FA3AF','#3E7A8C','#B26A12'];
   const revenueMixData = useMemo(() => {
     const entries = Object.entries(liveFinancials.revenueByClass).filter(([, v]) => v > 0);
     if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
+      return { labels: [t('financialAnalysis.noData')], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
     }
     return {
       labels: entries.map(([cls]) => revAccountLabels[cls] || `Classe ${cls}`),
@@ -268,15 +270,15 @@ const FinancialAnalysisDashboard: React.FC = () => {
   }, [liveFinancials.revenueByClass]);
 
   const expAccountLabels: Record<string, string> = {
-    '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impôts',
-    '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
-    '68': 'Dotations', '69': 'Participation',
+    '60': t('financialAnalysis.acc60'), '61': t('financialAnalysis.acc61'), '62': t('financialAnalysis.acc62'), '63': t('financialAnalysis.acc63'),
+    '64': t('financialAnalysis.acc64'), '65': t('financialAnalysis.acc65'), '66': t('financialAnalysis.acc66'), '67': t('financialAnalysis.acc67'),
+    '68': t('financialAnalysis.acc68'), '69': t('financialAnalysis.acc69'),
   };
   const expColors = ['#C0322B','#E89A2E','#C77E2C','#235A6E','#4E7E8D','#15803D','#7FA3AF','#B26A12'];
   const expenseBreakdownData = useMemo(() => {
     const entries = Object.entries(liveFinancials.expenseByClass).filter(([, v]) => v > 0);
     if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
+      return { labels: [t('financialAnalysis.noData')], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
     }
     return {
       labels: entries.map(([cls]) => expAccountLabels[cls] || `Classe ${cls}`),
@@ -287,10 +289,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
   // Monthly Trend from Dexie aggregation
   const monthlyProfitData = liveFinancials.monthlyRev.map((r: number, i: number) => r - liveFinancials.monthlyExp[i]);
   const monthlyTrendData = {
-    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
+    labels: t('financialAnalysis.monthsShort').split(','),
     datasets: [
       {
-        label: 'Revenus',
+        label: t('financialAnalysis.seriesRevenue'),
         data: liveFinancials.monthlyRev,
         borderColor: '#15803D',
         backgroundColor: 'rgba(21,128,61,0.12)',
@@ -298,7 +300,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         fill: true
       },
       {
-        label: 'Dépenses',
+        label: t('financialAnalysis.seriesExpenses'),
         data: liveFinancials.monthlyExp,
         borderColor: '#C0322B',
         backgroundColor: 'rgba(192,50,43,0.12)',
@@ -306,7 +308,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         fill: true
       },
       {
-        label: 'Profit Net',
+        label: t('financialAnalysis.seriesNetProfit'),
         data: monthlyProfitData,
         borderColor: '#235A6E',
         backgroundColor: 'rgba(35,90,110,0.12)',
@@ -324,9 +326,9 @@ const FinancialAnalysisDashboard: React.FC = () => {
     return {
       labels: ['Q1', 'Q2', 'Q3', 'Q4'],
       datasets: [
-        { label: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: '#235A6E' },
-        { label: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: '#E89A2E' },
-        { label: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: '#C0322B' },
+        { label: t('financialAnalysis.seriesReceivables'), data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: '#235A6E' },
+        { label: t('financialAnalysis.seriesStock'), data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: '#E89A2E' },
+        { label: t('financialAnalysis.seriesPayables'), data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: '#C0322B' },
       ],
     };
   }, [liveFinancials]);
@@ -345,10 +347,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)]">
-              Analyse Financière Approfondie
+              {t('financialAnalysis.title')}
             </h1>
             <p className="text-[var(--color-text-secondary)] mt-1">
-              Performance financière détaillée et analyse des écarts
+              {t('financialAnalysis.subtitle')}
             </p>
           </div>
           <PageHeaderActions
@@ -363,28 +365,28 @@ const FinancialAnalysisDashboard: React.FC = () => {
         {filtersOpen && (
           <div className="mb-4 p-4 bg-[var(--color-card-bg)] rounded-lg border border-[var(--color-border)] flex flex-wrap items-end gap-4 print-hide">
             <div>
-              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">Période</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('financialAnalysis.period')}</label>
               <select
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
               >
-                <option value="mtd">Ce mois</option>
-                <option value="qtd">Ce trimestre</option>
-                <option value="ytd">Cette année</option>
-                <option value="custom">Personnalisé</option>
+                <option value="mtd">{t('financialAnalysis.periodMtd')}</option>
+                <option value="qtd">{t('financialAnalysis.periodQtd')}</option>
+                <option value="ytd">{t('financialAnalysis.periodYtd')}</option>
+                <option value="custom">{t('financialAnalysis.periodCustom')}</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">Comparaison</label>
+              <label className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('financialAnalysis.comparison')}</label>
               <select
                 value={comparisonMode}
                 onChange={(e) => setComparisonMode(e.target.value)}
                 className="px-4 py-2 border border-[var(--color-border)] rounded-lg bg-[var(--color-card-bg)] text-[var(--color-text-primary)]"
               >
-                <option value="previous">vs Période précédente</option>
-                <option value="budget">vs Budget</option>
-                <option value="both">Les deux</option>
+                <option value="previous">{t('financialAnalysis.compPrevious')}</option>
+                <option value="budget">{t('financialAnalysis.compBudget')}</option>
+                <option value="both">{t('financialAnalysis.compBoth')}</option>
               </select>
             </div>
           </div>
@@ -393,7 +395,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         {/* Key Financial Indicators */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6 items-stretch">
           <StatBadgeCard
-            label="Chiffre d'Affaires"
+            label={t('financialAnalysis.kpiRevenue')}
             value={formatCurrency(financialMetrics.revenue.current)}
             badge="petrol"
             icon={<DollarSign />}
@@ -401,14 +403,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
             meta="Produits nets (classe 7)"
           />
           <StatBadgeCard
-            label="Marge Brute"
+            label={t('financialAnalysis.kpiGrossMargin')}
             value={`${financialMetrics.profit.grossMargin}%`}
             badge="petrol"
             icon={<Percent />}
             meta={formatCurrency(financialMetrics.profit.gross)}
           />
           <StatBadgeCard
-            label="EBITDA"
+            label={t('financialAnalysis.kpiEbitda')}
             value={formatCurrency(financialMetrics.profit.ebitda)}
             badge="petrol"
             icon={<TrendingUp />}
@@ -416,7 +418,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
             meta={`Marge : ${financialMetrics.profit.ebitdaMargin}%`}
           />
           <StatBadgeCard
-            label="Cash Flow Net"
+            label={t('financialAnalysis.kpiNetCashFlow')}
             value={formatCurrency(financialMetrics.cashflow.net)}
             badge="amber"
             icon={<PiggyBank />}
@@ -424,7 +426,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
             meta={`FCF : ${formatCurrency(financialMetrics.cashflow.freeFlow)}`}
           />
           <StatBadgeCard
-            label="BFR"
+            label={t('financialAnalysis.kpiWorkingCapital')}
             value={formatCurrency(financialMetrics.ratios.workingCapital)}
             badge="petrol"
             icon={<Wallet />}
@@ -436,8 +438,8 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
       {/* Onglets : Synthèse (Compte de Résultat) / Analyses & graphiques */}
       <div className="flex gap-1 bg-[var(--color-card-bg)] rounded-lg p-1 border border-[var(--color-border)] w-fit mb-6">
-        {([['synthese', 'Compte de Résultat'], ['analyses', 'Analyses & graphiques']] as const).map(([k, lbl]) => (
-          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium rounded-md ${tab === k ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}>{lbl}</button>
+        {([['synthese', 'financialAnalysis.tabPl'], ['analyses', 'financialAnalysis.tabAnalyses']] as const).map(([k, lblKey]) => (
+          <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium rounded-md ${tab === k ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)]'}`}>{t(lblKey)}</button>
         ))}
       </div>
 
@@ -447,7 +449,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Compte de Résultat Détaillé
+            {t('financialAnalysis.plDetailed')}
           </h2>
         </div>
         <div className="p-6">
@@ -456,13 +458,13 @@ const FinancialAnalysisDashboard: React.FC = () => {
               <thead>
                 <tr className="border-b border-[var(--color-border)]">
                   <th className="text-left py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    Catégorie
+                    {t('financialAnalysis.colCategory')}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    Réel
+                    {t('financialAnalysis.colActual')}
                   </th>
                   <th className="text-right py-3 px-4 font-medium text-[var(--color-text-secondary)]">
-                    % du total
+                    {t('financialAnalysis.colPctTotal')}
                   </th>
                 </tr>
               </thead>
@@ -510,7 +512,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                 })}
                 <tr className="font-bold">
                   <td className="py-3 px-4 text-[var(--color-text-primary)]">
-                    Résultat Net
+                    {t('financialAnalysis.netResult')}
                   </td>
                   <td className="py-3 px-4 text-right text-[var(--color-text-primary)]">
                     {formatCurrency(financialMetrics.profit.net)}
@@ -543,7 +545,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         {/* Revenue Mix */}
         <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-            Mix Revenus
+            {t('financialAnalysis.revenueMix')}
           </h3>
           <div style={{ position: 'relative', height: '300px', width: '100%' }}>
             <Doughnut data={revenueMixData} options={{ responsive: true, maintainAspectRatio: false }} />
@@ -556,7 +558,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
         {/* Cash Flow Waterfall */}
         <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-            Cascade de Trésorerie
+            {t('financialAnalysis.cashWaterfall')}
           </h3>
           <div style={{ position: 'relative', height: '300px', width: '100%' }}>
             <Bar data={cashFlowData} options={{ 
@@ -592,14 +594,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
         <div className="p-6 border-b border-[var(--color-border)]">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
             <Calculator className="w-5 h-5" />
-            Ratios Financiers Clés
+            {t('financialAnalysis.keyRatios')}
           </h2>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Profitability Ratios */}
             <div>
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Rentabilité</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('financialAnalysis.profitability')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-[var(--color-text-secondary)]">ROE</span>
@@ -614,7 +616,7 @@ const FinancialAnalysisDashboard: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Marge Nette</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.netMargin')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {financialMetrics.profit.netMargin}%
                   </span>
@@ -624,22 +626,22 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
             {/* Liquidity Ratios */}
             <div>
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Liquidité</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('financialAnalysis.liquidity')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Ratio Courant</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.currentRatio')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {financialMetrics.ratios.currentRatio}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Ratio Rapide</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.quickRatio')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {financialMetrics.ratios.quickRatio}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Cash Ratio</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.cashRatio')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {liveFinancials.passifCirculant > 0 ? (liveFinancials.treasury / liveFinancials.passifCirculant).toFixed(2) : '—'}
                   </span>
@@ -649,22 +651,22 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
             {/* Leverage Ratios */}
             <div>
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Endettement</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('financialAnalysis.leverage')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Dette/Equity</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.debtEquity')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {financialMetrics.ratios.debtToEquity}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Dette/EBITDA</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.debtEbitda')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     {financialMetrics.profit.ebitda > 0 ? '—' : '—'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Couverture Int.</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.interestCoverage')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     —
                   </span>
@@ -674,10 +676,10 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
             {/* Efficiency Ratios */}
             <div>
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">Efficacité</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-3">{t('financialAnalysis.efficiency')}</h4>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-[var(--color-text-secondary)]">Rotation Stocks</span>
+                  <span className="text-sm text-[var(--color-text-secondary)]">{t('financialAnalysis.inventoryTurnover')}</span>
                   <span className="font-medium text-[var(--color-text-primary)]">
                     —
                   </span>
@@ -703,12 +705,12 @@ const FinancialAnalysisDashboard: React.FC = () => {
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-[var(--color-warning)] mt-0.5" />
               <div>
-                <h4 className="font-medium text-orange-900 mb-1">Points d'Attention</h4>
+                <h4 className="font-medium text-orange-900 mb-1">{t('financialAnalysis.attentionPoints')}</h4>
                 <ul className="text-sm text-[var(--color-warning-darker)] space-y-1">
-                  {financialMetrics.profit.net < 0 && <li>• Le résultat net est négatif ({formatCurrency(financialMetrics.profit.net)})</li>}
-                  {financialMetrics.profit.netMargin < 5 && financialMetrics.profit.netMargin > 0 && <li>• La marge nette est faible ({financialMetrics.profit.netMargin.toFixed(1)}%)</li>}
-                  {liveFinancials.treasury < 0 && <li>• La trésorerie nette est négative ({formatCurrency(liveFinancials.treasury)})</li>}
-                  {liveFinancials.revenue === 0 && liveFinancials.expenses === 0 && <li>• Aucune écriture comptable enregistrée pour cette période</li>}
+                  {financialMetrics.profit.net < 0 && <li>{t('financialAnalysis.alertNegativeResult', { value: formatCurrency(financialMetrics.profit.net) })}</li>}
+                  {financialMetrics.profit.netMargin < 5 && financialMetrics.profit.netMargin > 0 && <li>{t('financialAnalysis.alertLowMargin', { value: financialMetrics.profit.netMargin.toFixed(1) })}</li>}
+                  {liveFinancials.treasury < 0 && <li>{t('financialAnalysis.alertNegativeCash', { value: formatCurrency(liveFinancials.treasury) })}</li>}
+                  {liveFinancials.revenue === 0 && liveFinancials.expenses === 0 && <li>{t('financialAnalysis.alertNoEntries')}</li>}
                 </ul>
               </div>
             </div>
