@@ -20,8 +20,8 @@ import {
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
 import VolumesModal from './VolumesModal';
 import { Grid3x3, Loader2, Plus, Save, Lock, ArrowLeft, Trash2, Boxes } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 type Row = { id?: string; account_code: string; periods: Record<number, number>; dirty: boolean; source?: string; commentaire?: string };
 
 const rowTotal = (r: Row) => Array.from({ length: 12 }, (_, i) => r.periods[i + 1] || 0).reduce((a, b) => a + b, 0);
@@ -42,6 +42,8 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
   const { adapter } = useData();
   const { label: accountLabel } = useAccountNames();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const MOIS = useMemo(() => t('budgetMatrix.monthsShort').split(','), [t]);
   const [annee, setAnnee] = useState('');
   const [version, setVersion] = useState<BudgetVersion | null>(null);
   const [section, setSection] = useState<SectionOrgNode | null>(null);
@@ -84,13 +86,13 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
         if (cancelled) return;
         setAnnee(a); setVersion(v); setSection(sec); setRows(lines); setRefN1(ref); setRefN1Monthly(refMonthly);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetMatrix.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [adapter, sectionId, refreshKey]);
+  }, [adapter, sectionId, refreshKey, nature, classPrefix, t]);
 
   const setCell = useCallback((idx: number, month: number, val: string) => {
     setRows((rs) => rs.map((r, i) => i === idx ? { ...r, periods: { ...r.periods, [month]: Number(val) || 0 }, dirty: true } : r));
@@ -159,41 +161,41 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
           commentaire: r.commentaire ?? null,
         });
       }
-      setNotice(`${toSave.length} ligne(s) enregistrée(s).`);
+      setNotice(t('budgetMatrix.linesSaved', { count: String(toSave.length) }));
       setRefreshKey((k) => k + 1);
     } catch (e: any) {
-      setError(e?.message || "Échec de l'enregistrement");
+      setError(e?.message || t('budgetMatrix.saveFailed'));
     } finally {
       setSaving(false);
     }
-  }, [adapter, version, rows, sectionId]);
+  }, [adapter, version, rows, sectionId, nature, t]);
 
   return (
     <div className="p-6 space-y-4 max-w-full">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/analytique')} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700" title="Sections">
+          <button onClick={() => navigate('/analytique')} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700" title={t('budgetMatrix.sections')}>
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-              <Grid3x3 className="w-6 h-6 text-[var(--color-primary)]" /> {isRevenus ? 'Budget des revenus' : 'Saisie budgétaire OPEX'}
+              <Grid3x3 className="w-6 h-6 text-[var(--color-primary)]" /> {isRevenus ? t('budgetMatrix.titleRevenue') : t('budgetMatrix.titleOpex')}
             </h1>
             <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">
-              {section ? `${section.code} · ${section.libelle}` : 'Section inconnue'} · exercice {annee}
-              {version && <> · version <span className="font-medium">{version.libelle}</span></>}
-              {locked && <span className="ml-2 inline-flex items-center gap-1 text-[var(--color-primary)]"><Lock className="w-3.5 h-3.5" /> verrouillée</span>}
+              {section ? `${section.code} · ${section.libelle}` : t('budgetMatrix.unknownSection')} · {t('budgetMatrix.fiscalYear', { year: annee })}
+              {version && <> · {t('budgetMatrix.versionPrefix')} <span className="font-medium">{version.libelle}</span></>}
+              {locked && <span className="ml-2 inline-flex items-center gap-1 text-[var(--color-primary)]"><Lock className="w-3.5 h-3.5" /> {t('budgetMatrix.lockedBadge')}</span>}
             </p>
           </div>
         </div>
         {!locked && (
           <div className="flex items-center gap-2">
             <button onClick={addRow} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-[var(--color-border)] text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700">
-              <Plus className="w-4 h-4" /> Compte
+              <Plus className="w-4 h-4" /> {t('budgetMatrix.addAccount')}
             </button>
             <button onClick={saveAll} disabled={saving || dirtyCount === 0}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Enregistrer{dirtyCount > 0 ? ` (${dirtyCount})` : ''}
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('budgetMatrix.save')}{dirtyCount > 0 ? ` (${dirtyCount})` : ''}
             </button>
           </div>
         )}
@@ -204,40 +206,40 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
 
       {!loading && version && !locked && (
         <div className="flex items-center gap-2 flex-wrap text-sm bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-xl px-3 py-2">
-          <span className="text-xs font-medium text-[var(--color-text-secondary)]">Pré-remplir :</span>
-          <button onClick={() => applyFromN1(false)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">N-1 (mensuel)</button>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)]">{t('budgetMatrix.prefill')}</span>
+          <button onClick={() => applyFromN1(false)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">{t('budgetMatrix.prefillN1')}</button>
           <span className="inline-flex items-center gap-1">
-            <button onClick={() => applyFromN1(true)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">N-1 indexé</button>
+            <button onClick={() => applyFromN1(true)} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-[var(--color-primary)]">{t('budgetMatrix.prefillN1Indexed')}</button>
             <input value={taux} onChange={(e) => setTaux(e.target.value)} placeholder="%" type="number"
               className="w-14 px-1.5 py-1 rounded border border-[var(--color-border)] bg-[var(--color-surface)] text-xs font-mono" />
             <span className="text-xs text-[var(--color-text-tertiary)]">%</span>
           </span>
-          <button onClick={zbbAll} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-red-400">ZBB (vider)</button>
-          <span className="text-xs text-[var(--color-text-tertiary)]">puis Enregistrer</span>
+          <button onClick={zbbAll} className="px-2.5 py-1 rounded-lg bg-[var(--color-surface)] border border-[var(--color-border)] text-xs hover:border-red-400">{t('budgetMatrix.zbb')}</button>
+          <span className="text-xs text-[var(--color-text-tertiary)]">{t('budgetMatrix.thenSave')}</span>
         </div>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('budgetMatrix.loading')}</div>
       ) : !version ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
-          Aucune version budgétaire en vigueur. Créez-en une depuis <button onClick={() => navigate('/budget/versions')} className="underline">Versions &amp; validation</button>.
+          {t('budgetMatrix.noVersionPre')} <button onClick={() => navigate('/budget/versions')} className="underline">{t('budgetMatrix.noVersionLink')}</button>.
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="text-sm min-w-[1100px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                <th className="px-3 py-3 text-left sticky left-0 bg-[var(--color-surface)] z-10 min-w-[220px]">Compte</th>
+                <th className="px-3 py-3 text-left sticky left-0 bg-[var(--color-surface)] z-10 min-w-[220px]">{t('budgetMatrix.colAccount')}</th>
                 {MOIS.map((m) => <th key={m} className="px-2 py-3 text-right min-w-[84px]">{m}</th>)}
-                <th className="px-3 py-3 text-right min-w-[110px] bg-[var(--color-primary-light)]">Total</th>
-                <th className="px-3 py-3 text-right min-w-[110px]">Réel N-1</th>
+                <th className="px-3 py-3 text-right min-w-[110px] bg-[var(--color-primary-light)]">{t('budgetMatrix.colTotal')}</th>
+                <th className="px-3 py-3 text-right min-w-[110px]">{t('budgetMatrix.colActualN1')}</th>
                 {!locked && <th className="px-2 py-3" />}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
-                <tr><td colSpan={16} className="px-4 py-10 text-center text-sm text-[var(--color-text-secondary)]">Aucune ligne. Ajoutez un compte de charge (classe 6).</td></tr>
+                <tr><td colSpan={16} className="px-4 py-10 text-center text-sm text-[var(--color-text-secondary)]">{t('budgetMatrix.emptyRows')}</td></tr>
               ) : rows.map((r, idx) => {
                 const total = rowTotal(r);
                 const n1 = refN1[r.account_code] || 0;
@@ -255,13 +257,13 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
                             classPrefix={classPrefix} disabled={locked}
                             placeholder={isRevenus ? '7011' : '6132'} inputClassName="w-28" />
                           <div className="text-xs text-[var(--color-text-tertiary)] truncate max-w-[190px]" title={accountLabel(r.account_code)}>
-                            {r.account_code ? (accountLabel(r.account_code) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+                            {r.account_code ? (accountLabel(r.account_code) || t('budgetMatrix.accountOffChart')) : t('budgetMatrix.selectAccount')}
                           </div>
                         </div>
                       )}
                       {(r.id || r.account_code) && (
                         <input value={r.commentaire ?? ''} onChange={(e) => setComment(idx, e.target.value)} disabled={locked}
-                          placeholder="justification…" title="Justification de la ligne"
+                          placeholder={t('budgetMatrix.justificationPlaceholder')} title={t('budgetMatrix.justificationTitle')}
                           className="mt-1 w-full max-w-[200px] px-1.5 py-0.5 rounded border border-transparent hover:border-neutral-200 dark:hover:border-neutral-600 bg-transparent text-[11px] text-[var(--color-text-secondary)] focus:border-[var(--color-primary)] focus:outline-none" />
                       )}
                     </td>
@@ -273,18 +275,18 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
                     ))}
                     <td className="px-2 py-1 bg-[var(--color-primary-light)]">
                       <input type="number" value={total || ''} onChange={(e) => setTotal(idx, e.target.value)} disabled={locked}
-                        title="Éditer le total = répartir en 1/12"
+                        title={t('budgetMatrix.editTotalTitle')}
                         className="w-full px-1 py-1 text-right rounded border border-transparent hover:border-[var(--color-primary-light)] dark:bg-neutral-900 font-mono text-xs font-medium text-[var(--color-primary)] dark:text-[var(--color-primary)] disabled:opacity-60" />
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-xs text-[var(--color-text-tertiary)]">
-                      <button onClick={() => prefillFromN1(idx)} disabled={locked || !n1} title="Pré-remplir depuis N-1" className="hover:text-[var(--color-primary)] disabled:hover:text-[var(--color-text-tertiary)]">
+                      <button onClick={() => prefillFromN1(idx)} disabled={locked || !n1} title={t('budgetMatrix.prefillFromN1Title')} className="hover:text-[var(--color-primary)] disabled:hover:text-[var(--color-text-tertiary)]">
                         {n1 ? formatCurrency(n1) : '—'}
                       </button>
                     </td>
                     {!locked && (
                       <td className="px-2 py-1">
                         <div className="flex items-center gap-1">
-                          {isRevenus && r.id && <button onClick={() => setVolumesLine({ id: r.id!, account: r.account_code })} title="Volumes × prix" className="p-1 text-neutral-300 hover:text-[var(--color-primary)]"><Boxes className="w-4 h-4" /></button>}
+                          {isRevenus && r.id && <button onClick={() => setVolumesLine({ id: r.id!, account: r.account_code })} title={t('budgetMatrix.volumesTitle')} className="p-1 text-neutral-300 hover:text-[var(--color-primary)]"><Boxes className="w-4 h-4" /></button>}
                           {!r.id && <button onClick={() => removeRow(idx)} className="p-1 text-neutral-300 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>}
                         </div>
                       </td>
@@ -295,7 +297,7 @@ const BudgetMatrixGridPage: React.FC<{ nature?: 'opex' | 'revenus' }> = ({ natur
             </tbody>
             <tfoot>
               <tr className="border-t-2 border-[var(--color-border)] font-medium text-[var(--color-text-primary)] bg-[var(--color-surface-hover)]">
-                <td className="px-3 py-3 sticky left-0 bg-neutral-50 dark:bg-neutral-900 z-10">Total ({rows.length})</td>
+                <td className="px-3 py-3 sticky left-0 bg-neutral-50 dark:bg-neutral-900 z-10">{t('budgetMatrix.footerTotal', { count: String(rows.length) })}</td>
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <td key={m} className="px-2 py-3 text-right font-mono text-xs">{formatCurrency(columnTotals[m])}</td>
                 ))}

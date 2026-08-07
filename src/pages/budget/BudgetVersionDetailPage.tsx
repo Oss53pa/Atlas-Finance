@@ -18,8 +18,8 @@ import { CATEGORIES_SYSCOHADA } from '../../data/syscohada-referentiel';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import BudgetImportModal from './BudgetImportModal';
 import { ArrowLeft, GitBranch, Star, Lock, ExternalLink, Upload, PencilLine } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 const catLabel = (code2: string) => CATEGORIES_SYSCOHADA.find(c => c.code === code2)?.libelle || code2;
 
 interface Row { account_code: string; label: string; periods: Record<number, number>; total: number }
@@ -46,6 +46,8 @@ const BudgetVersionDetailPage: React.FC = () => {
   const { adapter } = useData();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const MOIS = useMemo(() => t('budgetVersionDetail.monthsShort').split(','), [t]);
   const [version, setVersion] = useState<BudgetVersionFull | null>(null);
   const [lines, setLines] = useState<BudgetLineEdit[]>([]);
   const [names, setNames] = useState<Map<string, string>>(new Map());
@@ -68,18 +70,18 @@ const BudgetVersionDetailPage: React.FC = () => {
         ]);
         if (cancelled) return;
         const v = versions.find(x => x.id === id) || null;
-        if (!v) { setError('Version introuvable.'); setLoading(false); return; }
+        if (!v) { setError(t('budgetVersionDetail.versionNotFound')); setLoading(false); return; }
         const nm = new Map<string, string>();
         (accounts || []).forEach((a: any) => nm.set(String(a.code || ''), String(a.name || a.libelle || '')));
         setVersion(v); setLines(l); setNames(nm);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetVersionDetail.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [adapter, id, refreshKey]);
+  }, [adapter, id, refreshKey, t]);
 
   const expLines = useMemo(() => lines.filter(l => l.budget_type === 'exploitation'), [lines]);
   const invLines = useMemo(() => lines.filter(l => l.budget_type === 'investissement'), [lines]);
@@ -91,12 +93,12 @@ const BudgetVersionDetailPage: React.FC = () => {
   const totalProduits = sumTotal(produits), totalCharges = sumTotal(charges), totalCapex = sumTotal(capex);
   const resultat = totalProduits - totalCharges;
 
-  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">Chargement du détail…</div>;
+  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">{t('budgetVersionDetail.loadingDetail')}</div>;
   if (error) {
     return (
       <div className="p-8">
         <div className="bg-[var(--color-error-light,#FEECEC)] text-[var(--color-error)] rounded-lg p-4 text-sm">{error}</div>
-        <button onClick={() => navigate('/budget/versions')} className="mt-4 text-sm text-[var(--color-primary)] hover:underline">← Retour aux versions</button>
+        <button onClick={() => navigate('/budget/versions')} className="mt-4 text-sm text-[var(--color-primary)] hover:underline">{t('budgetVersionDetail.backToVersions')}</button>
       </div>
     );
   }
@@ -109,14 +111,14 @@ const BudgetVersionDetailPage: React.FC = () => {
         <table className="text-xs border-collapse min-w-[1100px] w-full">
           <thead className="bg-gray-50 border-b border-[var(--color-border)] sticky top-0">
             <tr>
-              <th className="px-3 py-2 text-left font-semibold text-gray-600 sticky left-0 bg-gray-50 w-56">Compte</th>
+              <th className="px-3 py-2 text-left font-semibold text-gray-600 sticky left-0 bg-gray-50 w-56">{t('budgetVersionDetail.colAccount')}</th>
               {MOIS.map(m => <th key={m} className="px-2 py-2 text-right font-semibold text-gray-500 w-20">{m}</th>)}
-              <th className="px-3 py-2 text-right font-semibold text-gray-700 w-28">Total</th>
+              <th className="px-3 py-2 text-right font-semibold text-gray-700 w-28">{t('budgetVersionDetail.colTotal')}</th>
               <th className="px-2 py-2 w-8"></th>
             </tr>
           </thead>
           <tbody>
-            {rubriques.length === 0 && <tr><td colSpan={15} className="px-3 py-6 text-center text-gray-400">Aucune ligne.</td></tr>}
+            {rubriques.length === 0 && <tr><td colSpan={15} className="px-3 py-6 text-center text-gray-400">{t('budgetVersionDetail.noLine')}</td></tr>}
             {rubriques.map(g => (
               <React.Fragment key={g.code}>
                 <tr className="bg-[var(--color-primary)]/5 border-t border-[var(--color-border)]">
@@ -135,7 +137,7 @@ const BudgetVersionDetailPage: React.FC = () => {
                     ))}
                     <td className="px-3 py-1 text-right font-medium text-gray-900">{formatCurrency(r.total)}</td>
                     <td className="px-2 py-1 text-center">
-                      <button onClick={() => navigate(`/accounting/general-ledger?compte=${r.account_code}`)} title="Voir les écritures" className="text-gray-300 hover:text-[var(--color-primary)]"><ExternalLink className="w-3.5 h-3.5 inline" /></button>
+                      <button onClick={() => navigate(`/accounting/general-ledger?compte=${r.account_code}`)} title={t('budgetVersionDetail.viewEntries')} className="text-gray-300 hover:text-[var(--color-primary)]"><ExternalLink className="w-3.5 h-3.5 inline" /></button>
                     </td>
                   </tr>
                 ))}
@@ -158,49 +160,49 @@ const BudgetVersionDetailPage: React.FC = () => {
             {v.is_active && <Star className="w-4 h-4 text-amber-500 fill-amber-500" />}
             {v.statut === 'verrouille' && <Lock className="w-4 h-4 text-amber-600" />}
           </h1>
-          <p className="text-sm text-[var(--color-text-tertiary)] capitalize">{v.type} · {v.statut} · {lines.length} ligne(s)</p>
+          <p className="text-sm text-[var(--color-text-tertiary)] capitalize">{v.type} · {v.statut} · {t('budgetVersionDetail.lineCount', { count: String(lines.length) })}</p>
         </div>
         <div className="flex items-center gap-2">
           {v.statut !== 'verrouille' && (
-            <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />Importer</button>
+            <button onClick={() => setShowImport(true)} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><Upload className="w-4 h-4" />{t('budgetVersionDetail.import')}</button>
           )}
           {v.is_active && v.statut !== 'verrouille' && (
-            <button onClick={() => navigate('/budget/cockpit')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><PencilLine className="w-4 h-4" />Saisir</button>
+            <button onClick={() => navigate('/budget/cockpit')} className="px-3 py-2 text-sm font-medium border border-[var(--color-border)] rounded-lg hover:bg-gray-50 flex items-center gap-2"><PencilLine className="w-4 h-4" />{t('budgetVersionDetail.enter')}</button>
           )}
           <div className="flex bg-gray-100 rounded-lg p-1">
-            {(['exploitation', 'investissement'] as const).map(t => (
-              <button key={t} onClick={() => setVue(t)} className={`px-3 py-1.5 text-xs font-medium rounded-md ${vue === t ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500'}`}>
-                {t === 'exploitation' ? 'Exploitation' : 'Investissement'}
+            {(['exploitation', 'investissement'] as const).map(mode => (
+              <button key={mode} onClick={() => setVue(mode)} className={`px-3 py-1.5 text-xs font-medium rounded-md ${vue === mode ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500'}`}>
+                {mode === 'exploitation' ? t('budgetVersionDetail.viewOpex') : t('budgetVersionDetail.viewCapex')}
               </button>
             ))}
           </div>
-          <PageHeaderActions printTitle={`Budget « ${v.libelle} » — ${vue}`} />
+          <PageHeaderActions printTitle={t('budgetVersionDetail.printTitle', { name: v.libelle, view: vue === 'exploitation' ? t('budgetVersionDetail.viewOpex') : t('budgetVersionDetail.viewCapex') })} />
         </div>
       </div>
 
       {/* Bandeau totaux */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">Produits budgétés</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalProduits)}</div></div>
-        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">Charges budgétées</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalCharges)}</div></div>
-        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">Résultat budgété</div><div className="text-lg font-bold" style={{ color: resultat >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>{formatCurrency(resultat)}</div></div>
-        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">Investissement budgété</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalCapex)}</div></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">{t('budgetVersionDetail.kpiRevenue')}</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalProduits)}</div></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">{t('budgetVersionDetail.kpiExpenses')}</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalCharges)}</div></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">{t('budgetVersionDetail.kpiResult')}</div><div className="text-lg font-bold" style={{ color: resultat >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>{formatCurrency(resultat)}</div></div>
+        <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm"><div className="text-xs text-[var(--color-text-tertiary)]">{t('budgetVersionDetail.kpiCapex')}</div><div className="text-lg font-bold text-gray-900">{formatCurrency(totalCapex)}</div></div>
       </div>
 
       {lines.length === 0 ? (
         <div className="bg-white rounded-xl p-10 border border-[var(--color-border)] shadow-sm text-center text-sm text-[var(--color-text-tertiary)]">
-          Aucune ligne budgétaire dans cette version. Importez un budget (bouton ci-dessus) ou saisissez-le depuis le Cockpit.
+          {t('budgetVersionDetail.emptyVersion')}
         </div>
       ) : vue === 'exploitation' ? (
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-          {renderBlock('Produits (classe 7)', produits, 'var(--color-success)')}
-          {renderBlock('Charges (classe 6)', charges, 'var(--color-error)')}
+          {renderBlock(t('budgetVersionDetail.blockRevenue'), produits, 'var(--color-success)')}
+          {renderBlock(t('budgetVersionDetail.blockExpenses'), charges, 'var(--color-error)')}
           <div className="flex justify-end pt-2 border-t border-[var(--color-border)]">
-            <div className="text-sm">Résultat budgété : <span className="font-bold" style={{ color: resultat >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>{formatCurrency(resultat)}</span></div>
+            <div className="text-sm">{t('budgetVersionDetail.resultLine')} <span className="font-bold" style={{ color: resultat >= 0 ? 'var(--color-success)' : 'var(--color-error)' }}>{formatCurrency(resultat)}</span></div>
           </div>
         </div>
       ) : (
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-          {renderBlock('Investissement (classe 2)', capex, 'var(--color-primary)')}
+          {renderBlock(t('budgetVersionDetail.blockCapex'), capex, 'var(--color-primary)')}
         </div>
       )}
 
