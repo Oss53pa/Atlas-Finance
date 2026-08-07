@@ -99,7 +99,32 @@ const ReportsANouveauModule: React.FC = () => {
   };
 
   const handleExport = () => {
-    toast.success('Export en cours... (fonctionnalité à venir)');
+    if (carryForwardLines.length === 0) { toast.error('Aucun report à nouveau à exporter.'); return; }
+    const sep = ';';
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ['Compte', 'Libellé', 'Solde débiteur', 'Solde créditeur'];
+    const lines = [header.map(esc).join(sep)];
+    let totalDebit = 0, totalCredit = 0;
+    for (const l of carryForwardLines) {
+      totalDebit += l.soldeDebiteur;
+      totalCredit += l.soldeCrediteur;
+      lines.push([l.accountCode, l.accountName, Math.round(l.soldeDebiteur), Math.round(l.soldeCrediteur)].map(esc).join(sep));
+    }
+    lines.push(['TOTAL', '', Math.round(totalDebit), Math.round(totalCredit)].map(esc).join(sep));
+    const csv = '﻿' + lines.join('\r\n'); // BOM UTF-8 → accents corrects dans Excel
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report_a_nouveau_${selectedExercice || 'exercice'}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Export généré — ${carryForwardLines.length} compte(s).`);
   };
 
   const handleArchive = () => {
