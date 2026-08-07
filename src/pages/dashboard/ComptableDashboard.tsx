@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 
 const ComptableDashboard: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const fmt = useMoneyFormat();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
@@ -59,7 +60,7 @@ const ComptableDashboard: React.FC = () => {
           return {
             id: e.entryNumber || e.id,
             rawDate: String(e.date || '').slice(0, 10),
-            date: e.date ? new Date(e.date).toLocaleDateString('fr-FR') : '—',
+            date: e.date ? new Date(e.date).toLocaleDateString(dateLocale) : '—',
             description: e.description || e.label || e.reference || '-',
             debit: totalDebit,
             credit: totalCredit,
@@ -94,10 +95,10 @@ const ComptableDashboard: React.FC = () => {
   const handleQuickAction = (path: string) => navigate(path);
 
   const metrics = [
-    { title: 'Écritures du jour', value: formatNumber(liveData.todayCount), color: 'blue', icon: FileText, description: 'Saisies aujourd\'hui' },
-    { title: 'En attente validation', value: formatNumber(liveData.pendingCount), color: 'orange', icon: Clock, description: 'Brouillons à valider' },
-    { title: 'Écritures validées', value: formatNumber(liveData.validatedCount), color: 'green', icon: CheckCircle, description: 'Total comptabilisées' },
-    { title: 'Solde de trésorerie', value: fmt(liveData.treasuryBalance), color: 'primary', icon: DollarSign, description: 'Classe 5 (hors 58)' },
+    { title: t('comptableDashboard.kpiTodayEntries'), value: formatNumber(liveData.todayCount), color: 'blue', icon: FileText, description: t('comptableDashboard.kpiTodayEntriesDesc') },
+    { title: t('comptableDashboard.kpiPending'), value: formatNumber(liveData.pendingCount), color: 'orange', icon: Clock, description: t('comptableDashboard.kpiPendingDesc') },
+    { title: t('comptableDashboard.kpiValidated'), value: formatNumber(liveData.validatedCount), color: 'green', icon: CheckCircle, description: t('comptableDashboard.kpiValidatedDesc') },
+    { title: t('comptableDashboard.kpiCashBalance'), value: fmt(liveData.treasuryBalance), color: 'primary', icon: DollarSign, description: t('comptableDashboard.kpiCashBalanceDesc') },
   ];
 
   // Filtres réellement appliqués (recherche + période + statut + sens).
@@ -114,17 +115,17 @@ const ComptableDashboard: React.FC = () => {
   }, [liveData.recentEntries, searchText, filterParams]);
 
   const quickActions = [
-    { label: 'Nouvelle écriture', icon: Plus, color: 'blue', path: '/accounting/entries' },
-    { label: 'Lettrage auto', icon: CheckCircle, color: 'green', path: '/accounting/lettrage' },
+    { label: t('comptableDashboard.actionNewEntry'), icon: Plus, color: 'blue', path: '/accounting/entries' },
+    { label: t('comptableDashboard.actionAutoMatching'), icon: CheckCircle, color: 'green', path: '/accounting/lettrage' },
     { label: t('accounting.balance'), icon: BarChart3, color: 'primary', path: '/accounting/balance' },
-    { label: 'États financiers', icon: PieChart, color: 'orange', path: '/financial-statements' },
+    { label: t('comptableDashboard.actionStatements'), icon: PieChart, color: 'orange', path: '/financial-statements' },
   ];
 
   const tabs = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
-    { id: 'entries', label: 'Écritures', icon: FileText },
-    { id: 'validation', label: 'Validation', icon: CheckCircle },
-    { id: 'reports', label: 'Rapports', icon: PieChart },
+    { id: 'overview', label: t('comptableDashboard.tabOverview'), icon: BarChart3 },
+    { id: 'entries', label: t('comptableDashboard.tabEntries'), icon: FileText },
+    { id: 'validation', label: t('comptableDashboard.tabValidation'), icon: CheckCircle },
+    { id: 'reports', label: t('comptableDashboard.tabReports'), icon: PieChart },
   ];
 
   return (
@@ -134,7 +135,7 @@ const ComptableDashboard: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Espace Comptable</h1>
-            <p className="text-[var(--color-text-primary)]">Tableau de bord opérationnel</p>
+            <p className="text-[var(--color-text-primary)]">{t('comptableDashboard.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-4">
             <button
@@ -142,7 +143,7 @@ const ComptableDashboard: React.FC = () => {
               className="bg-[var(--color-primary)] text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-[var(--color-primary-dark)] transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Nouvelle écriture</span>
+              <span>{t('comptableDashboard.actionNewEntry')}</span>
             </button>
             <div className="w-10 h-10 bg-[var(--color-primary-lighter)] rounded-full flex items-center justify-center">
               <Calculator className="w-5 h-5 text-[var(--color-primary)]" />
@@ -234,7 +235,7 @@ const ComptableDashboard: React.FC = () => {
             {/* Header du tableau */}
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Écritures récentes</h2>
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('comptableDashboard.recentEntries')}</h2>
                 <div className="flex items-center space-x-3">
                   <div className="relative">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
@@ -256,7 +257,7 @@ const ComptableDashboard: React.FC = () => {
                   <button
                     onClick={handleExportData}
                     className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]"
-                    aria-label="Télécharger"
+                    aria-label={t('comptableDashboard.download')}
                   >
                     <Download className="w-4 h-4 text-[var(--color-text-secondary)]" />
                   </button>
@@ -269,7 +270,7 @@ const ComptableDashboard: React.FC = () => {
               <table className="w-full">
                 <thead className="bg-[var(--color-background-secondary)]">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">N° Écriture</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('comptableDashboard.colEntryNumber')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('common.date')}</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Description</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">{t('accounting.debit')}</th>
@@ -307,7 +308,7 @@ const ComptableDashboard: React.FC = () => {
                             ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]'
                             : 'bg-[var(--color-background-hover)] text-[var(--color-text-primary)]'
                         }`}>
-                          {entry.status === 'validated' ? 'Validé' : entry.status === 'pending' ? 'En attente' : 'Brouillon'}
+                          {t(entry.status === 'validated' ? 'comptableDashboard.statusValidated' : entry.status === 'pending' ? 'comptableDashboard.statusPending' : 'comptableDashboard.statusDraft')}
                         </span>
                       </td>
                     </tr>
@@ -331,7 +332,7 @@ const ComptableDashboard: React.FC = () => {
                   <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
                     <Filter className="w-5 h-5 text-gray-600" />
                   </div>
-                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Filtres avancés</h2>
+                  <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('comptableDashboard.advancedFilters')}</h2>
                 </div>
                 <button onClick={() => setShowFilterModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
               </div>
@@ -339,7 +340,7 @@ const ComptableDashboard: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('comptableDashboard.startDate')}</label>
                   <input
                     type="date"
                     value={filterParams.dateFrom}
@@ -348,7 +349,7 @@ const ComptableDashboard: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('comptableDashboard.endDate')}</label>
                   <input
                     type="date"
                     value={filterParams.dateTo}
@@ -358,28 +359,28 @@ const ComptableDashboard: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('comptableDashboard.status')}</label>
                 <select
                   value={filterParams.status}
                   onChange={(e) => setFilterParams({ ...filterParams, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">Tous les statuts</option>
-                  <option value="validated">Validé</option>
-                  <option value="pending">En attente</option>
-                  <option value="draft">Brouillon</option>
+                  <option value="all">{t('comptableDashboard.allStatuses')}</option>
+                  <option value="validated">{t('comptableDashboard.statusValidated')}</option>
+                  <option value="pending">{t('comptableDashboard.statusPending')}</option>
+                  <option value="draft">{t('comptableDashboard.statusDraft')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('comptableDashboard.type')}</label>
                 <select
                   value={filterParams.type}
                   onChange={(e) => setFilterParams({ ...filterParams, type: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="all">Tous les types</option>
-                  <option value="debit">Débit uniquement</option>
-                  <option value="credit">Crédit uniquement</option>
+                  <option value="all">{t('comptableDashboard.allTypes')}</option>
+                  <option value="debit">{t('comptableDashboard.debitOnly')}</option>
+                  <option value="credit">{t('comptableDashboard.creditOnly')}</option>
                 </select>
               </div>
             </div>

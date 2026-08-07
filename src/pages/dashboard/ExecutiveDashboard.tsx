@@ -86,7 +86,7 @@ const ExecutiveDashboard: React.FC = () => {
   const tabsList = [
     { key: 'overview' as const, label: "Vue d'ensemble", icon: LayoutGrid, locked: false },
     { key: 'trends' as const, label: 'Tendances', icon: TrendingUp, locked: false },
-    { key: 'details' as const, label: 'Détails activité', icon: BarChart3, locked: false },
+    { key: 'details' as const, label: t('executiveDashboard.tabDetails'), icon: BarChart3, locked: false },
     { key: 'group' as const, label: 'Vue Groupe', icon: Building2, locked: !canGroupView },
   ];
 
@@ -250,7 +250,7 @@ const ExecutiveDashboard: React.FC = () => {
                 key={tab.key}
                 onClick={() => { if (!locked) setActiveTab(tab.key); }}
                 disabled={locked}
-                title={locked ? 'Vue Groupe — réservée au plan Premium' : undefined}
+                title={locked ? t('executiveDashboard.groupViewLocked') : undefined}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   activeTab === tab.key
                     ? 'bg-[var(--color-primary)] text-white shadow-md'

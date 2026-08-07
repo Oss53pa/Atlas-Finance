@@ -23,7 +23,6 @@ import {
   Landmark
 } from 'lucide-react';
 
-const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 const DSO_THRESHOLD = 60; // seuil d'alerte du délai de recouvrement clients (jours)
 
 const ManagerDashboard: React.FC = () => {
@@ -48,21 +47,21 @@ const ManagerDashboard: React.FC = () => {
 
   const handleExport = () => {
     const rows = [
-      ['Indicateur', 'Valeur'],
-      ['Chiffre d\'affaires', String(liveKpiData.revenue)],
-      ['Charges', String(liveKpiData.expenses)],
-      ['Résultat net', String(liveKpiData.resultatNet)],
-      ['Marge nette (%)', liveKpiData.margin.toFixed(2)],
-      ['Trésorerie nette', String(liveKpiData.treasury)],
-      ['Créances clients (41)', String(liveKpiData.receivables)],
-      ['Dettes fournisseurs (40)', String(liveKpiData.payables)],
-      ['Stocks (classe 3)', String(liveKpiData.stocks)],
-      ['BFR', String(liveKpiData.bfr)],
-      ['DSO (jours)', String(liveKpiData.dso)],
-      ['DPO (jours)', String(liveKpiData.dpo)],
-      ['Marge brute (%)', liveKpiData.margeBrute.toFixed(2)],
-      ['Ratio créances/dettes', liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : 'n/a'],
-      ['Écritures en attente', String(liveKpiData.pendingCount)],
+      [t('managerDashboard.csvIndicator'), t('managerDashboard.csvValue')],
+      [t('managerDashboard.csvRevenue'), String(liveKpiData.revenue)],
+      [t('managerDashboard.csvExpenses'), String(liveKpiData.expenses)],
+      [t('managerDashboard.csvNetResult'), String(liveKpiData.resultatNet)],
+      [t('managerDashboard.csvNetMargin'), liveKpiData.margin.toFixed(2)],
+      [t('managerDashboard.csvNetCash'), String(liveKpiData.treasury)],
+      [t('managerDashboard.csvReceivables'), String(liveKpiData.receivables)],
+      [t('managerDashboard.csvPayables'), String(liveKpiData.payables)],
+      [t('managerDashboard.csvStocks'), String(liveKpiData.stocks)],
+      [t('managerDashboard.csvWorkingCapital'), String(liveKpiData.bfr)],
+      [t('managerDashboard.csvDso'), String(liveKpiData.dso)],
+      [t('managerDashboard.csvDpo'), String(liveKpiData.dpo)],
+      [t('managerDashboard.csvGrossMargin'), liveKpiData.margeBrute.toFixed(2)],
+      [t('managerDashboard.csvRatioCD'), liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : 'n/a'],
+      [t('managerDashboard.csvPendingEntries'), String(liveKpiData.pendingCount)],
     ];
     const csv = '﻿' + rows.map(r => r.join(';')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -120,7 +119,7 @@ const ManagerDashboard: React.FC = () => {
         const monthEnd = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - i + 1, 0));
         const iso = monthEnd.toISOString().slice(0, 10);
         const mm = computeDashboardMetrics(entries, { to: iso });
-        hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
+        hist.push({ label: t('managerDashboard.monthsShort').split(',')[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
       }
       setBalHistory(hist);
       // Top clients RÉELS = montants facturés (débit des comptes 411) agrégés par tiers.
@@ -145,28 +144,28 @@ const ManagerDashboard: React.FC = () => {
       value: fmt(liveKpiData.revenue),
       color: 'blue',
       icon: DollarSign,
-      description: 'Produits (classe 7, net)',
+      description: t('managerDashboard.kpiRevenueDesc'),
     },
     {
-      title: 'Marge nette',
+      title: t('managerDashboard.kpiNetMargin'),
       value: `${liveKpiData.margin.toFixed(2)}%`,
       color: 'green',
       icon: TrendingUp,
-      description: 'Résultat net / CA (après impôt)',
+      description: t('managerDashboard.kpiNetMarginDesc'),
     },
     {
-      title: 'Écritures en attente',
+      title: t('managerDashboard.kpiPending'),
       value: formatNumber(liveKpiData.pendingCount),
       color: 'orange',
       icon: Target,
-      description: 'Brouillons à valider',
+      description: t('managerDashboard.kpiPendingDesc'),
     },
     {
-      title: 'Trésorerie Nette',
+      title: t('managerDashboard.kpiNetCash'),
       value: fmt(liveKpiData.treasury),
       color: 'primary',
       icon: BarChart3,
-      description: 'Classe 5 (hors virements internes 58)',
+      description: t('managerDashboard.kpiNetCashDesc'),
     }
   ];
 
@@ -175,36 +174,36 @@ const ManagerDashboard: React.FC = () => {
   if (liveKpiData.dso > DSO_THRESHOLD) {
     alerts.push({
       type: 'warning',
-      title: 'DSO élevé',
-      message: `Délai de recouvrement clients de ${liveKpiData.dso} jours (seuil ${DSO_THRESHOLD} j). Pensez à relancer les créances.`,
-      action: 'Voir les créances',
+      title: t('managerDashboard.alertHighDsoTitle'),
+      message: t('managerDashboard.alertHighDsoMessage', { dso: String(liveKpiData.dso), threshold: String(DSO_THRESHOLD) }),
+      action: t('managerDashboard.alertViewReceivables'),
       time: '',
     });
   }
   if (liveKpiData.treasury < 0) {
     alerts.push({
       type: 'warning',
-      title: 'Trésorerie négative',
-      message: `Trésorerie nette de ${fmt(liveKpiData.treasury)}.`,
-      action: 'Analyser',
+      title: t('managerDashboard.alertNegativeCashTitle'),
+      message: t('managerDashboard.alertNegativeCashMessage', { amount: fmt(liveKpiData.treasury) }),
+      action: t('managerDashboard.alertAnalyse'),
       time: '',
     });
   }
   if (liveKpiData.pendingCount > 0) {
     alerts.push({
       type: 'info',
-      title: 'Écritures en attente',
-      message: `${liveKpiData.pendingCount} brouillon(s) à valider.`,
-      action: 'Valider',
+      title: t('managerDashboard.kpiPending'),
+      message: t('managerDashboard.alertPendingMessage', { count: String(liveKpiData.pendingCount) }),
+      action: t('managerDashboard.alertValidate'),
       time: '',
     });
   }
 
   const tabs = [
-    { id: 'financial', label: 'Financier', icon: DollarSign },
-    { id: 'operational', label: 'Opérationnel', icon: BarChart3 },
+    { id: 'financial', label: t('managerDashboard.tabFinancial'), icon: DollarSign },
+    { id: 'operational', label: t('managerDashboard.tabOperational'), icon: BarChart3 },
     { id: 'clients', label: t('navigation.clients'), icon: Users },
-    { id: 'forecasts', label: 'Prévisions', icon: TrendingUp },
+    { id: 'forecasts', label: t('managerDashboard.tabForecasts'), icon: TrendingUp },
   ];
 
   return (
@@ -213,8 +212,8 @@ const ManagerDashboard: React.FC = () => {
       <header className="bg-white border-b border-[var(--color-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Dashboard Manager</h1>
-            <p className="text-[var(--color-text-primary)]">Vue consolidée et pilotage</p>
+            <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('managerDashboard.title')}</h1>
+            <p className="text-[var(--color-text-primary)]">{t('managerDashboard.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-4">
             <select 
@@ -222,10 +221,10 @@ const ManagerDashboard: React.FC = () => {
               onChange={(e) => setTimeRange(e.target.value)}
               className="border border-[var(--color-border-dark)] rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
             >
-              <option value="week">Cette semaine</option>
-              <option value="month">Ce mois</option>
-              <option value="quarter">Ce trimestre</option>
-              <option value="year">Cette année</option>
+              <option value="week">{t('managerDashboard.periodWeek')}</option>
+              <option value="month">{t('managerDashboard.periodMonth')}</option>
+              <option value="quarter">{t('managerDashboard.periodQuarter')}</option>
+              <option value="year">{t('managerDashboard.periodYear')}</option>
             </select>
             <button onClick={() => setReloadKey(k => k + 1)} className="p-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)]" aria-label="Actualiser">
               <RefreshCw className="w-4 h-4 text-[var(--color-text-secondary)]" />
@@ -294,18 +293,18 @@ const ManagerDashboard: React.FC = () => {
         {/* Créances, dettes & ratios — postes de bilan (cumulés) et ratios réels */}
         <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
-            <span className="text-xs text-[var(--color-text-secondary)]">Encours cumulés · ratios sur la période</span>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('managerDashboard.receivablesRatios')}</h2>
+            <span className="text-xs text-[var(--color-text-secondary)]">{t('managerDashboard.receivablesRatiosSub')}</span>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
             {[
-              { label: 'Créances clients', value: fmt(liveKpiData.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
-              { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
-              { label: 'BFR', value: fmt(liveKpiData.bfr), sub: 'Créances + stocks − dettes', icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
-              { label: 'DSO', value: `${liveKpiData.dso} j`, sub: 'Délai recouvrement clients', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
-              { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: 'Délai paiement fourn.', icon: Clock, tone: 'text-[var(--color-text-primary)]' },
-              { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
-              { label: 'Créances / Dettes', value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
+              { label: t('managerDashboard.tileReceivables'), value: fmt(liveKpiData.receivables), sub: t('managerDashboard.tileReceivablesSub'), icon: Wallet, tone: 'text-[var(--color-primary)]' },
+              { label: t('managerDashboard.tilePayables'), value: fmt(liveKpiData.payables), sub: t('managerDashboard.tilePayablesSub'), icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
+              { label: t('managerDashboard.tileWorkingCapital'), value: fmt(liveKpiData.bfr), sub: t('managerDashboard.tileWorkingCapitalSub'), icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
+              { label: 'DSO', value: t('managerDashboard.days', { count: String(liveKpiData.dso) }), sub: t('managerDashboard.tileDsoSub'), icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: 'DPO', value: t('managerDashboard.days', { count: String(liveKpiData.dpo) }), sub: t('managerDashboard.tileDpoSub'), icon: Clock, tone: 'text-[var(--color-text-primary)]' },
+              { label: t('managerDashboard.tileGrossMargin'), value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: t('managerDashboard.tileGrossMarginSub'), icon: Percent, tone: 'text-[var(--color-success)]' },
+              { label: t('managerDashboard.tileRatioCD'), value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: t('managerDashboard.tileRatioCDSub'), icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
             ].map((r) => {
               const Icon = r.icon;
               return (
@@ -327,9 +326,9 @@ const ManagerDashboard: React.FC = () => {
             return (
               <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Évolution créances vs dettes (6 mois)</h3>
+                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">{t('managerDashboard.balanceTrend')}</h3>
                   <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
-                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-primary)]" /> Créances</span>
+                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-primary)]" /> {t('managerDashboard.legendReceivables')}</span>
                     <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-warning)]" /> Dettes</span>
                   </div>
                 </div>
@@ -361,20 +360,20 @@ const ManagerDashboard: React.FC = () => {
           {/* Graphique principal */}
           <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Synthèse de la période</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('managerDashboard.periodSummary')}</h2>
             </div>
             {/* Synthèse chiffrée réelle (pas de graphe factice ni de tendance inventée) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
-                <p className="text-sm text-[var(--color-text-secondary)]">Produits</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('managerDashboard.income')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)]">{fmt(liveKpiData.revenue)}</p>
               </div>
               <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
-                <p className="text-sm text-[var(--color-text-secondary)]">Charges</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('managerDashboard.expenses')}</p>
                 <p className="text-lg font-bold text-[var(--color-text-primary)]">{fmt(liveKpiData.expenses)}</p>
               </div>
               <div className="p-4 rounded-lg bg-[var(--color-background-secondary)]">
-                <p className="text-sm text-[var(--color-text-secondary)]">Résultat net</p>
+                <p className="text-sm text-[var(--color-text-secondary)]">{t('managerDashboard.netResult')}</p>
                 <p className={`text-lg font-bold ${liveKpiData.resultatNet >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>{fmt(liveKpiData.resultatNet)}</p>
               </div>
             </div>
@@ -383,13 +382,13 @@ const ManagerDashboard: React.FC = () => {
           {/* Alertes et notifications */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)]">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Alertes</h2>
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">{t('managerDashboard.alerts')}</h2>
               <Eye className="w-5 h-5 text-[var(--color-text-secondary)]" />
             </div>
             
             <div className="space-y-4">
               {alerts.length === 0 && (
-                <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">Aucune alerte — indicateurs dans les seuils.</p>
+                <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">{t('managerDashboard.noAlert')}</p>
               )}
               {alerts.map((alert, index) => (
                 <div key={index} className={`p-4 rounded-lg border-l-4 ${
@@ -432,7 +431,7 @@ const ManagerDashboard: React.FC = () => {
             <div className="p-6">
               <div className="space-y-4">
                 {topClients.length === 0 ? (
-                    <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">Aucune donnée client disponible</p>
+                    <p className="text-sm text-[var(--color-text-secondary)] py-4 text-center">{t('managerDashboard.noClientData')}</p>
                   ) : topClients.map((client, index) => (
                     <div key={index} className="flex items-center justify-between p-3 hover:bg-[var(--color-background-secondary)] rounded-lg">
                       <div className="flex items-center space-x-3">
@@ -441,7 +440,7 @@ const ManagerDashboard: React.FC = () => {
                         </div>
                         <div>
                           <p className="font-medium text-[var(--color-text-primary)] text-sm">{client.name}</p>
-                          <p className="text-[var(--color-text-secondary)] text-xs">Montant facturé (411)</p>
+                          <p className="text-[var(--color-text-secondary)] text-xs">{t('managerDashboard.invoicedAmount')}</p>
                         </div>
                       </div>
                       <div className="text-right">
@@ -462,11 +461,11 @@ const ManagerDashboard: React.FC = () => {
               <div className="h-40 bg-gradient-to-br from-primary-50 to-primary-100 rounded-lg flex items-center justify-center mb-4">
                 <div className="text-center">
                   <PieChart className="w-12 h-12 text-primary-500 mx-auto mb-2" />
-                  <p className="text-[var(--color-text-primary)] text-sm">Graphique secteurs</p>
+                  <p className="text-[var(--color-text-primary)] text-sm">{t('managerDashboard.sectorChart')}</p>
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="text-sm text-[var(--color-text-secondary)] py-2 text-center">Aucune donnée sectorielle disponible</p>
+                <p className="text-sm text-[var(--color-text-secondary)] py-2 text-center">{t('managerDashboard.noSectorData')}</p>
               </div>
             </div>
           </div>

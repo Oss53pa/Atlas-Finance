@@ -91,22 +91,22 @@ const WorkflowsManager: React.FC = () => {
         if (draftEntries.length > 0) {
           builtWorkflows.push({
             id: 'wf-draft',
-            name: `Validation écritures brouillon (${draftEntries.length})`,
+            name: t('workflowsManager.wfDraftName', { count: String(draftEntries.length) }),
             category: 'finance',
             status: 'active',
             priority: 'high',
             currentStep: 1,
             totalSteps: 3,
             progress: 33,
-            createdBy: 'Système',
+            createdBy: t('workflowsManager.system'),
             createdAt: new Date(draftEntries[0]?.createdAt || Date.now()),
             lastModified: new Date(),
-            description: `${draftEntries.length} écriture(s) en brouillon nécessitent validation`,
-            triggers: ['Écriture créée'],
+            description: t('workflowsManager.wfDraftDesc', { count: String(draftEntries.length) }),
+            triggers: [t('workflowsManager.triggerEntryCreated')],
             steps: [
-              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
-              { id: 's2', name: 'Validation comptable', type: 'approval', status: 'in_progress', assignee: 'Comptable' },
-              { id: 's3', name: 'Comptabilisation', type: 'action', status: 'pending' },
+              { id: 's1', name: t('workflowsManager.stepEntry'), type: 'action', status: 'completed' },
+              { id: 's2', name: t('workflowsManager.stepApproval'), type: 'approval', status: 'in_progress', assignee: t('workflowsManager.roleAccountant') },
+              { id: 's3', name: t('workflowsManager.stepPosting'), type: 'action', status: 'pending' },
             ]
           });
         }
@@ -114,22 +114,22 @@ const WorkflowsManager: React.FC = () => {
         if (validatedEntries.length > 0) {
           builtWorkflows.push({
             id: 'wf-validated',
-            name: `Comptabilisation écritures (${validatedEntries.length})`,
+            name: t('workflowsManager.wfPostingName', { count: String(validatedEntries.length) }),
             category: 'finance',
             status: 'active',
             priority: 'medium',
             currentStep: 2,
             totalSteps: 3,
             progress: 66,
-            createdBy: 'Système',
+            createdBy: t('workflowsManager.system'),
             createdAt: new Date(validatedEntries[0]?.createdAt || Date.now()),
             lastModified: new Date(),
-            description: `${validatedEntries.length} écriture(s) validée(s) en attente de comptabilisation`,
-            triggers: ['Écriture validée'],
+            description: t('workflowsManager.wfPostingDesc', { count: String(validatedEntries.length) }),
+            triggers: [t('workflowsManager.triggerEntryApproved')],
             steps: [
-              { id: 's1', name: 'Saisie écriture', type: 'action', status: 'completed' },
-              { id: 's2', name: 'Validation comptable', type: 'approval', status: 'completed' },
-              { id: 's3', name: 'Comptabilisation', type: 'action', status: 'in_progress', assignee: 'Chef Comptable' },
+              { id: 's1', name: t('workflowsManager.stepEntry'), type: 'action', status: 'completed' },
+              { id: 's2', name: t('workflowsManager.stepApproval'), type: 'approval', status: 'completed' },
+              { id: 's3', name: t('workflowsManager.stepPosting'), type: 'action', status: 'in_progress', assignee: t('workflowsManager.roleChiefAccountant') },
             ]
           });
         }
@@ -150,10 +150,10 @@ const WorkflowsManager: React.FC = () => {
           return {
             id: `apr-${entry.id}`,
             workflowId: 'wf-draft',
-            type: 'Écriture comptable',
+            type: t('workflowsManager.typeJournalEntry'),
             title: entry.label || `Écriture ${entry.entryNumber || entry.id}`,
-            description: `Journal: ${entry.journal || '-'} | Réf: ${entry.reference || '-'}`,
-            requester: entry.createdBy || 'Système',
+            description: t('workflowsManager.approvalDesc', { journal: entry.journal || '-', reference: entry.reference || '-' }),
+            requester: entry.createdBy || t('workflowsManager.system'),
             amount,
             priority: (avgDraft > 0 && amount >= avgDraft * 1.5 ? 'high' : 'medium') as ApprovalRequest['priority'],
             status: (escalatedSet.has(entry.id) ? 'escalated' : 'pending') as ApprovalRequest['status'],
@@ -224,9 +224,9 @@ const WorkflowsManager: React.FC = () => {
       // Ne marquer "approuvé" QUE si la persistance a réussi (pas d'optimiste-sur-échec).
       setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'approved' as const } : a));
       (adapter as any).invalidateCache?.();
-      toast.success('Écriture validée');
+      toast.success(t('workflowsManager.entryApproved'));
     } catch {
-      toast.error('Validation impossible (droits/verrou). L\'écriture reste en attente.');
+      toast.error(t('workflowsManager.approvalFailed'));
     }
   };
 
@@ -236,7 +236,7 @@ const WorkflowsManager: React.FC = () => {
       await adapter.update<any>('journalEntries', entryId, { status: 'draft' });
       setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'rejected' as const } : a));
       (adapter as any).invalidateCache?.();
-      toast.success('Écriture renvoyée en brouillon');
+      toast.success(t('workflowsManager.entryReturnedToDraft'));
     } catch {
       toast.error('Rejet impossible (droits/verrou).');
     }
@@ -250,7 +250,7 @@ const WorkflowsManager: React.FC = () => {
       localStorage.setItem('atlas_wf_escalated', JSON.stringify([...set]));
     } catch { /* ignore */ }
     setApprovals(prev => prev.map(a => a.id === approvalId ? { ...a, status: 'escalated' as const } : a));
-    toast.success('Demande escaladée au niveau supérieur');
+    toast.success(t('workflowsManager.escalated'));
   };
 
   const filteredWorkflows = workflows.filter(wf => {
@@ -277,7 +277,7 @@ const WorkflowsManager: React.FC = () => {
             <GitBranch className="w-8 h-8 text-[var(--color-text-primary)]" />
             Workflows & Approbations
           </h1>
-          <p className="text-gray-600 mt-1">Automatisation et gestion des processus métier</p>
+          <p className="text-gray-600 mt-1">{t('workflowsManager.subtitle')}</p>
         </div>
 
         <div className="flex items-center gap-3">
@@ -300,7 +300,7 @@ const WorkflowsManager: React.FC = () => {
             <Activity className="w-5 h-5 text-[var(--color-text-tertiary)]" />
           </div>
           <p className="text-lg font-bold text-gray-900">{stats.activeWorkflows}</p>
-          <p className="text-xs text-gray-700 mt-1">En cours d'exécution</p>
+          <p className="text-xs text-gray-700 mt-1">{t('workflowsManager.running')}</p>
         </div>
 
         <div className="bg-amber-50 rounded-lg shadow p-4 border border-amber-200">
@@ -314,7 +314,7 @@ const WorkflowsManager: React.FC = () => {
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-700">Complétés</span>
+            <span className="text-sm font-medium text-green-700">{t('workflowsManager.completed')}</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-lg font-bold text-green-700">{stats.completedToday}</p>
@@ -346,9 +346,9 @@ const WorkflowsManager: React.FC = () => {
                     : "border-transparent text-gray-700 hover:text-gray-700 hover:border-gray-300"
                 )}
               >
-                {tab === 'workflows' && 'Workflows Actifs'}
+                {tab === 'workflows' && t('workflowsManager.tabWorkflows')}
                 {tab === 'approvals' && `Approbations (${stats.pendingApprovals})`}
-                {tab === 'templates' && 'Modèles'}
+                {tab === 'templates' && t('workflowsManager.tabTemplates')}
               </button>
             ))}
           </nav>
@@ -378,14 +378,14 @@ const WorkflowsManager: React.FC = () => {
                   <option value="all">Tous les statuts</option>
                   <option value="active">Actif</option>
                   <option value="paused">En pause</option>
-                  <option value="completed">Complété</option>
+                  <option value="completed">{t('workflowsManager.statusCompleted')}</option>
                 </select>
                 <select
                   value={filter.category}
                   onChange={(e) => setFilter({ ...filter, category: e.target.value })}
                   className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
                 >
-                  <option value="all">Toutes catégories</option>
+                  <option value="all">{t('workflowsManager.allCategories')}</option>
                   <option value="finance">Finance</option>
                   <option value="purchase">Achats</option>
                   <option value="sales">Ventes</option>
@@ -402,7 +402,7 @@ const WorkflowsManager: React.FC = () => {
                 <div className="text-center py-12 text-gray-500">
                   <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
                   <h3 className="text-lg font-semibold">Aucun workflow en cours</h3>
-                  <p className="text-sm mt-1">Toutes les écritures sont comptabilisées</p>
+                  <p className="text-sm mt-1">{t('workflowsManager.allEntriesPosted')}</p>
                 </div>
               )}
               {filteredWorkflows.map((workflow) => (
@@ -503,8 +503,8 @@ const WorkflowsManager: React.FC = () => {
                         {getPriorityIcon(approval.priority)}
                         <span className={cn("px-2 py-0.5 text-xs rounded-full font-medium", getStatusColor(approval.status))}>
                           {approval.status === 'pending' ? 'En attente' :
-                           approval.status === 'approved' ? 'Approuvé' :
-                           approval.status === 'rejected' ? 'Rejeté' : 'Escaladé'}
+                           approval.status === 'approved' ? t('workflowsManager.statusApproved') :
+                           approval.status === 'rejected' ? t('workflowsManager.statusRejected') : t('workflowsManager.statusEscalated')}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">{approval.description}</p>
@@ -568,8 +568,8 @@ const WorkflowsManager: React.FC = () => {
               {templates.length === 0 && (
                 <div className="col-span-full text-center py-12 text-gray-500">
                   <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <h3 className="text-lg font-semibold">Aucun modèle de workflow</h3>
-                  <p className="text-sm mt-1">Créez-en un ci-dessus en configurant un nouveau workflow</p>
+                  <h3 className="text-lg font-semibold">{t('workflowsManager.noTemplate')}</h3>
+                  <p className="text-sm mt-1">{t('workflowsManager.noTemplateHint')}</p>
                 </div>
               )}
               {templates.map((template) => (

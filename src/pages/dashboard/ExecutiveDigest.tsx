@@ -365,10 +365,10 @@ const ExecutiveDigest: React.FC = () => {
 
       {/* ═══ 4 indicateurs clés ═══ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <HeroKpi label="CHIFFRE D'AFFAIRES" value={fmt(m.ca)} unit="FCFA" delta={deltaOf(caSeries)} icon={<Landmark className="w-5 h-5" />} tint={C.navy} />
-        <HeroKpi label="MARGE BRUTE" value={fmt(margeBrute)} unit="FCFA" sub={`${tauxMargeBrute.toFixed(1).replace('.', ',')} % du CA`} delta={deltaOf(margeBruteSeries)} icon={<Percent className="w-5 h-5" />} tint={C.gold} />
-        <HeroKpi label="RÉSULTAT NET" value={fmt(m.resultatNet)} unit="FCFA" delta={deltaOf(resultSeries)} icon={resultPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />} tint={resultPositive ? 'var(--color-success)' : 'var(--color-error)'} valueColor={resultPositive ? 'var(--color-success)' : 'var(--color-error)'} />
-        <HeroKpi label="TRÉSORERIE" value={fmt(m.treasury)} unit="FCFA" delta={deltaOf(tresoCumSeries)} icon={<Wallet className="w-5 h-5" />} tint={C.teal} />
+        <HeroKpi label={t('premiumOverview.ca')} value={fmt(m.ca)} unit="FCFA" delta={deltaOf(caSeries)} icon={<Landmark className="w-5 h-5" />} tint={C.navy} />
+        <HeroKpi label={t('executiveDigest.heroGrossMargin')} value={fmt(margeBrute)} unit="FCFA" sub={t('executiveDigest.pctOfRevenue', { pct: tauxMargeBrute.toFixed(1).replace('.', ',') })} delta={deltaOf(margeBruteSeries)} icon={<Percent className="w-5 h-5" />} tint={C.gold} />
+        <HeroKpi label={t('premiumOverview.resultatNet')} value={fmt(m.resultatNet)} unit="FCFA" delta={deltaOf(resultSeries)} icon={resultPositive ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />} tint={resultPositive ? 'var(--color-success)' : 'var(--color-error)'} valueColor={resultPositive ? 'var(--color-success)' : 'var(--color-error)'} />
+        <HeroKpi label={t('premiumOverview.treasury')} value={fmt(m.treasury)} unit="FCFA" delta={deltaOf(tresoCumSeries)} icon={<Wallet className="w-5 h-5" />} tint={C.teal} />
       </div>
 
       {/* ═══ Graphes ═══ */}

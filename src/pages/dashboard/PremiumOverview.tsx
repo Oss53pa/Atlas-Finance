@@ -35,25 +35,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
 
-// Libellés exécutifs (FR inline — cf. entête).
-const M = {
-  ca: 'CHIFFRE D\'AFFAIRES',
-  resultatNet: 'RÉSULTAT NET',
-  treasury: 'TRÉSORERIE',
-  marge: 'MARGE NETTE',
-  vsLastMonth: 'vs mois précédent',
-  exercice: 'exercice',
-  chartTitle: 'Chiffre d\'affaires vs charges — 12 mois',
-  chartSub: 'Produits (cl.7) et charges (cl.6) comptabilisés, par mois',
-  serieCA: 'Chiffre d\'affaires',
-  serieCharges: 'Charges',
-  health: 'Santé financière',
-  topClients: 'Top clients — chiffre d\'affaires',
-  seeReporting: 'Voir les états financiers',
-  noData: 'Aucune écriture comptabilisée : les indicateurs financiers s\'afficheront dès les premières saisies validées.',
-};
-
-const MONTH_LABELS = ['jan', 'fév', 'mar', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
+// Les libellés exécutifs vivent dans le namespace `premiumOverview` : cette
+// page en affiche une quinzaine, tous résolus au rendu.
 
 /** FCFA compact : 1 234 567 → « 1,23 M », 9 050 000 000 → « 9,05 Md ». */
 function fcfa(n: number): string {
@@ -178,12 +161,12 @@ const PremiumOverview: React.FC = () => {
     const treso = m.treasury > 0 ? 100 : m.treasury === 0 ? 50 : 0;
     const croissance = delta.ca?.trend === 'up' ? 100 : delta.ca?.trend === 'down' ? 35 : 65;
     return [
-      { label: 'Rentabilité', score: rentabilite },
-      { label: 'Marge nette', score: marge },
-      { label: 'Trésorerie', score: treso },
-      { label: 'Croissance CA', score: croissance },
+      { label: t('premiumOverview.axisProfitability'), score: rentabilite },
+      { label: t('premiumOverview.axisNetMargin'), score: marge },
+      { label: t('premiumOverview.axisCash'), score: treso },
+      { label: t('premiumOverview.axisGrowth'), score: croissance },
     ];
-  }, [m, delta]);
+  }, [m, delta, t]);
   const healthScore = Math.round(healthAxes.reduce((s, a) => s + a.score, 0) / healthAxes.length);
 
   const hasData = m.count > 0;
@@ -261,46 +244,46 @@ const PremiumOverview: React.FC = () => {
 
         {!hasData && (
           <div className="p-4 rounded-lg border" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }}>
-            {M.noData}
+            {t('premiumOverview.noData')}
           </div>
         )}
 
         {/* ═════ KPIs FINANCIERS ═════ */}
         <section className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}>
           <KpiCardPremium
-            eyebrow={M.ca}
+            eyebrow={t('premiumOverview.ca')}
             value={fcfa(m.ca)}
             unit="FCFA"
             delta={delta.ca}
-            meta={M.vsLastMonth}
+            meta={t('premiumOverview.vsLastMonth')}
             series={caSeries}
             tone="gold"
             icon={<TrendingUp className="w-3.5 h-3.5" />}
             onClick={() => navigate('/financial-statements/compte-resultat')}
           />
           <KpiCardPremium
-            eyebrow={M.resultatNet}
+            eyebrow={t('premiumOverview.resultatNet')}
             value={fcfa(m.resultatNet)}
             unit="FCFA"
             delta={delta.result}
-            meta={`${M.exercice} ${aux.exercice}`}
+            meta={`${t('premiumOverview.exercice')} ${aux.exercice}`}
             series={resultSeries}
             tone={resultPositive ? 'success' : 'danger'}
             icon={resultPositive ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
             onClick={() => navigate('/financial-statements/compte-resultat')}
           />
           <KpiCardPremium
-            eyebrow={M.treasury}
+            eyebrow={t('premiumOverview.treasury')}
             value={fcfa(m.treasury)}
             unit="FCFA"
-            meta={M.exercice + ' ' + aux.exercice}
+            meta={t('premiumOverview.exercice') + ' ' + aux.exercice}
             series={monthly.map(b => Math.round(b.treasuryFlow))}
             tone={m.treasury >= 0 ? 'neutral' : 'danger'}
             icon={<Wallet className="w-3.5 h-3.5" />}
             onClick={() => navigate('/treasury')}
           />
           <KpiCardPremium
-            eyebrow={M.marge}
+            eyebrow={t('premiumOverview.marge')}
             value={`${m.margeNette.toFixed(1).replace('.', ',')} %`}
             meta={`résultat / CA`}
             series={marginSeries}
@@ -318,17 +301,17 @@ const PremiumOverview: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
                   <BarChart3 className="w-4 h-4" style={{ color: 'var(--color-accent)' }} strokeWidth={1.6} />
-                  <h3 className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>{M.chartTitle}</h3>
+                  <h3 className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>{t('premiumOverview.chartTitle')}</h3>
                 </div>
-                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{M.chartSub}</p>
+                <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>{t('premiumOverview.chartSub')}</p>
               </div>
             </header>
 
             <PremiumChart
-              xLabels={MONTH_LABELS}
+              xLabels={t('premiumOverview.monthsShort').split(',')}
               series={[
-                { key: 'ca', label: M.serieCA, tone: 'gold', data: caSeries, variant: 'area' },
-                { key: 'charges', label: M.serieCharges, tone: 'danger', data: chargesSeries, variant: 'line' },
+                { key: 'ca', label: t('premiumOverview.serieCA'), tone: 'gold', data: caSeries, variant: 'area' },
+                { key: 'charges', label: t('premiumOverview.serieCharges'), tone: 'danger', data: chargesSeries, variant: 'line' },
               ]}
               height={260}
               yFormatter={(v) => fcfa(v)}
@@ -357,21 +340,21 @@ const PremiumOverview: React.FC = () => {
                     Résultat net de <strong className="num-tabular">{fcfa(m.resultatNet)} FCFA</strong> sur l'exercice, pour une marge de <strong className="num-tabular">{m.margeNette.toFixed(1).replace('.', ',')} %</strong>.
                   </>
                 ) : (
-                  <>{M.noData}</>
+                  <>{t('premiumOverview.noData')}</>
                 )
               }
               detail={
                 hasData
-                  ? `CA ${fcfa(m.ca)} · charges ${fcfa(m.charges)} · trésorerie ${fcfa(m.treasury)} FCFA · exercice ${aux.exercice}.`
-                  : `Exercice ${aux.exercice}.`
+                  ? t('premiumOverview.detailWithData', { ca: fcfa(m.ca), charges: fcfa(m.charges), treasury: fcfa(m.treasury), year: aux.exercice })
+                  : t('premiumOverview.detailNoData', { year: aux.exercice })
               }
-              primaryAction={{ label: M.seeReporting, onClick: () => navigate('/financial-statements/compte-resultat') }}
-              secondaryAction={{ label: 'Rentabilité clients', onClick: () => navigate('/tiers/rentabilite') }}
+              primaryAction={{ label: t('premiumOverview.seeReporting'), onClick: () => navigate('/financial-statements/compte-resultat') }}
+              secondaryAction={{ label: t('premiumOverview.clientProfitability'), onClick: () => navigate('/tiers/rentabilite') }}
             />
 
             <AuditScoreRing
-              title={M.health}
-              subtitle={`${M.exercice} ${aux.exercice}`}
+              title={t('premiumOverview.health')}
+              subtitle={`${t('premiumOverview.exercice')} ${aux.exercice}`}
               score={healthScore}
               outOf={100}
               axes={healthAxes}
@@ -382,20 +365,20 @@ const PremiumOverview: React.FC = () => {
         {/* ═════ Postes clés de bilan ═════ */}
         <section>
           <header className="flex items-center justify-between mb-3">
-            <span className="eyebrow-gold">Postes clés</span>
+            <span className="eyebrow-gold">{t('premiumOverview.keyItems')}</span>
             <button onClick={() => navigate('/financial-statements/bilan')} className="text-xs flex items-center gap-1 transition-colors" style={{ color: 'var(--color-text-tertiary)' }}>
-              {M.seeReporting} <ArrowUpRight className="w-3 h-3" strokeWidth={1.6} />
+              {t('premiumOverview.seeReporting')} <ArrowUpRight className="w-3 h-3" strokeWidth={1.6} />
             </button>
           </header>
           <MiniMetricStack
             columns={3}
             items={[
-              { eyebrow: 'CRÉANCES CLIENTS', value: fcfa(receivables), unit: 'FCFA', hint: 'comptes 41x — encours débiteur', icon: <Banknote className="w-3.5 h-3.5" />, tone: 'gold' },
-              { eyebrow: 'DETTES FOURNISSEURS', value: fcfa(payables), unit: 'FCFA', hint: 'comptes 40x — encours créditeur', icon: <Receipt className="w-3.5 h-3.5" />, tone: 'obsidian' },
-              { eyebrow: 'RÉSULTAT AVANT IMPÔT', value: fcfa(m.resultatAvantImpot), unit: 'FCFA', hint: 'cl.7 − cl.6', icon: <Coins className="w-3.5 h-3.5" />, tone: m.resultatAvantImpot >= 0 ? 'success' : 'danger' },
-              { eyebrow: 'CHARGES', value: fcfa(m.charges), unit: 'FCFA', hint: 'charges d\'exploitation (cl.6)', icon: <TrendingDown className="w-3.5 h-3.5" />, tone: 'neutral' },
-              { eyebrow: 'ACTIF IMMOBILISÉ', value: fcfa(immoVNC), unit: 'FCFA', hint: `${aux.immo} biens · VNC (brut − amort.)`, icon: <Package className="w-3.5 h-3.5" />, tone: 'gold' },
-              { eyebrow: 'IMPÔT SUR RÉSULTAT', value: fcfa(m.impots), unit: 'FCFA', hint: 'cl.89 · IS / IMF', icon: <Landmark className="w-3.5 h-3.5" />, tone: 'neutral' },
+              { eyebrow: t('premiumOverview.itemReceivables'), value: fcfa(receivables), unit: 'FCFA', hint: t('premiumOverview.itemReceivablesHint'), icon: <Banknote className="w-3.5 h-3.5" />, tone: 'gold' },
+              { eyebrow: t('premiumOverview.itemPayables'), value: fcfa(payables), unit: 'FCFA', hint: t('premiumOverview.itemPayablesHint'), icon: <Receipt className="w-3.5 h-3.5" />, tone: 'obsidian' },
+              { eyebrow: t('premiumOverview.itemPretaxResult'), value: fcfa(m.resultatAvantImpot), unit: 'FCFA', hint: t('premiumOverview.itemPretaxHint'), icon: <Coins className="w-3.5 h-3.5" />, tone: m.resultatAvantImpot >= 0 ? 'success' : 'danger' },
+              { eyebrow: t('premiumOverview.itemExpenses'), value: fcfa(m.charges), unit: 'FCFA', hint: t('premiumOverview.itemExpensesHint'), icon: <TrendingDown className="w-3.5 h-3.5" />, tone: 'neutral' },
+              { eyebrow: t('premiumOverview.itemFixedAssets'), value: fcfa(immoVNC), unit: 'FCFA', hint: t('premiumOverview.itemFixedAssetsHint', { count: String(aux.immo) }), icon: <Package className="w-3.5 h-3.5" />, tone: 'gold' },
+              { eyebrow: t('premiumOverview.itemTax'), value: fcfa(m.impots), unit: 'FCFA', hint: t('premiumOverview.itemTaxHint'), icon: <Landmark className="w-3.5 h-3.5" />, tone: 'neutral' },
             ]}
           />
         </section>
@@ -406,7 +389,7 @@ const PremiumOverview: React.FC = () => {
             <header className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4" style={{ color: 'var(--color-accent)' }} strokeWidth={1.6} />
-                <h3 className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>{M.topClients}</h3>
+                <h3 className="font-medium" style={{ fontSize: '0.9375rem', color: 'var(--color-text-primary)' }}>{t('premiumOverview.topClients')}</h3>
               </div>
               <button onClick={() => navigate('/tiers/rentabilite')} className="text-xs flex items-center gap-1" style={{ color: 'var(--color-text-tertiary)' }}>
                 Rentabilité <ArrowUpRight className="w-3 h-3" strokeWidth={1.6} />
@@ -442,7 +425,7 @@ const PremiumOverview: React.FC = () => {
             </span>
           </div>
           <span className="eyebrow num-tabular flex items-center gap-1.5" style={{ color: 'var(--color-text-quaternary)' }}>
-            <ShieldCheck className="w-3 h-3" strokeWidth={1.5} /> {M.health} <strong style={{ color: 'var(--color-text-primary)' }}>{healthScore}</strong>/100
+            <ShieldCheck className="w-3 h-3" strokeWidth={1.5} /> {t('premiumOverview.health')} <strong style={{ color: 'var(--color-text-primary)' }}>{healthScore}</strong>/100
           </span>
         </footer>
       </div>

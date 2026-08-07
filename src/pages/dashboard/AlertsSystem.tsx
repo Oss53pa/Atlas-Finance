@@ -49,16 +49,17 @@ interface AlertRule {
 
 // ─── Indicateurs réels sur lesquels une règle peut porter (tirés du grand livre) ───
 type MetricKind = 'currency' | 'percent' | 'count';
-interface MetricDef { key: string; label: string; kind: MetricKind }
+// `labelKey` et non `label` : la table est figée au chargement du module.
+interface MetricDef { key: string; labelKey: string; kind: MetricKind }
 const METRIC_DEFS: MetricDef[] = [
-  { key: 'ca', label: "Chiffre d'affaires", kind: 'currency' },
-  { key: 'charges', label: 'Charges totales', kind: 'currency' },
-  { key: 'resultatNet', label: 'Résultat net', kind: 'currency' },
-  { key: 'treasury', label: 'Trésorerie', kind: 'currency' },
-  { key: 'margeNette', label: 'Marge nette (%)', kind: 'percent' },
-  { key: 'creances', label: 'Créances clients', kind: 'currency' },
-  { key: 'draftCount', label: 'Écritures en brouillon', kind: 'count' },
-  { key: 'overdueReceivables', label: 'Créances > 60 jours', kind: 'currency' },
+  { key: 'ca', labelKey: 'financialAnalysis.kpiRevenue', kind: 'currency' },
+  { key: 'charges', labelKey: 'executiveDigest.kpiTotalExpenses', kind: 'currency' },
+  { key: 'resultatNet', labelKey: 'alertsSystem.metricNetResult', kind: 'currency' },
+  { key: 'treasury', labelKey: 'alertsSystem.metricCash', kind: 'currency' },
+  { key: 'margeNette', labelKey: 'kpisRealTime.seriesNetMargin', kind: 'percent' },
+  { key: 'creances', labelKey: 'alertsSystem.metricReceivables', kind: 'currency' },
+  { key: 'draftCount', labelKey: 'alertsSystem.metricDrafts', kind: 'count' },
+  { key: 'overdueReceivables', labelKey: 'alertsSystem.metricOverdue', kind: 'currency' },
 ];
 const metricDef = (key: string): MetricDef | undefined => METRIC_DEFS.find((d) => d.key === key);
 
@@ -108,7 +109,7 @@ const AlertsSystem: React.FC = () => {
   const createRule = () => {
     const rule: AlertRule = {
       id: `${Date.now()}`,
-      name: ruleForm.name.trim() || 'Règle sans nom',
+      name: ruleForm.name.trim() || t('alertsSystem.unnamedRule'),
       condition: ruleForm.condition,
       threshold: Number(ruleForm.threshold) || 0,
       comparison: ruleForm.comparison,
@@ -159,14 +160,14 @@ const AlertsSystem: React.FC = () => {
                 id: `unbalanced-${entry.id}`,
                 type: 'critical',
                 category: 'finance',
-                title: 'Écriture déséquilibrée',
-                message: `L'écriture ${entry.entryNumber || entry.id} a un écart de ${formatCurrency(Math.abs(totalDebit - totalCredit))}`,
+                title: t('alertsSystem.unbalancedTitle'),
+                message: t('alertsSystem.unbalancedMessage', { ref: String(entry.entryNumber || entry.id), amount: formatCurrency(Math.abs(totalDebit - totalCredit)) }),
                 timestamp: new Date(entry.createdAt || Date.now()),
                 priority: 'high',
                 status: statusMap[`unbalanced-${entry.id}`] || 'new',
-                source: 'Contrôle écritures',
-                impact: 'Incohérence comptable',
-                suggestedAction: 'Corriger l\'écriture pour équilibrer débit et crédit',
+                source: t('alertsSystem.sourceEntryControl'),
+                impact: t('alertsSystem.impactInconsistency'),
+                suggestedAction: t('alertsSystem.actionBalanceEntry'),
                 value: Math.abs(totalDebit - totalCredit),
                 trend: 'stable'
               });
@@ -182,14 +183,14 @@ const AlertsSystem: React.FC = () => {
             id: 'drafts',
             type: 'warning',
             category: 'operations',
-            title: 'Écritures en brouillon',
-            message: `${draftEntries.length} écriture(s) en attente de validation`,
+            title: t('alertsSystem.draftsTitle'),
+            message: t('alertsSystem.draftsMessage', { count: String(draftEntries.length) }),
             timestamp: new Date(),
             priority: 'medium',
             status: statusMap['drafts'] || 'new',
-            source: 'Journal comptable',
-            impact: 'Écritures non validées',
-            suggestedAction: 'Valider ou supprimer les écritures en brouillon',
+            source: t('alertsSystem.sourceJournal'),
+            impact: t('alertsSystem.impactUnvalidated'),
+            suggestedAction: t('alertsSystem.actionValidateDrafts'),
             value: draftEntries.length
           });
         }
@@ -218,14 +219,14 @@ const AlertsSystem: React.FC = () => {
             id: 'overdue-receivables',
             type: 'warning',
             category: 'clients',
-            title: 'Créances vieillissantes',
-            message: `${overdueCount} ligne(s) client dépassent 60 jours pour un total de ${formatCurrency(overdueTotal)}`,
+            title: t('alertsSystem.agingTitle'),
+            message: t('alertsSystem.agingMessage', { count: String(overdueCount), amount: formatCurrency(overdueTotal) }),
             timestamp: new Date(),
             priority: 'medium',
             status: statusMap['overdue-receivables'] || 'new',
-            source: 'Analyse créances',
-            impact: 'Risque de créances irrécouvrables',
-            suggestedAction: 'Relancer les clients concernés',
+            source: t('alertsSystem.sourceReceivables'),
+            impact: t('alertsSystem.impactBadDebt'),
+            suggestedAction: t('alertsSystem.actionChaseClients'),
             value: overdueTotal,
             trend: 'up'
           });
@@ -249,14 +250,14 @@ const AlertsSystem: React.FC = () => {
             id: 'treasury-negative',
             type: 'critical',
             category: 'finance',
-            title: 'Trésorerie négative',
-            message: `Le solde de trésorerie est négatif: ${formatCurrency(treasuryBalance)}`,
+            title: t('alertsSystem.negativeCashTitle'),
+            message: t('alertsSystem.negativeCashMessage', { amount: formatCurrency(treasuryBalance) }),
             timestamp: new Date(),
             priority: 'high',
             status: statusMap['treasury-negative'] || 'new',
-            source: 'Trésorerie',
-            impact: 'Risque de rupture de paiement',
-            suggestedAction: 'Accélérer le recouvrement ou négocier un découvert',
+            source: t('alertsSystem.sourceCash'),
+            impact: t('alertsSystem.impactPaymentRisk'),
+            suggestedAction: t('alertsSystem.actionCollectOrOverdraft'),
             value: treasuryBalance,
             trend: 'down'
           });
@@ -293,14 +294,14 @@ const AlertsSystem: React.FC = () => {
             id: `rule-${rule.id}`,
             type: 'warning',
             category: 'performance',
-            title: `Règle déclenchée : ${rule.name}`,
-            message: `${def.label} = ${fmtVal} ${op} seuil ${fmtThr}`,
+            title: t('alertsSystem.ruleTriggeredTitle', { name: rule.name }),
+            message: t('alertsSystem.ruleTriggeredMessage', { metric: t(def.labelKey), value: fmtVal, operator: op, threshold: fmtThr }),
             timestamp: new Date(),
             priority: 'medium',
             status: statusMap[`rule-${rule.id}`] || 'new',
-            source: 'Règle personnalisée',
-            impact: 'Seuil défini par l\'utilisateur',
-            suggestedAction: 'Vérifier l\'indicateur concerné',
+            source: t('alertsSystem.sourceCustomRule'),
+            impact: t('alertsSystem.impactUserThreshold'),
+            suggestedAction: t('alertsSystem.actionCheckMetric'),
             value,
             threshold: rule.threshold,
           });
@@ -436,7 +437,7 @@ const AlertsSystem: React.FC = () => {
             <Bell className="w-5 h-5 text-gray-700" />
           </div>
           <p className="text-lg font-bold text-gray-900">{formatNumber(stats.total)}</p>
-          <p className="text-xs text-gray-700 mt-1">Dernières 24h</p>
+          <p className="text-xs text-gray-700 mt-1">{t('alertsSystem.last24h')}</p>
         </div>
 
         <div className="bg-red-50 rounded-lg shadow p-4 border border-red-200">
@@ -445,7 +446,7 @@ const AlertsSystem: React.FC = () => {
             <XCircle className="w-5 h-5 text-red-500" />
           </div>
           <p className="text-lg font-bold text-red-700">{stats.critical}</p>
-          <p className="text-xs text-red-600 mt-1">Action immédiate</p>
+          <p className="text-xs text-red-600 mt-1">{t('alertsSystem.immediateAction')}</p>
         </div>
 
         <div className="bg-amber-50 rounded-lg shadow p-4 border border-amber-200">
@@ -454,7 +455,7 @@ const AlertsSystem: React.FC = () => {
             <AlertTriangle className="w-5 h-5 text-amber-500" />
           </div>
           <p className="text-lg font-bold text-amber-700">{stats.warning}</p>
-          <p className="text-xs text-amber-600 mt-1">À surveiller</p>
+          <p className="text-xs text-amber-600 mt-1">{t('alertsSystem.toWatch')}</p>
         </div>
 
         <div className="bg-[var(--color-surface-hover)] rounded-lg shadow p-4 border border-[var(--color-border)]">
@@ -468,7 +469,7 @@ const AlertsSystem: React.FC = () => {
 
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-700">Résolues</span>
+            <span className="text-sm font-medium text-green-700">{t('alertsSystem.resolved')}</span>
             <CheckCircle className="w-5 h-5 text-green-500" />
           </div>
           <p className="text-lg font-bold text-green-700">{stats.resolved}</p>
@@ -508,13 +509,13 @@ const AlertsSystem: React.FC = () => {
               onChange={(e) => setFilter({ ...filter, category: e.target.value })}
               className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
             >
-              <option value="all">Toutes catégories</option>
+              <option value="all">{t('alertsSystem.allCategories')}</option>
               <option value="finance">Finance</option>
-              <option value="operations">Opérations</option>
+              <option value="operations">{t('alertsSystem.catOperations')}</option>
               <option value="clients">{t('navigation.clients')}</option>
               <option value="stock">Stock</option>
               <option value="performance">Performance</option>
-              <option value="security">Sécurité</option>
+              <option value="security">{t('alertsSystem.catSecurity')}</option>
             </select>
 
             <select
@@ -522,7 +523,7 @@ const AlertsSystem: React.FC = () => {
               onChange={(e) => setFilter({ ...filter, priority: e.target.value })}
               className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-text-tertiary)]"
             >
-              <option value="all">Toutes priorités</option>
+              <option value="all">{t('alertsSystem.allPriorities')}</option>
               <option value="high">Haute</option>
               <option value="medium">Moyenne</option>
               <option value="low">Basse</option>
@@ -536,8 +537,8 @@ const AlertsSystem: React.FC = () => {
               <option value="all">Tous statuts</option>
               <option value="new">{t('actions.new')}</option>
               <option value="acknowledged">Reconnu</option>
-              <option value="resolved">Résolu</option>
-              <option value="ignored">Ignoré</option>
+              <option value="resolved">{t('alertsSystem.statusResolved')}</option>
+              <option value="ignored">{t('alertsSystem.statusIgnored')}</option>
             </select>
           </div>
         </div>
@@ -600,7 +601,7 @@ const AlertsSystem: React.FC = () => {
 
                   {alert.suggestedAction && (
                     <div className="mt-2 p-2 bg-white bg-opacity-50 rounded">
-                      <p className="text-sm font-medium">Action suggérée:</p>
+                      <p className="text-sm font-medium">{t('alertsSystem.suggestedAction')}</p>
                       <p className="text-sm">{alert.suggestedAction}</p>
                     </div>
                   )}
@@ -631,7 +632,7 @@ const AlertsSystem: React.FC = () => {
                 )}>
                   {alert.status === 'new' ? 'Nouveau' :
                    alert.status === 'acknowledged' ? 'Reconnu' :
-                   alert.status === 'resolved' ? 'Résolu' : 'Ignoré'}
+                   alert.status === 'resolved' ? t('alertsSystem.statusResolved') : t('alertsSystem.statusIgnored')}
                 </span>
 
                 {alert.status === 'new' && (
@@ -642,7 +643,7 @@ const AlertsSystem: React.FC = () => {
                         handleAcknowledge(alert.id);
                       }}
                       className="p-1 bg-white rounded hover:bg-gray-100"
-                      title="Reconnaître"
+                      title={t('alertsSystem.acknowledge')}
                     >
                       <Eye className="w-4 h-4" />
                     </button>
@@ -652,7 +653,7 @@ const AlertsSystem: React.FC = () => {
                         handleResolve(alert.id);
                       }}
                       className="p-1 bg-white rounded hover:bg-gray-100"
-                      title="Résoudre"
+                      title={t('alertsSystem.resolve')}
                     >
                       <CheckCircle className="w-4 h-4" />
                     </button>
@@ -676,13 +677,13 @@ const AlertsSystem: React.FC = () => {
 
       {/* Alert Rules */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Règles d'Alertes Actives</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('alertsSystem.activeRules')}</h2>
         <div className="space-y-3">
           {alertRules.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Shield className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium">Aucune règle d'alerte configurée</p>
-              <p className="text-xs mt-1">Cliquez sur "Configurer Règles" pour créer vos premières règles</p>
+              <p className="text-sm font-medium">{t('alertsSystem.noRule')}</p>
+              <p className="text-xs mt-1">{t('alertsSystem.noRuleHint')}</p>
             </div>
           )}
           {alertRules.map((rule) => {
@@ -700,18 +701,18 @@ const AlertsSystem: React.FC = () => {
                   <button
                     onClick={() => toggleRule(rule.id)}
                     className={cn("w-3 h-3 rounded-full shrink-0", rule.enabled ? "bg-green-500" : "bg-gray-300")}
-                    title={rule.enabled ? 'Règle active — cliquer pour désactiver' : 'Règle inactive — cliquer pour activer'}
-                    aria-label={rule.enabled ? 'Désactiver la règle' : 'Activer la règle'}
+                    title={t(rule.enabled ? 'alertsSystem.ruleActiveTitle' : 'alertsSystem.ruleInactiveTitle')}
+                    aria-label={t(rule.enabled ? 'alertsSystem.disableRule' : 'alertsSystem.enableRule')}
                   />
                   <div>
                     <div className="flex items-center gap-2">
                       <h4 className="font-medium text-gray-900">{rule.name}</h4>
                       {triggered && (
-                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700">Déclenchée</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 text-red-700">{t('alertsSystem.triggered')}</span>
                       )}
                     </div>
                     <p className="text-sm text-gray-600">
-                      {def?.label || rule.condition} {rule.comparison === 'greater' ? '>' : rule.comparison === 'less' ? '<' : '='} {thr}
+                      {def ? t(def.labelKey) : rule.condition} {rule.comparison === 'greater' ? '>' : rule.comparison === 'less' ? '<' : '='} {thr}
                       {cur !== undefined && <span className="text-gray-400"> · actuel : {fmtByKind(cur)}</span>}
                     </p>
                   </div>
@@ -725,7 +726,7 @@ const AlertsSystem: React.FC = () => {
                       {notif === 'dashboard' && <Bell className="w-4 h-4 text-gray-700" />}
                     </span>
                   ))}
-                  <button onClick={() => deleteRule(rule.id)} className="p-1 hover:bg-red-50 rounded" aria-label="Supprimer la règle">
+                  <button onClick={() => deleteRule(rule.id)} className="p-1 hover:bg-red-50 rounded" aria-label={t('alertsSystem.deleteRule')}>
                     <Trash2 className="w-4 h-4 text-red-500" />
                   </button>
                 </div>
@@ -749,22 +750,22 @@ const AlertsSystem: React.FC = () => {
             </div>
             <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nom de la règle</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('alertsSystem.ruleName')}</label>
                 <input
                   type="text" value={ruleForm.name}
                   onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
-                  placeholder="Ex : Trésorerie critique"
+                  placeholder={t('alertsSystem.ruleNamePlaceholder')}
                   className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Indicateur surveillé</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('alertsSystem.watchedMetric')}</label>
                 <select
                   value={ruleForm.condition}
                   onChange={(e) => setRuleForm({ ...ruleForm, condition: e.target.value })}
                   className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
                 >
-                  {METRIC_DEFS.map((d) => <option key={d.key} value={d.key}>{d.label}</option>)}
+                  {METRIC_DEFS.map((d) => <option key={d.key} value={d.key}>{t(d.labelKey)}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -775,9 +776,9 @@ const AlertsSystem: React.FC = () => {
                     onChange={(e) => setRuleForm({ ...ruleForm, comparison: e.target.value as AlertRule['comparison'] })}
                     className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
                   >
-                    <option value="greater">Supérieur à (&gt;)</option>
-                    <option value="less">Inférieur à (&lt;)</option>
-                    <option value="equal">Égal à (=)</option>
+                    <option value="greater">{t('alertsSystem.opGreater')}</option>
+                    <option value="less">{t('alertsSystem.opLess')}</option>
+                    <option value="equal">{t('alertsSystem.opEqual')}</option>
                   </select>
                 </div>
                 <div>
@@ -790,13 +791,13 @@ const AlertsSystem: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fréquence d'évaluation</label>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('alertsSystem.evalFrequency')}</label>
                 <select
                   value={ruleForm.frequency}
                   onChange={(e) => setRuleForm({ ...ruleForm, frequency: e.target.value as AlertRule['frequency'] })}
                   className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white"
                 >
-                  <option value="realtime">Temps réel</option>
+                  <option value="realtime">{t('alertsSystem.freqRealtime')}</option>
                   <option value="hourly">Horaire</option>
                   <option value="daily">Quotidienne</option>
                   <option value="weekly">Hebdomadaire</option>
@@ -829,7 +830,7 @@ const AlertsSystem: React.FC = () => {
               </div>
               {ruleForm.notifications.includes('email') && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Destinataires email (séparés par virgule)</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('alertsSystem.emailRecipients')}</label>
                   <input
                     type="text" value={ruleForm.recipients}
                     onChange={(e) => setRuleForm({ ...ruleForm, recipients: e.target.value })}
