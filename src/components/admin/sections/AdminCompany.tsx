@@ -5,34 +5,58 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '../../../lib/supabase';
 
 interface Props { subTab: number; setSubTab: (n: number) => void; }
 
+// `labelKey` et non `label` : la table est figée au chargement du module.
 const tabs = [
-  { label: 'Informations legales', icon: Building2 },
-  { label: 'Logo & En-tete', icon: Image },
-  { label: 'Exercice comptable', icon: CalendarDays },
-  { label: 'Devise', icon: Coins },
-  { label: 'Plan SYSCOHADA', icon: BookOpen },
-  { label: 'TVA & Taxes', icon: Receipt },
-  { label: 'Categories immobilisations', icon: Boxes },
+  { labelKey: 'adminCompany.tabLegal', icon: Building2 },
+  { labelKey: 'adminCompany.tabLogo', icon: Image },
+  { labelKey: 'adminCompany.tabFiscalYear', icon: CalendarDays },
+  { labelKey: 'adminCompany.tabCurrency', icon: Coins },
+  { labelKey: 'adminCompany.tabChartOfAccounts', icon: BookOpen },
+  { labelKey: 'adminCompany.tabTaxes', icon: Receipt },
+  { labelKey: 'adminCompany.tabAssetCategories', icon: Boxes },
 ];
 
+// La VALEUR du pays reste le libellé canonique (elle part en base) ; seule sa
+// présentation est traduite, via le namespace partagé `countries`.
 const OHADA_COUNTRIES = ['Cote d\'Ivoire','Cameroun','Senegal','Gabon','Congo','Tchad','RCA','Mali','Burkina Faso','Niger','Togo','Benin','Guinee Equatoriale','Comores','Guinee','Guinee-Bissau','RDC'];
+const OHADA_COUNTRY_KEY: Record<string, string> = {
+  "Cote d'Ivoire": 'countries.CI', Cameroun: 'countries.CM', Senegal: 'countries.SN',
+  Gabon: 'countries.GA', Congo: 'countries.CG', Tchad: 'countries.TD', RCA: 'countries.CF',
+  Mali: 'countries.ML', 'Burkina Faso': 'countries.BF', Niger: 'countries.NE',
+  Togo: 'countries.TG', Benin: 'countries.BJ', 'Guinee Equatoriale': 'countries.GQ',
+  Comores: 'countries.KM', Guinee: 'countries.GN', 'Guinee-Bissau': 'countries.GW',
+  RDC: 'countries.CD',
+};
+
+/** Valeurs persistées → clé d'affichage. Les valeurs restent canoniques en base. */
+const ACCOUNT_TYPE_KEY: Record<string, string> = { Bilan: 'adminCompany.typeBalance', Gestion: 'adminCompany.typeManagement', HAO: 'adminCompany.typeHao' };
+const SENS_KEY: Record<string, string> = { Debiteur: 'adminCompany.debit', Crediteur: 'adminCompany.credit' };
+const FY_STATUS_KEY: Record<string, string> = { Ouvert: 'adminCompany.statusOpen', Cloture: 'adminCompany.statusClosed' };
+const METHOD_KEY: Record<string, string> = { Lineaire: 'adminCompany.methodStraightLine', Degressif: 'adminCompany.methodDeclining' };
+const LEGAL_FORM_KEY: Record<string, string> = { 'Entreprise individuelle': 'adminCompany.legalFormSole' };
+const TAX_REGIME_KEY: Record<string, string> = { 'Reel normal': 'adminCompany.regimeReelNormal', 'Reel simplifie': 'adminCompany.regimeReelSimplifie' };
+const TAX_TYPE_KEY: Record<string, string> = { 'Retenue a la source': 'adminCompany.taxTypeWithholding', Autre: 'adminCompany.taxTypeOther' };
 
 const DEVISE_SYMBOLS: Record<string,string> = { XOF:'FCFA',XAF:'FCFA',EUR:'€',USD:'$' };
 
 // --- Sub-components defined OUTSIDE AdminCompany to prevent remount on every render ---
-const Modal: React.FC<{ title:string;onClose:()=>void;onSubmit:()=>void;submitLabel?:string;children:React.ReactNode }> = ({ title,onClose,onSubmit,submitLabel='Enregistrer',children }) => (
+const Modal: React.FC<{ title:string;onClose:()=>void;onSubmit:()=>void;submitLabel?:string;children:React.ReactNode }> = ({ title,onClose,onSubmit,submitLabel,children }) => {
+  const { t } = useLanguage();
+  return (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
     <div role="dialog" aria-modal="true" aria-labelledby="modal-title-id" className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
       <div className="flex items-center justify-between px-6 py-4 border-b"><h3 id="modal-title-id" className="text-lg font-semibold text-gray-900">{title}</h3><button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button></div>
       <div className="px-6 py-4 space-y-4">{children}</div>
-      <div className="flex justify-end gap-3 px-6 py-4 border-t"><button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Annuler</button><button onClick={onSubmit} className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>{submitLabel}</button></div>
+      <div className="flex justify-end gap-3 px-6 py-4 border-t"><button onClick={onClose} className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">{t('adminCompany.cancel')}</button><button onClick={onSubmit} className="px-4 py-2 text-sm text-white rounded-lg hover:opacity-90" style={{backgroundColor:'#C0322B'}}>{submitLabel ?? t('adminCompany.save')}</button></div>
     </div>
   </div>
-);
+  );
+};
 const InputField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;type?:string;required?:boolean;placeholder?:string }> = ({ label,value,onChange,type='text',required,placeholder }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" /></div>);
 const SelectField: React.FC<{ label:string;value:string;onChange:(v:string)=>void;options:{value:string;label:string}[];required?:boolean }> = ({ label,value,onChange,options,required }) => (<div><label className="block text-sm font-medium text-gray-700 mb-1">{label}{required&&<span className="text-red-500 ml-1">*</span>}</label><select value={value} onChange={e=>onChange(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none bg-white">{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></div>);
 const Badge: React.FC<{ text:string;color?:string }> = ({ text,color='gray' }) => { const c: Record<string,string> = { green:'bg-green-100 text-green-700',red:'bg-red-100 text-red-700',blue:'bg-blue-100 text-blue-700',yellow:'bg-yellow-100 text-yellow-700',gray:'bg-gray-100 text-gray-700',primary:'bg-primary-100 text-primary-700' }; return <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${c[color]||c.gray}`}>{text}</span>; };
@@ -67,6 +91,7 @@ const NO_BROWSER_MAGIC = {
 };
 
 const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, saveSetting }) => {
+  const { t } = useLanguage();
   // ── ZÉRO re-render sur frappe ───────────────────────────────────────────────
   const formRef = useRef<HTMLFormElement>(null);
   const [saving, setSaving] = useState(false);
@@ -124,7 +149,7 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
       toast.success('Informations legales enregistrees avec succes');
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      toast.error('Erreur lors de l\'enregistrement');
+      toast.error(t('adminCompany.saveError'));
     } finally {
       setSaving(false);
     }
@@ -133,32 +158,32 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
   return (
     <form ref={formRef} onSubmit={e=>{e.preventDefault();handleSave();}} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">Raison sociale<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" defaultValue="" className={CLS} aria-required="true" aria-invalid={saveAttempted && !saved && !saving ? true : undefined} {...NO_BROWSER_MAGIC} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">Forme juridique</label><select id="li-formeJuridique" defaultValue="SARL" className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{f}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-raisonSociale">{t('adminCompany.companyName')}<span className="text-red-500 ml-1">*</span></label><input id="li-raisonSociale" type="text" defaultValue="" className={CLS} aria-required="true" aria-invalid={saveAttempted && !saved && !saving ? true : undefined} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-formeJuridique">{t('adminCompany.legalForm')}</label><select id="li-formeJuridique" defaultValue="SARL" className={CLS+' bg-white'}>{['SARL','SA','SAS','SNC','Entreprise individuelle','GIE'].map(f=><option key={f} value={f}>{LEGAL_FORM_KEY[f] ? t(LEGAL_FORM_KEY[f]) : f}</option>)}</select></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-nif">NIF</label><input id="li-nif" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-rccm">RCCM</label><input id="li-rccm" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-capitalSocial">Capital social</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-capitalSocial">{t('adminCompany.shareCapital')}</label>
           <div className="flex">
             <input id="li-capitalSocial" type="number" defaultValue="" className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" {...NO_BROWSER_MAGIC} />
             <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-sm text-gray-600">FCFA</span>
           </div>
         </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-regimeFiscal">Regime fiscal</label><select id="li-regimeFiscal" defaultValue="Reel normal" className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-regimeFiscal">{t('adminCompany.taxRegime')}</label><select id="li-regimeFiscal" defaultValue="Reel normal" className={CLS+' bg-white'}>{['Reel normal','Reel simplifie','BIC','BNC'].map(r=><option key={r} value={r}>{TAX_REGIME_KEY[r] ? t(TAX_REGIME_KEY[r]) : r}</option>)}</select></div>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-adresse">Adresse siege</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-adresse">{t('adminCompany.headOfficeAddress')}</label>
         <textarea id="li-adresse" defaultValue="" rows={3} className={CLS} {...NO_BROWSER_MAGIC} />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-ville">Ville</label><input id="li-ville" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-pays">Pays</label><select id="li-pays" defaultValue="Cote d'Ivoire" className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-telephone">Telephone</label><input id="li-telephone" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">Email</label><input id="li-email" type="email" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">Site web</label><input id="li-siteWeb" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-ville">{t('adminCompany.city')}</label><input id="li-ville" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-pays">{t('adminCompany.country')}</label><select id="li-pays" defaultValue="Cote d'Ivoire" className={CLS+' bg-white'}>{OHADA_COUNTRIES.map(c=><option key={c} value={c}>{t(OHADA_COUNTRY_KEY[c] ?? '') || c}</option>)}</select></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-telephone">{t('adminCompany.phone')}</label><input id="li-telephone" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-email">{t('adminCompany.email')}</label><input id="li-email" type="email" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="li-siteWeb">{t('adminCompany.website')}</label><input id="li-siteWeb" type="text" defaultValue="" className={CLS} {...NO_BROWSER_MAGIC} /></div>
       </div>
       <div className="flex items-center justify-end gap-3">
-        {saved && <span className="text-green-600 text-sm font-medium">✓ Enregistré avec succès</span>}
+        {saved && <span className="text-green-600 text-sm font-medium">{t('adminCompany.savedSuccess')}</span>}
         <button
           type="submit"
           disabled={saving}
@@ -166,8 +191,8 @@ const LegalInfoSection: React.FC<LegalInfoSectionProps> = ({ initialValues, save
           style={{backgroundColor:'#C0322B'}}
         >
           {saving
-            ? <><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>
-            : <><Save className="w-4 h-4" />Enregistrer</>
+            ? <><Loader2 className="w-4 h-4 animate-spin" />{t('adminCompany.saving')}</>
+            : <><Save className="w-4 h-4" />{t('adminCompany.save')}</>
           }
         </button>
       </div>
@@ -184,6 +209,7 @@ interface PlanSyscohadaSectionProps {
 }
 
 const PlanSyscohadaSection: React.FC<PlanSyscohadaSectionProps> = ({ accounts, onAddAccount, onDeleteAccount }) => {
+  const { t } = useLanguage();
   const [accountSearch, setAccountSearch] = useState('');
   const [accountClasseFilter, setAccountClasseFilter] = useState('');
   const [accountTypeFilter, setAccountTypeFilter] = useState('');
@@ -200,15 +226,15 @@ const PlanSyscohadaSection: React.FC<PlanSyscohadaSectionProps> = ({ accounts, o
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Rechercher un compte..." value={accountSearch} onChange={e=>setAccountSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
+          <input type="text" placeholder={t('adminCompany.searchAccount')} value={accountSearch} onChange={e=>setAccountSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none" />
         </div>
-        <select value={accountClasseFilter} onChange={e=>setAccountClasseFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-red-500 outline-none"><option value="">Toutes les classes</option>{[1,2,3,4,5,6,7,8,9].map(c=><option key={c} value={c}>Classe {c}</option>)}</select>
-        <select value={accountTypeFilter} onChange={e=>setAccountTypeFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-red-500 outline-none"><option value="">Tous les types</option>{['Bilan','Gestion','HAO'].map(t=><option key={t} value={t}>{t}</option>)}</select>
-        <button onClick={onAddAccount} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Ajouter un compte</button>
-        <button className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"><Upload className="w-4 h-4" />Importer</button>
+        <select value={accountClasseFilter} onChange={e=>setAccountClasseFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-red-500 outline-none"><option value="">{t('adminCompany.allClasses')}</option>{[1,2,3,4,5,6,7,8,9].map(c=><option key={c} value={c}>{t('adminCompany.classN', { n: String(c) })}</option>)}</select>
+        <select value={accountTypeFilter} onChange={e=>setAccountTypeFilter(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-red-500 outline-none"><option value="">{t('adminCompany.allTypes')}</option>{['Bilan','Gestion','HAO'].map(ty=><option key={ty} value={ty}>{t(ACCOUNT_TYPE_KEY[ty])}</option>)}</select>
+        <button onClick={onAddAccount} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />{t('adminCompany.addAccount')}</button>
+        <button className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm"><Upload className="w-4 h-4" />{t('adminCompany.import')}</button>
       </div>
       <div className="overflow-x-auto border border-gray-200 rounded-lg">
-        <table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Numero','Libelle','Classe','Type','Sens normal','Lettrable','Statut','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{filteredAccounts.length===0?(<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucun compte trouve</td></tr>):filteredAccounts.map(a=>(<tr key={a.numero} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{a.numero}</td><td className="px-4 py-3">{a.libelle}</td><td className="px-4 py-3"><Badge text={`Classe ${a.classe}`} color={a.classe<=5?'blue':'primary'} /></td><td className="px-4 py-3">{a.type}</td><td className="px-4 py-3">{a.sens}</td><td className="px-4 py-3">{a.lettrable?'Oui':'Non'}</td><td className="px-4 py-3"><Badge text={a.actif?'Actif':'Inactif'} color={a.actif?'green':'red'} /></td><td className="px-4 py-3 flex gap-2"><button className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button><button onClick={() => onDeleteAccount(a.numero)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table>
+        <table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['adminCompany.colNumber','adminCompany.colLabel','adminCompany.colClass','adminCompany.colType','adminCompany.colNormalBalance','adminCompany.colReconcilable','adminCompany.colStatus','adminCompany.colActions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t(h)}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{filteredAccounts.length===0?(<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">{t('adminCompany.noAccount')}</td></tr>):filteredAccounts.map(a=>(<tr key={a.numero} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{a.numero}</td><td className="px-4 py-3">{a.libelle}</td><td className="px-4 py-3"><Badge text={t('adminCompany.classN', { n: String(a.classe) })} color={a.classe<=5?'blue':'primary'} /></td><td className="px-4 py-3">{t(ACCOUNT_TYPE_KEY[a.type] ?? '') || a.type}</td><td className="px-4 py-3">{t(SENS_KEY[a.sens] ?? '') || a.sens}</td><td className="px-4 py-3">{t(a.lettrable?'adminCompany.yes':'adminCompany.no')}</td><td className="px-4 py-3"><Badge text={t(a.actif?'adminCompany.active':'adminCompany.inactive')} color={a.actif?'green':'red'} /></td><td className="px-4 py-3 flex gap-2"><button className="text-gray-400 hover:text-gray-600"><Edit2 className="w-4 h-4" /></button><button onClick={() => onDeleteAccount(a.numero)} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table>
       </div>
     </div>
   );
@@ -217,6 +243,7 @@ const PlanSyscohadaSection: React.FC<PlanSyscohadaSectionProps> = ({ accounts, o
 // ─── AdminCompany ─────────────────────────────────────────────────────────────
 const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   // false par défaut — la page s'affiche immédiatement
   // Les données se chargent en arrière-plan sans bloquer l'interface
   const [loading, setLoading] = useState(false);
@@ -351,7 +378,7 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { toast.error('Logo trop volumineux (max 2 Mo)'); return; }
+    if (file.size > 2 * 1024 * 1024) { toast.error(t('adminCompany.logoTooLarge')); return; }
     const reader = new FileReader();
     reader.onload = () => setLogoDataUrl(reader.result as string);
     reader.readAsDataURL(file);
@@ -362,11 +389,11 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
     setSavingSection('logo');
     try {
       await saveSetting('admin_company_logo', { ...logoToggles, dataUrl: logoDataUrl });
-      toast.success('Logo et paramètres enregistrés');
+      toast.success(t('adminCompany.logoSaved'));
       setSavedSection('logo');
       setTimeout(() => setSavedSection(s => s === 'logo' ? null : s), 3000);
     } catch {
-      toast.error('Erreur lors de l\'enregistrement du logo');
+      toast.error(t('adminCompany.logoSaveError'));
     } finally {
       setSavingSection(null);
     }
@@ -376,54 +403,54 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
     setSavingSection('devise');
     try {
       await saveSetting('admin_company_devise', deviseForm);
-      toast.success('Parametres de devise enregistres avec succes');
+      toast.success(t('adminCompany.currencySaved'));
       setSavedSection('devise');
       setTimeout(() => setSavedSection(s => s === 'devise' ? null : s), 3000);
     } catch {
-      toast.error('Erreur lors de l\'enregistrement de la devise');
+      toast.error(t('adminCompany.currencySaveError'));
     } finally {
       setSavingSection(null);
     }
   };
-  const handleAccountSubmit = async () => { if (!accountForm.numero||!accountForm.libelle) { toast.error('Le numero et le libelle sont obligatoires'); return; } try { await adapter.create('accounts', { code: accountForm.numero, name: accountForm.libelle, accountClass: Number(accountForm.classe||accountForm.numero[0]), accountType: accountForm.type.toLowerCase(), normalBalance: accountForm.sens==='Crediteur'?'credit':'debit', isReconcilable: accountForm.lettrable, isActive: true, level: 1 }); toast.success(`Compte ${accountForm.numero} ajoute avec succes`); setShowAccountModal(false); setAccountForm({ numero:'',libelle:'',classe:'',type:'Bilan',sens:'Debiteur',lettrable:false,compteCollectif:'' }); await loadData(); } catch { toast.error('Erreur lors de l\'ajout du compte'); } };
+  const handleAccountSubmit = async () => { if (!accountForm.numero||!accountForm.libelle) { toast.error(t('adminCompany.numberAndLabelRequired')); return; } try { await adapter.create('accounts', { code: accountForm.numero, name: accountForm.libelle, accountClass: Number(accountForm.classe||accountForm.numero[0]), accountType: accountForm.type.toLowerCase(), normalBalance: accountForm.sens==='Crediteur'?'credit':'debit', isReconcilable: accountForm.lettrable, isActive: true, level: 1 }); toast.success(t('adminCompany.accountAdded', { code: accountForm.numero })); setShowAccountModal(false); setAccountForm({ numero:'',libelle:'',classe:'',type:'Bilan',sens:'Debiteur',lettrable:false,compteCollectif:'' }); await loadData(); } catch { toast.error(t('adminCompany.accountAddError')); } };
   const handleDeleteAccount = async (numero: string) => {
-    if (!window.confirm(`Supprimer le compte ${numero} ?`)) return;
+    if (!window.confirm(t('adminCompany.confirmDeleteAccount', { code: numero }))) return;
     try {
       const allAccounts = await adapter.getAll<any>('accounts');
       const toDelete = allAccounts.find((a: any) => a.code === numero || a.numero === numero);
       if (toDelete?.id) { await adapter.delete('accounts', toDelete.id); }
       await loadData();
-      toast.success(`Compte ${numero} supprimé`);
-    } catch { toast.error('Erreur lors de la suppression du compte'); }
+      toast.success(t('adminCompany.accountDeleted', { code: numero }));
+    } catch { toast.error(t('adminCompany.accountDeleteError')); }
   };
   const handleTaxSubmit = async () => {
-    if (!taxForm.code||!taxForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; }
+    if (!taxForm.code||!taxForm.libelle) { toast.error(t('adminCompany.codeAndLabelRequired')); return; }
     try {
       const n = [...taxes, { ...taxForm, taux: Number(taxForm.taux), actif: true }];
       await saveSetting('admin_taxes', n);
       setTaxes(n);
-      toast.success(`Taxe ${taxForm.code} ajoutee avec succes`);
+      toast.success(t('adminCompany.taxAdded', { code: taxForm.code }));
       setShowTaxModal(false);
       setTaxForm({ code:'',libelle:'',taux:'',type:'TVA',compteCollecte:'',compteDeductible:'' });
-    } catch { toast.error('Erreur lors de la sauvegarde de la taxe'); }
+    } catch { toast.error(t('adminCompany.taxSaveError')); }
   };
   const handleCategorySubmit = async () => {
-    if (!categoryForm.code||!categoryForm.libelle) { toast.error('Le code et le libelle sont obligatoires'); return; }
+    if (!categoryForm.code||!categoryForm.libelle) { toast.error(t('adminCompany.codeAndLabelRequired')); return; }
     try {
       const n = [...categories, { ...categoryForm, duree: Number(categoryForm.duree), taux: Number(categoryForm.taux) }];
       await saveSetting('admin_asset_categories', n);
       setCategories(n);
-      toast.success(`Categorie ${categoryForm.code} ajoutee avec succes`);
+      toast.success(t('adminCompany.categoryAdded', { code: categoryForm.code }));
       setShowCategoryModal(false);
       setCategoryForm({ code:'',libelle:'',duree:'',taux:'',methode:'Lineaire',compteBilan:'',compteAmort:'',compteDotation:'' });
-    } catch { toast.error('Erreur lors de la sauvegarde de la catégorie'); }
+    } catch { toast.error(t('adminCompany.categorySaveError')); }
   };
   const handleExerciceSubmit = async () => {
-    if (!exerciceForm.debut||!exerciceForm.fin) { toast.error('Les dates de debut et de fin sont obligatoires'); return; }
+    if (!exerciceForm.debut||!exerciceForm.fin) { toast.error(t('adminCompany.datesRequired')); return; }
     try {
       await adapter.create('fiscalYears', {
         code: exerciceForm.code,
-        name: `Exercice ${exerciceForm.code}`,
+        name: t('adminCompany.fiscalYearName', { code: exerciceForm.code }),
         // camelCase pour DexieAdapter (local)
         startDate: exerciceForm.debut,
         endDate: exerciceForm.fin,
@@ -437,43 +464,43 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
         periodes: Number(exerciceForm.periodes) || 12,
         periods: Number(exerciceForm.periodes) || 12,
       });
-      toast.success(`Exercice ${exerciceForm.code} cree avec succes`);
+      toast.success(t('adminCompany.fiscalYearCreated', { code: exerciceForm.code }));
       setShowExerciceModal(false);
       setExerciceForm({ debut:'',fin:'',code:'',periodes:'12' });
       await loadData();
     } catch (err) {
-      toast.error('Erreur lors de la creation de l\'exercice');
+      toast.error(t('adminCompany.fiscalYearCreateError'));
       console.error('[handleExerciceSubmit]', err);
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">Chargement...</span></div>;
+  if (loading) return <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-400" /><span className="ml-2 text-gray-500">{t('adminCompany.loading')}</span></div>;
 
   const renderLogoEntete = () => (<div className="space-y-6">
     {/* Zone d'upload — cliquable */}
     <input ref={logoFileInputRef} type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={handleLogoFileChange} />
     <div onClick={() => logoFileInputRef.current?.click()} className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-red-400 transition-colors cursor-pointer">
       <Upload className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-      <p className="text-sm text-gray-600 mb-1">Cliquez pour choisir votre logo</p>
-      <p className="text-xs text-gray-400">PNG, JPG, SVG ou WebP — Max 2 Mo</p>
+      <p className="text-sm text-gray-600 mb-1">{t('adminCompany.chooseLogo')}</p>
+      <p className="text-xs text-gray-400">{t('adminCompany.logoFormats')}</p>
     </div>
     {/* Aperçu */}
     <div className="p-4 bg-gray-50 rounded-lg">
-      <p className="text-sm font-medium text-gray-700 mb-2">Aperçu du logo</p>
+      <p className="text-sm font-medium text-gray-700 mb-2">{t('adminCompany.logoPreview')}</p>
       {logoDataUrl
-        ? <img src={logoDataUrl} alt="Logo entreprise" className="max-w-[200px] max-h-[80px] object-contain rounded border bg-white p-2" />
+        ? <img src={logoDataUrl} alt={t('adminCompany.companyLogoAlt')} className="max-w-[200px] max-h-[80px] object-contain rounded border bg-white p-2" />
         : <div className="w-32 h-20 bg-gray-200 rounded-lg flex items-center justify-center"><Image className="w-8 h-8 text-gray-400" /></div>
       }
-      {logoDataUrl && <button onClick={() => setLogoDataUrl('')} className="mt-2 text-xs text-red-500 hover:underline">Supprimer le logo</button>}
-    </div><div className="space-y-3">{([{key:'etatsFinanciers' as const,label:'Afficher sur les etats financiers'},{key:'factures' as const,label:'Afficher sur les factures'},{key:'entetePdf' as const,label:'Afficher dans l\'en-tete PDF'}]).map(({key,label})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{label}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex items-center justify-end gap-3">{savedSection==='logo'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleLogoSave} disabled={savingSection==='logo'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='logo'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
+      {logoDataUrl && <button onClick={() => setLogoDataUrl('')} className="mt-2 text-xs text-red-500 hover:underline">{t('adminCompany.removeLogo')}</button>}
+    </div><div className="space-y-3">{([{key:'etatsFinanciers' as const,labelKey:'adminCompany.showOnStatements'},{key:'factures' as const,labelKey:'adminCompany.showOnInvoices'},{key:'entetePdf' as const,labelKey:'adminCompany.showOnPdfHeader'}]).map(({key,labelKey})=>(<div key={key} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"><span className="text-sm text-gray-700">{t(labelKey)}</span><button onClick={()=>setLogoToggles({...logoToggles,[key]:!logoToggles[key]})} className={`w-10 h-6 rounded-full transition-colors relative ${logoToggles[key]?'bg-red-500':'bg-gray-300'}`}><span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${logoToggles[key]?'left-[18px]':'left-0.5'}`} /></button></div>))}</div><div className="flex items-center justify-end gap-3">{savedSection==='logo'&&<span className="text-green-600 text-sm font-medium">{t('adminCompany.saved')}</span>}<button onClick={handleLogoSave} disabled={savingSection==='logo'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='logo'?<><Loader2 className="w-4 h-4 animate-spin" />{t('adminCompany.saving')}</>:<><Save className="w-4 h-4" />{t('adminCompany.save')}</>}</button></div></div>);
 
-  const renderExerciceComptable = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowExerciceModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Creer un exercice</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Date debut','Date fin','Nb periodes','Statut','Actif','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{exercices.length===0?(<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Aucun exercice comptable</td></tr>):exercices.map(ex=>(<tr key={ex.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-medium">{ex.code}</td><td className="px-4 py-3">{ex.debut}</td><td className="px-4 py-3">{ex.fin}</td><td className="px-4 py-3">{ex.periodes}</td><td className="px-4 py-3"><Badge text={ex.statut} color={ex.statut==='Ouvert'?'green':'red'} /></td><td className="px-4 py-3">{ex.actif&&<Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}</td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingExercice(ex)} className="text-gray-400 hover:text-blue-500 mr-2"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm('Supprimer cet exercice ?')) return; try { await adapter.delete('fiscalYears', ex.code); await loadData(); toast.success('Exercice supprimé'); } catch { toast.error('Erreur lors de la suppression'); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
+  const renderExerciceComptable = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowExerciceModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />{t('adminCompany.createFiscalYear')}</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['adminCompany.colCode','adminCompany.colStartDate','adminCompany.colEndDate','adminCompany.colPeriodCount','adminCompany.colStatus','adminCompany.colActive','adminCompany.colActions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t(h)}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{exercices.length===0?(<tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">{t('adminCompany.noFiscalYear')}</td></tr>):exercices.map(ex=>(<tr key={ex.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-medium">{ex.code}</td><td className="px-4 py-3">{ex.debut}</td><td className="px-4 py-3">{ex.fin}</td><td className="px-4 py-3">{ex.periodes}</td><td className="px-4 py-3"><Badge text={t(FY_STATUS_KEY[ex.statut] ?? '') || ex.statut} color={ex.statut==='Ouvert'?'green':'red'} /></td><td className="px-4 py-3">{ex.actif&&<Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />}</td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingExercice(ex)} className="text-gray-400 hover:text-blue-500 mr-2"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm(t('adminCompany.confirmDeleteFiscalYear'))) return; try { await adapter.delete('fiscalYears', ex.code); await loadData(); toast.success(t('adminCompany.fiscalYearDeleted')); } catch { toast.error(t('adminCompany.deleteError')); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
 
-  const renderDevise = () => (<div className="space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><SelectField label="Devise principale" value={deviseForm.devise} onChange={v=>setDeviseForm({...deviseForm,devise:v})} options={[{value:'XOF',label:'XOF - FCFA UEMOA'},{value:'XAF',label:'XAF - FCFA CEMAC'},{value:'EUR',label:'EUR - Euro'},{value:'USD',label:'USD - Dollar US'}]} /><SelectField label="Pays OHADA" value={deviseForm.pays} onChange={v=>setDeviseForm({...deviseForm,pays:v})} options={OHADA_COUNTRIES.map(c=>({value:c,label:c}))} /><SelectField label="Fuseau horaire" value={deviseForm.fuseau} onChange={v=>setDeviseForm({...deviseForm,fuseau:v})} options={[{value:'Africa/Abidjan',label:'Africa/Abidjan (GMT+0)'},{value:'Africa/Douala',label:'Africa/Douala (GMT+1)'},{value:'Africa/Dakar',label:'Africa/Dakar (GMT+0)'},{value:'Africa/Libreville',label:'Africa/Libreville (GMT+1)'},{value:'Africa/Brazzaville',label:'Africa/Brazzaville (GMT+1)'},{value:'Africa/Ndjamena',label:'Africa/Ndjamena (GMT+1)'}]} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Symbole devise</label><input type="text" readOnly value={DEVISE_SYMBOLS[deviseForm.devise]||''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label="Format nombre" value={deviseForm.formatNombre} onChange={v=>setDeviseForm({...deviseForm,formatNombre:v})} options={[{value:'1 000 000',label:'1 000 000'},{value:'1.000.000',label:'1.000.000'}]} /><SelectField label="Separateur decimal" value={deviseForm.separateurDecimal} onChange={v=>setDeviseForm({...deviseForm,separateurDecimal:v})} options={[{value:'virgule',label:'Virgule (,)'},{value:'point',label:'Point (.)'}]} /></div><div className="flex items-center justify-end gap-3">{savedSection==='devise'&&<span className="text-green-600 text-sm font-medium">✓ Enregistré</span>}<button onClick={handleDeviseSave} disabled={savingSection==='devise'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='devise'?<><Loader2 className="w-4 h-4 animate-spin" />Enregistrement...</>:<><Save className="w-4 h-4" />Enregistrer</>}</button></div></div>);
+  const renderDevise = () => (<div className="space-y-6"><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><SelectField label={t('adminCompany.mainCurrency')} value={deviseForm.devise} onChange={v=>setDeviseForm({...deviseForm,devise:v})} options={[{value:'XOF',label:'XOF — FCFA UEMOA'},{value:'XAF',label:'XAF — FCFA CEMAC'},{value:'EUR',label:'EUR — Euro'},{value:'USD',label:`USD — ${t('adminOcr.curUsd').replace(/\s*\(USD\)$/, '')}`}]} /><SelectField label={t('adminCompany.ohadaCountry')} value={deviseForm.pays} onChange={v=>setDeviseForm({...deviseForm,pays:v})} options={OHADA_COUNTRIES.map(c=>({value:c,label:t(OHADA_COUNTRY_KEY[c] ?? '') || c}))} /><SelectField label={t('adminCompany.timezone')} value={deviseForm.fuseau} onChange={v=>setDeviseForm({...deviseForm,fuseau:v})} options={[{value:'Africa/Abidjan',label:'Africa/Abidjan (GMT+0)'},{value:'Africa/Douala',label:'Africa/Douala (GMT+1)'},{value:'Africa/Dakar',label:'Africa/Dakar (GMT+0)'},{value:'Africa/Libreville',label:'Africa/Libreville (GMT+1)'},{value:'Africa/Brazzaville',label:'Africa/Brazzaville (GMT+1)'},{value:'Africa/Ndjamena',label:'Africa/Ndjamena (GMT+1)'}]} /><div><label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.currencySymbol')}</label><input type="text" readOnly value={DEVISE_SYMBOLS[deviseForm.devise]||''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label={t('adminCompany.numberFormat')} value={deviseForm.formatNombre} onChange={v=>setDeviseForm({...deviseForm,formatNombre:v})} options={[{value:'1 000 000',label:'1 000 000'},{value:'1.000.000',label:'1.000.000'}]} /><SelectField label={t('adminCompany.decimalSeparator')} value={deviseForm.separateurDecimal} onChange={v=>setDeviseForm({...deviseForm,separateurDecimal:v})} options={[{value:'virgule',label:t('adminCompany.sepComma')},{value:'point',label:t('adminCompany.sepPoint')}]} /></div><div className="flex items-center justify-end gap-3">{savedSection==='devise'&&<span className="text-green-600 text-sm font-medium">{t('adminCompany.saved')}</span>}<button onClick={handleDeviseSave} disabled={savingSection==='devise'} className="flex items-center gap-2 px-6 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-60" style={{backgroundColor:'#C0322B'}}>{savingSection==='devise'?<><Loader2 className="w-4 h-4 animate-spin" />{t('adminCompany.saving')}</>:<><Save className="w-4 h-4" />{t('adminCompany.save')}</>}</button></div></div>);
 
-  const renderTvaTaxes = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowTaxModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Ajouter un taux</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Libelle','Taux (%)','Type','Compte collecte','Compte deductible','Statut','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{taxes.length===0?(<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucune taxe configuree</td></tr>):taxes.map((t: any)=>{const tc:Record<string,string>={TVA:'blue',Retenue:'yellow',IMF:'primary',Patente:'green'};return(<tr key={t.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{t.code}</td><td className="px-4 py-3">{t.libelle}</td><td className="px-4 py-3">{t.taux}%</td><td className="px-4 py-3"><Badge text={t.type} color={tc[t.type]||'gray'} /></td><td className="px-4 py-3 font-mono">{t.compteCollecte}</td><td className="px-4 py-3 font-mono">{t.compteDeductible||'-'}</td><td className="px-4 py-3"><Badge text="Actif" color="green" /></td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingTax(t)} className="text-gray-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm(`Supprimer la taxe ${t.code} ?`)) return; const n = taxes.filter((x: any) => x.code !== t.code); try { await saveSetting('admin_taxes', n); setTaxes(n); toast.success('Taxe supprimée'); } catch { toast.error('Erreur lors de la suppression'); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>);})}</tbody></table></div></div>);
+  const renderTvaTaxes = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowTaxModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />{t('adminCompany.addRate')}</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['adminCompany.colCode','adminCompany.colLabel','adminCompany.colRate','adminCompany.colType','adminCompany.colCollectedAccount','adminCompany.colDeductibleAccount','adminCompany.colStatus','adminCompany.colActions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t(h)}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{taxes.length===0?(<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">{t('adminCompany.noTax')}</td></tr>):taxes.map((tax: any)=>{const tc:Record<string,string>={TVA:'blue',Retenue:'yellow',IMF:'primary',Patente:'green'};return(<tr key={tax.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{tax.code}</td><td className="px-4 py-3">{tax.libelle}</td><td className="px-4 py-3">{tax.taux}%</td><td className="px-4 py-3"><Badge text={t(TAX_TYPE_KEY[tax.type] ?? '') || tax.type} color={tc[tax.type]||'gray'} /></td><td className="px-4 py-3 font-mono">{tax.compteCollecte}</td><td className="px-4 py-3 font-mono">{tax.compteDeductible||'-'}</td><td className="px-4 py-3"><Badge text={t('adminCompany.active')} color="green" /></td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingTax(tax)} className="text-gray-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm(t('adminCompany.confirmDeleteTax', { code: tax.code }))) return; const n = taxes.filter((x: any) => x.code !== tax.code); try { await saveSetting('admin_taxes', n); setTaxes(n); toast.success(t('adminCompany.taxDeleted')); } catch { toast.error(t('adminCompany.deleteError')); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>);})}</tbody></table></div></div>);
 
-  const renderCategoriesImmobilisations = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowCategoryModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />Ajouter une categorie</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['Code','Libelle','Duree (ans)','Taux lineaire (%)','Methode','Compte bilan','Compte amort','Compte dotation','Actions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{h}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{categories.length===0?(<tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">Aucune categorie d'immobilisation</td></tr>):categories.map((c: any)=>(<tr key={c.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{c.code}</td><td className="px-4 py-3">{c.libelle}</td><td className="px-4 py-3">{c.duree||'-'}</td><td className="px-4 py-3">{c.taux?`${c.taux}%`:'-'}</td><td className="px-4 py-3">{c.methode}</td><td className="px-4 py-3 font-mono">{c.compteBilan}</td><td className="px-4 py-3 font-mono">{c.compteAmort}</td><td className="px-4 py-3 font-mono">{c.compteDotation}</td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingCategory(c)} className="text-gray-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm(`Supprimer la catégorie ${c.code} ?`)) return; const n = categories.filter((x: any) => x.code !== c.code); try { await saveSetting('admin_asset_categories', n); setCategories(n); toast.success('Catégorie supprimée'); } catch { toast.error('Erreur lors de la suppression'); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
+  const renderCategoriesImmobilisations = () => (<div className="space-y-4"><div className="flex justify-end"><button onClick={()=>setShowCategoryModal(true)} className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:opacity-90 text-sm" style={{backgroundColor:'#C0322B'}}><Plus className="w-4 h-4" />{t('adminCompany.addCategory')}</button></div><div className="overflow-x-auto border border-gray-200 rounded-lg"><table className="w-full text-sm"><thead className="bg-gray-50"><tr>{['adminCompany.colCode','adminCompany.colLabel','adminCompany.colDurationYears','adminCompany.colStraightLineRate','adminCompany.colMethod','adminCompany.colBalanceAccount','adminCompany.colDepreciationAccount','adminCompany.colChargeAccount','adminCompany.colActions'].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">{t(h)}</th>)}</tr></thead><tbody className="divide-y divide-gray-200">{categories.length===0?(<tr><td colSpan={9} className="px-4 py-8 text-center text-gray-400">{t('adminCompany.noCategory')}</td></tr>):categories.map((c: any)=>(<tr key={c.code} className="hover:bg-gray-50"><td className="px-4 py-3 font-mono font-medium">{c.code}</td><td className="px-4 py-3">{c.libelle}</td><td className="px-4 py-3">{c.duree||'-'}</td><td className="px-4 py-3">{c.taux?`${c.taux}%`:'-'}</td><td className="px-4 py-3">{t(METHOD_KEY[c.methode] ?? '') || c.methode}</td><td className="px-4 py-3 font-mono">{c.compteBilan}</td><td className="px-4 py-3 font-mono">{c.compteAmort}</td><td className="px-4 py-3 font-mono">{c.compteDotation}</td><td className="px-4 py-3 flex gap-2"><button onClick={() => setEditingCategory(c)} className="text-gray-400 hover:text-blue-500"><Edit2 className="w-4 h-4" /></button><button onClick={async () => { if (!window.confirm(t('adminCompany.confirmDeleteCategory', { code: c.code }))) return; const n = categories.filter((x: any) => x.code !== c.code); try { await saveSetting('admin_asset_categories', n); setCategories(n); toast.success(t('adminCompany.categoryDeleted')); } catch { toast.error(t('adminCompany.deleteError')); } }} className="text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button></td></tr>))}</tbody></table></div></div>);
 
   const renderTabContent = () => {
     switch(subTab) {
@@ -490,37 +517,37 @@ const AdminCompany: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-lg">{tabs.map((tab,i)=>{const Icon=tab.icon;return(<button key={i} onClick={()=>setSubTab(i)} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${subTab===i?'bg-white text-red-600 shadow-sm':'text-gray-600 hover:text-gray-900'}`}><Icon className="w-4 h-4" />{tab.label}</button>);})}</div>
+      <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-lg">{tabs.map((tab,i)=>{const Icon=tab.icon;return(<button key={i} onClick={()=>setSubTab(i)} className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${subTab===i?'bg-white text-red-600 shadow-sm':'text-gray-600 hover:text-gray-900'}`}><Icon className="w-4 h-4" />{t(tab.labelKey)}</button>);})}</div>
       <div className="bg-white rounded-lg border border-gray-200 p-6">{renderTabContent()}</div>
-      {showAccountModal&&(<Modal title="Ajouter un compte" onClose={()=>setShowAccountModal(false)} onSubmit={handleAccountSubmit}><InputField label="Numero" value={accountForm.numero} required onChange={v=>setAccountForm({...accountForm,numero:v,classe:v?v[0]:''})} /><InputField label="Libelle" value={accountForm.libelle} required onChange={v=>setAccountForm({...accountForm,libelle:v})} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Classe</label><input type="text" readOnly value={accountForm.classe?`Classe ${accountForm.classe}`:''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label="Type" value={accountForm.type} onChange={v=>setAccountForm({...accountForm,type:v})} options={['Bilan','Gestion','HAO'].map(t=>({value:t,label:t}))} /><SelectField label="Sens normal" value={accountForm.sens} onChange={v=>setAccountForm({...accountForm,sens:v})} options={[{value:'Debiteur',label:'Debiteur'},{value:'Crediteur',label:'Crediteur'}]} /><div className="flex items-center gap-2"><input type="checkbox" id="lettrable" checked={accountForm.lettrable} onChange={e=>setAccountForm({...accountForm,lettrable:e.target.checked})} className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500" /><label htmlFor="lettrable" className="text-sm text-gray-700">Lettrable</label></div><InputField label="Compte collectif" value={accountForm.compteCollectif} onChange={v=>setAccountForm({...accountForm,compteCollectif:v})} placeholder="Optionnel" /></Modal>)}
-      {showTaxModal&&(<Modal title="Ajouter un taux" onClose={()=>setShowTaxModal(false)} onSubmit={handleTaxSubmit}><InputField label="Code" value={taxForm.code} required onChange={v=>setTaxForm({...taxForm,code:v})} /><InputField label="Libelle" value={taxForm.libelle} required onChange={v=>setTaxForm({...taxForm,libelle:v})} /><InputField label="Taux (%)" value={taxForm.taux} type="number" onChange={v=>setTaxForm({...taxForm,taux:v})} /><SelectField label="Type" value={taxForm.type} onChange={v=>setTaxForm({...taxForm,type:v})} options={['TVA','Retenue a la source','IMF','Patente','Autre'].map(t=>({value:t,label:t}))} /><InputField label="Compte collecte" value={taxForm.compteCollecte} onChange={v=>setTaxForm({...taxForm,compteCollecte:v})} /><InputField label="Compte deductible" value={taxForm.compteDeductible} onChange={v=>setTaxForm({...taxForm,compteDeductible:v})} /></Modal>)}
-      {editingTax&&(<Modal title="Modifier la taxe" onClose={()=>setEditingTax(null)} onSubmit={async () => { const n = taxes.map((x: any) => x.code === editingTax.code ? editingTax : x); try { await saveSetting('admin_taxes', n); setTaxes(n); toast.success('Taxe modifiée'); setEditingTax(null); } catch { toast.error('Erreur lors de la modification'); } }}><InputField label="Libelle" value={editingTax.libelle} required onChange={v => setEditingTax({...editingTax, libelle: v})} /><InputField label="Taux (%)" value={String(editingTax.taux)} type="number" onChange={v => setEditingTax({...editingTax, taux: Number(v)})} /><SelectField label="Type" value={editingTax.type} onChange={v => setEditingTax({...editingTax, type: v})} options={['TVA','Retenue a la source','IMF','Patente','Autre'].map(t=>({value:t,label:t}))} /><InputField label="Compte collecté" value={editingTax.compteCollecte || ''} onChange={v => setEditingTax({...editingTax, compteCollecte: v})} /><InputField label="Compte déductible" value={editingTax.compteDeductible || ''} onChange={v => setEditingTax({...editingTax, compteDeductible: v})} /></Modal>)}
-      {showCategoryModal&&(<Modal title="Ajouter une categorie" onClose={()=>setShowCategoryModal(false)} onSubmit={handleCategorySubmit}><InputField label="Code" value={categoryForm.code} required onChange={v=>setCategoryForm({...categoryForm,code:v})} /><InputField label="Libelle" value={categoryForm.libelle} required onChange={v=>setCategoryForm({...categoryForm,libelle:v})} /><InputField label="Duree (ans)" value={categoryForm.duree} type="number" onChange={v=>{const d=Number(v);const t=d>0?(100/d).toFixed(2):'';setCategoryForm({...categoryForm,duree:v,taux:String(t)});}} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Taux lineaire (%)</label><input type="text" readOnly value={categoryForm.taux?`${categoryForm.taux}%`:''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label="Methode" value={categoryForm.methode} onChange={v=>setCategoryForm({...categoryForm,methode:v})} options={[{value:'Lineaire',label:'Lineaire'},{value:'Degressif',label:'Degressif'}]} /><InputField label="Compte bilan" value={categoryForm.compteBilan} onChange={v=>setCategoryForm({...categoryForm,compteBilan:v})} /><InputField label="Compte amortissement" value={categoryForm.compteAmort} onChange={v=>setCategoryForm({...categoryForm,compteAmort:v})} /><InputField label="Compte dotation" value={categoryForm.compteDotation} onChange={v=>setCategoryForm({...categoryForm,compteDotation:v})} /></Modal>)}
-      {editingCategory&&(<Modal title="Modifier la catégorie" onClose={()=>setEditingCategory(null)} onSubmit={async () => { const n = categories.map((x: any) => x.code === editingCategory.code ? editingCategory : x); try { await saveSetting('admin_asset_categories', n); setCategories(n); toast.success('Catégorie modifiée'); setEditingCategory(null); } catch { toast.error('Erreur lors de la modification'); } }}><InputField label="Libelle" value={editingCategory.libelle} required onChange={v=>setEditingCategory({...editingCategory,libelle:v})} /><InputField label="Duree (ans)" value={String(editingCategory.duree||'')} type="number" onChange={v=>{const d=Number(v);const t=d>0?(100/d).toFixed(2):'';setEditingCategory({...editingCategory,duree:d,taux:t});}} /><SelectField label="Methode" value={editingCategory.methode} onChange={v=>setEditingCategory({...editingCategory,methode:v})} options={[{value:'Lineaire',label:'Linéaire'},{value:'Degressif',label:'Dégressif'}]} /><InputField label="Compte bilan" value={editingCategory.compteBilan||''} onChange={v=>setEditingCategory({...editingCategory,compteBilan:v})} /><InputField label="Compte amortissement" value={editingCategory.compteAmort||''} onChange={v=>setEditingCategory({...editingCategory,compteAmort:v})} /><InputField label="Compte dotation" value={editingCategory.compteDotation||''} onChange={v=>setEditingCategory({...editingCategory,compteDotation:v})} /></Modal>)}
-      {showExerciceModal&&(<Modal title="Creer un exercice comptable" onClose={()=>setShowExerciceModal(false)} onSubmit={handleExerciceSubmit}><InputField label="Date debut" value={exerciceForm.debut} type="date" required onChange={v=>{const y=v?new Date(v).getFullYear().toString():'';setExerciceForm({...exerciceForm,debut:v,code:y});}} /><InputField label="Date fin" value={exerciceForm.fin} type="date" required onChange={v=>setExerciceForm({...exerciceForm,fin:v})} /><div><label className="block text-sm font-medium text-gray-700 mb-1">Code</label><input type="text" readOnly value={exerciceForm.code} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><InputField label="Nombre de periodes" value={exerciceForm.periodes} type="number" onChange={v=>setExerciceForm({...exerciceForm,periodes:v})} /></Modal>)}
+      {showAccountModal&&(<Modal title={t('adminCompany.addAccount')} onClose={()=>setShowAccountModal(false)} onSubmit={handleAccountSubmit}><InputField label={t('adminCompany.colNumber')} value={accountForm.numero} required onChange={v=>setAccountForm({...accountForm,numero:v,classe:v?v[0]:''})} /><InputField label={t('adminCompany.colLabel')} value={accountForm.libelle} required onChange={v=>setAccountForm({...accountForm,libelle:v})} /><div><label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.colClass')}</label><input type="text" readOnly value={accountForm.classe?t('adminCompany.classN', { n: accountForm.classe }):''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label={t('adminCompany.colType')} value={accountForm.type} onChange={v=>setAccountForm({...accountForm,type:v})} options={['Bilan','Gestion','HAO'].map(ty=>({value:ty,label:t(ACCOUNT_TYPE_KEY[ty])}))} /><SelectField label={t('adminCompany.colNormalBalance')} value={accountForm.sens} onChange={v=>setAccountForm({...accountForm,sens:v})} options={[{value:'Debiteur',label:t('adminCompany.debit')},{value:'Crediteur',label:t('adminCompany.credit')}]} /><div className="flex items-center gap-2"><input type="checkbox" id="lettrable" checked={accountForm.lettrable} onChange={e=>setAccountForm({...accountForm,lettrable:e.target.checked})} className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500" /><label htmlFor="lettrable" className="text-sm text-gray-700">{t('adminCompany.colReconcilable')}</label></div><InputField label={t('adminCompany.collectiveAccount')} value={accountForm.compteCollectif} onChange={v=>setAccountForm({...accountForm,compteCollectif:v})} placeholder={t('adminCompany.optional')} /></Modal>)}
+      {showTaxModal&&(<Modal title={t('adminCompany.addRate')} onClose={()=>setShowTaxModal(false)} onSubmit={handleTaxSubmit}><InputField label={t('adminCompany.colCode')} value={taxForm.code} required onChange={v=>setTaxForm({...taxForm,code:v})} /><InputField label={t('adminCompany.colLabel')} value={taxForm.libelle} required onChange={v=>setTaxForm({...taxForm,libelle:v})} /><InputField label={t('adminCompany.colRate')} value={taxForm.taux} type="number" onChange={v=>setTaxForm({...taxForm,taux:v})} /><SelectField label={t('adminCompany.colType')} value={taxForm.type} onChange={v=>setTaxForm({...taxForm,type:v})} options={['TVA','Retenue a la source','IMF','Patente','Autre'].map(ty=>({value:ty,label:TAX_TYPE_KEY[ty]?t(TAX_TYPE_KEY[ty]):ty}))} /><InputField label={t('adminCompany.colCollectedAccount')} value={taxForm.compteCollecte} onChange={v=>setTaxForm({...taxForm,compteCollecte:v})} /><InputField label={t('adminCompany.colDeductibleAccount')} value={taxForm.compteDeductible} onChange={v=>setTaxForm({...taxForm,compteDeductible:v})} /></Modal>)}
+      {editingTax&&(<Modal title={t('adminCompany.editTax')} onClose={()=>setEditingTax(null)} onSubmit={async () => { const n = taxes.map((x: any) => x.code === editingTax.code ? editingTax : x); try { await saveSetting('admin_taxes', n); setTaxes(n); toast.success(t('adminCompany.taxModified')); setEditingTax(null); } catch { toast.error(t('adminCompany.modifyError')); } }}><InputField label={t('adminCompany.colLabel')} value={editingTax.libelle} required onChange={v => setEditingTax({...editingTax, libelle: v})} /><InputField label={t('adminCompany.colRate')} value={String(editingTax.taux)} type="number" onChange={v => setEditingTax({...editingTax, taux: Number(v)})} /><SelectField label={t('adminCompany.colType')} value={editingTax.type} onChange={v => setEditingTax({...editingTax, type: v})} options={['TVA','Retenue a la source','IMF','Patente','Autre'].map(ty=>({value:ty,label:TAX_TYPE_KEY[ty]?t(TAX_TYPE_KEY[ty]):ty}))} /><InputField label={t('adminCompany.colCollectedAccount')} value={editingTax.compteCollecte || ''} onChange={v => setEditingTax({...editingTax, compteCollecte: v})} /><InputField label={t('adminCompany.colDeductibleAccount')} value={editingTax.compteDeductible || ''} onChange={v => setEditingTax({...editingTax, compteDeductible: v})} /></Modal>)}
+      {showCategoryModal&&(<Modal title={t('adminCompany.addCategory')} onClose={()=>setShowCategoryModal(false)} onSubmit={handleCategorySubmit}><InputField label={t('adminCompany.colCode')} value={categoryForm.code} required onChange={v=>setCategoryForm({...categoryForm,code:v})} /><InputField label={t('adminCompany.colLabel')} value={categoryForm.libelle} required onChange={v=>setCategoryForm({...categoryForm,libelle:v})} /><InputField label={t('adminCompany.colDurationYears')} value={categoryForm.duree} type="number" onChange={v=>{const d=Number(v);const t=d>0?(100/d).toFixed(2):'';setCategoryForm({...categoryForm,duree:v,taux:String(t)});}} /><div><label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.colStraightLineRate')}</label><input type="text" readOnly value={categoryForm.taux?`${categoryForm.taux}%`:''} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><SelectField label={t('adminCompany.colMethod')} value={categoryForm.methode} onChange={v=>setCategoryForm({...categoryForm,methode:v})} options={[{value:'Lineaire',label:t('adminCompany.methodStraightLine')},{value:'Degressif',label:t('adminCompany.methodDeclining')}]} /><InputField label={t('adminCompany.colBalanceAccount')} value={categoryForm.compteBilan} onChange={v=>setCategoryForm({...categoryForm,compteBilan:v})} /><InputField label={t('adminCompany.depreciationAccount')} value={categoryForm.compteAmort} onChange={v=>setCategoryForm({...categoryForm,compteAmort:v})} /><InputField label={t('adminCompany.colChargeAccount')} value={categoryForm.compteDotation} onChange={v=>setCategoryForm({...categoryForm,compteDotation:v})} /></Modal>)}
+      {editingCategory&&(<Modal title={t('adminCompany.editCategory')} onClose={()=>setEditingCategory(null)} onSubmit={async () => { const n = categories.map((x: any) => x.code === editingCategory.code ? editingCategory : x); try { await saveSetting('admin_asset_categories', n); setCategories(n); toast.success(t('adminCompany.categoryModified')); setEditingCategory(null); } catch { toast.error(t('adminCompany.modifyError')); } }}><InputField label={t('adminCompany.colLabel')} value={editingCategory.libelle} required onChange={v=>setEditingCategory({...editingCategory,libelle:v})} /><InputField label={t('adminCompany.colDurationYears')} value={String(editingCategory.duree||'')} type="number" onChange={v=>{const d=Number(v);const t=d>0?(100/d).toFixed(2):'';setEditingCategory({...editingCategory,duree:d,taux:t});}} /><SelectField label={t('adminCompany.colMethod')} value={editingCategory.methode} onChange={v=>setEditingCategory({...editingCategory,methode:v})} options={[{value:'Lineaire',label:t('adminCompany.methodStraightLine')},{value:'Degressif',label:t('adminCompany.methodDeclining')}]} /><InputField label={t('adminCompany.colBalanceAccount')} value={editingCategory.compteBilan||''} onChange={v=>setEditingCategory({...editingCategory,compteBilan:v})} /><InputField label={t('adminCompany.depreciationAccount')} value={editingCategory.compteAmort||''} onChange={v=>setEditingCategory({...editingCategory,compteAmort:v})} /><InputField label={t('adminCompany.colChargeAccount')} value={editingCategory.compteDotation||''} onChange={v=>setEditingCategory({...editingCategory,compteDotation:v})} /></Modal>)}
+      {showExerciceModal&&(<Modal title={t('adminCompany.createFiscalYearModal')} onClose={()=>setShowExerciceModal(false)} onSubmit={handleExerciceSubmit}><InputField label={t('adminCompany.colStartDate')} value={exerciceForm.debut} type="date" required onChange={v=>{const y=v?new Date(v).getFullYear().toString():'';setExerciceForm({...exerciceForm,debut:v,code:y});}} /><InputField label={t('adminCompany.colEndDate')} value={exerciceForm.fin} type="date" required onChange={v=>setExerciceForm({...exerciceForm,fin:v})} /><div><label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.colCode')}</label><input type="text" readOnly value={exerciceForm.code} className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50" /></div><InputField label={t('adminCompany.periodCount')} value={exerciceForm.periodes} type="number" onChange={v=>setExerciceForm({...exerciceForm,periodes:v})} /></Modal>)}
       {editingExercice && (
-        <Modal title="Modifier l'exercice" onClose={() => setEditingExercice(null)} onSubmit={async () => {
+        <Modal title={t('adminCompany.editFiscalYear')} onClose={() => setEditingExercice(null)} onSubmit={async () => {
           try {
             await adapter.update('fiscalYears', editingExercice.code, {
               start_date: editingExercice.debut, end_date: editingExercice.fin,
               is_active: editingExercice.actif, is_closed: editingExercice.statut === 'Cloture',
             });
-            toast.success('Exercice mis à jour');
+            toast.success(t('adminCompany.fiscalYearUpdated'));
             setEditingExercice(null);
             await loadData();
-          } catch { toast.error('Erreur lors de la mise à jour'); }
+          } catch { toast.error(t('adminCompany.updateError')); }
         }}>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.colStartDate')}</label>
             <input type="date" value={editingExercice.debut} onChange={e => setEditingExercice({...editingExercice, debut: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('adminCompany.colEndDate')}</label>
             <input type="date" value={editingExercice.fin} onChange={e => setEditingExercice({...editingExercice, fin: e.target.value})} className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" id="actif-ex" checked={editingExercice.actif} onChange={e => setEditingExercice({...editingExercice, actif: e.target.checked})} />
-            <label htmlFor="actif-ex" className="text-sm">Exercice actif</label>
+            <label htmlFor="actif-ex" className="text-sm">{t('adminCompany.fiscalYearActive')}</label>
           </div>
         </Modal>
       )}
