@@ -6,6 +6,11 @@ import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { toast } from 'react-hot-toast';
 import {
+  listApiKeys, createApiKey, setApiKeyActive, deleteApiKey,
+  listWebhooks, createWebhook, toggleWebhook, deleteWebhook,
+  type ApiKeyRecord, type WebhookRecord,
+} from '../../services/apiGatewayService';
+import {
   Key,
   Link,
   Cloud,
@@ -22,10 +27,8 @@ import {
   RefreshCw,
   Plus,
   Trash2,
-  Edit,
   ExternalLink,
   Download,
-  Upload,
   Code,
   Database,
   GitBranch,
@@ -33,13 +36,11 @@ import {
   Lock,
   Unlock,
   Zap,
-  Clock,
-  BarChart3,
-  TrendingUp
+  BarChart3
 } from 'lucide-react';
 
 interface APIKeyData {
-  id: number;
+  id: string;
   name: string;
   key: string;
   environment: string;
@@ -51,7 +52,7 @@ interface APIKeyData {
 }
 
 interface WebhookData {
-  id: number;
+  id: string;
   url: string;
   events: string[];
   status: string;
@@ -82,7 +83,6 @@ const APIIntegrationsPage: React.FC = () => {
   const [showNewAPIModal, setShowNewAPIModal] = useState(false);
   const [showNewWebhookModal, setShowNewWebhookModal] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState<IntegrationData | null>(null);
-  const [showEditModal, setShowEditModal] = useState<APIKeyData | WebhookData | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<DeletableItem | null>(null);
   const [showCodeExamples, setShowCodeExamples] = useState<string | null>(null);
   const [newAPIForm, setNewAPIForm] = useState({
@@ -105,11 +105,58 @@ const APIIntegrationsPage: React.FC = () => {
     { id: 'logs', label: t('navigation.journals'), icon: Activity }
   ];
 
-  // Clés API — créées par l'utilisateur (départ vide)
+  // Clés API — persistées dans Supabase (table api_keys, scoping tenant via RLS).
   const [apiKeys, setApiKeys] = useState<APIKeyData[]>([]);
 
-  // Webhooks — créés par l'utilisateur (départ vide)
+  // Webhooks — persistés dans Supabase (table webhooks).
   const [webhooks, setWebhooks] = useState<WebhookData[]>([]);
+
+  // Clé fraîchement créée, affichée UNE seule fois en clair.
+  const [createdKey, setCreatedKey] = useState<{ name: string; key: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+
+  const gatewayBaseUrl = `${(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')}/functions/v1/api-gateway`;
+
+  const fmtDate = (iso: string | null): string =>
+    iso ? new Date(iso).toLocaleDateString('fr-FR') : '—';
+
+  const toApiKeyData = (r: ApiKeyRecord): APIKeyData => ({
+    id: r.id,
+    name: r.name,
+    // Le secret n'est jamais restitué : on n'affiche que le préfixe masqué.
+    key: `${r.keyPrefix}${'•'.repeat(24)}`,
+    environment: r.environment,
+    status: r.isActive ? 'active' : 'inactive',
+    created: fmtDate(r.createdAt),
+    lastUsed: r.lastUsedAt ? fmtDate(r.lastUsedAt) : 'Jamais',
+    permissions: r.scopes.map((s) => s.replace(':all', '')),
+    rateLimit: String(r.rateLimitPerHour),
+  });
+
+  const toWebhookData = (r: WebhookRecord): WebhookData => ({
+    id: r.id,
+    url: r.url,
+    events: r.events,
+    status: r.isActive ? 'active' : 'inactive',
+    created: fmtDate(r.createdAt),
+    lastTriggered: r.lastTriggeredAt ? fmtDate(r.lastTriggeredAt) : '—',
+    successRate: r.failureCount === 0 ? 100 : Math.max(0, 100 - r.failureCount),
+  });
+
+  const reloadKeys = async () => {
+    try { setApiKeys((await listApiKeys()).map(toApiKeyData)); }
+    catch { /* liste vide si indisponible */ }
+  };
+  const reloadWebhooks = async () => {
+    try { setWebhooks((await listWebhooks()).map(toWebhookData)); }
+    catch { /* liste vide si indisponible */ }
+  };
+
+  useEffect(() => {
+    reloadKeys();
+    reloadWebhooks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Catalogue d'intégrations disponibles (toutes déconnectées par défaut)
   const integrations: IntegrationData[] = [
@@ -151,49 +198,45 @@ const APIIntegrationsPage: React.FC = () => {
     setShowNewAPIModal(true);
   };
 
-  const handleCreateAPI = () => {
+  const handleCreateAPI = async () => {
     if (!newAPIForm.name) {
       toast.error(t('apiIntegrations.enterKeyName'));
       return;
     }
-
-    const prefix = newAPIForm.environment === 'Production' ? 'pk_live' : 'pk_test';
-    const randomKey = `${prefix}_${Date.now().toString(36)}`;
-    const now = new Date().toISOString().slice(0, 10);
-    setApiKeys(prev => [...prev, {
-      id: Date.now(),
-      name: newAPIForm.name,
-      key: randomKey,
-      environment: newAPIForm.environment,
-      status: 'active',
-      created: now,
-      lastUsed: '-',
-      permissions: newAPIForm.permissions,
-      rateLimit: `${newAPIForm.rateLimit} req/hour`,
-    }]);
-    toast.success(t('apiIntegrations.apiKeyCreated', { name: newAPIForm.name }));
-    setShowNewAPIModal(false);
-    setNewAPIForm({ name: '', environment: 'Test', permissions: [], rateLimit: '5000' });
+    setCreating(true);
+    try {
+      const { plaintext } = await createApiKey({
+        name: newAPIForm.name,
+        environment: newAPIForm.environment === 'Production' ? 'Production' : 'Test',
+        permissions: newAPIForm.permissions,
+        rateLimit: parseInt(newAPIForm.rateLimit, 10) || 5000,
+      });
+      toast.success(t('apiIntegrations.apiKeyCreated', { name: newAPIForm.name }));
+      setShowNewAPIModal(false);
+      setNewAPIForm({ name: '', environment: 'Test', permissions: [], rateLimit: '5000' });
+      setCreatedKey({ name: newAPIForm.name, key: plaintext });
+      await reloadKeys();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec de la création de la clé.');
+    } finally {
+      setCreating(false);
+    }
   };
 
-  const handleCreateWebhook = () => {
+  const handleCreateWebhook = async () => {
     if (!newWebhookForm.url || newWebhookForm.events.length === 0) {
       toast.error(t('apiIntegrations.fillRequiredFields'));
       return;
     }
-
-    setWebhooks(prev => [...prev, {
-      id: Date.now(),
-      url: newWebhookForm.url,
-      events: newWebhookForm.events,
-      status: 'active',
-      created: new Date().toISOString().slice(0, 10),
-      lastTriggered: '-',
-      successRate: 100,
-    }]);
-    toast.success(t('apiIntegrations.webhookCreated'));
-    setShowNewWebhookModal(false);
-    setNewWebhookForm({ url: '', events: [] });
+    try {
+      await createWebhook({ url: newWebhookForm.url, events: newWebhookForm.events });
+      toast.success(t('apiIntegrations.webhookCreated'));
+      setShowNewWebhookModal(false);
+      setNewWebhookForm({ url: '', events: [] });
+      await reloadWebhooks();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec de la création du webhook.');
+    }
   };
 
   const handleConfigureIntegration = (integration: IntegrationData) => {
@@ -212,18 +255,48 @@ const APIIntegrationsPage: React.FC = () => {
     }, 2000);
   };
 
-  const handleEditItem = (item: APIKeyData | WebhookData) => {
-    setShowEditModal(item);
-  };
-
   const handleDeleteItem = (item: DeletableItem) => {
     setShowDeleteConfirm(item);
   };
 
-  const confirmDelete = () => {
-    if (showDeleteConfirm) {
-      toast.success(t('apiIntegrations.itemDeleted', { name: (showDeleteConfirm as any).name || (showDeleteConfirm as any).url || t('apiIntegrations.deleteItemFallback') }));
+  const confirmDelete = async () => {
+    const item = showDeleteConfirm;
+    if (!item) return;
+    const label = (item as any).name || (item as any).url || t('apiIntegrations.deleteItemFallback');
+    try {
+      if ('key' in item) {
+        await deleteApiKey((item as APIKeyData).id);
+        await reloadKeys();
+      } else if ('events' in item) {
+        await deleteWebhook((item as WebhookData).id);
+        await reloadWebhooks();
+      }
+      toast.success(t('apiIntegrations.itemDeleted', { name: label }));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec de la suppression.');
+    } finally {
       setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleToggleKey = async (apiKey: APIKeyData) => {
+    try {
+      await setApiKeyActive(apiKey.id, apiKey.status !== 'active');
+      toast.success(apiKey.status === 'active'
+        ? t('apiIntegrations.itemDeleted', { name: apiKey.name })
+        : t('apiIntegrations.statusActive'));
+      await reloadKeys();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec de la mise à jour de la clé.');
+    }
+  };
+
+  const handleToggleWebhook = async (webhook: WebhookData) => {
+    try {
+      await toggleWebhook(webhook.id, webhook.status !== 'active');
+      await reloadWebhooks();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec de la mise à jour du webhook.');
     }
   };
 
@@ -497,16 +570,10 @@ const APIIntegrationsPage: React.FC = () => {
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleEditItem(apiKey)}
+                        onClick={() => handleToggleKey(apiKey)}
+                        title={apiKey.status === 'active' ? t('apiIntegrations.statusInactive') : t('apiIntegrations.statusActive')}
                         className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          toast.success(t('apiIntegrations.keyRegenerated'));
-                        }}
-                        className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
-                        <RefreshCw className="w-4 h-4" />
+                        {apiKey.status === 'active' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleDeleteItem(apiKey)}
@@ -583,14 +650,10 @@ const APIIntegrationsPage: React.FC = () => {
 
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => toast(t('apiIntegrations.testingWebhook'))}
+                        onClick={() => handleToggleWebhook(webhook)}
+                        title={webhook.status === 'active' ? t('apiIntegrations.webhookInactive') : t('apiIntegrations.webhookActive')}
                         className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
-                        <Activity className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleEditItem(webhook)}
-                        className="p-2 hover:bg-[var(--color-border-light)] rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
+                        {webhook.status === 'active' ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleDeleteItem(webhook)}
@@ -705,19 +768,21 @@ const APIIntegrationsPage: React.FC = () => {
                   <Code className="w-5 h-5 text-[var(--color-primary)]" />
                   {t('apiIntegrations.quickStart')}
                 </h4>
-                <div className="space-y-2">
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">{t('apiIntegrations.authentication')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.authenticationDesc')}</div>
-                  </a>
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">{t('apiIntegrations.firstRequest')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.firstRequestDesc')}</div>
-                  </a>
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">SDKs</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.sdksDesc')}</div>
-                  </a>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-1">URL de base</div>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-2 py-1.5 bg-[var(--color-surface-hover)] rounded text-xs font-mono break-all">{gatewayBaseUrl}</code>
+                      <button onClick={() => copyToClipboard(gatewayBaseUrl)} className="p-1.5 hover:bg-[var(--color-border-light)] rounded flex-shrink-0" title="Copier">
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-medium text-[var(--color-text-secondary)] mb-1">Authentification</div>
+                    <code className="block px-2 py-1.5 bg-[var(--color-surface-hover)] rounded text-xs font-mono break-all">Authorization: Bearer pk_live_…</code>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mt-1">Créez une clé dans l'onglet « Clés API ». API en lecture seule (GET).</p>
+                  </div>
                 </div>
               </div>
 
@@ -727,18 +792,20 @@ const APIIntegrationsPage: React.FC = () => {
                   {t('apiIntegrations.resources')}
                 </h4>
                 <div className="space-y-2">
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">{t('navigation.clients')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.manageCustomerData')}</div>
-                  </a>
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">{t('apiIntegrations.invoices')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.invoicesDesc')}</div>
-                  </a>
-                  <a href="#" className="block p-2 hover:bg-[var(--color-surface-hover)] rounded">
-                    <div className="font-medium text-sm">{t('apiIntegrations.payments')}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)]">{t('apiIntegrations.paymentsDesc')}</div>
-                  </a>
+                  {[
+                    { path: '/journal-entries', scope: 'read:entries', desc: 'Écritures du grand livre' },
+                    { path: '/third-parties', scope: 'read:third_parties', desc: 'Tiers (clients & fournisseurs)' },
+                    { path: '/accounts', scope: 'read:accounts', desc: 'Plan comptable' },
+                  ].map((r) => (
+                    <div key={r.path} className="p-2 rounded hover:bg-[var(--color-surface-hover)]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[var(--color-success-light)] text-[var(--color-success)] rounded">GET</span>
+                        <code className="text-sm font-mono">{r.path}</code>
+                      </div>
+                      <div className="text-xs text-[var(--color-text-tertiary)] mt-0.5 ml-1">{r.desc} · scope <code className="font-mono">{r.scope}</code></div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-[var(--color-text-tertiary)] px-1 pt-1">Pagination : <code className="font-mono">?limit</code> (max 200) &amp; <code className="font-mono">?offset</code>.</p>
                 </div>
               </div>
 
@@ -937,6 +1004,46 @@ const APIIntegrationsPage: React.FC = () => {
         </motion.div>
       </AnimatePresence>
 
+      {/* Clé créée — affichée UNE seule fois */}
+      <Dialog open={!!createdKey} onOpenChange={() => setCreatedKey(null)}>
+        <DialogContent className="bg-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+              <Key className="w-5 h-5 text-[var(--color-primary)]" />
+              {createdKey?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-amber-800">
+                Copiez cette clé maintenant : pour des raisons de sécurité, elle ne sera plus jamais affichée.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono break-all">
+                {createdKey?.key}
+              </code>
+              <button
+                onClick={() => { if (createdKey) copyToClipboard(createdKey.key); }}
+                className="p-2 hover:bg-gray-200 rounded-lg transition-colors flex-shrink-0"
+                title="Copier"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setCreatedKey(null)}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
+              >
+                J'ai copié ma clé
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* New API Key Modal */}
       <Dialog open={showNewAPIModal} onOpenChange={setShowNewAPIModal}>
         <DialogContent className="bg-white max-w-md">
@@ -1013,9 +1120,10 @@ const APIIntegrationsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleCreateAPI}
-                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)]"
+                disabled={creating}
+                className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] disabled:opacity-50"
               >
-                {t('apiIntegrations.createKey')}
+                {creating ? '…' : t('apiIntegrations.createKey')}
               </button>
             </div>
           </div>
