@@ -16,7 +16,14 @@ export type MasterTemplateId =
   | 'tafire'
   | 'rapport_mensuel_direction'
   | 'rapport_fiscal_trimestriel'
-  | 'rapport_audit_syscohada';
+  | 'rapport_audit_syscohada'
+  // Modèles ajoutés pour couvrir la galerie : ces entrées y étaient annoncées
+  // mais retombaient sur un modèle partiel — ou sur un document vierge.
+  | 'rapport_analytique'
+  | 'rapport_annuel_complet'
+  | 'rapport_tresorerie'
+  | 'rapport_banquier'
+  | 'rapport_exco';
 
 export interface MasterTemplateMeta {
   id: MasterTemplateId;
@@ -68,6 +75,41 @@ export const masterTemplateList: MasterTemplateMeta[] = [
     description: '108 contrôles, détection d\'anomalies, piste d\'audit',
     icon: 'shield-check',
     reportType: 'audit',
+  },
+  {
+    id: 'rapport_analytique',
+    name: 'Rapport Analytique',
+    description: 'Contrôle de gestion : budget vs réel, centres de coût, marges',
+    icon: 'target',
+    reportType: 'mensuel',
+  },
+  {
+    id: 'rapport_annuel_complet',
+    name: 'Rapport Annuel Complet',
+    description: 'Bilan, compte de résultat, TAFIRE, SIG, ratios et annexes',
+    icon: 'book-open',
+    reportType: 'bilan',
+  },
+  {
+    id: 'rapport_tresorerie',
+    name: 'Rapport Trésorerie',
+    description: 'Position bancaire, cash-flow, prévisions et balances âgées',
+    icon: 'piggy-bank',
+    reportType: 'tafire',
+  },
+  {
+    id: 'rapport_banquier',
+    name: 'Dossier de Financement',
+    description: 'Synthèse orientée financement : bilan, cash-flow, solvabilité',
+    icon: 'calculator',
+    reportType: 'bilan',
+  },
+  {
+    id: 'rapport_exco',
+    name: 'Rapport EXCO / COPIL',
+    description: 'Format décisionnel : KPIs clés, tendances, actions requises',
+    icon: 'trending-up',
+    reportType: 'mensuel',
   },
 ];
 
@@ -401,6 +443,171 @@ function rapportAuditSyscohada(): BlockFactory[] {
   ];
 }
 
+function rapportAnalytique(): BlockFactory[] {
+  return [
+    cover('Rapport Analytique', 'Contrôle de gestion'),
+    pageBreak(),
+    sommaire('mensuel'),
+    pageBreak(),
+    h1('Budget vs Réel'),
+    table('budget.vs_actual', 'Budget / Réalisé / Écart'),
+    chart('chart.budget_vs_actual', 'Budget vs Réalisé', 'bar'),
+    table('budget.ecarts_significatifs', 'Écarts significatifs'),
+    pageBreak(),
+    h1('Centres de Coût & de Profit'),
+    table('analytics.by_center', 'Résultat par centre'),
+    table('analytics.sections_performance', 'Performance par section'),
+    pageBreak(),
+    h1('Marges'),
+    kpiGrid([
+      { label: 'Marge Brute', source: 'kpi.marge_brute' },
+      { label: 'Marge Brute %', source: 'kpi.marge_brute_pct', format: 'percent' },
+      { label: 'EBITDA', source: 'kpi.ebitda' },
+      { label: 'Marge Nette', source: 'kpi.net_margin', format: 'percent' },
+    ]),
+    chart('chart.marge_evolution', 'Évolution de la Marge', 'line'),
+    chart('chart.charges_structure', 'Structure des Charges', 'donut'),
+    prophetAnalysis('resultat'),
+    backPage(),
+  ];
+}
+
+function rapportAnnuelComplet(): BlockFactory[] {
+  return [
+    cover('Rapport Annuel', 'États financiers SYSCOHADA'),
+    pageBreak(),
+    sommaire('bilan'),
+    executiveSummary(),
+    pageBreak(),
+    h1('Bilan — Actif'),
+    table('financial.bilan_actif', 'Actif (Brut / Amort / Net)'),
+    pageBreak(),
+    h1('Bilan — Passif'),
+    table('financial.bilan_passif', 'Passif'),
+    pageBreak(),
+    h1('Compte de Résultat'),
+    table('financial.compte_resultat', 'Charges & Produits'),
+    chart('chart.pl_monthly', 'Évolution P&L Mensuel', 'line'),
+    pageBreak(),
+    h1('TAFIRE'),
+    table('financial.tft_indirect', 'Flux de trésorerie'),
+    chart('chart.tft_waterfall', 'Waterfall TFT', 'waterfall'),
+    pageBreak(),
+    h1('Soldes Intermédiaires de Gestion'),
+    table('financial.sig', 'SIG'),
+    pageBreak(),
+    h1('Ratios'),
+    kpiGrid([
+      { label: 'Rentabilité (ROE)', source: 'kpi.roe', format: 'percent' },
+      { label: 'Ratio Endettement', source: 'kpi.ratio_endettement', format: 'percent' },
+      { label: 'Liquidité Générale', source: 'kpi.current_ratio', format: 'number' },
+      { label: 'BFR', source: 'kpi.bfr' },
+    ]),
+    chart('chart.ratios_trend', 'Tendance des Ratios', 'line'),
+    chart('chart.comparatif_n_n1', 'Comparatif N / N-1', 'bar'),
+    pageBreak(),
+    h1('Annexes'),
+    table('accounting.balance_generale', 'Balance générale'),
+    table('assets.registry', 'Registre des immobilisations'),
+    prophetAnalysis('global'),
+    backPage(),
+  ];
+}
+
+function rapportTresorerie(): BlockFactory[] {
+  return [
+    cover('Rapport Trésorerie'),
+    pageBreak(),
+    sommaire('tafire'),
+    pageBreak(),
+    h1('Position de Trésorerie'),
+    table('treasury.comptes_bancaires', 'Comptes bancaires'),
+    kpiGrid([
+      { label: 'Trésorerie Nette', source: 'kpi.tresorerie_nette' },
+      { label: 'BFR', source: 'kpi.bfr' },
+      { label: 'DSO', source: 'kpi.dso', format: 'days' },
+      { label: 'DPO', source: 'kpi.dpo', format: 'days' },
+    ]),
+    pageBreak(),
+    h1('Cash-Flow'),
+    chart('chart.cashflow_monthly', 'Cash-Flow Mensuel', 'bar'),
+    table('financial.tft_indirect', 'Flux de trésorerie'),
+    pageBreak(),
+    h1('Prévisions'),
+    table('treasury.previsions_cash', 'Prévisions de trésorerie'),
+    pageBreak(),
+    h1('Aging Clients & Fournisseurs'),
+    table('tiers.aging_clients', 'Balance âgée clients'),
+    chart('chart.aging_clients', 'Aging Clients', 'bar'),
+    table('tiers.aging_fournisseurs', 'Balance âgée fournisseurs'),
+    prophetAnalysis('tafire'),
+    backPage(),
+  ];
+}
+
+function rapportBanquier(): BlockFactory[] {
+  return [
+    cover('Dossier de Financement', 'Synthèse financière'),
+    pageBreak(),
+    sommaire('bilan'),
+    executiveSummary(),
+    pageBreak(),
+    h1('Synthèse'),
+    kpiGrid([
+      { label: "Chiffre d'Affaires", source: 'kpi.ca_total' },
+      { label: 'EBITDA', source: 'kpi.ebitda' },
+      { label: 'Résultat Net', source: 'kpi.resultat_net' },
+      { label: 'Trésorerie Nette', source: 'kpi.tresorerie_nette' },
+    ]),
+    chart('chart.ca_evolution', 'Évolution du CA', 'line'),
+    pageBreak(),
+    h1('Bilan Condensé'),
+    table('financial.bilan_actif', 'Actif'),
+    table('financial.bilan_passif', 'Passif'),
+    pageBreak(),
+    h1('Cash-Flow'),
+    table('financial.tft_indirect', 'Flux de trésorerie'),
+    chart('chart.tft_3flux', '3 Flux Comparés', 'bar'),
+    pageBreak(),
+    h1('Ratios de Solvabilité'),
+    kpiGrid([
+      { label: 'Ratio Endettement', source: 'kpi.ratio_endettement', format: 'percent' },
+      { label: 'Dette / Fonds Propres', source: 'kpi.debt_to_equity', format: 'number' },
+      { label: 'Couverture des Intérêts', source: 'kpi.interest_coverage', format: 'number' },
+      { label: 'Score Altman Z', source: 'kpi.altman_zscore', format: 'number' },
+    ]),
+    chart('chart.ratios_trend', 'Tendance des Ratios', 'line'),
+    prophetAnalysis('bilan'),
+    backPage(),
+  ];
+}
+
+function rapportExco(): BlockFactory[] {
+  return [
+    cover('Rapport EXCO / COPIL', 'Format décisionnel'),
+    sommaire('mensuel'),
+    executiveSummary(),
+    pageBreak(),
+    h1('KPIs Clés'),
+    kpiGrid([
+      { label: "Chiffre d'Affaires", source: 'kpi.ca_total' },
+      { label: 'Résultat Net', source: 'kpi.resultat_net' },
+      { label: 'Trésorerie Nette', source: 'kpi.tresorerie_nette' },
+      { label: 'Marge Nette', source: 'kpi.net_margin', format: 'percent' },
+    ]),
+    h2('Tendances'),
+    chart('chart.ca_evolution', 'Évolution du CA', 'line'),
+    chart('chart.ebitda_trimestriel', 'EBITDA Trimestriel', 'bar'),
+    chart('chart.budget_vs_actual', 'Budget vs Réalisé', 'bar'),
+    pageBreak(),
+    h1('Actions Requises'),
+    anomalyDetection(),
+    table('budget.ecarts_significatifs', 'Écarts à arbitrer'),
+    prophetAnalysis('global'),
+    backPage(),
+  ];
+}
+
 export const masterTemplates: Record<MasterTemplateId, () => BlockFactory[]> = {
   bilan_syscohada: bilanSyscohada,
   compte_resultat_annuel: compteResultatAnnuel,
@@ -408,6 +615,11 @@ export const masterTemplates: Record<MasterTemplateId, () => BlockFactory[]> = {
   rapport_mensuel_direction: rapportMensuelDirection,
   rapport_fiscal_trimestriel: rapportFiscalTrimestriel,
   rapport_audit_syscohada: rapportAuditSyscohada,
+  rapport_analytique: rapportAnalytique,
+  rapport_annuel_complet: rapportAnnuelComplet,
+  rapport_tresorerie: rapportTresorerie,
+  rapport_banquier: rapportBanquier,
+  rapport_exco: rapportExco,
 };
 
 export interface TemplateInstantiationOptions {

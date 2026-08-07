@@ -2,9 +2,11 @@
  * PeriodSelector — Dropdown for selecting report period
  * CDC §11 — Project colors: neutral-*
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { useData } from '@/contexts/DataContext';
 import { useReportBuilderStore } from '../store/useReportBuilderStore';
+import { listFiscalYears, type FiscalYearOption } from '../services/reportPeriodService';
 import type { PeriodType, PeriodSelection } from '../types';
 
 const currentYear = new Date().getFullYear();
@@ -25,11 +27,45 @@ const months = [
 interface Props { onClose: () => void }
 
 const PeriodSelector: React.FC<Props> = ({ onClose }) => {
+  const { adapter } = useData();
   const { document: doc, setPeriod } = useReportBuilderStore();
   const [type, setType] = useState<PeriodType>(doc?.period.type || 'monthly');
-  const [year, setYear] = useState(currentYear);
+  // On repart de la période du rapport (donc de l'exercice comptable retenu à
+  // l'ouverture) et non de l'année civile courante : le sélecteur proposait
+  // sinon une année où le dossier n'a aucune écriture.
+  const docYear = doc?.period.startDate ? Number(doc.period.startDate.slice(0, 4)) : currentYear;
+  const [year, setYear] = useState(Number.isFinite(docYear) ? docYear : currentYear);
   const [month, setMonth] = useState(new Date().getMonth());
   const [quarter, setQuarter] = useState(Math.floor(new Date().getMonth() / 3));
+  const [fiscalYears, setFiscalYears] = useState<FiscalYearOption[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void listFiscalYears(adapter).then(fys => { if (!cancelled) setFiscalYears(fys); });
+    return () => { cancelled = true; };
+  }, [adapter]);
+
+  // Années proposées : celles couvertes par les exercices du dossier, plus
+  // l'année du rapport en cours. Repli sur une fenêtre civile si aucun
+  // exercice n'est paramétré.
+  const yearOptions = React.useMemo(() => {
+    const years = new Set<number>();
+    for (const fy of fiscalYears) {
+      const from = Number(fy.startDate.slice(0, 4));
+      const to = Number(fy.endDate.slice(0, 4));
+      for (let y = from; y <= to; y++) years.add(y);
+    }
+    if (years.size === 0) {
+      [currentYear - 2, currentYear - 1, currentYear, currentYear + 1].forEach(y => years.add(y));
+    }
+    years.add(year);
+    return Array.from(years).sort((a, b) => b - a);
+  }, [fiscalYears, year]);
+
+  const applyFiscalYear = (fy: FiscalYearOption) => {
+    setPeriod({ type: 'annual', startDate: fy.startDate, endDate: fy.endDate, label: fy.name });
+    onClose();
+  };
   const [customStart, setCustomStart] = useState(doc?.period.startDate || `${currentYear}-01-01`);
   const [customEnd, setCustomEnd] = useState(doc?.period.endDate || new Date().toISOString().split('T')[0]);
 
@@ -82,6 +118,29 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
         <button onClick={onClose} className="text-neutral-400 hover:text-neutral-600"><X className="w-4 h-4" /></button>
       </div>
 
+      {fiscalYears.length > 0 && (
+        <div className="mb-3">
+          <label className="text-[11px] text-neutral-500 mb-1 block">Exercice comptable</label>
+          <div className="flex flex-wrap gap-1">
+            {fiscalYears.slice(0, 4).map(fy => {
+              const selected = doc?.period.startDate === fy.startDate && doc?.period.endDate === fy.endDate;
+              return (
+                <button
+                  key={fy.id}
+                  onClick={() => applyFiscalYear(fy)}
+                  title={`${fy.startDate} → ${fy.endDate}`}
+                  className={`px-2.5 py-1 text-[11px] rounded-md font-medium ${
+                    selected ? 'bg-neutral-900 text-white' : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                  }`}
+                >
+                  {fy.name}{fy.isClosed ? ' ·clôturé' : ''}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mb-3">
         <label className="text-[11px] text-neutral-500 mb-1 block">Type</label>
         <div className="flex flex-wrap gap-1">
@@ -103,7 +162,7 @@ const PeriodSelector: React.FC<Props> = ({ onClose }) => {
         <div className="mb-3">
           <label className="text-[11px] text-neutral-500 mb-1 block">Année</label>
           <select value={year} onChange={e => setYear(Number(e.target.value))} className="w-full text-xs border border-neutral-200 rounded-md px-2 py-1.5 focus:ring-1 focus:ring-neutral-500">
-            {[currentYear - 2, currentYear - 1, currentYear, currentYear + 1].map(y => (
+            {yearOptions.map(y => (
               <option key={y} value={y}>{y}</option>
             ))}
           </select>

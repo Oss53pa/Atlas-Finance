@@ -20,6 +20,9 @@ import { catalogItems } from '../data/catalogItems';
 import { getMasterTemplateBlocks } from '../data/masterTemplates';
 import type { MasterTemplateId } from '../data/masterTemplates';
 import { loadReport } from '../services/reportPersistenceService';
+import { resolveDefaultPeriod } from '../services/reportPeriodService';
+import { createBlockFromCatalog } from '../data/createBlockFromCatalog';
+import { atlasCatalog } from '../data/atlasCatalog';
 import { useData } from '../../../contexts/DataContext';
 import { toast } from 'react-hot-toast';
 import TopBar from './TopBar';
@@ -73,26 +76,20 @@ const ReportBuilderApp: React.FC = () => {
   );
 
   // Open a report in the builder (called from Journal or Templates)
-  const handleOpenInBuilder = useCallback((title?: string, masterTemplateId?: string) => {
+  const handleOpenInBuilder = useCallback(async (title?: string, masterTemplateId?: string) => {
     // Always create a new document (reset if one exists)
     const store = useReportBuilderStore.getState();
     if (store.document) {
       store.reset();
     }
 
-    // Compute current-month period dynamically — never hardcode dates
-    const now = new Date();
-    const periodStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const periodEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const periodLabel = periodStart.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-    const capitalize  = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    // Période = exercice comptable actif du dossier, pas le mois calendaire.
+    // Cadrer sur le mois courant ouvrait les rapports sur une fenêtre souvent
+    // vide (exercice antérieur, début de mois) : tous les blocs affichaient
+    // « Aucune donnée pour cette période ».
+    const period = await resolveDefaultPeriod(adapter);
 
-    createDocument(title || 'Nouveau Rapport', {
-      type: 'monthly',
-      startDate: periodStart.toISOString().split('T')[0],
-      endDate:   periodEnd.toISOString().split('T')[0],
-      label:     capitalize(periodLabel),
-    });
+    createDocument(title || 'Nouveau Rapport', period);
 
     // If a master template was requested, inject its pre-wired blocks into page 0
     if (masterTemplateId) {
@@ -107,7 +104,7 @@ const ReportBuilderApp: React.FC = () => {
     }
 
     setActiveTab('builder');
-  }, [createDocument, companyName]);
+  }, [createDocument, companyName, adapter]);
 
   // Ouvrir un rapport EXISTANT : recharge son contenu réel (pages/blocs/thème/période)
   // depuis la table `reports`, au lieu de repartir d'un document vierge.
@@ -147,6 +144,16 @@ const ReportBuilderApp: React.FC = () => {
 
     const activeId = String(active.id);
     const overId = String(over.id);
+
+    // Catalogue Atlas (tables / graphiques / KPIs / tableaux de bord) : il n'était
+    // pas déposable, seul le catalogue de blocs de mise en page l'était.
+    if (activeId.startsWith('atlas-')) {
+      const item = atlasCatalog.find(c => c.id === activeId.replace('atlas-', ''));
+      if (!item) return;
+      const overData = over.data?.current;
+      addBlock(overData?.pageIndex ?? selectedPageIndex, createBlockFromCatalog(item));
+      return;
+    }
 
     if (activeId.startsWith('catalog-')) {
       const catalogId = activeId.replace('catalog-', '');
@@ -221,7 +228,7 @@ const ReportBuilderApp: React.FC = () => {
       {activeTab === 'journal' && (
         <div className="flex-1 overflow-auto bg-neutral-50">
           <ReportJournalPage
-            onOpenBuilder={(title) => handleOpenInBuilder(title)}
+            onOpenBuilder={(title) => { void handleOpenInBuilder(title); }}
             onOpenReport={handleOpenReport}
             onGoToTemplates={() => setActiveTab('templates')}
           />
@@ -230,7 +237,7 @@ const ReportBuilderApp: React.FC = () => {
 
       {activeTab === 'templates' && (
         <div className="flex-1 overflow-auto bg-neutral-50">
-          <TemplateGalleryPage onUseTemplate={(title, masterTemplateId) => handleOpenInBuilder(title, masterTemplateId)} />
+          <TemplateGalleryPage onUseTemplate={(title, masterTemplateId) => { void handleOpenInBuilder(title, masterTemplateId); }} />
         </div>
       )}
 

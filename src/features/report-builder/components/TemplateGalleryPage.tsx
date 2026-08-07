@@ -92,16 +92,22 @@ const categoryLabels: Record<string, { label: string; color: string; bg: string 
 };
 
 // Mapping gallery template IDs → master template IDs from masterTemplates.ts
+//
+// Chaque modèle annoncé dispose désormais de sa structure propre. Auparavant
+// `tpl-analytique` retombait sur `undefined` (donc un document vierge malgré
+// les sections annoncées) et quatre autres pointaient vers un modèle partiel :
+// « Rapport Annuel Complet » n'ouvrait qu'un bilan, « Rapport Trésorerie » un
+// TAFIRE, etc. Seul `tpl-vierge` reste volontairement sans structure.
 const MASTER_TEMPLATE_MAP: Record<string, string | undefined> = {
   'tpl-mensuel-dg':  'rapport_mensuel_direction',
-  'tpl-exco':        'rapport_mensuel_direction',
-  'tpl-annuel':      'bilan_syscohada',
-  'tpl-tresorerie':  'tafire',
-  'tpl-analytique':  undefined,                    // no exact master template yet
+  'tpl-exco':        'rapport_exco',
+  'tpl-annuel':      'rapport_annuel_complet',
+  'tpl-tresorerie':  'rapport_tresorerie',
+  'tpl-analytique':  'rapport_analytique',
   'tpl-fiscal':      'rapport_fiscal_trimestriel',
-  'tpl-banquier':    'bilan_syscohada',
+  'tpl-banquier':    'rapport_banquier',
   'tpl-auditeur':    'rapport_audit_syscohada',
-  'tpl-vierge':      undefined,                    // blank document
+  'tpl-vierge':      undefined,                    // document vierge — voulu
 };
 
 // ============================================================================
