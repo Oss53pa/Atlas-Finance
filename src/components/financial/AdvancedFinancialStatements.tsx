@@ -3,10 +3,7 @@ import type { DBJournalEntry } from '../../lib/db';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../../contexts/DataContext';
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area
-} from 'recharts';
+import { AtlasBar, AtlasCombo, AtlasPie } from '../charts';
 import {
   FileText, Download, Printer, Settings, Eye, Calendar, TrendingUp, TrendingDown,
   AlertTriangle, CheckCircle, BarChart3, PieChart as PieChartIcon, Activity,
@@ -547,43 +544,29 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   <Eye className="w-4 h-4" />
                 </button>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { 
-                        name: t('finStatements.fixedAssetsShort'),
-                        value: Math.abs(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0))
-                      },
-                      { 
-                        name: t('finStatements.currentAssetsShort'),
-                        value: Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0)
-                      },
-                      { 
-                        name: t('finStatements.equityShort'),
-                        value: Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0)
-                      },
-                      { 
-                        name: t('finStatements.liabilitiesShort'),
-                        value: Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0)
-                      }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#235A6E"
-                    dataKey="value"
-                  >
-                    {Array.from({length: 4}).map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => [`${fmt(value as number)}`, '']} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <AtlasPie
+                data={[
+                  {
+                    name: t('finStatements.fixedAssetsShort'),
+                    value: Math.abs(Object.values(bilanData.actifImmobilise).reduce((sum, val) => sum + val, 0)),
+                  },
+                  {
+                    name: t('finStatements.currentAssetsShort'),
+                    value: Object.values(bilanData.actifCirculant).reduce((sum, val) => sum + val, 0),
+                  },
+                  {
+                    name: t('finStatements.equityShort'),
+                    value: Object.values(bilanData.capitauxPropres).reduce((sum, val) => sum + val, 0),
+                  },
+                  {
+                    name: t('finStatements.liabilitiesShort'),
+                    value: Object.values(bilanData.dettes).reduce((sum, val) => sum + val, 0),
+                  },
+                ]}
+                colors={COLORS}
+                valueFormatter={(v) => fmt(v)}
+                height={300}
+              />
             </div>
 
             {/* Évolution des SIG */}
@@ -598,21 +581,19 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   </select>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={[
-                  { periode: t('finStatements.fiscalYearShort'), va: sigData.valeurAjoutee, ebe: sigData.excedentBrutExploitation, re: sigData.resultatExploitation, rn: sigData.resultatNet },
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => `${fmt(value)}`} />
-                  <Tooltip formatter={(value) => [`${fmt(value as number)}`, '']} />
-                  <Legend />
-                  <Area type="monotone" dataKey="va" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name={t('finStatements.valueAdded')} />
-                  <Area type="monotone" dataKey="ebe" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name="EBE" />
-                  <Area type="monotone" dataKey="re" stackId="3" stroke="#E8B4B8" fill="#E8B4B8" fillOpacity={0.6} name={t('finStatements.operatingIncomeShort')} />
-                  <Area type="monotone" dataKey="rn" stackId="4" stroke="#A8C8EC" fill="#A8C8EC" fillOpacity={0.6} name={t('finStatements.kpiNetIncome')} />
-                </AreaChart>
-              </ResponsiveContainer>
+              {/* Une seule période disponible : des aplats de surface n'avaient rien à
+                  relier. Barres groupées — les 4 soldes intermédiaires se comparent. */}
+              <AtlasBar
+                categories={[t('finStatements.fiscalYearShort')]}
+                series={[
+                  { name: t('finStatements.valueAdded'), data: [sigData.valeurAjoutee] },
+                  { name: 'EBE', data: [sigData.excedentBrutExploitation] },
+                  { name: t('finStatements.operatingIncomeShort'), data: [sigData.resultatExploitation] },
+                  { name: t('finStatements.kpiNetIncome'), data: [sigData.resultatNet] },
+                ]}
+                valueFormatter={(v) => fmt(v)}
+                height={300}
+              />
             </div>
           </div>
 
@@ -714,8 +695,8 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                 </button>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={(() => {
+            {(() => {
+              const monthly = (() => {
                 const MONTHS = [
                   t('finStatements.monthJan'), t('finStatements.monthFeb'), t('finStatements.monthMar'),
                   t('finStatements.monthApr'), t('finStatements.monthMay'), t('finStatements.monthJun'),
@@ -736,18 +717,23 @@ const AdvancedFinancialStatements: React.FC<AdvancedFinancialStatementsProps> = 
                   const rn = money(ca).subtract(money(charges)).toNumber();
                   return { mois, ca, rn, marge: ca > 0 ? Math.round(rn / ca * 1000) / 10 : 0 };
                 }).filter(m => m.ca > 0 || m.rn !== 0);
-              })()}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="mois" />
-                <YAxis yAxisId="left" tickFormatter={(value) => `${fmt(value)}`} />
-                <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value.toFixed(1)}%`} />
-                <Tooltip />
-                <Legend />
-                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="ca" fill="url(#gradPetrol)" name={`${t('finStatements.kpiRevenue')} (M XAF)`} />
-                <Bar radius={[6,6,0,0]} yAxisId="left" dataKey="rn" fill="url(#gradPetrolLight)" name={`${t('finStatements.kpiNetIncome')} (M XAF)`} />
-                <Line yAxisId="right" type="monotone" dataKey="marge" stroke="#C0322B" strokeWidth={3} name={`${t('finStatements.netMargin')} (%)`} />
-              </LineChart>
-            </ResponsiveContainer>
+              })();
+              return (
+                <AtlasCombo
+                  categories={monthly.map((m) => m.mois)}
+                  bars={[
+                    { name: t('finStatements.kpiRevenue'), data: monthly.map((m) => m.ca), color: '#235A6E' },
+                    { name: t('finStatements.kpiNetIncome'), data: monthly.map((m) => m.rn), color: '#4E7E8D' },
+                  ]}
+                  lines={[
+                    { name: `${t('finStatements.netMargin')} (%)`, data: monthly.map((m) => m.marge), color: '#C0322B' },
+                  ]}
+                  valueFormatter={(v) => fmt(v)}
+                  rightFormatter={(v) => `${v.toFixed(1)}%`}
+                  height={400}
+                />
+              );
+            })()}
           </div>
         </div>
       )}

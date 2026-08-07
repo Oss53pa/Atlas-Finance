@@ -13,9 +13,8 @@ import {
   AlertCircle, TrendingDown, Wallet, CreditCard, Users,
   Layers, TrendingUp as TrendIcon
 } from 'lucide-react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { StatBadgeCard } from '../premium';
-import { AtlasDonut } from '../charts';
+import { AtlasBar, AtlasDonut, AtlasLine, ATLAS_ERROR, ATLAS_PETROL, ATLAS_SUCCESS, ATLAS_AMBER } from '../charts';
 
 const JournalDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -283,17 +282,15 @@ const JournalDashboard: React.FC = () => {
                     <BarChart3 className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
                     Volume d'écritures (7 derniers jours)
                   </h3>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={volumeByDay}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="day" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar radius={[6,6,0,0]} dataKey="validated" stackId="a" fill="url(#gradGreen)" name="Validées" />
-                      <Bar radius={[6,6,0,0]} dataKey="pending" stackId="a" fill="url(#gradAmber)" name="En attente" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <AtlasBar
+                    categories={volumeByDay.map((d) => d.day)}
+                    series={[
+                      { name: 'Validées', data: volumeByDay.map((d) => d.validated), color: ATLAS_SUCCESS },
+                      { name: 'En attente', data: volumeByDay.map((d) => d.pending), color: ATLAS_AMBER },
+                    ]}
+                    stacked
+                    height={300}
+                  />
                 </div>
               </div>
 
@@ -398,18 +395,16 @@ const JournalDashboard: React.FC = () => {
                   <DollarSign className="w-5 h-5 mr-2 text-[var(--color-text-primary)]" />
                   Évolution de la trésorerie (7 derniers jours)
                 </h3>
-                <ResponsiveContainer width="100%" height={350}>
-                  <AreaChart data={treasuryEvolution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis tickFormatter={(value) => fmt(value)} />
-                    <Tooltip formatter={(value: number) => formatAmount(value)} />
-                    <Legend />
-                    <Area type="monotone" dataKey="encaissements" stackId="1" stroke="#15803D" fill="#15803D" fillOpacity={0.6} name={t('treasury.receipts')} />
-                    <Area type="monotone" dataKey="decaissements" stackId="2" stroke="#C0322B" fill="#C0322B" fillOpacity={0.6} name={t('treasury.payments')} />
-                    <Line type="monotone" dataKey="solde" stroke="#235A6E" strokeWidth={2} name={t('accounting.balance')} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={treasuryEvolution.map((d) => d.day)}
+                  series={[
+                    { name: t('treasury.receipts'), data: treasuryEvolution.map((d) => d.encaissements), color: ATLAS_SUCCESS, area: true },
+                    { name: t('treasury.payments'), data: treasuryEvolution.map((d) => d.decaissements), color: ATLAS_ERROR, area: true },
+                    { name: t('accounting.balance'), data: treasuryEvolution.map((d) => d.solde), color: ATLAS_PETROL },
+                  ]}
+                  valueFormatter={(v) => formatAmount(v)}
+                  height={350}
+                />
               </div>
 
               {/* Indicateurs de performance */}

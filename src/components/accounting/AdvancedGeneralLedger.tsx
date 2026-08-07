@@ -8,10 +8,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import { StatBadgeCard } from '../premium';
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+import { AtlasLine } from '../charts';
 import {
   FileText, Search, Filter, Printer, Settings, Eye, Calendar,
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, BarChart3,
@@ -1433,17 +1430,15 @@ const AdvancedGeneralLedger: React.FC = () => {
                   </button>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={evolutionData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="periode" />
-                  <YAxis tickFormatter={(value) => fmt(value)} />
-                  <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                  <Legend />
-                  <Area type="monotone" dataKey="actif" stackId="1" stroke="#235A6E" fill="#235A6E" fillOpacity={0.6} name={t('gl.assets')} />
-                  <Area type="monotone" dataKey="passif" stackId="2" stroke="#4E7E8D" fill="#4E7E8D" fillOpacity={0.6} name={t('gl.liabilities')} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <AtlasLine
+                categories={evolutionData.map((e) => e.periode)}
+                series={[
+                  { name: t('gl.assets'), data: evolutionData.map((e) => e.actif), color: '#235A6E', area: true },
+                  { name: t('gl.liabilities'), data: evolutionData.map((e) => e.passif), color: '#4E7E8D', area: true },
+                ]}
+                valueFormatter={(v) => fmt(v)}
+                height={300}
+              />
             </div>
 
             {/* Top comptes par activité */}
@@ -2621,17 +2616,15 @@ const AdvancedGeneralLedger: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <h5 className="font-medium text-gray-900 mb-3">{t('gl.balanceEvolutionAL')}</h5>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={evolutionData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="periode" />
-                    <YAxis tickFormatter={(value) => fmt(value)} />
-                    <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                    <Legend />
-                    <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={3} name={t('gl.assetsReal')} />
-                    <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={3} name={t('gl.liabilitiesReal')} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <AtlasLine
+                  categories={evolutionData.map((e) => e.periode)}
+                  series={[
+                    { name: t('gl.assetsReal'), data: evolutionData.map((e) => e.actif), color: '#235A6E' },
+                    { name: t('gl.liabilitiesReal'), data: evolutionData.map((e) => e.passif), color: '#4E7E8D' },
+                  ]}
+                  valueFormatter={(v) => fmt(v)}
+                  height={300}
+                />
               </div>
 
               <div>
@@ -2758,19 +2751,17 @@ const AdvancedGeneralLedger: React.FC = () => {
           {/* Analyse par période */}
           <div className="bg-white p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">{t('gl.periodAnalysis')}</h3>
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={evolutionData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="periode" />
-                <YAxis tickFormatter={(value) => fmt(value)} />
-                <Tooltip formatter={(value) => [fmt(value as number), '']} />
-                <Legend />
-                <Line type="monotone" dataKey="produits" stroke="#15803D" strokeWidth={3} name={t('gl.revenue')} />
-                <Line type="monotone" dataKey="charges" stroke="#C0322B" strokeWidth={3} name={t('gl.expenses')} />
-                <Line type="monotone" dataKey="actif" stroke="#235A6E" strokeWidth={2} name={t('gl.assets')} />
-                <Line type="monotone" dataKey="passif" stroke="#4E7E8D" strokeWidth={2} name={t('gl.liabilities')} />
-              </LineChart>
-            </ResponsiveContainer>
+            <AtlasLine
+              categories={evolutionData.map((e) => e.periode)}
+              series={[
+                { name: t('gl.revenue'), data: evolutionData.map((e) => e.produits), color: '#15803D' },
+                { name: t('gl.expenses'), data: evolutionData.map((e) => e.charges), color: '#C0322B' },
+                { name: t('gl.assets'), data: evolutionData.map((e) => e.actif), color: '#235A6E' },
+                { name: t('gl.liabilities'), data: evolutionData.map((e) => e.passif), color: '#4E7E8D' },
+              ]}
+              valueFormatter={(v) => fmt(v)}
+              height={400}
+            />
           </div>
 
           {/* Analyse des comptes */}

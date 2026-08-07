@@ -7,10 +7,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import PeriodSelectorModal from '../shared/PeriodSelectorModal';
 import ExportMenu from '../shared/ExportMenu';
 import { StatBadgeCard } from '../premium';
-import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, LabelList
-} from 'recharts';
+import { AtlasBar, AtlasLine } from '../charts';
 import {
   TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Eye,
   Printer, Settings, Filter, Search, Calendar, BarChart3, PieChart as PieChartIcon,
@@ -730,47 +727,16 @@ const AdvancedBalance: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={320}>
-                  <LineChart data={flowSeries} margin={{ top: 16, right: 16, bottom: 8, left: 8 }}>
-                    <CartesianGrid stroke="#EAE6DC" vertical={false} />
-                    <XAxis
-                      dataKey="periode"
-                      tick={{ fontSize: 11, fill: '#8A8375' }}
-                      tickLine={false}
-                      axisLine={{ stroke: '#EAE6DC' }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 11, fill: '#8A8375' }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={72}
-                      tickFormatter={(value) => fmt(value)}
-                    />
-                    <Tooltip
-                      formatter={(value, name) => [fmt(value as number), name as string]}
-                      contentStyle={{
-                        borderRadius: 10,
-                        border: '1px solid #EAE6DC',
-                        boxShadow: '0 6px 20px rgba(38,30,21,.08)',
-                        fontSize: 12,
-                      }}
-                    />
-                    <Legend iconType="plainline" wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                    {/* Deux flux comparables sur UN axe (jamais deux échelles). */}
-                    <Line
-                      type="monotone" dataKey="produits" name={t('advBalance.revenues')}
-                      stroke={CHART_SERIES.produits} strokeWidth={2}
-                      dot={{ r: 3, strokeWidth: 2, stroke: 'var(--color-surface)' }}
-                      activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--color-surface)' }}
-                    />
-                    <Line
-                      type="monotone" dataKey="charges" name={t('advBalance.expenses')}
-                      stroke={CHART_SERIES.charges} strokeWidth={2}
-                      dot={{ r: 3, strokeWidth: 2, stroke: 'var(--color-surface)' }}
-                      activeDot={{ r: 5, strokeWidth: 2, stroke: 'var(--color-surface)' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                /* Deux flux comparables sur UN axe (jamais deux échelles). */
+                <AtlasLine
+                  categories={flowSeries.map((f) => f.periode)}
+                  series={[
+                    { name: t('advBalance.revenues'), data: flowSeries.map((f) => f.produits), color: CHART_SERIES.produits },
+                    { name: t('advBalance.expenses'), data: flowSeries.map((f) => f.charges), color: CHART_SERIES.charges },
+                  ]}
+                  valueFormatter={(v) => fmt(v)}
+                  height={320}
+                />
               )}
             </div>
 
@@ -784,39 +750,15 @@ const AdvancedBalance: React.FC = () => {
                   forment un tout — ce qui n'a aucun sens comptable — et opposait
                   des parts trop proches (43 % vs 37 %) pour être comparées à l'œil.
                   Barres horizontales : une seule teinte, la longueur porte la mesure. */}
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={masses}
-                  layout="vertical"
-                  margin={{ top: 8, right: 96, bottom: 8, left: 8 }}
-                  barCategoryGap={14}
-                >
-                  <CartesianGrid stroke="#EAE6DC" horizontal={false} />
-                  <XAxis type="number" hide />
-                  <YAxis
-                    type="category" dataKey="name" width={92}
-                    tick={{ fontSize: 12, fill: '#4A4438' }}
-                    tickLine={false} axisLine={false}
-                  />
-                  <Tooltip
-                    cursor={{ fill: 'rgba(12,123,166,.06)' }}
-                    formatter={(value) => [fmt(value as number), '']}
-                    contentStyle={{
-                      borderRadius: 10,
-                      border: '1px solid #EAE6DC',
-                      boxShadow: '0 6px 20px rgba(38,30,21,.08)',
-                      fontSize: 12,
-                    }}
-                  />
-                  <Bar dataKey="value" fill={CHART_SERIES.mass} radius={[0, 4, 4, 0]} barSize={22}>
-                    <LabelList
-                      dataKey="value" position="right"
-                      formatter={(v: number) => fmt(v)}
-                      style={{ fontSize: 11, fill: '#4A4438' }}
-                    />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {/* ECharts empile l'axe catégoriel du bas vers le haut : on inverse
+                  l'ordre décroissant pour retrouver la plus grande masse en haut. */}
+              <AtlasBar
+                categories={[...masses].reverse().map((m) => m.name)}
+                series={[{ name: t('advBalance.breakdownByType'), data: [...masses].reverse().map((m) => m.value), color: CHART_SERIES.mass }]}
+                horizontal
+                valueFormatter={(v) => fmt(v)}
+                height={300}
+              />
             </div>
           </div>
 

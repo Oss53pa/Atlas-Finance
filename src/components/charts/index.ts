@@ -13,6 +13,9 @@ export type { AtlasBarProps, BarSeries } from './AtlasBar';
 export { default as AtlasLine } from './AtlasLine';
 export type { AtlasLineProps, LineSeries } from './AtlasLine';
 
+export { default as AtlasCombo } from './AtlasCombo';
+export type { AtlasComboProps, ComboBarSeries, ComboLineSeries } from './AtlasCombo';
+
 export { default as AtlasRadar } from './AtlasRadar';
 export type { AtlasRadarProps, RadarIndicator, RadarSeries } from './AtlasRadar';
 
