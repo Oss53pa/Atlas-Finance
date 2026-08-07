@@ -30,6 +30,8 @@ const DPO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de paiement fourni
 const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
 const TRESO_THRESHOLD_DEFAULT = 0; // seuil d'alerte de trésorerie nette (FCFA) : alerte si en dessous
 const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
+const BFR_DAYS_THRESHOLD_DEFAULT = 90; // seuil d'alerte du BFR exprimé en jours de CA
+const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
 
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -42,11 +44,11 @@ const ManagerDashboard: React.FC = () => {
   // KPIs dérivés de la SOURCE UNIQUE (glHelpers via computeDashboardMetrics).
   const [liveKpiData, setLiveKpiData] = useState<{
     revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number;
-    receivables: number; payables: number; stocks: number; bfr: number;
+    receivables: number; payables: number; stocks: number; bfr: number; bfrDays: number;
     dso: number; dpo: number; margeBrute: number; ratioCD: number | null;
   }>({
     revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0,
-    receivables: 0, payables: 0, stocks: 0, bfr: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null,
+    receivables: 0, payables: 0, stocks: 0, bfr: 0, bfrDays: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null,
   });
   const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
   const [balHistory, setBalHistory] = useState<Array<{ label: string; creances: number; dettes: number }>>([]);
@@ -73,6 +75,14 @@ const ManagerDashboard: React.FC = () => {
     const val = Math.round(v || 0);
     setTresoThreshold(val);
     try { localStorage.setItem(TRESO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
+  };
+  const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => {
+    try { const v = Number(localStorage.getItem(BFR_DAYS_THRESHOLD_KEY)); return v > 0 ? v : BFR_DAYS_THRESHOLD_DEFAULT; } catch { return BFR_DAYS_THRESHOLD_DEFAULT; }
+  });
+  const updateBfrDaysThreshold = (v: number) => {
+    const val = Math.max(1, Math.min(1000, Math.round(v || 0)));
+    setBfrDaysThreshold(val);
+    try { localStorage.setItem(BFR_DAYS_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
   };
 
   const handleExport = () => {
@@ -134,12 +144,13 @@ const ManagerDashboard: React.FC = () => {
       })();
       const dso = m.ca > 0 ? Math.round((receivables / m.ca) * days) : 0;   // délai recouvrement clients
       const dpo = achats > 0 ? Math.round((payables / achats) * days) : 0;  // délai paiement fournisseurs
+      const bfrDays = m.ca > 0 ? Math.round((bfr / m.ca) * days) : 0;       // BFR exprimé en jours de CA
       const margeBrute = m.ca > 0 ? ((m.ca - achats) / m.ca) * 100 : 0;     // marge brute %
       const ratioCD = payables !== 0 ? receivables / payables : null;       // créances / dettes
 
       setLiveKpiData({
         revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount,
-        receivables, payables, stocks, bfr, dso, dpo, margeBrute, ratioCD,
+        receivables, payables, stocks, bfr, bfrDays, dso, dpo, margeBrute, ratioCD,
       });
 
       // Historique 6 mois : encours créances/dettes cumulés à la fin de chaque mois.
@@ -216,6 +227,15 @@ const ManagerDashboard: React.FC = () => {
       title: 'DPO élevé',
       message: `Délai de paiement fournisseurs de ${liveKpiData.dpo} jours (seuil ${dpoThreshold} j). Risque sur les relations fournisseurs.`,
       action: 'Voir les dettes',
+      time: '',
+    });
+  }
+  if (liveKpiData.revenue > 0 && liveKpiData.bfrDays > bfrDaysThreshold) {
+    alerts.push({
+      type: 'warning',
+      title: 'BFR en forte hausse',
+      message: `Le besoin en fonds de roulement représente ${liveKpiData.bfrDays} jours de CA (${fmt(liveKpiData.bfr)}), au-delà du seuil de ${bfrDaysThreshold} j. Tension possible sur la trésorerie.`,
+      action: 'Analyser le BFR',
       time: '',
     });
   }
@@ -368,13 +388,24 @@ const ManagerDashboard: React.FC = () => {
                 />
                 FCFA
               </label>
+              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
+                Seuil BFR
+                <input
+                  type="number" min={1} max={1000}
+                  value={bfrDaysThreshold}
+                  onChange={(e) => updateBfrDaysThreshold(Number(e.target.value))}
+                  className="w-16 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
+                  aria-label="Seuil d'alerte BFR en jours de CA"
+                />
+                j de CA
+              </label>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
             {[
               { label: 'Créances clients', value: fmt(liveKpiData.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
               { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
-              { label: 'BFR', value: fmt(liveKpiData.bfr), sub: 'Créances + stocks − dettes', icon: Scale, tone: liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]' },
+              { label: 'BFR', value: fmt(liveKpiData.bfr), sub: `${liveKpiData.bfrDays} j de CA · seuil ${bfrDaysThreshold} j`, icon: Scale, tone: (liveKpiData.revenue > 0 && liveKpiData.bfrDays > bfrDaysThreshold) ? 'text-[var(--color-error)]' : (liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]') },
               { label: 'DSO', value: `${liveKpiData.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: liveKpiData.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
               { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: liveKpiData.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
               { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
