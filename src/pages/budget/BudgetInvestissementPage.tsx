@@ -23,9 +23,9 @@ import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import { Dialog, DialogContent } from '../../components/ui/Dialog';
 import { useToast } from '../../hooks/useToast';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { ArrowLeft, Package, Wallet, TrendingUp, Hourglass, Plus, Trash2, Check, Ban, Banknote, Lock, Eye, Pencil, Search, ClipboardCheck } from 'lucide-react';
 
-const MOIS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 const CAR_BADGE: Record<string, string> = {
   demande: 'bg-gray-100 text-gray-700',
   approuve: 'bg-blue-100 text-blue-700',
@@ -33,8 +33,9 @@ const CAR_BADGE: Record<string, string> = {
   clos: 'bg-amber-100 text-amber-800',
   rejete: 'bg-red-100 text-red-700',
 };
-const CAR_LABEL: Record<string, string> = {
-  demande: 'Business case', approuve: 'Validé / Budgété', fonds_disponibles: 'CAR émise', clos: 'Clôturé', rejete: 'Rejeté',
+const CAR_LABEL_KEY: Record<string, string> = {
+  demande: 'budgetCapex.carBusinessCase', approuve: 'budgetCapex.carApproved',
+  fonds_disponibles: 'budgetCapex.carIssued', clos: 'budgetCapex.carClosed', rejete: 'budgetCapex.carRejected',
 };
 
 const BudgetInvestissementPage: React.FC = () => {
@@ -42,6 +43,8 @@ const BudgetInvestissementPage: React.FC = () => {
   const { format: fmtAccount } = useAccountNames();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const MOIS = React.useMemo(() => t('budgetCapex.monthsShort').split(','), [t]);
   const navigate = useNavigate();
   const [annee, setAnnee] = useState('');
   // Ouvre sur la liste des business cases (CAPEX) : c'est la surface de travail du workflow.
@@ -80,7 +83,7 @@ const BudgetInvestissementPage: React.FC = () => {
 
   const carAction = async (fn: () => Promise<void>, ok: string) => {
     try { await fn(); toast.success(ok); setRefreshKey(k => k + 1); }
-    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    catch (e: any) { toast.error(e?.message || t('budgetCapex.genericError')); }
   };
 
   // Validation/rejet avec trace d'approbation immuable (audit + niveau requis).
@@ -88,7 +91,7 @@ const BudgetInvestissementPage: React.FC = () => {
     // SÉPARATION DES TÂCHES (SoD) : l'approbateur ne peut pas être le demandeur.
     const createdBy = (r as any).created_by || (r as any).createdBy;
     if (createdBy && user?.id && createdBy === user.id) {
-      toast.error('Séparation des tâches : vous ne pouvez pas approuver votre propre demande CAPEX.');
+      toast.error(t('budgetCapex.sodError'));
       return;
     }
     const br = requiredApprover(matrix, r.montant);
@@ -99,7 +102,7 @@ const BudgetInvestissementPage: React.FC = () => {
         statut: statut === 'approuve' ? 'approved' : 'rejected',
         decidedBy: user?.id || null,
       });
-    }, statut === 'approuve' ? 'Demande validée (tracée)' : 'Demande rejetée (tracée)');
+    }, statut === 'approuve' ? t('budgetCapex.requestApproved') : t('budgetCapex.requestRejected'));
   };
 
   const chart = useMemo(() => (sum?.mensuel || []).map((m, i) => ({ label: MOIS[i], value: Math.round(m.realise / 1000), color: '' })), [sum]);
@@ -112,7 +115,7 @@ const BudgetInvestissementPage: React.FC = () => {
     };
   }, [requests]);
 
-  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">Chargement…</div>;
+  if (loading) return <div className="p-8 text-center text-[var(--color-text-tertiary)]">{t('budgetCapex.loading')}</div>;
   if (error) return <div className="p-8"><div className="bg-[var(--color-error-light,#FEECEC)] text-[var(--color-error)] rounded-lg p-4 text-sm">{error}</div></div>;
 
   const s = sum!;
@@ -131,24 +134,24 @@ const BudgetInvestissementPage: React.FC = () => {
         <button onClick={() => navigate('/budget/cockpit')} className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200"><ArrowLeft className="w-4 h-4" /></button>
         <div className="w-10 h-10 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center"><Package className="w-5 h-5 text-[var(--color-primary)]" /></div>
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-[var(--color-primary)]">Investissement (CAPEX)</h1>
-          <p className="text-sm text-[var(--color-text-tertiary)]">Immobilisations classe 2 · Exercice {annee}</p>
+          <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('budgetCapex.title')}</h1>
+          <p className="text-sm text-[var(--color-text-tertiary)]">{t('budgetCapex.subtitle', { year: annee })}</p>
         </div>
-        <button onClick={() => setShowCar(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-2"><Plus className="w-4 h-4" />Nouveau business case</button>
+        <button onClick={() => setShowCar(true)} className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg text-sm font-medium hover:opacity-90 flex items-center gap-2"><Plus className="w-4 h-4" />{t('budgetCapex.newBusinessCase')}</button>
         <button
           onClick={() => {
-            if (eligibleForCar.length === 0) { toast.error('Aucun business case validé. Validez d’abord un business case pour émettre une CAR.'); return; }
+            if (eligibleForCar.length === 0) { toast.error(t('budgetCapex.noValidatedBc')); return; }
             if (eligibleForCar.length === 1) { setCarForReq(eligibleForCar[0]); return; }
             setCarLauncherOpen(true);
           }}
-          title="Émettre une Capital Appropriation Request (appropriation des fonds budgétés)"
+          title={t('budgetCapex.issueCarTitle')}
           className="px-4 py-2 border border-green-600 text-green-700 rounded-lg text-sm font-medium hover:bg-green-50 flex items-center gap-2"
-        ><Banknote className="w-4 h-4" />Capital Appropriation Request</button>
+        ><Banknote className="w-4 h-4" />{t('budgetCapex.car')}</button>
         <PageHeaderActions
           onToggleFilters={() => setFiltersOpen(o => !o)}
           filtersOpen={filtersOpen}
           activeFilters={query.trim() ? 1 : 0}
-          printTitle={`Investissement (CAPEX) ${annee}`}
+          printTitle={t('budgetCapex.printTitle', { year: annee })}
         />
       </div>
 
@@ -156,22 +159,22 @@ const BudgetInvestissementPage: React.FC = () => {
         <div className="bg-white rounded-xl p-4 border border-[var(--color-border)] shadow-sm flex flex-wrap items-center gap-4 print-hide">
           <div className="relative">
             <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher un compte / projet…" className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder={t('budgetCapex.searchPlaceholder')} className="pl-8 pr-3 py-1.5 text-sm border border-[var(--color-border)] rounded-lg w-72" />
           </div>
-          <span className="text-xs text-gray-400">Filtre les onglets « Demandes » et « Détail par compte ».</span>
+          <span className="text-xs text-gray-400">{t('budgetCapex.filterHint')}</span>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KPICard title="CAPEX réalisé" value={formatCurrency(s.totalRealise)} icon={TrendingUp} color="primary" valueFontSize="1.125rem" />
-        <KPICard title="CAPEX budgété" value={formatCurrency(s.totalBudget)} icon={Wallet} color="neutral" valueFontSize="1.125rem" />
-        <KPICard title="Taux d'engagement" value={taux != null ? `${taux}%` : '—'} icon={TrendingUp} color="success" />
-        <KPICard title="Reste à engager" value={formatCurrency(resteTotal)} icon={Hourglass} color="warning" valueFontSize="1.125rem" />
+        <KPICard title={t('budgetCapex.kpiActual')} value={formatCurrency(s.totalRealise)} icon={TrendingUp} color="primary" valueFontSize="1.125rem" />
+        <KPICard title={t('budgetCapex.kpiBudget')} value={formatCurrency(s.totalBudget)} icon={Wallet} color="neutral" valueFontSize="1.125rem" />
+        <KPICard title={t('budgetCapex.kpiCommitmentRate')} value={taux != null ? `${taux}%` : '—'} icon={TrendingUp} color="success" />
+        <KPICard title={t('budgetCapex.kpiRemaining')} value={formatCurrency(resteTotal)} icon={Hourglass} color="warning" valueFontSize="1.125rem" />
       </div>
 
       {/* Onglets : Synthèse / Demandes CAPEX (CAR) / Détail par compte */}
       <div className="flex gap-1 bg-white rounded-xl p-1 border border-[var(--color-border)] shadow-sm w-fit">
-        {([['synthese', 'Synthèse'], ['demandes', `Business cases (${requests.length})`], ['detail', `Détail par compte (${s.parCompte.length})`]] as const).map(([k, lbl]) => (
+        {([['synthese', t('budgetCapex.tabSummary')], ['demandes', t('budgetCapex.tabRequests', { count: String(requests.length) })], ['detail', t('budgetCapex.tabDetail', { count: String(s.parCompte.length) })]] as const).map(([k, lbl]) => (
           <button key={k} onClick={() => setTab(k)} className={`px-4 py-2 text-sm font-medium rounded-lg ${tab === k ? 'bg-[var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-100'}`}>{lbl}</button>
         ))}
       </div>
@@ -188,13 +191,13 @@ const BudgetInvestissementPage: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-green-600/10 flex items-center justify-center"><Banknote className="w-5 h-5 text-green-700" /></div>
               <div>
-                <h3 className="text-base font-bold text-gray-900">Capital Appropriation Request</h3>
-                <p className="text-xs text-gray-500">Sélectionnez le business case validé dont vous appropriez les fonds.</p>
+                <h3 className="text-base font-bold text-gray-900">{t('budgetCapex.car')}</h3>
+                <p className="text-xs text-gray-500">{t('budgetCapex.carSelectHint')}</p>
               </div>
             </div>
           </div>
           <div className="space-y-2 max-h-80 overflow-y-auto">
-            {eligibleForCar.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">Aucun business case validé. Validez d’abord un business case.</div>}
+            {eligibleForCar.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">{t('budgetCapex.noValidatedBcShort')}</div>}
             {eligibleForCar.map(r => (
               <button
                 key={r.id}
@@ -207,13 +210,13 @@ const BudgetInvestissementPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-sm font-semibold text-gray-900">{formatCurrency(r.montant)}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{CAR_LABEL[r.statut]}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{t(CAR_LABEL_KEY[r.statut])}</span>
                 </div>
               </button>
             ))}
           </div>
           <div className="flex justify-end mt-5">
-            <button onClick={() => setCarLauncherOpen(false)} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Fermer</button>
+            <button onClick={() => setCarLauncherOpen(false)} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">{t('budgetCapex.close')}</button>
           </div>
         </DialogContent>
       </Dialog>
@@ -222,64 +225,64 @@ const BudgetInvestissementPage: React.FC = () => {
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
           <div className="p-4 border-b border-[var(--color-border)] flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-[var(--color-primary)]">Business cases d'investissement</h2>
-              <p className="text-xs text-[var(--color-text-tertiary)]">Workflow : business case → validation → budget CAPEX → CAR (appropriation des fonds) → clôture.</p>
+              <h2 className="font-semibold text-[var(--color-primary)]">{t('budgetCapex.bcTitle')}</h2>
+              <p className="text-xs text-[var(--color-text-tertiary)]">{t('budgetCapex.bcWorkflow')}</p>
             </div>
             <div className="flex gap-4 text-xs">
-              <div className="text-right"><div className="text-gray-400">En demande</div><div className="font-semibold text-gray-700">{formatCurrency(carStats.demande)}</div></div>
-              <div className="text-right"><div className="text-gray-400">Validé</div><div className="font-semibold text-blue-700">{formatCurrency(carStats.valide)}</div></div>
-              <div className="text-right"><div className="text-gray-400">Fonds dispo.</div><div className="font-semibold text-green-700">{formatCurrency(carStats.fonds)}</div></div>
+              <div className="text-right"><div className="text-gray-400">{t('budgetCapex.statRequested')}</div><div className="font-semibold text-gray-700">{formatCurrency(carStats.demande)}</div></div>
+              <div className="text-right"><div className="text-gray-400">{t('budgetCapex.statApproved')}</div><div className="font-semibold text-blue-700">{formatCurrency(carStats.valide)}</div></div>
+              <div className="text-right"><div className="text-gray-400">{t('budgetCapex.statFunds')}</div><div className="font-semibold text-green-700">{formatCurrency(carStats.fonds)}</div></div>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[900px]">
               <thead className="bg-gray-50 border-b border-[var(--color-border)]">
                 <tr>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Projet / Bien</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Compte</th>
-                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Montant</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Date prév.</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Durée</th>
-                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Dotation/an</th>
-                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Valeur Actuelle Nette / Taux de Rentabilité Interne">VAN / TRI</th>
-                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">Statut</th>
-                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Actions</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{t('budgetCapex.colProject')}</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{t('budgetCapex.colAccount')}</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.colAmount')}</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">{t('budgetCapex.colPlannedDate')}</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">{t('budgetCapex.colDuration')}</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.colAnnualCharge')}</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title={t('budgetCapex.colNpvIrrTitle')}>{t('budgetCapex.colNpvIrr')}</th>
+                  <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600">{t('budgetCapex.colStatus')}</th>
+                  <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.colActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredRequests.length === 0 && <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">{requests.length === 0 ? 'Aucun business case. Cliquez « Nouveau business case ».' : 'Aucun business case ne correspond au filtre.'}</td></tr>}
+                {filteredRequests.length === 0 && <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">{requests.length === 0 ? t('budgetCapex.noBc') : t('budgetCapex.noBcMatch')}</td></tr>}
                 {filteredRequests.map(r => (
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-gray-800">{r.libelle}</td>
                     <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{fmtAccount(r.account_code)}</span></td>
                     <td className="px-4 py-2.5 text-right font-medium text-gray-900">{formatCurrency(r.montant)}</td>
                     <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.date_prevue || '—'}</td>
-                    <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.duree_amortissement ? `${r.duree_amortissement} ans` : '—'}</td>
+                    <td className="px-4 py-2.5 text-center text-gray-500 text-xs">{r.duree_amortissement ? t('budgetCapex.yearsSuffix', { count: String(r.duree_amortissement) }) : '—'}</td>
                     <td className="px-4 py-2.5 text-right text-gray-600 text-xs">{formatCurrency(dotationAnnuelle(r))}</td>
                     <td className="px-4 py-2.5 text-right text-xs">
                       {r.van != null ? <><span className={r.van >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>{formatCurrency(r.van)}</span>{r.tri != null && <span className="text-gray-400"> · {(r.tri * 100).toFixed(0)}%</span>}</> : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{CAR_LABEL[r.statut]}</span></td>
+                    <td className="px-4 py-2.5 text-center"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CAR_BADGE[r.statut]}`}>{t(CAR_LABEL_KEY[r.statut])}</span></td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => setEditingCar(r)} title={(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? 'Consulter le détail' : 'Voir / modifier'} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1 text-gray-600">
-                          {(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? <><Eye className="w-3 h-3" />Voir</> : <><Pencil className="w-3 h-3" />Détail</>}
+                        <button onClick={() => setEditingCar(r)} title={(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? t('budgetCapex.viewDetailTitle') : t('budgetCapex.viewEditTitle')} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1 text-gray-600">
+                          {(r.statut === 'fonds_disponibles' || r.statut === 'clos') ? <><Eye className="w-3 h-3" />{t('budgetCapex.view')}</> : <><Pencil className="w-3 h-3" />{t('budgetCapex.detail')}</>}
                         </button>
                         {r.statut === 'demande' && <>
-                          <button onClick={() => decideCar(r, 'approuve')} title="Valider la demande (trace d'audit)" className="px-2 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"><Check className="w-3 h-3" />Valider</button>
-                          <button onClick={() => decideCar(r, 'rejete')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
+                          <button onClick={() => decideCar(r, 'approuve')} title={t('budgetCapex.approveTitle')} className="px-2 py-1 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-1"><Check className="w-3 h-3" />{t('budgetCapex.approve')}</button>
+                          <button onClick={() => decideCar(r, 'rejete')} title={t('budgetCapex.rejectTitle')} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />{t('budgetCapex.reject')}</button>
                         </>}
                         {r.statut === 'approuve' && <>
-                          <button onClick={() => setCarForReq(r)} title="Émettre une Capital Appropriation Request" className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-1"><Banknote className="w-3 h-3" />Émettre une CAR</button>
-                          <button onClick={() => decideCar(r, 'rejete')} title="Rejeter" className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />Rejeter</button>
+                          <button onClick={() => setCarForReq(r)} title={t('budgetCapex.issueCarShortTitle')} className="px-2 py-1 text-xs rounded-lg bg-green-600 text-white hover:bg-green-700 flex items-center gap-1"><Banknote className="w-3 h-3" />{t('budgetCapex.issueCar')}</button>
+                          <button onClick={() => decideCar(r, 'rejete')} title={t('budgetCapex.rejectTitle')} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-1"><Ban className="w-3 h-3" />{t('budgetCapex.reject')}</button>
                         </>}
                         {r.statut === 'fonds_disponibles' && <>
-                          <button onClick={() => setCarForReq(r)} title="Gérer les CAR" className="px-2 py-1 text-xs rounded-lg border border-green-600 text-green-700 hover:bg-green-50 flex items-center gap-1"><Banknote className="w-3 h-3" />CAR</button>
-                          <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'clos'), 'Demande clôturée')} title="Clôturer (fonds utilisés)" className="px-2 py-1 text-xs rounded-lg bg-amber-600 text-white hover:bg-amber-700 flex items-center gap-1"><Lock className="w-3 h-3" />Clôturer</button>
+                          <button onClick={() => setCarForReq(r)} title={t('budgetCapex.manageCarTitle')} className="px-2 py-1 text-xs rounded-lg border border-green-600 text-green-700 hover:bg-green-50 flex items-center gap-1"><Banknote className="w-3 h-3" />{t('budgetCapex.carShort')}</button>
+                          <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'clos'), t('budgetCapex.requestClosed'))} title={t('budgetCapex.closeTitle')} className="px-2 py-1 text-xs rounded-lg bg-amber-600 text-white hover:bg-amber-700 flex items-center gap-1"><Lock className="w-3 h-3" />{t('budgetCapex.closeAction')}</button>
                         </>}
-                        {r.statut === 'clos' && <button onClick={() => setPirCar(r)} title="Post-Implementation Review" className="px-2 py-1 text-xs rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 flex items-center gap-1"><ClipboardCheck className="w-3 h-3" />PIR</button>}
-                        {r.statut === 'rejete' && <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'demande'), 'Réactivée')} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50">Réactiver</button>}
-                        <button onClick={() => { if (window.confirm('Supprimer cette demande ?')) carAction(() => deleteCapexRequest(adapter, r.id), 'Supprimée'); }} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                        {r.statut === 'clos' && <button onClick={() => setPirCar(r)} title={t('budgetCapex.pirTitle')} className="px-2 py-1 text-xs rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 flex items-center gap-1"><ClipboardCheck className="w-3 h-3" />{t('budgetCapex.pir')}</button>}
+                        {r.statut === 'rejete' && <button onClick={() => carAction(() => setCapexStatut(adapter, r.id, 'demande'), t('budgetCapex.reactivated'))} className="px-2 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50">{t('budgetCapex.reactivate')}</button>}
+                        <button onClick={() => { if (window.confirm(t('budgetCapex.confirmDelete'))) carAction(() => deleteCapexRequest(adapter, r.id), t('budgetCapex.deleted')); }} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </td>
                   </tr>
@@ -292,30 +295,30 @@ const BudgetInvestissementPage: React.FC = () => {
 
       {tab === 'synthese' && (
         <div className="bg-white rounded-xl p-5 border border-[var(--color-border)] shadow-sm">
-          <h2 className="font-semibold text-[var(--color-primary)] mb-1">CAPEX mensuel réalisé</h2>
-          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">En milliers FCFA</p>
-          {chart.some(d => d.value !== 0) ? <ColorfulBarChart data={chart} height={220} /> : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">Aucune acquisition sur l'exercice.</div>}
+          <h2 className="font-semibold text-[var(--color-primary)] mb-1">{t('budgetCapex.monthlyCapex')}</h2>
+          <p className="text-xs text-[var(--color-text-tertiary)] mb-4">{t('budgetCapex.thousandsXof')}</p>
+          {chart.some(d => d.value !== 0) ? <ColorfulBarChart data={chart} height={220} /> : <div className="text-sm text-[var(--color-text-tertiary)] py-10 text-center">{t('budgetCapex.noAcquisition')}</div>}
         </div>
       )}
 
       {tab === 'detail' && (
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-[var(--color-border)]">
-          <h2 className="font-semibold text-[var(--color-primary)]">Détail par compte d'immobilisation</h2>
+          <h2 className="font-semibold text-[var(--color-primary)]">{t('budgetCapex.detailByAccount')}</h2>
         </div>
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-[var(--color-border)]">
             <tr>
-              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Compte</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Solde issu des À-Nouveaux : déjà immobilisé en comptabilité">Déjà en compte</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title="Acquisitions de la période (hors À-Nouveaux)">Nouveaux invest.</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Budgété</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Écart</th>
-              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">Reste à engager</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">{t('budgetCapex.colAccount')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title={t('budgetCapex.colAlreadyTitle')}>{t('budgetCapex.colAlready')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600" title={t('budgetCapex.colNewTitle')}>{t('budgetCapex.colNew')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.colBudgeted')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.colGap')}</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600">{t('budgetCapex.kpiRemaining')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filteredParCompte.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{s.parCompte.length === 0 ? 'Aucune immobilisation.' : 'Aucun compte ne correspond au filtre.'}</td></tr>}
+            {filteredParCompte.length === 0 && <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">{s.parCompte.length === 0 ? t('budgetCapex.noFixedAsset') : t('budgetCapex.noAccountMatch')}</td></tr>}
             {filteredParCompte.map(c => (
               <tr key={c.account_code} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/accounting/general-ledger?compte=${c.account_code}`)}>
                 <td className="px-4 py-2.5"><span className="font-mono text-gray-500">{c.account_code}</span> <span className="text-gray-800">{c.label}</span></td>

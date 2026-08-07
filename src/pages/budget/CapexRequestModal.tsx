@@ -25,20 +25,24 @@ import {
 import { listSections, type Section } from '../../features/budget/services/analyticsService';
 import { computeCapexMetrics } from '../../utils/capexMetrics';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Package, X, CheckCircle, Eye, Pencil, Calculator, ShieldCheck, Paperclip, StickyNote, Download, Trash2, Upload } from 'lucide-react';
 
 interface Props { open: boolean; onClose: () => void; onCreated?: () => void; editing?: CapexRequest | null }
 
-const CATEGORIES = [
-  ['GROWTH', 'Croissance / expansion'], ['REPLACEMENT', 'Renouvellement'],
-  ['REGULATORY', 'Réglementaire / HSE'], ['COST_REDUCTION', 'Réduction de coûts'], ['IT_DIGITAL', 'IT / Digital'],
+type Translate = (key: string, params?: Record<string, string>) => string;
+
+const CATEGORY_KEYS = [
+  ['GROWTH', 'capexRequest.catGrowth'], ['REPLACEMENT', 'capexRequest.catReplacement'],
+  ['REGULATORY', 'capexRequest.catRegulatory'], ['COST_REDUCTION', 'capexRequest.catCostReduction'],
+  ['IT_DIGITAL', 'capexRequest.catIt'],
 ] as const;
 
-const IAS16_CRITERIA = [
-  ['controle', "L'entité contrôle l'actif"],
-  ['avantages', 'Avantages économiques futurs probables'],
-  ['cout_fiable', 'Coût mesurable de façon fiable'],
-  ['seuil', 'Dépasse le seuil de capitalisation'],
+const IAS16_KEYS = [
+  ['controle', 'capexRequest.iasControl'],
+  ['avantages', 'capexRequest.iasBenefits'],
+  ['cout_fiable', 'capexRequest.iasReliableCost'],
+  ['seuil', 'capexRequest.iasThreshold'],
 ] as const;
 
 const EMPTY = {
@@ -51,6 +55,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
   const { adapter } = useData();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { label: accountLabel } = useAccountNames();
   const [tab, setTab] = useState<'demande' | 'eval' | 'notes'>('demande');
   const [sections, setSections] = useState<Section[]>([]);
@@ -69,23 +75,23 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
   const submitNote = async () => {
     if (!editing || !newNote.trim()) return;
     try { await addNote(adapter, editing.id, newNote.trim(), user?.id || null); setNewNote(''); loadNotes(); }
-    catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    catch (e: any) { toast.error(e?.message || t('capexRequest.genericError')); }
   };
   const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editing) return;
     setUploading(true);
-    try { await addAttachment(adapter, editing.id, file, user?.id || null); toast.success('Pièce jointe ajoutée'); loadNotes(); }
-    catch (err: any) { toast.error(err?.message || 'Échec de l’upload'); }
+    try { await addAttachment(adapter, editing.id, file, user?.id || null); toast.success(t('capexRequest.attachmentAdded')); loadNotes(); }
+    catch (err: any) { toast.error(err?.message || t('capexRequest.uploadFailed')); }
     finally { setUploading(false); e.target.value = ''; }
   };
   const openAttachment = async (n: CapexNote) => {
     if (!n.file_path) return;
     const url = await getAttachmentUrl(adapter, n.file_path);
-    if (url) window.open(url, '_blank', 'noopener'); else toast.error('Lien indisponible');
+    if (url) window.open(url, '_blank', 'noopener'); else toast.error(t('capexRequest.linkUnavailable'));
   };
   const removeNote = async (n: CapexNote) => {
-    try { await deleteNote(adapter, n); loadNotes(); } catch (e: any) { toast.error(e?.message || 'Erreur'); }
+    try { await deleteNote(adapter, n); loadNotes(); } catch (e: any) { toast.error(e?.message || t('capexRequest.genericError')); }
   };
 
   const readOnly = !!editing && (editing.statut === 'fonds_disponibles' || editing.statut === 'clos');
@@ -133,7 +139,7 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
   const close = () => { reset(); onClose(); };
 
   const submit = async () => {
-    if (!f.libelle.trim() || !f.account_code.trim() || !f.montant) { toast.error('Intitulé, compte et montant requis'); return; }
+    if (!f.libelle.trim() || !f.account_code.trim() || !f.montant) { toast.error(t('capexRequest.errRequiredFields')); return; }
     setSaving(true);
     try {
       const base = {
@@ -154,9 +160,9 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
         indice_profitabilite: metrics?.pi ?? null, roi: metrics?.roi ?? null,
         test_capitalisation: Object.keys(test).length ? test : null,
       });
-      toast.success(editing ? 'CAR mise à jour' : 'Demande CAPEX créée');
+      toast.success(editing ? t('capexRequest.carUpdated') : t('capexRequest.requestCreated'));
       reset(); onCreated?.(); onClose();
-    } catch (e: any) { toast.error('Échec : ' + (e?.message || 'erreur')); }
+    } catch (e: any) { toast.error(t('capexRequest.submitFailed', { message: e?.message || t('capexRequest.errorWord') })); }
     finally { setSaving(false); }
   };
 
@@ -172,108 +178,112 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
               {readOnly ? <Eye className="w-5 h-5 text-[var(--color-primary)]" /> : isEdit ? <Pencil className="w-5 h-5 text-[var(--color-primary)]" /> : <Package className="w-5 h-5 text-[var(--color-primary)]" />}
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">{readOnly ? 'Business Case (consultation)' : isEdit ? 'Modifier le Business Case' : "Business Case d'investissement"}</h3>
-              <p className="text-xs text-gray-500">Demande motivée → validation → budget CAPEX → CAR. Évaluation financière, IAS 16.</p>
+              <h3 className="text-base font-bold text-gray-900">{readOnly ? t('capexRequest.titleReadOnly') : isEdit ? t('capexRequest.titleEdit') : t('capexRequest.titleNew')}</h3>
+              <p className="text-xs text-gray-500">{t('capexRequest.subtitle')}</p>
             </div>
           </div>
           <button onClick={close} className="text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
         </div>
 
-        {readOnly && <div className="mb-3 bg-amber-50 text-amber-800 px-3 py-2 rounded-lg text-xs">Fonds engagés : cette demande est en lecture seule.</div>}
+        {readOnly && <div className="mb-3 bg-amber-50 text-amber-800 px-3 py-2 rounded-lg text-xs">{t('capexRequest.lockedNotice')}</div>}
 
         {/* Onglets */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-4">
-          {([['demande', 'Demande'], ['eval', 'Évaluation financière'], ['notes', 'Notes & Attachements']] as const).map(([k, lbl]) => (
+          {([['demande', t('capexRequest.tabRequest')], ['eval', t('capexRequest.tabEval')], ['notes', t('capexRequest.tabNotes')]] as const).map(([k, lbl]) => (
             <button key={k} onClick={() => setTab(k)} className={`px-4 py-1.5 text-sm font-medium rounded-md ${tab === k ? 'bg-white text-[var(--color-primary)] shadow-sm' : 'text-gray-500'}`}>{lbl}</button>
           ))}
         </div>
 
         {tab === 'demande' && (<>
           <div className="grid grid-cols-2 gap-3">
-            {field('Intitulé du projet / bien *', <input value={f.libelle} disabled={readOnly} onChange={e => setF(s => ({ ...s, libelle: e.target.value }))} placeholder="ex. Groupe électrogène 250 kVA" className={inputCls} />)}
+            {field(t('capexRequest.labelTitle'), <input value={f.libelle} disabled={readOnly} onChange={e => setF(s => ({ ...s, libelle: e.target.value }))} placeholder={t('capexRequest.labelTitlePlaceholder')} className={inputCls} />)}
             {field('Compte immobilisation (classe 2) *', <>
               <AccountCombobox value={f.account_code} onChange={(code) => setF(s => ({ ...s, account_code: code }))}
-                classPrefix="2" disabled={readOnly} placeholder="ex. 2411" inputClassName="w-full" />
+                classPrefix="2" disabled={readOnly} placeholder={t('capexRequest.accountPlaceholder')} inputClassName="w-full" />
               <div className="text-[10px] text-gray-400 truncate" title={accountName(f.account_code)}>
-                {f.account_code ? (accountName(f.account_code) || 'Compte hors référentiel') : 'Sélectionnez un compte'}
+                {f.account_code ? (accountName(f.account_code) || t('capexRequest.accountOutOfChart')) : t('capexRequest.selectAccount')}
               </div>
             </>)}
-            {field('Montant (FCFA) *', <input type="number" value={f.montant} disabled={readOnly} onChange={e => setF(s => ({ ...s, montant: e.target.value }))} placeholder="0" className={inputCls} />)}
-            {field("Date d'acquisition prévue", <input type="date" value={f.date_prevue} disabled={readOnly} onChange={e => setF(s => ({ ...s, date_prevue: e.target.value }))} className={inputCls} />)}
-            {field("Durée d'amortissement (ans)", <input type="number" value={f.duree_amortissement} disabled={readOnly} onChange={e => setF(s => ({ ...s, duree_amortissement: e.target.value }))} placeholder="ex. 5" className={inputCls} />)}
-            {field('Méthode', <select value={f.methode} disabled={readOnly} onChange={e => setF(s => ({ ...s, methode: e.target.value as any }))} className={inputCls}><option value="lineaire">Linéaire</option><option value="degressif">Dégressif</option></select>)}
-            {field('Valeur résiduelle', <input type="number" value={f.valeur_residuelle} disabled={readOnly} onChange={e => setF(s => ({ ...s, valeur_residuelle: e.target.value }))} placeholder="0" className={inputCls} />)}
-            {field('Section / Centre', <select value={f.section_id} disabled={readOnly} onChange={e => setF(s => ({ ...s, section_id: e.target.value }))} className={inputCls}><option value="">— Aucune —</option>{sections.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}</select>)}
+            {field(t('capexRequest.labelAmount'), <input type="number" value={f.montant} disabled={readOnly} onChange={e => setF(s => ({ ...s, montant: e.target.value }))} placeholder="0" className={inputCls} />)}
+            {field(t('capexRequest.labelPlannedDate'), <input type="date" value={f.date_prevue} disabled={readOnly} onChange={e => setF(s => ({ ...s, date_prevue: e.target.value }))} className={inputCls} />)}
+            {field(t('capexRequest.labelDepreciationYears'), <input type="number" value={f.duree_amortissement} disabled={readOnly} onChange={e => setF(s => ({ ...s, duree_amortissement: e.target.value }))} placeholder={t('capexRequest.yearsPlaceholder')} className={inputCls} />)}
+            {field(t('capexRequest.labelMethod'), <select value={f.methode} disabled={readOnly} onChange={e => setF(s => ({ ...s, methode: e.target.value as any }))} className={inputCls}><option value="lineaire">{t('capexRequest.methodStraight')}</option><option value="degressif">{t('capexRequest.methodDeclining')}</option></select>)}
+            {field(t('capexRequest.labelResidual'), <input type="number" value={f.valeur_residuelle} disabled={readOnly} onChange={e => setF(s => ({ ...s, valeur_residuelle: e.target.value }))} placeholder="0" className={inputCls} />)}
+            {field(t('capexRequest.labelSection'), <select value={f.section_id} disabled={readOnly} onChange={e => setF(s => ({ ...s, section_id: e.target.value }))} className={inputCls}><option value="">{t('capexRequest.noneOption')}</option>{sections.map(s => <option key={s.id} value={s.id}>{s.code} · {s.libelle}</option>)}</select>)}
           </div>
-          <div className="mt-3">{field('Justification', <textarea value={f.justification} disabled={readOnly} onChange={e => setF(s => ({ ...s, justification: e.target.value }))} rows={2} placeholder="Motivation de l'investissement, ROI attendu…" className={inputCls} />)}</div>
+          <div className="mt-3">{field(t('capexRequest.labelJustification'), <textarea value={f.justification} disabled={readOnly} onChange={e => setF(s => ({ ...s, justification: e.target.value }))} rows={2} placeholder={t('capexRequest.justificationPlaceholder')} className={inputCls} />)}</div>
           <div className="mt-4 bg-gray-50 rounded-lg p-3 flex items-center justify-between text-sm">
-            <span className="text-gray-600">Dotation d'amortissement ({f.methode === 'degressif' ? 'dégressif — 1re annuité' : 'linéaire'})</span>
-            <span className="font-semibold text-[var(--color-primary)]">{formatCurrency(dotation)}{(parseInt(f.duree_amortissement) || 0) > 0 && <span className="text-xs text-gray-400 font-normal"> {f.methode === 'degressif' ? `(puis décroissant, ${f.duree_amortissement} ans)` : `/an × ${f.duree_amortissement} ans`}</span>}</span>
+            <span className="text-gray-600">{t('capexRequest.depreciationCharge', {
+              method: f.methode === 'degressif' ? t('capexRequest.methodDecliningFirst') : t('capexRequest.methodStraightWord'),
+            })}</span>
+            <span className="font-semibold text-[var(--color-primary)]">{formatCurrency(dotation)}{(parseInt(f.duree_amortissement) || 0) > 0 && <span className="text-xs text-gray-400 font-normal"> {f.methode === 'degressif'
+              ? t('capexRequest.thenDecreasing', { years: f.duree_amortissement })
+              : t('capexRequest.perYear', { years: f.duree_amortissement })}</span>}</span>
           </div>
         </>)}
 
         {tab === 'eval' && (<>
           <div className="grid grid-cols-2 gap-3">
-            {field('Catégorie', <select value={f.categorie} disabled={readOnly} onChange={e => setF(s => ({ ...s, categorie: e.target.value }))} className={inputCls}><option value="">— Choisir —</option>{CATEGORIES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>)}
-            {field("Taux d'actualisation (WACC %)", <input type="number" value={f.taux} disabled={readOnly} onChange={e => setF(s => ({ ...s, taux: e.target.value }))} placeholder="10" className={inputCls} />)}
+            {field(t('capexRequest.labelCategory'), <select value={f.categorie} disabled={readOnly} onChange={e => setF(s => ({ ...s, categorie: e.target.value }))} className={inputCls}><option value="">{t('capexRequest.chooseOption')}</option>{CATEGORY_KEYS.map(([k, lk]) => <option key={k} value={k}>{t(lk)}</option>)}</select>)}
+            {field(t('capexRequest.labelDiscountRate'), <input type="number" value={f.taux} disabled={readOnly} onChange={e => setF(s => ({ ...s, taux: e.target.value }))} placeholder="10" className={inputCls} />)}
           </div>
-          <div className="mt-3">{field('Business case', <textarea value={f.business_case} disabled={readOnly} onChange={e => setF(s => ({ ...s, business_case: e.target.value }))} rows={2} placeholder="Alignement stratégique, périmètre, bénéfices attendus…" className={inputCls} />)}</div>
-          <div className="mt-3">{field('Flux de trésorerie nets annuels (FCFA, séparés par des virgules)', <input value={f.flowsText} disabled={readOnly} onChange={e => setF(s => ({ ...s, flowsText: e.target.value }))} placeholder="ex. 400000, 400000, 400000, 400000" className={inputCls} />)}</div>
+          <div className="mt-3">{field(t('capexRequest.labelBusinessCase'), <textarea value={f.business_case} disabled={readOnly} onChange={e => setF(s => ({ ...s, business_case: e.target.value }))} rows={2} placeholder={t('capexRequest.businessCasePlaceholder')} className={inputCls} />)}</div>
+          <div className="mt-3">{field(t('capexRequest.labelCashflows'), <input value={f.flowsText} disabled={readOnly} onChange={e => setF(s => ({ ...s, flowsText: e.target.value }))} placeholder={t('capexRequest.cashflowsPlaceholder')} className={inputCls} />)}</div>
 
           {/* Métriques calculées */}
           <div className="mt-4 bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 mb-2"><Calculator className="w-3.5 h-3.5" />Évaluation (déterministe)</div>
-            {!metrics ? <p className="text-xs text-gray-400">Renseignez le montant et les flux pour calculer VAN / TRI / payback.</p> : (
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-600 mb-2"><Calculator className="w-3.5 h-3.5" />{t('capexRequest.evaluation')}</div>
+            {!metrics ? <p className="text-xs text-gray-400">{t('capexRequest.evaluationHint')}</p> : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                <div><div className="text-[11px] text-gray-500">VAN</div><div className={`font-semibold ${metrics.npv >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(metrics.npv)}</div></div>
-                <div><div className="text-[11px] text-gray-500">TRI</div><div className="font-semibold text-gray-800">{metrics.irr != null ? `${(metrics.irr * 100).toFixed(1)}%` : '—'}</div></div>
-                <div><div className="text-[11px] text-gray-500">Indice profitabilité</div><div className="font-semibold text-gray-800">{metrics.pi != null ? metrics.pi.toFixed(2) : '—'}</div></div>
-                <div><div className="text-[11px] text-gray-500">Payback simple</div><div className="font-semibold text-gray-800">{metrics.paybackSimpleMonths != null ? `${metrics.paybackSimpleMonths} mois` : '—'}</div></div>
-                <div><div className="text-[11px] text-gray-500">Payback actualisé</div><div className="font-semibold text-gray-800">{metrics.paybackActualiseMonths != null ? `${metrics.paybackActualiseMonths} mois` : '—'}</div></div>
-                <div><div className="text-[11px] text-gray-500">ROI</div><div className="font-semibold text-gray-800">{metrics.roi != null ? `${(metrics.roi * 100).toFixed(0)}%` : '—'}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.npv')}</div><div className={`font-semibold ${metrics.npv >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(metrics.npv)}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.irr')}</div><div className="font-semibold text-gray-800">{metrics.irr != null ? `${(metrics.irr * 100).toFixed(1)}%` : '—'}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.profitabilityIndex')}</div><div className="font-semibold text-gray-800">{metrics.pi != null ? metrics.pi.toFixed(2) : '—'}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.paybackSimple')}</div><div className="font-semibold text-gray-800">{metrics.paybackSimpleMonths != null ? t('capexRequest.monthsSuffix', { count: String(metrics.paybackSimpleMonths) }) : '—'}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.paybackDiscounted')}</div><div className="font-semibold text-gray-800">{metrics.paybackActualiseMonths != null ? t('capexRequest.monthsSuffix', { count: String(metrics.paybackActualiseMonths) }) : '—'}</div></div>
+                <div><div className="text-[11px] text-gray-500">{t('capexRequest.roi')}</div><div className="font-semibold text-gray-800">{metrics.roi != null ? `${(metrics.roi * 100).toFixed(0)}%` : '—'}</div></div>
               </div>
             )}
           </div>
 
           {/* Test IAS 16 */}
           <div className="mt-4 bg-gray-50 rounded-lg p-3">
-            <div className="text-xs font-semibold text-gray-600 mb-2">Test de capitalisation (IAS 16)</div>
+            <div className="text-xs font-semibold text-gray-600 mb-2">{t('capexRequest.ias16Test')}</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {IAS16_CRITERIA.map(([k, l]) => (
-                <label key={k} className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" disabled={readOnly} checked={!!test[k]} onChange={e => setTest(t => ({ ...t, [k]: e.target.checked }))} />{l}</label>
+              {IAS16_KEYS.map(([k, lk]) => (
+                <label key={k} className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" disabled={readOnly} checked={!!test[k]} onChange={e => setTest(prev => ({ ...prev, [k]: e.target.checked }))} />{t(lk)}</label>
               ))}
             </div>
-            <div className="mt-2 text-xs">{IAS16_CRITERIA.every(([k]) => test[k]) ? <span className="text-green-700">✓ Critères réunis → capitalisation (classe 2)</span> : <span className="text-amber-700">Critères incomplets → à passer en charge (OPEX) si non réunis</span>}</div>
+            <div className="mt-2 text-xs">{IAS16_KEYS.every(([k]) => test[k]) ? <span className="text-green-700">{t('capexRequest.criteriaMet')}</span> : <span className="text-amber-700">{t('capexRequest.criteriaIncomplete')}</span>}</div>
           </div>
 
           {/* Niveau d'approbation requis */}
           <div className="mt-4 bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/20 rounded-lg p-3 flex items-center gap-2 text-sm">
             <ShieldCheck className="w-4 h-4 text-[var(--color-primary)]" />
-            <span className="text-gray-700">Approbation requise : <span className="font-semibold text-[var(--color-primary)]">{approver ? `${approver.role_requis} (niveau ${approver.niveau})` : '—'}</span>{approver && <span className="text-xs text-gray-400 ml-1">pour {formatCurrency(parseFloat(f.montant) || 0)}</span>}</span>
+            <span className="text-gray-700">{t('capexRequest.approvalRequired')} <span className="font-semibold text-[var(--color-primary)]">{approver ? t('capexRequest.approverLevel', { role: approver.role_requis, level: String(approver.niveau) }) : '—'}</span>{approver && <span className="text-xs text-gray-400 ml-1">{t('capexRequest.forAmount', { amount: formatCurrency(parseFloat(f.montant) || 0) })}</span>}</span>
           </div>
         </>)}
 
         {tab === 'notes' && (<>
           {!editing ? (
-            <div className="bg-amber-50 text-amber-800 rounded-lg px-3 py-3 text-sm">Enregistrez d’abord le business case (onglet « Demande ») pour y joindre des notes et des pièces.</div>
+            <div className="bg-amber-50 text-amber-800 rounded-lg px-3 py-3 text-sm">{t('capexRequest.saveFirst')}</div>
           ) : (<>
             {/* Ajout note + pièce jointe */}
             {!readOnly && (
               <div className="flex flex-col gap-2 mb-3">
                 <div className="flex gap-2">
-                  <input value={newNote} onChange={e => setNewNote(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submitNote(); }} placeholder="Ajouter une note…" className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
-                  <button onClick={submitNote} disabled={!newNote.trim()} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-1"><StickyNote className="w-4 h-4" />Note</button>
+                  <input value={newNote} onChange={e => setNewNote(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') submitNote(); }} placeholder={t('capexRequest.addNotePlaceholder')} className="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-sm" />
+                  <button onClick={submitNote} disabled={!newNote.trim()} className="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg text-sm disabled:opacity-50 flex items-center gap-1"><StickyNote className="w-4 h-4" />{t('capexRequest.note')}</button>
                   <label className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-50 flex items-center gap-1">
-                    <Upload className="w-4 h-4" />{uploading ? 'Envoi…' : 'Pièce jointe'}
+                    <Upload className="w-4 h-4" />{uploading ? t('capexRequest.sending') : t('capexRequest.attachment')}
                     <input type="file" className="hidden" onChange={onPickFile} disabled={uploading} />
                   </label>
                 </div>
-                <p className="text-[11px] text-gray-400">Les pièces sont stockées dans le coffre privé « documents » (accès restreint au tenant).</p>
+                <p className="text-[11px] text-gray-400">{t('capexRequest.vaultNotice')}</p>
               </div>
             )}
             {/* Liste */}
             <div className="space-y-2 max-h-64 overflow-y-auto">
-              {notes.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">Aucune note ni pièce jointe.</div>}
+              {notes.length === 0 && <div className="text-sm text-gray-400 py-6 text-center">{t('capexRequest.noNote')}</div>}
               {notes.map(n => (
                 <div key={n.id} className="flex items-start justify-between bg-gray-50 rounded-lg px-3 py-2">
                   <div className="flex items-start gap-2 min-w-0">
@@ -282,7 +292,7 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
                       {n.type === 'attachment'
                         ? <button onClick={() => openAttachment(n)} className="text-sm text-[var(--color-primary)] hover:underline truncate flex items-center gap-1">{n.file_name}<Download className="w-3 h-3" /></button>
                         : <div className="text-sm text-gray-800 whitespace-pre-wrap break-words">{n.contenu}</div>}
-                      <div className="text-[10px] text-gray-400">{new Date(n.created_at).toLocaleString('fr-FR')}</div>
+                      <div className="text-[10px] text-gray-400">{new Date(n.created_at).toLocaleString(dateLocale)}</div>
                     </div>
                   </div>
                   {!readOnly && <button onClick={() => removeNote(n)} className="text-gray-300 hover:text-red-500 shrink-0"><Trash2 className="w-3.5 h-3.5" /></button>}
@@ -293,8 +303,8 @@ const CapexRequestModal: React.FC<Props> = ({ open, onClose, onCreated, editing 
         </>)}
 
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={close} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">{readOnly ? 'Fermer' : 'Annuler'}</button>
-          {!readOnly && <button onClick={submit} disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{saving ? 'Envoi…' : isEdit ? 'Enregistrer' : 'Créer la demande'}</button>}
+          <button onClick={close} className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">{readOnly ? t('capexRequest.close') : t('capexRequest.cancel')}</button>
+          {!readOnly && <button onClick={submit} disabled={saving} className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"><CheckCircle className="w-4 h-4" />{saving ? t('capexRequest.sending') : isEdit ? t('capexRequest.save') : t('capexRequest.createRequest')}</button>}
         </div>
       </DialogContent>
     </Dialog>
