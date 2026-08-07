@@ -40,7 +40,8 @@ interface AuditStats {
 }
 
 const PisteAuditModule: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { adapter } = useData();
   const { allowed: canExportCertified } = useFeatureAccess('audit_trail_ohada_certifie');
   const [selectedPeriode, setSelectedPeriode] = useState<'jour' | 'semaine' | 'mois' | 'annee'>('jour');
@@ -86,7 +87,7 @@ const PisteAuditModule: React.FC = () => {
         return {
           id: log.id,
           timestamp: log.timestamp,
-          utilisateur: log.userId || 'Système',
+          utilisateur: log.userId || t('auditTrail.systemUser'),
           action,
           entite,
           entiteId: log.entityId,
@@ -99,7 +100,7 @@ const PisteAuditModule: React.FC = () => {
       });
       setAuditEntries(mapped);
     } catch (err) { /* silent */ /* silent */ }
-  }, [adapter]);
+  }, [adapter, t]);
 
   useEffect(() => { loadAuditLogs(); }, [loadAuditLogs]);
 
@@ -148,11 +149,11 @@ const PisteAuditModule: React.FC = () => {
 
   const getActionLabel = (action: AuditEntry['action']) => {
     switch (action) {
-      case 'creation': return 'Création';
-      case 'modification': return 'Modification';
-      case 'suppression': return 'Suppression';
-      case 'validation': return 'Validation';
-      case 'consultation': return 'Consultation';
+      case 'creation': return t('auditTrail.actionCreation');
+      case 'modification': return t('auditTrail.actionModification');
+      case 'suppression': return t('auditTrail.actionDeletion');
+      case 'validation': return t('auditTrail.actionValidation');
+      case 'consultation': return t('auditTrail.actionConsultation');
     }
   };
 
@@ -163,16 +164,22 @@ const PisteAuditModule: React.FC = () => {
       eleve: 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]',
       critique: 'bg-[var(--color-error-lighter)] text-[var(--color-error-dark)]'
     };
+    const labels: Record<AuditEntry['impact'], string> = {
+      faible: t('auditTrail.impactLow'),
+      moyen: t('auditTrail.impactMedium'),
+      eleve: t('auditTrail.impactHigh'),
+      critique: t('auditTrail.impactCritical'),
+    };
     return (
       <span className={`px-2 py-1 rounded-full text-xs font-medium ${colors[impact]}`}>
-        {impact.charAt(0).toUpperCase() + impact.slice(1)}
+        {labels[impact]}
       </span>
     );
   };
 
   const exporterAudit = async () => {
     try {
-      if (filteredEntries.length === 0) { toast.error('Aucune entrée à exporter'); return; }
+      if (filteredEntries.length === 0) { toast.error(t('auditTrail.nothingToExport')); return; }
       const cols = ['id', 'date', 'utilisateur', 'action', 'entite', 'details'];
       const esc = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
       const rows = filteredEntries.map((e: any) =>
@@ -182,7 +189,7 @@ const PisteAuditModule: React.FC = () => {
       // Empreinte SHA-256 RÉELLE du contenu exporté (plus de fausse certification).
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(body));
       const hash = Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
-      const content = `${body}\n# Piste d'audit — ${filteredEntries.length} entrée(s)\n# SHA-256: ${hash}`;
+      const content = `${body}\n# ${t('auditTrail.exportFooter', { count: String(filteredEntries.length) })}\n# SHA-256: ${hash}`;
       const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -190,23 +197,23 @@ const PisteAuditModule: React.FC = () => {
       a.download = `piste-audit-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Export certifié généré (SHA-256 ${hash.slice(0, 12)}…)`);
+      toast.success(t('auditTrail.exportGenerated', { hash: hash.slice(0, 12) }));
     } catch (err: any) {
-      toast.error('Erreur export : ' + (err?.message || 'inconnue'));
+      toast.error(t('auditTrail.exportError', { message: err?.message || t('auditTrail.unknownError') }));
     }
   };
 
   const handleCancelConfig = () => {
-    toast.success('Modifications annulées');
+    toast.success(t('auditTrail.changesCancelled'));
   };
 
   const handleSaveConfig = () => {
-    toast.success('Configuration de la piste d\'audit enregistrée avec succès');
+    toast.success(t('auditTrail.configSaved'));
   };
 
   const handleExportEntry = () => {
     if (selectedEntry) {
-      toast.success(`Export de l'entrée ${selectedEntry.id} en cours...`);
+      toast.success(t('auditTrail.entryExporting', { id: selectedEntry.id }));
     }
   };
 
@@ -216,8 +223,8 @@ const PisteAuditModule: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-primary)]">Piste d'Audit</h1>
-            <p className="text-[var(--color-text-tertiary)]">Traçabilité complète des actions et modifications</p>
+            <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('auditTrail.title')}</h1>
+            <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-3">
             <PageHeaderActions />
@@ -227,41 +234,41 @@ const PisteAuditModule: React.FC = () => {
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
             >
               <option value="jour">{t('common.today')}</option>
-              <option value="semaine">Cette semaine</option>
-              <option value="mois">Ce mois</option>
-              <option value="annee">Cette année</option>
+              <option value="semaine">{t('auditTrail.periodWeek')}</option>
+              <option value="mois">{t('auditTrail.periodMonth')}</option>
+              <option value="annee">{t('auditTrail.periodYear')}</option>
             </select>
             <button
               onClick={exporterAudit}
-              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label="Télécharger">
+              className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2" aria-label={t('auditTrail.download')}>
               <Download className="w-4 h-4" />
               <span>{t('common.export')}</span>
             </button>
             <button
               onClick={() => {
                 if (!canExportCertified) {
-                  toast.info('Export certifié OHADA — réservé au plan Premium');
+                  toast.info(t('auditTrail.certifiedPremiumOnly'));
                   return;
                 }
-                toast.success('Export certifié OHADA en cours (SHA-256)...');
+                toast.success(t('auditTrail.certifiedRunning'));
               }}
               disabled={!canExportCertified}
-              title={canExportCertified ? 'Export certifié OHADA (SHA-256)' : 'Fonctionnalité Premium'}
+              title={canExportCertified ? t('auditTrail.certifiedTitle') : t('auditTrail.premiumFeature')}
               className={`px-4 py-2 rounded-lg flex items-center space-x-2 ${
                 canExportCertified
                   ? 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]'
                   : 'bg-neutral-100 text-neutral-400 cursor-not-allowed border border-neutral-200'
               }`}
-              aria-label="Export certifié OHADA"
+              aria-label={t('auditTrail.certifiedExport')}
             >
               <Shield className="w-4 h-4" />
-              <span>Export certifié OHADA</span>
+              <span>{t('auditTrail.certifiedExport')}</span>
               {!canExportCertified && (
                 <span
                   className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ml-1"
                   style={{ background: 'rgba(239,159,39,0.15)', color: '#EF9F27', border: '1px solid rgba(239,159,39,0.3)' }}
                 >
-                  Premium
+                  {t('auditTrail.premium')}
                 </span>
               )}
             </button>
@@ -272,7 +279,7 @@ const PisteAuditModule: React.FC = () => {
         <div className="grid grid-cols-4 gap-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[var(--color-text-tertiary)]">Total actions</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">{t('auditTrail.totalActions')}</span>
               <Activity className="w-4 h-4 text-[var(--color-text-tertiary)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-primary)]">{stats.totalActions}</p>
@@ -286,14 +293,14 @@ const PisteAuditModule: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[var(--color-text-tertiary)]">Utilisateurs actifs</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">{t('auditTrail.activeUsers')}</span>
               <User className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-success)]">{stats.utilisateursActifs}</p>
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-[var(--color-text-tertiary)]">Anomalies</span>
+              <span className="text-xs text-[var(--color-text-tertiary)]">{t('auditTrail.anomalies')}</span>
               <AlertCircle className="w-4 h-4 text-[var(--color-error)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-error)]">{stats.anomaliesDetectees}</p>
@@ -307,9 +314,9 @@ const PisteAuditModule: React.FC = () => {
         <div className="border-b border-[var(--color-border)]">
           <div className="flex space-x-6 px-6">
             {[
-              { id: 'journal', label: 'Journal d\'audit', icon: History },
-              { id: 'statistiques', label: 'Statistiques', icon: BarChart },
-              { id: 'configuration', label: 'Configuration', icon: Settings }
+              { id: 'journal', label: t('auditTrail.tabJournal'), icon: History },
+              { id: 'statistiques', label: t('auditTrail.tabStats'), icon: BarChart },
+              { id: 'configuration', label: t('auditTrail.tabConfig'), icon: Settings }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -338,32 +345,32 @@ const PisteAuditModule: React.FC = () => {
                   onChange={(e) => setFilterAction(e.target.value as typeof filterAction)}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
-                  <option value="tous">Toutes actions</option>
-                  <option value="creation">Création</option>
-                  <option value="modification">Modification</option>
-                  <option value="suppression">Suppression</option>
-                  <option value="validation">Validation</option>
-                  <option value="consultation">Consultation</option>
+                  <option value="tous">{t('auditTrail.allActions')}</option>
+                  <option value="creation">{t('auditTrail.actionCreation')}</option>
+                  <option value="modification">{t('auditTrail.actionModification')}</option>
+                  <option value="suppression">{t('auditTrail.actionDeletion')}</option>
+                  <option value="validation">{t('auditTrail.actionValidation')}</option>
+                  <option value="consultation">{t('auditTrail.actionConsultation')}</option>
                 </select>
                 <select
                   value={filterEntite}
                   onChange={(e) => setFilterEntite(e.target.value as typeof filterEntite)}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
-                  <option value="tous">Toutes entités</option>
+                  <option value="tous">{t('auditTrail.allEntities')}</option>
                   <option value="ecriture">{t('accounting.entry')}</option>
                   <option value="compte">{t('accounting.account')}</option>
                   <option value="journal">{t('accounting.journal')}</option>
-                  <option value="exercice">Exercice</option>
-                  <option value="utilisateur">Utilisateur</option>
-                  <option value="parametre">Paramètre</option>
+                  <option value="exercice">{t('auditTrail.entityFiscalYear')}</option>
+                  <option value="utilisateur">{t('auditTrail.entityUser')}</option>
+                  <option value="parametre">{t('auditTrail.entitySetting')}</option>
                 </select>
                 <select
                   value={filterUtilisateur}
                   onChange={(e) => setFilterUtilisateur(e.target.value)}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
-                  <option value="tous">Tous utilisateurs</option>
+                  <option value="tous">{t('auditTrail.allUsers')}</option>
                   {uniqueUsers.map(user => (
                     <option key={user} value={user}>{user}</option>
                   ))}
@@ -375,7 +382,7 @@ const PisteAuditModule: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher..."
+                  placeholder={t('auditTrail.searchPlaceholder')}
                   className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg"
                 />
               </div>
@@ -413,7 +420,7 @@ const PisteAuditModule: React.FC = () => {
                           </div>
                           <div className="flex items-center space-x-1">
                             <Clock className="w-3 h-3" />
-                            <span>{new Date(entry.timestamp).toLocaleString()}</span>
+                            <span>{new Date(entry.timestamp).toLocaleString(dateLocale)}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <Database className="w-3 h-3" />
@@ -441,7 +448,7 @@ const PisteAuditModule: React.FC = () => {
             {filteredEntries.length === 0 && (
               <div className="text-center py-12">
                 <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-[var(--color-text-tertiary)]">Aucune entrée trouvée</p>
+                <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.noEntryFound')}</p>
               </div>
             )}
           </div>
@@ -452,7 +459,7 @@ const PisteAuditModule: React.FC = () => {
             <div className="grid grid-cols-2 gap-6">
               {/* Graphique des actions par type */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-4">Répartition par action</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">{t('auditTrail.breakdownByAction')}</h3>
                 <div className="space-y-3">
                   {Object.entries(
                     auditEntries.reduce((acc, entry) => {
@@ -473,7 +480,7 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Graphique des actions par utilisateur */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-4">Activité par utilisateur</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">{t('auditTrail.activityByUser')}</h3>
                 <div className="space-y-3">
                   {Object.entries(
                     auditEntries.reduce((acc, entry) => {
@@ -497,7 +504,7 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Timeline d'activité */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-4">Activité récente</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">{t('auditTrail.recentActivity')}</h3>
                 {(() => {
                   const now = new Date();
                   const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
@@ -508,10 +515,10 @@ const PisteAuditModule: React.FC = () => {
                   const countInRange = (from: Date) =>
                     auditEntries.filter(e => new Date(e.timestamp) >= from).length;
                   const counts = [
-                    { label: 'Dernière heure', count: countInRange(oneHourAgo) },
-                    { label: 'Aujourd\'hui', count: countInRange(startOfDay) },
-                    { label: 'Cette semaine', count: countInRange(startOfWeek) },
-                    { label: 'Ce mois', count: countInRange(startOfMonth) },
+                    { label: t('auditTrail.lastHour'), count: countInRange(oneHourAgo) },
+                    { label: t('auditTrail.today'), count: countInRange(startOfDay) },
+                    { label: t('auditTrail.periodWeek'), count: countInRange(startOfWeek) },
+                    { label: t('auditTrail.periodMonth'), count: countInRange(startOfMonth) },
                   ];
                   const maxCount = Math.max(...counts.map(c => c.count), 1);
                   return (
@@ -537,7 +544,7 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Alertes et anomalies */}
               <div className="border border-[var(--color-border)] rounded-lg p-4">
-                <h3 className="font-semibold text-[var(--color-primary)] mb-4">Alertes récentes</h3>
+                <h3 className="font-semibold text-[var(--color-primary)] mb-4">{t('auditTrail.recentAlerts')}</h3>
                 {(() => {
                   const today = new Date();
                   const deletedToday = auditEntries.filter(e => {
@@ -547,7 +554,7 @@ const PisteAuditModule: React.FC = () => {
                   const hasRoleChange = auditEntries.some(e => e.entite === 'utilisateur');
                   if (deletedToday === 0 && !hasRoleChange) {
                     return (
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Aucune alerte récente.</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('auditTrail.noRecentAlert')}</p>
                     );
                   }
                   return (
@@ -556,8 +563,8 @@ const PisteAuditModule: React.FC = () => {
                         <div className="flex items-start space-x-2 p-2 bg-[var(--color-error-lightest)] rounded-lg">
                           <AlertCircle className="w-4 h-4 text-[var(--color-error)] mt-0.5" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-red-900">Suppression détectée</p>
-                            <p className="text-xs text-[var(--color-error-dark)]">{deletedToday} {deletedToday === 1 ? 'écriture supprimée' : 'écritures supprimées'} aujourd'hui</p>
+                            <p className="text-sm font-medium text-red-900">{t('auditTrail.deletionDetected')}</p>
+                            <p className="text-xs text-[var(--color-error-dark)]">{t('auditTrail.entriesDeletedToday', { count: String(deletedToday) })}</p>
                           </div>
                         </div>
                       )}
@@ -565,8 +572,8 @@ const PisteAuditModule: React.FC = () => {
                         <div className="flex items-start space-x-2 p-2 bg-[var(--color-warning-lightest)] rounded-lg">
                           <AlertTriangle className="w-4 h-4 text-[var(--color-warning)] mt-0.5" />
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-yellow-900">Modification critique</p>
-                            <p className="text-xs text-[var(--color-warning-dark)]">Changement utilisateur détecté dans la piste d'audit</p>
+                            <p className="text-sm font-medium text-yellow-900">{t('auditTrail.criticalChange')}</p>
+                            <p className="text-xs text-[var(--color-warning-dark)]">{t('auditTrail.userChangeDetected')}</p>
                           </div>
                         </div>
                       )}
@@ -581,15 +588,15 @@ const PisteAuditModule: React.FC = () => {
         {activeTab === 'configuration' && (
           <div className="p-6">
             <div className="max-w-2xl">
-              <h3 className="font-semibold text-[var(--color-primary)] mb-4">Paramètres d'audit</h3>
+              <h3 className="font-semibold text-[var(--color-primary)] mb-4">{t('auditTrail.auditSettings')}</h3>
               
               <div className="space-y-4">
                 {/* Durée de conservation */}
                 <div className="border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium text-[var(--color-primary)]">Durée de conservation</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Période de rétention des logs d'audit</p>
+                      <p className="font-medium text-[var(--color-primary)]">{t('auditTrail.retention')}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('auditTrail.retentionDesc')}</p>
                     </div>
                     <select
                       className="px-3 py-2 border border-[var(--color-border)] rounded-lg"
@@ -607,11 +614,11 @@ const PisteAuditModule: React.FC = () => {
                         } catch { /* silent */ }
                       }}
                     >
-                      <option value="3 mois">3 mois</option>
-                      <option value="6 mois">6 mois</option>
-                      <option value="1 an">1 an</option>
-                      <option value="2 ans">2 ans</option>
-                      <option value="Illimité">Illimité</option>
+                      <option value="3 mois">{t('auditTrail.retention3m')}</option>
+                      <option value="6 mois">{t('auditTrail.retention6m')}</option>
+                      <option value="1 an">{t('auditTrail.retention1y')}</option>
+                      <option value="2 ans">{t('auditTrail.retention2y')}</option>
+                      <option value="Illimité">{t('auditTrail.retentionUnlimited')}</option>
                     </select>
                   </div>
                 </div>
@@ -620,30 +627,30 @@ const PisteAuditModule: React.FC = () => {
                 <div className="border border-[var(--color-border)] rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="font-medium text-[var(--color-primary)]">Niveau de traçabilité</p>
-                      <p className="text-sm text-[var(--color-text-tertiary)]">Détail des informations enregistrées</p>
+                      <p className="font-medium text-[var(--color-primary)]">{t('auditTrail.traceLevel')}</p>
+                      <p className="text-sm text-[var(--color-text-tertiary)]">{t('auditTrail.traceLevelDesc')}</p>
                     </div>
                     <select className="px-3 py-2 border border-[var(--color-border)] rounded-lg" defaultValue="Standard">
-                      <option value="Minimal">Minimal</option>
-                      <option value="Standard">Standard</option>
-                      <option value="Détaillé">Détaillé</option>
-                      <option value="Complet">Complet</option>
+                      <option value="Minimal">{t('auditTrail.levelMinimal')}</option>
+                      <option value="Standard">{t('auditTrail.levelStandard')}</option>
+                      <option value="Détaillé">{t('auditTrail.levelDetailed')}</option>
+                      <option value="Complet">{t('auditTrail.levelFull')}</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Actions auditées */}
                 <div className="border border-[var(--color-border)] rounded-lg p-4">
-                  <p className="font-medium text-[var(--color-primary)] mb-3">Actions auditées</p>
+                  <p className="font-medium text-[var(--color-primary)] mb-3">{t('auditTrail.auditedActions')}</p>
                   <div className="space-y-2">
                     {[
-                      { label: 'Créations', checked: true },
-                      { label: 'Modifications', checked: true },
-                      { label: 'Suppressions', checked: true },
-                      { label: 'Validations', checked: true },
-                      { label: 'Consultations', checked: false },
-                      { label: 'Exports', checked: true },
-                      { label: 'Connexions/Déconnexions', checked: true }
+                      { label: t('auditTrail.auditCreations'), checked: true },
+                      { label: t('auditTrail.auditModifications'), checked: true },
+                      { label: t('auditTrail.auditDeletions'), checked: true },
+                      { label: t('auditTrail.auditValidations'), checked: true },
+                      { label: t('auditTrail.auditConsultations'), checked: false },
+                      { label: t('auditTrail.auditExports'), checked: true },
+                      { label: t('auditTrail.auditLogins'), checked: true }
                     ].map((item) => (
                       <label key={item.label} className="flex items-center space-x-2">
                         <input
@@ -659,14 +666,14 @@ const PisteAuditModule: React.FC = () => {
 
                 {/* Alertes automatiques */}
                 <div className="border border-[var(--color-border)] rounded-lg p-4">
-                  <p className="font-medium text-[var(--color-primary)] mb-3">Alertes automatiques</p>
+                  <p className="font-medium text-[var(--color-primary)] mb-3">{t('auditTrail.autoAlerts')}</p>
                   <div className="space-y-2">
                     {[
-                      { label: 'Suppressions d\'écritures validées', checked: true },
-                      { label: 'Modifications de montants importants (>100K)', checked: true },
-                      { label: 'Changements de droits utilisateurs', checked: true },
-                      { label: 'Connexions hors heures de bureau', checked: false },
-                      { label: 'Tentatives d\'accès non autorisés', checked: true }
+                      { label: t('auditTrail.alertDeletedValidated'), checked: true },
+                      { label: t('auditTrail.alertLargeAmounts'), checked: true },
+                      { label: t('auditTrail.alertRightsChange'), checked: true },
+                      { label: t('auditTrail.alertOffHours'), checked: false },
+                      { label: t('auditTrail.alertUnauthorized'), checked: true }
                     ].map((item) => (
                       <label key={item.label} className="flex items-center space-x-2">
                         <input
@@ -686,12 +693,12 @@ const PisteAuditModule: React.FC = () => {
                     onClick={handleCancelConfig}
                     className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
                   >
-                    Annuler
+                    {t('auditTrail.cancel')}
                   </button>
                   <button
                     onClick={handleSaveConfig}
                     className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
-                    aria-label="Enregistrer"
+                    aria-label={t('auditTrail.save')}
                   >
                     <Save className="w-4 h-4" />
                     <span>{t('actions.save')}</span>
@@ -710,7 +717,7 @@ const PisteAuditModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">Détails de l'action</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{t('auditTrail.detailTitle')}</h3>
                   <p className="text-sm text-[var(--color-text-tertiary)]">{selectedEntry.entiteNom}</p>
                 </div>
                 <button
@@ -726,46 +733,46 @@ const PisteAuditModule: React.FC = () => {
               {/* Informations générales */}
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div>
-                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">Action</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">{t('auditTrail.fieldAction')}</p>
                   <div className="flex items-center space-x-2">
                     {getActionIcon(selectedEntry.action)}
                     <span className="font-semibold">{getActionLabel(selectedEntry.action)}</span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">Impact</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">{t('auditTrail.fieldImpact')}</p>
                   {getImpactBadge(selectedEntry.impact)}
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">Utilisateur</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">{t('auditTrail.fieldUser')}</p>
                   <p className="font-semibold">{selectedEntry.utilisateur}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">Date et heure</p>
+                  <p className="text-sm text-[var(--color-text-tertiary)] mb-1">{t('auditTrail.fieldDateTime')}</p>
                   <p className="font-semibold">
-                    {new Date(selectedEntry.timestamp).toLocaleString()}
+                    {new Date(selectedEntry.timestamp).toLocaleString(dateLocale)}
                   </p>
                 </div>
               </div>
 
               {/* Détails techniques */}
               <div className="bg-[var(--color-background-secondary)] rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-[var(--color-primary)] mb-3">Informations techniques</h4>
+                <h4 className="font-semibold text-[var(--color-primary)] mb-3">{t('auditTrail.technicalInfo')}</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-[var(--color-text-tertiary)]">Adresse IP</p>
+                    <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.fieldIp')}</p>
                     <p className="font-mono">{selectedEntry.ipAddress}</p>
                   </div>
                   <div>
-                    <p className="text-[var(--color-text-tertiary)]">Navigateur</p>
+                    <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.fieldBrowser')}</p>
                     <p className="font-mono">{selectedEntry.navigateur}</p>
                   </div>
                   <div>
-                    <p className="text-[var(--color-text-tertiary)]">ID Entité</p>
+                    <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.fieldEntityId')}</p>
                     <p className="font-mono">{selectedEntry.entiteId}</p>
                   </div>
                   <div>
-                    <p className="text-[var(--color-text-tertiary)]">Type d'entité</p>
+                    <p className="text-[var(--color-text-tertiary)]">{t('auditTrail.fieldEntityType')}</p>
                     <p className="font-mono">{selectedEntry.entite}</p>
                   </div>
                 </div>
@@ -774,11 +781,11 @@ const PisteAuditModule: React.FC = () => {
               {/* Changements */}
               {(selectedEntry.ancienneValeur || selectedEntry.nouvelleValeur) && (
                 <div className="mb-6">
-                  <h4 className="font-semibold text-[var(--color-primary)] mb-3">Changements effectués</h4>
+                  <h4 className="font-semibold text-[var(--color-primary)] mb-3">{t('auditTrail.changesMade')}</h4>
                   <div className="grid grid-cols-2 gap-4">
                     {selectedEntry.ancienneValeur && (
                       <div className="border border-[var(--color-error-light)] rounded-lg p-3 bg-[var(--color-error-lightest)]">
-                        <p className="text-sm font-medium text-red-900 mb-2">Ancienne valeur</p>
+                        <p className="text-sm font-medium text-red-900 mb-2">{t('auditTrail.oldValue')}</p>
                         <pre className="text-xs font-mono text-[var(--color-error-dark)]">
                           {JSON.stringify(selectedEntry.ancienneValeur, null, 2)}
                         </pre>
@@ -786,7 +793,7 @@ const PisteAuditModule: React.FC = () => {
                     )}
                     {selectedEntry.nouvelleValeur && (
                       <div className="border border-[var(--color-success-light)] rounded-lg p-3 bg-[var(--color-success-lightest)]">
-                        <p className="text-sm font-medium text-green-900 mb-2">Nouvelle valeur</p>
+                        <p className="text-sm font-medium text-green-900 mb-2">{t('auditTrail.newValue')}</p>
                         <pre className="text-xs font-mono text-[var(--color-success-dark)]">
                           {JSON.stringify(selectedEntry.nouvelleValeur, null, 2)}
                         </pre>
@@ -798,7 +805,7 @@ const PisteAuditModule: React.FC = () => {
 
               {/* Description */}
               <div className="mb-6">
-                <h4 className="font-semibold text-[var(--color-primary)] mb-2">Description</h4>
+                <h4 className="font-semibold text-[var(--color-primary)] mb-2">{t('auditTrail.description')}</h4>
                 <p className="text-[var(--color-text-tertiary)]">{selectedEntry.details}</p>
               </div>
 
@@ -808,12 +815,12 @@ const PisteAuditModule: React.FC = () => {
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
                 >
-                  Fermer
+                  {t('auditTrail.close')}
                 </button>
                 <button
                   onClick={handleExportEntry}
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2"
-                  aria-label="Télécharger"
+                  aria-label={t('auditTrail.download')}
                 >
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>

@@ -99,7 +99,7 @@ const DocumentsArchives: React.FC = () => {
     dateCreation: fy.startDate,
     dateCloture: fy.isClosed ? fy.endDate : undefined,
     statut: fy.isClosed ? 'validee' as const : fy.isActive ? 'en_cours' as const : 'en_cours' as const,
-    responsable: user?.name || 'Comptable',
+    responsable: user?.name || t('closureArchives.defaultResponsible'),
     documentsObligatoires: 10, // Nombre fixe de documents SYSCOHADA obligatoires
     documentsPresents: fy.isClosed ? 10 : auditLogs.filter(l => l.entityId === fy.id).length,
     tauxCompletude: fy.isClosed ? 100 : Math.min(100, auditLogs.filter(l => l.entityId === fy.id).length * 10),
@@ -132,7 +132,7 @@ const DocumentsArchives: React.FC = () => {
       taille: `${(log.details?.length || 0)} B`,
       dateAjout: log.timestamp || '',
       dateModification: log.timestamp || '',
-      auteur: 'Système',
+      auteur: t('closureArchives.systemAuthor'),
       statut: 'valide' as const,
       tags: [log.action, log.entityType],
       hash: `SHA256:${log.id}`,
@@ -187,17 +187,17 @@ const DocumentsArchives: React.FC = () => {
 
   // Catégories de documents
   const categories = [
-    { value: 'tous', label: 'Tous les documents', icon: FolderOpen },
-    { value: 'balance', label: 'Balances & États', icon: FileSpreadsheet },
-    { value: 'grand_livre', label: 'Grands Livres', icon: FileText },
-    { value: 'etats_fiscaux', label: 'États Fiscaux', icon: Shield },
-    { value: 'rapprochement', label: 'Rapprochements', icon: FileCheck },
-    { value: 'inventaire', label: 'Inventaires', icon: Archive },
-    { value: 'provisions', label: 'Provisions', icon: Database },
+    { value: 'tous', label: t('closureArchives.catAll'), icon: FolderOpen },
+    { value: 'balance', label: t('closureArchives.catBalance'), icon: FileSpreadsheet },
+    { value: 'grand_livre', label: t('closureArchives.catLedger'), icon: FileText },
+    { value: 'etats_fiscaux', label: t('closureArchives.catTax'), icon: Shield },
+    { value: 'rapprochement', label: t('closureArchives.catRecon'), icon: FileCheck },
+    { value: 'inventaire', label: t('closureArchives.catInventory'), icon: Archive },
+    { value: 'provisions', label: t('closureArchives.catProvisions'), icon: Database },
     { value: 'immobilisations', label: t('navigation.assets'), icon: HardDrive },
-    { value: 'audit', label: 'Rapports d\'Audit', icon: Shield },
-    { value: 'pv', label: 'PV & Validations', icon: FileCheck },
-    { value: 'autre', label: 'Autres', icon: File }
+    { value: 'audit', label: t('closureArchives.catAudit'), icon: Shield },
+    { value: 'pv', label: t('closureArchives.catMinutes'), icon: FileCheck },
+    { value: 'autre', label: t('closureArchives.catOther'), icon: File }
   ];
 
   const getFileIcon = (type: string) => {
@@ -246,7 +246,7 @@ const DocumentsArchives: React.FC = () => {
 
   const handleSubmit = async () => {
     // TODO P0: Remplacer par service Dexie réel
-    toast.error('Service d\'archivage non encore connecté');
+    toast.error(t('closureArchives.archiveServiceMissing'));
   };
 
   const getStatutColor = (statut: string) => {
@@ -267,9 +267,9 @@ const DocumentsArchives: React.FC = () => {
           <div>
             <h2 className="text-lg font-bold text-[var(--color-primary)] flex items-center space-x-2">
               <FolderArchive className="w-6 h-6 text-[var(--color-primary)]" />
-              <span>Archives Documentaires des Clôtures</span>
+              <span>{t('closureArchives.title')}</span>
             </h2>
-            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">Gestion centralisée des documents de clôture</p>
+            <p className="text-sm text-[var(--color-text-tertiary)] mt-1">{t('closureArchives.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -277,11 +277,11 @@ const DocumentsArchives: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center space-x-2"
             >
               <Upload className="w-4 h-4" />
-              <span>Ajouter documents</span>
+              <span>{t('closureArchives.addDocuments')}</span>
             </button>
             <button className="px-4 py-2 border border-[var(--color-border)] rounded-lg hover:bg-[var(--color-background-secondary)] flex items-center space-x-2">
               <Download className="w-4 h-4" />
-              <span>Exporter archive</span>
+              <span>{t('closureArchives.exportArchive')}</span>
             </button>
           </div>
         </div>
@@ -290,23 +290,23 @@ const DocumentsArchives: React.FC = () => {
         <div className="grid grid-cols-6 gap-4">
           <div className="p-4 bg-[var(--color-primary-lightest)] rounded-lg border border-[var(--color-primary-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-primary-dark)]">Dossiers</span>
+              <span className="text-sm text-[var(--color-primary-dark)]">{t('closureArchives.folders')}</span>
               <FolderOpen className="w-4 h-4 text-[var(--color-primary)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-primary-darker)]">{stats.totalDossiers}</p>
-            <p className="text-xs text-[var(--color-primary)] mt-1">{stats.dossiersValides} validés</p>
+            <p className="text-xs text-[var(--color-primary)] mt-1">{t('closureArchives.validatedCount', { count: String(stats.dossiersValides) })}</p>
           </div>
           <div className="p-4 bg-[var(--color-success-lightest)] rounded-lg border border-[var(--color-success-light)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-success-dark)]">Documents</span>
+              <span className="text-sm text-[var(--color-success-dark)]">{t('closureArchives.documents')}</span>
               <FileText className="w-4 h-4 text-[var(--color-success)]" />
             </div>
             <p className="text-lg font-bold text-[var(--color-success-darker)]">{stats.totalDocuments}</p>
-            <p className="text-xs text-[var(--color-success)] mt-1">{stats.documentsConformes} conformes</p>
+            <p className="text-xs text-[var(--color-success)] mt-1">{t('closureArchives.compliantCount', { count: String(stats.documentsConformes) })}</p>
           </div>
           <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">Conformité</span>
+              <span className="text-sm text-primary-700">{t('closureArchives.compliance')}</span>
               <Shield className="w-4 h-4 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-800">{stats.tauxConformite}%</p>
@@ -314,27 +314,27 @@ const DocumentsArchives: React.FC = () => {
           </div>
           <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[var(--color-warning-dark)]">Espace utilisé</span>
+              <span className="text-sm text-[var(--color-warning-dark)]">{t('closureArchives.spaceUsed')}</span>
               <HardDrive className="w-4 h-4 text-[var(--color-warning)]" />
             </div>
             <p className="text-lg font-bold text-orange-800">{stats.espaceTotalUtilise}</p>
-            <p className="text-xs text-[var(--color-warning)] mt-1">Sur 5 GB</p>
+            <p className="text-xs text-[var(--color-warning)] mt-1">{t('closureArchives.outOf5gb')}</p>
           </div>
           <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">Sécurité</span>
+              <span className="text-sm text-primary-700">{t('closureArchives.security')}</span>
               <Lock className="w-4 h-4 text-primary-600" />
             </div>
             <p className="text-lg font-bold text-primary-800">256-bit</p>
-            <p className="text-xs text-primary-600 mt-1">Chiffrement AES</p>
+            <p className="text-xs text-primary-600 mt-1">{t('closureArchives.aesEncryption')}</p>
           </div>
           <div className="p-4 bg-primary-50 rounded-lg border border-primary-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-primary-700">Sauvegarde</span>
+              <span className="text-sm text-primary-700">{t('closureArchives.backup')}</span>
               <Cloud className="w-4 h-4 text-primary-600" />
             </div>
-            <p className="text-lg font-bold text-primary-800">Automatique</p>
-            <p className="text-xs text-primary-600 mt-1">Toutes les 4h</p>
+            <p className="text-lg font-bold text-primary-800">{t('closureArchives.automatic')}</p>
+            <p className="text-xs text-primary-600 mt-1">{t('closureArchives.every4h')}</p>
           </div>
         </div>
       </div>
@@ -346,7 +346,7 @@ const DocumentsArchives: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center justify-between">
-                <span>Dossiers de Clôture</span>
+                <span>{t('closureArchives.closureFolders')}</span>
                 <Badge variant="outline">{stats.totalDossiers}</Badge>
               </CardTitle>
             </CardHeader>
@@ -385,7 +385,10 @@ const DocumentsArchives: React.FC = () => {
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-[var(--color-text-tertiary)]">
-                            {dossier.documentsPresents}/{dossier.documentsObligatoires} docs
+                            {t('closureArchives.docsRatio', {
+                              present: String(dossier.documentsPresents),
+                              required: String(dossier.documentsObligatoires),
+                            })}
                           </span>
                           <span className="text-xs text-[var(--color-text-tertiary)]">
                             {dossier.tailleTotale}
@@ -421,20 +424,20 @@ const DocumentsArchives: React.FC = () => {
           {/* Actions rapides */}
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle className="text-sm">Actions Rapides</CardTitle>
+              <CardTitle className="text-sm">{t('closureArchives.quickActions')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <FilePlus className="w-4 h-4 text-[var(--color-primary)]" />
-                <span className="text-sm">Créer nouveau dossier</span>
+                <span className="text-sm">{t('closureArchives.createFolder')}</span>
               </button>
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <History className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                <span className="text-sm">Historique des modifications</span>
+                <span className="text-sm">{t('closureArchives.changeHistory')}</span>
               </button>
               <button className="w-full text-left p-2 hover:bg-[var(--color-background-secondary)] rounded flex items-center space-x-2">
                 <Key className="w-4 h-4 text-[var(--color-text-tertiary)]" />
-                <span className="text-sm">Gérer les accès</span>
+                <span className="text-sm">{t('closureArchives.manageAccess')}</span>
               </button>
             </CardContent>
           </Card>
@@ -459,7 +462,7 @@ const DocumentsArchives: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--color-text-tertiary)]" />
                   <input
                     type="text"
-                    placeholder="Rechercher documents..."
+                    placeholder={t('closureArchives.searchPlaceholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg text-sm w-64"
@@ -490,13 +493,13 @@ const DocumentsArchives: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-[var(--color-background-secondary)] border-b border-[var(--color-border)]">
                     <tr>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Document</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Catégorie</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">Auteur</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colDocument')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colCategory')}</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colAuthor')}</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-[#404040]">{t('common.date')}</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">Statut</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">Sécurité</th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">Actions</th>
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colStatus')}</th>
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colSecurity')}</th>
+                      <th className="text-center py-3 px-4 text-sm font-semibold text-[#404040]">{t('closureArchives.colActions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -544,13 +547,13 @@ const DocumentsArchives: React.FC = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center justify-center space-x-1">
-                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureArchives.viewDetails')}>
                               <Eye className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
-                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureArchives.download')}>
                               <Download className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
-                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Partager">
+                            <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureArchives.share')}>
                               <Share2 className="w-4 h-4 text-[var(--color-text-tertiary)]" />
                             </button>
                             <button className="p-1 hover:bg-[var(--color-background-hover)] rounded">
@@ -566,16 +569,19 @@ const DocumentsArchives: React.FC = () => {
               {/* Pagination */}
               <div className="p-4 border-t border-[var(--color-border)] flex items-center justify-between">
                 <span className="text-sm text-[var(--color-text-tertiary)]">
-                  Affichage de 1-{Math.min(10, filteredDocuments.length)} sur {filteredDocuments.length} documents
+                  {t('closureArchives.pagination', {
+                    shown: String(Math.min(10, filteredDocuments.length)),
+                    total: String(filteredDocuments.length),
+                  })}
                 </span>
                 <div className="flex items-center space-x-2">
                   <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">
-                    Précédent
+                    {t('closureArchives.previous')}
                   </button>
                   <button className="px-3 py-1 bg-[var(--color-primary)] text-white rounded text-sm">1</button>
                   <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">2</button>
                   <button className="px-3 py-1 border border-[var(--color-border)] rounded hover:bg-[var(--color-background-secondary)] text-sm">
-                    Suivant
+                    {t('closureArchives.next')}
                   </button>
                 </div>
               </div>
@@ -612,10 +618,10 @@ const DocumentsArchives: React.FC = () => {
                         {doc.statut}
                       </Badge>
                       <div className="flex items-center space-x-1">
-                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Voir les détails">
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureArchives.viewDetails')}>
                           <Eye className="w-3 h-3 text-[var(--color-text-tertiary)]" />
                         </button>
-                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label="Télécharger">
+                        <button className="p-1 hover:bg-[var(--color-background-hover)] rounded" aria-label={t('closureArchives.download')}>
                           <Download className="w-3 h-3 text-[var(--color-text-tertiary)]" />
                         </button>
                       </div>
@@ -633,31 +639,30 @@ const DocumentsArchives: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Hash className="w-5 h-5 text-[var(--color-primary)]" />
-            <span>Traçabilité & Intégrité</span>
+            <span>{t('closureArchives.traceabilityTitle')}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <Alert>
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              Tous les documents sont protégés par empreinte numérique SHA-256 et horodatage certifié.
-              Les modifications sont tracées et l'intégrité des fichiers est vérifiée automatiquement.
+              {t('closureArchives.traceabilityText')}
             </AlertDescription>
           </Alert>
           <div className="mt-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
-            <h4 className="text-sm font-medium mb-3">Dernières activités</h4>
+            <h4 className="text-sm font-medium mb-3">{t('closureArchives.recentActivity')}</h4>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--color-text-tertiary)]">Document Balance_Generale_012025.pdf signé électroniquement</span>
-                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 2h</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('closureArchives.activitySigned', { name: 'Balance_Generale_012025.pdf' })}</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">{t('closureArchives.hoursAgo', { count: '2' })}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--color-text-tertiary)]">Dossier 2025-01 validé et verrouillé</span>
-                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 5h</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('closureArchives.activityFolderLocked', { folder: '2025-01' })}</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">{t('closureArchives.hoursAgo', { count: '5' })}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--color-text-tertiary)]">Archive automatique créée pour Q4-2024</span>
-                <span className="text-xs text-[var(--color-text-tertiary)]">Il y a 1 jour</span>
+                <span className="text-[var(--color-text-tertiary)]">{t('closureArchives.activityAutoArchive', { period: 'Q4-2024' })}</span>
+                <span className="text-xs text-[var(--color-text-tertiary)]">{t('closureArchives.daysAgo', { count: '1' })}</span>
               </div>
             </div>
           </div>
@@ -673,7 +678,7 @@ const DocumentsArchives: React.FC = () => {
                 <div className="bg-primary-100 text-primary-600 p-2 rounded-lg">
                   <Upload className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">Téléverser Document</h2>
+                <h2 className="text-lg font-bold text-[var(--color-text-primary)]">{t('closureArchives.uploadTitle')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -695,21 +700,21 @@ const DocumentsArchives: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <FileText className="w-5 h-5 text-primary-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-primary-900 mb-1">Ajout de Document</h4>
-                      <p className="text-sm text-primary-800">Téléversez et cataloguez vos documents de clôture dans l&apos;archive digitale sécurisée.</p>
+                      <h4 className="text-sm font-medium text-primary-900 mb-1">{t('closureArchives.addDocTitle')}</h4>
+                      <p className="text-sm text-primary-800">{t('closureArchives.addDocText')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* File Upload */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sélection de Fichier</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureArchives.fileSelection')}</h3>
                   <div className="border-2 border-dashed border-[var(--color-border-dark)] rounded-lg p-6 text-center">
                     <Upload className="mx-auto h-12 w-12 text-[var(--color-text-secondary)]" />
                     <div className="mt-4">
                       <label htmlFor="file-upload" className="cursor-pointer">
                         <span className="mt-2 block text-sm font-medium text-[var(--color-text-primary)]">
-                          Glissez vos fichiers ici ou cliquez pour parcourir
+                          {t('closureArchives.dropHint')}
                         </span>
                         <input
                           id="file-upload"
@@ -723,27 +728,27 @@ const DocumentsArchives: React.FC = () => {
                       </label>
                       {formData.fichier && (
                         <p className="mt-1 text-sm text-[var(--color-success)]">
-                          Fichier sélectionné: {formData.fichier.name}
+                          {t('closureArchives.fileSelected', { name: formData.fichier.name })}
                         </p>
                       )}
                       {errors.fichier && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.fichier}</p>
                       )}
-                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">PDF, Excel, Word, Images jusqu&apos;à 10MB</p>
+                      <p className="mt-1 text-xs text-[var(--color-text-secondary)]">{t('closureArchives.fileConstraints')}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Document Metadata */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Informations du Document</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureArchives.docInfo')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Nom du Document</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.docName')}</label>
                       <input
                         type="text"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Ex: Balance Générale Sept 2024"
+                        placeholder={t('closureArchives.docNamePlaceholder')}
                         value={formData.type}
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         disabled={isSubmitting}
@@ -753,26 +758,26 @@ const DocumentsArchives: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Catégorie</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.colCategory')}</label>
                       <select
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.type}
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="">-- Sélectionner catégorie --</option>
-                        <option value="balance">Balance Générale</option>
-                        <option value="grand_livre">Grand Livre</option>
-                        <option value="etats_financiers">États Financiers</option>
-                        <option value="pv">Procès-Verbaux</option>
-                        <option value="liasse_fiscale">Liasse Fiscale</option>
+                        <option value="">{t('closureArchives.selectCategory')}</option>
+                        <option value="balance">{t('closureArchives.optBalance')}</option>
+                        <option value="grand_livre">{t('closureArchives.optLedger')}</option>
+                        <option value="etats_financiers">{t('closureArchives.optFinStatements')}</option>
+                        <option value="pv">{t('closureArchives.optMinutes')}</option>
+                        <option value="liasse_fiscale">{t('closureArchives.optTaxBundle')}</option>
                       </select>
                       {errors.type && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.type}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Période</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.period')}</label>
                       <input
                         type="month"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -786,7 +791,7 @@ const DocumentsArchives: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Type de Clôture</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.closureType')}</label>
                       <input
                         type="text"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -804,33 +809,33 @@ const DocumentsArchives: React.FC = () => {
 
                 {/* Security and Access */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Sécurité et Accès</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureArchives.securityAccess')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Niveau de Confidentialité</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.confidentialityLevel')}</label>
                       <select
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         value={formData.niveau_securite}
                         onChange={(e) => handleInputChange('niveau_securite', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="public">Public</option>
-                        <option value="restreint">Restreint</option>
-                        <option value="confidentiel">Confidentiel</option>
-                        <option value="strictement_confidentiel">Strictement Confidentiel</option>
+                        <option value="public">{t('closureArchives.levelPublic')}</option>
+                        <option value="restreint">{t('closureArchives.levelRestricted')}</option>
+                        <option value="confidentiel">{t('closureArchives.levelConfidential')}</option>
+                        <option value="strictement_confidentiel">{t('closureArchives.levelStrict')}</option>
                       </select>
                       {errors.niveau_securite && (
                         <p className="mt-1 text-sm text-[var(--color-error)]">{errors.niveau_securite}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Droits d&apos;Accès</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.accessRights')}</label>
                       <input
                         type="number"
                         min="1"
                         max="99"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Ex: 10 (ans)"
+                        placeholder={t('closureArchives.retentionPlaceholder')}
                         value={formData.duree_conservation}
                         onChange={(e) => handleInputChange('duree_conservation', e.target.value)}
                         disabled={isSubmitting}
@@ -844,14 +849,14 @@ const DocumentsArchives: React.FC = () => {
 
                 {/* Tags and Description */}
                 <div>
-                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">Classification</h3>
+                  <h3 className="text-md font-medium text-[var(--color-text-primary)] mb-3">{t('closureArchives.classification')}</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Tags (séparés par des virgules)</label>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.tagsLabel')}</label>
                       <input
                         type="text"
                         className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="comptabilité, clôture, septembre, validation"
+                        placeholder={t('closureArchives.tagsPlaceholder')}
                         value={Array.isArray(formData.tags) ? formData.tags.join(', ') : ''}
                         onChange={(e) => handleInputChange('tags', e.target.value)}
                         disabled={isSubmitting}
@@ -861,8 +866,8 @@ const DocumentsArchives: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Description</label>
-                      <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" rows={3} placeholder="Description détaillée du document..."></textarea>
+                      <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('closureArchives.description')}</label>
+                      <textarea className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500" rows={3} placeholder={t('closureArchives.descriptionPlaceholder')}></textarea>
                     </div>
                   </div>
                 </div>
@@ -879,7 +884,7 @@ const DocumentsArchives: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg hover:bg-[var(--color-border-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('closureArchives.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -889,12 +894,12 @@ const DocumentsArchives: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Téléversement...</span>
+                    <span>{t('closureArchives.uploading')}</span>
                   </>
                 ) : (
                   <>
                     <Upload className="w-4 h-4" />
-                    <span>Téléverser le Document</span>
+                    <span>{t('closureArchives.uploadDocument')}</span>
                   </>
                 )}
               </button>
