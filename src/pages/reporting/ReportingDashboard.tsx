@@ -37,6 +37,7 @@ import {
   ColorfulBarChart
 } from '../../components/ui/DesignSystem';
 import { formatDate } from '../../lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Report {
   id: string;
@@ -59,6 +60,7 @@ const SUPPORTED_FORMATS = ['PDF', 'Excel', 'Dashboard'] as const;
 
 const ReportingDashboard: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [selectedView, setSelectedView] = useState<'overview' | 'reports' | 'dashboards'>('overview');
   const [selectedPeriod, setSelectedPeriod] = useState('30d');
@@ -89,10 +91,10 @@ const ReportingDashboard: React.FC = () => {
     for (const fy of fiscalYears) {
       result.push({
         id: `fy-${fy.id}`,
-        name: `Bilan Comptable — ${fy.name || fy.code}`,
+        name: t('reportingDashboard.balanceSheetFor', { name: fy.name || fy.code }),
         type: 'financial',
-        category: 'Comptabilité',
-        description: `États financiers pour l'exercice ${fy.startDate?.substring(0, 4) || ''}`,
+        category: t('reportingDashboard.catAccounting'),
+        description: t('reportingDashboard.financialStatementsForYear', { year: fy.startDate?.substring(0, 4) || '' }),
         lastGenerated: fy.endDate || new Date().toISOString(),
         generatedBy: 'system',
         views: 0,
@@ -100,7 +102,9 @@ const ReportingDashboard: React.FC = () => {
         frequency: 'annual',
         format: 'pdf',
         isPublic: true,
-        tags: ['bilan', 'comptabilité', 'syscohada'],
+        // Les tags alimentent la recherche plein texte : ils sont traduits,
+        // sinon la recherche par mot-clé ne fonctionne qu'en français.
+        tags: [t('reportingDashboard.tagBalanceSheet'), t('reportingDashboard.tagAccounting'), 'syscohada'],
       });
     }
 
@@ -109,10 +113,10 @@ const ReportingDashboard: React.FC = () => {
       const latestEntry = journalEntries.reduce((latest, e) => e.date > latest.date ? e : latest, journalEntries[0]);
       result.push({
         id: 'analytical-current',
-        name: 'Analyse de Rentabilité',
+        name: t('reportingDashboard.profitabilityAnalysis'),
         type: 'analytical',
-        category: 'Analyse',
-        description: `Analyse basée sur ${journalEntries.length} écritures comptables`,
+        category: t('reportingDashboard.catAnalysis'),
+        description: t('reportingDashboard.analysisBasedOn', { count: String(journalEntries.length) }),
         lastGenerated: latestEntry.date,
         generatedBy: 'system',
         views: 0,
@@ -120,12 +124,12 @@ const ReportingDashboard: React.FC = () => {
         frequency: 'monthly',
         format: 'excel',
         isPublic: true,
-        tags: ['rentabilité', 'analyse'],
+        tags: [t('reportingDashboard.tagProfitability'), t('reportingDashboard.tagAnalysis')],
       });
     }
 
     return result;
-  }, [fiscalYears, journalEntries]);
+  }, [fiscalYears, journalEntries, t]);
 
   const reportsLoading = fyLoading || jeLoading;
   const reportsError = fyError || jeError;
@@ -161,7 +165,7 @@ const ReportingDashboard: React.FC = () => {
             className="flex flex-col items-center space-y-6 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md"
           >
             <div className="w-20 h-20 border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
-            <p className="text-lg font-semibold text-neutral-700">Chargement du tableau de bord reporting...</p>
+            <p className="text-lg font-semibold text-neutral-700">{t('reportingDashboard.loading')}</p>
           </motion.div>
         </div>
       </PageContainer>
@@ -174,8 +178,8 @@ const ReportingDashboard: React.FC = () => {
         <div className="flex justify-center items-center min-h-[60vh]">
           <div className="flex flex-col items-center space-y-4 bg-white/90 backdrop-blur-sm p-12 rounded-xl shadow-md text-center">
             <DocumentTextIcon className="h-12 w-12 text-red-400" />
-            <p className="text-lg font-semibold text-neutral-700">Impossible de charger les données de reporting</p>
-            <p className="text-sm text-neutral-500">Vérifiez votre connexion et réessayez.</p>
+            <p className="text-lg font-semibold text-neutral-700">{t('reportingDashboard.loadError')}</p>
+            <p className="text-sm text-neutral-500">{t('reportingDashboard.loadErrorHint')}</p>
           </div>
         </div>
       </PageContainer>
@@ -187,8 +191,8 @@ const ReportingDashboard: React.FC = () => {
       <div className="space-y-8">
         {/* Header */}
         <SectionHeader
-          title="Tableau de Bord Reporting"
-          subtitle="Gestion des rapports et tableaux de bord"
+          title={t('reportingDashboard.title')}
+          subtitle={t('reportingDashboard.subtitle')}
           icon={ChartBarIcon}
           action={
             <div className="flex items-center space-x-4">
@@ -197,12 +201,12 @@ const ReportingDashboard: React.FC = () => {
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="bg-white border border-neutral-200 rounded-2xl px-4 py-2 text-sm font-medium"
               >
-                <option value="7d">7 derniers jours</option>
-                <option value="30d">30 derniers jours</option>
-                <option value="90d">90 derniers jours</option>
+                <option value="7d">{t('reportingDashboard.period7d')}</option>
+                <option value="30d">{t('reportingDashboard.period30d')}</option>
+                <option value="90d">{t('reportingDashboard.period90d')}</option>
               </select>
               <ElegantButton icon={PlusIcon} onClick={() => navigate('/reporting/reports')}>
-                Nouveau Rapport
+                {t('reportingDashboard.newReport')}
               </ElegantButton>
             </div>
           }
@@ -211,36 +215,36 @@ const ReportingDashboard: React.FC = () => {
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
-            title="Rapports Actifs"
+            title={t('reportingDashboard.kpiActive')}
             value={reports.filter(r => r.status === 'active').length.toString()}
-            subtitle="En production"
+            subtitle={t('reportingDashboard.kpiActiveSub')}
             icon={FileText}
             color="primary"
             delay={0.1}
             withChart={true}
           />
           <KPICard
-            title="Rapports Générés"
+            title={t('reportingDashboard.kpiGenerated')}
             value={reports.length.toString()}
-            subtitle={`Sur ${selectedPeriod === '7d' ? '7 jours' : selectedPeriod === '30d' ? '30 jours' : '90 jours'}`}
+            subtitle={t('reportingDashboard.kpiGeneratedSub', { period: t(selectedPeriod === '7d' ? 'reportingDashboard.span7d' : selectedPeriod === '30d' ? 'reportingDashboard.span30d' : 'reportingDashboard.span90d') })}
             icon={Eye}
             color="success"
             delay={0.2}
             withChart={true}
           />
           <KPICard
-            title="Rapports Partagés"
+            title={t('reportingDashboard.kpiShared')}
             value={reports.filter(r => r.isPublic).length.toString()}
-            subtitle="Publics"
+            subtitle={t('reportingDashboard.kpiSharedSub')}
             icon={Share}
             color="warning"
             delay={0.3}
             withChart={true}
           />
           <KPICard
-            title="Écritures"
+            title={t('reportingDashboard.kpiEntries')}
             value={totalGenerations}
-            subtitle="Total enregistré"
+            subtitle={t('reportingDashboard.kpiEntriesSub')}
             icon={Download}
             color="neutral"
             delay={0.4}
@@ -255,16 +259,16 @@ const ReportingDashboard: React.FC = () => {
           transition={{ delay: 0.6 }}
         >
           <ModernChartCard
-            title="Répartition des Rapports par Type"
-            subtitle="Distribution des rapports selon leur catégorie"
+            title={t('reportingDashboard.chartTitle')}
+            subtitle={t('reportingDashboard.chartSubtitle')}
             icon={PieChart}
           >
             <ColorfulBarChart
               data={[
-                { label: 'Financier', value: reports.filter(r => r.type === 'financial').length, color: 'bg-[var(--color-primary)]' },
-                { label: 'Analytique', value: reports.filter(r => r.type === 'analytical').length, color: 'bg-[var(--color-text-secondary)]' },
-                { label: 'Gestion', value: reports.filter(r => r.type === 'management').length, color: 'bg-primary-400' },
-                { label: 'Réglementaire', value: reports.filter(r => r.type === 'regulatory').length, color: 'bg-orange-400' }
+                { label: t('reportingDashboard.typeFinancial'), value: reports.filter(r => r.type === 'financial').length, color: 'bg-[var(--color-primary)]' },
+                { label: t('reportingDashboard.typeAnalytical'), value: reports.filter(r => r.type === 'analytical').length, color: 'bg-[var(--color-text-secondary)]' },
+                { label: t('reportingDashboard.typeManagement'), value: reports.filter(r => r.type === 'management').length, color: 'bg-primary-400' },
+                { label: t('reportingDashboard.typeRegulatory'), value: reports.filter(r => r.type === 'regulatory').length, color: 'bg-orange-400' }
               ]}
               height={200}
             />
@@ -281,13 +285,13 @@ const ReportingDashboard: React.FC = () => {
                   <FileText className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-neutral-900">Rapports Récents</h2>
-                  <p className="text-neutral-600">Derniers rapports générés</p>
+                  <h2 className="text-lg font-bold text-neutral-900">{t('reportingDashboard.recentReports')}</h2>
+                  <p className="text-neutral-600">{t('reportingDashboard.recentReportsSub')}</p>
                 </div>
               </div>
               <Link to="/reporting/reports">
                 <ElegantButton variant="outline">
-                  Voir tout
+                  {t('reportingDashboard.viewAll')}
                 </ElegantButton>
               </Link>
             </div>
@@ -296,8 +300,8 @@ const ReportingDashboard: React.FC = () => {
               {reports.length === 0 && (
                 <div className="flex flex-col items-center py-12 text-neutral-500 space-y-2">
                   <FileText className="h-10 w-10 text-neutral-300" />
-                  <p className="text-sm font-medium">Aucun rapport disponible pour cette période</p>
-                  <p className="text-xs text-neutral-400">Modifiez le filtre de période ou créez un premier rapport.</p>
+                  <p className="text-sm font-medium">{t('reportingDashboard.noReport')}</p>
+                  <p className="text-xs text-neutral-400">{t('reportingDashboard.noReportHint')}</p>
                 </div>
               )}
               {reports.map((report, index) => (
@@ -324,7 +328,7 @@ const ReportingDashboard: React.FC = () => {
                         </span>
                         <span className="flex items-center">
                           <Eye className="h-3 w-3 mr-1" />
-                          {report.views} vues
+                          {t('reportingDashboard.viewsCount', { count: String(report.views) })}
                         </span>
                         <span className="flex items-center">
                           <CalendarIcon className="h-3 w-3 mr-1" />
@@ -335,16 +339,16 @@ const ReportingDashboard: React.FC = () => {
                   </div>
                   <div className="flex flex-col items-end space-y-2">
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getReportTypeColor(report.type)}`}>
-                      {report.type === 'financial' ? 'Financier' :
-                       report.type === 'analytical' ? 'Analytique' :
-                       report.type === 'management' ? 'Gestion' : 'Réglementaire'}
+                      {t(report.type === 'financial' ? 'reportingDashboard.typeFinancial' :
+                         report.type === 'analytical' ? 'reportingDashboard.typeAnalytical' :
+                         report.type === 'management' ? 'reportingDashboard.typeManagement' : 'reportingDashboard.typeRegulatory')}
                     </span>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
                       report.status === 'active' ? 'bg-primary-100 text-primary-700' :
                       report.status === 'draft' ? 'bg-[var(--color-warning-lighter)] text-[var(--color-warning-dark)]' : 'bg-neutral-100 text-neutral-700'
                     }`}>
-                      {report.status === 'active' ? 'Actif' :
-                       report.status === 'draft' ? 'Brouillon' : 'Archivé'}
+                      {t(report.status === 'active' ? 'reportingDashboard.statusActive' :
+                         report.status === 'draft' ? 'reportingDashboard.statusDraft' : 'reportingDashboard.statusArchived')}
                     </span>
                   </div>
                 </motion.div>
@@ -359,8 +363,8 @@ const ReportingDashboard: React.FC = () => {
                 <TrendingUp className="h-6 w-6 text-primary-600" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-neutral-900">Statistiques</h2>
-                <p className="text-neutral-600">Performance reporting</p>
+                <h2 className="text-lg font-bold text-neutral-900">{t('reportingDashboard.statistics')}</h2>
+                <p className="text-neutral-600">{t('reportingDashboard.statisticsSub')}</p>
               </div>
             </div>
 
@@ -372,12 +376,12 @@ const ReportingDashboard: React.FC = () => {
                 className="p-6 rounded-2xl border bg-[var(--color-primary)]/5 border-[var(--color-primary)]/20"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[var(--color-primary)]">Rapports Automatiques</span>
+                  <span className="text-sm font-semibold text-[var(--color-primary)]">{t('reportingDashboard.automaticReports')}</span>
                   <span className="font-bold text-xl text-[var(--color-primary)]">
                     {reports.filter(r => r.frequency !== 'on_demand').length}
                   </span>
                 </div>
-                <p className="text-sm text-[var(--color-primary)]/80">Générés automatiquement</p>
+                <p className="text-sm text-[var(--color-primary)]/80">{t('reportingDashboard.automaticReportsSub')}</p>
               </motion.div>
 
               <motion.div
@@ -387,7 +391,7 @@ const ReportingDashboard: React.FC = () => {
                 className="p-6 rounded-2xl border bg-primary-50/80 border-primary-200/60"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-primary-900">Formats Supportés</span>
+                  <span className="text-sm font-semibold text-primary-900">{t('reportingDashboard.supportedFormats')}</span>
                   <span className="font-bold text-xl text-primary-900">{SUPPORTED_FORMATS.length}</span>
                 </div>
                 <p className="text-sm text-primary-700">{SUPPORTED_FORMATS.join(', ')}</p>
@@ -400,10 +404,10 @@ const ReportingDashboard: React.FC = () => {
                 className="p-6 rounded-2xl border bg-[var(--color-text-secondary)]/5 border-[var(--color-text-secondary)]/20"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[var(--color-text-secondary)]">Exercices</span>
+                  <span className="text-sm font-semibold text-[var(--color-text-secondary)]">{t('reportingDashboard.fiscalYears')}</span>
                   <span className="font-bold text-xl text-[var(--color-text-secondary)]">{fiscalYears.length}</span>
                 </div>
-                <p className="text-sm text-[var(--color-text-secondary)]/80">Exercices comptables</p>
+                <p className="text-sm text-[var(--color-text-secondary)]/80">{t('reportingDashboard.fiscalYearsSub')}</p>
               </motion.div>
             </div>
           </UnifiedCard>
@@ -412,8 +416,8 @@ const ReportingDashboard: React.FC = () => {
         {/* Quick Actions */}
         <UnifiedCard variant="elevated" size="lg">
           <div className="mb-8">
-            <h2 className="text-lg font-bold text-neutral-900 mb-2">Actions Rapides</h2>
-            <p className="text-neutral-600">Gestion des rapports et tableaux de bord</p>
+            <h2 className="text-lg font-bold text-neutral-900 mb-2">{t('reportingDashboard.quickActions')}</h2>
+            <p className="text-neutral-600">{t('reportingDashboard.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Link to="/reporting/reports">
@@ -427,8 +431,8 @@ const ReportingDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-primary)]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <PlusIcon className="h-6 w-6 text-[var(--color-primary)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Créer un Rapport</h3>
-                <p className="text-sm text-neutral-600">Nouveau rapport personnalisé</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('reportingDashboard.createReport')}</h3>
+                <p className="text-sm text-neutral-600">{t('reportingDashboard.createReportSub')}</p>
               </motion.div>
             </Link>
 
@@ -443,8 +447,8 @@ const ReportingDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-primary-100 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <DocumentTextIcon className="h-6 w-6 text-primary-600" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Modèles</h3>
-                <p className="text-sm text-neutral-600">Bibliothèque de modèles</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('reportingDashboard.templates')}</h3>
+                <p className="text-sm text-neutral-600">{t('reportingDashboard.templatesSub')}</p>
               </motion.div>
             </Link>
 
@@ -459,8 +463,8 @@ const ReportingDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-text-secondary)]/10 rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <ChartBarIcon className="h-6 w-6 text-[var(--color-text-secondary)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Tableaux de Bord</h3>
-                <p className="text-sm text-neutral-600">Créer et gérer</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('reportingDashboard.dashboards')}</h3>
+                <p className="text-sm text-neutral-600">{t('reportingDashboard.dashboardsSub')}</p>
               </motion.div>
             </Link>
 
@@ -475,8 +479,8 @@ const ReportingDashboard: React.FC = () => {
                 <div className="flex items-center justify-center w-12 h-12 bg-[var(--color-warning-lighter)] rounded-2xl mb-4 group-hover:scale-110 transition-transform">
                   <ClockIcon className="h-6 w-6 text-[var(--color-warning)]" />
                 </div>
-                <h3 className="font-bold text-neutral-900 mb-1">Planification</h3>
-                <p className="text-sm text-neutral-600">Rapports automatiques</p>
+                <h3 className="font-bold text-neutral-900 mb-1">{t('reportingDashboard.scheduling')}</h3>
+                <p className="text-sm text-neutral-600">{t('reportingDashboard.schedulingSub')}</p>
               </motion.div>
             </Link>
           </div>

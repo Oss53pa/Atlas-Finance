@@ -52,8 +52,30 @@ interface Dashboard {
   tags: string[];
 }
 
+// `category`, `type` et `status` sont des VALEURS comparées aux filtres : elles
+// restent canoniques dans les données, ces tables ne servent qu'à l'affichage.
+const CATEGORY_KEY: Record<string, string> = {
+  Finance: 'dashboardsPage.catFinance',
+  Commercial: 'dashboardsPage.catSales',
+  Gestion: 'dashboardsPage.catManagement',
+  RH: 'dashboardsPage.catHr',
+  Templates: 'dashboardsPage.catTemplates',
+};
+const TYPE_KEY: Record<string, string> = {
+  personal: 'dashboardsPage.typePersonal',
+  shared: 'dashboardsPage.typeShared',
+  public: 'dashboardsPage.typePublic',
+  template: 'dashboardsPage.typeTemplate',
+};
+const STATUS_KEY: Record<string, string> = {
+  active: 'dashboardsPage.statusActive',
+  draft: 'dashboardsPage.statusDraft',
+  archived: 'dashboardsPage.statusArchived',
+};
+
 const DashboardsPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const { adapter } = useData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -112,18 +134,20 @@ const DashboardsPage: React.FC = () => {
     const validatedCount = journalEntries.filter(e => e.status === 'validated' || e.status === 'posted').length;
     result.push({
       id: 'fin-overview',
-      name: 'Vue d\'ensemble Financière',
-      description: `Indicateurs financiers clés — ${entryCount} écritures, ${validatedCount} validées`,
+      name: t('dashboardsPage.finOverview'),
+      description: t('dashboardsPage.finOverviewDesc', { entries: String(entryCount), validated: String(validatedCount) }),
+      // `category` est une VALEUR comparée au filtre : elle reste canonique,
+      // seul son affichage est traduit via CATEGORY_KEY.
       category: 'Finance',
       type: 'shared',
       status: 'active',
       widgets: [
-        { id: 'w1', type: 'metric', title: 'Chiffre d\'affaires', size: 'small' },
-        { id: 'w2', type: 'chart', title: 'Évolution mensuelle', size: 'large' },
-        { id: 'w3', type: 'gauge', title: 'Marge brute', size: 'medium' }
+        { id: 'w1', type: 'metric', title: t('dashboardsPage.wRevenue'), size: 'small' },
+        { id: 'w2', type: 'chart', title: t('dashboardsPage.wMonthlyTrend'), size: 'large' },
+        { id: 'w3', type: 'gauge', title: t('dashboardsPage.wGrossMargin'), size: 'medium' }
       ],
       widgetCount: 3,
-      owner: 'Système',
+      owner: t('dashboardsPage.system'),
       sharedWith: [],
       views: 0,
       lastViewed: now,
@@ -145,17 +169,17 @@ const DashboardsPage: React.FC = () => {
       });
       result.push({
         id: `fy-${fy.id}`,
-        name: `Exercice ${fy.name || fy.code}`,
-        description: `${fyEntries.length} écritures du ${fy.startDate || ''} au ${fy.endDate || ''}`,
+        name: t('dashboardsPage.fiscalYearName', { name: fy.name || fy.code }),
+        description: t('dashboardsPage.fiscalYearDesc', { count: String(fyEntries.length), start: fy.startDate || '', end: fy.endDate || '' }),
         category: 'Finance',
         type: 'public',
         status: fy.isClosed ? 'archived' : 'active',
         widgets: [
-          { id: `fy-${fy.id}-w1`, type: 'metric', title: 'Écritures', size: 'small' },
-          { id: `fy-${fy.id}-w2`, type: 'chart', title: 'Flux mensuels', size: 'large' }
+          { id: `fy-${fy.id}-w1`, type: 'metric', title: t('dashboardsPage.wEntries'), size: 'small' },
+          { id: `fy-${fy.id}-w2`, type: 'chart', title: t('dashboardsPage.wMonthlyFlows'), size: 'large' }
         ],
         widgetCount: 2,
-        owner: 'Système',
+        owner: t('dashboardsPage.system'),
         sharedWith: [],
         views: 0,
         lastViewed: now,
@@ -166,7 +190,9 @@ const DashboardsPage: React.FC = () => {
         refreshRate: 60,
         layout: 'grid',
         backgroundColor: 'var(--color-background-primary)',
-        tags: ['exercice', 'comptabilité']
+        // Les tags alimentent la recherche plein texte : ils sont traduits,
+        // sinon la recherche par mot-clé ne fonctionne qu'en français.
+        tags: [t('dashboardsPage.tagFiscalYear'), t('dashboardsPage.tagAccounting')]
       });
     }
 
@@ -175,17 +201,17 @@ const DashboardsPage: React.FC = () => {
       const activeAccounts = accounts.filter(a => a.isActive).length;
       result.push({
         id: 'plan-comptable',
-        name: 'Plan Comptable',
-        description: `${activeAccounts} comptes actifs sur ${accounts.length} au total`,
+        name: t('dashboardsPage.chartOfAccounts'),
+        description: t('dashboardsPage.chartOfAccountsDesc', { active: String(activeAccounts), total: String(accounts.length) }),
         category: 'Gestion',
         type: 'personal',
         status: 'active',
         widgets: [
-          { id: 'pc-w1', type: 'table', title: 'Comptes par classe', size: 'large' },
-          { id: 'pc-w2', type: 'chart', title: 'Répartition des classes', size: 'medium' }
+          { id: 'pc-w1', type: 'table', title: t('dashboardsPage.wAccountsByClass'), size: 'large' },
+          { id: 'pc-w2', type: 'chart', title: t('dashboardsPage.wClassBreakdown'), size: 'medium' }
         ],
         widgetCount: 2,
-        owner: 'Système',
+        owner: t('dashboardsPage.system'),
         sharedWith: [],
         views: 0,
         lastViewed: now,
@@ -196,24 +222,24 @@ const DashboardsPage: React.FC = () => {
         refreshRate: 120,
         layout: 'grid',
         backgroundColor: 'var(--color-background-primary)',
-        tags: ['gestion', 'comptes', 'analytique']
+        tags: [t('dashboardsPage.tagManagement'), t('dashboardsPage.tagAccounts'), t('dashboardsPage.tagAnalytical')]
       });
     }
 
     // 4. Template dashboard — always present
     result.push({
       id: 'template-standard',
-      name: 'Modèle Tableau de Bord Financier',
-      description: 'Modèle standard pour les tableaux de bord financiers',
+      name: t('dashboardsPage.financialTemplate'),
+      description: t('dashboardsPage.financialTemplateDesc'),
       category: 'Templates',
       type: 'template',
       status: 'active',
       widgets: [
-        { id: 'tpl-w1', type: 'metric', title: 'CA du mois', size: 'small' },
-        { id: 'tpl-w2', type: 'chart', title: 'Tendance trimestrielle', size: 'large' }
+        { id: 'tpl-w1', type: 'metric', title: t('dashboardsPage.wMonthRevenue'), size: 'small' },
+        { id: 'tpl-w2', type: 'chart', title: t('dashboardsPage.wQuarterlyTrend'), size: 'large' }
       ],
       widgetCount: 2,
-      owner: 'Système',
+      owner: t('dashboardsPage.system'),
       sharedWith: [],
       views: 0,
       lastViewed: now,
@@ -231,7 +257,7 @@ const DashboardsPage: React.FC = () => {
     return result
       .filter(d => !hiddenIds.has(d.id))
       .map(d => ({ ...d, isStarred: starredIds.has(d.id) }));
-  }, [fiscalYears, journalEntries, accounts, starredIds, hiddenIds]);
+  }, [fiscalYears, journalEntries, accounts, starredIds, hiddenIds, t]);
 
   // Apply filters
   const dashboards = useMemo(() => {
@@ -254,7 +280,7 @@ const DashboardsPage: React.FC = () => {
       return dashboardId;
     },
     onSuccess: () => {
-      toast.success('Tableau de bord masqué');
+      toast.success(t('dashboardsPage.dashboardHidden'));
     },
     onError: () => {
       toast.error('Impossible de masquer le tableau de bord');
@@ -331,8 +357,8 @@ const DashboardsPage: React.FC = () => {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">Tableaux de Bord</h1>
-          <p className="text-[var(--color-text-primary)]">Créez et gérez vos tableaux de bord personnalisés</p>
+          <h1 className="text-lg font-bold text-[var(--color-text-primary)]">{t('dashboardsPage.title')}</h1>
+          <p className="text-[var(--color-text-primary)]">{t('dashboardsPage.subtitle')}</p>
         </div>
         <div className="flex space-x-3">
           <button
@@ -340,14 +366,14 @@ const DashboardsPage: React.FC = () => {
             className="bg-[var(--color-background-hover)] hover:bg-[var(--color-border)] text-[var(--color-text-primary)] px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <ChartBarIcon className="h-5 w-5" />
-            <span>{viewMode === 'grid' ? 'Vue Liste' : 'Vue Grille'}</span>
+            <span>{t(viewMode === 'grid' ? 'dashboardsPage.listView' : 'dashboardsPage.gridView')}</span>
           </button>
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>Nouveau Tableau de Bord</span>
+            <span>{t('dashboardsPage.newDashboard')}</span>
           </button>
         </div>
       </div>
@@ -357,7 +383,7 @@ const DashboardsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">Total Tableaux</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('dashboardsPage.statTotal')}</p>
               <p className="text-lg font-bold text-[var(--color-text-primary)]">{totalDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-primary)]/10 rounded-lg flex items-center justify-center">
@@ -369,7 +395,7 @@ const DashboardsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">Actifs</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('dashboardsPage.statActive')}</p>
               <p className="text-lg font-bold text-[var(--color-success)]">{activeDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-success-lighter)] rounded-lg flex items-center justify-center">
@@ -381,7 +407,7 @@ const DashboardsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">Partagés</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('dashboardsPage.statShared')}</p>
               <p className="text-lg font-bold text-[var(--color-text-secondary)]">{sharedDashboards}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-text-secondary)]/10 rounded-lg flex items-center justify-center">
@@ -393,7 +419,7 @@ const DashboardsPage: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-sm border border-[var(--color-border)]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[var(--color-text-primary)]">Widgets</p>
+              <p className="text-sm font-medium text-[var(--color-text-primary)]">{t('dashboardsPage.statWidgets')}</p>
               <p className="text-lg font-bold text-[var(--color-warning)]">{totalWidgets.toLocaleString()}</p>
             </div>
             <div className="h-12 w-12 bg-[var(--color-warning-lighter)] rounded-lg flex items-center justify-center">
@@ -411,7 +437,7 @@ const DashboardsPage: React.FC = () => {
               <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-secondary)]" />
               <input
                 type="text"
-                placeholder="Rechercher un tableau de bord..."
+                placeholder={t('dashboardsPage.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-[var(--color-border-dark)] rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -422,7 +448,7 @@ const DashboardsPage: React.FC = () => {
               className="flex items-center space-x-2 px-4 py-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)] transition-colors"
             >
               <FunnelIcon className="h-5 w-5" />
-              <span>Filtres</span>
+              <span>{t('dashboardsPage.filters')}</span>
             </button>
           </div>
         </div>
@@ -430,53 +456,53 @@ const DashboardsPage: React.FC = () => {
         {showFilters && (
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Catégorie</label>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('dashboardsPage.category')}</label>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Toutes les catégories</option>
-                <option value="Finance">Finance</option>
-                <option value="Commercial">Commercial</option>
-                <option value="Gestion">Gestion</option>
-                <option value="RH">RH</option>
+                <option value="all">{t('dashboardsPage.allCategories')}</option>
+                <option value="Finance">{t('dashboardsPage.catFinance')}</option>
+                <option value="Commercial">{t('dashboardsPage.catSales')}</option>
+                <option value="Gestion">{t('dashboardsPage.catManagement')}</option>
+                <option value="RH">{t('dashboardsPage.catHr')}</option>
                 <option value="Budget">{t('navigation.budget')}</option>
-                <option value="Templates">Templates</option>
+                <option value="Templates">{t('dashboardsPage.catTemplates')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Type</label>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('dashboardsPage.type')}</label>
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
                 className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Tous les types</option>
-                <option value="personal">Personnel</option>
-                <option value="shared">Partagé</option>
-                <option value="public">Public</option>
-                <option value="template">Modèle</option>
+                <option value="all">{t('dashboardsPage.allTypes')}</option>
+                <option value="personal">{t('dashboardsPage.typePersonal')}</option>
+                <option value="shared">{t('dashboardsPage.typeShared')}</option>
+                <option value="public">{t('dashboardsPage.typePublic')}</option>
+                <option value="template">{t('dashboardsPage.typeTemplate')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Statut</label>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('dashboardsPage.status')}</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="w-full border border-[var(--color-border-dark)] rounded-lg px-3 py-2 focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
               >
-                <option value="all">Tous les statuts</option>
-                <option value="active">Actif</option>
+                <option value="all">{t('dashboardsPage.allStatuses')}</option>
+                <option value="active">{t('dashboardsPage.statusActive')}</option>
                 <option value="draft">{t('accounting.draft')}</option>
-                <option value="archived">Archivé</option>
+                <option value="archived">{t('dashboardsPage.statusArchived')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Actions</label>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-1">{t('dashboardsPage.actions')}</label>
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -486,7 +512,7 @@ const DashboardsPage: React.FC = () => {
                 }}
                 className="w-full px-3 py-2 border border-[var(--color-border-dark)] rounded-lg hover:bg-[var(--color-background-secondary)] transition-colors"
               >
-                Réinitialiser
+                {t('dashboardsPage.reset')}
               </button>
             </div>
           </div>
@@ -526,7 +552,7 @@ const DashboardsPage: React.FC = () => {
           ) : filteredDashboards.length === 0 ? (
             <div className="col-span-full text-center py-12">
               <ChartBarIcon className="h-12 w-12 text-[var(--color-text-secondary)] mx-auto mb-4" />
-              <p className="text-[var(--color-text-secondary)]">Aucun tableau de bord trouvé</p>
+              <p className="text-[var(--color-text-secondary)]">{t('dashboardsPage.noDashboard')}</p>
             </div>
           ) : (
             filteredDashboards.map((dashboard) => (
@@ -543,7 +569,7 @@ const DashboardsPage: React.FC = () => {
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-lg font-medium text-[var(--color-text-primary)] truncate">{dashboard.name}</h3>
-                      <p className="text-sm text-[var(--color-text-secondary)]">{dashboard.category}</p>
+                      <p className="text-sm text-[var(--color-text-secondary)]">{t(CATEGORY_KEY[dashboard.category] ?? '') || dashboard.category}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 ml-2">
@@ -567,13 +593,13 @@ const DashboardsPage: React.FC = () => {
                 {/* Badges de statut */}
                 <div className="flex items-center space-x-2 mb-4">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(dashboard.type)}`}>
-                    {dashboard.type === 'personal' ? 'Personnel' :
-                     dashboard.type === 'shared' ? 'Partagé' :
-                     dashboard.type === 'public' ? 'Public' : 'Modèle'}
+                    {t(dashboard.type === 'personal' ? 'dashboardsPage.typePersonal' :
+                       dashboard.type === 'shared' ? 'dashboardsPage.typeShared' :
+                       dashboard.type === 'public' ? 'dashboardsPage.typePublic' : 'dashboardsPage.typeTemplate')}
                   </span>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(dashboard.status)}`}>
-                    {dashboard.status === 'active' ? 'Actif' :
-                     dashboard.status === 'draft' ? 'Brouillon' : 'Archivé'}
+                    {t(dashboard.status === 'active' ? 'dashboardsPage.statusActive' :
+                       dashboard.status === 'draft' ? 'dashboardsPage.statusDraft' : 'dashboardsPage.statusArchived')}
                   </span>
                 </div>
 
@@ -581,15 +607,15 @@ const DashboardsPage: React.FC = () => {
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center">
                     <div className="text-lg font-bold text-[var(--color-primary)]">{dashboard.widgetCount}</div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">Widgets</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.statWidgets')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-[var(--color-success)]">{dashboard.views}</div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">Vues</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.views')}</div>
                   </div>
                   <div className="text-center">
                     <div className="text-sm font-medium text-[var(--color-text-primary)]">{dashboard.refreshRate}min</div>
-                    <div className="text-xs text-[var(--color-text-secondary)]">Refresh</div>
+                    <div className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.refresh')}</div>
                   </div>
                 </div>
 
@@ -601,14 +627,14 @@ const DashboardsPage: React.FC = () => {
                   </div>
                   <div className="flex items-center">
                     <ClockIcon className="h-4 w-4 mr-1" />
-                    {new Date(dashboard.lastUpdated).toLocaleDateString('fr-FR')}
+                    {new Date(dashboard.lastUpdated).toLocaleDateString(dateLocale)}
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-between">
                   <button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 text-white px-4 py-2 rounded text-sm transition-colors flex-1 mr-3">
-                    Ouvrir
+                    {t('dashboardsPage.open')}
                   </button>
                   <div className="flex space-x-1">
                     <button
@@ -617,7 +643,7 @@ const DashboardsPage: React.FC = () => {
                         setShowShareModal(true);
                       }}
                       className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-success)] transition-colors"
-                      title="Partager"
+                      title={t('dashboardsPage.share')}
                     >
                       <ShareIcon className="h-4 w-4" />
                     </button>
@@ -627,14 +653,14 @@ const DashboardsPage: React.FC = () => {
                         setShowEditModal(true);
                       }}
                       className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors"
-                      title="Configurer"
+                      title={t('dashboardsPage.configure')}
                     >
                       <Cog6ToothIcon className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteClick(dashboard)}
                       className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-error)] transition-colors"
-                      title="Masquer"
+                      title={t('dashboardsPage.hide')}
                       disabled={deleteDashboardMutation.isPending}
                     >
                       <TrashIcon className="h-4 w-4" />
@@ -653,25 +679,25 @@ const DashboardsPage: React.FC = () => {
               <thead className="bg-[var(--color-background-secondary)]">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Tableau de Bord
+                    {t('dashboardsPage.colDashboard')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Type
+                    {t('dashboardsPage.type')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Widgets
+                    {t('dashboardsPage.statWidgets')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Vues
+                    {t('dashboardsPage.views')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Propriétaire
+                    {t('dashboardsPage.colOwner')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Dernière MAJ
+                    {t('dashboardsPage.colLastUpdate')}
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">
-                    Actions
+                    {t('dashboardsPage.actions')}
                   </th>
                 </tr>
               </thead>
@@ -685,7 +711,7 @@ const DashboardsPage: React.FC = () => {
                         )}
                         <div>
                           <div className="text-sm font-medium text-[var(--color-text-primary)]">{dashboard.name}</div>
-                          <div className="text-sm text-[var(--color-text-secondary)]">{dashboard.category}</div>
+                          <div className="text-sm text-[var(--color-text-secondary)]">{t(CATEGORY_KEY[dashboard.category] ?? '') || dashboard.category}</div>
                         </div>
                       </div>
                     </td>
@@ -693,9 +719,9 @@ const DashboardsPage: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         {getTypeIcon(dashboard.type)}
                         <span className={`px-2 py-1 text-xs font-medium rounded-full ${getTypeColor(dashboard.type)}`}>
-                          {dashboard.type === 'personal' ? 'Personnel' :
-                           dashboard.type === 'shared' ? 'Partagé' :
-                           dashboard.type === 'public' ? 'Public' : 'Modèle'}
+                          {t(dashboard.type === 'personal' ? 'dashboardsPage.typePersonal' :
+                             dashboard.type === 'shared' ? 'dashboardsPage.typeShared' :
+                             dashboard.type === 'public' ? 'dashboardsPage.typePublic' : 'dashboardsPage.typeTemplate')}
                         </span>
                       </div>
                     </td>
@@ -709,13 +735,13 @@ const DashboardsPage: React.FC = () => {
                       {dashboard.owner}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                      {new Date(dashboard.lastUpdated).toLocaleDateString('fr-FR')}
+                      {new Date(dashboard.lastUpdated).toLocaleDateString(dateLocale)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <button
                           className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors"
-                          title="Ouvrir" aria-label="Voir les détails">
+                          title={t('dashboardsPage.open')} aria-label={t('dashboardsPage.viewDetails')}>
                           <EyeIcon className="h-4 w-4" />
                         </button>
                         <button
@@ -724,7 +750,7 @@ const DashboardsPage: React.FC = () => {
                             setShowShareModal(true);
                           }}
                           className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-success)] transition-colors"
-                          title="Partager"
+                          title={t('dashboardsPage.share')}
                         >
                           <ShareIcon className="h-4 w-4" />
                         </button>
@@ -734,7 +760,7 @@ const DashboardsPage: React.FC = () => {
                             setShowEditModal(true);
                           }}
                           className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors"
-                          title="Configurer"
+                          title={t('dashboardsPage.configure')}
                         >
                           <Cog6ToothIcon className="h-4 w-4" />
                         </button>
@@ -753,15 +779,11 @@ const DashboardsPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <p className="text-sm text-[var(--color-text-primary)]">
-              Affichage de{' '}
-              <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span>
-              {' '}à{' '}
-              <span className="font-medium">
-                {Math.min(currentPage * itemsPerPage, dashboards.length)}
-              </span>
-              {' '}sur{' '}
-              <span className="font-medium">{dashboards.length}</span>
-              {' '}tableaux de bord
+              {t('dashboardsPage.paginationRange', {
+                from: String((currentPage - 1) * itemsPerPage + 1),
+                to: String(Math.min(currentPage * itemsPerPage, dashboards.length)),
+                total: String(dashboards.length),
+              })}
             </p>
           </div>
           <div className="flex space-x-2">
@@ -770,14 +792,14 @@ const DashboardsPage: React.FC = () => {
               disabled={currentPage === 1}
               className="px-3 py-2 text-sm border border-[var(--color-border-dark)] rounded-md hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Précédent
+              {t('dashboardsPage.previous')}
             </button>
             <button
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
               className="px-3 py-2 text-sm border border-[var(--color-border-dark)] rounded-md hover:bg-[var(--color-background-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Suivant
+              {t('dashboardsPage.next')}
             </button>
           </div>
         </div>
@@ -788,7 +810,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-lg font-semibold">Créer un Dashboard</h2>
+              <h2 className="text-lg font-semibold">{t('dashboardsPage.createModalTitle')}</h2>
               <button onClick={() => setShowCreateModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -797,48 +819,48 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Nom du dashboard *</label>
-                <input type="text" className="w-full border rounded-lg px-3 py-2" placeholder="Ex: Tableau de bord commercial" />
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldName')}</label>
+                <input type="text" className="w-full border rounded-lg px-3 py-2" placeholder={t('dashboardsPage.fieldNamePlaceholder')} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <textarea rows={3} className="w-full border rounded-lg px-3 py-2" placeholder="Décrivez le dashboard..." />
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldDescription')}</label>
+                <textarea rows={3} className="w-full border rounded-lg px-3 py-2" placeholder={t('dashboardsPage.fieldDescriptionPlaceholder')} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Catégorie *</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldCategoryRequired')}</label>
                   <select className="w-full border rounded-lg px-3 py-2">
-                    <option>Finance</option>
-                    <option>Ventes</option>
-                    <option>RH</option>
-                    <option>Opérations</option>
+                    <option>{t('dashboardsPage.catFinance')}</option>
+                    <option>{t('dashboardsPage.catSales')}</option>
+                    <option>{t('dashboardsPage.catHr')}</option>
+                    <option>{t('dashboardsPage.catOperations')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Type *</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldTypeRequired')}</label>
                   <select className="w-full border rounded-lg px-3 py-2">
-                    <option value="personal">Personnel</option>
-                    <option value="shared">Partagé</option>
-                    <option value="public">Public</option>
+                    <option value="personal">{t('dashboardsPage.typePersonal')}</option>
+                    <option value="shared">{t('dashboardsPage.typeShared')}</option>
+                    <option value="public">{t('dashboardsPage.typePublic')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Layout</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldLayout')}</label>
                   <select className="w-full border rounded-lg px-3 py-2">
-                    <option value="grid">Grille</option>
-                    <option value="flow">Flux</option>
+                    <option value="grid">{t('dashboardsPage.layoutGrid')}</option>
+                    <option value="flow">{t('dashboardsPage.layoutFlow')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Taux de rafraîchissement (min)</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldRefreshRate')}</label>
                   <input type="number" className="w-full border rounded-lg px-3 py-2" defaultValue={5} min={1} />
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between gap-3 p-6 border-t">
-              <span className="text-xs text-[var(--color-text-secondary)]">Aperçu — la configuration n'est pas encore enregistrée.</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.previewNotSaved')}</span>
               <div className="flex space-x-3">
                 <button onClick={() => setShowCreateModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
                 <button onClick={() => { setShowCreateModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.create')}</button>
@@ -866,26 +888,26 @@ const DashboardsPage: React.FC = () => {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-medium mb-3">Informations</h3>
+                  <h3 className="font-medium mb-3">{t('dashboardsPage.information')}</h3>
                   <dl className="space-y-2 text-sm">
-                    <div><dt className="text-[var(--color-text-secondary)]">Catégorie</dt><dd className="font-medium">{selectedDashboard.category}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Type</dt><dd className="font-medium capitalize">{selectedDashboard.type}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Status</dt><dd className="font-medium">{selectedDashboard.status}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Propriétaire</dt><dd className="font-medium">{selectedDashboard.owner}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.category')}</dt><dd className="font-medium">{t(CATEGORY_KEY[selectedDashboard.category] ?? '') || selectedDashboard.category}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.type')}</dt><dd className="font-medium">{t(TYPE_KEY[selectedDashboard.type] ?? '')}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.status')}</dt><dd className="font-medium">{t(STATUS_KEY[selectedDashboard.status] ?? '')}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.owner')}</dt><dd className="font-medium">{selectedDashboard.owner}</dd></div>
                   </dl>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-3">Statistiques</h3>
+                  <h3 className="font-medium mb-3">{t('dashboardsPage.statistics')}</h3>
                   <dl className="space-y-2 text-sm">
-                    <div><dt className="text-[var(--color-text-secondary)]">Widgets</dt><dd className="font-medium">{selectedDashboard.widgetCount}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Vues</dt><dd className="font-medium">{selectedDashboard.views}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Dernière vue</dt><dd className="font-medium">{new Date(selectedDashboard.lastViewed).toLocaleDateString()}</dd></div>
-                    <div><dt className="text-[var(--color-text-secondary)]">Rafraîchissement</dt><dd className="font-medium">{selectedDashboard.refreshRate} min</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.statWidgets')}</dt><dd className="font-medium">{selectedDashboard.widgetCount}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.views')}</dt><dd className="font-medium">{selectedDashboard.views}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.lastViewed')}</dt><dd className="font-medium">{new Date(selectedDashboard.lastViewed).toLocaleDateString(dateLocale)}</dd></div>
+                    <div><dt className="text-[var(--color-text-secondary)]">{t('dashboardsPage.refreshRate')}</dt><dd className="font-medium">{selectedDashboard.refreshRate} min</dd></div>
                   </dl>
                 </div>
               </div>
               <div>
-                <h3 className="font-medium mb-2">Widgets ({selectedDashboard.widgetCount})</h3>
+                <h3 className="font-medium mb-2">{t('dashboardsPage.widgetsCount', { count: String(selectedDashboard.widgetCount) })}</h3>
                 <div className="grid grid-cols-3 gap-2">
                   {selectedDashboard.widgets.map(w => (
                     <div key={w.id} className="border rounded p-2 text-sm">
@@ -909,7 +931,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-lg font-semibold">Modifier le Dashboard</h2>
+              <h2 className="text-lg font-semibold">{t('dashboardsPage.editModalTitle')}</h2>
               <button onClick={() => setShowEditModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -918,65 +940,65 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Nom du dashboard *</label>
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldName')}</label>
                 <input type="text" defaultValue={selectedDashboard.name} className="w-full border rounded-lg px-3 py-2" />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldDescription')}</label>
                 <textarea rows={3} defaultValue={selectedDashboard.description} className="w-full border rounded-lg px-3 py-2" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Catégorie *</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldCategoryRequired')}</label>
                   <select defaultValue={selectedDashboard.category} className="w-full border rounded-lg px-3 py-2">
-                    <option>Finance</option>
-                    <option>Ventes</option>
-                    <option>RH</option>
-                    <option>Opérations</option>
+                    <option>{t('dashboardsPage.catFinance')}</option>
+                    <option>{t('dashboardsPage.catSales')}</option>
+                    <option>{t('dashboardsPage.catHr')}</option>
+                    <option>{t('dashboardsPage.catOperations')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Type *</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldTypeRequired')}</label>
                   <select defaultValue={selectedDashboard.type} className="w-full border rounded-lg px-3 py-2">
-                    <option value="personal">Personnel</option>
-                    <option value="shared">Partagé</option>
-                    <option value="public">Public</option>
+                    <option value="personal">{t('dashboardsPage.typePersonal')}</option>
+                    <option value="shared">{t('dashboardsPage.typeShared')}</option>
+                    <option value="public">{t('dashboardsPage.typePublic')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Layout</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldLayout')}</label>
                   <select defaultValue={selectedDashboard.layout} className="w-full border rounded-lg px-3 py-2">
-                    <option value="grid">Grille</option>
-                    <option value="flow">Flux</option>
+                    <option value="grid">{t('dashboardsPage.layoutGrid')}</option>
+                    <option value="flow">{t('dashboardsPage.layoutFlow')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Taux de rafraîchissement (min)</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldRefreshRate')}</label>
                   <input type="number" defaultValue={selectedDashboard.refreshRate} className="w-full border rounded-lg px-3 py-2" min={1} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Status</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.status')}</label>
                   <select defaultValue={selectedDashboard.status} className="w-full border rounded-lg px-3 py-2">
-                    <option value="active">Actif</option>
+                    <option value="active">{t('dashboardsPage.statusActive')}</option>
                     <option value="draft">{t('accounting.draft')}</option>
-                    <option value="archived">Archivé</option>
+                    <option value="archived">{t('dashboardsPage.statusArchived')}</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Visibilité</label>
+                  <label className="block text-sm font-medium mb-2">{t('dashboardsPage.fieldVisibility')}</label>
                   <select defaultValue={selectedDashboard.isPublic ? 'public' : 'private'} className="w-full border rounded-lg px-3 py-2">
-                    <option value="private">Privé</option>
-                    <option value="public">Public</option>
+                    <option value="private">{t('dashboardsPage.visPrivate')}</option>
+                    <option value="public">{t('dashboardsPage.visPublic')}</option>
                   </select>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-between gap-3 p-6 border-t">
-              <span className="text-xs text-[var(--color-text-secondary)]">Aperçu — les tableaux de bord sont générés automatiquement ; l'édition n'est pas persistée.</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.previewNotPersisted')}</span>
               <div className="flex space-x-3">
                 <button onClick={() => setShowEditModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
                 <button onClick={() => { setShowEditModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('actions.save')}</button>
@@ -991,7 +1013,7 @@ const DashboardsPage: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-lg font-semibold">Partager le Dashboard</h2>
+              <h2 className="text-lg font-semibold">{t('dashboardsPage.shareModalTitle')}</h2>
               <button onClick={() => setShowShareModal(false)} className="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1000,38 +1022,38 @@ const DashboardsPage: React.FC = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)] mb-4">Partager "{selectedDashboard.name}" avec d'autres utilisateurs</p>
-                <label className="block text-sm font-medium mb-2">Utilisateurs</label>
-                <input type="text" className="w-full border rounded-lg px-3 py-2" placeholder="Rechercher des utilisateurs..." />
+                <p className="text-sm text-[var(--color-text-primary)] mb-4">{t('dashboardsPage.shareWith', { name: selectedDashboard.name })}</p>
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.users')}</label>
+                <input type="text" className="w-full border rounded-lg px-3 py-2" placeholder={t('dashboardsPage.searchUsers')} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Permissions</label>
+                <label className="block text-sm font-medium mb-2">{t('dashboardsPage.permissions')}</label>
                 <select className="w-full border rounded-lg px-3 py-2">
-                  <option value="view">Lecture seule</option>
-                  <option value="edit">Modification</option>
-                  <option value="admin">Administration</option>
+                  <option value="view">{t('dashboardsPage.permView')}</option>
+                  <option value="edit">{t('dashboardsPage.permEdit')}</option>
+                  <option value="admin">{t('dashboardsPage.permAdmin')}</option>
                 </select>
               </div>
               <div>
                 <label className="flex items-center space-x-2">
                   <input type="checkbox" className="rounded" />
-                  <span className="text-sm">Autoriser le partage par les destinataires</span>
+                  <span className="text-sm">{t('dashboardsPage.allowResharing')}</span>
                 </label>
               </div>
               <div>
                 <label className="flex items-center space-x-2">
                   <input type="checkbox" className="rounded" defaultChecked />
-                  <span className="text-sm">Envoyer une notification</span>
+                  <span className="text-sm">{t('dashboardsPage.sendNotification')}</span>
                 </label>
               </div>
               {selectedDashboard.sharedWith.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium mb-2">Actuellement partagé avec</h3>
+                  <h3 className="text-sm font-medium mb-2">{t('dashboardsPage.currentlySharedWith')}</h3>
                   <div className="space-y-1">
                     {selectedDashboard.sharedWith.map((user, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm p-2 bg-[var(--color-background-secondary)] rounded">
                         <span>{user}</span>
-                        <button className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]">Retirer</button>
+                        <button className="text-[var(--color-error)] hover:text-[var(--color-error-darker)]">{t('dashboardsPage.remove')}</button>
                       </div>
                     ))}
                   </div>
@@ -1039,10 +1061,10 @@ const DashboardsPage: React.FC = () => {
               )}
             </div>
             <div className="flex items-center justify-between gap-3 p-6 border-t">
-              <span className="text-xs text-[var(--color-text-secondary)]">Le partage de tableaux de bord n'est pas encore disponible.</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">{t('dashboardsPage.sharingUnavailable')}</span>
               <div className="flex space-x-3">
                 <button onClick={() => setShowShareModal(false)} className="px-4 py-2 border rounded-lg hover:bg-[var(--color-background-secondary)]">{t('common.cancel')}</button>
-                <button onClick={() => { setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">Partager</button>
+                <button onClick={() => { setShowShareModal(false); }} className="px-4 py-2 bg-[var(--color-info)] text-white rounded-lg hover:bg-primary-700">{t('dashboardsPage.share')}</button>
               </div>
             </div>
           </div>
@@ -1054,11 +1076,11 @@ const DashboardsPage: React.FC = () => {
         isOpen={deleteConfirm.isOpen}
         onClose={() => setDeleteConfirm({ isOpen: false, dashboard: null })}
         onConfirm={handleConfirmDelete}
-        title="Confirmer la suppression"
-        message={`Êtes-vous sûr de vouloir supprimer le tableau de bord "${deleteConfirm.dashboard?.name}" ? Cette action est irréversible.`}
+        title={t('dashboardsPage.confirmDeleteTitle')}
+        message={t('dashboardsPage.confirmDeleteMessage', { name: deleteConfirm.dashboard?.name ?? '' })}
         variant="danger"
-        confirmText="Supprimer"
-        cancelText="Annuler"
+        confirmText={t('dashboardsPage.delete')}
+        cancelText={t('common.cancel')}
         confirmLoading={deleteDashboardMutation.isPending}
       />
     </div>
