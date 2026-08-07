@@ -53,6 +53,7 @@ import { Badge } from '../../../components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/Tabs';
 import { Progress } from '../../../components/ui/Progress';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { DBFiscalYear } from '../../../lib/db';
 import { closureOrchestrator } from '../../../services/cloture/closureOrchestrator';
 import type { ClotureStep as OrchestratorStep } from '../../../services/cloture/closureOrchestrator';
@@ -140,6 +141,8 @@ interface ConversationTemplate {
 
 const IAAssistant: React.FC = () => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [selectedTab, setSelectedTab] = useState('chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -168,7 +171,7 @@ const IAAssistant: React.FC = () => {
   const handleProph3tClosure = useCallback(async () => {
     const activeFY = fiscalYears.find(f => f.isActive) || fiscalYears[0];
     if (!activeFY) {
-      toast.error('Aucun exercice fiscal actif');
+      toast.error(t('closureAi.noActiveYear'));
       return;
     }
 
@@ -179,7 +182,11 @@ const IAAssistant: React.FC = () => {
     const startMsg: Message = {
       id: Date.now().toString(),
       type: 'assistant',
-      content: `**Proph3t IA** lance la clôture automatique de l'exercice **${activeFY.name || activeFY.code}**...\n\nMode: Proph3t (workflow complet)\nExercice: ${activeFY.startDate} → ${activeFY.endDate}`,
+      content: t('closureAi.startMessage', {
+        year: activeFY.name || activeFY.code,
+        start: activeFY.startDate,
+        end: activeFY.endDate,
+      }),
       timestamp: new Date().toISOString(),
       confidence: 100,
       sources: ['closureOrchestrator', 'Dexie DB'],
@@ -207,12 +214,17 @@ const IAAssistant: React.FC = () => {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
         content: errors.length === 0
-          ? `**Clôture terminée avec succès !**\n\n${done.map(s => `${s.label}: ${s.message}`).join('\n')}`
-          : `**Clôture incomplète** — ${errors.length} erreur(s)\n\n${results.map(s =>
+          ? t('closureAi.closingSuccess', {
+            details: done.map(s => `${s.label}: ${s.message}`).join('\n'),
+          })
+          : t('closureAi.closingIncomplete', {
+            count: String(errors.length),
+            details: results.map(s =>
               s.status === 'done' ? `${s.label}: ${s.message}` :
               s.status === 'error' ? `${s.label}: ${s.message}` :
-              `⏳ ${s.label}`
-            ).join('\n')}`,
+              `⏳ ${s.label}`,
+            ).join('\n'),
+          }),
         timestamp: new Date().toISOString(),
         confidence: errors.length === 0 ? 100 : 60,
         sources: ['closureOrchestrator'],
@@ -220,23 +232,25 @@ const IAAssistant: React.FC = () => {
       setMessages(prev => [...prev, resultMsg]);
 
       if (errors.length === 0) {
-        toast.success('Proph3t: Clôture complète');
+        toast.success(t('closureAi.toastComplete'));
       } else {
-        toast.error(`Proph3t: ${errors.length} étape(s) en erreur`);
+        toast.error(t('closureAi.toastStepsError', { count: String(errors.length) }));
       }
     } catch (err) {
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
-        content: `**Erreur Proph3t** : ${err instanceof Error ? err.message : 'Erreur inconnue'}`,
+        content: t('closureAi.errorMessage', {
+          error: err instanceof Error ? err.message : t('closureAi.unknownError'),
+        }),
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, errorMsg]);
-      toast.error('Proph3t: Erreur lors de l\'exécution');
+      toast.error(t('closureAi.toastRunError'));
     } finally {
       setProph3tRunning(false);
     }
-  }, [fiscalYears]);
+  }, [fiscalYears, adapter, t]);
 
   // --- Real metrics computed from Dexie data ---
   const [entryCount, setEntryCount] = useState(0);
@@ -266,14 +280,14 @@ const IAAssistant: React.FC = () => {
     if (provisionCount > 0) {
       analyses.push({
         id: 'prov-check',
-        nom: 'Provisions créances douteuses',
-        description: `${provisionCount} provision(s) enregistrée(s) dans la base`,
+        nom: t('closureAi.provCheckName'),
+        description: t('closureAi.provCheckDesc', { count: String(provisionCount) }),
         domaine: 'provisions',
         severite: 'info',
         dateDetection: now,
         impact: 'modere',
-        recommandations: ['Vérifier le statut de chaque provision', 'Valider les taux appliqués'],
-        actionsAutomatisees: ['Calcul automatique via ancienneté créances'],
+        recommandations: [t('closureAi.provCheckReco1'), t('closureAi.provCheckReco2')],
+        actionsAutomatisees: [t('closureAi.provCheckAuto1')],
         donnees: { valeurDetectee: provisionCount },
         statut: 'traite',
       });
@@ -282,14 +296,14 @@ const IAAssistant: React.FC = () => {
     if (assetCount > 0) {
       analyses.push({
         id: 'asset-check',
-        nom: 'Contrôle amortissements',
-        description: `${assetCount} immobilisation(s) active(s) dans la base`,
+        nom: t('closureAi.assetCheckName'),
+        description: t('closureAi.assetCheckDesc', { count: String(assetCount) }),
         domaine: 'immobilisations',
         severite: 'info',
         dateDetection: now,
         impact: 'faible',
-        recommandations: ['Vérifier les calculs d\'amortissement SYSCOHADA'],
-        actionsAutomatisees: ['Validation automatique des taux'],
+        recommandations: [t('closureAi.assetCheckReco1')],
+        actionsAutomatisees: [t('closureAi.assetCheckAuto1')],
         donnees: { valeurDetectee: assetCount },
         statut: 'traite',
       });
@@ -298,21 +312,21 @@ const IAAssistant: React.FC = () => {
     if (entryCount > 0) {
       analyses.push({
         id: 'entry-check',
-        nom: 'Volume d\'écritures',
-        description: `${entryCount} écriture(s) comptable(s) enregistrée(s)`,
+        nom: t('closureAi.entryCheckName'),
+        description: t('closureAi.entryCheckDesc', { count: String(entryCount) }),
         domaine: 'global',
         severite: 'info',
         dateDetection: now,
         impact: 'faible',
-        recommandations: ['Vérifier l\'équilibre débit/crédit global'],
-        actionsAutomatisees: ['Contrôle automatique d\'équilibre'],
+        recommandations: [t('closureAi.entryCheckReco1')],
+        actionsAutomatisees: [t('closureAi.entryCheckAuto1')],
         donnees: { valeurDetectee: entryCount },
         statut: 'traite',
       });
     }
 
     return analyses;
-  }, [entryCount, provisionCount, assetCount]);
+  }, [entryCount, provisionCount, assetCount, t]);
 
   // Recommendations: empty initial state (user-generated via AI interaction)
   const recommandations: RecommandationIA[] = [];
@@ -322,79 +336,79 @@ const IAAssistant: React.FC = () => {
     const now = new Date().toISOString();
     return [
       {
-        nom: 'Écritures comptables',
+        nom: t('closureAi.metricEntriesName'),
         valeur: entryCount,
-        unite: 'écritures',
+        unite: t('closureAi.metricEntriesUnit'),
         tendance: 'stable' as const,
-        description: 'Nombre total d\'écritures dans la base',
+        description: t('closureAi.metricEntriesDesc'),
         derniereMiseAJour: now,
       },
       {
-        nom: 'Sessions de clôture',
+        nom: t('closureAi.metricSessionsName'),
         valeur: sessionCount,
-        unite: 'sessions',
+        unite: t('closureAi.metricSessionsUnit'),
         tendance: 'stable' as const,
-        description: 'Nombre de sessions de clôture créées',
+        description: t('closureAi.metricSessionsDesc'),
         derniereMiseAJour: now,
       },
       {
-        nom: 'Provisions actives',
+        nom: t('closureAi.metricProvisionsName'),
         valeur: provisionCount,
-        unite: 'provisions',
+        unite: t('closureAi.metricProvisionsUnit'),
         tendance: 'stable' as const,
-        description: 'Nombre de provisions enregistrées',
+        description: t('closureAi.metricProvisionsDesc'),
         derniereMiseAJour: now,
       },
       {
-        nom: 'Immobilisations',
+        nom: t('closureAi.metricAssetsName'),
         valeur: assetCount,
-        unite: 'actifs',
+        unite: t('closureAi.metricAssetsUnit'),
         tendance: 'stable' as const,
-        description: 'Nombre d\'immobilisations dans le registre',
+        description: t('closureAi.metricAssetsDesc'),
         derniereMiseAJour: now,
       },
     ];
-  }, [entryCount, sessionCount, provisionCount, assetCount]);
+  }, [entryCount, sessionCount, provisionCount, assetCount, t]);
 
   // Static conversation templates (reference data, not mock)
-  const templates: ConversationTemplate[] = [
+  const templates: ConversationTemplate[] = useMemo(() => [
     {
       id: 'analyse_stocks',
-      nom: 'Analyse des stocks',
-      description: 'Analyse complète de la situation des stocks',
+      nom: t('closureAi.tplStockName'),
+      description: t('closureAi.tplStockDesc'),
       questions: [
-        'Quels sont les articles en rupture ou sous le minimum ?',
-        'Y a-t-il des écarts entre stock physique et comptable ?',
-        'Quelles provisions pour obsolescence faut-il constituer ?',
-        'Comment optimiser la rotation des stocks ?',
+        t('closureAi.tplStockQ1'),
+        t('closureAi.tplStockQ2'),
+        t('closureAi.tplStockQ3'),
+        t('closureAi.tplStockQ4'),
       ],
       contexte: 'gestion_stocks',
     },
     {
       id: 'conformite_syscohada',
-      nom: 'Contrôle de conformité SYSCOHADA',
-      description: 'Vérification de la conformité aux normes comptables',
+      nom: t('closureAi.tplComplianceName'),
+      description: t('closureAi.tplComplianceDesc'),
       questions: [
-        'Les amortissements sont-ils conformes aux règles SYSCOHADA ?',
-        'Les provisions respectent-elles les exigences réglementaires ?',
-        'Y a-t-il des erreurs de présentation dans les états financiers ?',
-        'Quels sont les points de non-conformité à corriger ?',
+        t('closureAi.tplComplianceQ1'),
+        t('closureAi.tplComplianceQ2'),
+        t('closureAi.tplComplianceQ3'),
+        t('closureAi.tplComplianceQ4'),
       ],
       contexte: 'conformite',
     },
     {
       id: 'cloture_rapide',
-      nom: 'Clôture accélérée',
-      description: 'Processus de clôture comptable optimisé',
+      nom: t('closureAi.tplFastCloseName'),
+      description: t('closureAi.tplFastCloseDesc'),
       questions: [
-        'Quelles sont les tâches critiques restantes ?',
-        'Comment accélérer les contrôles de cohérence ?',
-        'Quels processus peuvent être automatisés ?',
-        'Quel est le planning optimal pour la clôture ?',
+        t('closureAi.tplFastCloseQ1'),
+        t('closureAi.tplFastCloseQ2'),
+        t('closureAi.tplFastCloseQ3'),
+        t('closureAi.tplFastCloseQ4'),
       ],
       contexte: 'cloture_processus',
     },
-  ];
+  ], [t]);
 
   // Initialize with welcome message (no mock conversation history)
   useEffect(() => {
@@ -402,13 +416,13 @@ const IAAssistant: React.FC = () => {
       const welcomeMessage: Message = {
         id: '1',
         type: 'assistant',
-        content: 'Bonjour ! Je suis votre assistant IA pour la clôture comptable. Comment puis-je vous aider aujourd\'hui ?',
+        content: t('closureAi.welcome'),
         timestamp: new Date().toISOString(),
         suggestions: [
-          'Analyser les créances douteuses',
-          'Vérifier la conformité SYSCOHADA',
-          'Calculer les provisions nécessaires',
-          'Générer un rapport de clôture',
+          t('closureAi.welcomeSug1'),
+          t('closureAi.welcomeSug2'),
+          t('closureAi.welcomeSug3'),
+          t('closureAi.welcomeSug4'),
         ],
       };
       setMessages([welcomeMessage]);
@@ -441,7 +455,11 @@ const IAAssistant: React.FC = () => {
         content: generateAIResponse(inputMessage),
         timestamp: new Date().toISOString(),
         confidence: 0,
-        sources: ['Base de connaissances', 'Données de l\'entreprise', 'Référentiel SYSCOHADA']
+        sources: [
+          t('closureAi.sourceKnowledge'),
+          t('closureAi.sourceCompanyData'),
+          t('closureAi.sourceSyscohada'),
+        ],
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -449,37 +467,62 @@ const IAAssistant: React.FC = () => {
     }, 1500);
   };
 
+  /**
+   * Mots-clés d'intention dans les trois langues de l'interface : l'utilisateur
+   * pose sa question dans SA langue, la détection doit suivre.
+   */
+  const INTENT_KEYWORDS = {
+    closure: ['clôture', 'cloture', 'fermer', 'closing', 'close', 'year-end', 'cierre', 'cerrar'],
+    stocks: ['stock', 'inventaire', 'inventory', 'existencia', 'almacén', 'almacen'],
+    receivables: ['créance', 'creance', 'client', 'receivable', 'customer', 'crédito', 'credito', 'cliente'],
+    provisions: ['provision', 'risque', 'risk', 'riesgo', 'provisión', 'provision'],
+  } as const;
+
   const generateAIResponse = (input: string): string => {
     const lowerInput = input.toLowerCase();
     const p = closurePreview;
+    const matches = (keys: readonly string[]) => keys.some(k => lowerInput.includes(k));
 
-    if (lowerInput.includes('clôture') || lowerInput.includes('cloture') || lowerInput.includes('fermer')) {
+    if (matches(INTENT_KEYWORDS.closure)) {
       if (p) {
-        return `**Aperçu de la clôture en cours :**\n\n• ${p.totalEntries} écritures au total\n• ${p.entriesToLock} à verrouiller\n• Produits : ${formatCurrency(p.totalProduits)}\n• Charges : ${formatCurrency(p.totalCharges)}\n• **Résultat : ${formatCurrency(p.resultatNet)}** (${p.isBenefice ? 'Bénéfice' : 'Perte'})\n${p.warnings.length > 0 ? `\n${p.warnings.length} avertissement(s):\n${p.warnings.map(w => `  - ${w}`).join('\n')}` : '\nAucun avertissement'}\n\nVoulez-vous que Proph3t exécute la clôture automatiquement ?`;
+        return t('closureAi.answerClosurePreview', {
+          entries: String(p.totalEntries),
+          toLock: String(p.entriesToLock),
+          revenue: formatCurrency(p.totalProduits),
+          expenses: formatCurrency(p.totalCharges),
+          result: formatCurrency(p.resultatNet),
+          nature: p.isBenefice ? t('closureAi.profit') : t('closureAi.loss'),
+          warnings: p.warnings.length > 0
+            ? `\n${t('closureAi.warningsHeader', { count: String(p.warnings.length) })}\n${p.warnings.map(w => `  - ${w}`).join('\n')}`
+            : `\n${t('closureAi.noWarning')}`,
+        });
       }
-      return 'Je n\'ai pas pu charger l\'aperçu de clôture. Vérifiez qu\'un exercice fiscal actif existe dans la base de données.';
+      return t('closureAi.answerNoPreview');
     }
 
     // IMPORTANT : ne JAMAIS inventer de chiffres (un comptable pourrait agir
     // dessus). Les analyses stocks/créances/provisions renvoient vers les modules
     // réels qui calculent sur les données du client, sans montants fabriqués.
-    if (lowerInput.includes('stock') || lowerInput.includes('inventaire')) {
-      return "L'analyse des stocks (valorisation, rotation, provisions pour obsolescence) se fait dans le module **Stocks / Inventaire**, qui calcule sur vos données réelles. Je ne communique pas de montants sans les tirer de la base — ouvrez le module pour le détail chiffré.";
+    if (matches(INTENT_KEYWORDS.stocks)) {
+      return t('closureAi.answerStocks');
     }
 
-    if (lowerInput.includes('créance') || lowerInput.includes('client')) {
-      return "Le suivi des créances clients (balance âgée, risque d'impayé, provisions SYSCOHADA) est calculé dans le module **Gestion des Tiers / Recouvrement** à partir de vos écritures réelles. Consultez-y la balance âgée pour les montants exacts — je n'avance aucun chiffre non issu de la base.";
+    if (matches(INTENT_KEYWORDS.receivables)) {
+      return t('closureAi.answerReceivables');
     }
 
-    if (lowerInput.includes('provision') || lowerInput.includes('risque')) {
-      return "Le calcul des provisions et dépréciations (créances douteuses sur base HT, stocks, risques) relève des étapes de clôture dédiées, sur vos données réelles. Je ne fournis pas de montants fabriqués : lancez l'étape « Provisions » de la clôture pour obtenir les dotations/reprises chiffrées.";
+    if (matches(INTENT_KEYWORDS.provisions)) {
+      return t('closureAi.answerProvisions');
     }
 
     if (p) {
-      return `Basé sur l'analyse de vos données (**${p.totalEntries}** écritures, résultat **${formatCurrency(p.resultatNet)}**), je vais examiner les éléments pertinents. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?\n\nDomaines disponibles : stocks, créances clients, provisions, clôture comptable, amortissements.`;
+      return t('closureAi.answerGenericWithData', {
+        entries: String(p.totalEntries),
+        result: formatCurrency(p.resultatNet),
+      });
     }
 
-    return 'Je comprends votre question. Basé sur l\'analyse de vos données, je vais examiner les éléments pertinents et vous fournir une réponse détaillée avec des recommandations personnalisées. Pouvez-vous préciser le domaine spécifique qui vous intéresse ?';
+    return t('closureAi.answerGeneric');
   };
 
   const handleTemplateSelect = (templateId: string) => {
@@ -543,9 +586,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Précision IA</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.kpiAccuracy')}</p>
                 <p className="text-lg font-bold text-[var(--color-success)]">{kpis.precisionsIA}%</p>
-                <p className="text-xs text-[var(--color-success)] mt-1">+2.1% ce mois</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">{t('closureAi.kpiAccuracyDelta')}</p>
               </div>
               <Brain className="w-8 h-8 text-primary-500" />
             </div>
@@ -556,9 +599,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Analyses Actives</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.kpiActiveAnalyses')}</p>
                 <p className="text-lg font-bold">{kpis.analysesNonTraitees}</p>
-                <p className="text-xs text-[var(--color-primary)] mt-1">Détections automatiques</p>
+                <p className="text-xs text-[var(--color-primary)] mt-1">{t('closureAi.kpiAutoDetections')}</p>
               </div>
               <Activity className="w-8 h-8 text-[var(--color-primary)]" />
             </div>
@@ -569,9 +612,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Temps Réponse</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.kpiResponseTime')}</p>
                 <p className="text-lg font-bold">{kpis.tempsReponse}s</p>
-                <p className="text-xs text-[var(--color-success)] mt-1">-0.3s vs objectif</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">{t('closureAi.kpiResponseDelta')}</p>
               </div>
               <Zap className="w-8 h-8 text-yellow-500" />
             </div>
@@ -582,9 +625,9 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--color-text-primary)]">Économies IA</p>
+                <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.kpiSavings')}</p>
                 <p className="text-lg font-bold text-[var(--color-success)]">{kpis.impactEconomies}h</p>
-                <p className="text-xs text-[var(--color-success)] mt-1">Ce mois</p>
+                <p className="text-xs text-[var(--color-success)] mt-1">{t('closureAi.kpiThisMonth')}</p>
               </div>
               <Target className="w-8 h-8 text-[var(--color-success)]" />
             </div>
@@ -597,10 +640,13 @@ const IAAssistant: React.FC = () => {
         <Brain className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
           <div>
-            <strong>Proph3t IA</strong> — Assistant de clôture automatisée
+            <strong>{t('closureAi.proph3tTitle')}</strong> — {t('closureAi.proph3tSubtitle')}
             {closurePreview && (
               <span className="ml-2 text-sm">
-                ({closurePreview.totalEntries} écritures, résultat {formatCurrency(closurePreview.resultatNet)})
+                {t('closureAi.proph3tPreview', {
+                  entries: String(closurePreview.totalEntries),
+                  result: formatCurrency(closurePreview.resultatNet),
+                })}
               </span>
             )}
           </div>
@@ -610,9 +656,9 @@ const IAAssistant: React.FC = () => {
             className="ml-4 px-4 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2 text-sm disabled:opacity-50"
           >
             {proph3tRunning ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Exécution...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t('closureAi.running')}</>
             ) : (
-              <><Play className="w-4 h-4" /> Lancer Clôture IA</>
+              <><Play className="w-4 h-4" /> {t('closureAi.launchAiClosing')}</>
             )}
           </button>
         </AlertDescription>
@@ -624,7 +670,7 @@ const IAAssistant: React.FC = () => {
           <CardContent className="p-4">
             <h4 className="font-medium mb-3 flex items-center gap-2">
               <Brain className="w-4 h-4 text-primary-600" />
-              Workflow Proph3t
+              {t('closureAi.workflowTitle')}
             </h4>
             <div className="space-y-2">
               {orchSteps.map(step => (
@@ -655,11 +701,11 @@ const IAAssistant: React.FC = () => {
       {/* Tabs principaux */}
       <Tabs value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="chat">Chat Assistant</TabsTrigger>
-          <TabsTrigger value="analyses">Analyses Auto</TabsTrigger>
-          <TabsTrigger value="recommandations">Recommandations</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="configuration">Configuration</TabsTrigger>
+          <TabsTrigger value="chat">{t('closureAi.tabChat')}</TabsTrigger>
+          <TabsTrigger value="analyses">{t('closureAi.tabAnalyses')}</TabsTrigger>
+          <TabsTrigger value="recommandations">{t('closureAi.tabRecommendations')}</TabsTrigger>
+          <TabsTrigger value="performance">{t('closureAi.tabPerformance')}</TabsTrigger>
+          <TabsTrigger value="configuration">{t('closureAi.tabConfiguration')}</TabsTrigger>
         </TabsList>
 
         {/* Chat Assistant */}
@@ -671,8 +717,8 @@ const IAAssistant: React.FC = () => {
                 <CardHeader className="flex-shrink-0">
                   <CardTitle className="flex items-center gap-2">
                     <Bot className="w-5 h-5 text-primary-600" />
-                    Assistant IA Clôture Comptable
-                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] ml-auto">En ligne</Badge>
+                    {t('closureAi.chatTitle')}
+                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)] ml-auto">{t('closureAi.online')}</Badge>
                   </CardTitle>
                 </CardHeader>
 
@@ -704,7 +750,7 @@ const IAAssistant: React.FC = () => {
                                 {/* Niveau de confiance */}
                                 {message.confidence && (
                                   <div className="mt-2 flex items-center gap-2">
-                                    <span className="text-xs text-[var(--color-text-primary)]">Confiance:</span>
+                                    <span className="text-xs text-[var(--color-text-primary)]">{t('closureAi.confidence')}</span>
                                     <Progress value={message.confidence} className="w-16 h-1" />
                                     <span className="text-xs text-[var(--color-text-primary)]">{message.confidence.toFixed(0)}%</span>
                                   </div>
@@ -713,7 +759,7 @@ const IAAssistant: React.FC = () => {
                                 {/* Sources */}
                                 {message.sources && (
                                   <div className="mt-2">
-                                    <p className="text-xs text-[var(--color-text-primary)] mb-1">Sources:</p>
+                                    <p className="text-xs text-[var(--color-text-primary)] mb-1">{t('closureAi.sources')}</p>
                                     <div className="flex flex-wrap gap-1">
                                       {message.sources.map((source, idx) => (
                                         <Badge key={idx} className="text-xs bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)]">
@@ -746,7 +792,7 @@ const IAAssistant: React.FC = () => {
                                 {/* Suggestions */}
                                 {message.suggestions && (
                                   <div className="mt-3">
-                                    <p className="text-xs text-[var(--color-text-primary)] mb-2">Suggestions:</p>
+                                    <p className="text-xs text-[var(--color-text-primary)] mb-2">{t('closureAi.suggestions')}</p>
                                     <div className="space-y-1">
                                       {message.suggestions.map((suggestion, idx) => (
                                         <button
@@ -803,7 +849,7 @@ const IAAssistant: React.FC = () => {
                           value={inputMessage}
                           onChange={(e) => setInputMessage(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                          placeholder="Posez votre question sur la clôture comptable..."
+                          placeholder={t('closureAi.inputPlaceholder')}
                           className="w-full px-4 py-2 border rounded-lg pr-10"
                         />
                         <button
@@ -833,7 +879,7 @@ const IAAssistant: React.FC = () => {
               {/* Templates de conversation */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Conversations Types</CardTitle>
+                  <CardTitle className="text-sm">{t('closureAi.conversationTypes')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {templates.map(template => (
@@ -852,19 +898,19 @@ const IAAssistant: React.FC = () => {
               {/* Métriques rapides */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">État du Système</CardTitle>
+                  <CardTitle className="text-sm">{t('closureAi.systemState')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Capacité IA</span>
-                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Optimale</Badge>
+                    <span className="text-sm">{t('closureAi.aiCapacity')}</span>
+                    <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">{t('closureAi.optimal')}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Données à jour</span>
+                    <span className="text-sm">{t('closureAi.dataUpToDate')}</span>
                     <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Analyses actives</span>
+                    <span className="text-sm">{t('closureAi.activeAnalyses')}</span>
                     <span className="text-sm font-medium">{kpis.analysesNonTraitees}</span>
                   </div>
                 </CardContent>
@@ -876,15 +922,15 @@ const IAAssistant: React.FC = () => {
         {/* Analyses Automatiques */}
         <TabsContent value="analyses" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Analyses Automatiques en Cours</h3>
+            <h3 className="text-lg font-semibold">{t('closureAi.analysesRunningTitle')}</h3>
             <div className="flex gap-2">
               <button className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center gap-2">
                 <RefreshCw className="w-4 h-4" />
-                Actualiser
+                {t('closureAi.refresh')}
               </button>
               <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center gap-2">
                 <Settings className="w-4 h-4" />
-                Configurer
+                {t('closureAi.configure')}
               </button>
             </div>
           </div>
@@ -912,18 +958,18 @@ const IAAssistant: React.FC = () => {
                     {/* Données détectées */}
                     <div className="grid grid-cols-2 gap-4 p-3 bg-[var(--color-background-secondary)] rounded">
                       <div>
-                        <p className="text-sm text-[var(--color-text-primary)]">Valeur détectée</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.detectedValue')}</p>
                         <p className="font-bold">{(analyse.donnees.valeurDetectee / 1000000).toFixed(1)}M FCFA</p>
                       </div>
                       {analyse.donnees.valeurAttendue && (
                         <div>
-                          <p className="text-sm text-[var(--color-text-primary)]">Valeur attendue</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.expectedValue')}</p>
                           <p className="font-bold">{(analyse.donnees.valeurAttendue / 1000000).toFixed(1)}M FCFA</p>
                         </div>
                       )}
                       {analyse.donnees.ecart && (
                         <div className="col-span-2">
-                          <p className="text-sm text-[var(--color-text-primary)]">Écart</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.gap')}</p>
                           <p className={`font-bold ${analyse.donnees.ecart < 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                             {analyse.donnees.ecart > 0 ? '+' : ''}{(analyse.donnees.ecart / 1000).toFixed(0)}K FCFA
                           </p>
@@ -933,7 +979,7 @@ const IAAssistant: React.FC = () => {
 
                     {/* Recommandations */}
                     <div>
-                      <h4 className="font-medium mb-2">Recommandations</h4>
+                      <h4 className="font-medium mb-2">{t('closureAi.recommendations')}</h4>
                       <ul className="space-y-1">
                         {analyse.recommandations.map((rec, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
@@ -946,7 +992,7 @@ const IAAssistant: React.FC = () => {
 
                     {/* Actions automatisées */}
                     <div>
-                      <h4 className="font-medium mb-2">Actions Automatisées</h4>
+                      <h4 className="font-medium mb-2">{t('closureAi.automatedActions')}</h4>
                       <ul className="space-y-1">
                         {analyse.actionsAutomatisees.map((action, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
@@ -960,13 +1006,13 @@ const IAAssistant: React.FC = () => {
                     {/* Actions */}
                     <div className="flex gap-2 pt-2 border-t">
                       <button className="flex-1 px-3 py-2 bg-[var(--color-primary)] text-white rounded text-sm hover:bg-[var(--color-primary-dark)]">
-                        Traiter
+                        {t('closureAi.process')}
                       </button>
                       <button className="px-3 py-2 border rounded text-sm hover:bg-[var(--color-background-secondary)]">
-                        Détails
+                        {t('closureAi.details')}
                       </button>
                       <button className="px-3 py-2 border rounded text-sm hover:bg-[var(--color-background-secondary)]">
-                        Reporter
+                        {t('closureAi.postpone')}
                       </button>
                     </div>
                   </div>
@@ -979,18 +1025,18 @@ const IAAssistant: React.FC = () => {
         {/* Recommandations */}
         <TabsContent value="recommandations" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Recommandations d'Amélioration</h3>
+            <h3 className="text-lg font-semibold">{t('closureAi.improvementRecos')}</h3>
             <div className="flex gap-2">
               <select className="px-4 py-2 border rounded-lg">
-                <option value="toutes">Toutes catégories</option>
-                <option value="optimisation">Optimisation</option>
-                <option value="automatisation">Automatisation</option>
-                <option value="conformite">Conformité</option>
-                <option value="performance">Performance</option>
+                <option value="toutes">{t('closureAi.allCategories')}</option>
+                <option value="optimisation">{t('closureAi.catOptimisation')}</option>
+                <option value="automatisation">{t('closureAi.catAutomation')}</option>
+                <option value="conformite">{t('closureAi.catCompliance')}</option>
+                <option value="performance">{t('closureAi.catPerformance')}</option>
               </select>
               <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Rapport
+                {t('closureAi.report')}
               </button>
             </div>
           </div>
@@ -1006,13 +1052,13 @@ const IAAssistant: React.FC = () => {
 
                       <div className="flex items-center gap-4 mb-4">
                         <Badge className={getPrioriteColor(recommandation.priorite)}>
-                          Priorité {recommandation.priorite}
+                          {t('closureAi.priorityLabel', { value: recommandation.priorite })}
                         </Badge>
                         <Badge className="bg-[var(--color-primary-lighter)] text-[var(--color-primary-darker)] capitalize">
                           {recommandation.categorie}
                         </Badge>
                         <span className="text-sm text-[var(--color-text-primary)] capitalize">
-                          Difficulté: {recommandation.difficulte}
+                          {t('closureAi.difficultyLabel', { value: recommandation.difficulte })}
                         </span>
                       </div>
                     </div>
@@ -1021,7 +1067,7 @@ const IAAssistant: React.FC = () => {
                       {getStatutIcon(recommandation.statut)}
                       {recommandation.impactChiffre && (
                         <div className="text-right">
-                          <p className="text-sm text-[var(--color-text-primary)]">Impact</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.impact')}</p>
                           <p className="font-bold text-[var(--color-success)]">
                             {recommandation.impact === 'temps' ? `${recommandation.impactChiffre}h` :
                              recommandation.impact === 'cout' ? `${(recommandation.impactChiffre / 1000000).toFixed(1)}M FCFA` :
@@ -1034,7 +1080,7 @@ const IAAssistant: React.FC = () => {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
-                      <h5 className="font-medium mb-2">Étapes de Mise en Œuvre</h5>
+                      <h5 className="font-medium mb-2">{t('closureAi.implementationSteps')}</h5>
                       <ol className="space-y-2">
                         {recommandation.etapes.map((etape, idx) => (
                           <li key={idx} className="flex items-start gap-2 text-sm">
@@ -1048,7 +1094,7 @@ const IAAssistant: React.FC = () => {
                     </div>
 
                     <div>
-                      <h5 className="font-medium mb-2">Ressources Nécessaires</h5>
+                      <h5 className="font-medium mb-2">{t('closureAi.requiredResources')}</h5>
                       <ul className="space-y-1">
                         {recommandation.ressourcesNecessaires.map((ressource, idx) => (
                           <li key={idx} className="flex items-center gap-2 text-sm">
@@ -1059,7 +1105,9 @@ const IAAssistant: React.FC = () => {
                       </ul>
 
                       <div className="mt-4 text-xs text-[var(--color-text-secondary)]">
-                        Créée le {new Date(recommandation.dateCreation).toLocaleDateString()}
+                        {t('closureAi.createdOn', {
+                          date: new Date(recommandation.dateCreation).toLocaleDateString(dateLocale),
+                        })}
                       </div>
                     </div>
                   </div>
@@ -1068,25 +1116,25 @@ const IAAssistant: React.FC = () => {
                     {recommandation.statut === 'nouvelle' && (
                       <>
                         <button className="px-4 py-2 bg-[var(--color-success)] text-white rounded hover:bg-[var(--color-success-dark)]">
-                          Accepter
+                          {t('closureAi.accept')}
                         </button>
                         <button className="px-4 py-2 border border-[var(--color-border-dark)] rounded hover:bg-[var(--color-background-secondary)]">
-                          Reporter
+                          {t('closureAi.postpone')}
                         </button>
                         <button className="px-4 py-2 border border-red-300 text-[var(--color-error)] rounded hover:bg-[var(--color-error-lightest)]">
-                          Rejeter
+                          {t('closureAi.reject')}
                         </button>
                       </>
                     )}
 
                     {recommandation.statut === 'acceptee' && (
                       <button className="px-4 py-2 bg-[var(--color-primary)] text-white rounded hover:bg-[var(--color-primary-dark)]">
-                        Démarrer Implémentation
+                        {t('closureAi.startImplementation')}
                       </button>
                     )}
 
                     <button className="px-4 py-2 border border-[var(--color-border-dark)] rounded hover:bg-[var(--color-background-secondary)] ml-auto">
-                      Voir Détails
+                      {t('closureAi.viewDetails')}
                     </button>
                   </div>
                 </CardContent>
@@ -1100,7 +1148,7 @@ const IAAssistant: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Métriques de Performance IA</CardTitle>
+                <CardTitle>{t('closureAi.aiMetricsTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -1124,14 +1172,14 @@ const IAAssistant: React.FC = () => {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-[var(--color-text-primary)]">Valeur Actuelle</p>
+                          <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.currentValue')}</p>
                           <p className="text-lg font-bold">
                             {metrique.valeur} {metrique.unite}
                           </p>
                         </div>
                         {metrique.objectif && (
                           <div>
-                            <p className="text-sm text-[var(--color-text-primary)]">Objectif</p>
+                            <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.target')}</p>
                             <p className="text-lg font-bold text-[var(--color-text-primary)]">
                               {metrique.objectif} {metrique.unite}
                             </p>
@@ -1142,7 +1190,7 @@ const IAAssistant: React.FC = () => {
                       {metrique.objectif && (
                         <div className="mt-3">
                           <div className="flex justify-between text-sm mb-1">
-                            <span>Progression</span>
+                            <span>{t('closureAi.progress')}</span>
                             <span>{((metrique.valeur / metrique.objectif) * 100).toFixed(1)}%</span>
                           </div>
                           <Progress value={(metrique.valeur / metrique.objectif) * 100} className="h-2" />
@@ -1150,7 +1198,9 @@ const IAAssistant: React.FC = () => {
                       )}
 
                       <p className="text-xs text-[var(--color-text-secondary)] mt-3">
-                        Dernière mise à jour: {new Date(metrique.derniereMiseAJour).toLocaleDateString()}
+                        {t('closureAi.lastUpdate', {
+                          date: new Date(metrique.derniereMiseAJour).toLocaleDateString(dateLocale),
+                        })}
                       </p>
                     </div>
                   ))}
@@ -1160,7 +1210,7 @@ const IAAssistant: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Utilisation du Système</CardTitle>
+                <CardTitle>{t('closureAi.systemUsageTitle')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -1168,64 +1218,64 @@ const IAAssistant: React.FC = () => {
                     <div className="text-center p-4 bg-[var(--color-primary-lightest)] rounded-lg">
                       <Cpu className="w-8 h-8 text-[var(--color-primary)] mx-auto mb-2" />
                       <p className="text-lg font-bold text-[var(--color-primary)]">87%</p>
-                      <p className="text-sm text-[var(--color-text-primary)]">Utilisation CPU</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.cpuUsage')}</p>
                     </div>
                     <div className="text-center p-4 bg-[var(--color-success-lightest)] rounded-lg">
                       <Database className="w-8 h-8 text-[var(--color-success)] mx-auto mb-2" />
                       <p className="text-lg font-bold text-[var(--color-success)]">2.1GB</p>
-                      <p className="text-sm text-[var(--color-text-primary)]">Mémoire Utilisée</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.memoryUsed')}</p>
                     </div>
                     <div className="text-center p-4 bg-primary-50 rounded-lg">
                       <Network className="w-8 h-8 text-primary-600 mx-auto mb-2" />
                       <p className="text-lg font-bold text-primary-600">127</p>
-                      <p className="text-sm text-[var(--color-text-primary)]">Requêtes/min</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.requestsPerMin')}</p>
                     </div>
                     <div className="text-center p-4 bg-[var(--color-warning-lightest)] rounded-lg">
                       <Activity className="w-8 h-8 text-[var(--color-warning)] mx-auto mb-2" />
                       <p className="text-lg font-bold text-[var(--color-warning)]">99.9%</p>
-                      <p className="text-sm text-[var(--color-text-primary)]">Disponibilité</p>
+                      <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.availability')}</p>
                     </div>
                   </div>
 
                   <div className="p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg">
                     <h4 className="font-medium mb-3 flex items-center gap-2">
                       <Star className="w-4 h-4 text-primary-600" />
-                      Points Forts de l'IA
+                      {t('closureAi.strengthsTitle')}
                     </h4>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
-                        <span>Détection proactive des anomalies comptables</span>
+                        <span>{t('closureAi.strength1')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
-                        <span>Recommandations personnalisées et contextuelles</span>
+                        <span>{t('closureAi.strength2')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
-                        <span>Automatisation des contrôles de cohérence</span>
+                        <span>{t('closureAi.strength3')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-3 h-3 text-[var(--color-success)] mt-1" />
-                        <span>Conformité SYSCOHADA assurée</span>
+                        <span>{t('closureAi.strength4')}</span>
                       </li>
                     </ul>
                   </div>
 
                   <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-3">Prochaines Améliorations</h4>
+                    <h4 className="font-medium mb-3">{t('closureAi.nextImprovements')}</h4>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-start gap-2">
                         <Lightbulb className="w-3 h-3 text-yellow-500 mt-1" />
-                        <span>Intégration de l'analyse prédictive des flux de trésorerie</span>
+                        <span>{t('closureAi.improvement1')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Lightbulb className="w-3 h-3 text-yellow-500 mt-1" />
-                        <span>Reconnaissance vocale avancée en français</span>
+                        <span>{t('closureAi.improvement2')}</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <Lightbulb className="w-3 h-3 text-yellow-500 mt-1" />
-                        <span>Génération automatique de rapports narratifs</span>
+                        <span>{t('closureAi.improvement3')}</span>
                       </li>
                     </ul>
                   </div>
@@ -1240,70 +1290,70 @@ const IAAssistant: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres de l'Assistant IA</CardTitle>
+                <CardTitle>{t('closureAi.settingsTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h4 className="font-medium mb-3">Niveau de Détail des Réponses</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.answerDetailLevel')}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2">
                       <input type="radio" name="detail" value="concis" className="text-[var(--color-primary)]" />
-                      <span>Concis - Réponses courtes et directes</span>
+                      <span>{t('closureAi.levelConcise')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="radio" name="detail" value="detaille" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Détaillé - Explications complètes avec exemples</span>
+                      <span>{t('closureAi.levelDetailed')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="radio" name="detail" value="expert" className="text-[var(--color-primary)]" />
-                      <span>Expert - Analyses approfondies et techniques</span>
+                      <span>{t('closureAi.levelExpert')}</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Domaines d'Expertise Activés</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.enabledDomains')}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Gestion des stocks et inventaires</span>
+                      <span>{t('closureAi.domainStocks')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Créances et cycle clients</span>
+                      <span>{t('closureAi.domainReceivables')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Immobilisations et amortissements</span>
+                      <span>{t('closureAi.domainAssets')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Provisions et évaluations</span>
+                      <span>{t('closureAi.domainProvisions')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
-                      <span>Conformité SYSCOHADA</span>
+                      <span>{t('closureAi.domainCompliance')}</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input type="checkbox" className="text-[var(--color-primary)]" />
-                      <span>Analyse fiscale et optimisation</span>
+                      <span>{t('closureAi.domainTax')}</span>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Seuils d'Alerte</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.alertThresholds')}</h4>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Écart stocks (FCFA)</label>
+                      <label className="block text-sm font-medium mb-1">{t('closureAi.thresholdStockGap')}</label>
                       <input type="number" defaultValue="100000" className="w-full px-3 py-2 border rounded-lg" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Créances à risque (%)</label>
+                      <label className="block text-sm font-medium mb-1">{t('closureAi.thresholdRiskyReceivables')}</label>
                       <input type="number" defaultValue="5" className="w-full px-3 py-2 border rounded-lg" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Niveau de confiance minimum (%)</label>
+                      <label className="block text-sm font-medium mb-1">{t('closureAi.thresholdMinConfidence')}</label>
                       <input type="number" defaultValue="80" className="w-full px-3 py-2 border rounded-lg" />
                     </div>
                   </div>
@@ -1313,79 +1363,79 @@ const IAAssistant: React.FC = () => {
 
             <Card>
               <CardHeader>
-                <CardTitle>Automatisations et Notifications</CardTitle>
+                <CardTitle>{t('closureAi.automationsTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h4 className="font-medium mb-3">Analyses Automatiques</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.autoAnalyses')}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center justify-between">
-                      <span>Contrôle quotidien des stocks</span>
+                      <span>{t('closureAi.autoDailyStock')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
-                      <span>Surveillance des créances échues</span>
+                      <span>{t('closureAi.autoOverdueReceivables')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
-                      <span>Validation des calculs d'amortissement</span>
+                      <span>{t('closureAi.autoDepreciationCheck')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
-                      <span>Contrôle de cohérence inter-modules</span>
+                      <span>{t('closureAi.autoCrossModule')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Notifications</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.notifications')}</h4>
                   <div className="space-y-2">
                     <label className="flex items-center justify-between">
-                      <span>Alertes critiques immédiate</span>
+                      <span>{t('closureAi.notifCritical')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
-                      <span>Rapport quotidien par email</span>
+                      <span>{t('closureAi.notifDailyEmail')}</span>
                       <input type="checkbox" className="text-[var(--color-primary)]" />
                     </label>
                     <label className="flex items-center justify-between">
-                      <span>Recommandations hebdomadaires</span>
+                      <span>{t('closureAi.notifWeeklyRecos')}</span>
                       <input type="checkbox" defaultChecked className="text-[var(--color-primary)]" />
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="font-medium mb-3">Intégrations</h4>
+                  <h4 className="font-medium mb-3">{t('closureAi.integrations')}</h4>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
-                        <p className="font-medium">API Bancaire</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Rapprochements automatiques</p>
+                        <p className="font-medium">{t('closureAi.integBankApi')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.integBankApiDesc')}</p>
                       </div>
-                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Connecté</Badge>
+                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">{t('closureAi.connected')}</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
-                        <p className="font-medium">ERP Principal</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Synchronisation des données</p>
+                        <p className="font-medium">{t('closureAi.integErp')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.integErpDesc')}</p>
                       </div>
-                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">Actif</Badge>
+                      <Badge className="bg-[var(--color-success-lighter)] text-[var(--color-success-darker)]">{t('closureAi.active')}</Badge>
                     </div>
                     <div className="flex items-center justify-between p-3 border rounded">
                       <div>
-                        <p className="font-medium">Service Fiscal</p>
-                        <p className="text-sm text-[var(--color-text-primary)]">Validation réglementaire</p>
+                        <p className="font-medium">{t('closureAi.integTax')}</p>
+                        <p className="text-sm text-[var(--color-text-primary)]">{t('closureAi.integTaxDesc')}</p>
                       </div>
-                      <Badge className="bg-[var(--color-warning-lighter)] text-yellow-800">En configuration</Badge>
+                      <Badge className="bg-[var(--color-warning-lighter)] text-yellow-800">{t('closureAi.configuring')}</Badge>
                     </div>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t">
                   <button className="w-full px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
-                    Sauvegarder la Configuration
+                    {t('closureAi.saveConfiguration')}
                   </button>
                 </div>
               </CardContent>
