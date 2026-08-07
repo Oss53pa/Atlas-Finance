@@ -19,7 +19,9 @@ export interface ForecastFlow {
 
 export interface ForecastMonth {
   ym: string;            // 'YYYY-MM'
-  label: string;
+  /** Index 0..11 du mois : la couche service ne fabrique pas de libellé
+   *  traduit, c'est l'appelant qui le localise. */
+  monthIndex: number;
   encaissements: number;
   decaissements: number;
   fluxNet: number;
@@ -33,7 +35,6 @@ function getClient(adapter: DataAdapter): any | null {
 }
 function tenantOf(adapter: DataAdapter): string { return (adapter as any).tenantId as string; }
 
-const MOIS_COURTS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
 // Lecture paginée (PostgREST tronque à 1000) avec tri déterministe.
 async function fetchAllLines(build: () => any): Promise<any[]> {
@@ -211,7 +212,7 @@ export async function buildForecast(adapter: DataAdapter, nowIso: string, horizo
     const tension = cumul < 0;
     if (tension) tensionCount++;
     const mi = parseInt(ym.slice(5, 7), 10) - 1;
-    return { ym, label: MOIS_COURTS[mi], encaissements: b.enc, decaissements: b.dec, fluxNet, soldeProjete: cumul, tension };
+    return { ym, monthIndex: mi, encaissements: b.enc, decaissements: b.dec, fluxNet, soldeProjete: cumul, tension };
   });
 
   return { currentCash, months, flows, tensionCount };

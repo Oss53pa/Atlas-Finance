@@ -12,6 +12,7 @@ import { useData } from '../../contexts/DataContext';
 import { formatCurrency } from '../../utils/formatters';
 import { listAllCars, type Car } from '../../features/budget/services/capexCarService';
 import { Landmark, Loader2, Search, ArrowRight, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const STATUT_STYLE: Record<string, string> = {
   emise: 'bg-emerald-100 text-emerald-700',
@@ -24,6 +25,7 @@ type CarRow = Car & { business_case?: string };
 const CapexCarRegistrePage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [rows, setRows] = useState<CarRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +34,9 @@ const CapexCarRegistrePage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try { setRows(await listAllCars(adapter)); }
-    catch (e: any) { setError(e?.message || 'Erreur de chargement'); }
+    catch (e: any) { setError(e?.message || t('capexCarRegistry.loadError')); }
     finally { setLoading(false); }
-  }, [adapter]);
+  }, [adapter, t]);
   useEffect(() => { load(); }, [load]);
 
   const visible = useMemo(() => {
@@ -51,12 +53,12 @@ const CapexCarRegistrePage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Landmark className="w-6 h-6 text-[var(--color-primary)]" /> Registre des CAR</h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">{visible.length} appropriation(s) · {formatCurrency(total)} approprié(s)</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Landmark className="w-6 h-6 text-[var(--color-primary)]" /> {t('capexCarRegistry.title')}</h1>
+          <p className="text-sm text-[var(--color-text-secondary)]">{t('capexCarRegistry.summary', { count: String(visible.length), amount: formatCurrency(total) })}</p>
         </div>
         <div className="relative">
           <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Référence / business case…"
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('capexCarRegistry.searchPlaceholder')}
             className="pl-8 pr-3 py-2 text-sm border border-[var(--color-border)] rounded-lg w-72 bg-[var(--color-surface)]" />
         </div>
       </header>
@@ -68,24 +70,22 @@ const CapexCarRegistrePage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('capexCarRegistry.loading')}</div>
       ) : visible.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">
-          {rows.length === 0
-            ? "Aucune CAR émise. Une CAR s'émet depuis la fiche d'un Business Case approuvé (bouton « Émettre le CAR »)."
-            : 'Aucune CAR ne correspond à la recherche.'}
+          {t(rows.length === 0 ? 'capexCarRegistry.emptyAll' : 'capexCarRegistry.emptySearch')}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[760px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                <th className="px-4 py-3 text-left">Référence</th>
-                <th className="px-4 py-3 text-left">Business Case</th>
-                <th className="px-4 py-3 text-right">Montant approprié</th>
-                <th className="px-4 py-3 text-left">Date</th>
-                <th className="px-4 py-3">Statut</th>
-                <th className="px-4 py-3 text-left">Justification</th>
+                <th className="px-4 py-3 text-left">{t('capexCarRegistry.colReference')}</th>
+                <th className="px-4 py-3 text-left">{t('capexCarRegistry.colBusinessCase')}</th>
+                <th className="px-4 py-3 text-right">{t('capexCarRegistry.colAppropriatedAmount')}</th>
+                <th className="px-4 py-3 text-left">{t('capexCarRegistry.colDate')}</th>
+                <th className="px-4 py-3">{t('capexCarRegistry.colStatus')}</th>
+                <th className="px-4 py-3 text-left">{t('capexCarRegistry.colJustification')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
