@@ -43,6 +43,8 @@ import { exerciceService } from '../../services/exercice.service';
 import { z } from 'zod';
 import { formatDate, formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const createExerciceSchema = z.object({
   libelle: z.string().min(1, 'Le libellé est requis'),
@@ -197,8 +199,23 @@ const ExercicePage: React.FC = () => {
       document.body.removeChild(link);
       toast.success('Export Excel réussi !');
     } else if (format === 'pdf') {
-      // Pour PDF, on pourrait utiliser une librairie comme jsPDF
-      toast('Export PDF en cours de développement');
+      const headers = Object.keys(exportData[0]);
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      doc.setFontSize(13);
+      doc.text('Exercices comptables', 14, 14);
+      autoTable(doc, {
+        startY: 20,
+        head: [headers],
+        body: exportData.map((row: Record<string, unknown>) => headers.map(h => {
+          const v = row[h];
+          return v == null ? '' : String(v);
+        })),
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [35, 90, 110], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 247, 248] },
+      });
+      doc.save(`exercices_${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success('Export PDF réussi !');
     }
 
     setShowExportMenu(false);
