@@ -201,3 +201,17 @@ export function isOCRConfigured(config: OCRConfig | null | undefined): boolean {
   if (config.provider === 'ai-vision') return true; // disponibilité réelle vérifiée au runtime
   return false;
 }
+
+/**
+ * Résultat d'un test de connexion au moteur OCR.
+ *
+ * La couche service ne fabrique pas de message traduit : elle renvoie une CLÉ
+ * de traduction et ses paramètres, l'appelant se charge de la localisation.
+ * `raw` porte le message brut d'une exception, qui n'est pas traduisible.
+ */
+export interface OCRTestResult {
+  ok: boolean;
+  messageKey: string;
+  params?: Record<string, string>;
+  raw?: string;
+}

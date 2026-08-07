@@ -11,7 +11,7 @@
  * dès que Supabase est configuré.
  */
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
-import type { ExtractionResult, OCRConfig } from '../types';
+import type { ExtractionResult, OCRConfig, OCRTestResult } from '../types';
 import { buildExtractedData, extractJSON } from '../normalize';
 import { fileToBase64 } from '../extractInvoice';
 
@@ -163,28 +163,28 @@ export async function extractWithAIVision(file: File, config: OCRConfig): Promis
     : callAnthropic(base64, mediaType, config);
 }
 
-export async function testAIVision(config: OCRConfig): Promise<{ ok: boolean; message: string }> {
+export async function testAIVision(config: OCRConfig): Promise<OCRTestResult> {
   const backend = resolveBackend(config);
   if (!backend) {
-    return { ok: false, message: 'Aucun backend IA disponible (configurez Ollama ou Claude/Supabase).' };
+    return { ok: false, messageKey: 'ocrTest.noAiBackend' };
   }
   if (backend === 'ollama') {
     const baseUrl = String(import.meta.env.VITE_OLLAMA_BASE_URL || '').replace(/\/$/, '');
     try {
       const res = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(4000) });
-      if (!res.ok) return { ok: false, message: `Ollama injoignable (${res.status}).` };
+      if (!res.ok) return { ok: false, messageKey: 'ocrTest.ollamaUnreachableStatus', params: { status: String(res.status) } };
       const data = await res.json();
       const target = config.ollamaVisionModel.replace(':latest', '');
       const present = (data.models ?? []).some((m: { name: string }) => m.name.startsWith(target));
       return present
-        ? { ok: true, message: `Ollama OK — modèle vision « ${config.ollamaVisionModel} » disponible.` }
-        : { ok: false, message: `Ollama joignable mais le modèle « ${config.ollamaVisionModel} » n'est pas installé (ollama pull ${config.ollamaVisionModel}).` };
+        ? { ok: true, messageKey: 'ocrTest.ollamaOk', params: { model: config.ollamaVisionModel } }
+        : { ok: false, messageKey: 'ocrTest.ollamaModelMissing', params: { model: config.ollamaVisionModel } };
     } catch {
-      return { ok: false, message: 'Ollama injoignable sur ' + baseUrl };
+      return { ok: false, messageKey: 'ocrTest.ollamaUnreachableUrl', params: { url: baseUrl } };
     }
   }
   // serveur (ocr-extract) : Claude si clé Anthropic configurée, sinon Groq/Llama 4 vision.
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.access_token) return { ok: false, message: 'Reconnectez-vous : aucune session Supabase active.' };
-  return { ok: true, message: 'Moteur IA Vision serveur (ocr-extract) prêt — Claude (images + PDF) si clé Anthropic configurée, sinon Groq/Llama 4 (images).' };
+  if (!session?.access_token) return { ok: false, messageKey: 'ocrTest.noSupabaseSession' };
+  return { ok: true, messageKey: 'ocrTest.aiVisionReady' };
 }

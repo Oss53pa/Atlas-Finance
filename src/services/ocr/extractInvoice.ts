@@ -1,7 +1,7 @@
 /**
  * Point d'entrée de l'extraction OCR — aiguille vers le provider configuré.
  */
-import type { ExtractionResult, OCRConfig } from './types';
+import type { ExtractionResult, OCRConfig, OCRTestResult } from './types';
 import { extractWithMindee, testMindee } from './providers/mindeeProvider';
 import { extractWithAIVision, testAIVision } from './providers/aiVisionProvider';
 
@@ -55,12 +55,12 @@ export async function extractInvoice(file: File, config: OCRConfig): Promise<Ext
 }
 
 /** Vérifie que le provider configuré est joignable (pour le bouton « Tester »). */
-export async function testOCRProvider(config: OCRConfig): Promise<{ ok: boolean; message: string }> {
+export async function testOCRProvider(config: OCRConfig): Promise<OCRTestResult> {
   try {
     if (config.provider === 'mindee') return await testMindee(config);
     if (config.provider === 'ai-vision') return await testAIVision(config);
-    return { ok: false, message: 'Aucun moteur OCR sélectionné.' };
+    return { ok: false, messageKey: 'ocrTest.noEngine' };
   } catch (err) {
-    return { ok: false, message: err instanceof Error ? err.message : 'Test échoué' };
+    return { ok: false, messageKey: 'ocrTest.testFailed', raw: err instanceof Error ? err.message : undefined };
   }
 }

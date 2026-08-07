@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '../../../lib/supabase';
 
 interface Props {
@@ -12,20 +13,25 @@ interface Props {
   setSubTab: (n: number) => void;
 }
 
+// `nom` est la VALEUR persistée (rôle en base) ; nom affiché, description et
+// permissions portent des CLÉS — ces tables sont figées au chargement du module.
 const roles = [
-  { nom: 'Administrateur', description: 'Acces complet a toutes les fonctionnalites du systeme', permissions: ['Tout lire', 'Tout ecrire', 'Supprimer', 'Administrer', 'Gerer utilisateurs'] },
-  { nom: 'Manager', description: 'Supervision des operations et validation des ecritures', permissions: ['Tout lire', 'Ecrire ecritures', 'Valider', 'Rapports', 'Export'] },
-  { nom: 'Comptable', description: 'Saisie et consultation des ecritures comptables', permissions: ['Lire ecritures', 'Ecrire ecritures', 'Rapports', 'Journaux'] },
-  { nom: 'Lecteur', description: 'Consultation uniquement, aucune modification possible', permissions: ['Lire ecritures', 'Lire rapports', 'Lire tiers'] },
+  { nom: 'Administrateur', labelKey: 'adminUsers.roleAdmin', descKey: 'adminUsers.roleAdminDesc', permKeys: ['adminUsers.permReadAll', 'adminUsers.permWriteAll', 'adminUsers.permDelete', 'adminUsers.permAdminister', 'adminUsers.permManageUsers'] },
+  { nom: 'Manager', labelKey: 'adminUsers.roleManager', descKey: 'adminUsers.roleManagerDesc', permKeys: ['adminUsers.permReadAll', 'adminUsers.permWriteEntries', 'adminUsers.permValidate', 'adminUsers.permReports', 'adminUsers.permExport'] },
+  { nom: 'Comptable', labelKey: 'adminUsers.roleAccountant', descKey: 'adminUsers.roleAccountantDesc', permKeys: ['adminUsers.permReadEntries', 'adminUsers.permWriteEntries', 'adminUsers.permReports', 'adminUsers.permJournals'] },
+  { nom: 'Lecteur', labelKey: 'adminUsers.roleViewer', descKey: 'adminUsers.roleViewerDesc', permKeys: ['adminUsers.permReadEntries', 'adminUsers.permReadReports', 'adminUsers.permReadParties'] },
 ];
 
-const modules = ['Ecritures', 'Journaux', 'Plan comptable', 'Tiers', 'Rapports', 'Tresorerie', 'Immobilisations', 'Administration'];
+/** Clé de traduction du rôle, indexée par la valeur persistée. */
+const ROLE_LABEL_KEY: Record<string, string> = Object.fromEntries(roles.map(r => [r.nom, r.labelKey]));
+
+const MODULE_KEYS = ['adminUsers.modEntries', 'adminUsers.modJournals', 'adminUsers.modChartOfAccounts', 'adminUsers.modParties', 'adminUsers.modReports', 'adminUsers.modTreasury', 'adminUsers.modAssets', 'adminUsers.modAdministration'];
 
 const defaultPermissions: Record<string, boolean[][]> = {
-  Administrateur: modules.map(() => [true, true, true, true]),
-  Manager: modules.map((_, i) => [true, true, i < 5, i === 7 ? false : false]),
-  Comptable: modules.map((_, i) => [true, i < 4, false, false]),
-  Lecteur: modules.map(() => [true, false, false, false]),
+  Administrateur: MODULE_KEYS.map(() => [true, true, true, true]),
+  Manager: MODULE_KEYS.map((_, i) => [true, true, i < 5, i === 7 ? false : false]),
+  Comptable: MODULE_KEYS.map((_, i) => [true, i < 4, false, false]),
+  Lecteur: MODULE_KEYS.map(() => [true, false, false, false]),
 };
 
 const roleBadgeColor: Record<string, string> = {
@@ -52,6 +58,8 @@ const AdminUsersTabBar = ({ tabs, active, onSelect }: { tabs: string[]; active: 
 
 const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const { adapter } = useData();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [users, setUsers] = useState<any[]>([]);
   const [historique, setHistorique] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +73,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const [selectedRole, setSelectedRole] = useState('Administrateur');
   const [permMatrix, setPermMatrix] = useState(defaultPermissions['Administrateur']);
 
-  const tabs = ['Liste utilisateurs', 'Roles', 'Permissions', 'Sessions actives', 'Historique connexions'];
+  const tabs = [t('adminUsers.tabUserList'), t('adminUsers.tabRoles'), t('adminUsers.tabPermissions'), t('adminUsers.tabActiveSessions'), t('adminUsers.tabLoginHistory')];
 
   const saveSetting = async (key: string, value: any) => {
     const data = { key, value: JSON.stringify(value), updatedAt: new Date().toISOString() };
@@ -100,7 +108,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           role: m.role,
           status: m.active ? 'Actif' : 'Inactif',
           derniereConnexion: m.last_login_at
-            ? new Date(m.last_login_at).toLocaleString('fr-FR')
+            ? new Date(m.last_login_at).toLocaleString(dateLocale)
             : '-',
         }));
         setUsers(mapped);
@@ -128,9 +136,9 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           .slice(0, 50)
           .map((l: any) => ({
             id: l.id,
-            date: new Date(l.timestamp).toLocaleString('fr-FR'),
-            utilisateur: l.userId || 'Systeme',
-            evenement: l.action || 'Action',
+            date: new Date(l.timestamp).toLocaleString(dateLocale),
+            utilisateur: l.userId || t('adminUsers.system'),
+            evenement: l.action || t('adminUsers.action'),
             ip: '-', navigateur: '-', localisation: '-',
             details: l.details || '',
           }));
@@ -162,11 +170,11 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.prenom || !form.nom || !form.email || !form.role) {
-      toast.error('Veuillez remplir tous les champs obligatoires');
+      toast.error(t('adminUsers.fillRequired'));
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error('Format d\'email invalide');
+      toast.error(t('adminUsers.invalidEmail'));
       return;
     }
     try {
@@ -174,7 +182,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         // ── Invitation via edge function (Supabase Auth + email HTML) ─────────
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.access_token) {
-          toast.error('Session expirée — veuillez vous reconnecter');
+          toast.error(t('adminUsers.sessionExpired'));
           return;
         }
 
@@ -197,14 +205,14 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
 
         const result = await res.json();
         if (!res.ok) {
-          toast.error(result.error || 'Erreur lors de la création du compte');
+          toast.error(result.error || t('adminUsers.createAccountError'));
           return;
         }
 
         const emailMsg = result.emailSent
-          ? `Lien d'invitation envoyé à ${form.email}`
-          : `Invitation créée (email non envoyé — clé RESEND absente)`;
-        toast.success(`✅ ${form.prenom} ${form.nom} ajouté — ${emailMsg}`);
+          ? t('adminUsers.inviteSentTo', { email: form.email })
+          : t('adminUsers.inviteNoEmail');
+        toast.success(t('adminUsers.userAdded', { name: `${form.prenom} ${form.nom}`, detail: emailMsg }));
 
         // Recharger depuis company_members (l'edge function y a upsert)
         await loadUsers();
@@ -236,12 +244,12 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         } else {
           await loadUsers();
         }
-        toast.success(`Utilisateur ${form.prenom} ${form.nom} mis à jour`);
+        toast.success(t('adminUsers.userUpdated', { name: `${form.prenom} ${form.nom}` }));
         setShowModal(false);
         return;
       }
     } catch (err) {
-      toast.error('Erreur lors de la sauvegarde');
+      toast.error(t('adminUsers.saveError'));
     }
   };
 
@@ -265,19 +273,19 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       );
       await saveSetting('admin_users', fallback);
     }
-    toast.success(`Utilisateur ${u.prenom} ${u.nom} ${newActive ? 'réactivé' : 'désactivé'}`);
+    toast.success(t(newActive ? 'adminUsers.userReactivated' : 'adminUsers.userDeactivated', { name: `${u.prenom} ${u.nom}` }));
   };
 
   const handleResendInvitation = async (u: any) => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
-        toast.error('Session expirée — veuillez vous reconnecter');
+        toast.error(t('adminUsers.sessionExpired'));
         return;
       }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const loadingToast = toast.loading(`Renvoi de l'invitation à ${u.email}…`);
+      const loadingToast = toast.loading(t('adminUsers.resendingInvite', { email: u.email }));
 
       const res = await fetch(`${supabaseUrl}/functions/v1/create-user`, {
         method: 'POST',
@@ -303,22 +311,22 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         // Clipboard fallback si le lien est disponible mais email KO
         if (result.magicLink) {
           const confirmed = window.confirm(
-            `Email non envoyé (${result.error || 'erreur inconnue'})\n\nCopier le lien d'invitation dans le presse-papier pour le partager manuellement ?`
+            t('adminUsers.emailNotSentCopy', { error: result.error || t('adminUsers.unknownError') })
           );
           if (confirmed) {
             await navigator.clipboard.writeText(result.magicLink);
-            toast.success('Lien copié dans le presse-papier');
+            toast.success(t('adminUsers.linkCopied'));
           }
         } else {
-          toast.error(result.error || "Erreur lors du renvoi de l'invitation");
+          toast.error(result.error || t('adminUsers.resendError'));
         }
         return;
       }
 
-      toast.success(`✅ Invitation renvoyée à ${u.email}`);
+      toast.success(t('adminUsers.inviteResent', { email: u.email }));
       await loadUsers(); // rafraîchir la liste (invited_at mis à jour)
     } catch (err) {
-      toast.error("Erreur lors du renvoi de l'invitation");
+      toast.error(t('adminUsers.resendError'));
     }
   };
 
@@ -329,8 +337,8 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       const existing = permSetting?.value ? JSON.parse(permSetting.value) : {};
       existing[selectedRole] = permMatrix;
       await saveSetting('admin_permissions', existing);
-      toast.success(`Permissions du role ${selectedRole} enregistrees`);
-    } catch (err) { /* silent */ toast.error('Erreur'); }
+      toast.success(t('adminUsers.permsSaved', { role: t(ROLE_LABEL_KEY[selectedRole] ?? '') || selectedRole }));
+    } catch (err) { /* silent */ toast.error(t('adminUsers.genericError')); }
   };
 
   const updateField = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
@@ -345,70 +353,67 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
         <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b">
-            <h3 className="text-lg font-bold">{modalMode === 'create' ? 'Creer un utilisateur' : 'Modifier l\'utilisateur'}</h3>
+            <h3 className="text-lg font-bold">{t(modalMode === 'create' ? 'adminUsers.modalCreate' : 'adminUsers.modalEdit')}</h3>
             <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5" /></button>
           </div>
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="user-prenom" className="block text-sm font-medium text-gray-700 mb-1">Prenom <span className="text-red-500">*</span></label>
+                <label htmlFor="user-prenom" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.firstName')} <span className="text-red-500">*</span></label>
                 <input id="user-prenom" type="text" value={form.prenom} onChange={e => updateField('prenom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
               </div>
               <div>
-                <label htmlFor="user-nom" className="block text-sm font-medium text-gray-700 mb-1">Nom <span className="text-red-500">*</span></label>
+                <label htmlFor="user-nom" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.lastName')} <span className="text-red-500">*</span></label>
                 <input id="user-nom" type="text" value={form.nom} onChange={e => updateField('nom', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+                <label htmlFor="user-email" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.email')} <span className="text-red-500">*</span></label>
                 <input id="user-email" type="email" value={form.email} onChange={e => updateField('email', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required />
               </div>
               <div>
-                <label htmlFor="user-tel" className="block text-sm font-medium text-gray-700 mb-1">Telephone</label>
+                <label htmlFor="user-tel" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.phone')}</label>
                 <input id="user-tel" type="text" value={form.telephone} onChange={e => updateField('telephone', e.target.value)} placeholder="+225 07 00 00 00" className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="user-role" className="block text-sm font-medium text-gray-700 mb-1">Role <span className="text-red-500">*</span></label>
+                <label htmlFor="user-role" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.role')} <span className="text-red-500">*</span></label>
                 <select id="user-role" value={form.role} onChange={e => updateField('role', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent" required>
-                  <option value="Administrateur">Administrateur</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Comptable">Comptable</option>
-                  <option value="Lecteur">Lecteur</option>
+                  {roles.map(r => <option key={r.nom} value={r.nom}>{t(r.labelKey)}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="user-dept" className="block text-sm font-medium text-gray-700 mb-1">Departement</label>
+                <label htmlFor="user-dept" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.department')}</label>
                 <select id="user-dept" value={form.departement} onChange={e => updateField('departement', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
-                  <option value="Direction">Direction</option>
-                  <option value="Comptabilite">Comptabilite</option>
-                  <option value="Tresorerie">Tresorerie</option>
-                  <option value="Commercial">Commercial</option>
+                  <option value="Direction">{t('adminUsers.deptDirection')}</option>
+                  <option value="Comptabilite">{t('adminUsers.deptAccounting')}</option>
+                  <option value="Tresorerie">{t('adminUsers.deptTreasury')}</option>
+                  <option value="Commercial">{t('adminUsers.deptSales')}</option>
                   <option value="IT">IT</option>
                 </select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="user-status" className="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+                <label htmlFor="user-status" className="block text-sm font-medium text-gray-700 mb-1">{t('adminUsers.status')}</label>
                 <select id="user-status" value={form.status} onChange={e => updateField('status', e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent">
-                  <option value="Actif">Actif</option>
-                  <option value="Inactif">Inactif</option>
+                  <option value="Actif">{t('adminUsers.statusActive')}</option>
+                  <option value="Inactif">{t('adminUsers.statusInactive')}</option>
                 </select>
               </div>
               <div />
             </div>
             {modalMode === 'create' && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm text-blue-800">
-                📧 Un lien d'invitation sera envoyé à cet email. Le collaborateur définira lui-même son mot de passe lors de sa première connexion.
+                {t('adminUsers.inviteNotice')}
               </div>
             )}
             <div className="flex justify-end space-x-3 pt-4 border-t">
-              <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Annuler</button>
+              <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">{t('adminUsers.cancel')}</button>
               <button type="submit" className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm hover:bg-[#dc2626]">
-                {modalMode === 'create' ? 'Creer' : 'Enregistrer'}
+                {t(modalMode === 'create' ? 'adminUsers.create' : 'adminUsers.save')}
               </button>
             </div>
           </form>
@@ -421,31 +426,31 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
 
   return (
     <div className="p-6">
-      <h2 className="text-lg font-bold mb-4">Utilisateurs & Droits</h2>
+      <h2 className="text-lg font-bold mb-4">{t('adminUsers.heading')}</h2>
       <AdminUsersTabBar tabs={tabs} active={subTab} onSelect={setSubTab} />
 
       {subTab === 0 && (
         <div className="space-y-4">
           <div className="flex justify-end">
             <button onClick={openCreateModal} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm flex items-center space-x-2">
-              <Plus className="w-4 h-4" /><span>Ajouter un utilisateur</span>
+              <Plus className="w-4 h-4" /><span>{t('adminUsers.addUser')}</span>
             </button>
           </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
             {users.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">{loading ? 'Chargement...' : 'Aucun utilisateur. Ajoutez-en un pour commencer.'}</div>
+              <div className="p-8 text-center text-gray-400">{t(loading ? 'adminUsers.loading' : 'adminUsers.noUser')}</div>
             ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Nom complet</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Telephone</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Departement</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Statut</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Derniere connexion</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Actions</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colFullName')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.email')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.phone')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.department')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.role')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.status')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colLastLogin')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -455,16 +460,16 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
                     <td className="px-4 py-3 text-gray-600">{u.email}</td>
                     <td className="px-4 py-3 text-gray-600">{u.telephone}</td>
                     <td className="px-4 py-3 text-gray-600">{u.departement}</td>
-                    <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[u.role] || 'bg-gray-100 text-gray-700'}`}>{u.role}</span></td>
+                    <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[u.role] || 'bg-gray-100 text-gray-700'}`}>{t(ROLE_LABEL_KEY[u.role] ?? '') || u.role}</span></td>
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.status}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${u.status === 'Actif' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{t(u.status === 'Actif' ? 'adminUsers.statusActive' : 'adminUsers.statusInactive')}</span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{u.derniereConnexion || '-'}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
-                        <button onClick={() => openEditModal(u)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600" title="Modifier"><Edit2 className="w-4 h-4" /></button>
-                        <button onClick={() => handleResendInvitation(u)} className="p-1.5 hover:bg-amber-50 rounded-lg text-amber-600" title="Renvoyer invitation"><Send className="w-4 h-4" /></button>
-                        <button onClick={() => toggleUserStatus(u)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500" title="Desactiver"><UserX className="w-4 h-4" /></button>
+                        <button onClick={() => openEditModal(u)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-600" title={t('adminUsers.edit')}><Edit2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleResendInvitation(u)} className="p-1.5 hover:bg-amber-50 rounded-lg text-amber-600" title={t('adminUsers.resendInvite')}><Send className="w-4 h-4" /></button>
+                        <button onClick={() => toggleUserStatus(u)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500" title={t('adminUsers.deactivate')}><UserX className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>
@@ -481,17 +486,17 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           {roles.map(role => (
             <div key={role.nom} className="bg-white rounded-xl border p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-base">{role.nom}</h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[role.nom]}`}>{userCountByRole(role.nom)} utilisateur{userCountByRole(role.nom) > 1 ? 's' : ''}</span>
+                <h3 className="font-semibold text-base">{t(role.labelKey)}</h3>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${roleBadgeColor[role.nom]}`}>{t('adminUsers.userCount', { count: String(userCountByRole(role.nom)) })}</span>
               </div>
-              <p className="text-sm text-gray-500">{role.description}</p>
+              <p className="text-sm text-gray-500">{t(role.descKey)}</p>
               <div className="flex flex-wrap gap-1.5">
-                {role.permissions.map(perm => (
-                  <span key={perm} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{perm}</span>
+                {role.permKeys.map(permKey => (
+                  <span key={permKey} className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">{t(permKey)}</span>
                 ))}
               </div>
               <button onClick={() => setSubTab(2)} className="w-full mt-2 px-3 py-2 border border-[#C0322B] text-[#C0322B] rounded-lg text-sm hover:bg-[#C0322B]/5 flex items-center justify-center space-x-2">
-                <Key className="w-4 h-4" /><span>Modifier les permissions</span>
+                <Key className="w-4 h-4" /><span>{t('adminUsers.editPermissions')}</span>
               </button>
             </div>
           ))}
@@ -501,39 +506,34 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       {subTab === 2 && (
         <div className="space-y-4">
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-            ⚠️ Matrice de <strong>référence</strong> : ces permissions sont enregistrées mais l'application effective
-            des droits est assurée par les rôles et la sécurité au niveau des données (RLS Supabase). Modifier une case
-            ici ne restreint pas encore l'accès tant que la règle serveur correspondante n'est pas déployée.
+            {t('adminUsers.permMatrixNotice')}
           </div>
           <div className="flex items-center space-x-4">
-            <label htmlFor="perm-role" className="text-sm font-medium text-gray-700">Role :</label>
+            <label htmlFor="perm-role" className="text-sm font-medium text-gray-700">{t('adminUsers.roleLabel')}</label>
             <select
               id="perm-role"
               value={selectedRole}
               onChange={e => { setSelectedRole(e.target.value); setPermMatrix(defaultPermissions[e.target.value]); }}
               className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-[#C0322B] focus:border-transparent"
             >
-              <option value="Administrateur">Administrateur</option>
-              <option value="Manager">Manager</option>
-              <option value="Comptable">Comptable</option>
-              <option value="Lecteur">Lecteur</option>
+              {roles.map(r => <option key={r.nom} value={r.nom}>{t(r.labelKey)}</option>)}
             </select>
           </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Module</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Lire</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Ecrire</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Supprimer</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Administrer</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colModule')}</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600">{t('adminUsers.colRead')}</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600">{t('adminUsers.colWrite')}</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600">{t('adminUsers.colDelete')}</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600">{t('adminUsers.colAdminister')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
-                {modules.map((mod, ri) => (
-                  <tr key={mod} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium">{mod}</td>
+                {MODULE_KEYS.map((modKey, ri) => (
+                  <tr key={modKey} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium">{t(modKey)}</td>
                     {[0, 1, 2, 3].map(ci => (
                       <td key={ci} className="px-4 py-3 text-center">
                         <input type="checkbox" checked={permMatrix[ri]?.[ci] ?? false} onChange={() => togglePerm(ri, ci)}
@@ -547,7 +547,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
           </div>
           <div className="flex justify-end">
             <button onClick={savePermissions} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm hover:bg-[#dc2626]">
-              Enregistrer les permissions
+              {t('adminUsers.savePermissions')}
             </button>
           </div>
         </div>
@@ -556,12 +556,12 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
       {subTab === 3 && (
         <div className="space-y-4">
           <div className="flex justify-end">
-            <button onClick={() => toast('La révocation des sessions se fait côté fournisseur d\'authentification (Supabase) — non disponible depuis le client.', { icon: 'ℹ️' })} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm flex items-center space-x-2">
-              <LogOut className="w-4 h-4" /><span>Deconnecter toutes les sessions</span>
+            <button onClick={() => toast(t('adminUsers.revokeSessionsNotice'), { icon: 'ℹ️' })} className="px-4 py-2 bg-[#C0322B] text-white rounded-lg text-sm flex items-center space-x-2">
+              <LogOut className="w-4 h-4" /><span>{t('adminUsers.logoutAllSessions')}</span>
             </button>
           </div>
           <div className="bg-white rounded-xl border overflow-x-auto">
-            <div className="p-8 text-center text-gray-400">Aucune session active</div>
+            <div className="p-8 text-center text-gray-400">{t('adminUsers.noActiveSession')}</div>
           </div>
         </div>
       )}
@@ -570,15 +570,15 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
         <div className="space-y-4">
           <div className="bg-white rounded-xl border overflow-x-auto">
             {historique.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">{loading ? 'Chargement...' : 'Aucune connexion enregistree'}</div>
+              <div className="p-8 text-center text-gray-400">{t(loading ? 'adminUsers.loading' : 'adminUsers.noLoginRecorded')}</div>
             ) : (
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Date / Heure</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Utilisateur</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Action</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Details</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colDateTime')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colUser')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colAction')}</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">{t('adminUsers.colDetails')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -597,7 +597,7 @@ const AdminUsers: React.FC<Props> = ({ subTab, setSubTab }) => {
             )}
           </div>
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>{historique.length} evenement(s)</span>
+            <span>{t('adminUsers.eventCount', { count: String(historique.length) })}</span>
           </div>
         </div>
       )}

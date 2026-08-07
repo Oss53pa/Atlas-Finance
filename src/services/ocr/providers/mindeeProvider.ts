@@ -5,7 +5,7 @@
  * La clé API est fournie par l'admin (offre gratuite disponible).
  * Appel direct navigateur → serveur Mindee (multipart/form-data).
  */
-import type { ExtractionResult, OCRConfig, ExtractedData } from '../types';
+import type { ExtractionResult, OCRConfig, ExtractedData, OCRTestResult } from '../types';
 import { buildExtractedData } from '../normalize';
 
 const MINDEE_INVOICE_URL = 'https://api.mindee.net/v1/products/mindee/invoices/v4/predict';
@@ -100,13 +100,10 @@ export async function extractWithMindee(file: File, config: OCRConfig): Promise<
   return { success: true, data, confidence, provider: 'mindee' };
 }
 
-export async function testMindee(config: OCRConfig): Promise<{ ok: boolean; message: string }> {
+export async function testMindee(config: OCRConfig): Promise<OCRTestResult> {
   if (!config.mindeeApiKey?.trim()) {
-    return { ok: false, message: 'Aucune clé API Mindee renseignée.' };
+    return { ok: false, messageKey: 'ocrTest.noMindeeKey' };
   }
   // Mindee n'offre pas d'endpoint de ping ; on valide le format de la clé.
-  return {
-    ok: true,
-    message: 'Clé API enregistrée. Elle sera vérifiée lors de la première extraction.',
-  };
+  return { ok: true, messageKey: 'ocrTest.mindeeKeySaved' };
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ScanLine, Eye, EyeOff, Loader2, CheckCircle, XCircle, Save, Plug } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getOCRConfig,
   saveOCRConfig,
@@ -10,15 +11,17 @@ import {
   type OCRConfig,
   type OCRProviderId,
   type AIVisionBackend,
+  type OCRTestResult,
 } from '../../../services/ocr';
 
 const AdminOCR: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [config, setConfig] = useState<OCRConfig>(DEFAULT_OCR_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [testResult, setTestResult] = useState<OCRTestResult | null>(null);
   const [showKey, setShowKey] = useState(false);
 
   useEffect(() => {
@@ -36,9 +39,9 @@ const AdminOCR: React.FC = () => {
     setSaving(true);
     try {
       await saveOCRConfig(adapter, config);
-      toast.success('Configuration OCR enregistrée');
+      toast.success(t('adminOcr.configSaved'));
     } catch {
-      toast.error('Échec de l\'enregistrement de la configuration OCR');
+      toast.error(t('adminOcr.configSaveFailed'));
     } finally {
       setSaving(false);
     }
@@ -71,46 +74,44 @@ const AdminOCR: React.FC = () => {
           <ScanLine className="w-5 h-5 text-[var(--color-accent)]" />
         </div>
         <div>
-          <h2 className="text-lg font-bold">Configuration OCR</h2>
-          <p className="text-sm text-gray-500">
-            Choisissez le moteur d'extraction des factures. Visible et modifiable par l'administrateur uniquement.
-          </p>
+          <h2 className="text-lg font-bold">{t('adminOcr.title')}</h2>
+          <p className="text-sm text-gray-500">{t('adminOcr.subtitle')}</p>
         </div>
       </div>
 
       {/* Moteur */}
       <div className="bg-white rounded-xl p-6 border space-y-4">
-        <h4 className="font-semibold">Moteur d'extraction</h4>
+        <h4 className="font-semibold">{t('adminOcr.engine')}</h4>
         <div>
-          <label className={labelCls}>Service OCR</label>
+          <label className={labelCls}>{t('adminOcr.service')}</label>
           <select
             className={inputCls}
             value={config.provider}
             onChange={(e) => set('provider', e.target.value as OCRProviderId)}
           >
-            <option value="none">Désactivé (aucune extraction)</option>
-            <option value="ai-vision">IA Vision (Claude / Ollama)</option>
-            <option value="mindee">Mindee (clé API)</option>
+            <option value="none">{t('adminOcr.providerNone')}</option>
+            <option value="ai-vision">{t('adminOcr.providerAiVision')}</option>
+            <option value="mindee">{t('adminOcr.providerMindee')}</option>
           </select>
         </div>
 
         {config.provider === 'ai-vision' && (
           <div className="space-y-4 border-l-2 border-[var(--color-accent-light)] pl-4">
             <div>
-              <label className={labelCls}>Backend IA</label>
+              <label className={labelCls}>{t('adminOcr.aiBackend')}</label>
               <select
                 className={inputCls}
                 value={config.aiVisionBackend}
                 onChange={(e) => set('aiVisionBackend', e.target.value as AIVisionBackend)}
               >
-                <option value="auto">Automatique (Ollama local sinon Claude)</option>
-                <option value="anthropic">Claude (via Supabase ai-proxy)</option>
-                <option value="ollama">Ollama (local)</option>
+                <option value="auto">{t('adminOcr.backendAuto')}</option>
+                <option value="anthropic">{t('adminOcr.backendAnthropic')}</option>
+                <option value="ollama">{t('adminOcr.backendOllama')}</option>
               </select>
             </div>
             {config.aiVisionBackend !== 'anthropic' && (
               <div>
-                <label className={labelCls}>Modèle vision Ollama</label>
+                <label className={labelCls}>{t('adminOcr.ollamaVisionModel')}</label>
                 <input
                   className={inputCls}
                   value={config.ollamaVisionModel}
@@ -118,7 +119,7 @@ const AdminOCR: React.FC = () => {
                   placeholder="llama3.2-vision"
                 />
                 <p className="text-xs text-gray-400 mt-1">
-                  Doit être installé : <code>ollama pull {config.ollamaVisionModel || 'llama3.2-vision'}</code>
+                  {t('adminOcr.mustBeInstalled')} <code>ollama pull {config.ollamaVisionModel || 'llama3.2-vision'}</code>
                 </p>
               </div>
             )}
@@ -127,14 +128,14 @@ const AdminOCR: React.FC = () => {
 
         {config.provider === 'mindee' && (
           <div className="border-l-2 border-[var(--color-accent-light)] pl-4">
-            <label className={labelCls}>Clé API Mindee</label>
+            <label className={labelCls}>{t('adminOcr.mindeeApiKey')}</label>
             <div className="relative">
               <input
                 className={inputCls + ' pr-10'}
                 type={showKey ? 'text' : 'password'}
                 value={config.mindeeApiKey}
                 onChange={(e) => set('mindeeApiKey', e.target.value)}
-                placeholder="votre token Mindee"
+                placeholder={t('adminOcr.mindeeTokenPlaceholder')}
               />
               <button
                 type="button"
@@ -145,7 +146,7 @@ const AdminOCR: React.FC = () => {
               </button>
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              Offre gratuite sur mindee.com — la clé n'est utilisée que pour l'extraction de factures.
+              {t('adminOcr.mindeeFreeTier')}
             </p>
           </div>
         )}
@@ -158,14 +159,14 @@ const AdminOCR: React.FC = () => {
             className="px-4 py-2 rounded-lg border text-sm flex items-center gap-2 hover:border-[var(--color-accent)] disabled:opacity-50"
           >
             {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plug className="w-4 h-4" />}
-            Tester la connexion
+            {t('adminOcr.testConnection')}
           </button>
           {testResult && (
             <span
               className={`text-sm flex items-center gap-1 ${testResult.ok ? 'text-green-600' : 'text-red-600'}`}
             >
               {testResult.ok ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-              {testResult.message}
+              {testResult.raw ?? t(testResult.messageKey, testResult.params)}
             </span>
           )}
         </div>
@@ -173,19 +174,19 @@ const AdminOCR: React.FC = () => {
 
       {/* Préférences d'extraction */}
       <div className="bg-white rounded-xl p-6 border space-y-4">
-        <h4 className="font-semibold">Préférences d'extraction</h4>
+        <h4 className="font-semibold">{t('adminOcr.extractionPrefs')}</h4>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Devise par défaut</label>
+            <label className={labelCls}>{t('adminOcr.defaultCurrency')}</label>
             <select className={inputCls} value={config.defaultCurrency} onChange={(e) => set('defaultCurrency', e.target.value)}>
               <option value="XAF">FCFA (XAF)</option>
               <option value="XOF">FCFA (XOF)</option>
-              <option value="EUR">Euro (EUR)</option>
-              <option value="USD">Dollar US (USD)</option>
+              <option value="EUR">{t('adminOcr.curEur')}</option>
+              <option value="USD">{t('adminOcr.curUsd')}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Taux TVA par défaut (%)</label>
+            <label className={labelCls}>{t('adminOcr.defaultVatRate')}</label>
             <input
               className={inputCls}
               type="number"
@@ -195,14 +196,14 @@ const AdminOCR: React.FC = () => {
             />
           </div>
           <div>
-            <label className={labelCls}>Langue de traitement</label>
+            <label className={labelCls}>{t('adminOcr.processingLanguage')}</label>
             <select className={inputCls} value={config.language} onChange={(e) => set('language', e.target.value)}>
-              <option value="fr">Français</option>
-              <option value="en">English</option>
+              <option value="fr">{t('adminOcr.langFrench')}</option>
+              <option value="en">{t('adminOcr.langEnglish')}</option>
             </select>
           </div>
           <div>
-            <label className={labelCls}>Seuil de confiance : {config.confidenceThreshold}%</label>
+            <label className={labelCls}>{t('adminOcr.confidenceThreshold', { value: String(config.confidenceThreshold) })}</label>
             <input
               type="range"
               min={50}
@@ -215,11 +216,11 @@ const AdminOCR: React.FC = () => {
         </div>
         <div className="space-y-2 pt-2">
           {([
-            ['autoValidate', 'Valider automatiquement au-dessus du seuil de confiance'],
-            ['extractLineItems', 'Extraire les lignes d\'articles'],
-            ['duplicateCheck', 'Vérifier les doublons'],
-            ['enhanceImage', 'Amélioration d\'image avant extraction'],
-          ] as [keyof OCRConfig, string][]).map(([key, label]) => (
+            ['autoValidate', 'adminOcr.optAutoValidate'],
+            ['extractLineItems', 'adminOcr.optExtractLineItems'],
+            ['duplicateCheck', 'adminOcr.optDuplicateCheck'],
+            ['enhanceImage', 'adminOcr.optEnhanceImage'],
+          ] as [keyof OCRConfig, string][]).map(([key, labelKey]) => (
             <label key={key} className="flex items-center gap-3 cursor-pointer text-sm">
               <input
                 type="checkbox"
@@ -227,7 +228,7 @@ const AdminOCR: React.FC = () => {
                 onChange={(e) => set(key, e.target.checked as never)}
                 className="w-4 h-4"
               />
-              <span className="text-gray-700">{label}</span>
+              <span className="text-gray-700">{t(labelKey)}</span>
             </label>
           ))}
         </div>
@@ -235,46 +236,43 @@ const AdminOCR: React.FC = () => {
 
       {/* Comptabilisation */}
       <div className="bg-white rounded-xl p-6 border space-y-4">
-        <h4 className="font-semibold">Comptabilisation (SYSCOHADA)</h4>
-        <p className="text-xs text-gray-500">
-          Comptes utilisés lors de « Valider et Comptabiliser » une facture. Le sens
-          achat/vente est auto-détecté (émetteur = société → vente), corrigeable à la revue.
-        </p>
-        <div className="text-xs font-semibold text-gray-600">Facture d'ACHAT (journal AC)</div>
+        <h4 className="font-semibold">{t('adminOcr.posting')}</h4>
+        <p className="text-xs text-gray-500">{t('adminOcr.postingHint')}</p>
+        <div className="text-xs font-semibold text-gray-600">{t('adminOcr.purchaseInvoice')}</div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Journal d'achat</label>
+            <label className={labelCls}>{t('adminOcr.purchaseJournal')}</label>
             <input className={inputCls} value={config.defaultJournal} onChange={(e) => set('defaultJournal', e.target.value)} placeholder="AC" />
           </div>
           <div>
-            <label className={labelCls}>Compte de charge</label>
+            <label className={labelCls}>{t('adminOcr.expenseAccount')}</label>
             <input className={inputCls} value={config.defaultExpenseAccount} onChange={(e) => set('defaultExpenseAccount', e.target.value)} placeholder="601" />
           </div>
           <div>
-            <label className={labelCls}>Compte TVA récupérable</label>
+            <label className={labelCls}>{t('adminOcr.deductibleVatAccount')}</label>
             <input className={inputCls} value={config.defaultVatAccount} onChange={(e) => set('defaultVatAccount', e.target.value)} placeholder="4452" />
           </div>
           <div>
-            <label className={labelCls}>Compte fournisseur</label>
+            <label className={labelCls}>{t('adminOcr.supplierAccount')}</label>
             <input className={inputCls} value={config.defaultSupplierAccount} onChange={(e) => set('defaultSupplierAccount', e.target.value)} placeholder="401" />
           </div>
         </div>
-        <div className="text-xs font-semibold text-gray-600 pt-2">Facture de VENTE (journal VE)</div>
+        <div className="text-xs font-semibold text-gray-600 pt-2">{t('adminOcr.salesInvoice')}</div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Journal de vente</label>
+            <label className={labelCls}>{t('adminOcr.salesJournal')}</label>
             <input className={inputCls} value={config.defaultSalesJournal} onChange={(e) => set('defaultSalesJournal', e.target.value)} placeholder="VE" />
           </div>
           <div>
-            <label className={labelCls}>Compte de produit</label>
+            <label className={labelCls}>{t('adminOcr.revenueAccount')}</label>
             <input className={inputCls} value={config.defaultRevenueAccount} onChange={(e) => set('defaultRevenueAccount', e.target.value)} placeholder="701" />
           </div>
           <div>
-            <label className={labelCls}>Compte TVA collectée</label>
+            <label className={labelCls}>{t('adminOcr.collectedVatAccount')}</label>
             <input className={inputCls} value={config.defaultVatCollectedAccount} onChange={(e) => set('defaultVatCollectedAccount', e.target.value)} placeholder="443" />
           </div>
           <div>
-            <label className={labelCls}>Compte client</label>
+            <label className={labelCls}>{t('adminOcr.customerAccount')}</label>
             <input className={inputCls} value={config.defaultCustomerAccount} onChange={(e) => set('defaultCustomerAccount', e.target.value)} placeholder="411" />
           </div>
         </div>
@@ -289,7 +287,7 @@ const AdminOCR: React.FC = () => {
           style={{ background: 'var(--color-accent)' }}
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Enregistrer la configuration
+          {t('adminOcr.saveConfig')}
         </button>
       </div>
     </div>
