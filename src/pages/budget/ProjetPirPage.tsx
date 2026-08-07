@@ -11,6 +11,7 @@ import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { getProjet, getProjetExecution } from '../../features/budget/services/carService';
 import { getPir, savePir } from '../../features/budget/services/pirService';
 import { ClipboardCheck, Loader2, ArrowLeft, Save } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const INP = 'w-full px-3 py-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-light)]';
 
@@ -18,6 +19,7 @@ const ProjetPirPage: React.FC = () => {
   const { projetId = '' } = useParams();
   const { adapter } = useData();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [libelle, setLibelle] = useState('');
   const [requestId, setRequestId] = useState<string | null>(null);
   const [approprie, setApproprie] = useState(0);
@@ -37,7 +39,7 @@ const ProjetPirPage: React.FC = () => {
       setLoading(true); setError(null);
       try {
         const p = await getProjet(adapter, projetId);
-        if (!p) { if (!cancelled) { setError('Projet introuvable.'); setLoading(false); } return; }
+        if (!p) { if (!cancelled) { setError(t('projectPir.projectNotFound')); setLoading(false); } return; }
         const a = await getDefaultAnnee(adapter);
         const [exec, pir] = await Promise.all([getProjetExecution(adapter, p, a), getPir(adapter, projetId)]);
         if (cancelled) return;
@@ -47,11 +49,11 @@ const ProjetPirPage: React.FC = () => {
         setBenefices(String(pir?.benefices_constates ?? ''));
         setVanExPost(String(pir?.van_ex_post ?? ''));
         setLecons(pir?.lecons ?? '');
-      } catch (e: any) { if (!cancelled) setError(e?.message || 'Erreur'); }
+      } catch (e: any) { if (!cancelled) setError(e?.message || t('projectPir.error')); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [adapter, projetId]);
+  }, [adapter, projetId, t]);
 
   const ecart = (Number(coutFinal) || 0) - approprie;
 
@@ -63,18 +65,18 @@ const ProjetPirPage: React.FC = () => {
         delai_reel_jours: delai ? Number(delai) : null, benefices_constates: benefices ? Number(benefices) : null,
         van_ex_post: vanExPost ? Number(vanExPost) : null, lecons: lecons || null,
       });
-      setNotice('PIR enregistrée.');
-    } catch (e: any) { setError(e?.message || 'Échec'); } finally { setSaving(false); }
-  }, [adapter, projetId, requestId, coutFinal, ecart, delai, benefices, vanExPost, lecons]);
+      setNotice(t('projectPir.pirSaved'));
+    } catch (e: any) { setError(e?.message || t('projectPir.failed')); } finally { setSaving(false); }
+  }, [adapter, projetId, requestId, coutFinal, ecart, delai, benefices, vanExPost, lecons, t]);
 
-  if (loading) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>;
+  if (loading) return <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-16 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('projectPir.loading')}</div>;
 
   return (
     <div className="p-6 space-y-5">
       <header className="flex items-center gap-3">
         <button onClick={() => navigate(`/capex/projet/${projetId}`)} className="p-2 rounded-lg text-[var(--color-text-tertiary)] hover:bg-neutral-100 dark:hover:bg-neutral-700"><ArrowLeft className="w-5 h-5" /></button>
         <div>
-          <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><ClipboardCheck className="w-5 h-5 text-[var(--color-primary)]" /> Revue post-implémentation</h1>
+          <h1 className="text-xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><ClipboardCheck className="w-5 h-5 text-[var(--color-primary)]" /> {t('projectPir.title')}</h1>
           <p className="text-xs text-[var(--color-text-secondary)]">{libelle}</p>
         </div>
       </header>
@@ -84,16 +86,16 @@ const ProjetPirPage: React.FC = () => {
 
       <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm p-5 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Montant approprié</span><div className="px-3 py-2 rounded-lg bg-[var(--color-surface-hover)] font-mono text-sm">{formatCurrency(approprie)}</div></label>
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Investissement final</span><input type="number" value={coutFinal} onChange={(e) => setCoutFinal(e.target.value)} className={`${INP} font-mono`} /></label>
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Écart vs approprié</span><div className={`px-3 py-2 rounded-lg font-mono text-sm ${ecart > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{formatCurrency(ecart)}</div></label>
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Délai réel (jours)</span><input type="number" value={delai} onChange={(e) => setDelai(e.target.value)} className={`${INP} font-mono`} /></label>
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Bénéfices constatés (an 1)</span><input type="number" value={benefices} onChange={(e) => setBenefices(e.target.value)} className={`${INP} font-mono`} /></label>
-          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">VAN ex-post</span><input type="number" value={vanExPost} onChange={(e) => setVanExPost(e.target.value)} className={`${INP} font-mono`} /></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.appropriatedAmount')}</span><div className="px-3 py-2 rounded-lg bg-[var(--color-surface-hover)] font-mono text-sm">{formatCurrency(approprie)}</div></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.finalInvestment')}</span><input type="number" value={coutFinal} onChange={(e) => setCoutFinal(e.target.value)} className={`${INP} font-mono`} /></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.varianceVsAppropriated')}</span><div className={`px-3 py-2 rounded-lg font-mono text-sm ${ecart > 0 ? 'text-red-600' : 'text-emerald-600'}`}>{formatCurrency(ecart)}</div></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.actualLeadTime')}</span><input type="number" value={delai} onChange={(e) => setDelai(e.target.value)} className={`${INP} font-mono`} /></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.benefitsYear1')}</span><input type="number" value={benefices} onChange={(e) => setBenefices(e.target.value)} className={`${INP} font-mono`} /></label>
+          <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.npvExPost')}</span><input type="number" value={vanExPost} onChange={(e) => setVanExPost(e.target.value)} className={`${INP} font-mono`} /></label>
         </div>
-        <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">Leçons apprises</span><textarea value={lecons} onChange={(e) => setLecons(e.target.value)} rows={5} className={INP} placeholder="Biais d'estimation, causes de dérive, recommandations pour les prochains BC…" /></label>
+        <label className="block"><span className="block text-xs text-[var(--color-text-secondary)] mb-1">{t('projectPir.lessonsLearned')}</span><textarea value={lecons} onChange={(e) => setLecons(e.target.value)} rows={5} className={INP} placeholder={t('projectPir.lessonsPlaceholder')} /></label>
         <div className="flex justify-end">
-          <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Enregistrer la PIR</button>
+          <button onClick={save} disabled={saving} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 disabled:opacity-50">{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {t('projectPir.savePir')}</button>
         </div>
       </div>
     </div>

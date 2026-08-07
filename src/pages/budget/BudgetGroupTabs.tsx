@@ -9,38 +9,41 @@ import {
   Calendar, FileBarChart, TrendingUp, Lock, Activity, BarChart3, Target, Calculator,
   Bell, Archive, FileCheck, Link2, PieChart, Split, Layers, Trophy, PiggyBank, Shuffle, Landmark,
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-export interface GroupTab { path: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; }
+/** `labelKey` et non `label` : ces tables sont figées au chargement du module ;
+ *  la traduction se résout au rendu via `t(tab.labelKey)`. */
+export interface GroupTab { path: string; labelKey: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean; }
 
 export const ELABORATION_TABS: GroupTab[] = [
-  { path: '/budget/campagne', label: 'Campagne', icon: Calendar },
-  { path: '/budget/table', label: 'Saisie & Import', icon: FileBarChart },
-  { path: '/budget/revenus', label: 'Revenus', icon: TrendingUp },
-  { path: '/budget/versions', label: 'Versions', icon: Lock },
+  { path: '/budget/campagne', labelKey: 'budgetGroupTabs.campaign', icon: Calendar },
+  { path: '/budget/table', labelKey: 'budgetGroupTabs.entryImport', icon: FileBarChart },
+  { path: '/budget/revenus', labelKey: 'budgetGroupTabs.revenue', icon: TrendingUp },
+  { path: '/budget/versions', labelKey: 'budgetGroupTabs.versions', icon: Lock },
 ];
 export const SUIVI_TABS: GroupTab[] = [
-  { path: '/budget/cockpit', label: 'Cockpit', icon: Activity },
-  { path: '/budget/exploitation', label: 'Budget vs Réalisé', icon: BarChart3, exact: true },
-  { path: '/budget/ecarts', label: 'Écarts', icon: Target },
-  { path: '/budget/pnl', label: 'Résultat', icon: Calculator },
-  { path: '/budget/alertes', label: 'Alertes', icon: Bell },
-  { path: '/budget/snapshots', label: 'Snapshots', icon: Archive },
+  { path: '/budget/cockpit', labelKey: 'budgetGroupTabs.cockpit', icon: Activity },
+  { path: '/budget/exploitation', labelKey: 'budgetGroupTabs.budgetVsActual', icon: BarChart3, exact: true },
+  { path: '/budget/ecarts', labelKey: 'budgetGroupTabs.variances', icon: Target },
+  { path: '/budget/pnl', labelKey: 'budgetGroupTabs.result', icon: Calculator },
+  { path: '/budget/alertes', labelKey: 'budgetGroupTabs.alerts', icon: Bell },
+  { path: '/budget/snapshots', labelKey: 'budgetGroupTabs.snapshots', icon: Archive },
 ];
 export const ENGAGEMENTS_TABS: GroupTab[] = [
-  { path: '/budget/engagements', label: 'Engagements', icon: FileCheck },
-  { path: '/budget/lettrage', label: 'Lettrage', icon: Link2 },
+  { path: '/budget/engagements', labelKey: 'budgetGroupTabs.commitments', icon: FileCheck },
+  { path: '/budget/lettrage', labelKey: 'budgetGroupTabs.matching', icon: Link2 },
 ];
 export const ANALYTIQUE_TABS: GroupTab[] = [
-  { path: '/analytique', label: 'Comptabilité Analytique', icon: PieChart, exact: true },
-  { path: '/budget/ventilation', label: 'Moteur de Ventilation', icon: Split },
+  { path: '/analytique', labelKey: 'budgetGroupTabs.costAccounting', icon: PieChart, exact: true },
+  { path: '/budget/ventilation', labelKey: 'budgetGroupTabs.allocationEngine', icon: Split },
 ];
 export const CAPEX_TABS: GroupTab[] = [
-  { path: '/capex', label: 'Portefeuille', icon: Layers, exact: true },
-  { path: '/capex/business-cases', label: 'Business Cases', icon: FileBarChart },
-  { path: '/capex/priorisation', label: 'Priorisation', icon: Trophy },
-  { path: '/capex/car', label: 'CAR', icon: Landmark },
-  { path: '/capex/enveloppe', label: 'Enveloppe', icon: PiggyBank },
-  { path: '/capex/reaffectations', label: 'Réaffectations', icon: Shuffle },
+  { path: '/capex', labelKey: 'budgetGroupTabs.portfolio', icon: Layers, exact: true },
+  { path: '/capex/business-cases', labelKey: 'budgetGroupTabs.businessCases', icon: FileBarChart },
+  { path: '/capex/priorisation', labelKey: 'budgetGroupTabs.prioritisation', icon: Trophy },
+  { path: '/capex/car', labelKey: 'budgetGroupTabs.car', icon: Landmark },
+  { path: '/capex/enveloppe', labelKey: 'budgetGroupTabs.envelope', icon: PiggyBank },
+  { path: '/capex/reaffectations', labelKey: 'budgetGroupTabs.reallocations', icon: Shuffle },
 ];
 
 /** Groupes du module Contrôle de Gestion : chemins membres → onglets. */
@@ -63,17 +66,18 @@ export function groupTabsForPath(pathname: string): GroupTab[] | null {
 export const GroupTabs: React.FC<{ tabs: GroupTab[] }> = ({ tabs }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const active = (t: GroupTab) => (t.exact ? pathname === t.path : pathname === t.path || pathname.startsWith(t.path + '/'));
+  const { t } = useLanguage();
+  const active = (tab: GroupTab) => (tab.exact ? pathname === tab.path : pathname === tab.path || pathname.startsWith(tab.path + '/'));
   return (
     <div className="flex items-center gap-1 border-b border-[var(--color-border)] -mt-1 mb-1 overflow-x-auto">
-      {tabs.map((t) => {
-        const Icon = t.icon; const on = active(t);
+      {tabs.map((tab) => {
+        const Icon = tab.icon; const on = active(tab);
         return (
-          <button key={t.path} onClick={() => navigate(t.path)}
+          <button key={tab.path} onClick={() => navigate(tab.path)}
             className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap border-b-2 -mb-px transition ${
               on ? 'border-[var(--color-primary)] text-[var(--color-primary)] dark:text-[var(--color-primary)] font-medium'
               : 'border-transparent text-[var(--color-text-secondary)] hover:text-neutral-800 dark:hover:text-neutral-200'}`}>
-            <Icon className="w-4 h-4" /> {t.label}
+            <Icon className="w-4 h-4" /> {t(tab.labelKey)}
           </button>
         );
       })}

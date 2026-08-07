@@ -8,6 +8,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { getDefaultAnnee } from '../../features/budget/services/budgetService';
 import { computeBudgetAlerts, type BudgetAlert, type AlertSeverity } from '../../features/budget/services/budgetAlertsService';
 import { BellRing, Loader2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const SEV_STYLE: Record<AlertSeverity, string> = {
   P1: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300',
@@ -17,6 +18,7 @@ const SEV_STYLE: Record<AlertSeverity, string> = {
 
 const BudgetAlertesPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const [annee, setAnnee] = useState('');
   const [alerts, setAlerts] = useState<BudgetAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +34,13 @@ const BudgetAlertesPage: React.FC = () => {
         if (cancelled) return;
         setAnnee(a); setAlerts(al);
       } catch (e: any) {
-        if (!cancelled) setError(e?.message || 'Erreur de chargement');
+        if (!cancelled) setError(e?.message || t('budgetAlerts.loadError'));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [adapter]);
+  }, [adapter, t]);
 
   const counts = useMemo(() => ({
     P1: alerts.filter((a) => a.severity === 'P1').length,
@@ -51,9 +53,9 @@ const BudgetAlertesPage: React.FC = () => {
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2">
-            <BellRing className="w-6 h-6 text-[var(--color-primary)]" /> Alertes budgétaires
+            <BellRing className="w-6 h-6 text-[var(--color-primary)]" /> {t('budgetAlerts.title')}
           </h1>
-          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">Consommation &amp; dépassements OPEX · exercice {annee || '—'}</p>
+          <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{t('budgetAlerts.subtitle', { year: annee || '—' })}</p>
         </div>
         <div className="flex items-center gap-2 text-xs">
           {(['P1', 'P2', 'P3'] as AlertSeverity[]).map((s) => (
@@ -65,11 +67,11 @@ const BudgetAlertesPage: React.FC = () => {
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3 text-sm text-red-700 dark:text-red-300">{error}</div>}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Analyse…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('budgetAlerts.analysing')}</div>
       ) : alerts.length === 0 ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/20 dark:border-emerald-900 px-6 py-10 text-center">
           <ShieldCheck className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-          <div className="text-sm text-emerald-700 dark:text-emerald-300">Aucune alerte : toutes les mailles sont sous le seuil de 75 % et sans dépassement.</div>
+          <div className="text-sm text-emerald-700 dark:text-emerald-300">{t('budgetAlerts.noAlert')}</div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -82,7 +84,7 @@ const BudgetAlertesPage: React.FC = () => {
                   {a.message}
                 </div>
                 <div className="text-xs text-[var(--color-text-tertiary)] mt-0.5 font-mono">
-                  Budget {formatCurrency(a.budget)} · Consommé {formatCurrency(a.consomme)} ({Math.round(a.ratio * 100)}%) · Disponible {formatCurrency(a.disponible)}
+                  {t('budgetAlerts.detail', { budget: formatCurrency(a.budget), consumed: formatCurrency(a.consomme), pct: String(Math.round(a.ratio * 100)), available: formatCurrency(a.disponible) })}
                 </div>
               </div>
             </div>

@@ -8,17 +8,19 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { listOrgTree, type SectionOrgNode } from '../../features/budget/services/sectionGovernanceService';
 import { TrendingUp, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const RevenusPickerPage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [sections, setSections] = useState<SectionOrgNode[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try { const t = await listOrgTree(adapter); if (!cancelled) setSections(t); }
+      try { const tree = await listOrgTree(adapter); if (!cancelled) setSections(tree); }
       finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
@@ -33,16 +35,16 @@ const RevenusPickerPage: React.FC = () => {
   return (
     <div className="p-6 space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><TrendingUp className="w-6 h-6 text-[var(--color-primary)]" /> Budget des revenus</h1>
-        <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">Classe 7 par centre de profit · alimente le compte de résultat budgétaire.</p>
+        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><TrendingUp className="w-6 h-6 text-[var(--color-primary)]" /> {t('revenuePicker.title')}</h1>
+        <p className="text-sm text-[var(--color-text-secondary)] dark:text-[var(--color-text-tertiary)]">{t('revenuePicker.subtitle')}</p>
       </header>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('revenuePicker.loading')}</div>
       ) : profit.length === 0 ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900 px-6 py-10 text-center text-sm text-amber-700 dark:text-amber-300">
           <Sparkles className="w-6 h-6 mx-auto mb-2" />
-          Aucun centre de profit. Initialisez l'organisation analytique depuis le hub.
+          {t('revenuePicker.empty')}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
