@@ -12,6 +12,7 @@ import { listCapexRequests, type CapexRequest } from '../../features/budget/serv
 import { getCapexExecution, type CapexExecution } from '../../features/budget/services/cockpitService';
 import NewBusinessCaseModal from './NewBusinessCaseModal';
 import { Layers, Loader2, Plus, ArrowRight, Package, Boxes, TrendingDown, Wallet } from 'lucide-react';
+import { AtlasBar, ATLAS_PETROL } from '../../components/charts';
 
 const MOIS_COURT_KEYS = [
   'capexPortfolio.monthShortJan', 'capexPortfolio.monthShortFeb', 'capexPortfolio.monthShortMar',
@@ -19,32 +20,22 @@ const MOIS_COURT_KEYS = [
   'capexPortfolio.monthShortJul', 'capexPortfolio.monthShortAug', 'capexPortfolio.monthShortSep',
   'capexPortfolio.monthShortOct', 'capexPortfolio.monthShortNov', 'capexPortfolio.monthShortDec',
 ];
-const MOIS_KEYS = [
-  'capexPortfolio.monthJan', 'capexPortfolio.monthFeb', 'capexPortfolio.monthMar',
-  'capexPortfolio.monthApr', 'capexPortfolio.monthMay', 'capexPortfolio.monthJun',
-  'capexPortfolio.monthJul', 'capexPortfolio.monthAug', 'capexPortfolio.monthSep',
-  'capexPortfolio.monthOct', 'capexPortfolio.monthNov', 'capexPortfolio.monthDec',
-];
 const fmt = (n: number) => formatCurrency(Math.round(n));
 const pctShare = (num: number, den: number) => (den ? Math.round((num / den) * 100) : 0);
 
+/** Engagements CAPEX mensuels. L'échelle CSS était calculée sur |v| mais la
+ *  hauteur sur max(0, v) : un mois de désinvestissement écrasait toutes les
+ *  autres barres tout en s'affichant lui-même à zéro. */
 const CapexBars: React.FC<{ values: number[] }> = ({ values }) => {
   const { t } = useLanguage();
-  const max = Math.max(1, ...values.map((v) => Math.abs(v)));
   return (
-    <div className="flex items-stretch gap-2 h-32 pt-2">
-      {values.map((v, i) => {
-        const h = Math.max(2, (Math.max(0, v) / max) * 100);
-        return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
-            <div className="flex-1 w-full flex items-end">
-              <div className="w-full rounded-t-md bg-[var(--color-primary)]" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.12 }} title={`${t(MOIS_KEYS[i])} : ${fmt(v)}`} />
-            </div>
-            <span className="text-[10px] text-[var(--color-text-tertiary)]">{t(MOIS_COURT_KEYS[i])}</span>
-          </div>
-        );
-      })}
-    </div>
+    <AtlasBar
+      categories={MOIS_COURT_KEYS.map((k) => t(k))}
+      series={[{ name: t('capexPortfolio.thAmount'), data: values, color: ATLAS_PETROL }]}
+      showValues={false}
+      valueFormatter={(v) => fmt(v)}
+      height={170}
+    />
   );
 };
 

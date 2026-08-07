@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { AtlasBar } from '../charts';
 
 // Design System unifié pour Atlas FnA
 // Palette de couleurs cohérente et élégante
@@ -561,65 +562,23 @@ export const ColorfulBarChart: React.FC<ColorfulBarChartProps> = ({
   height = 200,
   showValues = true,
   formatValue = (v: number) => v.toLocaleString('fr-FR'),
-}) => {
-  // Échelle sur les valeurs ABSOLUES : les soldes peuvent être négatifs
-  // (passif/produits) — sans ça, maxValue serait faussé et certaines barres
-  // invisibles. La valeur affichée reste signée.
-  const maxValue = Math.max(...data.map(d => Math.abs(d.value)), 1);
-
-  return (
-    <div className="space-y-4">
-      <div
-        className="flex items-end justify-between gap-2"
-        style={{ height, borderBottom: '1px solid var(--color-border-light)' }}
-      >
-        {data.map((item, index) => {
-          const barHeight = (Math.abs(item.value) / maxValue) * 100;
-          const c = BAR_SERIES[index % BAR_SERIES.length];
-          return (
-            <div
-              key={index}
-              className="flex-1 h-full flex flex-col items-center justify-end min-w-0"
-            >
-              {/* zone de barre à hauteur fixe : le % de la barre se calcule sur CETTE
-                  zone (sinon un % sur un parent auto-hauteur = 0 → barres invisibles). */}
-              <div className="w-full flex-1 flex flex-col items-center justify-end min-h-0">
-                {showValues && (
-                  <span
-                    className="text-[11px] font-semibold mb-1 whitespace-nowrap leading-none num-tabular"
-                    style={{ color: 'var(--color-text-secondary)' }}
-                    title={String(item.value)}
-                  >
-                    {formatValue(item.value)}
-                  </span>
-                )}
-                <motion.div
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{ delay: index * 0.08, duration: 0.5 }}
-                  className="w-full max-w-[64px] rounded-t-lg origin-bottom"
-                  style={{
-                    height: `${Math.max(barHeight, item.value !== 0 ? 2 : 0)}%`,
-                    background: `linear-gradient(180deg, ${c} 0%, ${c}D9 60%, ${c}A6 100%)`,
-                    boxShadow: `0 6px 14px -6px ${c}66`,
-                  }}
-                  whileHover={{ scale: 1.04 }}
-                />
-              </div>
-              <span
-                className="text-xs mt-2 font-medium text-center truncate w-full"
-                style={{ color: 'var(--color-text-tertiary)' }}
-                title={item.label}
-              >
-                {item.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
+}) => (
+  // Les barres étaient dessinées en CSS avec une hauteur en % de |valeur| : un
+  // solde de −5 M s'affichait exactement comme +5 M, du bon côté de la ligne de
+  // base, et il n'y avait ni axe ni graduation pour rattraper la lecture.
+  // Le kit charts porte l'axe, le zéro et les valeurs négatives.
+  <AtlasBar
+    categories={data.map((d) => d.label)}
+    series={[{
+      name: '',
+      data: data.map((d) => d.value),
+      itemColors: data.map((d, i) => d.color || BAR_SERIES[i % BAR_SERIES.length]),
+    }]}
+    showValues={showValues}
+    valueFormatter={formatValue}
+    height={height}
+  />
+);
 
 // Jauge radiale (anneau de progression) — pour taux, ratios, scores.
 interface RadialGaugeProps {

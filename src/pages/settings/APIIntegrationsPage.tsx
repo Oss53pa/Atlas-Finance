@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FeatureGate, UpgradeBanner } from '../../components/gating';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { toast } from 'react-hot-toast';
+import { AtlasBar, ATLAS_PETROL } from '../../components/charts';
 import {
   Key,
   Link,
@@ -325,19 +326,14 @@ const APIIntegrationsPage: React.FC = () => {
             {/* Usage Graph */}
             <div className="bg-[var(--color-surface)] rounded-lg p-6 shadow-[var(--shadow-sm)] border border-[var(--color-border)]">
               <h3 className="text-lg font-semibold mb-4">{t('apiIntegrations.usageTitle')}</h3>
-              <div className="h-64 flex items-end space-x-2">
-                {[65, 78, 82, 91, 85, 73, 88].map((height, index) => (
-                  <div key={index} className="flex-1">
-                    <div className="text-xs text-center text-[var(--color-text-tertiary)] mb-1">
-                      {[t('apiIntegrations.dayMon'), t('apiIntegrations.dayTue'), t('apiIntegrations.dayWed'), t('apiIntegrations.dayThu'), t('apiIntegrations.dayFri'), t('apiIntegrations.daySat'), t('apiIntegrations.daySun')][index]}
-                    </div>
-                    <div
-                      className="bg-gradient-to-t from-[var(--color-primary)] to-[var(--color-primary)] rounded-t"
-                      style={{ height: `${height}%` }}
-                    />
-                  </div>
-                ))}
-              </div>
+              {/* ⚠ Valeurs de démonstration : aucune métrique d'appels API n'est
+                  encore collectée côté back-office. À brancher sur le compteur
+                  d'usage des clés dès qu'il existe. */}
+              <AtlasBar
+                categories={[t('apiIntegrations.dayMon'), t('apiIntegrations.dayTue'), t('apiIntegrations.dayWed'), t('apiIntegrations.dayThu'), t('apiIntegrations.dayFri'), t('apiIntegrations.daySat'), t('apiIntegrations.daySun')]}
+                series={[{ name: t('apiIntegrations.usageTitle'), data: [65, 78, 82, 91, 85, 73, 88], color: ATLAS_PETROL }]}
+                height={256}
+              />
             </div>
 
             {/* Quick Actions */}

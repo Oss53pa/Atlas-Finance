@@ -12,6 +12,7 @@ import { getMonthlyPnL, monthCard, getExpenseAnalysis, getRevenueAnalysis, getBu
 import { useAccountNames } from '../../hooks/useAccountNames';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { LayoutDashboard, Loader2, Wallet, PieChart, TrendingUp, Banknote, Receipt, Building2, Coins, Users, Scale, GitCompareArrows, ChevronRight } from 'lucide-react';
+import { AtlasBar, ATLAS_PETROL, ATLAS_INK3 } from '../../components/charts';
 
 // Clés i18n des mois (les tableaux sont hors composant : résolution au rendu via tr()).
 const MOIS_KEYS = ['cockpit.monthJanuary', 'cockpit.monthFebruary', 'cockpit.monthMarch', 'cockpit.monthApril', 'cockpit.monthMay', 'cockpit.monthJune', 'cockpit.monthJuly', 'cockpit.monthAugust', 'cockpit.monthSeptember', 'cockpit.monthOctober', 'cockpit.monthNovember', 'cockpit.monthDecember'];
@@ -24,6 +25,14 @@ const TABS: { id: Tab; labelKey: string }[] = [
 ];
 
 const fmt = (n: number) => formatCurrency(Math.round(n));
+/** Graduations d'axe : les montants XAF sont trop longs en entier sur un axe. */
+const compactAmount = (n: number) => {
+  const a = Math.abs(n), s = n < 0 ? '−' : '';
+  if (a >= 1e9) return `${s}${(a / 1e9).toFixed(1).replace('.', ',')} Md`;
+  if (a >= 1e6) return `${s}${(a / 1e6).toFixed(1).replace('.', ',')} M`;
+  if (a >= 1e3) return `${s}${Math.round(a / 1e3)} k`;
+  return `${s}${a}`;
+};
 const pct = (num: number, den: number) => (den ? Math.round((num / den) * 100) : 0);
 
 const BudgetCockpitProPage: React.FC = () => {
@@ -264,23 +273,20 @@ const BudgetCockpitProPage: React.FC = () => {
 
 // --- Onglet Dépenses -------------------------------------------------------
 
+/** Barres mensuelles. Les hauteurs étaient calculées en CSS sur `Math.max(0, v)` :
+ *  un mois négatif (avoir, régularisation) était écrasé à zéro et se lisait comme
+ *  un mois sans activité. Le kit porte l'axe, l'échelle et les valeurs négatives. */
 const MonthlyBars: React.FC<{ values: number[] }> = ({ values }) => {
   const { t: tr } = useLanguage();
-  const max = Math.max(1, ...values.map((v) => Math.max(0, v)));
   return (
-    <div className="flex items-stretch gap-2 h-40 pt-2">
-      {values.map((v, i) => {
-        const h = Math.max(2, (Math.max(0, v) / max) * 100);
-        return (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
-            <div className="flex-1 w-full flex items-end">
-              <div className="w-full rounded-t-md bg-[var(--color-primary)] transition-all" style={{ height: `${h}%`, opacity: v > 0 ? 0.85 : 0.15 }} title={`${tr(MOIS_KEYS[i])} : ${fmt(v)}`} />
-            </div>
-            <span className="text-[10px] text-[var(--color-text-tertiary)]">{tr(MOIS_COURT_KEYS[i])}</span>
-          </div>
-        );
-      })}
-    </div>
+    <AtlasBar
+      categories={MOIS_COURT_KEYS.map((k) => tr(k))}
+      series={[{ name: tr('cockpit.colActual'), data: values, color: ATLAS_PETROL }]}
+      showValues={false}
+      valueFormatter={(v) => fmt(v)}
+      axisFormatter={compactAmount}
+      height={180}
+    />
   );
 };
 
@@ -519,21 +525,21 @@ const RevenusTab: React.FC<{ rev: RevenueAnalysis | null; loading: boolean; anne
 
 // --- Onglets Budget & Variance ---------------------------------------------
 
+/** Budget vs réalisé, mois par mois — barres groupées avec légende et axe. */
 const GroupBars: React.FC<{ data: { b: number; r: number }[] }> = ({ data }) => {
   const { t: tr } = useLanguage();
-  const max = Math.max(1, ...data.flatMap((d) => [d.b, d.r]));
   return (
-    <div className="flex items-stretch gap-2 h-40 pt-2">
-      {data.map((d, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0 h-full">
-          <div className="flex-1 w-full flex items-end justify-center gap-0.5">
-            <div className="w-1/2 rounded-t bg-[var(--color-border)]" style={{ height: `${Math.max(2, (d.b / max) * 100)}%` }} title={`${tr(MOIS_KEYS[i])} · ${tr('cockpit.colBudget')} ${fmt(d.b)}`} />
-            <div className="w-1/2 rounded-t bg-[var(--color-primary)]" style={{ height: `${Math.max(2, (d.r / max) * 100)}%` }} title={`${tr(MOIS_KEYS[i])} · ${tr('cockpit.colActual')} ${fmt(d.r)}`} />
-          </div>
-          <span className="text-[10px] text-[var(--color-text-tertiary)]">{tr(MOIS_COURT_KEYS[i])}</span>
-        </div>
-      ))}
-    </div>
+    <AtlasBar
+      categories={data.map((_, i) => tr(MOIS_COURT_KEYS[i]))}
+      series={[
+        { name: tr('cockpit.colBudget'), data: data.map((d) => d.b), color: ATLAS_INK3 },
+        { name: tr('cockpit.colActual'), data: data.map((d) => d.r), color: ATLAS_PETROL },
+      ]}
+      showValues={false}
+      valueFormatter={(v) => fmt(v)}
+      axisFormatter={compactAmount}
+      height={200}
+    />
   );
 };
 
