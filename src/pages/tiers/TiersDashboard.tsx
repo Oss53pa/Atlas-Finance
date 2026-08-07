@@ -190,8 +190,58 @@ const TiersDashboard: React.FC = () => {
     loadData().finally(() => setLoading(false));
   };
 
-  const handleExport = () => {
-    toast('Fonctionnalité d\'export en cours de développement.', { icon: '⏳' });
+  const handleExport = async () => {
+    try {
+      const tps = (await adapter.getAll('thirdParties')) as Record<string, any>[];
+      const sep = ';';
+      const esc = (v: unknown) => {
+        const s = String(v ?? '');
+        return /["\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const typeLabel = (ty: string) =>
+        ty === 'customer' ? 'Client' : ty === 'supplier' ? 'Fournisseur' : ty === 'both' ? 'Client/Fournisseur'
+          : ty === 'prospect' ? 'Prospect' : ty === 'partner' ? 'Partenaire' : (ty || '');
+
+      const rows: string[] = [];
+      // Section 1 : synthèse des indicateurs (données réelles du tableau de bord).
+      rows.push(['Indicateur', 'Valeur'].map(esc).join(sep));
+      const kpiRows: Array<[string, string | number]> = [
+        ['Chiffre d\'affaires total', Math.round(kpis.chiffreAffairesTotal)],
+        ['Encours clients', Math.round(kpis.encoursClients)],
+        ['Impayés', Math.round(kpis.impayesTotal)],
+        ['DSO moyen (jours)', kpis.dsoMoyen],
+        ['Taux de recouvrement (%)', kpis.tauxRecouvrement],
+        ['Croissance CA (%)', kpis.croissanceCA],
+        ['Total clients', kpis.totalClients],
+        ['Total fournisseurs', kpis.totalFournisseurs],
+        ['Total contacts', kpis.totalContacts],
+        ['Nouveaux clients (mois)', kpis.nouveauxClientsMois],
+        ['Total prospects', liveTiers.totalProspects],
+        ['Total partenaires', liveTiers.totalPartenaires],
+      ];
+      for (const [k, v] of kpiRows) rows.push([k, v].map(esc).join(sep));
+
+      // Section 2 : liste des tiers.
+      rows.push('');
+      rows.push(['Code', 'Nom', 'Type', 'Email', 'Téléphone'].map(esc).join(sep));
+      for (const tp of tps) {
+        rows.push([tp.code, tp.name, typeLabel(tp.type), tp.email, tp.phone].map(esc).join(sep));
+      }
+
+      const csv = '﻿' + rows.join('\r\n'); // BOM → accents corrects dans Excel
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tiers_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Export généré — ${tps.length} tiers.`);
+    } catch {
+      toast.error('Échec de l\'export.');
+    }
   };
 
 
