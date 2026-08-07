@@ -44,10 +44,18 @@ import { z } from 'zod';
 import { formatDate, formatCurrency } from '../../lib/utils';
 import { toast } from 'react-hot-toast';
 
+/** Le schéma porte des CODES d'erreur, pas des messages : la validation ne
+ *  connaît pas la langue, c'est l'affichage qui traduit. */
+const VALIDATION_KEY: Record<string, string> = {
+  label_required: 'fiscalYearPage.labelRequired',
+  start_date_required: 'fiscalYearPage.startDateRequired',
+  end_date_required: 'fiscalYearPage.endDateRequired',
+};
+
 const createExerciceSchema = z.object({
-  libelle: z.string().min(1, 'Le libellé est requis'),
-  date_debut: z.string().min(1, 'La date de début est requise'),
-  date_fin: z.string().min(1, 'La date de fin est requise'),
+  libelle: z.string().min(1, 'label_required'),
+  date_debut: z.string().min(1, 'start_date_required'),
+  date_fin: z.string().min(1, 'end_date_required'),
   type: z.enum(['normal', 'court', 'long', 'exceptionnel']),
   plan_comptable: z.enum(['syscohada', 'pcg', 'ifrs']).optional(),
   devise: z.string().optional(),
@@ -82,13 +90,13 @@ const ExercicePage: React.FC = () => {
     mutationFn: (data: Parameters<typeof exerciceService.createExercice>[1]) =>
       exerciceService.createExercice(adapter, data),
     onSuccess: () => {
-      toast.success('Exercice créé avec succès');
+      toast.success(t('fiscalYearPage.created'));
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
       setShowCreateModal(false);
       resetForm();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création de l\'exercice');
+      toast.error(error.message || t('fiscalYearPage.createError'));
     },
   });
 
@@ -108,11 +116,11 @@ const ExercicePage: React.FC = () => {
   const closeExerciceMutation = useMutation({
     mutationFn: (id: string) => exerciceService.closeExercice(adapter, id),
     onSuccess: () => {
-      toast.success('Exercice clôturé avec succès');
+      toast.success(t('fiscalYearPage.closed'));
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
     },
     onError: () => {
-      toast.error('Erreur lors de la clôture');
+      toast.error(t('fiscalYearPage.closeError'));
     }
   });
 
@@ -120,29 +128,29 @@ const ExercicePage: React.FC = () => {
   const reopenExerciceMutation = useMutation({
     mutationFn: (id: string) => exerciceService.reopenExercice(adapter, id),
     onSuccess: () => {
-      toast.success('Exercice réouvert avec succès');
+      toast.success(t('fiscalYearPage.reopened'));
       queryClient.invalidateQueries({ queryKey: ['exercices'] });
     },
     onError: () => {
-      toast.error('Erreur lors de la réouverture');
+      toast.error(t('fiscalYearPage.reopenError'));
     }
   });
 
   const handleCloseExercice = (exerciceId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir clôturer cet exercice ? Cette action nécessite une validation.')) {
+    if (confirm(t('fiscalYearPage.confirmClose'))) {
       closeExerciceMutation.mutate(exerciceId);
     }
   };
 
   const handleReopenExercice = (exerciceId: string) => {
-    if (confirm('Êtes-vous sûr de vouloir réouvrir cet exercice ?')) {
+    if (confirm(t('fiscalYearPage.confirmReopen'))) {
       reopenExerciceMutation.mutate(exerciceId);
     }
   };
 
   const handleExportExercices = (format: 'csv' | 'excel' | 'pdf') => {
     if (!exercices || exercices.length === 0) {
-      toast.error('Aucun exercice à exporter');
+      toast.error(t('fiscalYearPage.nothingToExport'));
       return;
     }
 
@@ -151,11 +159,11 @@ const ExercicePage: React.FC = () => {
       'Libellé': exercice.libelle,
       'Date de début': formatDate(exercice.date_debut),
       'Date de fin': formatDate(exercice.date_fin),
-      'Durée (mois)': exercice.duree_mois,
+      [t('fiscalYearPage.csvDuration')]: exercice.duree_mois,
       'Statut': exercice.statut === 'ouvert' ? 'Ouvert' : exercice.statut === 'cloture' ? 'Clôturé' : 'Provisoire',
       'Nombre d\'écritures': exercice.stats?.total_ecritures || 0,
-      'Résultat net': formatCurrency(exercice.stats?.resultat_net || 0),
-      'Type résultat': (exercice.stats?.resultat_net || 0) >= 0 ? 'Bénéfice' : 'Perte',
+      [t('fiscalYearPage.csvNetResult')]: formatCurrency(exercice.stats?.resultat_net || 0),
+      [t('fiscalYearPage.csvResultType')]: (exercice.stats?.resultat_net || 0) >= 0 ? t('fiscalYearPage.profit') : t('fiscalYearPage.loss'),
       'Plan comptable': exercice.plan_comptable?.toUpperCase() || 'SYSCOHADA',
       'Devise': exercice.devise || 'XAF'
     }));
@@ -177,7 +185,7 @@ const ExercicePage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('Export CSV réussi !');
+      toast.success(t('fiscalYearPage.csvExported'));
     } else if (format === 'excel') {
       // Export Excel (format tabulé pour compatibilité)
       const headers = Object.keys(exportData[0]);
@@ -195,10 +203,10 @@ const ExercicePage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      toast.success('Export Excel réussi !');
+      toast.success(t('fiscalYearPage.excelExported'));
     } else if (format === 'pdf') {
       // Pour PDF, on pourrait utiliser une librairie comme jsPDF
-      toast('Export PDF en cours de développement');
+      toast(t('fiscalYearPage.pdfInProgress'));
     }
 
     setShowExportMenu(false);
@@ -252,7 +260,7 @@ const ExercicePage: React.FC = () => {
         setErrors(fieldErrors);
         toast.error('Veuillez corriger les erreurs du formulaire');
       } else {
-        toast.error('Erreur lors de la création de l\'exercice');
+        toast.error(t('fiscalYearPage.createError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -331,7 +339,7 @@ const ExercicePage: React.FC = () => {
                     disabled
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Export PDF (bientôt)</span>
+                    <span>{t('fiscalYearPage.pdfSoon')}</span>
                   </button>
                 </div>
               )}
@@ -498,7 +506,7 @@ const ExercicePage: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          aria-label="Voir les détails"
+                          aria-label={t('fiscalYearPage.viewDetails')}
                         >
                           <FileText className="h-4 w-4" />
                         </Button>
@@ -570,21 +578,21 @@ const ExercicePage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <h4 className="font-medium text-[var(--color-text-primary)] mb-2">Étapes préliminaires</h4>
+              <h4 className="font-medium text-[var(--color-text-primary)] mb-2">{t('fiscalYearPage.preliminarySteps')}</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Valider toutes les écritures de l'exercice</li>
+                <li>{t('fiscalYearPage.stepValidateEntries')}</li>
                 <li>• Effectuer tous les rapprochements bancaires</li>
-                <li>• Saisir les écritures de régularisation</li>
+                <li>{t('fiscalYearPage.stepAdjustments')}</li>
                 <li>• Vérifier l'équilibre de la balance</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-[var(--color-text-primary)] mb-2">Opérations de clôture</h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Calcul automatique du résultat</li>
-                <li>• Génération des écritures de clôture</li>
-                <li>• Report des soldes (à nouveau)</li>
-                <li>• Édition des documents légaux</li>
+                <li>{t('fiscalYearPage.stepAutoResult')}</li>
+                <li>{t('fiscalYearPage.stepClosingEntries')}</li>
+                <li>{t('fiscalYearPage.stepCarryForward')}</li>
+                <li>{t('fiscalYearPage.stepLegalDocs')}</li>
               </ul>
             </div>
           </div>
@@ -644,7 +652,7 @@ const ExercicePage: React.FC = () => {
 
                 {/* Basic Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations Générales</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fiscalYearPage.generalInfo')}</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Libellé de l'exercice *</label>
@@ -655,7 +663,7 @@ const ExercicePage: React.FC = () => {
                         disabled={isSubmitting}
                       />
                       {errors.libelle && (
-                        <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>
+                        <p className="mt-1 text-sm text-red-600">{VALIDATION_KEY[errors.libelle] ? t(VALIDATION_KEY[errors.libelle]) : errors.libelle}</p>
                       )}
                     </div>
                     <div>
@@ -690,7 +698,7 @@ const ExercicePage: React.FC = () => {
                     </Button>
                     {(errors.date_debut || errors.date_fin) && (
                       <p className="text-sm text-red-600">
-                        {errors.date_debut || errors.date_fin}
+                        {(() => { const e = errors.date_debut || errors.date_fin; return VALIDATION_KEY[e] ? t(VALIDATION_KEY[e]) : e; })()}
                       </p>
                     )}
                     {formData.date_debut && formData.date_fin && (
@@ -748,7 +756,7 @@ const ExercicePage: React.FC = () => {
                   <h3 className="text-md font-medium text-gray-900 mb-3">Plan Comptable</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Référentiel comptable *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('fiscalYearPage.accountingReferential')}</label>
                       <Select
                         value={formData.plan_comptable}
                         onValueChange={(value) => handleInputChange('plan_comptable', value)}
@@ -758,7 +766,7 @@ const ExercicePage: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="syscohada">SYSCOHADA</SelectItem>
-                          <SelectItem value="pcg">Plan Comptable Général</SelectItem>
+                          <SelectItem value="pcg">{t('fiscalYearPage.pcgLabel')}</SelectItem>
                           <SelectItem value="ifrs">IFRS</SelectItem>
                         </SelectContent>
                       </Select>
@@ -771,7 +779,7 @@ const ExercicePage: React.FC = () => {
 
                 {/* Additional Settings */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Paramètres Avancés</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('fiscalYearPage.advancedSettings')}</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <input

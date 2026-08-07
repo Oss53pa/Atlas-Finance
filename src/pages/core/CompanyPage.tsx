@@ -24,6 +24,7 @@ import {
   Textarea
 } from '../../components/ui';
 import { companyService } from '../../services/company.service';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDate } from '../../lib/utils';
 import { formatCurrency } from '@/utils/formatters';
 import { toast } from 'react-hot-toast';
@@ -33,6 +34,7 @@ const CompanyPage: React.FC = () => {
   const [formData, setFormData] = useState<Record<string, unknown>>({});
 
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   // Fetch company information
   const { data: company, isLoading } = useQuery({
@@ -50,12 +52,12 @@ const CompanyPage: React.FC = () => {
   const updateCompanyMutation = useMutation({
     mutationFn: companyService.updateCompany,
     onSuccess: () => {
-      toast.success('Informations société mises à jour');
+      toast.success(t('companyPage.updated'));
       setIsEditMode(false);
       queryClient.invalidateQueries({ queryKey: ['company'] });
     },
     onError: () => {
-      toast.error('Erreur lors de la mise à jour');
+      toast.error(t('companyPage.updateError'));
     }
   });
 
@@ -176,7 +178,7 @@ const CompanyPage: React.FC = () => {
                   <Input
                     value={(formData.numero_rccm as string) || ''}
                     onChange={(e) => handleChange('numero_rccm', e.target.value)}
-                    placeholder="Numéro RCCM"
+                    placeholder={t('companyPage.rccmPlaceholder')}
                   />
                 ) : (
                   <p className="text-gray-900 font-mono">{company?.numero_rccm}</p>
@@ -191,7 +193,7 @@ const CompanyPage: React.FC = () => {
                   <Input
                     value={(formData.numero_fiscal as string) || ''}
                     onChange={(e) => handleChange('numero_fiscal', e.target.value)}
-                    placeholder="Numéro d'identification fiscale"
+                    placeholder={t('companyPage.taxIdPlaceholder')}
                   />
                 ) : (
                   <p className="text-gray-900 font-mono">{company?.numero_fiscal}</p>
@@ -207,7 +209,7 @@ const CompanyPage: React.FC = () => {
                   <Textarea
                     value={(formData.adresse as string) || ''}
                     onChange={(e) => handleChange('adresse', e.target.value)}
-                    placeholder="Adresse complète de la société"
+                    placeholder={t('companyPage.addressPlaceholder')}
                     rows={3}
                   />
                 ) : (
@@ -266,7 +268,7 @@ const CompanyPage: React.FC = () => {
                         {company.site_web}
                       </a>
                     ) : (
-                      'Non renseigné'
+                      t('companyPage.notProvided')
                     )}
                   </p>
                 )}
@@ -293,7 +295,7 @@ const CompanyPage: React.FC = () => {
                   variant={company?.active ? 'default' : 'outline'}
                   className={company?.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
                 >
-                  {company?.active ? 'Société active' : 'Société inactive'}
+                  {t(company?.active ? 'companyPage.companyActive' : 'companyPage.companyInactive')}
                 </Badge>
               </div>
 
@@ -312,7 +314,7 @@ const CompanyPage: React.FC = () => {
                 <p className="text-gray-900 font-semibold">
                   {company?.capital_social ?
                     formatCurrency(company.capital_social) :
-                    'Non renseigné'
+                    t('companyPage.notProvided')
                   }
                 </p>
               </div>
@@ -331,7 +333,7 @@ const CompanyPage: React.FC = () => {
                   Régime fiscal
                 </label>
                 <p className="text-gray-900">
-                  {company?.regime_fiscal || 'Régime réel'}
+                  {company?.regime_fiscal || t('companyPage.defaultTaxRegime')}
                 </p>
               </div>
 

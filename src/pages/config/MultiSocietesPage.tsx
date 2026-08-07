@@ -200,7 +200,7 @@ const MultiSocietesPage: React.FC = () => {
   };
 
   const handleCreateCompany = async () => {
-    const name = window.prompt('Nom de la nouvelle société :')?.trim();
+    const name = window.prompt(t('multiCompanies.newCompanyPrompt'))?.trim();
     if (!name) return;
     const now = new Date().toISOString();
     const company: Company = {
@@ -211,7 +211,7 @@ const MultiSocietesPage: React.FC = () => {
       users_count: 0, transactions_count: 0, consolidation_level: 0,
     };
     await saveCompanies([...companies, company]);
-    toast.success('Société créée');
+    toast.success(t('multiCompanies.companyCreated'));
   };
 
   const handleEditCompany = async (companyId: string) => {
@@ -220,15 +220,15 @@ const MultiSocietesPage: React.FC = () => {
     const name = window.prompt('Nom de la société :', c.name)?.trim();
     if (!name) return;
     await saveCompanies(companies.map(x => x.id === companyId ? { ...x, name, last_activity: new Date().toISOString() } : x));
-    toast.success('Société mise à jour');
+    toast.success(t('multiCompanies.companyUpdated'));
   };
 
   const handleDeleteCompany = async (companyId: string) => {
     const c = companies.find(x => x.id === companyId);
-    if (c?.is_parent) { toast.error('La société mère ne peut pas être supprimée.'); return; }
+    if (c?.is_parent) { toast.error(t('multiCompanies.parentCannotDelete')); return; }
     if (!window.confirm(`Supprimer la société « ${c?.name} » ?`)) return;
     await saveCompanies(companies.filter(x => x.id !== companyId));
-    toast.success('Société supprimée');
+    toast.success(t('multiCompanies.companyDeleted'));
   };
 
   const handleSwitchCompany = async (companyId: string) => {
@@ -239,7 +239,7 @@ const MultiSocietesPage: React.FC = () => {
   };
 
   const handleConsolidation = () => {
-    toast('La consolidation multi-entités se pilote depuis Reporting → IFRS (périmètre de consolidation).', { icon: 'ℹ️' });
+    toast(t('multiCompanies.consolidationNotice'), { icon: 'ℹ️' });
   };
 
   const activeCompanies = companies.filter(c => c.status === 'active').length;
@@ -306,7 +306,7 @@ const MultiSocietesPage: React.FC = () => {
                   <Building2 className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Sociétés Actives</p>
+                  <p className="text-sm font-medium text-gray-600">{t('multiCompanies.activeCompanies')}</p>
                   <p className="text-lg font-bold text-blue-700">
                     {activeCompanies}/{companies.length}
                   </p>
@@ -387,7 +387,7 @@ const MultiSocietesPage: React.FC = () => {
       >
         <Tabs defaultValue="companies" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="companies">Liste des Sociétés</TabsTrigger>
+            <TabsTrigger value="companies">{t('multiCompanies.companyList')}</TabsTrigger>
             <TabsTrigger value="consolidation">Consolidation</TabsTrigger>
             <TabsTrigger value="hierarchy">Hiérarchie</TabsTrigger>
             <TabsTrigger value="settings">{t('navigation.settings')}</TabsTrigger>
@@ -401,7 +401,7 @@ const MultiSocietesPage: React.FC = () => {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-700" />
                     <Input
-                      placeholder="Rechercher une société..."
+                      placeholder={t('multiCompanies.searchCompany')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -478,8 +478,8 @@ const MultiSocietesPage: React.FC = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Code/Société</TableHead>
-                          <TableHead>Informations Légales</TableHead>
+                          <TableHead>{t('multiCompanies.colCodeCompany')}</TableHead>
+                          <TableHead>{t('multiCompanies.colLegalInfo')}</TableHead>
                           <TableHead>Localisation</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Hiérarchie</TableHead>
@@ -642,7 +642,7 @@ const MultiSocietesPage: React.FC = () => {
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Filiales consolidées:</h4>
+                          <h4 className="font-medium text-gray-900 mb-2">{t('multiCompanies.consolidatedSubsidiaries')}</h4>
                           <div className="space-y-2">
                             {group.subsidiaries.map((sub, idx) => (
                               <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
@@ -688,12 +688,12 @@ const MultiSocietesPage: React.FC = () => {
           <TabsContent value="hierarchy" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Hiérarchie des Sociétés</CardTitle>
+                <CardTitle>{t('multiCompanies.companyHierarchy')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-12">
                   <Building2 className="h-16 w-16 text-gray-700 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Arbre Hiérarchique</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t('multiCompanies.hierarchyTree')}</h3>
                   <p className="text-gray-700 mb-6">
                     Visualisation graphique de la structure du groupe sera disponible prochainement.
                   </p>
@@ -709,7 +709,7 @@ const MultiSocietesPage: React.FC = () => {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres Multi-Sociétés</CardTitle>
+                <CardTitle>{t('multiCompanies.multiCompanySettings')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -722,7 +722,7 @@ const MultiSocietesPage: React.FC = () => {
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Élimination automatique des écritures interco</span>
+                        <span className="text-sm text-gray-700">{t('multiCompanies.autoIntercoElimination')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" defaultChecked className="form-checkbox" />
@@ -736,11 +736,11 @@ const MultiSocietesPage: React.FC = () => {
                     <div className="space-y-3">
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" defaultChecked className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Isolation des données par société</span>
+                        <span className="text-sm text-gray-700">{t('multiCompanies.dataIsolation')}</span>
                       </label>
                       <label className="flex items-center space-x-3">
                         <input type="checkbox" className="form-checkbox" />
-                        <span className="text-sm text-gray-700">Accès cross-société pour les administrateurs</span>
+                        <span className="text-sm text-gray-700">{t('multiCompanies.crossCompanyAccess')}</span>
                       </label>
                     </div>
                   </div>

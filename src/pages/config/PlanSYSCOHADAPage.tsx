@@ -16,14 +16,24 @@ import { useDataTable } from '../../hooks/useDataTable';
 import type { QueryParams, PaginatedResponse } from '../../services/api.service';
 import { z } from 'zod';
 
+/** Le schéma porte des CODES d'erreur, pas des messages : la validation ne
+ *  connaît pas la langue, c'est l'affichage qui traduit. */
+const VALIDATION_KEY: Record<string, string> = {
+  code_required: 'planSyscohada.codeRequired',
+  code_numeric: 'planSyscohada.codeNumeric',
+  label_required: 'planSyscohada.labelRequired',
+  class_required: 'planSyscohada.classRequired',
+  type_invalid: 'planSyscohada.typeInvalid',
+};
+
 // Schema correct pour un compte SYSCOHADA (distinct du schéma Journal)
 const createCompteSchema = z.object({
-  code: z.string().min(1, 'Code requis').regex(/^\d+$/, 'Code doit être numérique'),
-  libelle: z.string().min(1, 'Libellé requis'),
+  code: z.string().min(1, 'code_required').regex(/^\d+$/, 'code_numeric'),
+  libelle: z.string().min(1, 'label_required'),
   type: z.enum(['general', 'detail', 'collectif', 'auxiliaire'], {
-    errorMap: () => ({ message: 'Type invalide' }),
+    errorMap: () => ({ message: 'type_invalid' }),
   }),
-  classe: z.string().min(1, 'Classe requise'),
+  classe: z.string().min(1, 'class_required'),
   description: z.string().optional(),
   actif: z.boolean().default(true),
 });
@@ -68,14 +78,17 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // Plan comptable SYSCOHADA par classes
+  // Plan comptable SYSCOHADA par classes.
+  // Les libellés de comptes sont le RÉFÉRENTIEL NORMATIF OHADA (mêmes intitulés
+  // que src/data/syscohada-referentiel.ts) : ce sont des dénominations
+  // comptables légales, pas du texte d'''interface — ils ne se traduisent pas.
   const planComptable = {
     '1': {
-      nom: 'Comptes de ressources durables',
+      nom: t('planSyscohada.cls1'),
       shortName: 'Ressources durables',
       color: '#15803D',
       icon: Building2,
-      description: 'Capitaux propres et ressources assimilées',
+      description: t('planSyscohada.cls1Desc'),
       comptes: [
         {
           code: '10',
@@ -157,11 +170,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '2': {
-      nom: 'Actif immobilisé',
+      nom: t('planSyscohada.cls2'),
       shortName: 'Immobilisations',
       color: '#235A6E',
       icon: Building2,
-      description: 'Immobilisations corporelles et incorporelles',
+      description: t('planSyscohada.cls2Desc'),
       comptes: [
         {
           code: '20',
@@ -223,11 +236,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '3': {
-      nom: 'Comptes de stocks',
+      nom: t('planSyscohada.cls3'),
       shortName: 'Stocks',
       color: '#E65100',
       icon: Package,
-      description: 'Stocks et en-cours',
+      description: t('planSyscohada.cls3Desc'),
       comptes: [
         {
           code: '31',
@@ -278,11 +291,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '4': {
-      nom: 'Comptes de tiers',
+      nom: t('planSyscohada.cls4'),
       shortName: 'Tiers',
       color: '#6A1B9A',
       icon: Users,
-      description: 'Clients, fournisseurs et autres tiers',
+      description: t('planSyscohada.cls4Desc'),
       comptes: [
         {
           code: '40',
@@ -330,11 +343,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '5': {
-      nom: 'Comptes de trésorerie',
+      nom: t('planSyscohada.cls5'),
       shortName: 'Trésorerie',
       color: '#00796B',
       icon: DollarSign,
-      description: 'Comptes financiers et trésorerie',
+      description: t('planSyscohada.cls5Desc'),
       comptes: [
         {
           code: '50',
@@ -373,11 +386,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '6': {
-      nom: 'Comptes de charges',
+      nom: t('planSyscohada.cls6'),
       shortName: 'Charges',
       color: '#C0322B',
       icon: TrendingUp,
-      description: 'Charges des activités ordinaires',
+      description: t('planSyscohada.cls6Desc'),
       comptes: [
         {
           code: '60',
@@ -455,11 +468,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '7': {
-      nom: 'Comptes de produits',
+      nom: t('planSyscohada.cls7'),
       shortName: 'Produits',
       color: '#15803D',
       icon: TrendingUp,
-      description: 'Produits des activités ordinaires',
+      description: t('planSyscohada.cls7Desc'),
       comptes: [
         {
           code: '70',
@@ -524,11 +537,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '8': {
-      nom: 'Comptes des autres charges et produits',
+      nom: t('planSyscohada.cls8'),
       shortName: 'Autres C/P',
       color: '#5D4037',
       icon: FileText,
-      description: 'Charges et produits hors activités ordinaires',
+      description: t('planSyscohada.cls8Desc'),
       comptes: [
         {
           code: '81',
@@ -589,11 +602,11 @@ const PlanSYSCOHADAPage: React.FC = () => {
       ]
     },
     '9': {
-      nom: 'Comptes de la comptabilité analytique',
+      nom: t('planSyscohada.cls9'),
       shortName: 'Analytique',
       color: '#455A64',
       icon: Calculator,
-      description: 'Comptes analytiques et de gestion',
+      description: t('planSyscohada.cls9Desc'),
       comptes: [
         {
           code: '90',
@@ -759,13 +772,13 @@ const PlanSYSCOHADAPage: React.FC = () => {
       });
     },
     onSuccess: () => {
-      toast.success('Compte SYSCOHADA créé avec succès');
+      toast.success(t('planSyscohada.accountCreated'));
       queryClient.invalidateQueries({ queryKey: ['comptes-syscohada'] });
       setShowNewAccountModal(false);
       resetForm();
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Erreur lors de la création du compte');
+      toast.error(error.message || t('planSyscohada.createError'));
     },
   });
 
@@ -838,9 +851,9 @@ const PlanSYSCOHADAPage: React.FC = () => {
           fieldErrors[field] = err.message;
         });
         setErrors(fieldErrors);
-        toast.error('Veuillez corriger les erreurs du formulaire');
+        toast.error(t('planSyscohada.fixFormErrors'));
       } else {
-        toast.error('Erreur lors de la création du compte');
+        toast.error(t('planSyscohada.createError'));
       }
     } finally {
       setIsSubmitting(false);
@@ -882,7 +895,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
   const handleExportPlan = () => {
     try {
       // Export current class accounts as CSV
-      const rows: string[] = ['Code,Libellé,Solde,Statut'];
+      const rows: string[] = [t('planSyscohada.csvHeader')];
       for (const compte of currentClass.comptes) {
         const solde = getSolde(compte.code);
         rows.push(`"${compte.code}","${compte.libelle}",${solde},"${compte.status}"`);
@@ -898,9 +911,9 @@ const PlanSYSCOHADAPage: React.FC = () => {
       a.download = `plan-syscohada-classe${selectedClasse}-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success('Plan comptable exporté');
+      toast.success(t('planSyscohada.chartExported'));
     } catch (err: any) {
-      toast.error(err?.message ?? 'Erreur lors de l\'export');
+      toast.error(err?.message ?? t('planSyscohada.exportError'));
     }
   };
 
@@ -911,7 +924,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
   const handleImportFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    toast('Import de comptes personnalisés : veuillez utiliser le formulaire "Nouveau Compte" pour ajouter des comptes SYSCOHADA.', { icon: 'ℹ️' });
+    toast(t('planSyscohada.importNotice'), { icon: 'ℹ️' });
     e.target.value = '';
   };
 
@@ -919,7 +932,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
   const columns = useMemo(() => [
     {
       key: 'code',
-      label: 'Code',
+      label: t('planSyscohada.colCode'),
       sortable: true,
       render: (compte: Compte) => (
         <div className="flex items-center gap-2">
@@ -966,7 +979,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
     },
     {
       key: 'status',
-      label: 'Statut',
+      label: t('planSyscohada.colStatus'),
       render: (compte: Compte) => getStatusBadge(compte.status)
     }
   ], [currentClass.color, expandedAccounts]);
@@ -1078,7 +1091,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 className="w-full px-3 py-2 bg-[var(--color-background)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                Exporter le plan
+                {t('planSyscohada.exportChart')}
               </button>
               <button className="w-full px-3 py-2 bg-[var(--color-background)] rounded-lg text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2">
                 <Settings className="w-4 h-4" />
@@ -1108,14 +1121,14 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
               >
                 <Upload className="w-4 h-4" />
-                Importer
+                {t('planSyscohada.import')}
               </button>
               <button
                 onClick={handleExportPlan}
                 className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                Exporter
+                {t('planSyscohada.export')}
               </button>
               <button
                 onClick={() => window.print()}
@@ -1129,7 +1142,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Nouveau Compte
+                {t('planSyscohada.newAccount')}
               </button>
             </div>
           </div>
@@ -1139,7 +1152,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--color-text-tertiary)] w-5 h-5" />
             <input
               type="text"
-              placeholder="Rechercher un compte dans cette classe..."
+              placeholder={t('planSyscohada.searchInClass')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-[var(--color-background)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
@@ -1180,7 +1193,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
             actions={[
               {
                 icon: Eye,
-                label: 'Voir détails',
+                label: t('planSyscohada.viewDetails'),
                 onClick: (_compte: Compte) => {}
               },
               {
@@ -1190,7 +1203,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
               },
               {
                 icon: Copy,
-                label: 'Dupliquer',
+                label: t('planSyscohada.duplicate'),
                 onClick: (_compte: Compte) => {}
               }
             ]}
@@ -1249,7 +1262,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                   onClick={() => setSelectedComptes([])}
                   className="px-4 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
                 >
-                  Annuler
+                  {t('planSyscohada.cancel')}
                 </button>
                 <button className="px-4 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-surface-hover)] transition-colors flex items-center gap-2">
                   <Edit className="w-4 h-4" />
@@ -1275,7 +1288,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 <div className="bg-blue-100 text-blue-600 p-2 rounded-lg">
                   <Plus className="w-5 h-5" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Nouveau Compte SYSCOHADA</h2>
+                <h2 className="text-lg font-bold text-gray-900">{t('planSyscohada.newAccountModal')}</h2>
               </div>
               <button
                 onClick={() => {
@@ -1297,7 +1310,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                   <div className="flex items-start space-x-2">
                     <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-blue-900 mb-1">Nouveau Compte</h4>
+                      <h4 className="text-sm font-medium text-blue-900 mb-1">{t('planSyscohada.newAccount')}</h4>
                       <p className="text-sm text-blue-800">Créez un nouveau compte dans la classe {selectedClasse} - {currentClass.shortName}. Le code doit respecter la nomenclature SYSCOHADA.</p>
                     </div>
                   </div>
@@ -1305,10 +1318,10 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
                 {/* Account Information */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Informations du Compte</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('planSyscohada.accountInfo')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Code du compte *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.accountCode')}</label>
                       <Input
                         placeholder={`${selectedClasse}X...`}
                         value={formData.code}
@@ -1316,20 +1329,20 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         disabled={isSubmitting}
                       />
                       {errors.code && (
-                        <p className="mt-1 text-sm text-red-600">{errors.code}</p>
+                        <p className="mt-1 text-sm text-red-600">{VALIDATION_KEY[errors.code] ? t(VALIDATION_KEY[errors.code]) : errors.code}</p>
                       )}
                       <p className="text-xs text-gray-700 mt-1">Doit commencer par {selectedClasse} (classe sélectionnée)</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Libellé du compte *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.accountLabel')}</label>
                       <Input
-                        placeholder="Libellé du compte..."
+                        placeholder={t('planSyscohada.accountLabelPlaceholder')}
                         value={formData.libelle}
                         onChange={(e) => handleInputChange('libelle', e.target.value)}
                         disabled={isSubmitting}
                       />
                       {errors.libelle && (
-                        <p className="mt-1 text-sm text-red-600">{errors.libelle}</p>
+                        <p className="mt-1 text-sm text-red-600">{VALIDATION_KEY[errors.libelle] ? t(VALIDATION_KEY[errors.libelle]) : errors.libelle}</p>
                       )}
                     </div>
                   </div>
@@ -1337,27 +1350,27 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
                 {/* Account Type and Category */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Classification</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('planSyscohada.classification')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Type de compte *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.accountType')}</label>
                       <select
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={formData.type}
                         onChange={(e) => handleInputChange('type', e.target.value)}
                         disabled={isSubmitting}
                       >
-                        <option value="general">Général</option>
-                        <option value="detail">Compte de détail</option>
-                        <option value="collectif">Compte collectif</option>
-                        <option value="auxiliaire">Compte auxiliaire</option>
+                        <option value="general">{t('planSyscohada.typeGeneral')}</option>
+                        <option value="detail">{t('planSyscohada.typeDetail')}</option>
+                        <option value="collectif">{t('planSyscohada.typeCollective')}</option>
+                        <option value="auxiliaire">{t('planSyscohada.typeAuxiliary')}</option>
                       </select>
                       {errors.type && (
-                        <p className="mt-1 text-sm text-red-600">{errors.type}</p>
+                        <p className="mt-1 text-sm text-red-600">{VALIDATION_KEY[errors.type] ? t(VALIDATION_KEY[errors.type]) : errors.type}</p>
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Classe *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.class')}</label>
                       <select
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={formData.classe}
@@ -1374,7 +1387,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         <option value="8">8 - Autres C/P</option>
                       </select>
                       {errors.classe && (
-                        <p className="mt-1 text-sm text-red-600">{errors.classe}</p>
+                        <p className="mt-1 text-sm text-red-600">{VALIDATION_KEY[errors.classe] ? t(VALIDATION_KEY[errors.classe]) : errors.classe}</p>
                       )}
                     </div>
                   </div>
@@ -1382,73 +1395,73 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
                 {/* SYSCOHADA Specifics */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Spécificités SYSCOHADA</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('planSyscohada.syscohadaSpecifics')}</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nature économique</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.economicNature')}</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Sélectionner la nature</option>
                         {selectedClasse === '1' && (
                           <>
-                            <option value="capital">Capital</option>
-                            <option value="reserve">Réserves</option>
-                            <option value="resultat">Résultat</option>
-                            <option value="emprunt">Emprunts</option>
+                            <option value="capital">{t('planSyscohada.natCapital')}</option>
+                            <option value="reserve">{t('planSyscohada.natReserves')}</option>
+                            <option value="resultat">{t('planSyscohada.natResult')}</option>
+                            <option value="emprunt">{t('planSyscohada.natLoans')}</option>
                           </>
                         )}
                         {selectedClasse === '2' && (
                           <>
-                            <option value="incorporel">Immobilisation incorporelle</option>
-                            <option value="terrain">Terrain</option>
-                            <option value="batiment">Bâtiment</option>
-                            <option value="materiel">Matériel</option>
+                            <option value="incorporel">{t('planSyscohada.natIntangible')}</option>
+                            <option value="terrain">{t('planSyscohada.natLand')}</option>
+                            <option value="batiment">{t('planSyscohada.natBuilding')}</option>
+                            <option value="materiel">{t('planSyscohada.natEquipment')}</option>
                           </>
                         )}
                         {selectedClasse === '3' && (
                           <>
-                            <option value="stock">Stock de marchandises</option>
-                            <option value="matiere">Matières premières</option>
-                            <option value="encours">Produits en cours</option>
-                            <option value="fini">Produits finis</option>
+                            <option value="stock">{t('planSyscohada.natGoodsStock')}</option>
+                            <option value="matiere">{t('planSyscohada.natRawMaterials')}</option>
+                            <option value="encours">{t('planSyscohada.natWip')}</option>
+                            <option value="fini">{t('planSyscohada.natFinished')}</option>
                           </>
                         )}
                         {selectedClasse === '4' && (
                           <>
-                            <option value="client">Client</option>
-                            <option value="fournisseur">Fournisseur</option>
-                            <option value="personnel">Personnel</option>
-                            <option value="etat">État</option>
+                            <option value="client">{t('planSyscohada.natCustomer')}</option>
+                            <option value="fournisseur">{t('planSyscohada.natSupplier')}</option>
+                            <option value="personnel">{t('planSyscohada.natStaff')}</option>
+                            <option value="etat">{t('planSyscohada.natState')}</option>
                           </>
                         )}
                         {selectedClasse === '5' && (
                           <>
-                            <option value="banque">Banque</option>
-                            <option value="caisse">Caisse</option>
-                            <option value="titre">Titres de placement</option>
+                            <option value="banque">{t('planSyscohada.natBank')}</option>
+                            <option value="caisse">{t('planSyscohada.natCash')}</option>
+                            <option value="titre">{t('planSyscohada.natSecurities')}</option>
                           </>
                         )}
                         {selectedClasse === '6' && (
                           <>
-                            <option value="achat">Achats</option>
-                            <option value="service">Services extérieurs</option>
-                            <option value="personnel">Charges de personnel</option>
-                            <option value="financier">Charges financières</option>
+                            <option value="achat">{t('planSyscohada.natPurchases')}</option>
+                            <option value="service">{t('planSyscohada.natExternalServices')}</option>
+                            <option value="personnel">{t('planSyscohada.natPayrollCosts')}</option>
+                            <option value="financier">{t('planSyscohada.natFinanceCosts')}</option>
                           </>
                         )}
                         {selectedClasse === '7' && (
                           <>
-                            <option value="vente">Ventes</option>
-                            <option value="production">Production</option>
-                            <option value="financier">Produits financiers</option>
+                            <option value="vente">{t('planSyscohada.natSales')}</option>
+                            <option value="production">{t('planSyscohada.natProduction')}</option>
+                            <option value="financier">{t('planSyscohada.natFinanceIncome')}</option>
                           </>
                         )}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Sens normal</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.normalSide')}</label>
                       <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="debit">Débiteur</option>
-                        <option value="credit">Créditeur</option>
+                        <option value="debit">{t('planSyscohada.sideDebit')}</option>
+                        <option value="credit">{t('planSyscohada.sideCredit')}</option>
                       </select>
                     </div>
                   </div>
@@ -1456,7 +1469,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
                 {/* Additional Parameters */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Paramètres Supplémentaires</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('planSyscohada.additionalSettings')}</h3>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <input
@@ -1465,7 +1478,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <label htmlFor="lettrage" className="text-sm text-gray-700">
-                        Compte lettrable (pour rapprochements)
+                        {t('planSyscohada.lettrable')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -1475,7 +1488,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <label htmlFor="analytique" className="text-sm text-gray-700">
-                        Ventilation analytique obligatoire
+                        {t('planSyscohada.analyticsRequired')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -1485,7 +1498,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <label htmlFor="tiers" className="text-sm text-gray-700">
-                        Gestion des tiers (codes auxiliaires)
+                        {t('planSyscohada.partyManagement')}
                       </label>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -1495,7 +1508,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <label htmlFor="devise" className="text-sm text-gray-700">
-                        Compte multi-devises
+                        {t('planSyscohada.multiCurrency')}
                       </label>
                     </div>
                   </div>
@@ -1503,14 +1516,14 @@ const PlanSYSCOHADAPage: React.FC = () => {
 
                 {/* Notes */}
                 <div>
-                  <h3 className="text-md font-medium text-gray-900 mb-3">Notes et Commentaires</h3>
+                  <h3 className="text-md font-medium text-gray-900 mb-3">{t('planSyscohada.notesComments')}</h3>
                   <div className="grid grid-cols-1 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description détaillée</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">{t('planSyscohada.detailedDescription')}</label>
                       <textarea
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         rows={3}
-                        placeholder="Description détaillée du compte et de son utilisation..."
+                        placeholder={t('planSyscohada.detailedDescriptionPlaceholder')}
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
                         disabled={isSubmitting}
@@ -1529,7 +1542,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
                       <label htmlFor="actif" className="text-sm text-gray-700">
-                        Compte actif
+                        {t('planSyscohada.activeAccount')}
                       </label>
                     </div>
                   </div>
@@ -1547,7 +1560,7 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 disabled={isSubmitting}
                 className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Annuler
+                {t('planSyscohada.cancel')}
               </button>
               <button
                 onClick={handleSubmit}
@@ -1556,12 +1569,12 @@ const PlanSYSCOHADAPage: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Création...</span>
+                    <span>{t('planSyscohada.creating')}</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    <span>Créer le compte</span>
+                    <span>{t('planSyscohada.createAccount')}</span>
                   </>
                 )}
               </button>

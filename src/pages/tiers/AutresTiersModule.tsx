@@ -53,10 +53,12 @@ interface FormData {
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
 
-const CLASSE_INFO: Record<string, { label: string; desc: string; collectifs: { code: string; label: string }[]; color: string; ifrs: string }> = {
+// Le libellé et la description de chaque classe viennent du namespace `otherTp`
+// (`classeLabel43`, `classeDesc43`…), résolus au rendu. Cette table ne porte
+// donc que le paramétrage : comptes collectifs (référentiel SYSCOHADA normatif),
+// couleur et norme IFRS de rattachement.
+const CLASSE_INFO: Record<string, { collectifs: { code: string; label: string }[]; color: string; ifrs: string }> = {
   '43': {
-    label: 'Organismes sociaux',
-    desc: 'CNPS, mutuelles, caisses de retraite',
     collectifs: [
       { code: '431', label: '431 — CNPS / Sécurité sociale' },
       { code: '432', label: '432 — Mutuelles' },
@@ -67,8 +69,6 @@ const CLASSE_INFO: Record<string, { label: string; desc: string; collectifs: { c
     ifrs: 'IAS 19',
   },
   '44': {
-    label: 'État & Collectivités',
-    desc: 'Impôts, TVA, IS, patentes',
     collectifs: [
       { code: '441', label: '441 — État, TVA' },
       { code: '442', label: '442 — État, IS' },
@@ -81,8 +81,6 @@ const CLASSE_INFO: Record<string, { label: string; desc: string; collectifs: { c
     ifrs: 'IAS 12',
   },
   '46': {
-    label: 'Associés / Débiteurs divers',
-    desc: 'Associés, débiteurs transitoires',
     collectifs: [
       { code: '461', label: '461 — Associés, comptes courants' },
       { code: '462', label: '462 — Débiteurs divers' },
@@ -92,8 +90,6 @@ const CLASSE_INFO: Record<string, { label: string; desc: string; collectifs: { c
     ifrs: 'IFRS 9',
   },
   '47': {
-    label: 'Créditeurs divers',
-    desc: 'Créditeurs transitoires, autres',
     collectifs: [
       { code: '471', label: '471 — Créditeurs divers' },
       { code: '472', label: '472 — Versements reçus sur commandes' },

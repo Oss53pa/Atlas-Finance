@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { ArrowLeft, RefreshCw, Link2, Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatCurrency } from '../../utils/formatters';
 import type { DBThirdParty } from '../../lib/db';
 import {
@@ -28,6 +29,7 @@ const PAGE_SIZE = 50;
 const RattachementTiersPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [lines, setLines] = useState<OrphanLine[]>([]);
@@ -187,7 +189,7 @@ const RattachementTiersPage: React.FC = () => {
           <input
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(0); }}
-            placeholder="Libellé, compte, n° de pièce…"
+            placeholder={t('partyLinking.searchPlaceholder')}
             className="pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-sm w-72"
           />
         </div>
@@ -222,7 +224,7 @@ const RattachementTiersPage: React.FC = () => {
               <th className="text-left px-3 py-2 font-medium text-gray-700">Compte</th>
               <th className="text-left px-3 py-2 font-medium text-gray-700">Libellé</th>
               <th className="text-right px-3 py-2 font-medium text-gray-700">Montant</th>
-              <th className="text-left px-3 py-2 font-medium text-gray-700">Tiers proposé</th>
+              <th className="text-left px-3 py-2 font-medium text-gray-700">{t('partyLinking.colProposedParty')}</th>
               <th className="text-center px-3 py-2 font-medium text-gray-700">Action</th>
             </tr>
           </thead>
@@ -270,7 +272,7 @@ const RattachementTiersPage: React.FC = () => {
                       </p>
                     )}
                     {!best && (
-                      <p className="text-[11px] text-gray-400 mt-0.5">aucune correspondance dans le libellé</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{t('partyLinking.noLabelMatch')}</p>
                     )}
                   </td>
                   <td className="px-3 py-2 text-center">

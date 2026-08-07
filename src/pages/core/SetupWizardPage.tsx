@@ -101,43 +101,47 @@ interface SetupData {
   };
 }
 
+// Clés (et non libellés) : ces tables sont figées au chargement du module ;
+// elles se résolvent au rendu via `t(...)`.
 const SETUP_STEPS = [
-  { id: 'company', label: 'Informations Entreprise', icon: Building2, description: 'Identité et coordonnées de votre entreprise' },
-  { id: 'accounting', label: 'Configuration Comptable', icon: Calculator, description: 'Référentiel SYSCOHADA et paramètres comptables' },
-  { id: 'fiscal-year', label: 'Exercice Comptable', icon: Calendar, description: 'Périodes et calendrier comptable' },
-  { id: 'import', label: 'Import Données', icon: Upload, description: 'Récupération des données existantes' },
-  { id: 'review', label: 'Validation', icon: CheckCircle, description: 'Vérification et finalisation' }
+  { id: 'company', labelKey: 'setupWizard.stepCompany', icon: Building2, descKey: 'setupWizard.stepCompanyDesc' },
+  { id: 'accounting', labelKey: 'setupWizard.stepAccounting', icon: Calculator, descKey: 'setupWizard.stepAccountingDesc' },
+  { id: 'fiscal-year', labelKey: 'setupWizard.stepFiscalYear', icon: Calendar, descKey: 'setupWizard.stepFiscalYearDesc' },
+  { id: 'import', labelKey: 'setupWizard.stepImport', icon: Upload, descKey: 'setupWizard.stepImportDesc' },
+  { id: 'review', labelKey: 'setupWizard.stepReview', icon: CheckCircle, descKey: 'setupWizard.stepReviewDesc' }
 ];
 
-const SECTEURS_ACTIVITE = [
-  'Agriculture, élevage, chasse et sylviculture',
-  'Pêche, aquaculture',
-  'Industries extractives',
-  'Industries manufacturières',
-  'Production et distribution d\'électricité, gaz, eau',
-  'Construction',
-  'Commerce de gros et de détail; réparations',
-  'Hôtels et restaurants',
-  'Transports, entrepôts et communications',
-  'Activités financières',
-  'Immobilier, location et services aux entreprises',
-  'Administration publique',
-  'Éducation',
-  'Santé et action sociale',
-  'Services collectifs, sociaux et personnels'
+/** La VALEUR stockée reste le libellé français canonique (elle part en base) ;
+ *  seule sa présentation est traduite. */
+const SECTEURS_ACTIVITE: Array<[value: string, key: string]> = [
+  ['Agriculture, élevage, chasse et sylviculture', 'setupWizard.sectAgriculture'],
+  ['Pêche, aquaculture', 'setupWizard.sectFishing'],
+  ['Industries extractives', 'setupWizard.sectMining'],
+  ['Industries manufacturières', 'setupWizard.sectManufacturing'],
+  ["Production et distribution d'électricité, gaz, eau", 'setupWizard.sectUtilities'],
+  ['Construction', 'setupWizard.sectConstruction'],
+  ['Commerce de gros et de détail; réparations', 'setupWizard.sectTrade'],
+  ['Hôtels et restaurants', 'setupWizard.sectHospitality'],
+  ['Transports, entrepôts et communications', 'setupWizard.sectTransport'],
+  ['Activités financières', 'setupWizard.sectFinance'],
+  ['Immobilier, location et services aux entreprises', 'setupWizard.sectRealEstate'],
+  ['Administration publique', 'setupWizard.sectPublicAdmin'],
+  ['Éducation', 'setupWizard.sectEducation'],
+  ['Santé et action sociale', 'setupWizard.sectHealth'],
+  ['Services collectifs, sociaux et personnels', 'setupWizard.sectCommunity'],
 ];
 
-const FORMES_JURIDIQUES = [
-  'Société Anonyme (SA)',
-  'Société à Responsabilité Limitée (SARL)',
-  'Société en Nom Collectif (SNC)',
-  'Société en Commandite Simple (SCS)',
-  'Entreprise Individuelle',
-  'Société Unipersonnelle à Responsabilité Limitée (SUARL)',
-  'Groupement d\'Intérêt Économique (GIE)',
-  'Société Coopérative',
-  'Association',
-  'Autre'
+const FORMES_JURIDIQUES: Array<[value: string, key: string]> = [
+  ['Société Anonyme (SA)', 'setupWizard.legalSa'],
+  ['Société à Responsabilité Limitée (SARL)', 'setupWizard.legalSarl'],
+  ['Société en Nom Collectif (SNC)', 'setupWizard.legalSnc'],
+  ['Société en Commandite Simple (SCS)', 'setupWizard.legalScs'],
+  ['Entreprise Individuelle', 'setupWizard.legalSole'],
+  ['Société Unipersonnelle à Responsabilité Limitée (SUARL)', 'setupWizard.legalSuarl'],
+  ["Groupement d'Intérêt Économique (GIE)", 'setupWizard.legalGie'],
+  ['Société Coopérative', 'setupWizard.legalCoop'],
+  ['Association', 'setupWizard.legalAssociation'],
+  ['Autre', 'setupWizard.legalOther'],
 ];
 
 const SetupWizardPage: React.FC = () => {
@@ -195,12 +199,12 @@ const SetupWizardPage: React.FC = () => {
       // Simulation API call pour finaliser la configuration
       return new Promise((resolve) => {
         setTimeout(() => {
-          resolve({ success: true, message: 'Configuration terminée avec succès' });
+          resolve({ success: true, message: t('setupWizard.setupDone') });
         }, 2000);
       });
     },
     onSuccess: () => {
-      toast.success('Configuration terminée avec succès !');
+      toast.success(t('setupWizard.setupDoneToast'));
       window.location.href = '/dashboard';
     }
   });
@@ -249,11 +253,11 @@ const SetupWizardPage: React.FC = () => {
           <Label htmlFor="formeJuridique">Forme Juridique *</Label>
           <Select onValueChange={(value) => methods.setValue('company.formeJuridique', value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Sélectionner une forme" />
+              <SelectValue placeholder={t('setupWizard.selectLegalForm')} />
             </SelectTrigger>
             <SelectContent>
-              {FORMES_JURIDIQUES.map((forme) => (
-                <SelectItem key={forme} value={forme}>{forme}</SelectItem>
+              {FORMES_JURIDIQUES.map(([value, key]) => (
+                <SelectItem key={value} value={value}>{t(key)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -278,7 +282,7 @@ const SetupWizardPage: React.FC = () => {
         </div>
 
         <div>
-          <Label htmlFor="numeroContribuable">Numéro Contribuable</Label>
+          <Label htmlFor="numeroContribuable">{t('setupWizard.taxpayerNumber')}</Label>
           <Input
             id="numeroContribuable"
             {...methods.register('company.numeroContribuable')}
@@ -293,8 +297,8 @@ const SetupWizardPage: React.FC = () => {
               <SelectValue placeholder="Sélectionner un secteur" />
             </SelectTrigger>
             <SelectContent>
-              {SECTEURS_ACTIVITE.map((secteur) => (
-                <SelectItem key={secteur} value={secteur}>{secteur}</SelectItem>
+              {SECTEURS_ACTIVITE.map(([value, key]) => (
+                <SelectItem key={value} value={value}>{t(key)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -302,11 +306,11 @@ const SetupWizardPage: React.FC = () => {
       </div>
 
       <div>
-        <Label htmlFor="adresse">Adresse Siège Social *</Label>
+        <Label htmlFor="adresse">{t('setupWizard.headOfficeAddress')}</Label>
         <Input
           id="adresse"
           {...methods.register('company.adresse', { required: 'Adresse requise' })}
-          placeholder="Adresse complète du siège social"
+          placeholder={t('setupWizard.headOfficeAddressPlaceholder')}
         />
       </div>
 
@@ -386,7 +390,7 @@ const SetupWizardPage: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Référentiel SYSCOHADA</CardTitle>
+            <CardTitle className="text-lg">{t('setupWizard.syscohadaFramework')}</CardTitle>
           </CardHeader>
           <CardContent>
             <RadioGroup 
@@ -397,7 +401,7 @@ const SetupWizardPage: React.FC = () => {
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                 <RadioGroupItem value="SYSCOHADA_NORMAL" id="normal" />
                 <div className="flex-1">
-                  <Label htmlFor="normal" className="font-medium">Système Normal</Label>
+                  <Label htmlFor="normal" className="font-medium">{t('setupWizard.systemNormal')}</Label>
                   <p className="text-sm text-gray-600 mt-1">
                     Pour entreprises avec CA {">"} 100M XAF. Plan comptable complet, tous états obligatoires.
                   </p>
@@ -408,7 +412,7 @@ const SetupWizardPage: React.FC = () => {
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                 <RadioGroupItem value="SYSCOHADA_ALLEGE" id="allege" />
                 <div className="flex-1">
-                  <Label htmlFor="allege" className="font-medium">Système Allégé</Label>
+                  <Label htmlFor="allege" className="font-medium">{t('setupWizard.systemSimplified')}</Label>
                   <p className="text-sm text-gray-600 mt-1">
                     Pour PME avec 30M {"<"} CA {"<"} 100M XAF. États simplifiés, comptabilité réduite.
                   </p>
@@ -418,7 +422,7 @@ const SetupWizardPage: React.FC = () => {
               <div className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                 <RadioGroupItem value="SYSCOHADA_MINIMAL" id="minimal" />
                 <div className="flex-1">
-                  <Label htmlFor="minimal" className="font-medium">Système Minimal</Label>
+                  <Label htmlFor="minimal" className="font-medium">{t('setupWizard.systemMinimal')}</Label>
                   <p className="text-sm text-gray-600 mt-1">
                     Pour très petites entreprises CA {"<"} 30M XAF. Tenue simplifiée.
                   </p>
@@ -437,10 +441,10 @@ const SetupWizardPage: React.FC = () => {
               <Label htmlFor="planComptable">Type de Plan</Label>
               <Select onValueChange={(value: string) => methods.setValue('accounting.planComptable', value as SetupData['accounting']['planComptable'])}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Plan Général" />
+                  <SelectValue placeholder={t('setupWizard.generalPlan')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="GENERAL">Plan Général</SelectItem>
+                  <SelectItem value="GENERAL">{t('setupWizard.generalPlan')}</SelectItem>
                   <SelectItem value="BANQUE">Plan Bancaire</SelectItem>
                   <SelectItem value="ASSURANCE">Plan Assurance</SelectItem>
                   <SelectItem value="MICROFINANCE">Plan Microfinance</SelectItem>
@@ -458,7 +462,7 @@ const SetupWizardPage: React.FC = () => {
                   <SelectItem value="6">6 positions (minimal)</SelectItem>
                   <SelectItem value="7">7 positions</SelectItem>
                   <SelectItem value="8">8 positions</SelectItem>
-                  <SelectItem value="9">9 positions (recommandé)</SelectItem>
+                  <SelectItem value="9">{t('setupWizard.positions9')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -483,7 +487,7 @@ const SetupWizardPage: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Comptabilité Analytique</CardTitle>
+          <CardTitle className="text-lg">{t('setupWizard.costAccounting')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center space-x-2">
@@ -545,7 +549,7 @@ const SetupWizardPage: React.FC = () => {
             id="dateDebut"
             type="date"
             {...methods.register('fiscalYear.dateDebut', { 
-              required: 'Date de début requise',
+              required: t('setupWizard.startDateRequired'),
               valueAsDate: true 
             })}
           />
@@ -571,7 +575,7 @@ const SetupWizardPage: React.FC = () => {
       </div>
 
       <div>
-        <Label>Périodes Comptables</Label>
+        <Label>{t('setupWizard.accountingPeriods')}</Label>
         <RadioGroup 
           value={methods.watch('fiscalYear.periodesComptables')} 
           onValueChange={(value: string) => methods.setValue('fiscalYear.periodesComptables', value as SetupData['fiscalYear']['periodesComptables'])}
@@ -579,15 +583,15 @@ const SetupWizardPage: React.FC = () => {
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="MENSUELLES" id="mensuelles" />
-            <Label htmlFor="mensuelles">12 périodes mensuelles (recommandé)</Label>
+            <Label htmlFor="mensuelles">{t('setupWizard.periods12')}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="TRIMESTRIELLES" id="trimestrielles" />
-            <Label htmlFor="trimestrielles">4 périodes trimestrielles</Label>
+            <Label htmlFor="trimestrielles">{t('setupWizard.periods4')}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="PERSONNALISEES" id="personnalisees" />
-            <Label htmlFor="personnalisees">Périodes personnalisées</Label>
+            <Label htmlFor="personnalisees">{t('setupWizard.periodsCustom')}</Label>
           </div>
         </RadioGroup>
       </div>
@@ -601,11 +605,11 @@ const SetupWizardPage: React.FC = () => {
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="MENSUELLE" id="cloture-mensuelle" />
-            <Label htmlFor="cloture-mensuelle">Clôture mensuelle (recommandé)</Label>
+            <Label htmlFor="cloture-mensuelle">{t('setupWizard.closingMonthly')}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="TRIMESTRIELLE" id="cloture-trimestrielle" />
-            <Label htmlFor="cloture-trimestrielle">Clôture trimestrielle</Label>
+            <Label htmlFor="cloture-trimestrielle">{t('setupWizard.closingQuarterly')}</Label>
           </div>
         </RadioGroup>
       </div>
@@ -820,7 +824,7 @@ const SetupWizardPage: React.FC = () => {
               <div><strong>RCCM:</strong> {formData.company.rccm}</div>
               <div><strong>NIF:</strong> {formData.company.nif}</div>
               <div><strong>Secteur:</strong> {formData.company.secteurActivite}</div>
-              <div><strong>Multi-établissements:</strong> {formData.company.multiEtablissements ? 'Oui' : 'Non'}</div>
+              <div><strong>{t('setupWizard.multiEstablishments')}</strong> {t(formData.company.multiEtablissements ? 'setupWizard.yes' : 'setupWizard.no')}</div>
             </CardContent>
           </Card>
 
@@ -847,19 +851,19 @@ const SetupWizardPage: React.FC = () => {
               <div><strong>Fin:</strong> {formData.fiscalYear.dateFin.toLocaleDateString('fr-FR')}</div>
               <div><strong>Périodes:</strong> {formData.fiscalYear.periodesComptables}</div>
               <div><strong>Clôture:</strong> {formData.fiscalYear.clotureMode}</div>
-              <div><strong>Exercice Décalé:</strong> {formData.fiscalYear.exerciceDecale ? 'Oui' : 'Non'}</div>
+              <div><strong>{t('setupWizard.offsetFiscalYear')}</strong> {t(formData.fiscalYear.exerciceDecale ? 'setupWizard.yes' : 'setupWizard.no')}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Imports Programmés</CardTitle>
+              <CardTitle className="text-lg">{t('setupWizard.scheduledImports')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div><strong>Plan Comptable:</strong> {formData.import.importPlanComptable ? 'Fichier sélectionné' : 'Aucun import'}</div>
-              <div><strong>Balance:</strong> {formData.import.importBalance ? 'Fichier sélectionné' : 'Aucun import'}</div>
-              <div><strong>Tiers:</strong> {formData.import.importTiers ? 'Fichier sélectionné' : 'Aucun import'}</div>
-              <div><strong>Immobilisations:</strong> {formData.import.importImmobilisations ? 'Fichier sélectionné' : 'Aucun import'}</div>
+              <div><strong>{t('setupWizard.chartOfAccounts')}</strong> {t(formData.import.importPlanComptable ? 'setupWizard.fileSelected' : 'setupWizard.noImport')}</div>
+              <div><strong>{t('setupWizard.balance')}</strong> {t(formData.import.importBalance ? 'setupWizard.fileSelected' : 'setupWizard.noImport')}</div>
+              <div><strong>{t('setupWizard.parties')}</strong> {t(formData.import.importTiers ? 'setupWizard.fileSelected' : 'setupWizard.noImport')}</div>
+              <div><strong>{t('setupWizard.fixedAssets')}</strong> {t(formData.import.importImmobilisations ? 'setupWizard.fileSelected' : 'setupWizard.noImport')}</div>
             </CardContent>
           </Card>
         </div>
@@ -870,9 +874,9 @@ const SetupWizardPage: React.FC = () => {
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
                 <h3 className="text-lg font-semibold mb-2">Configuration en cours...</h3>
-                <p className="text-gray-600 mb-4">Création de votre environnement comptable</p>
+                <p className="text-gray-600 mb-4">{t('setupWizard.creatingEnvironment')}</p>
                 <Progress value={75} className="w-full" />
-                <p className="text-sm text-gray-700 mt-2">Cette opération peut prendre quelques minutes</p>
+                <p className="text-sm text-gray-700 mt-2">{t('setupWizard.mayTakeMinutes')}</p>
               </div>
             </CardContent>
           </Card>
@@ -890,7 +894,7 @@ const SetupWizardPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-lg font-bold text-gray-900">Assistant de Configuration Atlas FnA</h1>
-                <p className="text-gray-600">Paramétrage initial selon les normes SYSCOHADA</p>
+                <p className="text-gray-600">{t('setupWizard.initialSetup')}</p>
               </div>
               <Badge variant="outline" className="text-sm">
                 Étape {currentStep + 1} sur {SETUP_STEPS.length}
@@ -921,10 +925,10 @@ const SetupWizardPage: React.FC = () => {
                     </div>
                     <div className="mt-2">
                       <p className={`text-sm font-medium ${isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-700'}`}>
-                        {step.label}
+                        {t(step.labelKey)}
                       </p>
                       <p className="text-xs text-gray-700 max-w-24 mt-1">
-                        {step.description}
+                        {t(step.descKey)}
                       </p>
                     </div>
                   </div>
@@ -942,7 +946,7 @@ const SetupWizardPage: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-2">
                 {React.createElement(SETUP_STEPS[currentStep].icon, { className: "h-6 w-6" })}
-                {SETUP_STEPS[currentStep].label}
+                {t(SETUP_STEPS[currentStep].labelKey)}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8">

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '../../hooks/useToast';
 import FeatureGuard from '../../components/auth/FeatureGuard';
 import { formatCurrency } from '../../utils/formatters';
@@ -20,6 +21,7 @@ interface Site {
 
 const MultiSitesPage: React.FC = () => {
   const { adapter } = useData();
+  const { t } = useLanguage();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [sites, setSites] = useState<Site[]>([]);
@@ -70,7 +72,7 @@ const MultiSitesPage: React.FC = () => {
     }
 
     await saveSites(list);
-    toast.success(editingSite ? 'Site mis à jour' : 'Site créé');
+    toast.success(t(editingSite ? 'multiSites.siteUpdated' : 'multiSites.siteCreated'));
     setShowModal(false);
     setEditingSite(null);
     loadSites();
@@ -79,7 +81,7 @@ const MultiSitesPage: React.FC = () => {
   const handleDelete = async (siteId: string) => {
     const list = sites.map(s => s.id === siteId ? { ...s, actif: false } : s);
     await saveSites(list);
-    toast.success('Site supprimé');
+    toast.success(t('multiSites.siteDeleted'));
     loadSites();
   };
 
@@ -98,7 +100,7 @@ const MultiSitesPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-[var(--color-primary)]">Multi-Sites</h1>
-                <p className="text-sm text-[var(--color-text-tertiary)]">Gestion des établissements et succursales</p>
+                <p className="text-sm text-[var(--color-text-tertiary)]">{t('multiSites.subtitle')}</p>
               </div>
             </div>
             <button onClick={() => { setEditingSite(null); setShowModal(true); }}
@@ -131,8 +133,8 @@ const MultiSitesPage: React.FC = () => {
           ) : sites.length === 0 ? (
             <div className="p-12 text-center text-[var(--color-text-tertiary)]">
               <Building2 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p className="font-medium">Aucun site enregistré</p>
-              <p className="text-sm mt-1">Ajoutez vos établissements et succursales</p>
+              <p className="font-medium">{t('multiSites.noSite')}</p>
+              <p className="text-sm mt-1">{t('multiSites.noSiteHint')}</p>
             </div>
           ) : (
             <table className="w-full">
