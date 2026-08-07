@@ -4,9 +4,9 @@ Généré automatiquement depuis le code. Trois langues : fr (référence), en, 
 
 ## État
 
-- Clés de traduction : **13864** par langue (fr / en / es)
-- Fichiers .tsx contenant encore des chaînes françaises : **176** (dont **132** sans aucun `useLanguage()`)
-- Lignes concernées : **1356**
+- Clés de traduction : **14265** par langue (fr / en / es)
+- Fichiers .tsx contenant encore des chaînes françaises : **171** (dont **127** sans aucun `useLanguage()`)
+- Lignes concernées : **1138**
 
 Modules entièrement traduits :
 
@@ -24,24 +24,22 @@ Modules entièrement traduits :
 
 | Répertoire | Lignes FR |
 |---|---:|
-| `src/pages/tiers` | 136 |
-| `src/pages/core` | 89 |
-| `src/pages/config` | 82 |
+| `src/pages/tiers` | 127 |
 | `src/pages/financial` | 78 |
-| `src/components/admin/sections` | 76 |
 | `src/pages/reporting` | 72 |
 | `src/pages/treasury` | 58 |
-| `src/components/financial` | 45 |
 | `src/pages/platform` | 44 |
 | `src/components/demo` | 43 |
 | `src/pages/stock` | 43 |
 | `src/pages/security` | 41 |
 | `src/pages` | 39 |
+| `src/pages/config` | 35 |
 | `src/pages/accounting` | 35 |
 | `src/pages/assets` | 34 |
 | `src/pages/admin-console` | 34 |
 | `src/pages/onboarding` | 34 |
 | `src/pages/analytics` | 34 |
+| `src/components/admin/sections` | 33 |
 | `src/features/report-builder/components/sidebar` | 32 |
 | `src/components/accounting` | 31 |
 | `src/features/report-builder/components` | 29 |
@@ -51,6 +49,7 @@ Modules entièrement traduits :
 | `src/components/tasks` | 14 |
 | `src/pages/cabinet` | 14 |
 | `src/pages/settings` | 14 |
+| `src/pages/core` | 14 |
 | `src/pages/integration` | 13 |
 | `src/pages/admin/sections` | 11 |
 | `src/pages/taxation` | 11 |
@@ -76,6 +75,7 @@ Modules entièrement traduits :
 | `src/pages/auth` | 2 |
 | `src/pages/budgeting` | 2 |
 | `src/components/auth` | 1 |
+| `src/components/financial` | 1 |
 | `src/components/budget` | 1 |
 
 ## Les 40 fichiers les plus concernés
@@ -83,12 +83,8 @@ Modules entièrement traduits :
 | Fichier | Lignes FR | i18n |
 |---|---:|---|
 | `src/pages/tiers/RecouvrementModule.tsx` | 103 | partiel |
-| `src/pages/config/PlanSYSCOHADAPage.tsx` | 59 | partiel |
-| `src/pages/core/SetupWizardPage.tsx` | 48 | partiel |
-| `src/components/financial/CashFlowStatementSYSCOHADA.tsx` | 45 | aucun |
-| `src/components/admin/sections/AdminBackup.tsx` | 43 | aucun |
+| `src/pages/config/PlanSYSCOHADAPage.tsx` | 35 | partiel |
 | `src/pages/DemoPage.tsx` | 35 | aucun |
-| `src/pages/core/ExercicePage.tsx` | 32 | partiel |
 | `src/pages/financial/CompteResultatPage.tsx` | 29 | partiel |
 | `src/features/report-builder/components/sidebar/AtlasCatalogPanel.tsx` | 27 | aucun |
 | `src/pages/reporting/ReportingIFRS.tsx` | 22 | partiel |
@@ -98,10 +94,8 @@ Modules entièrement traduits :
 | `src/pages/security/RolesPage.tsx` | 20 | partiel |
 | `src/pages/validation/BannettePage.tsx` | 19 | aucun |
 | `src/pages/security/SecurityDashboard.tsx` | 19 | aucun |
-| `src/pages/config/MultiSocietesPage.tsx` | 18 | partiel |
 | `src/pages/financial/FinancialAnalysisPage.tsx` | 18 | aucun |
 | `src/pages/accounting/AccountingDashboard.tsx` | 18 | partiel |
-| `src/pages/tiers/AutresTiersModule.tsx` | 18 | partiel |
 | `src/pages/analytics/AnalyticalAxesPage.tsx` | 18 | aucun |
 | `src/pages/assets/AssetsMaintenance.tsx` | 17 | partiel |
 | `src/pages/analytics/CostCentersPage.tsx` | 16 | aucun |
@@ -110,9 +104,11 @@ Modules entièrement traduits :
 | `src/pages/reporting/DashboardsPage.tsx` | 15 | partiel |
 | `src/components/tasks/CompleteTasksModule.tsx` | 14 | partiel |
 | `src/pages/reporting/ReportingDashboard.tsx` | 14 | aucun |
+| `src/pages/core/SetupWizardPage.tsx` | 13 | partiel |
 | `src/components/accounting/JournalDashboard.tsx` | 12 | partiel |
 | `src/components/demo/InteractiveTaxDemo.tsx` | 12 | aucun |
 | `src/components/demo/InteractiveBilanDemo.tsx` | 12 | aucun |
+| `src/pages/tiers/AutresTiersModule.tsx` | 12 | partiel |
 | `src/pages/treasury/TreasuryDashboard.tsx` | 12 | aucun |
 | `src/pages/stock/MaterialsPage.tsx` | 12 | aucun |
 | `src/components/admin/sections/AdminCompany.tsx` | 11 | aucun |
@@ -122,6 +118,10 @@ Modules entièrement traduits :
 | `src/components/demo/InteractiveEntryDemo.tsx` | 10 | aucun |
 | `src/pages/platform/ClientAuditTrail.tsx` | 10 | aucun |
 | `src/pages/onboarding/PremierConnexionPage.tsx` | 10 | aucun |
+| `src/pages/treasury/BankMovementsPage.tsx` | 10 | partiel |
+| `src/components/accounting/GrandLivre.tsx` | 9 | partiel |
+| `src/components/demo/GuidedTourOverlay.tsx` | 9 | aucun |
+| `src/pages/financial/FinancialStatementsIndexPage.tsx` | 9 | aucun |
 
 ## Convention appliquée
 

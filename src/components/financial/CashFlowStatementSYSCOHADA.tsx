@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { useQuery } from '@tanstack/react-query';
 import type { DBJournalEntry } from '../../lib/db';
@@ -97,6 +98,7 @@ const Row = ({ label, value, indent, bold, sign, bg }: { label: string; value: n
 };
 
 const CashFlowStatementSYSCOHADA: React.FC = () => {
+  const { t } = useLanguage();
   const fmt = useMoneyFormat();
   const { adapter } = useData();
   const [activeTab, setActiveTab] = useState<'indirect' | 'direct'>('indirect');
@@ -272,7 +274,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
   if (!currentData) {
     return (
       <div className="text-center p-8">
-        <p className="text-[var(--color-primary)]/50">Aucune donnée de tableau de flux disponible</p>
+        <p className="text-[var(--color-primary)]/50">{t('cashFlowStatement.noData')}</p>
       </div>
     );
   }
@@ -295,7 +297,7 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-2">
               {d.isCashFlowBalanced ? <CheckCircleIcon className="h-5 w-5 text-green-500" /> : <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />}
-              <span className="text-sm font-medium">{d.isCashFlowBalanced ? 'Flux équilibrés' : 'Flux déséquilibrés'}</span>
+              <span className="text-sm font-medium">{t(d.isCashFlowBalanced ? 'cashFlowStatement.balanced' : 'cashFlowStatement.unbalanced')}</span>
             </div>
             <button className="flex items-center space-x-2 px-3 py-2 border border-[var(--color-border)] rounded-md hover:bg-[var(--color-border)]">
               <ArrowDownTrayIcon className="h-4 w-4" /><span>Export</span>
@@ -332,10 +334,10 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: "Flux d'Exploitation", value: d.operatingCashFlow, sub: activeTab === 'indirect' && indirectData ? `CAF: ${fmt(indirectData.selfFinancingCapacity)}` : 'Encaiss. - Décaiss.' },
-          { label: "Flux d'Investissement", value: d.investmentCashFlow, sub: 'Acquisitions nettes' },
-          { label: 'Flux de Financement', value: d.financingCashFlow, sub: 'Emprunts nets' },
-          { label: 'Variation Trésorerie', value: d.cashFlowVariation, sub: 'Total période' },
+          { label: t('cashFlowStatement.kpiOperating'), value: d.operatingCashFlow, sub: activeTab === 'indirect' && indirectData ? `CAF: ${fmt(indirectData.selfFinancingCapacity)}` : 'Encaiss. - Décaiss.' },
+          { label: t('cashFlowStatement.kpiInvesting'), value: d.investmentCashFlow, sub: t('cashFlowStatement.kpiInvestingSub') },
+          { label: t('cashFlowStatement.kpiFinancing'), value: d.financingCashFlow, sub: t('cashFlowStatement.kpiFinancingSub') },
+          { label: t('cashFlowStatement.kpiVariation'), value: d.cashFlowVariation, sub: t('cashFlowStatement.kpiVariationSub') },
         ].map((kpi, i) => (
           <div key={i} className="bg-[var(--color-surface-hover)] p-5 rounded-lg shadow-sm border border-[var(--color-border)]">
             <p className="text-xs font-medium text-[var(--color-primary)]/60">{kpi.label}</p>
@@ -354,43 +356,43 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
             <table className="min-w-full">
               <thead className="bg-[var(--color-primary)]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-white">TABLEAU DES FLUX DE TRÉSORERIE — Méthode Indirecte</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-white">{t('cashFlowStatement.titleIndirect')}</th>
                   <th className="px-6 py-4 text-right text-sm font-bold text-white w-48">Montant (XAF)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                <SectionHeader title="A. FLUX DE TRÉSORERIE LIÉS À L'ACTIVITÉ" />
-                <Row label="Résultat net de l'exercice" value={indirectData.netResult} indent />
-                <Row label="+ Dotations aux amortissements et provisions" value={indirectData.depreciationAndProvisions} indent sign="+" />
-                <Row label="- Reprises de provisions" value={indirectData.provisionsReversals} indent sign="-" />
-                <Row label="Â± Plus et moins-values de cession" value={indirectData.valueAdjustments} indent />
-                <Row label="= Capacité d'autofinancement (CAF)" value={indirectData.selfFinancingCapacity} bold bg="bg-[var(--color-primary)]/10" />
-                <Row label="- Variation du besoin en fonds de roulement (BFR)" value={indirectData.workingCapitalVariation} indent sign="-" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ À L'ACTIVITÉ (A)" value={indirectData.operatingCashFlow} bold bg="bg-[var(--color-primary)]/20" />
+                <SectionHeader title={t('cashFlowStatement.sectionA')} />
+                <Row label={t('cashFlowStatement.netResult')} value={indirectData.netResult} indent />
+                <Row label={t('cashFlowStatement.depreciation')} value={indirectData.depreciationAndProvisions} indent sign="+" />
+                <Row label={t('cashFlowStatement.provisionsReversals')} value={indirectData.provisionsReversals} indent sign="-" />
+                <Row label={t('cashFlowStatement.valueAdjustments')} value={indirectData.valueAdjustments} indent />
+                <Row label={t('cashFlowStatement.caf')} value={indirectData.selfFinancingCapacity} bold bg="bg-[var(--color-primary)]/10" />
+                <Row label={t('cashFlowStatement.wcVariation')} value={indirectData.workingCapitalVariation} indent sign="-" />
+                <Row label={t('cashFlowStatement.netOperating')} value={indirectData.operatingCashFlow} bold bg="bg-[var(--color-primary)]/20" />
 
-                <SectionHeader title="B. FLUX DE TRÉSORERIE LIÉS AUX INVESTISSEMENTS" />
-                <Row label="- Acquisitions d'immobilisations corporelles et incorporelles" value={indirectData.fixedAssetsAcquisitions} indent sign="-" />
-                <Row label="+ Cessions d'immobilisations corporelles et incorporelles" value={indirectData.fixedAssetsDisposals} indent sign="+" />
-                <Row label="- Acquisitions d'immobilisations financières" value={indirectData.financialAssetsAcquisitions} indent sign="-" />
-                <Row label="+ Cessions d'immobilisations financières" value={indirectData.financialAssetsDisposals} indent sign="+" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ AUX INVESTISSEMENTS (B)" value={indirectData.investmentCashFlow} bold bg="bg-[var(--color-primary)]/20" />
+                <SectionHeader title={t('cashFlowStatement.sectionB')} />
+                <Row label={t('cashFlowStatement.fixedAcq')} value={indirectData.fixedAssetsAcquisitions} indent sign="-" />
+                <Row label={t('cashFlowStatement.fixedDisp')} value={indirectData.fixedAssetsDisposals} indent sign="+" />
+                <Row label={t('cashFlowStatement.finAcq')} value={indirectData.financialAssetsAcquisitions} indent sign="-" />
+                <Row label={t('cashFlowStatement.finDisp')} value={indirectData.financialAssetsDisposals} indent sign="+" />
+                <Row label={t('cashFlowStatement.netInvesting')} value={indirectData.investmentCashFlow} bold bg="bg-[var(--color-primary)]/20" />
 
-                <SectionHeader title="C. FLUX DE TRÉSORERIE LIÉS AU FINANCEMENT" bg="bg-[var(--color-text-secondary)]/10" />
-                <Row label="+ Augmentation de capital en numéraire" value={indirectData.capitalIncrease} indent sign="+" />
-                <Row label="+ Subventions d'investissement reçues" value={indirectData.investmentSubsidiesReceived} indent sign="+" />
-                <Row label="+ Nouveaux emprunts" value={indirectData.newBorrowings} indent sign="+" />
-                <Row label="- Remboursements d'emprunts" value={indirectData.loanRepayments} indent sign="-" />
-                <Row label="- Dividendes versés" value={indirectData.dividendsPaid} indent sign="-" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ AU FINANCEMENT (C)" value={indirectData.financingCashFlow} bold bg="bg-[var(--color-text-secondary)]/20" />
+                <SectionHeader title={t('cashFlowStatement.sectionC')} bg="bg-[var(--color-text-secondary)]/10" />
+                <Row label={t('cashFlowStatement.capitalIncrease')} value={indirectData.capitalIncrease} indent sign="+" />
+                <Row label={t('cashFlowStatement.subsidies')} value={indirectData.investmentSubsidiesReceived} indent sign="+" />
+                <Row label={t('cashFlowStatement.newBorrowings')} value={indirectData.newBorrowings} indent sign="+" />
+                <Row label={t('cashFlowStatement.loanRepayments')} value={indirectData.loanRepayments} indent sign="-" />
+                <Row label={t('cashFlowStatement.dividendsPaid')} value={indirectData.dividendsPaid} indent sign="-" />
+                <Row label={t('cashFlowStatement.netFinancing')} value={indirectData.financingCashFlow} bold bg="bg-[var(--color-text-secondary)]/20" />
 
-                <SectionHeader title="D. VARIATION DE TRÉSORERIE (A + B + C)" bg="bg-[var(--color-text-secondary)]/10" />
-                <Row label="= VARIATION NETTE DE TRÉSORERIE" value={indirectData.cashFlowVariation} bold bg="bg-[var(--color-text-secondary)]/20" />
-                <Row label="Trésorerie d'ouverture" value={indirectData.openingCashBalance} indent />
-                <Row label="Trésorerie de clôture" value={indirectData.closingCashBalance} indent />
+                <SectionHeader title={t('cashFlowStatement.sectionD')} bg="bg-[var(--color-text-secondary)]/10" />
+                <Row label={t('cashFlowStatement.netVariation')} value={indirectData.cashFlowVariation} bold bg="bg-[var(--color-text-secondary)]/20" />
+                <Row label={t('cashFlowStatement.openingCash')} value={indirectData.openingCashBalance} indent />
+                <Row label={t('cashFlowStatement.closingCash')} value={indirectData.closingCashBalance} indent />
                 <tr className={indirectData.isCashFlowBalanced ? 'bg-green-50' : 'bg-red-50'}>
                   <td className="px-6 py-3 font-bold flex items-center">
                     {indirectData.isCashFlowBalanced ? <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" /> : <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />}
-                    CONTRÔLE — Écart
+                    {t('cashFlowStatement.controlGap')}
                   </td>
                   <td className="px-6 py-3 text-right font-bold">
                     {fmt(Math.abs(indirectData.cashFlowVariation - (indirectData.closingCashBalance - indirectData.openingCashBalance)))}
@@ -409,46 +411,46 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
             <table className="min-w-full">
               <thead className="bg-[var(--color-primary)]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-white">TABLEAU DES FLUX DE TRÉSORERIE — Méthode Directe</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-white">{t('cashFlowStatement.titleDirect')}</th>
                   <th className="px-6 py-4 text-right text-sm font-bold text-white w-48">Montant (XAF)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                <SectionHeader title="A. FLUX DE TRÉSORERIE LIÉS À L'ACTIVITÉ" />
-                <Row label="Encaissements reçus des clients" value={directData.encaissementsClients} indent sign="+" />
-                <Row label="Autres encaissements liés à l'activité" value={directData.autresEncaissementsExploit} indent sign="+" />
-                <Row label="Décaissements versés aux fournisseurs" value={directData.decaissementsFournisseurs} indent sign="-" />
-                <Row label="Décaissements versés au personnel" value={directData.decaissementsPersonnel} indent sign="-" />
-                <Row label="Intérêts et autres frais financiers payés" value={directData.interetsPayes} indent sign="-" />
-                <Row label="Impôts sur le résultat payés" value={directData.impotsSurResultat} indent sign="-" />
-                <Row label="Autres décaissements liés à l'activité" value={directData.autresDecaissementsExploit} indent sign="-" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ À L'ACTIVITÉ (A)" value={directData.operatingCashFlow} bold bg="bg-[var(--color-primary)]/20" />
+                <SectionHeader title={t('cashFlowStatement.sectionA')} />
+                <Row label={t('cashFlowStatement.receiptsCustomers')} value={directData.encaissementsClients} indent sign="+" />
+                <Row label={t('cashFlowStatement.otherOperReceipts')} value={directData.autresEncaissementsExploit} indent sign="+" />
+                <Row label={t('cashFlowStatement.paymentsSuppliers')} value={directData.decaissementsFournisseurs} indent sign="-" />
+                <Row label={t('cashFlowStatement.paymentsStaff')} value={directData.decaissementsPersonnel} indent sign="-" />
+                <Row label={t('cashFlowStatement.interestPaid')} value={directData.interetsPayes} indent sign="-" />
+                <Row label={t('cashFlowStatement.taxPaid')} value={directData.impotsSurResultat} indent sign="-" />
+                <Row label={t('cashFlowStatement.otherOperPayments')} value={directData.autresDecaissementsExploit} indent sign="-" />
+                <Row label={t('cashFlowStatement.netOperating')} value={directData.operatingCashFlow} bold bg="bg-[var(--color-primary)]/20" />
 
-                <SectionHeader title="B. FLUX DE TRÉSORERIE LIÉS AUX INVESTISSEMENTS" />
-                <Row label="Décaissements sur acquisitions d'immobilisations corporelles" value={directData.acquisitionsImmosCorporelles} indent sign="-" />
-                <Row label="Décaissements sur acquisitions d'immobilisations incorporelles" value={directData.acquisitionsImmosIncorporelles} indent sign="-" />
-                <Row label="Décaissements sur acquisitions d'immobilisations financières" value={directData.acquisitionsImmosFinancieres} indent sign="-" />
+                <SectionHeader title={t('cashFlowStatement.sectionB')} />
+                <Row label={t('cashFlowStatement.acqTangible')} value={directData.acquisitionsImmosCorporelles} indent sign="-" />
+                <Row label={t('cashFlowStatement.acqIntangible')} value={directData.acquisitionsImmosIncorporelles} indent sign="-" />
+                <Row label={t('cashFlowStatement.acqFinancial')} value={directData.acquisitionsImmosFinancieres} indent sign="-" />
                 <Row label="Encaissements sur cessions d'immobilisations corporelles" value={directData.cessionsImmosCorporelles} indent sign="+" />
-                <Row label="Encaissements sur cessions d'immobilisations financières" value={directData.cessionsImmosFinancieres} indent sign="+" />
-                <Row label="Intérêts encaissés et dividendes reçus" value={directData.interetsDividendesRecus} indent sign="+" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ AUX INVESTISSEMENTS (B)" value={directData.investmentCashFlow} bold bg="bg-[var(--color-primary)]/20" />
+                <Row label={t('cashFlowStatement.dispFinancial')} value={directData.cessionsImmosFinancieres} indent sign="+" />
+                <Row label={t('cashFlowStatement.interestReceived')} value={directData.interetsDividendesRecus} indent sign="+" />
+                <Row label={t('cashFlowStatement.netInvesting')} value={directData.investmentCashFlow} bold bg="bg-[var(--color-primary)]/20" />
 
-                <SectionHeader title="C. FLUX DE TRÉSORERIE LIÉS AU FINANCEMENT" bg="bg-[var(--color-text-secondary)]/10" />
-                <Row label="Encaissements suite à l'augmentation du capital" value={directData.augmentationCapital} indent sign="+" />
-                <Row label="Subventions d'investissement reçues" value={directData.subventionsRecues} indent sign="+" />
+                <SectionHeader title={t('cashFlowStatement.sectionC')} bg="bg-[var(--color-text-secondary)]/10" />
+                <Row label={t('cashFlowStatement.capitalReceipts')} value={directData.augmentationCapital} indent sign="+" />
+                <Row label={t('cashFlowStatement.subsidiesReceived')} value={directData.subventionsRecues} indent sign="+" />
                 <Row label="Encaissements provenant d'emprunts" value={directData.empruntsNouveaux} indent sign="+" />
                 <Row label="Remboursements d'emprunts" value={directData.remboursementsEmprunts} indent sign="-" />
-                <Row label="Dividendes et autres distributions versés" value={directData.dividendesVerses} indent sign="-" />
-                <Row label="= FLUX NET DE TRÉSORERIE LIÉ AU FINANCEMENT (C)" value={directData.financingCashFlow} bold bg="bg-[var(--color-text-secondary)]/20" />
+                <Row label={t('cashFlowStatement.dividendsDistributed')} value={directData.dividendesVerses} indent sign="-" />
+                <Row label={t('cashFlowStatement.netFinancing')} value={directData.financingCashFlow} bold bg="bg-[var(--color-text-secondary)]/20" />
 
-                <SectionHeader title="D. VARIATION DE TRÉSORERIE (A + B + C)" bg="bg-[var(--color-text-secondary)]/10" />
-                <Row label="= VARIATION NETTE DE TRÉSORERIE" value={directData.cashFlowVariation} bold bg="bg-[var(--color-text-secondary)]/20" />
-                <Row label="Trésorerie d'ouverture" value={directData.openingCashBalance} indent />
-                <Row label="Trésorerie de clôture" value={directData.closingCashBalance} indent />
+                <SectionHeader title={t('cashFlowStatement.sectionD')} bg="bg-[var(--color-text-secondary)]/10" />
+                <Row label={t('cashFlowStatement.netVariation')} value={directData.cashFlowVariation} bold bg="bg-[var(--color-text-secondary)]/20" />
+                <Row label={t('cashFlowStatement.openingCash')} value={directData.openingCashBalance} indent />
+                <Row label={t('cashFlowStatement.closingCash')} value={directData.closingCashBalance} indent />
                 <tr className={directData.isCashFlowBalanced ? 'bg-green-50' : 'bg-red-50'}>
                   <td className="px-6 py-3 font-bold flex items-center">
                     {directData.isCashFlowBalanced ? <CheckCircleIcon className="h-5 w-5 text-green-500 mr-2" /> : <ExclamationTriangleIcon className="h-5 w-5 text-red-500 mr-2" />}
-                    CONTRÔLE — Écart
+                    {t('cashFlowStatement.controlGap')}
                   </td>
                   <td className="px-6 py-3 text-right font-bold">
                     {fmt(Math.abs(directData.cashFlowVariation - (directData.closingCashBalance - directData.openingCashBalance)))}
@@ -465,13 +467,13 @@ const CashFlowStatementSYSCOHADA: React.FC = () => {
         <div className="flex items-start space-x-2">
           <InformationCircleIcon className="h-5 w-5 text-[var(--color-primary)] mt-0.5" />
           <div className="text-xs text-[var(--color-primary)]/70">
-            <p className="font-medium mb-1">Note méthodologique :</p>
+            <p className="font-medium mb-1">{t('cashFlowStatement.methodNote')}</p>
             {activeTab === 'indirect' ? (
-              <p>La méthode indirecte part du résultat net et ajuste les éléments non monétaires (dotations, reprises, plus/moins-values) pour obtenir la CAF, puis retranche la variation du BFR.</p>
+              <p>{t('cashFlowStatement.indirectNote')}</p>
             ) : (
-              <p>La méthode directe présente les flux de trésorerie réels : encaissements reçus des clients, décaissements versés aux fournisseurs, au personnel, etc. Les deux méthodes aboutissent à la même variation de trésorerie.</p>
+              <p>{t('cashFlowStatement.directNote')}</p>
             )}
-            <p className="mt-1">Conforme au SYSCOHADA révisé 2017. Montants en Francs CFA (XAF).</p>
+            <p className="mt-1">{t('cashFlowStatement.compliance')}</p>
           </div>
         </div>
       </div>
