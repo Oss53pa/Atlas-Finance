@@ -12,12 +12,14 @@ import { ArrowLeft, RefreshCw, AlertTriangle, Save, Landmark } from 'lucide-reac
 import { useData } from '../../contexts/DataContext';
 import { getFiscalCountries, getFiscalYears } from '../../services/fiscal/fiscalParameters';
 import { getFiscalResolved, setFiscalOverride, type FiscalResolvedRow } from '../../services/param/fiscalBridge';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const fmt = (v: number | null) => v == null ? '—' : String(v);
 
 const FiscaliteParamsPage: React.FC = () => {
   const navigate = useNavigate();
   const { adapter } = useData();
+  const { t } = useLanguage();
   const countries = getFiscalCountries();
   const [country, setCountry] = useState(countries[0] || 'CI');
   const years = getFiscalYears(country);
@@ -32,17 +34,17 @@ const FiscaliteParamsPage: React.FC = () => {
     try {
       const r = await getFiscalResolved(adapter, country, year);
       setRows(r.rows); setMeta({ fallback: r.fallback, warning: r.warning });
-    } catch (e) { toast.error(`Chargement impossible : ${(e as Error).message}`); }
+    } catch (e) { toast.error(t('fiscalParams.loadFailed', { message: (e as Error).message })); }
     finally { setLoading(false); }
-  }, [adapter, country, year]);
+  }, [adapter, country, year, t]);
   useEffect(() => { void load(); }, [load]);
 
   const save = async (row: FiscalResolvedRow) => {
     const raw = edit[row.key];
     if (raw === undefined || raw === '') return;
     const v = Number(raw);
-    if (Number.isNaN(v)) { toast.error('Valeur numérique attendue'); return; }
-    try { await setFiscalOverride(adapter, row.key, v, year); toast.success(`Surcharge « ${row.libelle} » posée`); setEdit(p => { const n = { ...p }; delete n[row.key]; return n; }); await load(); }
+    if (Number.isNaN(v)) { toast.error(t('fiscalParams.numericExpected')); return; }
+    try { await setFiscalOverride(adapter, row.key, v, year); toast.success(t('fiscalParams.overrideSet', { label: row.libelle })); setEdit(p => { const n = { ...p }; delete n[row.key]; return n; }); await load(); }
     catch (e) { toast.error((e as Error).message); }
   };
 
@@ -52,8 +54,8 @@ const FiscaliteParamsPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-gray-100"><ArrowLeft className="w-5 h-5" /></button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><Landmark className="w-5 h-5 text-[var(--color-primary)]" /> Paramètres fiscaux</h1>
-            <p className="text-sm text-gray-600">Défaut plateforme versionné (pays, année) + surcharges tenant</p>
+            <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2"><Landmark className="w-5 h-5 text-[var(--color-primary)]" /> {t('fiscalParams.title')}</h1>
+            <p className="text-sm text-gray-600">{t('fiscalParams.subtitle')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -76,14 +78,14 @@ const FiscaliteParamsPage: React.FC = () => {
       <div className="border border-gray-200 rounded-lg overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200"><tr>
-            <th className="text-left px-3 py-2 font-medium text-gray-700">Paramètre</th>
-            <th className="text-right px-3 py-2 font-medium text-gray-700">Défaut plateforme</th>
-            <th className="text-right px-3 py-2 font-medium text-gray-700">Surcharge tenant</th>
-            <th className="text-right px-3 py-2 font-medium text-gray-700">Effectif</th>
-            <th className="text-right px-3 py-2 font-medium text-gray-700">Modifier</th>
+            <th className="text-left px-3 py-2 font-medium text-gray-700">{t('fiscalParams.colParam')}</th>
+            <th className="text-right px-3 py-2 font-medium text-gray-700">{t('fiscalParams.colPlatformDefault')}</th>
+            <th className="text-right px-3 py-2 font-medium text-gray-700">{t('fiscalParams.colTenantOverride')}</th>
+            <th className="text-right px-3 py-2 font-medium text-gray-700">{t('fiscalParams.colEffective')}</th>
+            <th className="text-right px-3 py-2 font-medium text-gray-700">{t('fiscalParams.colEdit')}</th>
           </tr></thead>
           <tbody>
-            {loading && <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-500">Chargement…</td></tr>}
+            {loading && <tr><td colSpan={5} className="px-3 py-8 text-center text-gray-500">{t('fiscalParams.loading')}</td></tr>}
             {!loading && rows.map(r => (
               <tr key={r.key} className={`border-b border-gray-100 ${r.surcharge ? 'bg-blue-50/40' : 'hover:bg-gray-50'}`}>
                 <td className="px-3 py-2 text-gray-800">{r.libelle} <span className="font-mono text-[10px] text-gray-400">fiscal.{r.key}</span></td>
@@ -93,7 +95,7 @@ const FiscaliteParamsPage: React.FC = () => {
                 <td className="px-3 py-2 text-right">
                   <span className="inline-flex items-center gap-1">
                     <input value={edit[r.key] ?? ''} onChange={e => setEdit(p => ({ ...p, [r.key]: e.target.value }))} placeholder={fmt(r.effective)} className="w-24 border border-gray-300 rounded px-1.5 py-0.5 text-xs text-right" />
-                    <button onClick={() => save(r)} disabled={!edit[r.key]} className="text-[var(--color-primary)] disabled:opacity-30" title="Surcharger (effet au 1er janvier de l'exercice)"><Save className="w-4 h-4" /></button>
+                    <button onClick={() => save(r)} disabled={!edit[r.key]} className="text-[var(--color-primary)] disabled:opacity-30" title={t('fiscalParams.overrideTitle')}><Save className="w-4 h-4" /></button>
                   </span>
                 </td>
               </tr>
@@ -101,7 +103,7 @@ const FiscaliteParamsPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-gray-500">Le défaut plateforme provient du référentiel fiscal versionné (fiscalParameters). Une surcharge est posée avec effet au 1<sup>er</sup> janvier de l'exercice, journalisée, et prime dès lors sur le défaut.</p>
+      <p className="text-xs text-gray-500">{t('fiscalParams.footnote')}</p>
     </div>
   );
 };

@@ -16,18 +16,23 @@ function getClient(adapter: DataAdapter): any | null {
 export interface MyCompany { id: string; nom: string; code: string; role: string | null; }
 export type DupBlock = 'parametres' | 'conditions_paiement' | 'sites' | 'analytique';
 
-export const DUP_BLOCKS: Array<{ key: DupBlock; label: string }> = [
-  { key: 'parametres',          label: 'Paramètres (valeurs de configuration)' },
-  { key: 'conditions_paiement', label: 'Conditions de paiement' },
-  { key: 'sites',               label: 'Sites / établissements' },
-  { key: 'analytique',          label: 'Référentiel analytique (plans, axes, sections, règles)' },
+/** `labelKey` et non `label` : la couche service ne fabrique pas de libellé
+ *  traduit — l'appelant résout la clé au rendu. */
+export const DUP_BLOCKS: Array<{ key: DupBlock; labelKey: string }> = [
+  { key: 'parametres',          labelKey: 'duplication.blockParams' },
+  { key: 'conditions_paiement', labelKey: 'duplication.blockPaymentTerms' },
+  { key: 'sites',               labelKey: 'duplication.blockSites' },
+  { key: 'analytique',          labelKey: 'duplication.blockAnalytics' },
 ];
 
-/** Valide le couple (source, cible). Fonction pure. Renvoie un message d'erreur ou null. */
-export function validateDuplication(source: string, target: string, blocks: DupBlock[]): string | null {
-  if (!source || !target) return 'Sélectionnez une société source et une société cible.';
-  if (source === target) return 'La source et la cible doivent être différentes.';
-  if (blocks.length === 0) return 'Sélectionnez au moins un bloc à copier.';
+/** Code d'erreur de validation — traduit par l'appelant. */
+export type DuplicationError = 'source_target_required' | 'same_company' | 'no_block';
+
+/** Valide le couple (source, cible). Fonction pure. Renvoie un code d'erreur ou null. */
+export function validateDuplication(source: string, target: string, blocks: DupBlock[]): DuplicationError | null {
+  if (!source || !target) return 'source_target_required';
+  if (source === target) return 'same_company';
+  if (blocks.length === 0) return 'no_block';
   return null;
 }
 

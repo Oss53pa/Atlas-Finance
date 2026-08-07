@@ -9,6 +9,7 @@
  *   • Génération de noms de fichiers professionnels
  */
 import React, { useMemo, useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   BookOpen,
   Users,
@@ -68,7 +69,14 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Settings,
 };
 
-type Priority = 'Essentiel' | 'Recommandé' | 'Optionnel';
+type Priority = 'essential' | 'recommended' | 'optional';
+
+// Clés (et non libellés) : les tables sont figées au chargement du module.
+const PRIORITY_KEY: Record<Priority, string> = {
+  essential: 'importTemplates.priorityEssential',
+  recommended: 'importTemplates.priorityRecommended',
+  optional: 'importTemplates.priorityOptional',
+};
 
 const ESSENTIAL_KEYS: TemplateKey[] = [
   'parametres_societe',
@@ -92,23 +100,24 @@ const RECOMMENDED_KEYS: TemplateKey[] = [
 ];
 
 function getPriority(key: TemplateKey): Priority {
-  if (ESSENTIAL_KEYS.includes(key)) return 'Essentiel';
-  if (RECOMMENDED_KEYS.includes(key)) return 'Recommandé';
-  return 'Optionnel';
+  if (ESSENTIAL_KEYS.includes(key)) return 'essential';
+  if (RECOMMENDED_KEYS.includes(key)) return 'recommended';
+  return 'optional';
 }
 
-const CATEGORY_LABELS: Record<AtlasImportTemplate['category'] | 'all', string> = {
-  all: 'Tous',
-  parametres: 'Paramètres',
-  comptabilite: 'Comptabilité',
-  tiers: 'Tiers',
-  immobilisations: 'Immobilisations',
-  tresorerie: 'Trésorerie',
-  stocks: 'Stocks',
-  budget: 'Budget',
+const CATEGORY_LABEL_KEY: Record<AtlasImportTemplate['category'] | 'all', string> = {
+  all: 'importTemplates.catAll',
+  parametres: 'importTemplates.catParams',
+  comptabilite: 'importTemplates.catAccounting',
+  tiers: 'importTemplates.catParties',
+  immobilisations: 'importTemplates.catAssets',
+  tresorerie: 'importTemplates.catTreasury',
+  stocks: 'importTemplates.catStock',
+  budget: 'importTemplates.catBudget',
 };
 
 const ImportTemplatesCatalogPage: React.FC = () => {
+  const { t } = useLanguage();
   const [category, setCategory] = useState<AtlasImportTemplate['category'] | 'all'>('all');
   const [societeCode, setSocieteCode] = useState('');
   const [year, setYear] = useState<number>(new Date().getFullYear());
@@ -127,9 +136,9 @@ const ImportTemplatesCatalogPage: React.FC = () => {
 
   const priorityBadgeClass = (p: Priority) => {
     switch (p) {
-      case 'Essentiel':
+      case 'essential':
         return 'bg-red-50 text-red-700 border-red-200';
-      case 'Recommandé':
+      case 'recommended':
         return 'bg-amber-50 text-amber-700 border-amber-200';
       default:
         return 'bg-neutral-50 text-neutral-600 border-neutral-200';
@@ -146,10 +155,10 @@ const ImportTemplatesCatalogPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-xl font-bold text-neutral-900">
-              Modèles d'import Atlas FnA
+              {t('importTemplates.title')}
             </h1>
             <p className="text-sm text-neutral-600">
-              {ATLAS_IMPORT_TEMPLATES.length} modèles SYSCOHADA prêts à l'emploi — paramétrage, comptabilité, tiers, immobilisations, trésorerie, stocks
+              {t('importTemplates.subtitle', { count: String(ATLAS_IMPORT_TEMPLATES.length) })}
             </p>
           </div>
         </div>
@@ -159,13 +168,13 @@ const ImportTemplatesCatalogPage: React.FC = () => {
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
         <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
         <div className="text-sm text-blue-900">
-          <p className="font-semibold mb-1">Convention de nommage des fichiers</p>
+          <p className="font-semibold mb-1">{t('importTemplates.namingTitle')}</p>
           <p className="text-blue-800">
-            Chaque modèle est téléchargé sous la forme{' '}
+            {t('importTemplates.namingPre')}{' '}
             <code className="bg-blue-100 px-1 py-0.5 rounded text-xs">
               Modele_{'{Type}'}_{'{SOCIETE}'}_{'{Annee}'}_{'{Code}'}_{'{Periode}'}.xlsx
             </code>
-            . Renseignez le code société et l'année pour personnaliser automatiquement les noms.
+            {t('importTemplates.namingPost')}
           </p>
         </div>
       </div>
@@ -175,35 +184,35 @@ const ImportTemplatesCatalogPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Catégorie
+              {t('importTemplates.category')}
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as AtlasImportTemplate['category'] | 'all')}
               className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900"
             >
-              {(Object.keys(CATEGORY_LABELS) as Array<keyof typeof CATEGORY_LABELS>).map((k) => (
+              {(Object.keys(CATEGORY_LABEL_KEY) as Array<keyof typeof CATEGORY_LABEL_KEY>).map((k) => (
                 <option key={k} value={k}>
-                  {CATEGORY_LABELS[k]}
+                  {t(CATEGORY_LABEL_KEY[k])}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Code société (optionnel)
+              {t('importTemplates.companyCode')}
             </label>
             <input
               type="text"
               value={societeCode}
               onChange={(e) => setSocieteCode(e.target.value)}
-              placeholder="ex : SOCIETE_ALPHA_SA"
+              placeholder={t('importTemplates.companyCodePlaceholder')}
               className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm focus:ring-2 focus:ring-neutral-900 focus:border-neutral-900"
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-neutral-700 mb-1">
-              Année exercice
+              {t('importTemplates.fiscalYear')}
             </label>
             <input
               type="number"
@@ -222,7 +231,7 @@ const ImportTemplatesCatalogPage: React.FC = () => {
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-4 h-4 text-neutral-700" />
           <h2 className="text-sm font-bold text-neutral-900">
-            Vérification round-trip — Uploadez un fichier pour identifier le modèle
+            {t('importTemplates.roundTrip')}
           </h2>
         </div>
         <AtlasTemplateDetector />
@@ -254,7 +263,7 @@ const ImportTemplatesCatalogPage: React.FC = () => {
                 <span
                   className={`text-[10px] font-semibold px-2 py-0.5 border rounded-full ${priorityBadgeClass(priority)}`}
                 >
-                  {priority}
+                  {t(PRIORITY_KEY[priority])}
                 </span>
               </div>
 
@@ -266,8 +275,8 @@ const ImportTemplatesCatalogPage: React.FC = () => {
               </p>
 
               <div className="flex items-center justify-between text-xs text-neutral-500 mb-4 pb-3 border-b border-neutral-100">
-                <span>{template.sheets.length} feuille{template.sheets.length > 1 ? 's' : ''}</span>
-                <span>{totalCols} colonnes</span>
+                <span>{t('importTemplates.sheetsCount', { count: String(template.sheets.length) })}</span>
+                <span>{t('importTemplates.columnsCount', { count: String(totalCols) })}</span>
               </div>
 
               <button
@@ -275,7 +284,7 @@ const ImportTemplatesCatalogPage: React.FC = () => {
                 className="w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white px-3 py-2 rounded-md text-xs font-semibold transition-colors"
               >
                 <Download className="w-4 h-4" />
-                Télécharger le modèle
+                {t('importTemplates.download')}
               </button>
             </div>
           );
@@ -285,7 +294,7 @@ const ImportTemplatesCatalogPage: React.FC = () => {
       {filteredTemplates.length === 0 && (
         <div className="bg-white border border-neutral-200 rounded-lg p-12 text-center">
           <p className="text-sm text-neutral-500">
-            Aucun modèle dans cette catégorie.
+            {t('importTemplates.emptyCategory')}
           </p>
         </div>
       )}

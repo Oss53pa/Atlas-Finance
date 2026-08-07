@@ -6,14 +6,14 @@ import { validateDuplication } from '../services/param/duplicationService';
 
 describe('validateDuplication', () => {
   it('exige source et cible', () => {
-    expect(validateDuplication('', 'B', ['sites'])).toMatch(/source et une soci/i);
-    expect(validateDuplication('A', '', ['sites'])).toMatch(/source et une soci/i);
+    expect(validateDuplication('', 'B', ['sites'])).toBe('source_target_required');
+    expect(validateDuplication('A', '', ['sites'])).toBe('source_target_required');
   });
   it('refuse source = cible', () => {
-    expect(validateDuplication('A', 'A', ['sites'])).toMatch(/diff/i);
+    expect(validateDuplication('A', 'A', ['sites'])).toBe('same_company');
   });
   it('exige au moins un bloc', () => {
-    expect(validateDuplication('A', 'B', [])).toMatch(/bloc/i);
+    expect(validateDuplication('A', 'B', [])).toBe('no_block');
   });
   it('couple valide → null', () => {
     expect(validateDuplication('A', 'B', ['parametres', 'sites'])).toBeNull();

@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 // pas dans le schema généré localement. Cast en any pour bypass le typage
 // des tables — la sécurité reste assurée par RLS côté serveur.
 import { supabase as supabaseTyped } from "../../lib/supabase";
+import { useLanguage } from "@/contexts/LanguageContext";
 const supabase = supabaseTyped as unknown as {
   from: (t: string) => any;
   auth: typeof supabaseTyped.auth;
@@ -57,11 +58,13 @@ interface TenantInfo {
   myEmail: string;
 }
 
-const ROLE_LABEL: Record<Role, { label: string; color: string; description: string }> = {
-  app_super_admin: { label: "Super-admin", color: "#15803D", description: "Accès total, gère l'abonnement et l'équipe" },
-  app_admin: { label: "Admin", color: "#235A6E", description: "Gère l'équipe et les paramètres applicatifs" },
-  editor: { label: "Éditeur", color: "#E89A2E", description: "Peut créer et modifier les données" },
-  viewer: { label: "Lecteur", color: "#6B7280", description: "Consultation uniquement" },
+// Clés (et non libellés) : la table est figée au chargement du module ; nom et
+// description du rôle sont résolus au rendu.
+const ROLE_LABEL: Record<Role, { labelKey: string; color: string; descKey: string }> = {
+  app_super_admin: { labelKey: "teamSettings.roleSuperAdmin", color: "#15803D", descKey: "teamSettings.roleSuperAdminDesc" },
+  app_admin: { labelKey: "teamSettings.roleAdmin", color: "#235A6E", descKey: "teamSettings.roleAdminDesc" },
+  editor: { labelKey: "teamSettings.roleEditor", color: "#E89A2E", descKey: "teamSettings.roleEditorDesc" },
+  viewer: { labelKey: "teamSettings.roleViewer", color: "#6B7280", descKey: "teamSettings.roleViewerDesc" },
 };
 
 const ASSIGNABLE_ROLES: Role[] = ["app_admin", "editor", "viewer"];
@@ -77,6 +80,8 @@ function canInvite(myRole: Role): boolean {
 }
 
 export default function TeamSettingsPage() {
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const [tenant, setTenant] = useState<TenantInfo | null>(null);
   const [seats, setSeats] = useState<Seat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +96,7 @@ export default function TeamSettingsPage() {
     setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setError("Vous devez être connecté."); return; }
+      if (!user) { setError(t("teamSettings.mustBeSignedIn")); return; }
 
       const { data: mySeat, error: seatErr } = await supabase
         .from("licence_seats")
@@ -103,7 +108,7 @@ export default function TeamSettingsPage() {
         .maybeSingle();
       if (seatErr) throw seatErr;
       if (!mySeat) {
-        setError("Aucune licence active. Contactez votre administrateur.");
+        setError(t("teamSettings.noActiveLicence"));
         return;
       }
 
@@ -141,7 +146,7 @@ export default function TeamSettingsPage() {
     setError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error("Session expirée");
+      if (!session) throw new Error(t("teamSettings.sessionExpired"));
 
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-user`,
@@ -176,7 +181,7 @@ export default function TeamSettingsPage() {
 
   async function changeRole(seat: Seat, newRole: Role) {
     if (!tenant || !canManage(tenant.myRole, seat.role) || !canManage(tenant.myRole, newRole)) {
-      setError("Vous n'avez pas les permissions pour cette action.");
+      setError(t("teamSettings.noPermission"));
       return;
     }
     setActioningSeat(seat.id);
@@ -191,7 +196,7 @@ export default function TeamSettingsPage() {
 
   async function suspendSeat(seat: Seat) {
     if (!tenant || !canManage(tenant.myRole, seat.role)) {
-      setError("Vous n'avez pas les permissions pour cette action.");
+      setError(t("teamSettings.noPermission"));
       return;
     }
     if (!confirm(`Suspendre ${seat.email} ?`)) return;
@@ -217,21 +222,21 @@ export default function TeamSettingsPage() {
     setActioningSeat(null);
   }
 
-  if (loading) return <div style={styles.center}>Chargement de l'équipe…</div>;
-  if (!tenant) return <div style={styles.center}>{error || "Aucune licence trouvée."}</div>;
+  if (loading) return <div style={styles.center}>{t("teamSettings.loading")}</div>;
+  if (!tenant) return <div style={styles.center}>{error || t("teamSettings.noLicenceFound")}</div>;
 
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <div>
-          <h1 style={{ margin: 0 }}>Équipe</h1>
+          <h1 style={{ margin: 0 }}>{t("teamSettings.title")}</h1>
           <p style={{ color: "#94A3B8", margin: "6px 0 0", fontSize: 14 }}>
-            {totalSeats} membres · {activeSeats} actifs · {pendingInvites} en attente
+            {t("teamSettings.summary", { total: String(totalSeats), active: String(activeSeats), pending: String(pendingInvites) })}
           </p>
         </div>
         {canInvite(tenant.myRole) && (
           <button onClick={() => setShowInvite(true)} style={styles.btnPrimary}>
-            + Inviter un membre
+            {t("teamSettings.inviteMember")}
           </button>
         )}
       </header>
@@ -244,50 +249,50 @@ export default function TeamSettingsPage() {
       )}
 
       <div style={styles.legend}>
-        Votre rôle :{" "}
+        {t("teamSettings.yourRole")}{" "}
         <span style={{ ...styles.roleBadge, background: ROLE_LABEL[tenant.myRole].color }}>
-          {ROLE_LABEL[tenant.myRole].label}
+          {t(ROLE_LABEL[tenant.myRole].labelKey)}
         </span>{" "}
-        — {ROLE_LABEL[tenant.myRole].description}
+        — {t(ROLE_LABEL[tenant.myRole].descKey)}
       </div>
 
       {showInvite && (
         <form onSubmit={handleInvite} style={styles.inviteForm}>
-          <h3 style={{ margin: "0 0 16px" }}>Inviter un nouveau membre</h3>
+          <h3 style={{ margin: "0 0 16px" }}>{t('teamSettings.inviteFormTitle')}</h3>
           <div style={styles.formRow}>
-            <label style={styles.label}>Email</label>
+            <label style={styles.label}>{t('teamSettings.email')}</label>
             <input
               type="email" required value={inviteForm.email}
               onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-              style={styles.input} placeholder="collaborateur@entreprise.com"
+              style={styles.input} placeholder={t('teamSettings.emailPlaceholder')}
             />
           </div>
           <div style={styles.formRow}>
-            <label style={styles.label}>Nom complet</label>
+            <label style={styles.label}>{t('teamSettings.fullName')}</label>
             <input
               type="text" required value={inviteForm.full_name}
               onChange={(e) => setInviteForm({ ...inviteForm, full_name: e.target.value })}
-              style={styles.input} placeholder="Jean Dupont"
+              style={styles.input} placeholder={t('teamSettings.fullNamePlaceholder')}
             />
           </div>
           <div style={styles.formRow}>
-            <label style={styles.label}>Rôle</label>
+            <label style={styles.label}>{t('teamSettings.colRole')}</label>
             <select
               value={inviteForm.role}
               onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as Role })}
               style={styles.input}
             >
               {ASSIGNABLE_ROLES.filter((r) => canManage(tenant.myRole, r)).map((r) => (
-                <option key={r} value={r}>{ROLE_LABEL[r].label} — {ROLE_LABEL[r].description}</option>
+                <option key={r} value={r}>{t(ROLE_LABEL[r].labelKey)} — {t(ROLE_LABEL[r].descKey)}</option>
               ))}
             </select>
           </div>
           <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
             <button type="submit" disabled={inviting} style={styles.btnPrimary}>
-              {inviting ? "Envoi en cours…" : "Envoyer l'invitation"}
+              {t(inviting ? "teamSettings.sending" : "teamSettings.sendInvitation")}
             </button>
             <button type="button" onClick={() => setShowInvite(false)} style={styles.btnSecondary}>
-              Annuler
+              {t('teamSettings.cancel')}
             </button>
           </div>
         </form>
@@ -297,11 +302,11 @@ export default function TeamSettingsPage() {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>Membre</th>
-              <th style={styles.th}>Rôle</th>
-              <th style={styles.th}>Statut</th>
-              <th style={styles.th}>Dernière connexion</th>
-              <th style={styles.th}>Actions</th>
+              <th style={styles.th}>{t('teamSettings.colMember')}</th>
+              <th style={styles.th}>{t('teamSettings.colRole')}</th>
+              <th style={styles.th}>{t('teamSettings.colStatus')}</th>
+              <th style={styles.th}>{t('teamSettings.colLastLogin')}</th>
+              <th style={styles.th}>{t('teamSettings.colActions')}</th>
             </tr>
           </thead>
           <tbody>
@@ -327,28 +332,28 @@ export default function TeamSettingsPage() {
                         style={{ ...styles.select, color: ROLE_LABEL[seat.role].color, borderColor: ROLE_LABEL[seat.role].color }}
                       >
                         {ASSIGNABLE_ROLES.filter((r) => canManage(tenant.myRole, r)).map((r) => (
-                          <option key={r} value={r}>{ROLE_LABEL[r].label}</option>
+                          <option key={r} value={r}>{t(ROLE_LABEL[r].labelKey)}</option>
                         ))}
                       </select>
                     ) : (
                       <span style={{ ...styles.roleBadge, background: ROLE_LABEL[seat.role].color }}>
-                        {ROLE_LABEL[seat.role].label}
+                        {t(ROLE_LABEL[seat.role].labelKey)}
                       </span>
                     )}
                   </td>
                   <td style={styles.td}>
                     {seat.status === "suspended" ? (
-                      <span style={{ color: "#C0322B", fontSize: 13 }}>● Suspendu</span>
+                      <span style={{ color: "#C0322B", fontSize: 13 }}>{t("teamSettings.statusSuspended")}</span>
                     ) : isPending ? (
-                      <span style={{ color: "#E89A2E", fontSize: 13 }}>● Invitation envoyée</span>
+                      <span style={{ color: "#E89A2E", fontSize: 13 }}>{t("teamSettings.statusInvited")}</span>
                     ) : (
-                      <span style={{ color: "#15803D", fontSize: 13 }}>● Actif</span>
+                      <span style={{ color: "#15803D", fontSize: 13 }}>{t("teamSettings.statusActive")}</span>
                     )}
                   </td>
                   <td style={styles.td}>
                     <span style={{ fontSize: 12, color: "#94A3B8" }}>
                       {seat.last_login
-                        ? new Date(seat.last_login).toLocaleDateString("fr-FR")
+                        ? new Date(seat.last_login).toLocaleDateString(dateLocale)
                         : "—"}
                     </span>
                   </td>
@@ -357,11 +362,11 @@ export default function TeamSettingsPage() {
                       <div style={{ display: "flex", gap: 4 }}>
                         {seat.status === "active" ? (
                           <button onClick={() => suspendSeat(seat)} disabled={actioningSeat === seat.id} style={styles.btnDanger}>
-                            Suspendre
+                            {t('teamSettings.suspend')}
                           </button>
                         ) : (
                           <button onClick={() => reactivateSeat(seat)} disabled={actioningSeat === seat.id} style={styles.btnSecondary}>
-                            Réactiver
+                            {t('teamSettings.reactivate')}
                           </button>
                         )}
                       </div>

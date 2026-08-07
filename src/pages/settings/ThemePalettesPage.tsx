@@ -10,48 +10,53 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { themes, type ThemeType, type Theme } from '../../styles/theme';
 import { Card, CardContent, Badge, Button } from '../../components/ui';
 import ThemeConfigurator from '../../components/settings/ThemeConfigurator';
+import { useLanguage } from '@/contexts/LanguageContext';
 
+// Clés (et non libellés) : la table est figée au chargement du module. Les noms
+// propres de palette (« Obsidian & Champagne ») restent des littéraux — ce sont
+// des marques, pas du texte à traduire.
 interface PaletteMeta {
-  longName: string;
-  tagline: string;
+  longName: string | null;
+  longNameKey?: string;
+  taglineKey: string;
 }
 
 const paletteMeta: Record<ThemeType, PaletteMeta> = {
   atlasStudio: {
     longName: 'Obsidian & Champagne',
-    tagline: 'Luxe institutionnel — Mercury · Brex · Cartier',
+    taglineKey: 'themePalettes.atlasStudioTagline',
   },
   sapphireSlate: {
     longName: 'Sapphire & Slate',
-    tagline: 'Institutionnel — Bloomberg · Stripe · Goldman Sachs',
+    taglineKey: 'themePalettes.sapphireSlateTagline',
   },
   steelCarbon: {
     longName: 'Steel & Carbon',
-    tagline: 'Sobriété moderne — Linear · Vercel · Cockpit CR',
+    taglineKey: 'themePalettes.steelCarbonTagline',
   },
   atlasFinance: {
-    longName: 'Atlas FnA — Grayscale',
-    tagline: 'Monochrome sobre et intemporel',
+    longName: null, longNameKey: 'themePalettes.atlasFinanceName',
+    taglineKey: 'themePalettes.atlasFinanceTagline',
   },
   oceanBlue: {
-    longName: 'Ocean Blue — Finance classique',
-    tagline: 'Bleu corporate rassurant',
+    longName: null, longNameKey: 'themePalettes.oceanBlueName',
+    taglineKey: 'themePalettes.oceanBlueTagline',
   },
   forestGreen: {
-    longName: 'Forest Green — Nature',
-    tagline: 'Vert apaisant, éco-responsable',
+    longName: null, longNameKey: 'themePalettes.forestGreenName',
+    taglineKey: 'themePalettes.forestGreenTagline',
   },
   midnightDark: {
-    longName: 'Midnight — Mode Sombre',
-    tagline: 'Travail nocturne, contraste élevé',
+    longName: null, longNameKey: 'themePalettes.midnightDarkName',
+    taglineKey: 'themePalettes.midnightDarkTagline',
   },
   sahelGold: {
-    longName: 'Sahel Gold — OHADA',
-    tagline: 'Tons chauds africains, zone OHADA',
+    longName: null, longNameKey: 'themePalettes.sahelGoldName',
+    taglineKey: 'themePalettes.sahelGoldTagline',
   },
   royalIndigo: {
-    longName: 'Royal Indigo — Premium',
-    tagline: 'Violet sophistiqué, gamme haut de gamme',
+    longName: null, longNameKey: 'themePalettes.royalIndigoName',
+    taglineKey: 'themePalettes.royalIndigoTagline',
   },
 };
 
@@ -116,6 +121,7 @@ const MiniDashboardPreview: React.FC<{ theme: Theme }> = ({ theme }) => {
 
 const ThemePalettesPage: React.FC = () => {
   const { themeType, setTheme } = useTheme();
+  const { t } = useLanguage();
   const entries = Object.entries(themes) as [ThemeType, Theme][];
 
   return (
@@ -125,11 +131,11 @@ const ThemePalettesPage: React.FC = () => {
         <div className="flex items-center gap-3 mb-2">
           <Palette className="w-7 h-7" style={{ color: 'var(--color-accent)' }} />
           <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            Palettes de couleurs Atlas FnA
+            {t('themePalettes.title')}
           </h1>
         </div>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          Choisissez la palette qui correspond à votre entreprise
+          {t('themePalettes.subtitle')}
         </p>
       </div>
 
@@ -153,16 +159,16 @@ const ThemePalettesPage: React.FC = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="font-semibold text-base" style={{ color: 'var(--color-text-primary)' }}>
-                      {meta.longName}
+                      {meta.longName ?? t(meta.longNameKey!)}
                     </h3>
                     <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
-                      {meta.tagline}
+                      {t(meta.taglineKey)}
                     </p>
                   </div>
                   {isActive && (
                     <Badge className="bg-amber-100 text-amber-800 flex-shrink-0">
                       <CheckCircle2 className="h-3 w-3 mr-1" />
-                      Palette actuelle
+                      {t('themePalettes.currentPalette')}
                     </Badge>
                   )}
                 </div>
@@ -183,7 +189,7 @@ const ThemePalettesPage: React.FC = () => {
                   disabled={isActive}
                   onClick={() => setTheme(key)}
                 >
-                  {isActive ? 'Palette actuelle' : 'Appliquer cette palette'}
+                  {isActive ? t('themePalettes.currentPalette') : 'Appliquer cette palette'}
                 </Button>
               </CardContent>
             </Card>
@@ -196,11 +202,11 @@ const ThemePalettesPage: React.FC = () => {
         <div className="flex items-center gap-3 mb-4">
           <Sparkles className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
           <h2 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            Palette personnalisée
+            {t('themePalettes.customPalette')}
           </h2>
         </div>
         <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-          Besoin d'une identité sur mesure ? Créez votre propre palette couleur par couleur.
+          {t('themePalettes.customPaletteHint')}
         </p>
         <ThemeConfigurator />
 
@@ -210,7 +216,7 @@ const ThemePalettesPage: React.FC = () => {
             className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
             style={{ color: 'var(--color-accent)' }}
           >
-            Voir le guide typographique
+            {t('themePalettes.typographyGuide')}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
