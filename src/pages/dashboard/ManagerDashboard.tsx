@@ -14,24 +14,9 @@ import {
   Download,
   RefreshCw,
   Eye,
-  AlertTriangle,
-  Wallet,
-  Receipt,
-  Clock,
-  Scale,
-  Percent,
-  Landmark
+  AlertTriangle
 } from 'lucide-react';
-
-const MONTH_LABELS_SHORT = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
-const DSO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de recouvrement clients (jours), par défaut
-const DSO_THRESHOLD_KEY = 'manager-dso-threshold';
-const DPO_THRESHOLD_DEFAULT = 60; // seuil d'alerte du délai de paiement fournisseurs (jours)
-const DPO_THRESHOLD_KEY = 'manager-dpo-threshold';
-const TRESO_THRESHOLD_DEFAULT = 0; // seuil d'alerte de trésorerie nette (FCFA) : alerte si en dessous
-const TRESO_THRESHOLD_KEY = 'manager-treso-threshold';
-const BFR_DAYS_THRESHOLD_DEFAULT = 90; // seuil d'alerte du BFR exprimé en jours de CA
-const BFR_DAYS_THRESHOLD_KEY = 'manager-bfr-days-threshold';
+import CreancesDettesRatiosBlock from '../../components/dashboard/CreancesDettesRatiosBlock';
 
 const ManagerDashboard: React.FC = () => {
   const { t } = useLanguage();
@@ -42,50 +27,26 @@ const ManagerDashboard: React.FC = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   // KPIs dérivés de la SOURCE UNIQUE (glHelpers via computeDashboardMetrics).
-  const [liveKpiData, setLiveKpiData] = useState<{
-    revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number;
-    receivables: number; payables: number; stocks: number; bfr: number; bfrDays: number;
-    dso: number; dpo: number; margeBrute: number; ratioCD: number | null;
-  }>({
-    revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0,
-    receivables: 0, payables: 0, stocks: 0, bfr: 0, bfrDays: 0, dso: 0, dpo: 0, margeBrute: 0, ratioCD: null,
-  });
+  const [liveKpiData, setLiveKpiData] = useState<{ revenue: number; expenses: number; treasury: number; resultatNet: number; margin: number; pendingCount: number }>({ revenue: 0, expenses: 0, treasury: 0, resultatNet: 0, margin: 0, pendingCount: 0 });
   const [topClients, setTopClients] = useState<Array<{ name: string; amount: number }>>([]);
-  const [balHistory, setBalHistory] = useState<Array<{ label: string; creances: number; dettes: number }>>([]);
-  const [dsoThreshold, setDsoThreshold] = useState<number>(() => {
-    try { const v = Number(localStorage.getItem(DSO_THRESHOLD_KEY)); return v > 0 ? v : DSO_THRESHOLD_DEFAULT; } catch { return DSO_THRESHOLD_DEFAULT; }
-  });
-  const updateDsoThreshold = (v: number) => {
-    const val = Math.max(1, Math.min(365, Math.round(v || 0)));
-    setDsoThreshold(val);
-    try { localStorage.setItem(DSO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
-  };
-  const [dpoThreshold, setDpoThreshold] = useState<number>(() => {
-    try { const v = Number(localStorage.getItem(DPO_THRESHOLD_KEY)); return v > 0 ? v : DPO_THRESHOLD_DEFAULT; } catch { return DPO_THRESHOLD_DEFAULT; }
-  });
-  const updateDpoThreshold = (v: number) => {
-    const val = Math.max(1, Math.min(365, Math.round(v || 0)));
-    setDpoThreshold(val);
-    try { localStorage.setItem(DPO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
-  };
-  const [tresoThreshold, setTresoThreshold] = useState<number>(() => {
-    try { const s = localStorage.getItem(TRESO_THRESHOLD_KEY); return s !== null && s !== '' ? Number(s) : TRESO_THRESHOLD_DEFAULT; } catch { return TRESO_THRESHOLD_DEFAULT; }
-  });
-  const updateTresoThreshold = (v: number) => {
-    const val = Math.round(v || 0);
-    setTresoThreshold(val);
-    try { localStorage.setItem(TRESO_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
-  };
-  const [bfrDaysThreshold, setBfrDaysThreshold] = useState<number>(() => {
-    try { const v = Number(localStorage.getItem(BFR_DAYS_THRESHOLD_KEY)); return v > 0 ? v : BFR_DAYS_THRESHOLD_DEFAULT; } catch { return BFR_DAYS_THRESHOLD_DEFAULT; }
-  });
-  const updateBfrDaysThreshold = (v: number) => {
-    const val = Math.max(1, Math.min(1000, Math.round(v || 0)));
-    setBfrDaysThreshold(val);
-    try { localStorage.setItem(BFR_DAYS_THRESHOLD_KEY, String(val)); } catch { /* ignore */ }
-  };
+  // Écritures brutes + plage courante, transmises au bloc partagé « Créances, dettes & ratios ».
+  const [entries, setEntries] = useState<any[]>([]);
+  const [range, setRange] = useState<DashboardPeriod>({});
 
   const handleExport = () => {
+    // Recalcule les postes de bilan à la volée (source unique glHelpers).
+    const mBal = computeDashboardMetrics(entries, range.to ? { to: range.to } : undefined);
+    const mFlow = computeDashboardMetrics(entries, range);
+    const receivables = mBal.h.net('41');
+    const payables = mBal.h.creditNet('40');
+    const stocks = mBal.classNet['3'] || 0;
+    const bfr = receivables + stocks - payables;
+    const achats = mFlow.h.net('60');
+    const days = (range.from && range.to) ? Math.max(1, (new Date(range.to).getTime() - new Date(range.from).getTime()) / 86400000 + 1) : 365;
+    const dso = mFlow.ca > 0 ? Math.round((receivables / mFlow.ca) * days) : 0;
+    const dpo = achats > 0 ? Math.round((payables / achats) * days) : 0;
+    const margeBrute = mFlow.ca > 0 ? ((mFlow.ca - achats) / mFlow.ca) * 100 : 0;
+    const ratioCD = payables !== 0 ? receivables / payables : null;
     const rows = [
       ['Indicateur', 'Valeur'],
       ['Chiffre d\'affaires', String(liveKpiData.revenue)],
@@ -93,14 +54,14 @@ const ManagerDashboard: React.FC = () => {
       ['Résultat net', String(liveKpiData.resultatNet)],
       ['Marge nette (%)', liveKpiData.margin.toFixed(2)],
       ['Trésorerie nette', String(liveKpiData.treasury)],
-      ['Créances clients (41)', String(liveKpiData.receivables)],
-      ['Dettes fournisseurs (40)', String(liveKpiData.payables)],
-      ['Stocks (classe 3)', String(liveKpiData.stocks)],
-      ['BFR', String(liveKpiData.bfr)],
-      ['DSO (jours)', String(liveKpiData.dso)],
-      ['DPO (jours)', String(liveKpiData.dpo)],
-      ['Marge brute (%)', liveKpiData.margeBrute.toFixed(2)],
-      ['Ratio créances/dettes', liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : 'n/a'],
+      ['Créances clients (41)', String(receivables)],
+      ['Dettes fournisseurs (40)', String(payables)],
+      ['Stocks (classe 3)', String(stocks)],
+      ['BFR', String(bfr)],
+      ['DSO (jours)', String(dso)],
+      ['DPO (jours)', String(dpo)],
+      ['Marge brute (%)', margeBrute.toFixed(2)],
+      ['Ratio créances/dettes', ratioCD != null ? ratioCD.toFixed(2) : 'n/a'],
       ['Écritures en attente', String(liveKpiData.pendingCount)],
     ];
     const csv = '﻿' + rows.map(r => r.join(';')).join('\n');
@@ -112,60 +73,25 @@ const ManagerDashboard: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      const entries = await adapter.getAll<any>('journalEntries');
+      const allEntries = await adapter.getAll<any>('journalEntries');
+      setEntries(allEntries);
       // Plage de dates réelle dérivée du sélecteur (semaine = 7 derniers jours).
-      let range: DashboardPeriod;
+      let r: DashboardPeriod;
       if (timeRange === 'week') {
         const now = new Date();
         const from = new Date(now); from.setDate(from.getDate() - 6);
-        range = { from: from.toISOString().slice(0, 10), to: now.toISOString().slice(0, 10) };
+        r = { from: from.toISOString().slice(0, 10), to: now.toISOString().slice(0, 10) };
       } else {
-        range = periodRange(timeRange as 'month' | 'quarter' | 'year');
+        r = periodRange(timeRange as 'month' | 'quarter' | 'year');
       }
-      const m = computeDashboardMetrics(entries, range);
-      const pendingCount = entries.filter((e: any) => e.status === 'draft').length;
+      setRange(r);
+      const m = computeDashboardMetrics(allEntries, r);
+      const pendingCount = allEntries.filter((e: any) => e.status === 'draft').length;
+      setLiveKpiData({ revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount });
 
-      // Postes de bilan : soldes CUMULÉS jusqu'à la fin de la période (les
-      // créances/dettes/stocks sont des encours, pas des flux de période).
-      const mBal = computeDashboardMetrics(entries, range.to ? { to: range.to } : undefined);
-      const receivables = mBal.h.net('41');        // clients — solde débiteur (41x)
-      const payables = mBal.h.creditNet('40');     // fournisseurs — solde créditeur (40x)
-      const stocks = mBal.classNet['3'] || 0;      // stocks (classe 3)
-      const bfr = receivables + stocks - payables; // besoin en fonds de roulement (approché)
-
-      // Ratios : flux de la période (CA, achats cl.60) rapportés aux encours.
-      const achats = m.h.net('60');
-      const days = (() => {
-        if (range.from && range.to) {
-          const d = (new Date(range.to).getTime() - new Date(range.from).getTime()) / 86400000 + 1;
-          return d > 0 ? d : 365;
-        }
-        return 365;
-      })();
-      const dso = m.ca > 0 ? Math.round((receivables / m.ca) * days) : 0;   // délai recouvrement clients
-      const dpo = achats > 0 ? Math.round((payables / achats) * days) : 0;  // délai paiement fournisseurs
-      const bfrDays = m.ca > 0 ? Math.round((bfr / m.ca) * days) : 0;       // BFR exprimé en jours de CA
-      const margeBrute = m.ca > 0 ? ((m.ca - achats) / m.ca) * 100 : 0;     // marge brute %
-      const ratioCD = payables !== 0 ? receivables / payables : null;       // créances / dettes
-
-      setLiveKpiData({
-        revenue: m.ca, expenses: m.charges, treasury: m.treasury, resultatNet: m.resultatNet, margin: m.margeNette, pendingCount,
-        receivables, payables, stocks, bfr, bfrDays, dso, dpo, margeBrute, ratioCD,
-      });
-
-      // Historique 6 mois : encours créances/dettes cumulés à la fin de chaque mois.
-      const anchor = range.to ? new Date(range.to) : new Date();
-      const hist: Array<{ label: string; creances: number; dettes: number }> = [];
-      for (let i = 5; i >= 0; i--) {
-        const monthEnd = new Date(Date.UTC(anchor.getUTCFullYear(), anchor.getUTCMonth() - i + 1, 0));
-        const iso = monthEnd.toISOString().slice(0, 10);
-        const mm = computeDashboardMetrics(entries, { to: iso });
-        hist.push({ label: MONTH_LABELS_SHORT[monthEnd.getUTCMonth()], creances: mm.h.net('41'), dettes: mm.h.creditNet('40') });
-      }
-      setBalHistory(hist);
       // Top clients RÉELS = montants facturés (débit des comptes 411) agrégés par tiers.
       const byClient = new Map<string, number>();
-      for (const e of entries) {
+      for (const e of allEntries) {
         if (e.status === 'draft') continue;
         for (const l of (e.lines || [])) {
           if (l.accountCode?.startsWith('411')) {
@@ -210,44 +136,8 @@ const ManagerDashboard: React.FC = () => {
     }
   ];
 
-  // Alertes dérivées d'indicateurs réels (pas de notifications factices).
+  // Alertes générales (les alertes financières à seuils vivent dans le bloc partagé).
   const alerts: Array<{ type: string; title: string; message: string; action: string; time: string }> = [];
-  if (liveKpiData.dso > dsoThreshold) {
-    alerts.push({
-      type: 'warning',
-      title: 'DSO élevé',
-      message: `Délai de recouvrement clients de ${liveKpiData.dso} jours (seuil ${dsoThreshold} j). Pensez à relancer les créances.`,
-      action: 'Voir les créances',
-      time: '',
-    });
-  }
-  if (liveKpiData.dpo > dpoThreshold) {
-    alerts.push({
-      type: 'warning',
-      title: 'DPO élevé',
-      message: `Délai de paiement fournisseurs de ${liveKpiData.dpo} jours (seuil ${dpoThreshold} j). Risque sur les relations fournisseurs.`,
-      action: 'Voir les dettes',
-      time: '',
-    });
-  }
-  if (liveKpiData.revenue > 0 && liveKpiData.bfrDays > bfrDaysThreshold) {
-    alerts.push({
-      type: 'warning',
-      title: 'BFR en forte hausse',
-      message: `Le besoin en fonds de roulement représente ${liveKpiData.bfrDays} jours de CA (${fmt(liveKpiData.bfr)}), au-delà du seuil de ${bfrDaysThreshold} j. Tension possible sur la trésorerie.`,
-      action: 'Analyser le BFR',
-      time: '',
-    });
-  }
-  if (liveKpiData.treasury < tresoThreshold) {
-    alerts.push({
-      type: 'warning',
-      title: 'Trésorerie sous le seuil',
-      message: `Trésorerie nette de ${fmt(liveKpiData.treasury)} (seuil ${fmt(tresoThreshold)}).`,
-      action: 'Analyser',
-      time: '',
-    });
-  }
   if (liveKpiData.pendingCount > 0) {
     alerts.push({
       type: 'info',
@@ -349,117 +239,8 @@ const ManagerDashboard: React.FC = () => {
           })}
         </div>
 
-        {/* Créances, dettes & ratios — postes de bilan (cumulés) et ratios réels */}
-        <section className="bg-white rounded-xl p-6 shadow-sm border border-[var(--color-border)] mb-8">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">Créances, dettes & ratios</h2>
-            <div className="flex flex-wrap items-center gap-3">
-              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
-                <Clock className="w-3.5 h-3.5" />
-                Seuil DSO
-                <input
-                  type="number" min={1} max={365}
-                  value={dsoThreshold}
-                  onChange={(e) => updateDsoThreshold(Number(e.target.value))}
-                  className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
-                  aria-label="Seuil d'alerte DSO en jours"
-                />
-                j
-              </label>
-              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
-                Seuil DPO
-                <input
-                  type="number" min={1} max={365}
-                  value={dpoThreshold}
-                  onChange={(e) => updateDpoThreshold(Number(e.target.value))}
-                  className="w-14 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
-                  aria-label="Seuil d'alerte DPO en jours"
-                />
-                j
-              </label>
-              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
-                Seuil trésorerie
-                <input
-                  type="number" step={1000}
-                  value={tresoThreshold}
-                  onChange={(e) => updateTresoThreshold(Number(e.target.value))}
-                  className="w-28 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
-                  aria-label="Seuil d'alerte de trésorerie en FCFA"
-                />
-                FCFA
-              </label>
-              <label className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)]">
-                Seuil BFR
-                <input
-                  type="number" min={1} max={1000}
-                  value={bfrDaysThreshold}
-                  onChange={(e) => updateBfrDaysThreshold(Number(e.target.value))}
-                  className="w-16 px-2 py-1 rounded border border-[var(--color-border-dark)] text-[var(--color-text-primary)] text-xs num-tabular focus:ring-2 focus:ring-blue-500"
-                  aria-label="Seuil d'alerte BFR en jours de CA"
-                />
-                j de CA
-              </label>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
-            {[
-              { label: 'Créances clients', value: fmt(liveKpiData.receivables), sub: 'Solde 41x (débiteur)', icon: Wallet, tone: 'text-[var(--color-primary)]' },
-              { label: 'Dettes fournisseurs', value: fmt(liveKpiData.payables), sub: 'Solde 40x (créditeur)', icon: Receipt, tone: 'text-[var(--color-warning-dark)]' },
-              { label: 'BFR', value: fmt(liveKpiData.bfr), sub: `${liveKpiData.bfrDays} j de CA · seuil ${bfrDaysThreshold} j`, icon: Scale, tone: (liveKpiData.revenue > 0 && liveKpiData.bfrDays > bfrDaysThreshold) ? 'text-[var(--color-error)]' : (liveKpiData.bfr >= 0 ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-success)]') },
-              { label: 'DSO', value: `${liveKpiData.dso} j`, sub: `Recouvrement · seuil ${dsoThreshold} j`, icon: Clock, tone: liveKpiData.dso > dsoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
-              { label: 'DPO', value: `${liveKpiData.dpo} j`, sub: `Paiement fourn. · seuil ${dpoThreshold} j`, icon: Clock, tone: liveKpiData.dpo > dpoThreshold ? 'text-[var(--color-error)]' : 'text-[var(--color-text-primary)]' },
-              { label: 'Marge brute', value: `${liveKpiData.margeBrute.toFixed(1)} %`, sub: '(CA − achats) / CA', icon: Percent, tone: 'text-[var(--color-success)]' },
-              { label: 'Créances / Dettes', value: liveKpiData.ratioCD != null ? liveKpiData.ratioCD.toFixed(2) : '—', sub: 'Couverture des dettes', icon: Landmark, tone: liveKpiData.ratioCD != null && liveKpiData.ratioCD >= 1 ? 'text-[var(--color-success)]' : 'text-[var(--color-text-primary)]' },
-            ].map((r) => {
-              const Icon = r.icon;
-              return (
-                <div key={r.label} className="p-4 rounded-lg bg-[var(--color-background-secondary)] border border-[var(--color-border)]">
-                  <div className="flex items-center gap-2 mb-2 text-[var(--color-text-secondary)]">
-                    <Icon className="w-4 h-4" />
-                    <span className="text-xs font-medium">{r.label}</span>
-                  </div>
-                  <p className={`text-base font-bold ${r.tone}`}>{r.value}</p>
-                  <p className="text-[11px] text-[var(--color-text-secondary)] mt-1">{r.sub}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Évolution créances vs dettes (6 derniers mois, encours de fin de mois) */}
-          {balHistory.length > 0 && (() => {
-            const maxVal = Math.max(1, ...balHistory.flatMap(h => [h.creances, h.dettes]));
-            return (
-              <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Évolution créances vs dettes (6 mois)</h3>
-                  <div className="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
-                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-primary)]" /> Créances</span>
-                    <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-[var(--color-warning)]" /> Dettes</span>
-                  </div>
-                </div>
-                <div className="flex items-end justify-between gap-3" style={{ height: 160 }}>
-                  {balHistory.map((h) => (
-                    <div key={h.label} className="flex-1 flex flex-col items-center justify-end h-full">
-                      <div className="flex items-end justify-center gap-1 w-full" style={{ height: 130 }}>
-                        <div
-                          className="rounded-t bg-[var(--color-primary)] transition-all"
-                          style={{ width: '38%', height: `${Math.max(2, (h.creances / maxVal) * 130)}px` }}
-                          title={`Créances ${h.label} : ${fmt(h.creances)}`}
-                        />
-                        <div
-                          className="rounded-t bg-[var(--color-warning)] transition-all"
-                          style={{ width: '38%', height: `${Math.max(2, (h.dettes / maxVal) * 130)}px` }}
-                          title={`Dettes ${h.label} : ${fmt(h.dettes)}`}
-                        />
-                      </div>
-                      <span className="text-[11px] text-[var(--color-text-secondary)] mt-2">{h.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </section>
+        {/* Bloc partagé « Créances, dettes & ratios » (composant réutilisable) */}
+        <CreancesDettesRatiosBlock entries={entries} period={range} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Graphique principal */}
