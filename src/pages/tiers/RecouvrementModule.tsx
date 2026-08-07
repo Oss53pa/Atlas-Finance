@@ -774,19 +774,50 @@ const ContentieuxTab = ({
   const [filterProcedure, setFilterProcedure] = useState('tous');
   const [showTransferContentieuxModal, setShowTransferContentieuxModal] = useState(false);
   const [selectedDossierTransfer, setSelectedDossierTransfer] = useState<DossierContentieux | null>(null);
+  // Champs alignés sur createTransfertContentieuxSchema (tiers_id, factures, motif…).
   const [formData, setFormData] = useState({
-    creance_ids: [] as string[],
+    tiers_id: '',
+    facturesText: '',   // saisie brute : références séparées par virgule → factures[]
     motif: '',
-    service_recouvrement: '',
     date_transfert: new Date().toISOString().split('T')[0],
-    provision_montant: '',
-    documents: [] as string[],
+    responsable_contentieux: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryClient = useQueryClient();
   const [activeWorkflowPhase, setActiveWorkflowPhase] = useState('all');
+
+  // Débiteurs réels : tiers portant des lignes 41x débitrices NON lettrées (impayés).
+  const debtors = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const e of (allJournalEntries || [])) {
+      if (e?.status === 'draft') continue;
+      for (const l of (e.lines || [])) {
+        const code = String(l.accountCode || '');
+        if (code.startsWith('41') && l.thirdPartyCode && (l.debit || 0) > 0 && !l.lettrageCode) {
+          if (!map.has(l.thirdPartyCode)) map.set(l.thirdPartyCode, l.thirdPartyName || l.thirdPartyCode);
+        }
+      }
+    }
+    return Array.from(map, ([code, name]) => ({ code, name }));
+  }, [allJournalEntries]);
+
+  // Références des factures impayées du tiers sélectionné (proposées pour le transfert).
+  const facturesForTiers = useMemo(() => {
+    if (!formData.tiers_id) return [] as string[];
+    const refs = new Set<string>();
+    for (const e of (allJournalEntries || [])) {
+      if (e?.status === 'draft') continue;
+      for (const l of (e.lines || [])) {
+        const code = String(l.accountCode || '');
+        if (code.startsWith('41') && l.thirdPartyCode === formData.tiers_id && (l.debit || 0) > 0 && !l.lettrageCode) {
+          refs.add(String(e.reference || e.entryNumber || e.id));
+        }
+      }
+    }
+    return Array.from(refs);
+  }, [allJournalEntries, formData.tiers_id]);
 
   // Create transfert contentieux mutation
   const createMutation = useMutation({
@@ -814,12 +845,11 @@ const ContentieuxTab = ({
 
   const resetForm = () => {
     setFormData({
-      creance_ids: [],
+      tiers_id: '',
+      facturesText: '',
       motif: '',
-      service_recouvrement: '',
       date_transfert: new Date().toISOString().split('T')[0],
-      provision_montant: '',
-      documents: [],
+      responsable_contentieux: '',
     });
     setErrors({});
     setIsSubmitting(false);
@@ -841,10 +871,13 @@ const ContentieuxTab = ({
       setIsSubmitting(true);
       setErrors({});
 
-      // Convert provision_montant to number if not empty
+      // Construit la charge attendue par le schéma (factures : refs → tableau).
       const processedData = {
-        ...formData,
-        provision_montant: formData.provision_montant ? Number(formData.provision_montant) : undefined,
+        tiers_id: formData.tiers_id.trim(),
+        factures: formData.facturesText.split(',').map((s) => s.trim()).filter(Boolean),
+        motif: formData.motif.trim(),
+        date_transfert: formData.date_transfert || undefined,
+        responsable_contentieux: formData.responsable_contentieux.trim() || undefined,
       };
 
       const validatedData = createTransfertContentieuxSchema.parse(processedData);
@@ -1515,7 +1548,7 @@ const ContentieuxTab = ({
     <div className="space-y-6">
       {/* Barre de sous-navigation */}
       <div className="bg-white rounded-lg p-2 border border-[var(--color-border)] shadow-sm">
-        <div className="flex space-x-1">
+        <div className="flex items-center space-x-1">
           {contentieuxSubTabs.map((tab) => (
             <button
               key={tab.id}
@@ -1530,11 +1563,130 @@ const ContentieuxTab = ({
               <span className="text-sm font-medium">{tab.label}</span>
             </button>
           ))}
+          <button
+            onClick={() => { resetForm(); setShowTransferContentieuxModal(true); }}
+            className="ml-auto flex items-center space-x-2 px-4 py-2 rounded-md bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            <Scale className="w-4 h-4" />
+            <span>Transférer au contentieux</span>
+          </button>
         </div>
       </div>
 
       {/* Contenu selon le sous-onglet actif */}
       {renderContentieuxContent()}
+
+      {/* Modal : transfert d'un dossier vers le contentieux */}
+      {showTransferContentieuxModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Scale className="w-5 h-5 text-[var(--color-primary)]" /> Transférer au contentieux
+              </h3>
+              <button
+                onClick={() => { setShowTransferContentieuxModal(false); resetForm(); }}
+                className="p-1.5 rounded-lg hover:bg-gray-100" aria-label="Fermer"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Tiers débiteur */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tiers débiteur <span className="text-red-500">*</span></label>
+                <select
+                  value={formData.tiers_id}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, tiers_id: e.target.value, facturesText: '' }))}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm ${errors.tiers_id ? 'border-red-400' : 'border-gray-300'}`}
+                >
+                  <option value="">— Sélectionner un tiers —</option>
+                  {debtors.map((d) => <option key={d.code} value={d.code}>{d.name} ({d.code})</option>)}
+                </select>
+                {debtors.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">Aucun tiers avec impayés détecté dans le grand livre.</p>
+                )}
+                {errors.tiers_id && <p className="text-xs text-red-500 mt-1">{errors.tiers_id}</p>}
+              </div>
+
+              {/* Factures */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Factures concernées <span className="text-red-500">*</span></label>
+                <textarea
+                  value={formData.facturesText}
+                  onChange={(e) => handleInputChange('facturesText', e.target.value)}
+                  placeholder="Références séparées par des virgules (ex : FAC-001, FAC-014)"
+                  rows={2}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm ${errors.factures ? 'border-red-400' : 'border-gray-300'}`}
+                />
+                {facturesForTiers.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleInputChange('facturesText', facturesForTiers.join(', '))}
+                    className="text-xs text-[var(--color-primary)] font-medium mt-1 hover:underline"
+                  >
+                    Insérer les {facturesForTiers.length} facture(s) impayée(s) détectée(s)
+                  </button>
+                )}
+                {errors.factures && <p className="text-xs text-red-500 mt-1">{errors.factures}</p>}
+              </div>
+
+              {/* Motif */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Motif du transfert <span className="text-red-500">*</span></label>
+                <textarea
+                  value={formData.motif}
+                  onChange={(e) => handleInputChange('motif', e.target.value)}
+                  placeholder="Ex : Échec du recouvrement amiable après 3 relances"
+                  rows={2}
+                  className={`w-full border rounded-lg px-3 py-2 text-sm ${errors.motif ? 'border-red-400' : 'border-gray-300'}`}
+                />
+                {errors.motif && <p className="text-xs text-red-500 mt-1">{errors.motif}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date de transfert</label>
+                  <input
+                    type="date"
+                    value={formData.date_transfert}
+                    onChange={(e) => handleInputChange('date_transfert', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Responsable contentieux</label>
+                  <input
+                    type="text"
+                    value={formData.responsable_contentieux}
+                    onChange={(e) => handleInputChange('responsable_contentieux', e.target.value)}
+                    placeholder="Nom du responsable"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => { setShowTransferContentieuxModal(false); resetForm(); }}
+                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-bold hover:opacity-90 disabled:opacity-60 flex items-center gap-2"
+              >
+                <Scale className="w-4 h-4" />
+                {isSubmitting ? 'Transfert…' : 'Confirmer le transfert'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modals d'actions contentieuses */}
       {/* Modal Préparer Assignation */}
