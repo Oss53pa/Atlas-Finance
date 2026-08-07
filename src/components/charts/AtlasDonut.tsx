@@ -18,6 +18,8 @@ export interface AtlasDonutProps {
   centerLabel?: string;
   colors?: string[];
   showLegend?: boolean;
+  /** % à l'intérieur de chaque segment (défaut : oui ; à couper sur les petits anneaux) */
+  showSliceLabels?: boolean;
   /** formateur du tooltip (défaut : valeur brute) */
   valueFormatter?: (n: number) => string;
   height?: number;
@@ -30,7 +32,7 @@ export interface AtlasDonutProps {
  */
 const AtlasDonut: React.FC<AtlasDonutProps> = ({
   data, explodeIndex, centerPrimary, centerLabel = 'TOTAL', colors = ATLAS_SERIES,
-  showLegend = true, valueFormatter, height = 320, className,
+  showLegend = true, showSliceLabels = true, valueFormatter, height = 320, className,
 }) => {
   const option = useMemo<EChartsOption>(() => {
     const cx = showLegend ? '36%' : '50%';
@@ -56,7 +58,9 @@ const AtlasDonut: React.FC<AtlasDonutProps> = ({
         minShowLabelAngle: 12,
         padAngle: 2,
         itemStyle: { borderColor: '#fff', borderWidth: 3, borderRadius: 9, shadowBlur: 16, shadowColor: 'rgba(38,30,21,0.16)' },
-        label: { show: true, position: 'inside', formatter: '{d}%', color: '#fff', fontFamily: FONT_MONO, fontWeight: 700, fontSize: 12 },
+        label: showSliceLabels
+          ? { show: true, position: 'inside', formatter: '{d}%', color: '#fff', fontFamily: FONT_MONO, fontWeight: 700, fontSize: 12 }
+          : { show: false },
         labelLine: { show: false },
         emphasis: { scale: true, scaleSize: 5, itemStyle: { shadowBlur: 24, shadowColor: 'rgba(38,30,21,0.24)' } },
         data: data.map((d, i) => ({ value: d.value, name: d.name, selected: i === explodeIndex })),
@@ -72,7 +76,7 @@ const AtlasDonut: React.FC<AtlasDonutProps> = ({
         subtextStyle: { fontFamily: FONT_SANS, fontSize: 10, fontWeight: 700, color: ATLAS_INK3 },
       } : undefined,
     };
-  }, [data, explodeIndex, centerPrimary, centerLabel, colors, showLegend, valueFormatter]);
+  }, [data, explodeIndex, centerPrimary, centerLabel, colors, showLegend, showSliceLabels, valueFormatter]);
 
   return <EChart option={option} height={height} className={className} />;
 };

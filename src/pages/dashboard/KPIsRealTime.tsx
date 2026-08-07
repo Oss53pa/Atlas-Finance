@@ -9,8 +9,8 @@ import {
   Minimize2, Bell, Filter, Calendar, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { AtlasRadar } from '../../components/charts';
+
+import { AtlasCombo, AtlasRadar, AtlasSparkline, ATLAS_PETROL } from '../../components/charts';
 
 interface KPIMetric {
   id: string;
@@ -637,17 +637,12 @@ const KPIsRealTime: React.FC = () => {
 
                 {kpi.history.length > 0 && (
                   <div className="mt-3">
-                    <ResponsiveContainer width="100%" height={60}>
-                      <AreaChart data={kpi.history}>
-                        <defs>
-                          <linearGradient id={`gradient-${kpi.id}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#737373" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#737373" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <Area type="monotone" dataKey="value" stroke="#235A6E" fillOpacity={1} fill={`url(#gradient-${kpi.id})`} />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    <AtlasSparkline
+                      data={kpi.history.map((h: any) => h.value)}
+                      color={ATLAS_PETROL}
+                      height={60}
+                      title={kpi.name}
+                    />
                   </div>
                 )}
               </div>
@@ -663,27 +658,18 @@ const KPIsRealTime: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-1">Performance Temps Réel</h2>
             <p className="text-xs text-gray-500 mb-4">Ventes &amp; encaissements mensuels et marge nette — 8 derniers mois (données réelles)</p>
             {realTimeData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={realTimeData} margin={{ top: 5, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
-                  <XAxis
-                    dataKey="timestamp"
-                    stroke="#235A6E"
-                    tick={{ fontSize: 12 }}
-                    tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })}
-                  />
-                  <YAxis yAxisId="left" stroke="#235A6E" tick={{ fontSize: 11 }} width={64} tickFormatter={(v) => compactNumber(Number(v))} />
-                  <YAxis yAxisId="right" orientation="right" domain={[0, 100]} stroke="#E89A2E" tick={{ fontSize: 11 }} width={40} tickFormatter={(v) => `${v}%`} />
-                  <Tooltip
-                    labelFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-                    formatter={(value: number, name: string) => [name === 'Marge nette (%)' ? `${value} %` : `${compactNumber(Number(value))} FCFA`, name]}
-                  />
-                  <Legend />
-                  <Line yAxisId="left" type="monotone" dataKey="sales" stroke="#235A6E" name="Ventes (CA)" strokeWidth={2.5} dot={false} />
-                  <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#15803D" name="Encaissements" strokeWidth={2} dot={false} />
-                  <Line yAxisId="right" type="monotone" dataKey="conversion" stroke="#E89A2E" name="Marge nette (%)" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
+              <AtlasCombo
+                categories={realTimeData.map((d: any) => new Date(d.timestamp).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }))}
+                bars={[]}
+                lines={[
+                  { name: 'Ventes (CA)', data: realTimeData.map((d: any) => d.sales), color: ATLAS_PETROL, onRightAxis: false },
+                  { name: 'Encaissements', data: realTimeData.map((d: any) => d.orders), color: '#15803D', onRightAxis: false },
+                  { name: 'Marge nette (%)', data: realTimeData.map((d: any) => d.conversion), color: '#E89A2E' },
+                ]}
+                valueFormatter={(v) => `${compactNumber(v)} FCFA`}
+                rightFormatter={(v) => `${v} %`}
+                height={300}
+              />
             ) : (
               <div className="h-[300px] flex flex-col items-center justify-center text-center text-gray-400">
                 <BarChart3 className="w-10 h-10 mb-3" />

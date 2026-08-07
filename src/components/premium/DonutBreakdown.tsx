@@ -1,5 +1,5 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { AtlasDonut, ATLAS_HAIRLINE } from '../charts';
 
 /**
  * DonutBreakdown — donut « Daylight Pro » : anneau épais à segments arrondis,
@@ -46,25 +46,15 @@ const DonutBreakdown: React.FC<DonutBreakdownProps> = ({
       <div className="flex items-center gap-5 flex-wrap">
         {/* Donut */}
         <div className="relative flex-none" style={{ width: 168, height: 168 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data.length ? data : [{ name: '—', value: 1, color: 'var(--color-border)' }]}
-                dataKey="value"
-                cx="50%" cy="50%"
-                innerRadius={56} outerRadius={80}
-                paddingAngle={data.length > 1 ? 2 : 0}
-                cornerRadius={6}
-                stroke="none"
-                startAngle={90} endAngle={-270}
-                isAnimationActive={false}
-              >
-                {(data.length ? data : [{ color: 'var(--color-border)' }]).map((s, i) => (
-                  <Cell key={i} fill={s.color} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+          <AtlasDonut
+            data={(data.length ? data : [{ name: '—', value: 1 }]).map(d => ({ name: d.name, value: d.value }))}
+            /* canvas : jamais de var(--…), ECharts ne les résout pas (rendu noir) */
+            colors={data.length ? data.map(d => d.color) : [ATLAS_HAIRLINE]}
+            showLegend={false}
+            showSliceLabels={false}
+            valueFormatter={formatValue}
+            height={168}
+          />
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-3">
             <span className="font-sans font-bold" style={{ fontSize: 9.5, letterSpacing: '0.14em', color: 'var(--color-text-tertiary)' }}>{centerLabel}</span>
             <span className="num-tabular font-bold" style={{ fontSize: 17, letterSpacing: '-0.02em', color: 'var(--color-text-primary)', lineHeight: 1.1, marginTop: 2 }}>

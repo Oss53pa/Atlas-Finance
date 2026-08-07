@@ -7,6 +7,8 @@ export interface BarSeries {
   name: string;
   data: number[];
   color?: string;
+  /** couleur par barre (une entrée par catégorie) — prime sur `color` */
+  itemColors?: (string | undefined)[];
 }
 
 export interface AtlasBarProps {
@@ -15,7 +17,11 @@ export interface AtlasBarProps {
   horizontal?: boolean;
   stacked?: boolean;
   showValues?: boolean;
+  /** lignes de repère de l'axe des valeurs (défaut : oui) */
+  showGrid?: boolean;
   valueFormatter?: (n: number) => string;
+  /** formateur des graduations de l'axe des valeurs (défaut : `valueFormatter`) */
+  axisFormatter?: (n: number) => string;
   colors?: string[];
   height?: number;
   className?: string;
@@ -27,7 +33,7 @@ export interface AtlasBarProps {
  */
 const AtlasBar: React.FC<AtlasBarProps> = ({
   categories, series, horizontal = false, stacked = false, showValues = true,
-  valueFormatter, colors = ATLAS_SERIES, height = 300, className,
+  showGrid = true, valueFormatter, axisFormatter, colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => {
     const catAxis = {
@@ -36,8 +42,11 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
       axisLabel: { fontFamily: FONT_SANS, color: ATLAS_INK3, fontSize: 11, fontWeight: 600 },
     };
     const valAxis = {
-      type: 'value' as const, splitLine: { lineStyle: { color: ATLAS_HAIRLINE } },
-      axisLabel: { fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10 },
+      type: 'value' as const, splitLine: showGrid ? { lineStyle: { color: ATLAS_HAIRLINE } } : { show: false },
+      axisLabel: {
+        fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10,
+        formatter: (axisFormatter || valueFormatter) ? (v: number) => (axisFormatter || valueFormatter)!(Number(v)) : undefined,
+      },
       axisLine: { show: false }, axisTick: { show: false },
     };
     return {
@@ -49,7 +58,10 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
       yAxis: horizontal ? catAxis : valAxis,
       series: series.map((s, i) => ({
         name: s.name, type: 'bar' as const,
-        data: s.data, stack: stacked ? 'total' : undefined,
+        data: s.itemColors
+          ? s.data.map((v, k) => ({ value: v, itemStyle: { color: s.itemColors![k] || s.color || colors[i % colors.length] } }))
+          : s.data,
+        stack: stacked ? 'total' : undefined,
         barMaxWidth: 34, barGap: '20%',
         itemStyle: { color: s.color || colors[i % colors.length], borderRadius: horizontal ? [12, 12, 12, 12] : [12, 12, 12, 12] },
         showBackground: !stacked, backgroundStyle: { color: ATLAS_HAIRLINE, borderRadius: 12 },
@@ -60,7 +72,7 @@ const AtlasBar: React.FC<AtlasBarProps> = ({
         } : undefined,
       })),
     };
-  }, [categories, series, horizontal, stacked, showValues, valueFormatter, colors]);
+  }, [categories, series, horizontal, stacked, showValues, showGrid, valueFormatter, axisFormatter, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };

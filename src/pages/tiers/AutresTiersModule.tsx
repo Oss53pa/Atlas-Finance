@@ -15,11 +15,7 @@ import {
   Building, FileText, Mail, Phone, Info
 } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell,
-  ResponsiveContainer
-} from 'recharts';
+import { AtlasBar, AtlasDonut } from '../../components/charts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -867,17 +863,16 @@ const AutresTiersModule: React.FC = () => {
           {barData.some(d => d.Débit > 0 || d.Crédit > 0) && (
             <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{tr('otherTp.debitCreditByClass')}</h3>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={barData} margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis dataKey="classe" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
-                  <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                  <Legend />
-                  <Bar dataKey="Débit" name={tr('otherTp.debit')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Crédit" name={tr('otherTp.credit')} fill="#10B981" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <AtlasBar
+                categories={barData.map(d => d.classe)}
+                series={[
+                  { name: tr('otherTp.debit'), data: barData.map(d => d.Débit), color: '#235A6E' },
+                  { name: tr('otherTp.credit'), data: barData.map(d => d.Crédit), color: '#E89A2E' },
+                ]}
+                showValues={false}
+                valueFormatter={(v) => formatCurrency(v)}
+                height={260}
+              />
             </div>
           )}
         </div>
@@ -937,25 +932,12 @@ const AutresTiersModule: React.FC = () => {
               </h3>
               <p className="text-xs text-gray-400 mb-4">{tr('otherTp.countByClass')}</p>
               {pieData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={240}>
-                  <RechartsPieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={90}
-                      dataKey="value"
-                      label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                      labelLine={false}
-                    >
-                      {pieData.map((_entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(v: number, name: string) => [tr('otherTp.thirdPartiesUnit', { count: String(v) }), name]} />
-                    <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
+                <AtlasDonut
+                  data={pieData.map(d => ({ name: d.name, value: d.value }))}
+                  colors={COLOR_PALETTE}
+                  valueFormatter={(v) => tr('otherTp.thirdPartiesUnit', { count: String(v) })}
+                  height={240}
+                />
               ) : (
                 <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
                   {tr('otherTp.noData')}
@@ -971,17 +953,16 @@ const AutresTiersModule: React.FC = () => {
               </h3>
               <p className="text-xs text-gray-400 mb-4">{tr('otherTp.cumulatedDebitCredit')}</p>
               {barData.some(d => d.Débit > 0 || d.Crédit > 0) ? (
-                <ResponsiveContainer width="100%" height={240}>
-                  <BarChart data={barData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="classe" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 11 }} tickFormatter={v => formatCurrency(v)} />
-                    <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                    <Legend iconSize={10} wrapperStyle={{ fontSize: '11px' }} />
-                    <Bar dataKey="Débit" name={tr('otherTp.debit')} fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="Crédit" name={tr('otherTp.credit')} fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <AtlasBar
+                  categories={barData.map(d => d.classe)}
+                  series={[
+                    { name: tr('otherTp.debit'), data: barData.map(d => d.Débit), color: '#235A6E' },
+                    { name: tr('otherTp.credit'), data: barData.map(d => d.Crédit), color: '#E89A2E' },
+                  ]}
+                  showValues={false}
+                  valueFormatter={(v) => formatCurrency(v)}
+                  height={240}
+                />
               ) : (
                 <div className="h-48 flex items-center justify-center text-center text-gray-400 text-sm px-4">
                   {tr('otherTp.noDataImport')}

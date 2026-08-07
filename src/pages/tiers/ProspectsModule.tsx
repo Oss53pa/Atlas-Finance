@@ -11,11 +11,7 @@ import {
   User, Building, Clock, MessageSquare, BarChart3, PieChart,
   Users, FileText, Send, Archive, Award, Zap, Lightbulb
 } from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, ResponsiveContainer,
-  AreaChart, Area, FunnelChart, Funnel, LabelList
-} from 'recharts';
+import { AtlasCombo, AtlasFunnel, AtlasLine, AtlasPie, ATLAS_PETROL, ATLAS_SERIES } from '../../components/charts';
 
 interface Prospect {
   id: string;
@@ -416,38 +412,32 @@ const ProspectsModule: React.FC = () => {
           {/* Entonnoir de Vente */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.salesFunnel')}</h3>
-            <div className="grid grid-cols-5 gap-4">
-              {analytics.repartitionParStade.map((stade, index) => (
-                <div key={stade.stade} className="text-center">
-                  <div className={`w-full h-32 rounded-lg flex flex-col justify-end p-4 text-white mb-2`}
-                       style={{
-                         backgroundColor: COLORS[index],
-                         height: `${Math.max(80, (stade.nombre / 25) * 120)}px`
-                       }}>
-                    <div className="text-lg font-bold">{stade.nombre}</div>
-                    <div className="text-sm opacity-90">{formatCurrency(stade.valeur)}</div>
-                  </div>
-                  <p className="text-sm font-medium text-[#404040]">{stade.stade}</p>
-                </div>
-              ))}
-            </div>
+            {/* La hauteur des blocs venait d'un diviseur fixe (nombre / 25) : au-delà
+                de 25 prospects un stade débordait, en-deçà tous se ressemblaient.
+                L'entonnoir met les paliers à l'échelle du plus grand stade. */}
+            <AtlasFunnel
+              stages={analytics.repartitionParStade.map((stade: any) => ({
+                name: stade.stade,
+                value: stade.nombre,
+                detail: formatCurrency(stade.valeur),
+              }))}
+              colors={COLORS}
+              height={320}
+            />
           </div>
 
           {/* Évolution Pipeline */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.pipelineEvolution')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={analytics.evolutionPipeline}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mois" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Area type="monotone" dataKey="nouveaux" stackId="1" stroke="#235A6E" fill="#235A6E" name={t('prospects.chartNew')} />
-                <Area type="monotone" dataKey="convertis" stackId="1" stroke="#15803D" fill="#15803D" name={t('prospects.chartConverted')} />
-                <Area type="monotone" dataKey="perdus" stackId="1" stroke="#C0322B" fill="#C0322B" name={t('prospects.chartLost')} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <AtlasLine
+              categories={analytics.evolutionPipeline.map((e: any) => e.mois)}
+              series={[
+                { name: t('prospects.chartNew'), data: analytics.evolutionPipeline.map((e: any) => e.nouveaux), color: '#235A6E', area: true },
+                { name: t('prospects.chartConverted'), data: analytics.evolutionPipeline.map((e: any) => e.convertis), color: '#15803D', area: true },
+                { name: t('prospects.chartLost'), data: analytics.evolutionPipeline.map((e: any) => e.perdus), color: '#C0322B', area: true },
+              ]}
+              height={300}
+            />
           </div>
         </div>
       )}
@@ -553,40 +543,25 @@ const ProspectsModule: React.FC = () => {
           {/* Sources Performance */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.sourcePerformance')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.sourcesMeilleurTaux}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="source" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar radius={[6,6,0,0]} dataKey="taux" fill="url(#gradPetrol)" name={t('prospects.chartConversionRate')} />
-                <Bar radius={[6,6,0,0]} dataKey="nombre" fill="url(#gradPetrolLight)" name={t('prospects.chartProspectCount')} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Un taux (%) et un effectif sur le même axe : le taux disparaissait
+                dès qu'une source dépassait la centaine de prospects. */}
+            <AtlasCombo
+              categories={analytics.sourcesMeilleurTaux.map((s: any) => s.source)}
+              bars={[{ name: t('prospects.chartProspectCount'), data: analytics.sourcesMeilleurTaux.map((s: any) => s.nombre), color: ATLAS_PETROL }]}
+              lines={[{ name: t('prospects.chartConversionRate'), data: analytics.sourcesMeilleurTaux.map((s: any) => s.taux), color: ATLAS_SERIES[1] }]}
+              rightFormatter={(v) => `${v.toFixed(0)} %`}
+              height={300}
+            />
           </div>
 
           {/* Répartition par Stade */}
           <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm">
             <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('prospects.stageBreakdown')}</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsPieChart>
-                <Pie
-                  dataKey="nombre"
-                  data={analytics.repartitionParStade}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={100}
-                  fill="#235A6E"
-                  label={({ stade, nombre }: any) => `${stade}: ${nombre}`}
-                >
-                  {analytics.repartitionParStade.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </RechartsPieChart>
-            </ResponsiveContainer>
+            <AtlasPie
+              data={analytics.repartitionParStade.map((r: any) => ({ name: r.stade, value: r.nombre }))}
+              colors={COLORS}
+              height={300}
+            />
           </div>
         </div>
       )}

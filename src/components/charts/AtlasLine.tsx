@@ -17,7 +17,12 @@ export interface AtlasLineProps {
   series: LineSeries[];
   smooth?: boolean;
   showPoints?: boolean;
+  /** lignes de repère de l'axe des valeurs (défaut : oui) */
+  showGrid?: boolean;
   valueFormatter?: (n: number) => string;
+  /** formateur des graduations de l'axe des valeurs (défaut : `valueFormatter`).
+   *  À renseigner pour compacter l'axe (1,2 Md) sans perdre la précision de l'infobulle. */
+  axisFormatter?: (n: number) => string;
   colors?: string[];
   height?: number;
   className?: string;
@@ -28,8 +33,8 @@ export interface AtlasLineProps {
  * repères d'axe discrets. Couleurs Atlas.
  */
 const AtlasLine: React.FC<AtlasLineProps> = ({
-  categories, series, smooth = true, showPoints = true, valueFormatter,
-  colors = ATLAS_SERIES, height = 300, className,
+  categories, series, smooth = true, showPoints = true, showGrid = true, valueFormatter,
+  axisFormatter, colors = ATLAS_SERIES, height = 300, className,
 }) => {
   const option = useMemo<EChartsOption>(() => ({
     color: colors,
@@ -42,8 +47,11 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
       axisLabel: { fontFamily: FONT_SANS, color: ATLAS_INK3, fontSize: 11, fontWeight: 600 },
     },
     yAxis: {
-      type: 'value', splitLine: { lineStyle: { color: ATLAS_HAIRLINE } },
-      axisLabel: { fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10 },
+      type: 'value', splitLine: showGrid ? { lineStyle: { color: ATLAS_HAIRLINE } } : { show: false },
+      axisLabel: {
+        fontFamily: FONT_MONO, color: ATLAS_INK3, fontSize: 10,
+        formatter: (axisFormatter || valueFormatter) ? (v: number) => (axisFormatter || valueFormatter)!(Number(v)) : undefined,
+      },
       axisLine: { show: false }, axisTick: { show: false },
     },
     series: series.map((s, i) => {
@@ -60,7 +68,7 @@ const AtlasLine: React.FC<AtlasLineProps> = ({
         } : undefined,
       };
     }),
-  }), [categories, series, smooth, showPoints, valueFormatter, colors]);
+  }), [categories, series, smooth, showPoints, showGrid, valueFormatter, axisFormatter, colors]);
 
   return <EChart option={option} height={height} className={className} />;
 };
