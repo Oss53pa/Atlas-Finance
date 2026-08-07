@@ -13,6 +13,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { getAccountLabel } from '../../utils/accountLabels';
 import type { CapexPriorite, CapexRequest } from '../../features/budget/services/budgetService';
 import { Loader2, GripVertical, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const STATUT_STYLE: Record<string, string> = {
   brouillon: 'bg-neutral-100 text-[var(--color-text-secondary)]',
@@ -26,11 +27,13 @@ const STATUT_STYLE: Record<string, string> = {
   ajourne: 'bg-neutral-100 text-[var(--color-text-tertiary)]',
 };
 
-export const PRIORITES: { key: CapexPriorite; label: string; accent: string; ring: string }[] = [
-  { key: 'critique', label: 'Critique', accent: 'text-red-700', ring: 'border-red-300' },
-  { key: 'haute', label: 'Haute', accent: 'text-amber-700', ring: 'border-amber-300' },
-  { key: 'moyenne', label: 'Moyenne', accent: 'text-[var(--color-primary)]', ring: 'border-[var(--color-border)]' },
-  { key: 'basse', label: 'Basse', accent: 'text-[var(--color-text-tertiary)]', ring: 'border-[var(--color-border)]' },
+/** `labelKey` et non `label` : la table est figée au chargement du module ; la
+ *  traduction se résout au rendu via `t(p.labelKey)`. */
+export const PRIORITES: { key: CapexPriorite; labelKey: string; accent: string; ring: string }[] = [
+  { key: 'critique', labelKey: 'capexPriority.critical', accent: 'text-red-700', ring: 'border-red-300' },
+  { key: 'haute', labelKey: 'capexPriority.high', accent: 'text-amber-700', ring: 'border-amber-300' },
+  { key: 'moyenne', labelKey: 'capexPriority.medium', accent: 'text-[var(--color-primary)]', ring: 'border-[var(--color-border)]' },
+  { key: 'basse', labelKey: 'capexPriority.low', accent: 'text-[var(--color-text-tertiary)]', ring: 'border-[var(--color-border)]' },
 ];
 
 interface Props {
@@ -41,6 +44,7 @@ interface Props {
 }
 
 const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }) => {
+  const { t } = useLanguage();
   const [dragId, setDragId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<CapexPriorite | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -65,9 +69,9 @@ const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }
     if (!current || ((current.priorite as CapexPriorite) || 'moyenne') === target) return;
     setBusyId(id); setError(null);
     try { await onChangePriorite(id, target); }
-    catch (e: any) { setError(e?.message || 'Échec de la mise à jour de la priorité.'); }
+    catch (e: any) { setError(e?.message || t('capexPriority.updateFailed')); }
     finally { setBusyId(null); }
-  }, [dragId, rows, onChangePriorite]);
+  }, [dragId, rows, onChangePriorite, t]);
 
   return (
     <div className="space-y-3">
@@ -92,13 +96,13 @@ const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }
               }`}
             >
               <header className="flex items-baseline justify-between gap-2 mb-2 px-1">
-                <h3 className={`text-sm font-semibold ${col.accent}`}>{col.label}</h3>
+                <h3 className={`text-sm font-semibold ${col.accent}`}>{t(col.labelKey)}</h3>
                 <span className="text-[11px] text-[var(--color-text-tertiary)] font-mono">{items.length} · {formatCurrency(total)}</span>
               </header>
 
               <div className="space-y-2">
                 {items.length === 0 && (
-                  <p className="text-[11px] text-[var(--color-text-tertiary)] px-1 py-6 text-center">Glissez un Business Case ici.</p>
+                  <p className="text-[11px] text-[var(--color-text-tertiary)] px-1 py-6 text-center">{t('capexPriority.dropHint')}</p>
                 )}
                 {items.map((r) => (
                   <article
@@ -122,7 +126,7 @@ const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }
                           <span className="font-mono text-xs text-[var(--color-text-primary)]">{formatCurrency(r.montant || 0)}</span>
                           {r.van != null && (
                             <span className={`font-mono text-[11px] ${r.van >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                              VAN {formatCurrency(r.van)}
+                              {t('capexPriority.npv', { value: formatCurrency(r.van) })}
                             </span>
                           )}
                         </div>
@@ -142,7 +146,7 @@ const CapexPrioriteKanban: React.FC<Props> = ({ rows, onChangePriorite, onOpen }
         })}
       </div>
       <p className="text-xs text-[var(--color-text-tertiary)]">
-        La priorité est enregistrée immédiatement en base. Elle n'écrase pas le score composite calculé — les deux se lisent ensemble dans la vue Tableau.
+        {t('capexPriority.footnote')}
       </p>
     </div>
   );

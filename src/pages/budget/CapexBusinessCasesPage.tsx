@@ -15,6 +15,7 @@ import { listCapexRequests, type CapexRequest } from '../../features/budget/serv
 import NewBusinessCaseModal from './NewBusinessCaseModal';
 import { PRIORITES } from './CapexPrioriteKanban';
 import { Layers, Loader2, Plus, ArrowRight, Search } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const STATUT_STYLE: Record<string, string> = {
   brouillon: 'bg-neutral-100 text-[var(--color-text-secondary)] dark:bg-neutral-700',
@@ -29,12 +30,13 @@ const STATUT_STYLE: Record<string, string> = {
   fonds_disponibles: 'bg-[var(--color-primary-light)] text-[var(--color-primary)]',
   clos: 'bg-neutral-100 text-[var(--color-text-tertiary)]',
 };
-const PRIO_LABEL = Object.fromEntries(PRIORITES.map((p) => [p.key, p.label]));
+const PRIO_LABEL_KEY = Object.fromEntries(PRIORITES.map((p) => [p.key, p.labelKey]));
 const PRIO_ACCENT = Object.fromEntries(PRIORITES.map((p) => [p.key, p.accent]));
 
 const CapexBusinessCasesPage: React.FC = () => {
   const { adapter } = useData();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [rows, setRows] = useState<CapexRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,9 +47,9 @@ const CapexBusinessCasesPage: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try { setRows(await listCapexRequests(adapter)); }
-    catch (e: any) { setError(e?.message || 'Erreur'); }
+    catch (e: any) { setError(e?.message || t('capexBusinessCases.error')); }
     finally { setLoading(false); }
-  }, [adapter]);
+  }, [adapter, t]);
   useEffect(() => { load(); }, [load]);
 
   const visible = useMemo(() => {
@@ -69,10 +71,10 @@ const CapexBusinessCasesPage: React.FC = () => {
     <div className="p-6 space-y-5">
       <header className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> Business Cases</h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">{totals.count} business case(s) · {totals.approuves} approuvé(s) · {formatCurrency(totals.montant)}</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)] flex items-center gap-2"><Layers className="w-6 h-6 text-[var(--color-primary)]" /> {t('capexBusinessCases.title')}</h1>
+          <p className="text-sm text-[var(--color-text-secondary)]">{t('capexBusinessCases.summary', { count: String(totals.count), approved: String(totals.approuves), amount: formatCurrency(totals.montant) })}</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> Nouveau Business Case</button>
+        <button onClick={() => setShowCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-primary)] text-white text-sm font-medium hover:opacity-90"><Plus className="w-4 h-4" /> {t('capexBusinessCases.newBusinessCase')}</button>
       </header>
 
       {error && <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700">{error}</div>}
@@ -80,33 +82,33 @@ const CapexBusinessCasesPage: React.FC = () => {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative">
           <Search className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher un intitulé / un compte…"
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('capexBusinessCases.searchPlaceholder')}
             className="pl-8 pr-3 py-2 text-sm border border-[var(--color-border)] rounded-lg w-72 bg-[var(--color-surface)]" />
         </div>
         <select value={statut} onChange={(e) => setStatut(e.target.value)} className="px-3 py-2 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-surface)]">
-          <option value="">Tous les statuts</option>
+          <option value="">{t('capexBusinessCases.allStatuses')}</option>
           {statuts.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
         </select>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> Chargement…</div>
+        <div className="flex items-center gap-2 text-[var(--color-text-secondary)] py-12 justify-center"><Loader2 className="w-5 h-5 animate-spin" /> {t('capexBusinessCases.loading')}</div>
       ) : visible.length === 0 ? (
         <div className="rounded-2xl border border-[var(--color-border)] px-6 py-12 text-center text-sm text-[var(--color-text-secondary)]">
-          {rows.length === 0 ? 'Aucun business case. Créez-en un pour lancer un investissement.' : 'Aucun business case ne correspond au filtre.'}
+          {rows.length === 0 ? t('capexBusinessCases.emptyAll') : t('capexBusinessCases.emptyFilter')}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-[var(--color-border)] shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="bg-gray-50 text-xs font-semibold text-gray-600 border-b border-[var(--color-border)]">
-                <th className="px-4 py-3 text-left">Intitulé</th>
-                <th className="px-4 py-3 text-left">Compte</th>
-                <th className="px-4 py-3 text-left">Catégorie</th>
-                <th className="px-4 py-3 text-left">Priorité</th>
-                <th className="px-4 py-3 text-right">Montant</th>
-                <th className="px-4 py-3 text-right">VAN</th>
-                <th className="px-4 py-3">Statut</th>
+                <th className="px-4 py-3 text-left">{t('capexBusinessCases.colTitle')}</th>
+                <th className="px-4 py-3 text-left">{t('capexBusinessCases.colAccount')}</th>
+                <th className="px-4 py-3 text-left">{t('capexBusinessCases.colCategory')}</th>
+                <th className="px-4 py-3 text-left">{t('capexBusinessCases.colPriority')}</th>
+                <th className="px-4 py-3 text-right">{t('capexBusinessCases.colAmount')}</th>
+                <th className="px-4 py-3 text-right">{t('capexBusinessCases.colNpv')}</th>
+                <th className="px-4 py-3">{t('capexBusinessCases.colStatus')}</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -118,7 +120,7 @@ const CapexBusinessCasesPage: React.FC = () => {
                     <td className="px-4 py-3 font-medium text-[var(--color-text-primary)]">{r.libelle}</td>
                     <td className="px-4 py-3"><span className="font-mono">{r.account_code}</span><span className="block text-xs text-[var(--color-text-tertiary)] truncate max-w-[160px]">{getAccountLabel(r.account_code)}</span></td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs">{r.categorie ? r.categorie.replace(/_/g, ' ') : '—'}</td>
-                    <td className={`px-4 py-3 text-xs font-medium ${PRIO_ACCENT[prio] || ''}`}>{PRIO_LABEL[prio] || prio}</td>
+                    <td className={`px-4 py-3 text-xs font-medium ${PRIO_ACCENT[prio] || ''}`}>{PRIO_LABEL_KEY[prio] ? t(PRIO_LABEL_KEY[prio]) : prio}</td>
                     <td className="px-4 py-3 text-right font-mono">{formatCurrency(r.montant)}</td>
                     <td className="px-4 py-3 text-right font-mono text-xs">{r.van != null ? <span className={r.van >= 0 ? 'text-emerald-600' : 'text-red-600'}>{formatCurrency(r.van)}</span> : '—'}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUT_STYLE[r.statut as string] || 'bg-neutral-100 text-[var(--color-text-secondary)]'}`}>{String(r.statut).replace(/_/g, ' ')}</span></td>
