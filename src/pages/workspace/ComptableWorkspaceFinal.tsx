@@ -14,6 +14,7 @@ import CollaborationModule from '../../components/collaboration/CollaborationMod
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import SecurityActions from '../../components/security/SecurityActions';
 import { toast } from 'sonner';
+import { supabase } from '../../lib/supabase';
 import {
   Calculator, FileText, BookOpen, BarChart3, Users, Banknote, PieChart, TrendingUp,
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
@@ -63,7 +64,26 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const [activeSection, setActiveSection] = useState<'workspace' | 'bannette' | 'tasks' | 'chat' | 'profile' | 'settings' | 'help'>('workspace');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 8) { toast.error('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+    if (newPassword !== confirmPassword) { toast.error('Les mots de passe ne correspondent pas.'); return; }
+    setPasswordSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast.success('Mot de passe mis à jour.');
+      setShowPasswordModal(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e: any) {
+      toast.error(e?.message || 'Échec de la mise à jour du mot de passe.');
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   // W27: notifPrefs chargées depuis l'adapter au montage (voir useEffect ci-dessous)
   const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({ Email: true, Push: true, Alertes: true });
@@ -221,6 +241,21 @@ const ComptableWorkspaceFinal: React.FC = () => {
             </div>
           ))}
         </div>
+      </div>
+      <div className="bg-white rounded-xl p-6 border">
+        <h4 className="font-semibold mb-4">Sécurité</h4>
+        {!showPasswordModal ? (
+          <button onClick={() => setShowPasswordModal(true)} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">Changer le mot de passe</button>
+        ) : (
+          <div className="space-y-3 max-w-sm">
+            <input type="password" autoComplete="new-password" placeholder="Nouveau mot de passe (min. 8 caractères)" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <input type="password" autoComplete="new-password" placeholder="Confirmer le mot de passe" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" />
+            <div className="flex gap-2">
+              <button onClick={handleChangePassword} disabled={passwordSaving} className="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold disabled:opacity-60">{passwordSaving ? 'Enregistrement…' : 'Enregistrer'}</button>
+              <button onClick={() => { setShowPasswordModal(false); setNewPassword(''); setConfirmPassword(''); }} className="px-4 py-2 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50">Annuler</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
