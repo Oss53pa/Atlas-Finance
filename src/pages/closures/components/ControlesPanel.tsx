@@ -15,6 +15,7 @@ import {
   Loader2, RefreshCw, Shield, Wand2, XCircle,
 } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useControlesCoherence } from '../hooks/useControlesCoherence';
 import type { ControleResult, ControleStatut } from '../hooks/useControlesCoherence';
@@ -25,18 +26,20 @@ import {
 } from '../../../services/cloture/remediationService';
 import { formatCurrency } from '../../../utils/formatters';
 
-const STATUT_BADGE: Record<ControleStatut, { bg: string; text: string; label: string }> = {
-  conforme:       { bg: 'bg-green-100',  text: 'text-green-800',  label: 'Conforme' },
-  non_conforme:   { bg: 'bg-red-100',    text: 'text-red-800',    label: 'Non conforme' },
-  attention:      { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Attention' },
-  non_applicable: { bg: 'bg-gray-100',   text: 'text-gray-500',   label: 'N/A' },
-  en_attente:     { bg: 'bg-gray-100',   text: 'text-gray-500',   label: 'En attente' },
+type Translate = (key: string, params?: Record<string, string>) => string;
+
+const STATUT_BADGE: Record<ControleStatut, { bg: string; text: string; labelKey: string }> = {
+  conforme:       { bg: 'bg-green-100',  text: 'text-green-800',  labelKey: 'closureControls.statusCompliant' },
+  non_conforme:   { bg: 'bg-red-100',    text: 'text-red-800',    labelKey: 'closureControls.statusNonCompliant' },
+  attention:      { bg: 'bg-yellow-100', text: 'text-yellow-800', labelKey: 'closureControls.statusWarning' },
+  non_applicable: { bg: 'bg-gray-100',   text: 'text-gray-500',   labelKey: 'closureControls.statusNa' },
+  en_attente:     { bg: 'bg-gray-100',   text: 'text-gray-500',   labelKey: 'closureControls.statusPending' },
 };
 
-const MODE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  auto:     { bg: 'bg-emerald-100', text: 'text-emerald-800', label: 'Automatique' },
-  assistee: { bg: 'bg-amber-100',   text: 'text-amber-800',   label: 'Assistée' },
-  manuelle: { bg: 'bg-gray-100',    text: 'text-gray-600',    label: 'Manuelle' },
+const MODE_BADGE: Record<string, { bg: string; text: string; labelKey: string }> = {
+  auto:     { bg: 'bg-emerald-100', text: 'text-emerald-800', labelKey: 'closureControls.modeAuto' },
+  assistee: { bg: 'bg-amber-100',   text: 'text-amber-800',   labelKey: 'closureControls.modeAssisted' },
+  manuelle: { bg: 'bg-gray-100',    text: 'text-gray-600',    labelKey: 'closureControls.modeManual' },
 };
 
 /** Nombre d'anomalies affichées avant repli. */
@@ -54,6 +57,8 @@ export interface ControlesPanelProps {
 export default function ControlesPanel({ controlIds, fiscalYearId, period, onNavigateTab }: ControlesPanelProps) {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'en' ? 'en-US' : language === 'es' ? 'es-ES' : 'fr-FR';
   const navigate = useNavigate();
   const [scope, setScope] = useState<'exercice' | 'periode'>('exercice');
   const range = useMemo(
@@ -101,7 +106,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
       if (outcome.errors.length > 0) console.warn('[remediation]', proposal.id, outcome.errors);
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Correction impossible');
+      toast.error(err instanceof Error ? err.message : t('closureControls.fixFailed'));
     } finally {
       setApplying(null);
     }
@@ -122,13 +127,16 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
           totalApplied += outcome.applied;
           if (!outcome.ok) failures.push(`${proposal.controleId} : ${outcome.message}`);
         } catch (err) {
-          failures.push(`${proposal.controleId} : ${err instanceof Error ? err.message : 'erreur'}`);
+          failures.push(`${proposal.controleId} : ${err instanceof Error ? err.message : t('closureControls.error')}`);
         }
       }
       if (failures.length === 0) {
-        toast.success(`${totalApplied} correction(s) appliquée(s)`);
+        toast.success(t('closureControls.fixesApplied', { count: String(totalApplied) }));
       } else {
-        toast.error(`${totalApplied} correction(s) appliquée(s), ${failures.length} en échec`);
+        toast.error(t('closureControls.fixesPartial', {
+          applied: String(totalApplied),
+          failed: String(failures.length),
+        }));
         console.warn('[remediation:all]', failures);
       }
       await refresh();
@@ -142,7 +150,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
       <div className="flex items-center justify-center py-16">
         <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
         <span className="ml-2 text-gray-500">
-          Exécution des {controlIds ? controlIds.length : 17} contrôles...
+          {t('closureControls.runningChecks', { count: String(controlIds ? controlIds.length : 17) })}
         </span>
       </div>
     );
@@ -151,7 +159,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        <p className="font-medium">Erreur</p>
+        <p className="font-medium">{t('closureControls.errorTitle')}</p>
         <p className="text-sm">{error}</p>
       </div>
     );
@@ -169,13 +177,13 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
       {/* Summary */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-4 text-sm">
-          <span className="text-green-700 font-medium">{conformes} conformes</span>
-          <span className="text-red-700 font-medium">{nonConformes} non conformes</span>
-          <span className="text-yellow-700 font-medium">{attentions} attention</span>
-          <span className="text-gray-500">{na} N/A</span>
+          <span className="text-green-700 font-medium">{t('closureControls.compliantCount', { count: String(conformes) })}</span>
+          <span className="text-red-700 font-medium">{t('closureControls.nonCompliantCount', { count: String(nonConformes) })}</span>
+          <span className="text-yellow-700 font-medium">{t('closureControls.warningCount', { count: String(attentions) })}</span>
+          <span className="text-gray-500">{t('closureControls.naCount', { count: String(na) })}</span>
           {totalAnomalies > 0 && (
             <span className="text-gray-600 border-l border-gray-200 pl-4">
-              {totalAnomalies} anomalie(s) détaillée(s)
+              {t('closureControls.detailedAnomalies', { count: String(totalAnomalies) })}
             </span>
           )}
         </div>
@@ -183,7 +191,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
           {period && (
             <div className="flex bg-gray-100 rounded-md p-0.5">
               {([
-                { id: 'exercice' as const, label: 'Exercice' },
+                { id: 'exercice' as const, label: t('closureControls.scopeYear') },
                 { id: 'periode' as const, label: period.label },
               ]).map(s => (
                 <button
@@ -200,7 +208,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
           )}
           {lastRun && (
             <span className="text-xs text-gray-400">
-              {new Date(lastRun).toLocaleTimeString('fr-FR')}
+              {new Date(lastRun).toLocaleTimeString(dateLocale)}
             </span>
           )}
           {autoProposals.length > 0 && (
@@ -212,7 +220,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
               {applying === '__ALL__'
                 ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 : <Wand2 className="w-3.5 h-3.5" />}
-              Appliquer les {autoProposals.length} correction(s) automatique(s)
+              {t('closureControls.applyAutoFixes', { count: String(autoProposals.length) })}
             </button>
           )}
           <button
@@ -220,7 +228,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
             className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Relancer
+            {t('closureControls.rerun')}
           </button>
         </div>
       </div>
@@ -230,7 +238,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-sm font-medium text-red-800 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4" />
-            {blockingFailed.length} contrôle(s) bloquant(s) non conforme(s) — la validation finale est bloquée
+            {t('closureControls.blockingWarning', { count: String(blockingFailed.length) })}
           </p>
           <ul className="mt-2 text-sm text-red-700 list-disc list-inside">
             {blockingFailed.map(c => (
@@ -247,11 +255,11 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
             <tr className="bg-gray-50 border-b text-left text-gray-500">
               <th className="px-4 py-2 w-8" />
               <th className="px-4 py-2 w-16">ID</th>
-              <th className="px-4 py-2">Contrôle</th>
-              <th className="px-4 py-2 w-28">Statut</th>
-              <th className="px-4 py-2 w-20">Bloquant</th>
-              <th className="px-4 py-2">Résultat</th>
-              <th className="px-4 py-2 w-32">Corrections</th>
+              <th className="px-4 py-2">{t('closureControls.colCheck')}</th>
+              <th className="px-4 py-2 w-28">{t('closureControls.colStatus')}</th>
+              <th className="px-4 py-2 w-20">{t('closureControls.colBlocking')}</th>
+              <th className="px-4 py-2">{t('closureControls.colResult')}</th>
+              <th className="px-4 py-2 w-32">{t('closureControls.colFixes')}</th>
             </tr>
           </thead>
           <tbody>
@@ -276,21 +284,21 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
                     </td>
                     <td className="px-4 py-2">
                       <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${badge.bg} ${badge.text}`}>
-                        {badge.label}
+                        {t(badge.labelKey)}
                       </span>
                     </td>
                     <td className="px-4 py-2">
                       {c.blocking ? (
-                        <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Oui</span>
+                        <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">{t('closureControls.yes')}</span>
                       ) : (
-                        <span className="text-gray-400 text-xs">Non</span>
+                        <span className="text-gray-400 text-xs">{t('closureControls.no')}</span>
                       )}
                     </td>
                     <td className="px-4 py-2 text-gray-600">
                       {c.messageResultat}
                       {c.anomaliesTotal > 0 && (
                         <span className="ml-2 text-xs text-blue-600 underline">
-                          {c.anomaliesTotal} élément(s)
+                          {t('closureControls.itemsCount', { count: String(c.anomaliesTotal) })}
                         </span>
                       )}
                     </td>
@@ -299,8 +307,8 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
                         <span className="text-xs text-gray-300">—</span>
                       ) : (
                         <span className="text-xs text-gray-600">
-                          {props.length} proposée(s)
-                          {autos > 0 && <span className="text-emerald-700 font-medium"> · {autos} auto</span>}
+                          {t('closureControls.proposedCount', { count: String(props.length) })}
+                          {autos > 0 && <span className="text-emerald-700 font-medium">{t('closureControls.autoSuffix', { count: String(autos) })}</span>}
                         </span>
                       )}
                     </td>
@@ -317,6 +325,7 @@ export default function ControlesPanel({ controlIds, fiscalYearId, period, onNav
                           onToggleShowAll={() =>
                             setShowAllAnomalies(prev => ({ ...prev, [c.id]: !prev[c.id] }))}
                           onRun={proposal => runProposal(c, proposal)}
+                          t={t}
                         />
                       </td>
                     </tr>
@@ -342,6 +351,7 @@ function ControleDetail({
   showAll,
   onToggleShowAll,
   onRun,
+  t,
 }: {
   controle: ControleResult;
   proposals: RemediationProposal[];
@@ -349,6 +359,7 @@ function ControleDetail({
   showAll: boolean;
   onToggleShowAll: () => void;
   onRun: (proposal: RemediationProposal) => void;
+  t: Translate;
 }) {
   const anomalies = showAll ? controle.anomalies : controle.anomalies.slice(0, ANOMALIES_VISIBLE);
   const masquees = controle.anomaliesTotal - anomalies.length;
@@ -357,17 +368,17 @@ function ControleDetail({
     <div className="space-y-4">
       {/* 1. Mesure */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Metric label="Valeur attendue" value={fmt(controle.valeurAttendue)} />
-        <Metric label="Valeur réelle" value={fmt(controle.valeurReelle)} />
-        <Metric label="Écart" value={fmt(controle.ecart)} alert={!!controle.ecart && Math.abs(controle.ecart) > (controle.tolerance ?? 0)} />
-        <Metric label="Tolérance" value={fmt(controle.tolerance)} />
-        <Metric label="Temps d'exécution" value={`${controle.tempsExecution} ms`} />
+        <Metric label={t('closureControls.metricExpected')} value={fmt(controle.valeurAttendue)} />
+        <Metric label={t('closureControls.metricActual')} value={fmt(controle.valeurReelle)} />
+        <Metric label={t('closureControls.metricGap')} value={fmt(controle.ecart)} alert={!!controle.ecart && Math.abs(controle.ecart) > (controle.tolerance ?? 0)} />
+        <Metric label={t('closureControls.metricTolerance')} value={fmt(controle.tolerance)} />
+        <Metric label={t('closureControls.metricRuntime')} value={`${controle.tempsExecution} ms`} />
       </div>
 
       {/* 2. Règles métier */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Règles appliquées</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('closureControls.appliedRules')}</p>
           <ul className="space-y-1">
             {controle.reglesMetier.map((r, i) => (
               <li key={i} className="flex items-start gap-1.5 text-xs text-gray-700">
@@ -378,17 +389,17 @@ function ControleDetail({
           </ul>
           {controle.comptesConcernes && controle.comptesConcernes.length > 0 && (
             <p className="mt-2 text-xs text-gray-500">
-              Comptes : <span className="font-mono">{controle.comptesConcernes.slice(0, 12).join(', ')}</span>
+              {t('closureControls.accountsLabel')} <span className="font-mono">{controle.comptesConcernes.slice(0, 12).join(', ')}</span>
               {controle.comptesConcernes.length > 12 && ` … (+${controle.comptesConcernes.length - 12})`}
             </p>
           )}
         </div>
         <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Recommandations</p>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('closureControls.recommendations')}</p>
           {controle.recommandations.length === 0 ? (
             <p className="text-xs text-gray-400 flex items-center gap-1.5">
               <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              Aucune action requise sur ce contrôle.
+              {t('closureControls.noActionRequired')}
             </p>
           ) : (
             <ul className="space-y-1">
@@ -408,11 +419,13 @@ function ControleDetail({
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="px-3 py-2 border-b bg-gray-50 flex items-center justify-between">
             <p className="text-xs font-semibold text-gray-600">
-              Éléments concernés ({controle.anomaliesTotal})
+              {t('closureControls.affectedItems', { count: String(controle.anomaliesTotal) })}
             </p>
             {controle.anomalies.length > ANOMALIES_VISIBLE && (
               <button onClick={onToggleShowAll} className="text-xs text-blue-600 underline hover:no-underline">
-                {showAll ? 'Réduire' : `Tout afficher (${controle.anomalies.length})`}
+                {showAll
+                  ? t('closureControls.collapse')
+                  : t('closureControls.showAll', { count: String(controle.anomalies.length) })}
               </button>
             )}
           </div>
@@ -420,12 +433,12 @@ function ControleDetail({
             <table className="w-full text-xs">
               <thead className="sticky top-0 bg-white">
                 <tr className="text-left text-gray-400 border-b">
-                  <th className="px-3 py-1.5">Référence</th>
-                  <th className="px-3 py-1.5">Libellé</th>
-                  <th className="px-3 py-1.5 w-24">Date</th>
-                  <th className="px-3 py-1.5 w-20">Compte</th>
-                  <th className="px-3 py-1.5 w-32 text-right">Montant</th>
-                  <th className="px-3 py-1.5">Info</th>
+                  <th className="px-3 py-1.5">{t('closureControls.colReference')}</th>
+                  <th className="px-3 py-1.5">{t('closureControls.colLabel')}</th>
+                  <th className="px-3 py-1.5 w-24">{t('closureControls.colDate')}</th>
+                  <th className="px-3 py-1.5 w-20">{t('closureControls.colAccount')}</th>
+                  <th className="px-3 py-1.5 w-32 text-right">{t('closureControls.colAmount')}</th>
+                  <th className="px-3 py-1.5">{t('closureControls.colInfo')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -446,7 +459,7 @@ function ControleDetail({
           </div>
           {masquees > 0 && (
             <p className="px-3 py-1.5 text-xs text-gray-400 border-t">
-              {masquees} élément(s) non affiché(s) — la correction automatique traite l'intégralité du périmètre détecté.
+              {t('closureControls.hiddenItems', { count: String(masquees) })}
             </p>
           )}
         </div>
@@ -455,13 +468,13 @@ function ControleDetail({
       {/* 4. Corrections proposées */}
       <div>
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-          Corrections proposées
+          {t('closureControls.proposedFixes')}
         </p>
         {proposals.length === 0 ? (
           <p className="text-xs text-gray-400">
             {controle.statut === 'conforme'
-              ? 'Contrôle conforme — aucune correction nécessaire.'
-              : 'Aucune correction automatisable pour ce contrôle.'}
+              ? t('closureControls.compliantNoFix')
+              : t('closureControls.noAutomatableFix')}
           </p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -473,18 +486,18 @@ function ControleDetail({
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <p className="text-sm font-medium text-gray-800">{p.titre}</p>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap ${badge.bg} ${badge.text}`}>
-                      {badge.label}
+                      {t(badge.labelKey)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mb-2">{p.description}</p>
                   <p className="text-xs text-gray-700 mb-2 flex items-start gap-1.5">
                     <AlertTriangle className="w-3 h-3 text-amber-500 mt-0.5 flex-shrink-0" />
-                    <span><span className="font-medium">Effet :</span> {p.impact}</span>
+                    <span><span className="font-medium">{t('closureControls.effectLabel')}</span> {p.impact}</span>
                   </p>
 
                   {p.preview && p.preview.length > 0 && (
                     <div className="mb-2 border border-gray-100 rounded bg-gray-50 p-2">
-                      <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Aperçu de l'écriture</p>
+                      <p className="text-[10px] uppercase tracking-wide text-gray-400 mb-1">{t('closureControls.entryPreview')}</p>
                       <table className="w-full text-[11px]">
                         <tbody>
                           {p.preview.map((l, i) => (
@@ -514,7 +527,9 @@ function ControleDetail({
                     {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       : p.mode === 'manuelle' ? <ExternalLink className="w-3.5 h-3.5" />
                       : <Wand2 className="w-3.5 h-3.5" />}
-                    {p.mode === 'manuelle' ? 'Ouvrir l\'écran' : `Appliquer (${p.cibles})`}
+                    {p.mode === 'manuelle'
+                      ? t('closureControls.openScreen')
+                      : t('closureControls.applyWithCount', { count: String(p.cibles) })}
                   </button>
                 </div>
               );

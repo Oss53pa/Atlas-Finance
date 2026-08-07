@@ -13,6 +13,7 @@ import {
   AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Loader2, RefreshCw, Wand2, XCircle,
 } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useControlesCoherence, MONTHLY_CONTROL_IDS } from '../hooks/useControlesCoherence';
 import type { ControleResult } from '../hooks/useControlesCoherence';
@@ -42,6 +43,7 @@ export default function PreflightVerrouillage({
 }: PreflightVerrouillageProps) {
   const { adapter } = useData();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const scope = useMemo(() => ({ start: periodStart, end: periodEnd }), [periodStart, periodEnd]);
   const { controles, loading, refresh } = useControlesCoherence(MONTHLY_CONTROL_IDS, scope);
   const [applying, setApplying] = useState<string | null>(null);
@@ -73,11 +75,17 @@ export default function PreflightVerrouillage({
           applied += outcome.applied;
           if (!outcome.ok) failures.push(`${proposal.controleId} : ${outcome.message}`);
         } catch (err) {
-          failures.push(`${proposal.controleId} : ${err instanceof Error ? err.message : 'erreur'}`);
+          failures.push(`${proposal.controleId} : ${err instanceof Error ? err.message : t('closurePreflight.error')}`);
         }
       }
-      if (failures.length === 0) toast.success(`${applied} correction(s) appliquée(s)`);
-      else toast.error(`${applied} appliquée(s), ${failures.length} en échec`);
+      if (failures.length === 0) {
+        toast.success(t('closurePreflight.fixesApplied', { count: String(applied) }));
+      } else {
+        toast.error(t('closurePreflight.fixesPartial', {
+          applied: String(applied),
+          failed: String(failures.length),
+        }));
+      }
       await refresh();
     } finally {
       setApplying(null);
@@ -94,7 +102,7 @@ export default function PreflightVerrouillage({
       else toast.error(outcome.message);
       await refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Correction impossible');
+      toast.error(err instanceof Error ? err.message : t('closurePreflight.fixFailed'));
     } finally {
       setApplying(null);
     }
@@ -104,7 +112,7 @@ export default function PreflightVerrouillage({
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center gap-2 text-gray-500 text-sm">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Contrôle de la période {periodLabel}…
+        {t('closurePreflight.checkingPeriod', { period: periodLabel })}
       </div>
     );
   }
@@ -116,7 +124,7 @@ export default function PreflightVerrouillage({
           {blockers.length === 0
             ? <CheckCircle className="w-4 h-4 text-green-600" />
             : <XCircle className="w-4 h-4 text-red-600" />}
-          Pré-vol de verrouillage — {periodLabel}
+          {t('closurePreflight.title', { period: periodLabel })}
           <span className="font-normal text-gray-400">({periodStart} → {periodEnd})</span>
         </h3>
         <div className="flex items-center gap-2">
@@ -127,7 +135,7 @@ export default function PreflightVerrouillage({
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700 disabled:opacity-50"
             >
               {applying === '__ALL__' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
-              Corriger automatiquement ({fixables.length})
+              {t('closurePreflight.autoFix', { count: String(fixables.length) })}
             </button>
           )}
           <button
@@ -136,17 +144,17 @@ export default function PreflightVerrouillage({
             className="flex items-center gap-1 px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 rounded disabled:opacity-50"
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            Relancer
+            {t('closurePreflight.rerun')}
           </button>
         </div>
       </div>
 
       <p className={`text-xs mb-3 ${blockers.length > 0 ? 'text-red-700' : warnings.length > 0 ? 'text-yellow-700' : 'text-green-700'}`}>
         {blockers.length > 0
-          ? `${blockers.length} contrôle(s) non conforme(s) sur la période — le verrouillage est bloqué.`
+          ? t('closurePreflight.blocked', { count: String(blockers.length) })
           : warnings.length > 0
-            ? `Aucun bloquant. ${warnings.length} point(s) d'attention à arbitrer avant de verrouiller.`
-            : 'Tous les contrôles de la période sont conformes — la période peut être verrouillée.'}
+            ? t('closurePreflight.warningsOnly', { count: String(warnings.length) })
+            : t('closurePreflight.allClear')}
       </p>
 
       <ul className="divide-y divide-gray-100 border border-gray-100 rounded-md">
@@ -182,7 +190,7 @@ export default function PreflightVerrouillage({
                     className="flex items-center gap-1 px-2 py-1 text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 rounded hover:bg-emerald-100 disabled:opacity-50 flex-shrink-0"
                   >
                     {applying === auto.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
-                    Corriger ({auto.cibles})
+                    {t('closurePreflight.fixAction', { count: String(auto.cibles) })}
                   </button>
                 )}
               </div>
@@ -206,7 +214,7 @@ export default function PreflightVerrouillage({
                   </table>
                   {c.anomaliesTotal > 50 && (
                     <p className="px-2 py-1 text-[11px] text-gray-400 border-t">
-                      … {c.anomaliesTotal - 50} élément(s) supplémentaire(s)
+                      {t('closurePreflight.moreItems', { count: String(c.anomaliesTotal - 50) })}
                     </p>
                   )}
                 </div>
