@@ -12,25 +12,8 @@ import {
   LayoutGrid, TrendingUp, BarChart3, Building2
 } from 'lucide-react';
 import { FeatureGate, UpgradeBanner, useFeatureAccess } from '../../components/gating';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-import { Line, Bar } from 'react-chartjs-2';
+import { AtlasBar, AtlasLine, ATLAS_SUCCESS, ATLAS_ERROR } from '../../components/charts';
 
-ChartJS.register(
-  CategoryScale, LinearScale, PointElement, LineElement,
-  BarElement, ArcElement, Title, Tooltip, Legend, Filler
-);
 
 const MONTH_LABELS = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -95,53 +78,21 @@ const ExecutiveDashboard: React.FC = () => {
   const ActivityIcon = ACTIVITY_ICONS[activityType];
 
   // Chart: Revenue vs Cost trend
-  const trendChartData = useMemo(() => ({
-    labels: MONTH_LABELS,
-    datasets: [
-      {
-        label: dashboardConfig.chartLabels.revenueLabel,
-        data: monthlyTrend.map((m) => m.revenue),
-        borderColor: 'var(--color-success)',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        tension: 0.4,
-        fill: true,
-      },
-      {
-        label: dashboardConfig.chartLabels.costLabel,
-        data: monthlyTrend.map((m) => m.cost),
-        borderColor: 'var(--color-error)',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        tension: 0.4,
-        fill: true,
-      },
-    ],
-  }), [monthlyTrend, dashboardConfig]);
+  // Couleurs en hex : un canvas ne résout PAS les var(--color-*) — ces courbes
+  // étaient définies avec des variables CSS et rendaient donc en noir.
+  const trendSeries = useMemo(() => ([
+    { name: dashboardConfig.chartLabels.revenueLabel, data: monthlyTrend.map((m) => m.revenue), color: ATLAS_SUCCESS, area: true },
+    { name: dashboardConfig.chartLabels.costLabel, data: monthlyTrend.map((m) => m.cost), color: ATLAS_ERROR, area: true },
+  ]), [monthlyTrend, dashboardConfig]);
 
   // Chart: Margin trend
-  const marginChartData = useMemo(() => ({
-    labels: MONTH_LABELS,
-    datasets: [
-      {
-        label: dashboardConfig.chartLabels.marginLabel,
-        data: monthlyTrend.map((m) => m.margin),
-        backgroundColor: monthlyTrend.map((m) =>
-          m.margin >= 0 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)'
-        ),
-        borderRadius: 4,
-      },
-    ],
-  }), [monthlyTrend, dashboardConfig]);
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-        labels: { padding: 15, usePointStyle: true, font: { size: 12 } },
-      },
+  const marginSeries = useMemo(() => ([
+    {
+      name: dashboardConfig.chartLabels.marginLabel,
+      data: monthlyTrend.map((m) => m.margin),
+      itemColors: monthlyTrend.map((m) => (m.margin >= 0 ? ATLAS_SUCCESS : ATLAS_ERROR)),
     },
-  };
+  ]), [monthlyTrend, dashboardConfig]);
 
   if (loading) {
     return (
@@ -314,18 +265,14 @@ const ExecutiveDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
               {dashboardConfig.chartLabels.revenueLabel} vs {dashboardConfig.chartLabels.costLabel}
             </h3>
-            <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-              <Line data={trendChartData} options={chartOptions} />
-            </div>
+            <AtlasLine categories={MONTH_LABELS} series={trendSeries} height={300} />
           </div>
 
           <div className="bg-[var(--color-card-bg)] rounded-lg p-6 border border-[var(--color-border)]">
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
               {dashboardConfig.chartLabels.marginLabel}
             </h3>
-            <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-              <Bar data={marginChartData} options={chartOptions} />
-            </div>
+            <AtlasBar categories={MONTH_LABELS} series={marginSeries} showValues={false} height={300} />
           </div>
         </div>
       )}

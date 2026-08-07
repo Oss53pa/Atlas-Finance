@@ -307,10 +307,12 @@ const ModernDoubleSidebarLayout: React.FC = () => {
     ],
     control: [
       // Entrées-groupes : le détail est en onglets dans chaque page (voir BudgetGroupTabs).
-      { id: 'budget-hub', label: t('nav.budgetHub'), path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
-      { id: 'budget-cockpit-pro', label: t('nav.analyticalCockpit'), path: '/budget/cockpit-analytique', icon: <Activity className="w-4 h-4" /> },
+      // Ordre = cycle budgétaire : on élabore avant de piloter. Le Hub et le
+      // Cockpit synthétisent un budget existant, ils viennent donc après.
       { id: 'budget-elaboration', label: t('nav.budgetElaboration'), path: '/budget/campagne', icon: <Calendar className="w-4 h-4" />,
         matchPrefixes: ['/budget/campagne', '/budget/table', '/budget/revenus', '/budget/saisie', '/budget/import', '/budget/versions'] },
+      { id: 'budget-hub', label: t('nav.budgetHub'), path: '/budget', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'budget-cockpit-pro', label: t('nav.analyticalCockpit'), path: '/budget/cockpit-analytique', icon: <Activity className="w-4 h-4" /> },
       { id: 'budget-suivi', label: t('nav.budgetMonitoring'), path: '/budget/exploitation', icon: <BarChart3 className="w-4 h-4" />,
         matchPrefixes: ['/budget/cockpit', '/budget/exploitation', '/budget/ecarts', '/budget/pnl', '/budget/alertes', '/budget/snapshots'] },
       { id: 'budget-engagements', label: t('nav.commitments'), path: '/budget/engagements', icon: <FileCheck className="w-4 h-4" />,
