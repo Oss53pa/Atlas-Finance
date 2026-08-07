@@ -42,8 +42,13 @@ function describeImport(importFn: () => unknown): string {
  * `preventDefault()` : le helper Vite résoudrait alors la promesse avec
  * `undefined`, ce qui est précisément le mode d'échec n°2.
  */
-export function lazyRetry(importFn: () => Promise<any>): React.LazyExoticComponent<any> {
-  return React.lazy<any>(async () => {
+// Le paramètre de type doit rester `ComponentType<any>` et non `any` :
+// `ComponentPropsWithRef<any>` se réduit à `{}` et les pages recevant des props
+// (`<AtlasStudioRedirect destination="…" />`) ne compileraient plus.
+export function lazyRetry(
+  importFn: () => Promise<any>,
+): React.LazyExoticComponent<React.ComponentType<any>> {
+  return React.lazy<React.ComponentType<any>>(async () => {
     let loaded: unknown;
 
     try {
