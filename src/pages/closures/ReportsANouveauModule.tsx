@@ -99,12 +99,12 @@ const ReportsANouveauModule: React.FC = () => {
   };
 
   const handleExport = () => {
-    toast.success('Export en cours... (fonctionnalité à venir)');
+    toast.success(t('carryForward.exportSoon'));
   };
 
   const handleArchive = () => {
-    if (confirm('Archiver les reports de cet exercice ?')) {
-      toast.success('Reports archivés');
+    if (confirm(t('carryForward.archiveConfirm'))) {
+      toast.success(t('carryForward.archived'));
     }
   };
 
@@ -113,8 +113,8 @@ const ReportsANouveauModule: React.FC = () => {
   };
 
   const handleFinalizeReport = () => {
-    if (confirm('Finaliser le report à nouveau ? Cette action est irréversible.')) {
-      toast.success('Report à nouveau finalisé');
+    if (confirm(t('carryForward.finalizeConfirm'))) {
+      toast.success(t('carryForward.finalized'));
     }
   };
 
@@ -126,11 +126,11 @@ const ReportsANouveauModule: React.FC = () => {
       .filter(fy => currentFY && fy.startDate > currentFY.endDate)
       .sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
     if (!currentFY || !nextFY) {
-      toast.error('Exercice source ou cible introuvable');
+      toast.error(t('carryForward.yearsNotFound'));
       return;
     }
     // Régénération = contrepassation de l'existant puis recréation (intangibilité).
-    if (alreadyExists && !window.confirm("Un à-nouveau existe déjà pour l'exercice cible.\nLe régénérer va CONTREPASSER l'existant puis recréer. Continuer ?")) {
+    if (alreadyExists && !window.confirm(t('carryForward.regenerateConfirm'))) {
       return;
     }
 
@@ -143,24 +143,28 @@ const ReportsANouveauModule: React.FC = () => {
         force: alreadyExists,
       } as any);
       if (result.success) {
-        toast.success(`Report à nouveau généré: ${result.lineCount} comptes, Débit=${formatCurrency(result.totalDebit)}, Crédit=${formatCurrency(result.totalCredit)}`);
+        toast.success(t('carryForward.generated', {
+          count: String(result.lineCount),
+          debit: formatCurrency(result.totalDebit),
+          credit: formatCurrency(result.totalCredit),
+        }));
         setAlreadyExists(true);
         // Rafraîchit sur l'exercice cible (là où l'à-nouveau a été écrit).
         const lines = await calculerSoldesCloture(adapter, selectedExercice);
         setCarryForwardLines(lines);
       } else {
-        toast.error(`Erreur: ${result.errors.join(', ')}`);
+        toast.error(t('carryForward.generationErrors', { errors: result.errors.join(', ') }));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erreur lors de la génération');
+      toast.error(err instanceof Error ? err.message : t('carryForward.generationError'));
     } finally {
       setGenerating(false);
     }
-  }, [selectedExercice, fiscalYears, adapter, alreadyExists]);
+  }, [selectedExercice, fiscalYears, adapter, alreadyExists, t]);
 
   const validerReport = useCallback(async () => {
-    toast.success('Validation enregistrée');
-  }, []);
+    toast.success(t('carryForward.validationSaved'));
+  }, [t]);
 
   // Map carry-forward lines to component interface
   const selectedFY = fiscalYears.find(fy => fy.id === selectedExercice);
@@ -224,8 +228,8 @@ const ReportsANouveauModule: React.FC = () => {
       <div className="bg-white rounded-lg p-6 border border-[var(--color-border)] shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-lg font-bold text-[var(--color-primary)]">Reports à Nouveau</h1>
-            <p className="text-[var(--color-text-tertiary)]">Gestion des reports et ouverture d'exercice</p>
+            <h1 className="text-lg font-bold text-[var(--color-primary)]">{t('carryForward.title')}</h1>
+            <p className="text-[var(--color-text-tertiary)]">{t('carryForward.subtitle')}</p>
           </div>
           <div className="flex items-center space-x-3">
             <PageHeaderActions />
@@ -235,7 +239,7 @@ const ReportsANouveauModule: React.FC = () => {
               className="px-4 py-2 border border-[var(--color-border)] rounded-lg"
             >
               {fiscalYears.map(fy => (
-                <option key={fy.id} value={fy.id}>Exercice {fy.name || fy.code}</option>
+                <option key={fy.id} value={fy.id}>{t('carryForward.yearOption', { name: fy.name || fy.code })}</option>
               ))}
             </select>
             <button
@@ -244,7 +248,7 @@ const ReportsANouveauModule: React.FC = () => {
               className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] flex items-center space-x-2 disabled:opacity-50"
             >
               {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              <span>{generating ? 'Génération...' : alreadyExists ? 'Régénérer' : 'Générer reports'}</span>
+              <span>{generating ? t('carryForward.generating') : alreadyExists ? t('carryForward.regenerate') : t('carryForward.generate')}</span>
             </button>
           </div>
         </div>
@@ -252,7 +256,7 @@ const ReportsANouveauModule: React.FC = () => {
         {/* Informations de l'exercice */}
         <div className="grid grid-cols-5 gap-4 p-4 bg-[var(--color-background-secondary)] rounded-lg">
           <div>
-            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Statut</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.status')}</p>
             <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
               exerciceInfo.statut === 'valide' ? 'bg-[var(--color-success-lighter)] text-[var(--color-success-dark)]' :
               exerciceInfo.statut === 'en_cours' ? 'bg-[var(--color-primary-lighter)] text-[var(--color-primary-dark)]' :
@@ -261,31 +265,31 @@ const ReportsANouveauModule: React.FC = () => {
               {exerciceInfo.statut === 'valide' ? <CheckCircle className="w-3 h-3" /> :
                exerciceInfo.statut === 'en_cours' ? <Clock className="w-3 h-3" /> :
                <AlertCircle className="w-3 h-3" />}
-              <span>{exerciceInfo.statut === 'en_preparation' ? 'En préparation' : 
-                     exerciceInfo.statut === 'en_cours' ? 'En cours' :
-                     exerciceInfo.statut === 'valide' ? 'Validé' : 'Clôturé'}</span>
+              <span>{exerciceInfo.statut === 'en_preparation' ? t('carryForward.statusPreparing') :
+                     exerciceInfo.statut === 'en_cours' ? t('carryForward.statusInProgress') :
+                     exerciceInfo.statut === 'valide' ? t('carryForward.statusValidated') : t('carryForward.statusClosed')}</span>
             </div>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Total Actif</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.totalAssets')}</p>
             <p className="font-semibold text-[var(--color-primary)]">
               {formatCurrency(exerciceInfo.totalActif)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Total Passif</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.totalLiabilities')}</p>
             <p className="font-semibold text-[var(--color-primary)]">
               {formatCurrency(exerciceInfo.totalPassif)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Résultat N-1</p>
-            <p className="font-semibold text-[var(--color-text-tertiary)]" title="Le résultat (classes 6/7) n'est pas dérivé des soldes de report (classes 1-5)">
+            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.prevResult')}</p>
+            <p className="font-semibold text-[var(--color-text-tertiary)]" title={t('carryForward.prevResultHint')}>
               —
             </p>
           </div>
           <div>
-            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Écart global</p>
+            <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.globalGap')}</p>
             <p className={`font-semibold ${
               exerciceInfo.ecartGlobal === 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'
             }`}>
@@ -299,35 +303,35 @@ const ReportsANouveauModule: React.FC = () => {
       <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[var(--color-text-tertiary)] text-sm">Total comptes</span>
+            <span className="text-[var(--color-text-tertiary)] text-sm">{t('carryForward.totalAccounts')}</span>
             <FileText className="w-4 h-4 text-[var(--color-text-tertiary)]" />
           </div>
           <p className="text-lg font-bold text-[var(--color-primary)]">{stats.totalComptes}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[var(--color-text-tertiary)] text-sm">Validés</span>
+            <span className="text-[var(--color-text-tertiary)] text-sm">{t('carryForward.validatedCount')}</span>
             <CheckCircle className="w-4 h-4 text-[var(--color-success)]" />
           </div>
           <p className="text-lg font-bold text-[var(--color-success)]">{stats.comptesValides}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[var(--color-text-tertiary)] text-sm">À vérifier</span>
+            <span className="text-[var(--color-text-tertiary)] text-sm">{t('carryForward.toCheck')}</span>
             <AlertCircle className="w-4 h-4 text-[var(--color-warning)]" />
           </div>
           <p className="text-lg font-bold text-[var(--color-warning)]">{stats.comptesAVerifier}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[var(--color-text-tertiary)] text-sm">En erreur</span>
+            <span className="text-[var(--color-text-tertiary)] text-sm">{t('carryForward.inError')}</span>
             <AlertTriangle className="w-4 h-4 text-[var(--color-error)]" />
           </div>
           <p className="text-lg font-bold text-[var(--color-error)]">{stats.comptesEnErreur}</p>
         </div>
         <div className="bg-white rounded-lg p-4 border border-[var(--color-border)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[var(--color-text-tertiary)] text-sm">Écart total</span>
+            <span className="text-[var(--color-text-tertiary)] text-sm">{t('carryForward.totalGap')}</span>
             <DollarSign className="w-4 h-4 text-[var(--color-text-tertiary)]" />
           </div>
           <p className="text-lg font-bold text-[var(--color-primary)]">
@@ -342,9 +346,9 @@ const ReportsANouveauModule: React.FC = () => {
         <div className="border-b border-[var(--color-border)]">
           <div className="flex space-x-6 px-6">
             {[
-              { id: 'comptes', label: 'Comptes à reporter', icon: FileText },
-              { id: 'validation', label: 'Validation', icon: CheckCircle },
-              { id: 'historique', label: 'Historique', icon: Clock }
+              { id: 'comptes', label: t('carryForward.tabAccounts'), icon: FileText },
+              { id: 'validation', label: t('carryForward.tabValidation'), icon: CheckCircle },
+              { id: 'historique', label: t('carryForward.tabHistory'), icon: Clock }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -373,20 +377,20 @@ const ReportsANouveauModule: React.FC = () => {
                   onChange={(e) => setFilterCategorie(e.target.value as 'tous' | 'resultat' | 'bilan' | 'hors_bilan')}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
-                  <option value="tous">Toutes catégories</option>
-                  <option value="bilan">Bilan</option>
-                  <option value="resultat">Résultat</option>
-                  <option value="hors_bilan">Hors bilan</option>
+                  <option value="tous">{t('carryForward.allCategories')}</option>
+                  <option value="bilan">{t('carryForward.catBalanceSheet')}</option>
+                  <option value="resultat">{t('carryForward.catResult')}</option>
+                  <option value="hors_bilan">{t('carryForward.catOffBalance')}</option>
                 </select>
                 <select
                   value={filterStatut}
                   onChange={(e) => setFilterStatut(e.target.value as 'tous' | 'valide' | 'a_verifier' | 'erreur')}
                   className="px-3 py-2 border border-[var(--color-border)] rounded-lg text-sm"
                 >
-                  <option value="tous">Tous statuts</option>
-                  <option value="valide">Validés</option>
-                  <option value="a_verifier">À vérifier</option>
-                  <option value="erreur">En erreur</option>
+                  <option value="tous">{t('carryForward.allStatuses')}</option>
+                  <option value="valide">{t('carryForward.validatedCount')}</option>
+                  <option value="a_verifier">{t('carryForward.toCheck')}</option>
+                  <option value="erreur">{t('carryForward.inError')}</option>
                 </select>
               </div>
               <div className="relative">
@@ -395,7 +399,7 @@ const ReportsANouveauModule: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher un compte..."
+                  placeholder={t('carryForward.searchPlaceholder')}
                   className="pl-10 pr-4 py-2 border border-[var(--color-border)] rounded-lg"
                 />
               </div>
@@ -406,13 +410,13 @@ const ReportsANouveauModule: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-[var(--color-border)]">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Code</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.colCode')}</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('accounting.label')}</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Solde N-1</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Mouvements</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Solde N</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Statut</th>
-                    <th className="text-center py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">Actions</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.colPrevBalance')}</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.colMovements')}</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.colBalance')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.status')}</th>
+                    <th className="text-center py-3 px-4 text-sm font-semibold text-[var(--color-text-tertiary)]">{t('carryForward.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -457,9 +461,9 @@ const ReportsANouveauModule: React.FC = () => {
                            compte.statut === 'erreur' ? <X className="w-3 h-3" /> :
                            <Clock className="w-3 h-3" />}
                           <span>
-                            {compte.statut === 'valide' ? 'Validé' :
-                             compte.statut === 'a_verifier' ? 'À vérifier' :
-                             compte.statut === 'erreur' ? 'Erreur' : 'En cours'}
+                            {compte.statut === 'valide' ? t('carryForward.statusValidated') :
+                             compte.statut === 'a_verifier' ? t('carryForward.toCheck') :
+                             compte.statut === 'erreur' ? t('carryForward.statusError') : t('carryForward.statusInProgress')}
                           </span>
                         </span>
                       </td>
@@ -477,8 +481,8 @@ const ReportsANouveauModule: React.FC = () => {
                           <button
                             onClick={() => handleSettingsCompte(compte)}
                             className="p-1.5 text-[var(--color-text-tertiary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-background-hover)] rounded"
-                            aria-label="Paramètres"
-                            title="Paramètres du compte"
+                            aria-label={t('carryForward.settingsAria')}
+                            title={t('carryForward.accountSettingsTitle')}
                           >
                             <Settings className="w-4 h-4" />
                           </button>
@@ -496,7 +500,7 @@ const ReportsANouveauModule: React.FC = () => {
                 <button
                   onClick={handleExport}
                   className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2"
-                  aria-label="Télécharger"
+                  aria-label={t('carryForward.downloadAria')}
                 >
                   <Download className="w-4 h-4" />
                   <span>{t('common.export')}</span>
@@ -506,7 +510,7 @@ const ReportsANouveauModule: React.FC = () => {
                   className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)] flex items-center space-x-2"
                 >
                   <Archive className="w-4 h-4" />
-                  <span>Archiver</span>
+                  <span>{t('carryForward.archive')}</span>
                 </button>
               </div>
               <button
@@ -514,7 +518,7 @@ const ReportsANouveauModule: React.FC = () => {
                 className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
               >
                 <Check className="w-4 h-4" />
-                <span>Valider le report</span>
+                <span>{t('carryForward.validateReport')}</span>
               </button>
             </div>
           </div>
@@ -523,7 +527,7 @@ const ReportsANouveauModule: React.FC = () => {
         {activeTab === 'validation' && (
           <div className="p-6">
             <div className="max-w-2xl mx-auto">
-              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">Processus de validation</h3>
+              <h3 className="text-lg font-semibold text-[var(--color-primary)] mb-4">{t('carryForward.validationProcess')}</h3>
               
               {/* Étapes de validation — statut dérivé de l'état réel (soldes calculés, écart, à-nouveau généré, exercice clôturé) */}
               <div className="space-y-4">
@@ -532,11 +536,11 @@ const ReportsANouveauModule: React.FC = () => {
                   const equilibre = aDesComptes && exerciceInfo.ecartGlobal === 0;
                   const closed = selectedFY?.isClosed === true;
                   return [
-                    { nom: 'Vérification des équilibres', statut: aDesComptes ? 'complete' : 'en_attente' },
-                    { nom: 'Contrôle des écarts', statut: equilibre ? 'complete' : aDesComptes ? 'en_cours' : 'en_attente' },
-                    { nom: 'Validation des reports', statut: alreadyExists ? 'complete' : equilibre ? 'en_cours' : 'en_attente' },
-                    { nom: 'Génération des écritures', statut: alreadyExists ? 'complete' : 'en_attente' },
-                    { nom: 'Ouverture de l\'exercice', statut: closed ? 'complete' : 'en_attente' },
+                    { nom: t('carryForward.stepBalances'), statut: aDesComptes ? 'complete' : 'en_attente' },
+                    { nom: t('carryForward.stepGaps'), statut: equilibre ? 'complete' : aDesComptes ? 'en_cours' : 'en_attente' },
+                    { nom: t('carryForward.stepValidation'), statut: alreadyExists ? 'complete' : equilibre ? 'en_cours' : 'en_attente' },
+                    { nom: t('carryForward.stepEntries'), statut: alreadyExists ? 'complete' : 'en_attente' },
+                    { nom: t('carryForward.stepOpening'), statut: closed ? 'complete' : 'en_attente' },
                   ];
                 })().map((etape, index) => (
                   <div key={index} className="flex items-center space-x-4">
@@ -568,7 +572,7 @@ const ReportsANouveauModule: React.FC = () => {
 
               <div className="mt-8 p-4 bg-[var(--color-warning-lightest)] border border-yellow-200 rounded-lg">
                 <p className="text-sm text-yellow-800">
-                  La validation du report à nouveau est irréversible. Assurez-vous que tous les contrôles ont été effectués.
+                  {t('carryForward.irreversibleWarning')}
                 </p>
               </div>
 
@@ -577,14 +581,14 @@ const ReportsANouveauModule: React.FC = () => {
                   onClick={handleCancelValidation}
                   className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
                 >
-                  Annuler
+                  {t('carryForward.cancel')}
                 </button>
                 <button
                   onClick={handleFinalizeReport}
                   className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:bg-[var(--color-success-dark)] flex items-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Finaliser le report</span>
+                  <span>{t('carryForward.finalizeReport')}</span>
                 </button>
               </div>
             </div>
@@ -597,7 +601,7 @@ const ReportsANouveauModule: React.FC = () => {
               {fiscalYears.filter(fy => fy.isClosed).length === 0 ? (
                 <div className="text-center py-12">
                   <Clock className="w-10 h-10 text-[var(--color-text-tertiary)] mx-auto mb-3" />
-                  <p className="text-[var(--color-text-tertiary)]">Aucun exercice clôturé</p>
+                  <p className="text-[var(--color-text-tertiary)]">{t('carryForward.noClosedYear')}</p>
                 </div>
               ) : (
                 fiscalYears.filter(fy => fy.isClosed).map(fy => ({
@@ -606,11 +610,11 @@ const ReportsANouveauModule: React.FC = () => {
                   <div key={index} className="border border-[var(--color-border)] rounded-lg p-4 hover:bg-[var(--color-background-secondary)]">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-[var(--color-primary)]">Exercice {report.exercice}</p>
-                        <p className="text-sm text-[var(--color-text-tertiary)]">Clôturé le {report.date}</p>
+                        <p className="font-semibold text-[var(--color-primary)]">{t('carryForward.yearOption', { name: report.exercice })}</p>
+                        <p className="text-sm text-[var(--color-text-tertiary)]">{t('carryForward.closedOn', { date: report.date })}</p>
                       </div>
                       <span className="text-xs bg-[var(--color-success-lighter)] text-[var(--color-success-dark)] px-2 py-1 rounded-full">
-                        Clôturé
+                        {t('carryForward.statusClosed')}
                       </span>
                     </div>
                   </div>
@@ -633,8 +637,8 @@ const ReportsANouveauModule: React.FC = () => {
                     <FileText className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[var(--color-primary)]">Détail du Compte - Report à Nouveau</h3>
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Exercice {selectedExercice}</p>
+                    <h3 className="text-lg font-bold text-[var(--color-primary)]">{t('carryForward.detailTitle')}</h3>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('carryForward.yearOption', { name: selectedExercice })}</p>
                   </div>
                 </div>
                 <button
@@ -651,41 +655,43 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-[var(--color-primary)] pb-2">
                   <span className="w-1 h-4 bg-[var(--color-primary)] rounded"></span>
-                  Identification du Compte
+                  {t('carryForward.accountIdentification')}
                 </h4>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Code Compte SYSCOHADA</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.syscohadaCode')}</p>
                     <p className="font-mono font-bold text-lg text-[var(--color-primary)]">{selectedCompte.code}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg col-span-2">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Libellé du Compte</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.accountLabel')}</p>
                     <p className="font-semibold text-[var(--color-primary)]">{selectedCompte.libelle}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Classe de Compte</p>
-                    <p className="font-semibold text-[var(--color-primary)]">Classe {selectedCompte.code.charAt(0)}</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.accountClass')}</p>
+                    <p className="font-semibold text-[var(--color-primary)]">{t('carryForward.classValue', { digit: selectedCompte.code.charAt(0) })}</p>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Type</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.type')}</p>
                     <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${
                       selectedCompte.type === 'actif' ? 'bg-blue-100 text-blue-800' :
                       selectedCompte.type === 'passif' ? 'bg-primary-100 text-primary-800' :
                       selectedCompte.type === 'charge' ? 'bg-red-100 text-red-800' :
                       'bg-green-100 text-green-800'
                     }`}>
-                      {selectedCompte.type.charAt(0).toUpperCase() + selectedCompte.type.slice(1)}
+                      {selectedCompte.type === 'actif' ? t('carryForward.typeAsset') :
+                       selectedCompte.type === 'passif' ? t('carryForward.typeLiability') :
+                       selectedCompte.type === 'charge' ? t('carryForward.typeExpense') : t('carryForward.typeIncome')}
                     </span>
                   </div>
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Catégorie</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.category')}</p>
                     <span className={`inline-block px-2 py-1 rounded text-sm font-medium ${
                       selectedCompte.categorie === 'bilan' ? 'bg-primary-100 text-primary-800' :
                       selectedCompte.categorie === 'resultat' ? 'bg-orange-100 text-orange-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedCompte.categorie === 'bilan' ? 'Bilan' :
-                       selectedCompte.categorie === 'resultat' ? 'Résultat' : 'Hors Bilan'}
+                      {selectedCompte.categorie === 'bilan' ? t('carryForward.catBalanceSheet') :
+                       selectedCompte.categorie === 'resultat' ? t('carryForward.catResult') : t('carryForward.catOffBalance')}
                     </span>
                   </div>
                 </div>
@@ -695,17 +701,17 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-blue-400 pb-2">
                   <span className="w-1 h-4 bg-blue-500 rounded"></span>
-                  Soldes et Mouvements
+                  {t('carryForward.balancesMovements')}
                 </h4>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <p className="text-xs text-blue-700 mb-1">Solde Exercice N-1 (Clôture)</p>
+                    <p className="text-xs text-blue-700 mb-1">{t('carryForward.closingBalancePrev')}</p>
                     <p className="text-lg font-bold text-blue-900 font-mono">
                       {formatCurrency(selectedCompte.soldeN1)}
                     </p>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <p className="text-xs text-green-700 mb-1">Solde Exercice N (Ouverture)</p>
+                    <p className="text-xs text-green-700 mb-1">{t('carryForward.openingBalance')}</p>
                     <p className="text-lg font-bold text-green-900 font-mono">
                       {formatCurrency(selectedCompte.soldeN)}
                     </p>
@@ -717,14 +723,14 @@ const ReportsANouveauModule: React.FC = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">Nature du Mouvement</th>
-                        <th className="text-right py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">Débit (FCFA)</th>
-                        <th className="text-right py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">Crédit (FCFA)</th>
+                        <th className="text-left py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">{t('carryForward.colMovementNature')}</th>
+                        <th className="text-right py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">{t('carryForward.colDebit')}</th>
+                        <th className="text-right py-2 px-4 text-sm font-semibold text-[var(--color-primary)]">{t('carryForward.colCredit')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-gray-100">
-                        <td className="py-3 px-4 text-sm">Solde de clôture N-1</td>
+                        <td className="py-3 px-4 text-sm">{t('carryForward.rowClosingPrev')}</td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
                             ? formatCurrency(selectedCompte.soldeN1)
@@ -738,7 +744,7 @@ const ReportsANouveauModule: React.FC = () => {
                       </tr>
                       {selectedCompte.mouvementDebit > 0 && (
                         <tr className="border-b border-gray-100 bg-red-50">
-                          <td className="py-3 px-4 text-sm text-red-800">Mouvement de report (Débit)</td>
+                          <td className="py-3 px-4 text-sm text-red-800">{t('carryForward.rowMovementDebit')}</td>
                           <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-red-700">
                             {formatCurrency(selectedCompte.mouvementDebit)}
                           </td>
@@ -747,7 +753,7 @@ const ReportsANouveauModule: React.FC = () => {
                       )}
                       {selectedCompte.mouvementCredit > 0 && (
                         <tr className="border-b border-gray-100 bg-green-50">
-                          <td className="py-3 px-4 text-sm text-green-800">Mouvement de report (Crédit)</td>
+                          <td className="py-3 px-4 text-sm text-green-800">{t('carryForward.rowMovementCredit')}</td>
                           <td className="py-3 px-4 text-right font-mono text-sm">-</td>
                           <td className="py-3 px-4 text-right font-mono text-sm font-semibold text-green-700">
                             {formatCurrency(selectedCompte.mouvementCredit)}
@@ -755,7 +761,7 @@ const ReportsANouveauModule: React.FC = () => {
                         </tr>
                       )}
                       <tr className="bg-gray-100 font-bold">
-                        <td className="py-3 px-4 text-sm">Solde d'ouverture N</td>
+                        <td className="py-3 px-4 text-sm">{t('carryForward.rowOpening')}</td>
                         <td className="py-3 px-4 text-right font-mono text-sm">
                           {selectedCompte.type === 'actif' || selectedCompte.type === 'charge'
                             ? formatCurrency(selectedCompte.soldeN)
@@ -776,7 +782,7 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-orange-400 pb-2">
                   <span className="w-1 h-4 bg-orange-500 rounded"></span>
-                  Analyse et Contrôle
+                  {t('carryForward.analysisTitle')}
                 </h4>
                 <div className="grid grid-cols-3 gap-4">
                   <div className={`p-4 rounded-lg border ${
@@ -784,7 +790,7 @@ const ReportsANouveauModule: React.FC = () => {
                       ? 'bg-green-50 border-green-200'
                       : 'bg-red-50 border-red-200'
                   }`}>
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Écart Détecté</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.gapDetected')}</p>
                     <p className={`text-lg font-bold font-mono ${
                       selectedCompte.ecart === 0 ? 'text-green-700' : 'text-red-700'
                     }`}>
@@ -792,7 +798,7 @@ const ReportsANouveauModule: React.FC = () => {
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Variation (%)</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.variation')}</p>
                     <p className="text-lg font-bold text-[var(--color-primary)]">
                       {selectedCompte.soldeN1 !== 0
                         ? ((selectedCompte.soldeN - selectedCompte.soldeN1) / selectedCompte.soldeN1 * 100).toFixed(2)
@@ -800,7 +806,7 @@ const ReportsANouveauModule: React.FC = () => {
                     </p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">Statut de Validation</p>
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-1">{t('carryForward.validationStatus')}</p>
                     <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
                       selectedCompte.statut === 'valide' ? 'bg-green-100 text-green-800' :
                       selectedCompte.statut === 'a_verifier' ? 'bg-yellow-100 text-yellow-800' :
@@ -811,9 +817,9 @@ const ReportsANouveauModule: React.FC = () => {
                        selectedCompte.statut === 'a_verifier' ? <AlertCircle className="w-4 h-4" /> :
                        selectedCompte.statut === 'erreur' ? <AlertTriangle className="w-4 h-4" /> :
                        <Clock className="w-4 h-4" />}
-                      {selectedCompte.statut === 'valide' ? 'Validé' :
-                       selectedCompte.statut === 'a_verifier' ? 'À vérifier' :
-                       selectedCompte.statut === 'erreur' ? 'En erreur' : 'En cours'}
+                      {selectedCompte.statut === 'valide' ? t('carryForward.statusValidated') :
+                       selectedCompte.statut === 'a_verifier' ? t('carryForward.toCheck') :
+                       selectedCompte.statut === 'erreur' ? t('carryForward.inError') : t('carryForward.statusInProgress')}
                     </span>
                   </div>
                 </div>
@@ -823,35 +829,35 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
                   <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                  Écriture Comptable de Report
+                  {t('carryForward.entryTitle')}
                 </h4>
                 <div className="bg-primary-50 p-4 rounded-lg border border-primary-200">
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <div>
-                      <p className="text-xs text-primary-700 mb-1">N° Pièce Comptable</p>
+                      <p className="text-xs text-primary-700 mb-1">{t('carryForward.voucherNumber')}</p>
                       <p className="font-mono font-semibold text-primary-900">RAN-{selectedExercice}-{selectedCompte.code}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-primary-700 mb-1">Journal</p>
-                      <p className="font-semibold text-primary-900">OD - Opérations Diverses</p>
+                      <p className="text-xs text-primary-700 mb-1">{t('carryForward.journal')}</p>
+                      <p className="font-semibold text-primary-900">{t('carryForward.journalOd')}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-primary-700 mb-1">Date de Report</p>
+                      <p className="text-xs text-primary-700 mb-1">{t('carryForward.carryDate')}</p>
                       <p className="font-semibold text-primary-900">01/01/{selectedExercice}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-primary-700 mb-1">Libellé de l'Écriture</p>
-                      <p className="font-semibold text-primary-900">Report à nouveau - {selectedCompte.libelle}</p>
+                      <p className="text-xs text-primary-700 mb-1">{t('carryForward.entryLabel')}</p>
+                      <p className="font-semibold text-primary-900">{t('carryForward.entryLabelValue', { label: selectedCompte.libelle })}</p>
                     </div>
                   </div>
                   <div className="border-t border-primary-200 pt-3">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="text-primary-700">
-                          <th className="text-left py-1">Compte</th>
-                          <th className="text-left py-1">Libellé</th>
-                          <th className="text-right py-1">Débit</th>
-                          <th className="text-right py-1">Crédit</th>
+                          <th className="text-left py-1">{t('carryForward.colAccount')}</th>
+                          <th className="text-left py-1">{t('carryForward.colLabel')}</th>
+                          <th className="text-right py-1">{t('carryForward.colDebitShort')}</th>
+                          <th className="text-right py-1">{t('carryForward.colCreditShort')}</th>
                         </tr>
                       </thead>
                       <tbody className="text-primary-900">
@@ -875,7 +881,7 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-gray-400 pb-2">
                   <span className="w-1 h-4 bg-gray-500 rounded"></span>
-                  Commentaires et Notes
+                  {t('carryForward.commentsTitle')}
                 </h4>
                 {selectedCompte.commentaire ? (
                   <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
@@ -886,7 +892,7 @@ const ReportsANouveauModule: React.FC = () => {
                   </div>
                 ) : (
                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
-                    <p className="text-sm text-[var(--color-text-tertiary)]">Aucun commentaire pour ce compte</p>
+                    <p className="text-sm text-[var(--color-text-tertiary)]">{t('carryForward.noComment')}</p>
                   </div>
                 )}
               </div>
@@ -895,11 +901,11 @@ const ReportsANouveauModule: React.FC = () => {
               <div>
                 <h4 className="text-sm font-bold text-[var(--color-primary)] uppercase tracking-wide mb-3 flex items-center gap-2 border-b border-primary-400 pb-2">
                   <span className="w-1 h-4 bg-primary-500 rounded"></span>
-                  Historique des Reports
+                  {t('carryForward.reportHistory')}
                 </h4>
                 <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
                   <p className="text-sm text-[var(--color-text-tertiary)]">
-                    Aucun historique par compte — module non alimenté par l'import (pas de soldes annuels antérieurs).
+                    {t('carryForward.noAccountHistory')}
                   </p>
                 </div>
               </div>
@@ -909,11 +915,11 @@ const ReportsANouveauModule: React.FC = () => {
             <div className="sticky bottom-0 bg-gray-50 border-t border-[var(--color-border)] px-6 py-4 flex justify-between items-center">
               <div className="flex gap-3">
                 <button
-                  onClick={() => toast.success('Export en cours...')}
+                  onClick={() => toast.success(t('carryForward.exporting'))}
                   className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
-                  Exporter
+                  {t('carryForward.export')}
                 </button>
               </div>
               <div className="flex gap-3">
@@ -921,7 +927,7 @@ const ReportsANouveauModule: React.FC = () => {
                   onClick={() => setShowDetailModal(false)}
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                 >
-                  Fermer
+                  {t('carryForward.close')}
                 </button>
                 <button
                   onClick={() => {
@@ -931,7 +937,7 @@ const ReportsANouveauModule: React.FC = () => {
                   className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] flex items-center gap-2"
                 >
                   <Settings className="w-4 h-4" />
-                  Modifier
+                  {t('carryForward.edit')}
                 </button>
               </div>
             </div>
@@ -946,7 +952,7 @@ const ReportsANouveauModule: React.FC = () => {
             <div className="p-6 border-b border-[var(--color-border)]">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-[var(--color-primary)]">Paramètres du compte</h3>
+                  <h3 className="text-lg font-bold text-[var(--color-primary)]">{t('carryForward.accountSettingsTitle')}</h3>
                   <p className="text-sm text-[var(--color-text-tertiary)]">{selectedCompte.code} - {selectedCompte.libelle}</p>
                 </div>
                 <button
@@ -960,41 +966,41 @@ const ReportsANouveauModule: React.FC = () => {
 
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Catégorie</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('carryForward.category')}</label>
                 <select
                   defaultValue={selectedCompte.categorie}
                   className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
                 >
-                  <option value="bilan">Bilan</option>
-                  <option value="resultat">Résultat</option>
-                  <option value="hors_bilan">Hors bilan</option>
+                  <option value="bilan">{t('carryForward.catBalanceSheet')}</option>
+                  <option value="resultat">{t('carryForward.catResult')}</option>
+                  <option value="hors_bilan">{t('carryForward.catOffBalance')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Statut</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('carryForward.status')}</label>
                 <select
                   defaultValue={selectedCompte.statut}
                   className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
                 >
-                  <option value="valide">Validé</option>
-                  <option value="a_verifier">À vérifier</option>
-                  <option value="erreur">En erreur</option>
-                  <option value="en_cours">En cours</option>
+                  <option value="valide">{t('carryForward.statusValidated')}</option>
+                  <option value="a_verifier">{t('carryForward.toCheck')}</option>
+                  <option value="erreur">{t('carryForward.inError')}</option>
+                  <option value="en_cours">{t('carryForward.statusInProgress')}</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">Commentaire</label>
+                <label className="block text-sm font-medium text-[var(--color-primary)] mb-1">{t('carryForward.commentLabel')}</label>
                 <textarea
                   rows={3}
                   defaultValue={selectedCompte.commentaire || ''}
-                  placeholder="Ajouter un commentaire..."
+                  placeholder={t('carryForward.commentPlaceholder')}
                   className="w-full px-3 py-2 border border-[var(--color-border)] rounded-lg"
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <input type="checkbox" id="forceValidation" className="rounded" />
                 <label htmlFor="forceValidation" className="text-sm text-[var(--color-text-tertiary)]">
-                  Forcer la validation malgré l'écart
+                  {t('carryForward.forceValidation')}
                 </label>
               </div>
             </div>
@@ -1004,16 +1010,16 @@ const ReportsANouveauModule: React.FC = () => {
                 onClick={() => setShowEditModal(false)}
                 className="px-4 py-2 bg-[var(--color-background-hover)] text-[var(--color-text-primary)] rounded-lg hover:bg-[var(--color-border)]"
               >
-                Annuler
+                {t('carryForward.cancel')}
               </button>
               <button
                 onClick={() => {
-                  toast.success('Paramètres enregistrés');
+                  toast.success(t('carryForward.settingsSaved'));
                   setShowEditModal(false);
                 }}
                 className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]"
               >
-                Enregistrer
+                {t('carryForward.save')}
               </button>
             </div>
           </div>
