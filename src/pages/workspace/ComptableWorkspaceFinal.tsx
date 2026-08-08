@@ -17,7 +17,12 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
-import { getComptableControls, getRecouvrementIndicator, type ComptableControls, type RecouvrementIndicator } from '../../features/workspace/services/workspaceKpiService';
+import {
+  getComptableControls, getRecouvrementIndicator, getBrouillardIndicator,
+  getEcheancesIndicator, getClotureIndicator, getBudgetIndicator,
+  type ComptableControls, type RecouvrementIndicator, type BrouillardIndicator,
+  type EcheancesIndicator, type ClotureIndicator, type BudgetIndicator,
+} from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -25,7 +30,8 @@ import {
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle, Inbox, NotebookPen
+  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle, Inbox, NotebookPen,
+  FileClock, CalendarClock, Lock, Target
 } from 'lucide-react';
 
 // W3: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -66,6 +72,10 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const [comptaSeries, setComptaSeries] = useState<{ entries: number[]; treasury: number[] }>({ entries: [], treasury: [] });
   const [controls, setControls] = useState<ComptableControls | null>(null);
   const [reco, setReco] = useState<RecouvrementIndicator | null>(null);
+  const [brouillard, setBrouillard] = useState<BrouillardIndicator | null>(null);
+  const [echeances, setEcheances] = useState<EcheancesIndicator | null>(null);
+  const [cloture, setCloture] = useState<ClotureIndicator | null>(null);
+  const [budget, setBudget] = useState<BudgetIndicator | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -171,8 +181,18 @@ const ComptableWorkspaceFinal: React.FC = () => {
         const cashCumul = cashByMonth.map((v) => (running += v));
         setComptaSeries({ entries: byMonth, treasury: cashCumul });
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
-        const [ctl, rec] = await Promise.all([getComptableControls(adapter), getRecouvrementIndicator(adapter)]);
+        // Chaque indicateur est isolé : une table absente (budget non saisi,
+        // périodes non créées) ne doit pas vider tout le tableau de bord.
+        const [ctl, rec, bro, ech, clo, bud] = await Promise.all([
+          getComptableControls(adapter),
+          getRecouvrementIndicator(adapter),
+          getBrouillardIndicator(adapter).catch(() => null),
+          getEcheancesIndicator(adapter).catch(() => null),
+          getClotureIndicator(adapter).catch(() => null),
+          getBudgetIndicator(adapter).catch(() => null),
+        ]);
         setControls(ctl); setReco(rec);
+        setBrouillard(bro); setEcheances(ech); setCloture(clo); setBudget(bud);
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
           const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
@@ -354,9 +374,9 @@ const ComptableWorkspaceFinal: React.FC = () => {
       {/* Contrôles de tenue — un comptable a besoin de savoir si ses livres sont
           justes et clôturables, pas de compter ses écritures. L'ancien jeu
           (total / validées / % validé) disait trois fois la même chose. */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {statsLoading || !controls
-          ? Array.from({ length: 5 }).map((_, i) => (
+          ? Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
                 <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
@@ -365,7 +385,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
             ))
           : (() => {
             const balanced = Math.abs(controls.ecartDebitCredit) < 0.005;
-            const oldest = controls.drafts.oldestDays;
+            const oldest = brouillard?.oldestDays ?? controls.drafts.oldestDays;
+            const brouillardCount = brouillard?.count ?? controls.drafts.count;
             return (
               <>
                 <StatBadgeCard
@@ -378,16 +399,26 @@ const ComptableWorkspaceFinal: React.FC = () => {
                   meta={balanced ? 'partie double respectée' : 'écart à corriger avant clôture'}
                   onClick={() => navigate('/accounting/balance')}
                 />
+                {/* Brouillard : le travail commencé et non comptabilisé. Un
+                    compteur seul ne suffit pas — un brouillon déséquilibré
+                    n'est pas « à valider », il est à corriger, et dix
+                    brouillons du jour ne valent pas dix brouillons de deux mois. */}
                 <StatBadgeCard
-                  label="À valider"
-                  value={formatNumber(stats.drafts)}
-                  badge={stats.drafts > 0 ? 'amber' : 'success'}
-                  icon={<Clock />}
-                  valueTone={oldest !== null && oldest > 30 ? 'error' : 'default'}
+                  label="Brouillard"
+                  value={brouillardCount === 0 ? 'Vide' : formatNumber(brouillardCount)}
+                  badge={brouillard && brouillard.unbalanced > 0 ? 'error' : brouillardCount > 0 ? 'amber' : 'success'}
+                  icon={<FileClock />}
+                  valueSize={brouillardCount === 0 ? 20 : 24}
+                  valueTone={brouillard && (brouillard.unbalanced > 0 || (oldest !== null && oldest > 30)) ? 'error' : 'default'}
                   meta={
-                    stats.drafts === 0 ? 'rien en attente'
-                      : oldest === null ? 'brouillons'
-                      : `le plus ancien : ${oldest} j`
+                    brouillardCount === 0 ? 'rien en attente de validation'
+                      : brouillard && brouillard.unbalanced > 0
+                        ? `${brouillard.unbalanced} déséquilibré${brouillard.unbalanced > 1 ? 's' : ''} · ${formatCurrency(brouillard.amount)}`
+                      : brouillard && brouillard.stale > 0
+                        ? `${brouillard.stale} de plus de 30 j · ${formatCurrency(brouillard.amount)}`
+                      : brouillard
+                        ? `${formatCurrency(brouillard.amount)}${brouillard.topJournal ? ` · journal ${brouillard.topJournal.code}` : ''}`
+                      : oldest === null ? 'brouillons' : `le plus ancien : ${oldest} j`
                   }
                   onClick={() => navigate('/accounting/entries')}
                 />
@@ -417,6 +448,72 @@ const ComptableWorkspaceFinal: React.FC = () => {
                       : `${formatNumber(controls.unmatched.lines)} ligne${controls.unmatched.lines > 1 ? 's' : ''} 401/411`
                   }
                   onClick={() => navigate('/accounting/lettrage')}
+                />
+                {/* Échéances : la balance âgée regarde en arrière, l'échéancier
+                    regarde devant. Ce qui tombe cette semaine est ce qui
+                    déclenche un règlement ou une relance aujourd'hui. */}
+                <StatBadgeCard
+                  label="Échéances 7 jours"
+                  value={!echeances ? '—' : formatCurrency(echeances.payables.next7)}
+                  badge={echeances && echeances.payables.overdue > 0 ? 'error' : echeances && echeances.payables.next7 > 0 ? 'amber' : 'success'}
+                  icon={<CalendarClock />}
+                  valueSize={18}
+                  valueTone={echeances && echeances.payables.overdue > 0 ? 'error' : 'default'}
+                  meta={
+                    !echeances ? 'échéancier indisponible'
+                      : echeances.payables.overdue > 0
+                        ? `à payer · ${formatCurrency(echeances.payables.overdue)} déjà échu`
+                      : echeances.payables.next7 === 0 && echeances.receivables.next7 === 0
+                        ? 'rien ne tombe cette semaine'
+                      : `à payer · ${formatCurrency(echeances.receivables.next7)} à encaisser`
+                  }
+                  onClick={() => navigate('/treasury')}
+                />
+                {/* Clôture : un pourcentage d'avancement ne sert à rien si on ne
+                    sait pas ce qui retient. Les bloquants SYSCOHADA sont
+                    toujours les mêmes — brouillard, 47x, déséquilibre. */}
+                <StatBadgeCard
+                  label="Clôture"
+                  value={
+                    !cloture ? '—'
+                      : cloture.ready ? 'Prête'
+                      : `${cloture.blockers.drafts + cloture.blockers.suspenseAccounts + (cloture.blockers.unbalanced ? 1 : 0)} bloquant${(cloture.blockers.drafts + cloture.blockers.suspenseAccounts + (cloture.blockers.unbalanced ? 1 : 0)) > 1 ? 's' : ''}`
+                  }
+                  badge={!cloture ? 'petrol' : cloture.ready ? 'success' : 'amber'}
+                  icon={<Lock />}
+                  valueSize={20}
+                  valueTone={!cloture ? 'default' : cloture.ready ? 'success' : 'error'}
+                  meta={
+                    !cloture ? 'périodes non renseignées'
+                      : cloture.currentPeriod
+                        ? `${cloture.currentPeriod.label} · ${cloture.progressPct} % de l'exercice clôturé`
+                      : cloture.totalPeriods > 0
+                        ? `${cloture.closedPeriods}/${cloture.totalPeriods} périodes clôturées`
+                      : cloture.ready ? 'livres clôturables' : 'à traiter avant clôture'
+                  }
+                  onClick={() => navigate('/closures/periodic')}
+                />
+                {/* Budget : un total tenu peut cacher trois comptes explosés
+                    compensés par des lignes non consommées. C'est le nombre de
+                    comptes dépassés qui déclenche une action, pas le total. */}
+                <StatBadgeCard
+                  label="Budget charges"
+                  value={
+                    !budget || budget.noBudget ? 'Non budgété'
+                      : budget.overruns.count > 0 ? formatCurrency(budget.overruns.amount)
+                      : `${budget.consumptionPct} %`
+                  }
+                  badge={!budget || budget.noBudget ? 'petrol' : budget.overruns.count > 0 ? 'error' : 'success'}
+                  icon={<Target />}
+                  valueSize={!budget || budget.noBudget ? 18 : budget.overruns.count > 0 ? 18 : 24}
+                  valueTone={budget && !budget.noBudget && budget.overruns.count > 0 ? 'error' : 'default'}
+                  meta={
+                    !budget || budget.noBudget ? 'aucun budget saisi sur les classes 6'
+                      : budget.overruns.count > 0
+                        ? `${budget.overruns.count} compte${budget.overruns.count > 1 ? 's' : ''} dépassé${budget.overruns.count > 1 ? 's' : ''}${budget.topOverrun ? ` · ${budget.topOverrun.accountCode}` : ''}`
+                      : `consommé · ${formatCurrency(budget.disponible)} disponible`
+                  }
+                  onClick={() => navigate('/budget')}
                 />
                 {/* Recouvrement : le lettrage dit ce qui n'est pas rapproché,
                     celle-ci dit ce qui n'est pas encaissé — ce n'est pas le

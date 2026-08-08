@@ -17,7 +17,12 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
-import { getDafIndicators, getRecouvrementIndicator, type DafIndicators, type RecouvrementIndicator } from '../../features/workspace/services/workspaceKpiService';
+import {
+  getDafIndicators, getRecouvrementIndicator, getEcheancesIndicator,
+  getClotureIndicator, getBudgetIndicator,
+  type DafIndicators, type RecouvrementIndicator, type EcheancesIndicator,
+  type ClotureIndicator, type BudgetIndicator,
+} from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -26,7 +31,7 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  AlertTriangle, Inbox, NotebookPen
+  AlertTriangle, Inbox, NotebookPen, CalendarClock, Lock
 } from 'lucide-react';
 
 // W16: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -67,6 +72,9 @@ const ManagerWorkspace: React.FC = () => {
   const [mgrSeries, setMgrSeries] = useState<{ ca: number[]; charges: number[]; treasury: number[] }>({ ca: [], charges: [], treasury: [] });
   const [daf, setDaf] = useState<DafIndicators | null>(null);
   const [reco, setReco] = useState<RecouvrementIndicator | null>(null);
+  const [echeances, setEcheances] = useState<EcheancesIndicator | null>(null);
+  const [cloture, setCloture] = useState<ClotureIndicator | null>(null);
+  const [budget, setBudget] = useState<BudgetIndicator | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -163,7 +171,16 @@ const ManagerWorkspace: React.FC = () => {
         let run = 0;
         setMgrSeries({ ca: caM, charges: chM, treasury: trM.map((v) => (run += v)) });
         setMgrStats({ ca, charges, marge, treasury });
-        const [d, r] = await Promise.all([getDafIndicators(adapter), getRecouvrementIndicator(adapter)]);
+        // Isolés les uns des autres : budget non saisi ou périodes absentes ne
+        // doivent pas priver le DAF de la trésorerie et du BFR.
+        const [d, r, ech, clo, bud] = await Promise.all([
+          getDafIndicators(adapter),
+          getRecouvrementIndicator(adapter),
+          getEcheancesIndicator(adapter).catch(() => null),
+          getClotureIndicator(adapter).catch(() => null),
+          getBudgetIndicator(adapter).catch(() => null),
+        ]);
+        setEcheances(ech); setCloture(clo); setBudget(bud);
         setDaf(d); setReco(r);
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
@@ -347,7 +364,7 @@ const ManagerWorkspace: React.FC = () => {
           Chaque carte porte sa comparaison : prévision, budget, jours de CA. */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {statsLoading || !daf
-          ? Array.from({ length: 4 }).map((_, i) => (
+          ? Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
                 <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
@@ -399,6 +416,83 @@ const ManagerWorkspace: React.FC = () => {
                   valueTone={daf.workingCapital.days !== null && daf.workingCapital.days > 90 ? 'error' : 'default'}
                   meta={formatCurrency(daf.workingCapital.amount) + ' immobilisés'}
                   onClick={() => navigate('/treasury')}
+                />
+                {/* Budget : le DAF ne pilote pas un total, il pilote des écarts.
+                    Un budget global tenu peut cacher trois comptes explosés
+                    compensés par des lignes non consommées. */}
+                <StatBadgeCard
+                  label="Budget charges"
+                  value={
+                    !budget || budget.noBudget ? 'Non budgété'
+                      : budget.overruns.count > 0 ? formatCurrency(budget.overruns.amount)
+                      : `${budget.consumptionPct} %`
+                  }
+                  badge={!budget || budget.noBudget ? 'petrol' : budget.overruns.count > 0 ? 'error' : 'success'}
+                  icon={<Target />}
+                  valueSize={!budget || budget.noBudget ? 18 : budget.overruns.count > 0 ? 19 : 24}
+                  valueTone={budget && !budget.noBudget && budget.overruns.count > 0 ? 'error' : 'default'}
+                  delta={
+                    budget && !budget.noBudget && budget.overruns.count === 0
+                      ? { value: `${formatCurrency(budget.disponible)} disponible`, trend: 'up', tone: 'good' }
+                      : undefined
+                  }
+                  meta={
+                    !budget || budget.noBudget ? 'aucun budget saisi sur les classes 6'
+                      : budget.overruns.count > 0
+                        ? `${budget.overruns.count} compte${budget.overruns.count > 1 ? 's' : ''} dépassé${budget.overruns.count > 1 ? 's' : ''}${budget.topOverrun ? ` · pire : ${budget.topOverrun.accountCode}` : ''}`
+                      : `${formatCurrency(budget.realise)} consommés sur ${formatCurrency(budget.budget)}`
+                  }
+                  onClick={() => navigate('/budget/ecarts')}
+                />
+                {/* Échéances : la trésorerie nette dit où on en est, le net à
+                    30 jours dit où on va. C'est ce solde qui décide d'un report
+                    de règlement ou d'une campagne de relance. */}
+                <StatBadgeCard
+                  label="Net à 30 jours"
+                  value={!echeances ? '—' : formatCurrency(echeances.netNext30)}
+                  badge={!echeances ? 'petrol' : echeances.netNext30 < 0 ? 'error' : 'success'}
+                  icon={<CalendarClock />}
+                  valueSize={18}
+                  valueTone={!echeances ? 'default' : echeances.netNext30 < 0 ? 'error' : 'success'}
+                  meta={
+                    !echeances ? 'échéancier indisponible'
+                      : echeances.netNext30 < 0
+                        ? `${formatCurrency(echeances.payables.next30)} à payer contre ${formatCurrency(echeances.receivables.next30)} à encaisser`
+                      : `${formatCurrency(echeances.receivables.next30)} à encaisser, ${formatCurrency(echeances.payables.next30)} à payer`
+                  }
+                  onClick={() => navigate('/treasury')}
+                />
+                {/* Clôture : la question du DAF n'est pas « où en est-on » mais
+                    « peut-on arrêter les comptes ». D'où les bloquants plutôt
+                    qu'un simple pourcentage. */}
+                <StatBadgeCard
+                  label="Clôture"
+                  value={
+                    !cloture ? '—'
+                      : cloture.ready ? 'Prête'
+                      : `${cloture.blockers.drafts + cloture.blockers.suspenseAccounts + (cloture.blockers.unbalanced ? 1 : 0)} bloquant${(cloture.blockers.drafts + cloture.blockers.suspenseAccounts + (cloture.blockers.unbalanced ? 1 : 0)) > 1 ? 's' : ''}`
+                  }
+                  badge={!cloture ? 'petrol' : cloture.ready ? 'success' : 'amber'}
+                  icon={<Lock />}
+                  valueSize={20}
+                  valueTone={!cloture ? 'default' : cloture.ready ? 'success' : 'error'}
+                  delta={
+                    cloture && cloture.totalPeriods > 0
+                      ? { value: `${cloture.progressPct} % de l'exercice`, trend: cloture.progressPct >= 50 ? 'up' : 'down', tone: cloture.progressPct >= 50 ? 'good' : 'bad' }
+                      : undefined
+                  }
+                  meta={
+                    !cloture ? 'périodes non renseignées'
+                      : !cloture.ready
+                        ? [
+                            cloture.blockers.unbalanced ? 'grand livre déséquilibré' : null,
+                            cloture.blockers.drafts > 0 ? `${cloture.blockers.drafts} au brouillard` : null,
+                            cloture.blockers.suspenseAccounts > 0 ? `${cloture.blockers.suspenseAccounts} compte${cloture.blockers.suspenseAccounts > 1 ? 's' : ''} 47x` : null,
+                          ].filter(Boolean).join(' · ')
+                      : cloture.currentPeriod ? `${cloture.currentPeriod.label} · livres arrêtables`
+                      : 'livres arrêtables'
+                  }
+                  onClick={() => navigate('/closures/periodic')}
                 />
                 {/* Recouvrement : l'encours échu seul ne dit pas s'il est anormal.
                     La part échue donne la mesure, le client le plus exposé donne
