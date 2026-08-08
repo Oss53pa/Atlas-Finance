@@ -13,6 +13,9 @@ import BannettePage from '../validation/BannettePage';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import SecurityActions from '../../components/security/SecurityActions';
+import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad } from '../../components/workspace/WorkspaceShell';
+import { StatBadgeCard } from '../../components/premium';
+import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -20,7 +23,7 @@ import {
   Clock, CheckCircle, Plus, DollarSign, Zap, ArrowUpRight, ArrowDownRight, ExternalLink,
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
-  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle, Inbox
+  ListTodo, MessageSquare, LayoutDashboard, Briefcase, AlertTriangle, Inbox, NotebookPen
 } from 'lucide-react';
 
 // W3: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -50,12 +53,14 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
+  const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('comptable');
 
   // W4 / W2: state distinguishes null (not yet loaded) from 0 (réellement zéro)
   const [comptaStats, setComptaStats] = useState<{
     entries: number; drafts: number; posted: number; treasury: number;
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true); // W2: loading state
+  const [comptaSeries, setComptaSeries] = useState<{ entries: number[]; treasury: number[] }>({ entries: [], treasury: [] });
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -107,11 +112,11 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const stats = comptaStats ?? { entries: 0, drafts: 0, posted: 0, treasury: 0 };
 
   const atlasFinanceLinks = [
-    { id: 'entries', label: "Saisie ecritures", icon: FileText, badge: stats.drafts > 0 ? String(stats.drafts) : undefined, path: '/accounting/entries' },
+    { id: 'entries', label: "Saisie écritures", icon: FileText, badge: stats.drafts > 0 ? String(stats.drafts) : undefined, path: '/accounting/entries' },
     { id: 'journals', label: t('navigation.journals'), icon: BookOpen, path: '/accounting/journals' },
     { id: 'ledger', label: 'Grand livre', icon: Calculator, path: '/accounting/general-ledger' },
     { id: 'balance', label: 'Balance', icon: PieChart, path: '/accounting/balance' },
-    { id: 'statements', label: 'Etats financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
+    { id: 'statements', label: 'États financiers', icon: TrendingUp, path: '/accounting/financial-statements' },
     { id: 'thirds', label: 'Tiers', icon: Users, path: '/third-party' },
     { id: 'banking', label: 'Banque', icon: Banknote, path: '/treasury' },
   ];
@@ -141,6 +146,25 @@ const ComptableWorkspaceFinal: React.FC = () => {
             }
           }
         }
+        // Séries mensuelles réelles — les cartes KPI portent une tendance, pas
+        // un simple nombre hors contexte.
+        const byMonth = new Array(12).fill(0);
+        const cashByMonth = new Array(12).fill(0);
+        for (const entry of entries) {
+          const m = new Date(entry.date).getMonth();
+          if (Number.isNaN(m)) continue;
+          byMonth[m] += 1;
+          if (entry.status === 'draft' || !entry.lines) continue;
+          for (const line of entry.lines) {
+            const accNum = String(line.accountCode || '');
+            if (accNum.startsWith('5') && !accNum.startsWith('58')) {
+              cashByMonth[m] += (line.debit || 0) - (line.credit || 0);
+            }
+          }
+        }
+        let running = 0;
+        const cashCumul = cashByMonth.map((v) => (running += v));
+        setComptaSeries({ entries: byMonth, treasury: cashCumul });
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
@@ -211,7 +235,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const renderSettings = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">Parametres</h2>
+        <h2 className="text-lg font-bold">Paramètres</h2>
         <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
@@ -280,67 +304,146 @@ const ComptableWorkspaceFinal: React.FC = () => {
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Chat Support</h4><button onClick={() => { setActiveSection('chat'); }} className="w-full py-3 bg-[var(--color-primary)] text-white rounded-lg">Demarrer</button></div>
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Chat Support</h4><button onClick={() => { setActiveSection('chat'); }} className="w-full py-3 bg-[var(--color-primary)] text-white rounded-lg">Démarrer</button></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Téléphone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
   );
 
   const renderWorkspace = () => (
-    <div className="p-6 space-y-6">
-      {/* W2: skeleton pendant le chargement */}
-      <div className="grid grid-cols-4 gap-4">
+    <div className="p-6 space-y-5">
+      <WorkspaceHero
+        userName={userData.name}
+        spaceLabel="Espace Comptable"
+        subtitle={statsLoading ? 'Chargement du dossier…' : `${formatNumber(stats.entries)} écritures au dossier`}
+        icon={<Calculator />}
+        chips={statsLoading ? [] : [
+          { label: 'À valider', value: formatNumber(stats.drafts) },
+          { label: 'Validées', value: formatNumber(stats.posted) },
+          { label: 'Trésorerie', value: formatCurrency(stats.treasury) },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => navigate('/accounting/entries')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{ background: '#FFFFFF', color: 'var(--color-primary)' }}
+            >
+              <Plus className="h-4 w-4" />Nouvelle écriture
+            </button>
+            <button
+              onClick={() => setActiveSection('bannette')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.24)' }}
+            >
+              <Inbox className="h-4 w-4" />Bannette
+            </button>
+          </>
+        }
+      />
+
+      {/* KPI — cartes premium : badge, valeur tabulaire et tendance réelle. */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {statsLoading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border animate-pulse">
-                <div className="w-10 h-10 rounded-lg bg-gray-200 mb-3" />
-                <div className="h-6 bg-gray-200 rounded w-2/3 mb-2" />
-                <div className="h-4 bg-gray-100 rounded w-1/2" />
+              <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+                <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
+                <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
+                <div className="h-4 w-1/2 rounded bg-gray-100" />
               </div>
             ))
-          /* W12: clés stables basées sur le titre */
-          : [{title:'Ecritures',value:formatNumber(stats.entries),icon:FileText,color:'var(--color-primary)',change:'',up:true},{title:'En attente',value:formatNumber(stats.drafts),icon:Clock,color:'var(--color-secondary)',change:stats.drafts > 0 ? `${formatNumber(stats.drafts)} brouillons` : '',up:stats.drafts === 0},{title:'Validees',value:formatNumber(stats.posted),icon:CheckCircle,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-primary)',change:'',up:stats.treasury >= 0}].map((m) => (
-            <div key={m.title} className="bg-white rounded-lg p-4 border hover:shadow-md">
-              <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
-              <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
-            </div>
-          ))
-        }
+          : (
+            <>
+              <StatBadgeCard
+                label="Écritures" value={formatNumber(stats.entries)} badge="petrol"
+                icon={<FileText />} series={comptaSeries.entries}
+                meta="sur l'exercice"
+              />
+              <StatBadgeCard
+                label="En attente" value={formatNumber(stats.drafts)} badge="amber"
+                icon={<Clock />} valueTone={stats.drafts > 0 ? 'error' : 'default'}
+                meta={stats.drafts > 0 ? 'brouillons à valider' : 'rien à valider'}
+                onClick={() => navigate('/accounting/entries')}
+              />
+              <StatBadgeCard
+                label="Validées" value={formatNumber(stats.posted)} badge="success"
+                icon={<CheckCircle />}
+                meta={stats.entries > 0 ? `${Math.round((stats.posted / stats.entries) * 100)} % du total` : undefined}
+              />
+              <StatBadgeCard
+                label="Trésorerie" value={formatCurrency(stats.treasury)} badge={stats.treasury >= 0 ? 'petrol' : 'error'}
+                icon={<DollarSign />} series={comptaSeries.treasury}
+                valueTone={stats.treasury < 0 ? 'error' : 'default'}
+                valueSize={20}
+                meta="comptes 5 hors 58"
+              />
+            </>
+          )}
       </div>
-      <div className="bg-white rounded-lg p-6 border">
-        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas FnA</h2>
-        {/* W12: clés stables basées sur le path */}
-        <div className="grid grid-cols-4 gap-3">
-          {[{label:'Nouvelle écriture',icon:Plus,path:'/accounting/entries',color:'var(--color-primary)'},{label:'Lettrage',icon:Zap,path:'/accounting/lettrage',color:'var(--color-secondary)'},{label:'Balance',icon:BarChart3,path:'/accounting/balance',color:'var(--color-text-tertiary)'},{label:'SYSCOHADA',icon:TrendingUp,path:'/financial-statements',color:'var(--color-primary)'}].map((a) => (
-            <button key={a.path} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
-              <span className="text-sm font-medium block text-center">{a.label}</span>
+
+      <WorkspaceSection title="Raccourcis Atlas FnA" icon={<Zap />} subtitle="Les gestes du quotidien, à un clic">
+        <QuickActionGrid
+          actions={[
+            { label: 'Nouvelle écriture', hint: 'Saisie au journal', icon: Plus, onClick: () => navigate('/accounting/entries'), color: 'var(--color-primary)' },
+            { label: 'Lettrage', hint: 'Rapprocher les comptes', icon: Zap, onClick: () => navigate('/accounting/lettrage'), color: 'var(--color-secondary)' },
+            { label: 'Balance', hint: 'Contrôle des soldes', icon: BarChart3, onClick: () => navigate('/accounting/balance'), color: 'var(--color-primary)' },
+            { label: 'SYSCOHADA', hint: 'États financiers', icon: TrendingUp, onClick: () => navigate('/financial-statements'), color: 'var(--color-secondary)' },
+          ]}
+        />
+      </WorkspaceSection>
+
+      {/* Bloc-notes + tâches côte à côte : la colonne de droite reste utile
+          même quand aucune tâche n'est enregistrée. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <WorkspaceSection
+          title="Bloc-notes" icon={<NotebookPen />}
+          subtitle="Privé, enregistré automatiquement"
+        >
+          <WorkspaceNotepad storageKey={notesKey} load={loadNote} save={saveNote} />
+        </WorkspaceSection>
+
+        <WorkspaceSection
+          title="Mes tâches" icon={<ListTodo />}
+          action={
+            <button onClick={() => setActiveSection('tasks')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+              Ouvrir
             </button>
-          ))}
-        </div>
+          }
+        >
+          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}>
+              <ListTodo className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
+            </span>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune tâche pour le moment.</p>
+            <button
+              onClick={() => setActiveSection('tasks')}
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'var(--color-primary)' }}
+            >
+              Créer une tâche
+            </button>
+          </div>
+        </WorkspaceSection>
       </div>
-      {/* W8: Tâches — délégué à CompleteTasksModule en aperçu */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Mes Taches</h2>
-          <button onClick={() => setActiveSection('tasks')} className="text-sm text-[var(--color-primary)] hover:underline">Voir tout</button>
-        </div>
-        <div className="text-center py-4 text-gray-400 text-sm">
-          Accédez à la section <button onClick={() => setActiveSection('tasks')} className="underline text-[var(--color-primary)]">Mes taches</button> pour voir et gérer vos tâches.
-        </div>
-      </div>
+
       {/* Alertes Fiscales */}
       <FiscalAlertsWidget navigate={navigate} />
-      {/* W9: Messages — délégué au module Collaboration */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[var(--color-primary)]" />Messages recents</h2>
-          <button onClick={() => setActiveSection('chat')} className="text-sm text-[var(--color-primary)] hover:underline">Voir tout</button>
+
+      <WorkspaceSection
+        title="Messages récents" icon={<MessageSquare />}
+        action={
+          <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+            Ouvrir le chat
+          </button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}>
+            <MessageSquare className="h-5 w-5" style={{ color: 'var(--color-secondary)' }} />
+          </span>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucun message non lu.</p>
         </div>
-        <div className="text-center py-4 text-gray-400 text-sm">
-          Accédez à la section <button onClick={() => setActiveSection('chat')} className="underline text-[var(--color-primary)]">Chat équipe</button> pour consulter vos messages.
-        </div>
-      </div>
+      </WorkspaceSection>
     </div>
   );
 
@@ -408,7 +511,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
                   <button onClick={() => { setActiveSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[var(--color-primary)]" /><span>Mon profil</span></button>
-                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-primary)]" /><span>Parametres</span></button>
+                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-primary)]" /><span>Paramètres</span></button>
                   <button onClick={() => { setActiveSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[var(--color-primary)]" /><span>Aide</span></button>
                   <div className="border-t my-2"></div>
                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-red-600"><LogOut className="w-5 h-5" /><span>Deconnexion</span></button>
@@ -429,10 +532,10 @@ const ComptableWorkspaceFinal: React.FC = () => {
                 {[
                   {id:'workspace',label:'Accueil',icon:LayoutDashboard,badge: undefined as string | undefined},
                   {id:'bannette',label:'Bannette',icon:Inbox,badge: undefined as string | undefined},
-                  {id:'tasks',label:'Mes taches',icon:ListTodo,badge: undefined as string | undefined},
-                  {id:'chat',label:'Chat equipe',icon:MessageSquare,badge: undefined as string | undefined},
+                  {id:'tasks',label:'Mes tâches',icon:ListTodo,badge: undefined as string | undefined},
+                  {id:'chat',label:'Chat équipe',icon:MessageSquare,badge: undefined as string | undefined},
                   {id:'profile',label:'Mon profil',icon:User,badge: undefined as string | undefined},
-                  {id:'settings',label:'Parametres',icon:Settings,badge: undefined as string | undefined},
+                  {id:'settings',label:'Paramètres',icon:Settings,badge: undefined as string | undefined},
                   {id:'help',label:'Aide',icon:HelpCircle,badge: undefined as string | undefined}
                 ].map(item => (
                   <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[var(--color-primary)]/10 text-[var(--color-primary)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>

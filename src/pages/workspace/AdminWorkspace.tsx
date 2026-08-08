@@ -47,8 +47,11 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Activity, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine, Inbox
+  Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine, Inbox, NotebookPen, Zap
 } from 'lucide-react';
+import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad } from '../../components/workspace/WorkspaceShell';
+import { StatBadgeCard } from '../../components/premium';
+import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
 
 const AdminWorkspace: React.FC = () => {
   const { t, language, setLanguage } = useLanguage();
@@ -57,6 +60,7 @@ const AdminWorkspace: React.FC = () => {
   const { user, logout } = useAuth();
   const { adapter } = useData();
   const [adminStats, setAdminStats] = useState({ entries: 0, accounts: 0, thirdParties: 0, drafts: 0 });
+  const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('admin');
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -259,61 +263,119 @@ const AdminWorkspace: React.FC = () => {
   );
 
   const renderWorkspace = () => (
-    <div className="p-6 space-y-6">
-      <div className="grid grid-cols-4 gap-4">
-        {[{title:'Ecritures',value:formatNumber(adminStats.entries),icon:FileText,color:'var(--color-accent)',change:'',up:true},{title:'Plan comptable',value:formatNumber(adminStats.accounts),icon:BarChart3,color:'var(--color-primary)',change:'',up:true},{title:'Tiers',value:formatNumber(adminStats.thirdParties),icon:Users,color:'var(--color-text-tertiary)',change:'',up:true},{title:'Brouillons',value:formatNumber(adminStats.drafts),icon:AlertTriangle,color:'var(--color-warning)',change:adminStats.drafts > 0 ? `${formatNumber(adminStats.drafts)} en attente` : '',up:adminStats.drafts === 0}].map((m,i) => (
-          <div key={i} className="bg-white rounded-lg p-4 border hover:shadow-md">
-            <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-[var(--color-error)] text-xs'}>{m.change}</span></div>
-            <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
-          </div>
-        ))}
-      </div>
-      <div className="bg-white rounded-lg p-6 border">
-        <h2 className="text-lg font-semibold mb-4">Raccourcis Administration</h2>
-        <div className="grid grid-cols-4 gap-3">
-          {[{label:'Utilisateurs',icon:Users,section:'users',color:'var(--color-accent)'},{label:'Securite',icon:Lock,section:'security',color:'var(--color-primary)'},{label:'Sauvegardes',icon:Database,section:'backup',color:'var(--color-text-tertiary)'},{label:'Piste d\'Audit',icon:FileText,section:'audit-trail',color:'var(--color-accent)'}].map((a,i) => (
-            <button key={i} onClick={() => changeSection(a.section)} className="p-4 rounded-lg border transition-all hover:shadow-md" style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }} onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-accent)')} onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 12%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
-              <span className="text-sm font-medium block text-center">{a.label}</span>
+    <div className="p-6 space-y-5">
+      <WorkspaceHero
+        userName={user?.name}
+        spaceLabel="Espace Admin"
+        subtitle="Administration du dossier et de la plateforme"
+        icon={<Shield />}
+        chips={[
+          { label: 'Écritures', value: formatNumber(adminStats.entries) },
+          { label: 'Comptes', value: formatNumber(adminStats.accounts) },
+          { label: 'Tiers', value: formatNumber(adminStats.thirdParties) },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => changeSection('users')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{ background: '#FFFFFF', color: 'var(--color-primary)' }}
+            >
+              <Users className="h-4 w-4" />Utilisateurs
             </button>
-          ))}
-        </div>
+            <button
+              onClick={() => changeSection('migration')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.24)' }}
+            >
+              <Upload className="h-4 w-4" />Migration
+            </button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatBadgeCard label="Écritures" value={formatNumber(adminStats.entries)} badge="petrol" icon={<FileText />} meta="au dossier" />
+        <StatBadgeCard label="Plan comptable" value={formatNumber(adminStats.accounts)} badge="petrol" icon={<BarChart3 />} meta="comptes actifs" />
+        <StatBadgeCard label="Tiers" value={formatNumber(adminStats.thirdParties)} badge="success" icon={<Users />} meta="clients, fournisseurs…" />
+        <StatBadgeCard
+          label="Brouillons" value={formatNumber(adminStats.drafts)} badge="amber" icon={<AlertTriangle />}
+          valueTone={adminStats.drafts > 0 ? 'error' : 'default'}
+          meta={adminStats.drafts > 0 ? 'en attente de validation' : 'rien en attente'}
+        />
       </div>
-      {/* Migration card */}
-      <div className="bg-white rounded-lg p-6 border" style={{ borderColor: 'var(--color-border)' }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-[var(--color-accent-light)] flex items-center justify-center"><Upload className="w-5 h-5 text-[var(--color-accent)]" /></div>
-            <div>
-              <h3 className="font-semibold">Migration de donnees comptables</h3>
-              <p className="text-xs text-gray-500">Importez vos donnees depuis Sage, Ciel, EBP, Odoo, Excel, FEC...</p>
-            </div>
-          </div>
-          <button onClick={() => changeSection('migration')} className="px-4 py-2 rounded-lg text-sm flex items-center space-x-2 transition-colors" style={{ background: 'var(--color-primary)', color: 'var(--color-text-inverse)' }} onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-accent)')} onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-primary)')}>
-            <Upload className="w-4 h-4" /><span>Lancer une migration</span>
+
+      <WorkspaceSection title="Raccourcis Administration" icon={<Zap />} subtitle="Accès direct aux fonctions sensibles">
+        <QuickActionGrid
+          actions={[
+            { label: 'Utilisateurs', hint: 'Comptes & rôles', icon: Users, onClick: () => changeSection('users'), color: 'var(--color-primary)' },
+            { label: 'Sécurité', hint: 'Accès & politiques', icon: Lock, onClick: () => changeSection('security'), color: 'var(--color-secondary)' },
+            { label: 'Sauvegardes', hint: 'Export & restauration', icon: Database, onClick: () => changeSection('backup'), color: 'var(--color-primary)' },
+            { label: "Piste d'audit", hint: 'Traçabilité', icon: FileText, onClick: () => changeSection('audit-trail'), color: 'var(--color-secondary)' },
+          ]}
+        />
+      </WorkspaceSection>
+
+      {/* Migration */}
+      <WorkspaceSection title="Migration de données comptables" icon={<Upload />} subtitle="Sage, Ciel, EBP, Odoo, Excel, FEC…">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            Reprenez un dossier existant sans ressaisie : détection du format, contrôle d'équilibre puis import.
+          </p>
+          <button
+            onClick={() => changeSection('migration')}
+            className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+            style={{ background: 'var(--color-primary)' }}
+          >
+            <Upload className="h-4 w-4" />Lancer une migration
           </button>
         </div>
+      </WorkspaceSection>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <WorkspaceSection title="Bloc-notes" icon={<NotebookPen />} subtitle="Privé, enregistré automatiquement">
+          <WorkspaceNotepad storageKey={notesKey} load={loadNote} save={saveNote} />
+        </WorkspaceSection>
+
+        <WorkspaceSection
+          title="Tâches Admin" icon={<ListTodo />}
+          action={
+            <button onClick={() => changeSection('tasks')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+              Ouvrir
+            </button>
+          }
+        >
+          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}>
+              <ListTodo className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
+            </span>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune tâche en cours.</p>
+            <button
+              onClick={() => changeSection('tasks')}
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'var(--color-primary)' }}
+            >
+              Créer une tâche
+            </button>
+          </div>
+        </WorkspaceSection>
       </div>
-      {/* Apercu Taches */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Taches Admin</h2>
-          <button onClick={() => changeSection('tasks')} className="text-sm text-[var(--color-accent)] hover:underline">Voir tout</button>
+
+      <WorkspaceSection
+        title="Messages support" icon={<MessageSquare />}
+        action={
+          <button onClick={() => changeSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+            Ouvrir le chat
+          </button>
+        }
+      >
+        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}>
+            <MessageSquare className="h-5 w-5" style={{ color: 'var(--color-secondary)' }} />
+          </span>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucun message récent.</p>
         </div>
-        <div className="space-y-2">
-          <div className="text-center py-4 text-gray-400 text-sm">Aucune tache en cours</div>
-        </div>
-      </div>
-      {/* Apercu Chat */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[var(--color-accent)]" />Messages support</h2>
-          <button onClick={() => changeSection('chat')} className="text-sm text-[var(--color-accent)] hover:underline">Voir tout</button>
-        </div>
-        <div className="space-y-2">
-          <div className="text-center py-4 text-gray-400 text-sm">Aucun message recent</div>
-        </div>
-      </div>
+      </WorkspaceSection>
     </div>
   );
 
@@ -372,7 +434,7 @@ const AdminWorkspace: React.FC = () => {
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
                   <button onClick={() => { changeSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[var(--color-accent)]" /><span>Mon profil</span></button>
-                  <button onClick={() => { changeSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-accent)]" /><span>Parametres</span></button>
+                  <button onClick={() => { changeSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-accent)]" /><span>Paramètres</span></button>
                   <button onClick={() => { changeSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[var(--color-accent)]" /><span>Aide</span></button>
                   <div className="border-t my-2"></div>
                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-[var(--color-accent-light)] text-[var(--color-error)]"><LogOut className="w-5 h-5" /><span>Deconnexion</span></button>
@@ -394,7 +456,7 @@ const AdminWorkspace: React.FC = () => {
                   {id:'tasks',label:'Taches admin',icon:ListTodo},
                   {id:'chat',label:'Support',icon:MessageSquare},
                   {id:'profile',label:'Mon profil',icon:User},
-                  {id:'settings',label:'Parametres',icon:Settings},
+                  {id:'settings',label:'Paramètres',icon:Settings},
                   {id:'help',label:'Aide',icon:HelpCircle}
                 ].map(item => (
                   <button key={item.id} onClick={() => changeSection(item.id)} className={`${activeSection===item.id?'bg-[var(--color-accent)]/10 text-[var(--color-accent)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>
