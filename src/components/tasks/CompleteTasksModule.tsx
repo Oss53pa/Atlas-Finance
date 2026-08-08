@@ -454,9 +454,9 @@ const CompleteTasksModule: React.FC = () => {
   // au rechargement, et l'aperçu des espaces de travail ne pouvait rien montrer.
   // Elles sont désormais lues et écrites dans le magasin collaboratif partagé
   // (collabTasks), déjà persisté côté local (Dexie) comme SaaS (collab_tasks).
-  // Les structures riches propres à cet écran — sous-tâches, checklist, pièces
-  // jointes, commentaires — restent en session : le schéma partagé ne les porte
-  // pas, et les inventer en base demanderait une migration.
+  // Les structures riches — sous-tâches, checklist, pièces jointes, avancement,
+  // charge — sont portées par le schéma depuis la migration 110 et suivent donc
+  // la tâche. Les commentaires ont leur propre table (collab_task_comments).
   const tenantId = (user as { company_id?: string } | null)?.company_id
     || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id'))
     || 'default';
@@ -471,6 +471,29 @@ const CompleteTasksModule: React.FC = () => {
   const fromDbStatus = (s: DBCollabTask['status']): Task['status'] =>
     s === 'in_progress' ? 'in-progress' : (s as Task['status']);
 
+  /** Les structures riches partent en JSON : les dates y deviennent des ISO. */
+  const richOf = (t: Task): Partial<DBCollabTask> => ({
+    subTasks: (t.subTasks ?? []).map((st) => ({
+      id: st.id, title: st.title, completed: st.completed,
+      assignee: st.assignee, dueDate: st.dueDate ? st.dueDate.toISOString() : undefined,
+    })),
+    checklist: (t.checklist ?? []).map((c) => ({
+      id: c.id, text: c.text, completed: c.completed,
+      completedBy: c.completedBy, completedAt: c.completedAt ? c.completedAt.toISOString() : undefined,
+    })),
+    attachments: (t.attachments ?? []).map((a) => ({
+      id: a.id, name: a.name, url: a.url, size: a.size, type: a.type,
+      uploadedAt: a.uploadedAt ? a.uploadedAt.toISOString() : undefined, uploadedBy: a.uploadedBy,
+    })),
+    dependencies: t.dependencies ?? [],
+    progress: typeof t.progress === 'number' ? Math.max(0, Math.min(100, Math.round(t.progress))) : undefined,
+    estimatedHours: t.estimatedHours,
+    actualHours: t.actualHours,
+    startDate: t.startDate ? t.startDate.toISOString().slice(0, 10) : undefined,
+    category: t.category,
+    project: t.project,
+  });
+
   const persistCreate = useCallback(async (t: Task) => {
     try {
       await adapter.create<DBCollabTask>('collabTasks', {
@@ -479,6 +502,7 @@ const CompleteTasksModule: React.FC = () => {
         assigneeName: t.assignee, dueDate: t.dueDate ? t.dueDate.toISOString().slice(0, 10) : undefined,
         tags: t.tags ?? [], order: Date.now(), createdBy: meId,
         createdAt: t.createdAt.toISOString(), updatedAt: new Date().toISOString(),
+        ...richOf(t),
       } as DBCollabTask);
     } catch (e) { console.error('[Tasks] création non persistée', e); }
   }, [adapter, tenantId, meId]);
@@ -505,7 +529,25 @@ const CompleteTasksModule: React.FC = () => {
             dueDate: r.dueDate ? new Date(r.dueDate) : undefined,
             createdAt: new Date(r.createdAt),
             completedAt: r.completedAt ? new Date(r.completedAt) : undefined,
-            tags: r.tags ?? [], subTasks: [], checklist: [], progress: r.status === 'done' ? 100 : 0,
+            tags: r.tags ?? [],
+            subTasks: (r.subTasks ?? []).map((st) => ({
+              id: st.id, title: st.title, completed: st.completed,
+              assignee: st.assignee, dueDate: st.dueDate ? new Date(st.dueDate) : undefined,
+            })),
+            checklist: (r.checklist ?? []).map((c) => ({
+              id: c.id, text: c.text, completed: c.completed,
+              completedBy: c.completedBy, completedAt: c.completedAt ? new Date(c.completedAt) : undefined,
+            })),
+            attachments: (r.attachments ?? []).map((a) => ({
+              id: a.id, name: a.name, url: a.url ?? '', size: a.size ?? 0, type: a.type ?? '',
+              uploadedAt: a.uploadedAt ? new Date(a.uploadedAt) : new Date(r.createdAt),
+              uploadedBy: a.uploadedBy ?? '',
+            })),
+            dependencies: r.dependencies ?? [],
+            progress: r.progress ?? (r.status === 'done' ? 100 : 0),
+            estimatedHours: r.estimatedHours, actualHours: r.actualHours,
+            startDate: r.startDate ? new Date(r.startDate) : undefined,
+            category: r.category, project: r.project,
           })));
       } catch (e) {
         console.error('[Tasks] chargement impossible', e);
