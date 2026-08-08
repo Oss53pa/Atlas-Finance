@@ -34,7 +34,7 @@ const fakeAdapter = (entries: Entry[]) => ({
   getAll: vi.fn(async (table: string) => (table === 'journalEntries' ? entries : [])),
 }) as never;
 
-const aged = (rows: Array<{ clientCode: string; clientName: string; total: number; nonEchu: number; days0_30: number; days31_60: number; days60plus: number }>) => rows;
+const aged = (rows: Array<{ clientCode: string; clientName: string; total: number; nonEchu: number; days0_30: number; days31_60: number; days61_90: number; days90plus: number }>) => rows;
 
 beforeEach(() => {
   agedMock.mockReset().mockResolvedValue([]);
@@ -139,12 +139,13 @@ describe('getComptableControls — contrôles de tenue', () => {
 describe('getRecouvrementIndicator', () => {
   it('additionne les tranches échues et compte les clients concernés', async () => {
     agedMock.mockResolvedValue(aged([
-      { clientCode: 'C1', clientName: 'Alpha', total: 1_000_000, nonEchu: 400_000, days0_30: 300_000, days31_60: 200_000, days60plus: 100_000 },
-      { clientCode: 'C2', clientName: 'Beta', total: 500_000, nonEchu: 500_000, days0_30: 0, days31_60: 0, days60plus: 0 },
+      { clientCode: 'C1', clientName: 'Alpha', total: 1_000_000, nonEchu: 400_000, days0_30: 300_000, days31_60: 200_000, days61_90: 60_000, days90plus: 40_000 },
+      { clientCode: 'C2', clientName: 'Beta', total: 500_000, nonEchu: 500_000, days0_30: 0, days31_60: 0, days61_90: 0, days90plus: 0 },
     ]));
     const r = await getRecouvrementIndicator(fakeAdapter([]));
     expect(r.overdue).toBe(600_000);
-    expect(r.overdue60).toBe(100_000);
+    expect(r.overdue60).toBe(100_000);        // 61-90 j + > 90 j
+    expect(r.overdue90).toBe(40_000);         // dont un trimestre de retard
     expect(r.clients).toBe(1);                 // Beta n'a rien d'échu
     expect(r.total).toBe(1_500_000);
     expect(r.overduePct).toBe(40);             // 600 000 / 1 500 000
@@ -154,8 +155,8 @@ describe('getRecouvrementIndicator', () => {
     // Le point de départ des relances est celui qui doit le plus DE RETARD,
     // pas celui qui doit le plus en valeur absolue.
     agedMock.mockResolvedValue(aged([
-      { clientCode: 'C1', clientName: 'Gros encours', total: 9_000_000, nonEchu: 8_900_000, days0_30: 100_000, days31_60: 0, days60plus: 0 },
-      { clientCode: 'C2', clientName: 'Gros retard', total: 900_000, nonEchu: 0, days0_30: 400_000, days31_60: 300_000, days60plus: 200_000 },
+      { clientCode: 'C1', clientName: 'Gros encours', total: 9_000_000, nonEchu: 8_900_000, days0_30: 100_000, days31_60: 0, days61_90: 0, days90plus: 0 },
+      { clientCode: 'C2', clientName: 'Gros retard', total: 900_000, nonEchu: 0, days0_30: 400_000, days31_60: 300_000, days61_90: 120_000, days90plus: 80_000 },
     ]));
     const r = await getRecouvrementIndicator(fakeAdapter([]));
     expect(r.topClient).toEqual({ name: 'Gros retard', amount: 900_000 });
@@ -164,7 +165,7 @@ describe('getRecouvrementIndicator', () => {
   it('rend des valeurs neutres, pas une erreur, si la balance âgée est indisponible', async () => {
     agedMock.mockRejectedValue(new Error('vue absente'));
     const r = await getRecouvrementIndicator(fakeAdapter([]));
-    expect(r).toEqual({ overdue: 0, overdue60: 0, clients: 0, total: 0, overduePct: 0, topClient: null });
+    expect(r).toEqual({ overdue: 0, overdue60: 0, overdue90: 0, clients: 0, total: 0, overduePct: 0, topClient: null });
   });
 });
 

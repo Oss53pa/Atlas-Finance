@@ -412,8 +412,12 @@ const ManagerWorkspace: React.FC = () => {
                   valueTone={reco && reco.overdue > 0 ? 'error' : 'success'}
                   delta={reco && reco.overdue > 0 ? { value: `${reco.overduePct} % de l'encours`, trend: 'down', tone: 'bad' } : undefined}
                   meta={
+                    // Le > 90 j est le chiffre à provisionner ; on ne l'affiche
+                    // que s'il existe, sinon on retombe sur le > 60 j.
                     !reco || reco.overdue === 0 ? 'aucune créance échue'
-                      : `${reco.clients} client${reco.clients > 1 ? 's' : ''} · dont ${formatCurrency(reco.overdue60)} > 60 j`
+                      : reco.overdue90 > 0
+                        ? `${reco.clients} client${reco.clients > 1 ? 's' : ''} · dont ${formatCurrency(reco.overdue90)} > 90 j`
+                        : `${reco.clients} client${reco.clients > 1 ? 's' : ''} · dont ${formatCurrency(reco.overdue60)} > 60 j`
                   }
                   onClick={() => navigate('/tiers/recouvrement')}
                 />

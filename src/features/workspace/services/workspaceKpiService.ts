@@ -93,8 +93,10 @@ export async function getComptableControls(adapter: DataAdapter): Promise<Compta
 export interface RecouvrementIndicator {
   /** Encours client échu, toutes tranches confondues. */
   overdue: number;
-  /** Dont échu depuis plus de 60 jours (dernière tranche de la balance âgée). */
+  /** Dont échu depuis plus de 60 jours (tranches 61-90 et > 90). */
   overdue60: number;
+  /** Dont échu depuis plus de 90 jours — candidat à la provision. */
+  overdue90: number;
   /** Nombre de clients présentant au moins une créance échue. */
   clients: number;
   /** Encours client total (échu + non échu). */
@@ -115,21 +117,22 @@ export interface RecouvrementIndicator {
 export async function getRecouvrementIndicator(adapter: DataAdapter): Promise<RecouvrementIndicator> {
   const aged = await getAgedReceivables(adapter).catch(() => []);
 
-  let overdue = 0, overdue60 = 0, total = 0, clients = 0;
+  let overdue = 0, overdue60 = 0, overdue90 = 0, total = 0, clients = 0;
   let topClient: RecouvrementIndicator['topClient'] = null;
 
   for (const r of aged) {
-    const echu = money(r.days0_30 || 0).add(r.days31_60 || 0).add(r.days60plus || 0).toNumber();
+    const echu = money(r.days0_30 || 0).add(r.days31_60 || 0).add(r.days61_90 || 0).add(r.days90plus || 0).toNumber();
     total = money(total).add(r.total || 0).toNumber();
     if (echu <= 0) continue;
     clients += 1;
     overdue = money(overdue).add(echu).toNumber();
-    overdue60 = money(overdue60).add(r.days60plus || 0).toNumber();
+    overdue60 = money(overdue60).add(r.days61_90 || 0).add(r.days90plus || 0).toNumber();
+    overdue90 = money(overdue90).add(r.days90plus || 0).toNumber();
     if (!topClient || echu > topClient.amount) topClient = { name: r.clientName || r.clientCode, amount: echu };
   }
 
   return {
-    overdue, overdue60, clients, total,
+    overdue, overdue60, overdue90, clients, total,
     overduePct: total > 0 ? Math.round((overdue / total) * 1000) / 10 : 0,
     topClient,
   };
@@ -146,11 +149,10 @@ export interface DafIndicators {
   revenue: { actual: number; budget: number; variancePct: number | null };
   /** Besoin en fonds de roulement, en valeur et en jours de chiffre d'affaires. */
   workingCapital: { amount: number; days: number | null };
-  /** Créances échues de plus de 60 jours — dernière tranche de la balance âgée
-   *  (getAgedReceivables : non échu · 0-30 · 31-60 · 60+). Le seuil affiché suit
-   *  donc la donnée : annoncer « > 90 j » sur une tranche « > 60 j » ferait
-   *  passer pour du risque avéré des créances de deux mois. */
-  overdue60: number;
+  /** Créances échues de plus de 90 jours — dernière tranche de la balance âgée
+   *  (getAgedReceivables : non échu · 0-30 · 31-60 · 61-90 · 90+). Au-delà d'un
+   *  trimestre, la relance a échoué : c'est la ligne que le DAF doit provisionner. */
+  overdue90: number;
 }
 
 export async function getDafIndicators(adapter: DataAdapter): Promise<DafIndicators> {
@@ -191,7 +193,7 @@ export async function getDafIndicators(adapter: DataAdapter): Promise<DafIndicat
   const firstMonth = forecast?.central?.projections?.[0];
   const treasury30 = firstMonth ? money(treasury).add(firstMonth.netCashFlow).toNumber() : null;
 
-  const overdue60 = aged.reduce((s, r) => money(s).add(r.days60plus || 0).toNumber(), 0);
+  const overdue90 = aged.reduce((s, r) => money(s).add(r.days90plus || 0).toNumber(), 0);
 
   let budgetCa = 0, actualCa = 0;
   for (const r of budgetRows) {
@@ -210,6 +212,6 @@ export async function getDafIndicators(adapter: DataAdapter): Promise<DafIndicat
     treasury30,
     revenue: { actual: actualCa || ca, budget: budgetCa, variancePct },
     workingCapital: { amount: bfr, days: bfrDays },
-    overdue60,
+    overdue90,
   };
 }
