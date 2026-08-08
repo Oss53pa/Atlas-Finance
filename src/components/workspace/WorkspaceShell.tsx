@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { NotebookPen, Check, Loader2 } from 'lucide-react';
+import { NotebookPen, Check, Loader2, Plus, MessageSquare, ListTodo } from 'lucide-react';
 
 /**
  * Socle visuel partagé des espaces de travail (Comptable / Manager / Admin).
@@ -339,3 +339,223 @@ export const WorkspaceNotepad: React.FC<WorkspaceNotepadProps> = ({
 };
 
 export const NotepadIcon = NotebookPen;
+
+/* ─────────────────────── Aperçu des tâches réelles ─────────────────────── */
+
+export interface WorkspaceTaskItem {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  dueDate?: string;
+  assigneeName?: string;
+}
+
+const PRIORITY_TONE: Record<string, { label: string; color: string }> = {
+  urgent: { label: 'Urgent', color: 'var(--color-error)' },
+  high: { label: 'Haute', color: 'var(--color-secondary)' },
+  medium: { label: 'Moyenne', color: 'var(--color-primary)' },
+  low: { label: 'Basse', color: 'var(--color-text-tertiary)' },
+};
+
+/** Échéance en clair : « en retard », « aujourd'hui », « dans 3 j ». */
+const dueLabel = (iso?: string): { text: string; late: boolean } | null => {
+  if (!iso) return null;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const due = new Date(iso); due.setHours(0, 0, 0, 0);
+  if (Number.isNaN(due.getTime())) return null;
+  const days = Math.round((due.getTime() - today.getTime()) / 86_400_000);
+  if (days < 0) return { text: `en retard de ${-days} j`, late: true };
+  if (days === 0) return { text: "aujourd'hui", late: true };
+  if (days === 1) return { text: 'demain', late: false };
+  return { text: `dans ${days} j`, late: false };
+};
+
+export interface WorkspaceTaskListProps {
+  tasks: WorkspaceTaskItem[];
+  loading?: boolean;
+  onToggle: (task: WorkspaceTaskItem) => void;
+  onAdd: (title: string) => void | Promise<void>;
+  accent?: string;
+}
+
+export const WorkspaceTaskList: React.FC<WorkspaceTaskListProps> = ({
+  tasks, loading = false, onToggle, onAdd, accent = 'var(--color-primary)',
+}) => {
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (!draft.trim() || busy) return;
+    setBusy(true);
+    try { await onAdd(draft); setDraft(''); } finally { setBusy(false); }
+  };
+
+  return (
+    <div>
+      {/* Saisie express — créer une tâche sans quitter l'espace. */}
+      <div className="mb-3 flex gap-2">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void submit(); } }}
+          placeholder="Ajouter une tâche puis Entrée…"
+          aria-label="Nouvelle tâche"
+          className="min-w-0 flex-1 rounded-xl px-3 py-2 text-sm outline-none"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+        />
+        <button
+          type="button" onClick={() => void submit()} disabled={!draft.trim() || busy}
+          aria-label="Ajouter la tâche"
+          className="grid place-items-center rounded-xl px-3 text-white disabled:opacity-40"
+          style={{ background: accent }}
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-11 animate-pulse rounded-xl" style={{ background: 'var(--color-surface-hover, #F3F3F0)' }} />
+          ))}
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 py-8 text-center">
+          <span className="grid h-11 w-11 place-items-center rounded-2xl" style={{ background: `color-mix(in srgb, ${accent} 10%, transparent)` }}>
+            <ListTodo className="h-5 w-5" style={{ color: accent }} />
+          </span>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune tâche ouverte.</p>
+        </div>
+      ) : (
+        <ul className="space-y-1.5">
+          {tasks.map((t) => {
+            const done = t.status === 'done';
+            const prio = PRIORITY_TONE[t.priority] || PRIORITY_TONE.medium;
+            const due = dueLabel(t.dueDate);
+            return (
+              <li key={t.id}>
+                <div
+                  className="flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors"
+                  style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+                >
+                  <button
+                    type="button" onClick={() => onToggle(t)}
+                    aria-label={done ? `Rouvrir : ${t.title}` : `Terminer : ${t.title}`}
+                    className="mt-0.5 grid h-[18px] w-[18px] flex-none place-items-center rounded-md transition-colors"
+                    style={{
+                      border: `1.5px solid ${done ? 'var(--color-success)' : 'var(--color-border)'}`,
+                      background: done ? 'var(--color-success)' : 'transparent',
+                    }}
+                  >
+                    {done && <Check className="h-3 w-3 text-white" />}
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="truncate text-[13.5px] font-medium"
+                      style={{ color: 'var(--color-text-primary)', textDecoration: done ? 'line-through' : undefined, opacity: done ? 0.55 : 1 }}
+                    >
+                      {t.title}
+                    </p>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px]" style={{ color: 'var(--color-text-tertiary)' }}>
+                      <span style={{ color: prio.color, fontWeight: 600 }}>{prio.label}</span>
+                      {due && (<><span aria-hidden="true">·</span>
+                        <span style={{ color: due.late ? 'var(--color-error)' : undefined, fontWeight: due.late ? 600 : undefined }}>{due.text}</span></>)}
+                      {t.assigneeName && (<><span aria-hidden="true">·</span><span className="truncate">{t.assigneeName}</span></>)}
+                    </div>
+                  </div>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+};
+
+/* ────────────────────── Aperçu des messages réels ──────────────────────── */
+
+export interface WorkspaceMessageItem {
+  id: string;
+  body: string;
+  authorName: string;
+  channelName: string;
+  createdAt: string;
+  unread: boolean;
+}
+
+/** Horodatage relatif court — « il y a 3 min », « hier », sinon la date. */
+const relative = (iso: string) => {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const min = Math.round((Date.now() - d.getTime()) / 60_000);
+  if (min < 1) return "à l'instant";
+  if (min < 60) return `il y a ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `il y a ${h} h`;
+  if (h < 48) return 'hier';
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+};
+
+export const WorkspaceMessageList: React.FC<{
+  messages: WorkspaceMessageItem[];
+  loading?: boolean;
+  onOpen: () => void;
+  accent?: string;
+}> = ({ messages, loading = false, onOpen, accent = 'var(--color-primary)' }) => {
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-14 animate-pulse rounded-xl" style={{ background: 'var(--color-surface-hover, #F3F3F0)' }} />
+        ))}
+      </div>
+    );
+  }
+  if (messages.length === 0) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-8 text-center">
+        <span className="grid h-11 w-11 place-items-center rounded-2xl" style={{ background: `color-mix(in srgb, ${accent} 10%, transparent)` }}>
+          <MessageSquare className="h-5 w-5" style={{ color: accent }} />
+        </span>
+        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucun message pour le moment.</p>
+      </div>
+    );
+  }
+  return (
+    <ul className="space-y-1.5">
+      {messages.map((m) => (
+        <li key={m.id}>
+          <button
+            type="button" onClick={onOpen}
+            className="flex w-full items-start gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:brightness-[.98]"
+            style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+          >
+            <span
+              className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-full text-[11px] font-bold"
+              style={{ background: `color-mix(in srgb, ${accent} 12%, transparent)`, color: accent }}
+            >
+              {m.authorName.slice(0, 2).toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="truncate text-[13px] font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                  {m.authorName}
+                  <span className="font-normal" style={{ color: 'var(--color-text-tertiary)' }}> · {m.channelName}</span>
+                </span>
+                <span className="flex-none text-[11px]" style={{ color: 'var(--color-text-tertiary)' }}>{relative(m.createdAt)}</span>
+              </span>
+              <span className="mt-0.5 flex items-center gap-2">
+                <span className="line-clamp-2 text-[12.5px]" style={{ color: 'var(--color-text-secondary)' }}>{m.body}</span>
+                {m.unread && (
+                  <span className="mt-1 h-2 w-2 flex-none rounded-full" style={{ background: accent }} aria-label="Non lu" />
+                )}
+              </span>
+            </span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+};

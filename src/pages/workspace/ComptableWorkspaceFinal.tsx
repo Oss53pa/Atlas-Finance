@@ -13,7 +13,8 @@ import BannettePage from '../validation/BannettePage';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import SecurityActions from '../../components/security/SecurityActions';
-import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad } from '../../components/workspace/WorkspaceShell';
+import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, WorkspaceTaskList, WorkspaceMessageList } from '../../components/workspace/WorkspaceShell';
+import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
 import { toast } from 'sonner';
@@ -53,6 +54,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
   const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('comptable');
 
   // W4 / W2: state distinguishes null (not yet loaded) from 0 (réellement zéro)
@@ -410,19 +412,13 @@ const ComptableWorkspaceFinal: React.FC = () => {
             </button>
           }
         >
-          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}>
-              <ListTodo className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
-            </span>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune tâche pour le moment.</p>
-            <button
-              onClick={() => setActiveSection('tasks')}
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
-              style={{ background: 'var(--color-primary)' }}
-            >
-              Créer une tâche
-            </button>
-          </div>
+          <WorkspaceTaskList
+            tasks={feedTasks}
+            loading={feedLoading}
+            onToggle={(t) => void toggleTask(t as never)}
+            onAdd={(title) => addTask(title)}
+            accent="var(--color-primary)"
+          />
         </WorkspaceSection>
       </div>
 
@@ -437,12 +433,12 @@ const ComptableWorkspaceFinal: React.FC = () => {
           </button>
         }
       >
-        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}>
-            <MessageSquare className="h-5 w-5" style={{ color: 'var(--color-secondary)' }} />
-          </span>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucun message non lu.</p>
-        </div>
+        <WorkspaceMessageList
+          messages={feedMessages}
+          loading={feedLoading}
+          onOpen={() => setActiveSection('chat')}
+          accent="var(--color-primary)"
+        />
       </WorkspaceSection>
     </div>
   );

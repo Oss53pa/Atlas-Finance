@@ -3,9 +3,11 @@
  * Inclut tous les sous-modules et fonctionnalités avancées
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import type { DBCollabTask } from '../../lib/db';
 import { formatNumber } from '../../utils/formatters';
 import {
   Plus,
@@ -444,7 +446,73 @@ const CompleteTasksModule: React.FC = () => {
 
   // Membres assignables : source réelle = liste des utilisateurs (Sécurité > Utilisateurs)
   const { adapter } = useData();
+  const { user } = useAuth();
   const [teamMembers, setTeamMembers] = useState<Array<{ id?: string; name: string; email?: string; role?: string }>>([]);
+
+  // ── Persistance ────────────────────────────────────────────────────────────
+  // Les tâches vivaient uniquement dans l'état du composant : tout disparaissait
+  // au rechargement, et l'aperçu des espaces de travail ne pouvait rien montrer.
+  // Elles sont désormais lues et écrites dans le magasin collaboratif partagé
+  // (collabTasks), déjà persisté côté local (Dexie) comme SaaS (collab_tasks).
+  // Les structures riches propres à cet écran — sous-tâches, checklist, pièces
+  // jointes, commentaires — restent en session : le schéma partagé ne les porte
+  // pas, et les inventer en base demanderait une migration.
+  const tenantId = (user as { company_id?: string } | null)?.company_id
+    || (typeof localStorage !== 'undefined' && localStorage.getItem('atlas-tenant-id'))
+    || 'default';
+  const meId = user?.id || 'me';
+
+  /** Statuts de cet écran → statuts du magasin partagé (et retour). */
+  const toDbStatus = (s: Task['status']): DBCollabTask['status'] =>
+    s === 'in-progress' ? 'in_progress'
+      : s === 'done' ? 'done'
+      : s === 'review' ? 'review'
+      : 'todo';
+  const fromDbStatus = (s: DBCollabTask['status']): Task['status'] =>
+    s === 'in_progress' ? 'in-progress' : (s as Task['status']);
+
+  const persistCreate = useCallback(async (t: Task) => {
+    try {
+      await adapter.create<DBCollabTask>('collabTasks', {
+        id: t.id, tenantId, title: t.title, description: t.description,
+        status: toDbStatus(t.status), priority: t.priority,
+        assigneeName: t.assignee, dueDate: t.dueDate ? t.dueDate.toISOString().slice(0, 10) : undefined,
+        tags: t.tags ?? [], order: Date.now(), createdBy: meId,
+        createdAt: t.createdAt.toISOString(), updatedAt: new Date().toISOString(),
+      } as DBCollabTask);
+    } catch (e) { console.error('[Tasks] création non persistée', e); }
+  }, [adapter, tenantId, meId]);
+
+  const persistPatch = useCallback(async (id: string, patch: Partial<DBCollabTask>) => {
+    try {
+      await adapter.update<DBCollabTask>('collabTasks', id, { ...patch, updatedAt: new Date().toISOString() });
+    } catch (e) { console.error('[Tasks] mise à jour non persistée', e); }
+  }, [adapter]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const rows = await adapter.getAll<DBCollabTask>('collabTasks');
+        if (cancelled) return;
+        setTasks(rows
+          .filter((r) => r.tenantId === tenantId)
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+          .map((r): Task => ({
+            id: r.id, title: r.title, description: r.description,
+            status: fromDbStatus(r.status), priority: r.priority,
+            assignee: r.assigneeName, assignees: r.assigneeName ? [r.assigneeName] : [],
+            dueDate: r.dueDate ? new Date(r.dueDate) : undefined,
+            createdAt: new Date(r.createdAt),
+            completedAt: r.completedAt ? new Date(r.completedAt) : undefined,
+            tags: r.tags ?? [], subTasks: [], checklist: [], progress: r.status === 'done' ? 100 : 0,
+          })));
+      } catch (e) {
+        console.error('[Tasks] chargement impossible', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [adapter, tenantId]);
   useEffect(() => {
     (async () => {
       try {
@@ -551,6 +619,10 @@ const CompleteTasksModule: React.FC = () => {
         const statusFlow = ['todo', 'in-progress', 'review', 'done'];
         const currentIndex = statusFlow.indexOf(task.status);
         const nextStatus = statusFlow[(currentIndex + 1) % statusFlow.length] as Task['status'];
+        void persistPatch(taskId, {
+          status: toDbStatus(nextStatus),
+          completedAt: nextStatus === 'done' ? new Date().toISOString() : undefined,
+        });
         return { ...task, status: nextStatus, modifiedAt: new Date() };
       }
       return task;
@@ -577,6 +649,7 @@ const CompleteTasksModule: React.FC = () => {
     };
 
     setTasks(prev => [task, ...prev]);
+    void persistCreate(task);
     setNewTask({
       title: '',
       description: '',
@@ -592,6 +665,7 @@ const CompleteTasksModule: React.FC = () => {
 
   const deleteTask = (taskId: string) => {
     setTasks(prev => prev.filter(t => t.id !== taskId));
+    adapter.delete('collabTasks', taskId).catch((e) => console.error('[Tasks] suppression non persistée', e));
   };
 
   const duplicateTask = (task: Task) => {
@@ -605,6 +679,7 @@ const CompleteTasksModule: React.FC = () => {
       progress: 0
     };
     setTasks(prev => [newTask, ...prev]);
+    void persistCreate(newTask);
   };
 
 

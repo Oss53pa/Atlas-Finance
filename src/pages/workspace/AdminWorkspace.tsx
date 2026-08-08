@@ -49,7 +49,8 @@ import {
   Activity, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
   Server, Database, Lock, AlertTriangle, Cog, Briefcase, ScanLine, Inbox, NotebookPen, Zap
 } from 'lucide-react';
-import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad } from '../../components/workspace/WorkspaceShell';
+import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, WorkspaceTaskList, WorkspaceMessageList } from '../../components/workspace/WorkspaceShell';
+import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
 
@@ -60,6 +61,7 @@ const AdminWorkspace: React.FC = () => {
   const { user, logout } = useAuth();
   const { adapter } = useData();
   const [adminStats, setAdminStats] = useState({ entries: 0, accounts: 0, thirdParties: 0, drafts: 0 });
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
   const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('admin');
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -345,19 +347,13 @@ const AdminWorkspace: React.FC = () => {
             </button>
           }
         >
-          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-primary) 8%, transparent)' }}>
-              <ListTodo className="h-5 w-5" style={{ color: 'var(--color-primary)' }} />
-            </span>
-            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucune tâche en cours.</p>
-            <button
-              onClick={() => changeSection('tasks')}
-              className="rounded-xl px-4 py-2 text-sm font-semibold text-white"
-              style={{ background: 'var(--color-primary)' }}
-            >
-              Créer une tâche
-            </button>
-          </div>
+          <WorkspaceTaskList
+            tasks={feedTasks}
+            loading={feedLoading}
+            onToggle={(t) => void toggleTask(t as never)}
+            onAdd={(title) => addTask(title)}
+            accent="var(--color-primary)"
+          />
         </WorkspaceSection>
       </div>
 
@@ -369,12 +365,12 @@ const AdminWorkspace: React.FC = () => {
           </button>
         }
       >
-        <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl" style={{ background: 'color-mix(in srgb, var(--color-secondary) 10%, transparent)' }}>
-            <MessageSquare className="h-5 w-5" style={{ color: 'var(--color-secondary)' }} />
-          </span>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>Aucun message récent.</p>
-        </div>
+        <WorkspaceMessageList
+          messages={feedMessages}
+          loading={feedLoading}
+          onOpen={() => changeSection('chat')}
+          accent="var(--color-primary)"
+        />
       </WorkspaceSection>
     </div>
   );
