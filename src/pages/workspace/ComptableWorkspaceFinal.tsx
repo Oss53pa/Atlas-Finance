@@ -17,6 +17,7 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
+import { getComptableControls, getRecouvrementIndicator, type ComptableControls, type RecouvrementIndicator } from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -63,6 +64,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true); // W2: loading state
   const [comptaSeries, setComptaSeries] = useState<{ entries: number[]; treasury: number[] }>({ entries: [], treasury: [] });
+  const [controls, setControls] = useState<ComptableControls | null>(null);
+  const [reco, setReco] = useState<RecouvrementIndicator | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -168,6 +171,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
         const cashCumul = cashByMonth.map((v) => (running += v));
         setComptaSeries({ entries: byMonth, treasury: cashCumul });
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
+        const [ctl, rec] = await Promise.all([getComptableControls(adapter), getRecouvrementIndicator(adapter)]);
+        setControls(ctl); setReco(rec);
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
           const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
@@ -346,43 +351,93 @@ const ComptableWorkspaceFinal: React.FC = () => {
         }
       />
 
-      {/* KPI — cartes premium : badge, valeur tabulaire et tendance réelle. */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {statsLoading
-          ? Array.from({ length: 4 }).map((_, i) => (
+      {/* Contrôles de tenue — un comptable a besoin de savoir si ses livres sont
+          justes et clôturables, pas de compter ses écritures. L'ancien jeu
+          (total / validées / % validé) disait trois fois la même chose. */}
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
+        {statsLoading || !controls
+          ? Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
                 <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
                 <div className="h-4 w-1/2 rounded bg-gray-100" />
               </div>
             ))
-          : (
-            <>
-              <StatBadgeCard
-                label="Écritures" value={formatNumber(stats.entries)} badge="petrol"
-                icon={<FileText />} series={comptaSeries.entries}
-                meta="sur l'exercice"
-              />
-              <StatBadgeCard
-                label="En attente" value={formatNumber(stats.drafts)} badge="amber"
-                icon={<Clock />} valueTone={stats.drafts > 0 ? 'error' : 'default'}
-                meta={stats.drafts > 0 ? 'brouillons à valider' : 'rien à valider'}
-                onClick={() => navigate('/accounting/entries')}
-              />
-              <StatBadgeCard
-                label="Validées" value={formatNumber(stats.posted)} badge="success"
-                icon={<CheckCircle />}
-                meta={stats.entries > 0 ? `${Math.round((stats.posted / stats.entries) * 100)} % du total` : undefined}
-              />
-              <StatBadgeCard
-                label="Trésorerie" value={formatCurrency(stats.treasury)} badge={stats.treasury >= 0 ? 'petrol' : 'error'}
-                icon={<DollarSign />} series={comptaSeries.treasury}
-                valueTone={stats.treasury < 0 ? 'error' : 'default'}
-                valueSize={20}
-                meta="comptes 5 hors 58"
-              />
-            </>
-          )}
+          : (() => {
+            const balanced = Math.abs(controls.ecartDebitCredit) < 0.005;
+            const oldest = controls.drafts.oldestDays;
+            return (
+              <>
+                <StatBadgeCard
+                  label="Équilibre débit / crédit"
+                  value={balanced ? 'Équilibré' : formatCurrency(controls.ecartDebitCredit)}
+                  badge={balanced ? 'success' : 'error'}
+                  icon={balanced ? <CheckCircle /> : <AlertTriangle />}
+                  valueTone={balanced ? 'success' : 'error'}
+                  valueSize={balanced ? 20 : 18}
+                  meta={balanced ? 'partie double respectée' : 'écart à corriger avant clôture'}
+                  onClick={() => navigate('/accounting/balance')}
+                />
+                <StatBadgeCard
+                  label="À valider"
+                  value={formatNumber(stats.drafts)}
+                  badge={stats.drafts > 0 ? 'amber' : 'success'}
+                  icon={<Clock />}
+                  valueTone={oldest !== null && oldest > 30 ? 'error' : 'default'}
+                  meta={
+                    stats.drafts === 0 ? 'rien en attente'
+                      : oldest === null ? 'brouillons'
+                      : `le plus ancien : ${oldest} j`
+                  }
+                  onClick={() => navigate('/accounting/entries')}
+                />
+                <StatBadgeCard
+                  label="Comptes d'attente"
+                  value={controls.suspense.accounts === 0 ? 'Soldés' : formatCurrency(controls.suspense.amount)}
+                  badge={controls.suspense.accounts === 0 ? 'success' : 'amber'}
+                  icon={<Inbox />}
+                  valueTone={controls.suspense.accounts > 0 ? 'error' : 'success'}
+                  valueSize={controls.suspense.accounts === 0 ? 20 : 18}
+                  meta={
+                    controls.suspense.accounts === 0
+                      ? 'aucun 47x à justifier'
+                      : `${controls.suspense.accounts} compte${controls.suspense.accounts > 1 ? 's' : ''} 47x non soldé${controls.suspense.accounts > 1 ? 's' : ''}`
+                  }
+                  onClick={() => navigate('/accounting/general-ledger')}
+                />
+                <StatBadgeCard
+                  label="Encours non lettré"
+                  value={controls.unmatched.lines === 0 ? 'À jour' : formatCurrency(controls.unmatched.amount)}
+                  badge={controls.unmatched.lines === 0 ? 'success' : 'petrol'}
+                  icon={<Zap />}
+                  valueSize={controls.unmatched.lines === 0 ? 20 : 18}
+                  meta={
+                    controls.unmatched.lines === 0
+                      ? 'comptes de tiers lettrés'
+                      : `${formatNumber(controls.unmatched.lines)} ligne${controls.unmatched.lines > 1 ? 's' : ''} 401/411`
+                  }
+                  onClick={() => navigate('/accounting/lettrage')}
+                />
+                {/* Recouvrement : le lettrage dit ce qui n'est pas rapproché,
+                    celle-ci dit ce qui n'est pas encaissé — ce n'est pas le
+                    même travail ni le même interlocuteur. */}
+                <StatBadgeCard
+                  label="À relancer"
+                  value={!reco || reco.overdue === 0 ? 'À jour' : formatCurrency(reco.overdue)}
+                  badge={reco && reco.overdue > 0 ? 'amber' : 'success'}
+                  icon={<AlertTriangle />}
+                  valueSize={!reco || reco.overdue === 0 ? 20 : 18}
+                  valueTone={reco && reco.overdue60 > 0 ? 'error' : 'default'}
+                  meta={
+                    !reco || reco.overdue === 0 ? 'aucune créance échue'
+                      : reco.topClient ? `${reco.clients} client${reco.clients > 1 ? 's' : ''} · ${reco.topClient.name.slice(0, 18)} en tête`
+                      : `${reco.clients} client${reco.clients > 1 ? 's' : ''}`
+                  }
+                  onClick={() => navigate('/tiers/recouvrement')}
+                />
+              </>
+            );
+          })()}
       </div>
 
       <WorkspaceSection title="Raccourcis Atlas FnA" icon={<Zap />} subtitle="Les gestes du quotidien, à un clic">
