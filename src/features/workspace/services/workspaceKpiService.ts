@@ -88,6 +88,53 @@ export async function getComptableControls(adapter: DataAdapter): Promise<Compta
   };
 }
 
+/* ═════════════════════════ Recouvrement — commun ══════════════════════════ */
+
+export interface RecouvrementIndicator {
+  /** Encours client échu, toutes tranches confondues. */
+  overdue: number;
+  /** Dont échu depuis plus de 60 jours (dernière tranche de la balance âgée). */
+  overdue60: number;
+  /** Nombre de clients présentant au moins une créance échue. */
+  clients: number;
+  /** Encours client total (échu + non échu). */
+  total: number;
+  /** Part échue de l'encours, en % — 0 si aucun encours. */
+  overduePct: number;
+  /** Client le plus exposé, pour savoir par où commencer les relances. */
+  topClient: { name: string; amount: number } | null;
+}
+
+/**
+ * Recouvrement : ce qui reste à encaisser et à relancer.
+ *
+ * L'encours échu seul ne dit pas s'il est anormal — 50 M échus sur 60 M
+ * d'encours et sur 800 M ne se pilotent pas pareil. La part échue et le client
+ * le plus exposé donnent la mesure et le point de départ des relances.
+ */
+export async function getRecouvrementIndicator(adapter: DataAdapter): Promise<RecouvrementIndicator> {
+  const aged = await getAgedReceivables(adapter).catch(() => []);
+
+  let overdue = 0, overdue60 = 0, total = 0, clients = 0;
+  let topClient: RecouvrementIndicator['topClient'] = null;
+
+  for (const r of aged) {
+    const echu = money(r.days0_30 || 0).add(r.days31_60 || 0).add(r.days60plus || 0).toNumber();
+    total = money(total).add(r.total || 0).toNumber();
+    if (echu <= 0) continue;
+    clients += 1;
+    overdue = money(overdue).add(echu).toNumber();
+    overdue60 = money(overdue60).add(r.days60plus || 0).toNumber();
+    if (!topClient || echu > topClient.amount) topClient = { name: r.clientName || r.clientCode, amount: echu };
+  }
+
+  return {
+    overdue, overdue60, clients, total,
+    overduePct: total > 0 ? Math.round((overdue / total) * 1000) / 10 : 0,
+    topClient,
+  };
+}
+
 /* ═══════════════════ Espace Manager / DAF — références ════════════════════ */
 
 export interface DafIndicators {

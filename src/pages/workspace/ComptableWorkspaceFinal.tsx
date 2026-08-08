@@ -17,7 +17,7 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
-import { getComptableControls, type ComptableControls } from '../../features/workspace/services/workspaceKpiService';
+import { getComptableControls, getRecouvrementIndicator, type ComptableControls, type RecouvrementIndicator } from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -65,6 +65,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const [statsLoading, setStatsLoading] = useState(true); // W2: loading state
   const [comptaSeries, setComptaSeries] = useState<{ entries: number[]; treasury: number[] }>({ entries: [], treasury: [] });
   const [controls, setControls] = useState<ComptableControls | null>(null);
+  const [reco, setReco] = useState<RecouvrementIndicator | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -170,7 +171,8 @@ const ComptableWorkspaceFinal: React.FC = () => {
         const cashCumul = cashByMonth.map((v) => (running += v));
         setComptaSeries({ entries: byMonth, treasury: cashCumul });
         setComptaStats({ entries: entries.length, drafts, posted, treasury });
-        setControls(await getComptableControls(adapter));
+        const [ctl, rec] = await Promise.all([getComptableControls(adapter), getRecouvrementIndicator(adapter)]);
+        setControls(ctl); setReco(rec);
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
           const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
@@ -352,9 +354,9 @@ const ComptableWorkspaceFinal: React.FC = () => {
       {/* Contrôles de tenue — un comptable a besoin de savoir si ses livres sont
           justes et clôturables, pas de compter ses écritures. L'ancien jeu
           (total / validées / % validé) disait trois fois la même chose. */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {statsLoading || !controls
-          ? Array.from({ length: 4 }).map((_, i) => (
+          ? Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
                 <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
@@ -415,6 +417,23 @@ const ComptableWorkspaceFinal: React.FC = () => {
                       : `${formatNumber(controls.unmatched.lines)} ligne${controls.unmatched.lines > 1 ? 's' : ''} 401/411`
                   }
                   onClick={() => navigate('/accounting/lettrage')}
+                />
+                {/* Recouvrement : le lettrage dit ce qui n'est pas rapproché,
+                    celle-ci dit ce qui n'est pas encaissé — ce n'est pas le
+                    même travail ni le même interlocuteur. */}
+                <StatBadgeCard
+                  label="À relancer"
+                  value={!reco || reco.overdue === 0 ? 'À jour' : formatCurrency(reco.overdue)}
+                  badge={reco && reco.overdue > 0 ? 'amber' : 'success'}
+                  icon={<AlertTriangle />}
+                  valueSize={!reco || reco.overdue === 0 ? 20 : 18}
+                  valueTone={reco && reco.overdue60 > 0 ? 'error' : 'default'}
+                  meta={
+                    !reco || reco.overdue === 0 ? 'aucune créance échue'
+                      : reco.topClient ? `${reco.clients} client${reco.clients > 1 ? 's' : ''} · ${reco.topClient.name.slice(0, 18)} en tête`
+                      : `${reco.clients} client${reco.clients > 1 ? 's' : ''}`
+                  }
+                  onClick={() => navigate('/tiers/recouvrement')}
                 />
               </>
             );

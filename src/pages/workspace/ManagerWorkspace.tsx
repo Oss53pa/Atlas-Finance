@@ -17,7 +17,7 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
-import { getDafIndicators, type DafIndicators } from '../../features/workspace/services/workspaceKpiService';
+import { getDafIndicators, getRecouvrementIndicator, type DafIndicators, type RecouvrementIndicator } from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -66,6 +66,7 @@ const ManagerWorkspace: React.FC = () => {
   const [statsLoading, setStatsLoading] = useState(true); // W14: loading state
   const [mgrSeries, setMgrSeries] = useState<{ ca: number[]; charges: number[]; treasury: number[] }>({ ca: [], charges: [], treasury: [] });
   const [daf, setDaf] = useState<DafIndicators | null>(null);
+  const [reco, setReco] = useState<RecouvrementIndicator | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -162,7 +163,8 @@ const ManagerWorkspace: React.FC = () => {
         let run = 0;
         setMgrSeries({ ca: caM, charges: chM, treasury: trM.map((v) => (run += v)) });
         setMgrStats({ ca, charges, marge, treasury });
-        setDaf(await getDafIndicators(adapter));
+        const [d, r] = await Promise.all([getDafIndicators(adapter), getRecouvrementIndicator(adapter)]);
+        setDaf(d); setReco(r);
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
           const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
@@ -398,15 +400,22 @@ const ManagerWorkspace: React.FC = () => {
                   meta={formatCurrency(daf.workingCapital.amount) + ' immobilisés'}
                   onClick={() => navigate('/treasury')}
                 />
+                {/* Recouvrement : l'encours échu seul ne dit pas s'il est anormal.
+                    La part échue donne la mesure, le client le plus exposé donne
+                    le point de départ des relances. */}
                 <StatBadgeCard
-                  label="Créances échues > 60 j"
-                  value={daf.overdue60 === 0 ? 'Aucune' : formatCurrency(daf.overdue60)}
-                  badge={daf.overdue60 > 0 ? 'error' : 'success'}
+                  label="Recouvrement"
+                  value={!reco || reco.overdue === 0 ? 'À jour' : formatCurrency(reco.overdue)}
+                  badge={reco && reco.overdue > 0 ? 'error' : 'success'}
                   icon={<AlertTriangle />}
-                  valueSize={daf.overdue60 === 0 ? 20 : 19}
-                  valueTone={daf.overdue60 > 0 ? 'error' : 'success'}
-                  meta={daf.overdue60 === 0 ? 'aucun retard avéré' : 'risque client à provisionner'}
-                  onClick={() => navigate('/third-party')}
+                  valueSize={!reco || reco.overdue === 0 ? 20 : 19}
+                  valueTone={reco && reco.overdue > 0 ? 'error' : 'success'}
+                  delta={reco && reco.overdue > 0 ? { value: `${reco.overduePct} % de l'encours`, trend: 'down', tone: 'bad' } : undefined}
+                  meta={
+                    !reco || reco.overdue === 0 ? 'aucune créance échue'
+                      : `${reco.clients} client${reco.clients > 1 ? 's' : ''} · dont ${formatCurrency(reco.overdue60)} > 60 j`
+                  }
+                  onClick={() => navigate('/tiers/recouvrement')}
                 />
               </>
             );

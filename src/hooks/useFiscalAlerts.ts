@@ -10,7 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useData } from '../contexts/DataContext';
 
-interface TaxDeclarationRecord {
+export interface TaxDeclarationRecord {
   id: string;
   taxRegistryId?: string;
   taxCode?: string;
@@ -22,7 +22,7 @@ interface TaxDeclarationRecord {
   balanceDue?: number;
 }
 
-interface TaxRegistryRecord {
+export interface TaxRegistryRecord {
   id: string;
   taxCode: string;
   taxName?: string;
@@ -53,20 +53,21 @@ const MONTH_NAMES = [
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ];
 
-export function useFiscalAlerts(year?: number) {
-  const { adapter } = useData();
-  const currentYear = year ?? new Date().getFullYear();
-
-  return useQuery({
-    queryKey: ['fiscal-alerts', currentYear],
-    queryFn: async (): Promise<FiscalAlert[]> => {
-      const [declarations, registries] = await Promise.all([
-        adapter.getAll<TaxDeclarationRecord>('taxDeclarations'),
-        adapter.getAll<TaxRegistryRecord>('taxRegistry'),
-      ]);
-
-      const todayStr = new Date().toISOString().split('T')[0];
-      const todayMs = new Date().getTime();
+/**
+ * Dérivation des alertes — fonction PURE, extraite du hook pour être testable.
+ *
+ * Elle croise deux sources : les déclarations déjà saisies, et le calendrier
+ * théorique déduit du registre des taxes. Les deux sont nécessaires : une
+ * déclaration dit ce qui a été fait, le registre dit ce qui reste dû.
+ */
+export function deriveFiscalAlerts(
+  declarations: TaxDeclarationRecord[],
+  registries: TaxRegistryRecord[],
+  currentYear: number,
+  now: Date = new Date(),
+): FiscalAlert[] {
+      const todayStr = now.toISOString().split('T')[0];
+      const todayMs = now.getTime();
       const alerts: FiscalAlert[] = [];
 
       // From existing declarations
@@ -104,8 +105,17 @@ export function useFiscalAlerts(year?: number) {
         });
       }
 
-      // Generate from registry if no declarations
-      if (alerts.length === 0) {
+      // Compléter avec le calendrier théorique du registre.
+      //
+      // Cette génération était conditionnée à `alerts.length === 0` : dès qu'UNE
+      // seule déclaration existait, plus aucune échéance du calendrier n'était
+      // produite. Les alertes devenaient donc muettes exactement au moment où
+      // le dossier commençait à vivre. On complète désormais période par
+      // période, en sautant celles déjà couvertes par une déclaration.
+      {
+        const covered = new Set(
+          alerts.map((a) => `${a.taxCode}|${a.periodLabel}`),
+        );
         for (const reg of registries) {
           if (!reg.isActive) continue;
           const months = reg.periodicity === 'MONTHLY' ? 12
@@ -120,14 +130,18 @@ export function useFiscalAlerts(year?: number) {
             const deadlineStr = deadlineDate.toISOString().split('T')[0];
             const daysUntil = Math.ceil((deadlineDate.getTime() - todayMs) / 86400000);
 
+            const periodLabel = reg.periodicity === 'ANNUAL' ? `${currentYear}`
+              : reg.periodicity === 'QUARTERLY' ? `T${i + 1} ${currentYear}`
+              : `${MONTH_NAMES[i]} ${currentYear}`;
+            // Déjà déclarée : ne pas doubler l'échéance réelle par sa théorique.
+            if (covered.has(`${reg.taxCode}|${periodLabel}`)) continue;
+
             alerts.push({
               id: `${reg.taxCode}-${currentYear}-${String(periodMonth).padStart(2, '0')}`,
               taxCode: reg.taxCode,
               taxName: reg.taxName || reg.taxShortName || reg.taxCode,
               taxCategory: reg.taxCategory || 'AUTRE',
-              periodLabel: reg.periodicity === 'ANNUAL' ? `${currentYear}`
-                : reg.periodicity === 'QUARTERLY' ? `T${i + 1} ${currentYear}`
-                : `${MONTH_NAMES[i]} ${currentYear}`,
+              periodLabel,
               deadline: deadlineStr,
               status: deadlineStr < todayStr ? 'en_retard' : 'a_declarer',
               daysUntil,
@@ -140,6 +154,20 @@ export function useFiscalAlerts(year?: number) {
       }
 
       return alerts.sort((a, b) => a.deadline.localeCompare(b.deadline));
+}
+
+export function useFiscalAlerts(year?: number) {
+  const { adapter } = useData();
+  const currentYear = year ?? new Date().getFullYear();
+
+  return useQuery({
+    queryKey: ['fiscal-alerts', currentYear],
+    queryFn: async (): Promise<FiscalAlert[]> => {
+      const [declarations, registries] = await Promise.all([
+        adapter.getAll<TaxDeclarationRecord>('taxDeclarations'),
+        adapter.getAll<TaxRegistryRecord>('taxRegistry'),
+      ]);
+      return deriveFiscalAlerts(declarations, registries, currentYear);
     },
     staleTime: 60_000, // Refresh every minute
   });
