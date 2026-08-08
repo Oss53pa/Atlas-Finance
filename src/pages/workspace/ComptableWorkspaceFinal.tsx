@@ -398,9 +398,12 @@ const ComptableWorkspaceFinal: React.FC = () => {
 
       {/* Bloc-notes + tâches côte à côte : la colonne de droite reste utile
           même quand aucune tâche n'est enregistrée. */}
-      {/* Bloc-notes · Tâches · Messages : une seule rangée de trois
-          colonnes, qui retombe à deux puis une sur écran étroit. */}
-      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {/* Bloc-notes · Tâches · Messages : une seule rangée de trois colonnes.
+          Seuil à 1024 px et non 1280 : ces écrans ont une barre latérale de
+          256 px, donc la fenêtre est toujours plus large que la zone utile —
+          attendre 1280 px de fenêtre laissait un portable courant en deux
+          colonnes. Retombe à deux colonnes sous 1024 px, à une sous 768. */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         <WorkspaceSection
           title="Bloc-notes" icon={<NotebookPen />}
           subtitle="Privé, enregistré automatiquement"
