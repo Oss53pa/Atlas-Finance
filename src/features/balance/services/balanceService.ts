@@ -449,7 +449,9 @@ export interface AgedReceivable {
   nonEchu: number;
   days0_30: number;
   days31_60: number;
-  days60plus: number;
+  days61_90: number;
+  /** Échu depuis plus de 90 jours — zone de provision pour dépréciation. */
+  days90plus: number;
   risque: 'faible' | 'moyen' | 'eleve';
 }
 
@@ -467,7 +469,13 @@ interface AgedOpenItem {
  * imputés en FIFO sur les factures les plus anciennes — un client soldé ou en
  * trop-perçu disparaît de la liste.
  *
- * Tranches : Non échu (échéance future), 0-30, 31-60, > 60 jours.
+ * Tranches : Non échu (échéance future), 0-30, 31-60, 61-90, > 90 jours.
+ * La tranche > 90 jours est isolée parce qu'elle ne se pilote pas comme les
+ * autres : au-delà d'un trimestre de retard, ce n'est plus un problème de
+ * relance mais un candidat à la provision pour dépréciation (SYSCOHADA 491).
+ * Même découpage que la balance âgée fournisseurs, pour que les deux se lisent
+ * côte à côte.
+ *
  * N'utilise que les écritures validées (hors brouillons).
  */
 export async function getAgedReceivables(
@@ -515,25 +523,32 @@ export async function getAgedReceivables(
       }
     }
 
-    let nonEchu = 0, d0 = 0, d30 = 0, d60 = 0;
+    let nonEchu = 0, d0 = 0, d30 = 0, d60 = 0, d90 = 0;
     for (const it of open) {
       const days = Math.floor((asOf.getTime() - new Date(it.dueDate).getTime()) / DAY);
       if (days < 0) nonEchu = money(nonEchu).add(it.amount).toNumber();
       else if (days <= 30) d0 = money(d0).add(it.amount).toNumber();
       else if (days <= 60) d30 = money(d30).add(it.amount).toNumber();
-      else d60 = money(d60).add(it.amount).toNumber();
+      else if (days <= 90) d60 = money(d60).add(it.amount).toNumber();
+      else d90 = money(d90).add(it.amount).toNumber();
     }
-    const total = money(nonEchu).add(d0).add(d30).add(d60).toNumber();
+    const total = money(nonEchu).add(d0).add(d30).add(d60).add(d90).toNumber();
     if (total <= 0.001) continue; // client soldé ou trop-perçu
 
+    // Le seuil historique portait sur l'ensemble du « > 60 j » : on le conserve
+    // tel quel pour ne pas déclasser des clients déjà signalés. S'y ajoute le
+    // signal propre au > 90 j, plus grave à montant égal — une créance d'un
+    // trimestre pesant 10 % de l'encours suffit à passer en risque élevé.
+    const echu60plus = money(d60).add(d90).toNumber();
     let risque: AgedReceivable['risque'] = 'faible';
-    if (d60 > 0 && money(d60).divide(total).toNumber() >= 0.25) risque = 'eleve';
-    else if (d30 > 0 || d60 > 0) risque = 'moyen';
+    if (echu60plus > 0 && money(echu60plus).divide(total).toNumber() >= 0.25) risque = 'eleve';
+    else if (d90 > 0 && money(d90).divide(total).toNumber() >= 0.10) risque = 'eleve';
+    else if (d30 > 0 || echu60plus > 0) risque = 'moyen';
 
     result.push({
       clientCode: code,
       clientName: c.name || code,
-      total, nonEchu, days0_30: d0, days31_60: d30, days60plus: d60, risque,
+      total, nonEchu, days0_30: d0, days31_60: d30, days61_90: d60, days90plus: d90, risque,
     });
   }
 

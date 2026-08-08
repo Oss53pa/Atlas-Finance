@@ -430,6 +430,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
                   valueTone={reco && reco.overdue60 > 0 ? 'error' : 'default'}
                   meta={
                     !reco || reco.overdue === 0 ? 'aucune créance échue'
+                      : reco.overdue90 > 0 ? `${reco.clients} client${reco.clients > 1 ? 's' : ''} · ${formatCurrency(reco.overdue90)} > 90 j`
                       : reco.topClient ? `${reco.clients} client${reco.clients > 1 ? 's' : ''} · ${reco.topClient.name.slice(0, 18)} en tête`
                       : `${reco.clients} client${reco.clients > 1 ? 's' : ''}`
                   }

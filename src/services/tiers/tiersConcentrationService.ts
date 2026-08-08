@@ -12,6 +12,7 @@
 import type { DataAdapter } from '@atlas/data';
 import { getClientRevenue, loadEntriesWithLines, type DateRange } from './clientProfitability';
 import { getAgedReceivables } from '../../features/balance/services/balanceService';
+import { money } from '../../utils/money';
 
 export type RisqueEncours = 'faible' | 'moyen' | 'eleve';
 
@@ -100,7 +101,10 @@ export async function getClientConcentration(adapter: DataAdapter, range?: DateR
     .filter(c => c.code && c.ca > 0)
     .map(c => {
       const a = agedMap.get(c.code);
-      return { code: c.code, name: c.name, value: c.ca, encours: a?.total, risque: a?.risque, retard60: a?.days60plus };
+      // « retard60 » couvre tout l'échu de plus de 60 jours : depuis l'ajout de
+      // la tranche > 90 j, cela fait deux colonnes à additionner.
+      const retard60 = a ? money(a.days61_90 || 0).add(a.days90plus || 0).toNumber() : undefined;
+      return { code: c.code, name: c.name, value: c.ca, encours: a?.total, risque: a?.risque, retard60 };
     });
   return computeConcentration(raw);
 }

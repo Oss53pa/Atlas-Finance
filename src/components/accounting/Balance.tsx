@@ -1251,7 +1251,8 @@ const Balance: React.FC = () => {
                 <span className="px-3 py-1 bg-green-100 text-green-700 rounded-md text-sm">{t('balance.notDue')}</span>
                 <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-md text-sm">{t('balance.days0_30')}</span>
                 <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-md text-sm">{t('balance.days31_60')}</span>
-                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-md text-sm">{t('balance.days60plus')}</span>
+                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-md text-sm">{t('balance.days61_90')}</span>
+                <span className="px-3 py-1 bg-red-200 text-red-900 rounded-md text-sm">{t('balance.days90plus')}</span>
               </div>
             </div>
           </div>
@@ -1264,7 +1265,8 @@ const Balance: React.FC = () => {
                   <th className="px-4 py-3 text-right font-semibold text-green-700">{t('balance.notDue')}</th>
                   <th className="px-4 py-3 text-right font-semibold text-yellow-700">{t('balance.days0_30')}</th>
                   <th className="px-4 py-3 text-right font-semibold text-orange-700">{t('balance.days31_60')}</th>
-                  <th className="px-4 py-3 text-right font-semibold text-red-700">{t('balance.days60plus')}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-red-700">{t('balance.days61_90')}</th>
+                  <th className="px-4 py-3 text-right font-semibold text-red-900">{t('balance.days90plus')}</th>
                   <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">{t('balance.risk')}</th>
                   <th className="px-4 py-3 text-center font-semibold text-[var(--color-primary)]">{t('balance.actions')}</th>
                 </tr>
@@ -1272,7 +1274,7 @@ const Balance: React.FC = () => {
               <tbody>
                 {agedReceivables.length === 0 && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
+                    <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
                       {t('balance.noReceivables')}
                     </td>
                   </tr>
@@ -1288,7 +1290,8 @@ const Balance: React.FC = () => {
                     <td className="px-4 py-2 text-right text-green-600">{agedCell(r.nonEchu)}</td>
                     <td className="px-4 py-2 text-right text-yellow-600">{agedCell(r.days0_30)}</td>
                     <td className="px-4 py-2 text-right text-orange-600">{agedCell(r.days31_60)}</td>
-                    <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days60plus)}</td>
+                    <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days61_90)}</td>
+                    <td className="px-4 py-2 text-right text-red-800 font-semibold">{agedCell(r.days90plus)}</td>
                     <td className="px-4 py-2 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${RISQUE_BADGE[r.risque].cls}`}>{RISQUE_BADGE[r.risque].label}</span>
                     </td>
@@ -1331,14 +1334,15 @@ const Balance: React.FC = () => {
                       <th className="px-4 py-3 text-right">{t('balance.notDue')}</th>
                       <th className="px-4 py-3 text-right">{t('balance.days0_30')}</th>
                       <th className="px-4 py-3 text-right">{t('balance.days31_60')}</th>
-                      <th className="px-4 py-3 text-right">{t('balance.days60plus')}</th>
+                      <th className="px-4 py-3 text-right">{t('balance.days61_90')}</th>
+                      <th className="px-4 py-3 text-right">{t('balance.days90plus')}</th>
                       <th className="px-4 py-3 text-center">{t('balance.risk')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {agedReceivables.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
+                        <td colSpan={9} className="px-4 py-10 text-center text-[var(--color-text-secondary)]">
                           {t('balance.noReceivables')}
                         </td>
                       </tr>
@@ -1351,7 +1355,8 @@ const Balance: React.FC = () => {
                         <td className="px-4 py-2 text-right text-green-600">{agedCell(r.nonEchu)}</td>
                         <td className="px-4 py-2 text-right text-yellow-600">{agedCell(r.days0_30)}</td>
                         <td className="px-4 py-2 text-right text-orange-600">{agedCell(r.days31_60)}</td>
-                        <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days60plus)}</td>
+                        <td className="px-4 py-2 text-right text-red-600">{agedCell(r.days61_90)}</td>
+                        <td className="px-4 py-2 text-right text-red-800 font-semibold">{agedCell(r.days90plus)}</td>
                         <td className="px-4 py-2 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs ${RISQUE_BADGE[r.risque].cls}`}>{RISQUE_BADGE[r.risque].label}</span>
                         </td>
@@ -1404,8 +1409,12 @@ const Balance: React.FC = () => {
                         </div>
 
                         <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                          <span className="text-gray-600">{t('balance.days60plusShort')}</span>
-                          <span className="text-red-600 font-semibold">{agedCell(r.days60plus)}</span>
+                          <span className="text-gray-600">{t('balance.days61_90Short')}</span>
+                          <span className="text-red-600 font-semibold">{agedCell(r.days61_90)}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-red-100 rounded">
+                          <span className="text-gray-700">{t('balance.days90plusShort')}</span>
+                          <span className="text-red-800 font-bold">{agedCell(r.days90plus)}</span>
                         </div>
 
                         <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
