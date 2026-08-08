@@ -10,9 +10,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../hooks/useToast';
 import { Avatar } from '../../components/ui';
 import { Inbox, ShieldCheck, PenLine, Clock, AlertTriangle, Plus, X, Layers, History } from 'lucide-react';
+import SubmitObjectModal from './SubmitObjectModal';
 import {
-  listBannette, wfAct, wfSubmit, listInstanceEvents, mvaErr, OBJECT_TYPE_LABELS,
-  wfBatchSubmit, wfBatchAct, listBatchLines, listDecisionInbox, decisionAct,
+  listBannette, wfAct, listInstanceEvents, mvaErr, OBJECT_TYPE_LABELS,
+  wfBatchAct, listBatchLines, listDecisionInbox, decisionAct,
   type BannetteTask, type BatchLine, type DecisionInboxItem,
 } from '../../features/validation/mvaService';
 
@@ -199,7 +200,7 @@ export default function BannettePage() {
           <button onClick={() => setSelLot(new Set())} style={{ ...miniBtn('#ffffff22'), padding: '7px 12px' }}>Vider</button>
         </div>
       )}
-      {showSubmit && <SubmitModal adapter={adapter} onClose={() => setShowSubmit(false)} onDone={() => { setShowSubmit(false); load(); }} />}
+      {showSubmit && <SubmitObjectModal adapter={adapter} toast={toast} onClose={() => setShowSubmit(false)} onDone={() => { setShowSubmit(false); load(); }} />}
       {auditFor && <AuditDrawer events={audit} onClose={() => setAuditFor(null)} />}
     </div>
   );
@@ -270,102 +271,6 @@ function BatchPanel({ task, me, adapter, onDone }: { task: BannetteTask; me: any
         </div>
       )}
       {mine && <span style={{ fontSize: 11, color: T.sub }}>Vous êtes l'auteur (SoD)</span>}
-    </div>
-  );
-}
-
-// ── Soumission d'un objet (démo/manuel) ───────────────────────────────────────
-function SubmitModal({ adapter, onClose, onDone }: { adapter: any; onClose: () => void; onDone: () => void }) {
-  const { toast } = useToast();
-  const [objectType, setObjectType] = useState('journal_entry');
-  const [title, setTitle] = useState('');
-  const [amount, setAmount] = useState('');
-  const [journal, setJournal] = useState('OD');
-  const [busy, setBusy] = useState(false);
-
-  const submit = async () => {
-    setBusy(true);
-    try {
-      if (objectType === 'journal_batch') {
-        // Bordereau de démonstration : 4 lignes dont 2 exceptions (compte 47x, ≥ 5M).
-        const res = await wfBatchSubmit(adapter, {
-          journal_code: journal, period: '2026-03', source: 'import',
-          lines: [
-            { line_ref: 'L1', account_code: '601000', label: 'Achat marchandises', amount_xof: 300000 },
-            { line_ref: 'L2', account_code: '471000', label: 'Compte d\'attente', amount_xof: 800000 },
-            { line_ref: 'L3', account_code: '627000', label: 'Services bancaires', amount_xof: 6000000 },
-            { line_ref: 'L4', account_code: '606000', label: 'Fournitures', amount_xof: 450000 },
-          ],
-        });
-        toast.success(`Bordereau soumis · ${res.included_count} incluses, ${res.exception_count} exception(s) extraite(s)`);
-        onDone(); return;
-      }
-      if (objectType === 'partner_master') {
-        // Modification de RIB (démo) : flag rib_change → circuit renforcé + quarantaine.
-        const objectId = `partner-rib-${Date.now()}`;
-        const res = await wfSubmit(adapter, {
-          objectType, objectId,
-          preview: { title: title.trim() || 'Modification RIB fournisseur', flags: ['rib_change'], partner_id: 'F-4021', new_rib: 'CI93-SGCI-000123', ref: objectId.slice(-8).toUpperCase(), detail: 'Changement de RIB — anti-fraude' },
-          payload: { flags: ['rib_change'] },
-        });
-        toast.success(`RIB soumis · circuit renforcé « ${res.definition} » (${res.stages.length} valideurs + OTP)`);
-        onDone(); return;
-      }
-      if (!title.trim()) { toast.warning('Libellé requis'); setBusy(false); return; }
-      const amt = amount ? Number(amount) : 0;
-      const objectId = `manual-${objectType}-${Date.now()}`;
-      const res = await wfSubmit(adapter, {
-        objectType, objectId,
-        preview: { title: title.trim(), amount_xof: amt, ref: objectId.slice(-8).toUpperCase(), detail: `${objectType} · journal ${journal}` },
-        payload: { amount_xof: amt, journal_code: journal },
-      });
-      toast.success(`Soumis · circuit « ${res.definition} » (${res.stages.length} étape(s))`);
-      onDone();
-    } catch (e: any) { toast.error(mvaErr(e?.message)); } finally { setBusy(false); }
-  };
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,43,46,.45)', display: 'grid', placeItems: 'center', zIndex: 60, padding: 20 }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{ background: T.surface, borderRadius: 16, width: 'min(460px, 100%)', boxShadow: '0 20px 60px rgba(0,0,0,.25)' }}>
-        <div style={{ padding: '15px 18px', borderBottom: `1px solid ${T.line}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: 15.5, color: T.petrol, fontWeight: 800 }}>Soumettre un objet à validation</h3>
-          <button onClick={onClose} style={{ ...miniBtn(T.sub), padding: 6 }}><X size={16} /></button>
-        </div>
-        <div style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 11 }}>
-          <label><span style={lbl}>Type d'objet</span>
-            <select value={objectType} onChange={e => setObjectType(e.target.value)} style={field}>
-              <option value="journal_entry">Écriture (OD)</option>
-              <option value="entry_reversal">Extourne</option>
-              <option value="journal_batch">Bordereau (démo 4 lignes)</option>
-              <option value="partner_master">Modification RIB (anti-fraude)</option>
-              <option value="payment_batch">Lot de paiement</option>
-            </select>
-          </label>
-          {objectType !== 'journal_batch' && (
-            <>
-              <label><span style={lbl}>Libellé</span><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex. OD régularisation charges" style={field} /></label>
-              <div style={{ display: 'flex', gap: 10 }}>
-                <label style={{ flex: 1 }}><span style={lbl}>Montant FCFA</span><input value={amount} onChange={e => setAmount(e.target.value)} type="number" placeholder="0" style={{ ...field, fontFamily: MONO }} /></label>
-                <label style={{ width: 110 }}><span style={lbl}>Journal</span><input value={journal} onChange={e => setJournal(e.target.value)} style={field} /></label>
-              </div>
-            </>
-          )}
-          {objectType === 'journal_batch' && (
-            <label><span style={lbl}>Journal</span><input value={journal} onChange={e => setJournal(e.target.value)} style={field} /></label>
-          )}
-          <div style={{ fontSize: 11, color: T.sub, background: T.cream, borderRadius: 9, padding: '8px 11px' }}>
-            {objectType === 'journal_batch'
-              ? 'Bordereau de démo (4 lignes) : 2 exceptions (compte 47x, ligne ≥ 5 M) seront extraites en dossiers individuels ; le reste forme 1 bordereau figé par root_hash.'
-              : objectType === 'partner_master'
-                ? 'Modification de RIB (démo) : circuit renforcé anti-fraude — 2 valideurs distincts + signature OTP ; à l\'application, le nouveau RIB est mis en quarantaine 5 jours (paiements retenus).'
-                : 'Le circuit est résolu par la matrice du tenant (ex. OD ≥ 1 000 000 → Comptable puis DAF). L\'objet est figé par hash à la soumission.'}
-          </div>
-        </div>
-        <div style={{ padding: '13px 18px', borderTop: `1px solid ${T.line}`, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-          <button onClick={onClose} style={{ ...miniBtn(T.sub), background: 'none', color: T.sub, border: `1px solid ${T.line}` }}>Annuler</button>
-          <button onClick={submit} disabled={busy} style={btn(T.petrol)}>{busy ? 'Soumission…' : 'Soumettre'}</button>
-        </div>
-      </div>
     </div>
   );
 }
