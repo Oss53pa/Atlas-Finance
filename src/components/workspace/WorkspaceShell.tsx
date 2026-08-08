@@ -256,13 +256,17 @@ export const WorkspaceNotepad: React.FC<WorkspaceNotepadProps> = ({
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Évite d'écrire au montage : le premier rendu n'est pas une modification.
   const dirty = useRef(false);
+  // Dernière valeur saisie, hors cycle de rendu. L'effet de démontage ne tourne
+  // qu'une fois : sans cette référence il capture la valeur du PREMIER rendu —
+  // la chaîne vide — et écrase la note au lieu de la sauver.
+  const latest = useRef('');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const v = await load(storageKey);
-        if (!cancelled && v != null) setValue(v);
+        if (!cancelled && v != null) { setValue(v); latest.current = v; }
       } catch {
         /* pas de note enregistrée : on démarre sur une page blanche */
       } finally {
@@ -276,6 +280,7 @@ export const WorkspaceNotepad: React.FC<WorkspaceNotepadProps> = ({
     setState('saving');
     try {
       await save(storageKey, v);
+      dirty.current = false;
       setSavedAt(new Date());
       setState('saved');
     } catch {
@@ -283,8 +288,14 @@ export const WorkspaceNotepad: React.FC<WorkspaceNotepadProps> = ({
     }
   }, [save, storageKey]);
 
+  // `save` et `storageKey` peuvent changer d'identité entre deux rendus ; le
+  // démontage doit appeler la version courante, pas celle du premier rendu.
+  const flushRef = useRef(flush);
+  useEffect(() => { flushRef.current = flush; }, [flush]);
+
   const onChange = (v: string) => {
     setValue(v);
+    latest.current = v;
     dirty.current = true;
     setState('idle');
     if (timer.current) clearTimeout(timer.current);
@@ -294,8 +305,7 @@ export const WorkspaceNotepad: React.FC<WorkspaceNotepadProps> = ({
   // Ne pas perdre la dernière frappe si l'on quitte l'écran avant l'échéance.
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
-    if (dirty.current) void flush(value);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (dirty.current) void flushRef.current(latest.current);
   }, []);
 
   const words = value.trim() ? value.trim().split(/\s+/).length : 0;
