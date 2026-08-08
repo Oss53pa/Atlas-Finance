@@ -815,6 +815,18 @@ export interface DBCollabTask {
   linkedType?: string;
   linkedId?: string;
   order?: number;
+  // Champs riches de l'écran « Mes tâches » — migration 110. Optionnels : les
+  // lignes créées avant la migration n'en portent pas.
+  subTasks?: { id: string; title: string; completed: boolean; assignee?: string; dueDate?: string }[];
+  checklist?: { id: string; text: string; completed: boolean; completedBy?: string; completedAt?: string }[];
+  attachments?: { id: string; name: string; url?: string; size?: number; type?: string; uploadedAt?: string; uploadedBy?: string }[];
+  dependencies?: string[];
+  progress?: number;            // 0–100
+  estimatedHours?: number;
+  actualHours?: number;
+  startDate?: string;
+  category?: string;
+  project?: string;
   createdBy: string;
   createdAt: string;
   updatedAt: string;

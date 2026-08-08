@@ -13,6 +13,10 @@ import BannettePage from '../validation/BannettePage';
 import CollaborationModule from '../../components/collaboration/CollaborationModule';
 import { useFiscalUrgentAlerts } from '../../hooks/useFiscalAlerts';
 import SecurityActions from '../../components/security/SecurityActions';
+import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, WorkspaceTaskList, WorkspaceMessageList } from '../../components/workspace/WorkspaceShell';
+import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
+import { StatBadgeCard } from '../../components/premium';
+import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -21,7 +25,7 @@ import {
   ArrowLeft, Bell, HelpCircle, User, Search, Menu, X, Settings, LogOut, ChevronDown,
   Shield, Mail, BookMarked, MessageCircle, FileQuestion, Video, Headphones,
   Target, Activity, Layers, FolderOpen, ListTodo, MessageSquare, LayoutDashboard,
-  AlertTriangle, Inbox
+  AlertTriangle, Inbox, NotebookPen
 } from 'lucide-react';
 
 // W16: APP_VERSION fallback '3.0.0' replaced by a build-time guard
@@ -51,12 +55,15 @@ const ManagerWorkspace: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
+  const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('manager');
 
   // W15 / W14: state distinguishes null (not yet loaded) from 0 (réellement zéro)
   const [mgrStats, setMgrStats] = useState<{
     ca: number; charges: number; marge: number; treasury: number;
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true); // W14: loading state
+  const [mgrSeries, setMgrSeries] = useState<{ ca: number[]; charges: number[]; treasury: number[] }>({ ca: [], charges: [], treasury: [] });
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -110,7 +117,7 @@ const ManagerWorkspace: React.FC = () => {
     { id: 'reports', label: 'Rapports', icon: FileText, path: '/reporting' },
     { id: 'budgets', label: 'Budgets', icon: Target, path: '/budget' },
     { id: 'team', label: 'Equipe', icon: Users, path: '/security/users' },
-    { id: 'treasury', label: 'Tresorerie', icon: DollarSign, path: '/treasury' },
+    { id: 'treasury', label: 'Trésorerie', icon: DollarSign, path: '/treasury' },
     { id: 'analytics', label: 'Analytique', icon: Activity, path: '/analytics' },
   ];
 
@@ -124,9 +131,13 @@ const ManagerWorkspace: React.FC = () => {
       try {
         const entries = await adapter.getAll<any>('journalEntries');
         let ca = 0, charges = 0, impots = 0, treasury = 0;
+        // Séries mensuelles réelles — les cartes portent une tendance, pas un
+        // nombre isolé.
+        const caM = new Array(12).fill(0), chM = new Array(12).fill(0), trM = new Array(12).fill(0);
         for (const entry of entries) {
           if (!entry.lines) continue;
           if (entry.status === 'draft') continue;
+          const mIdx = new Date(entry.date).getMonth();
           for (const line of entry.lines) {
             // Classement SYSCOHADA direct sur le code de compte de la ligne (accountCode)
             const accNum = String(line.accountCode || '');
@@ -134,18 +145,20 @@ const ManagerWorkspace: React.FC = () => {
             const debit = line.debit || 0;
             const credit = line.credit || 0;
             // Produits (cl.7) = solde créditeur NET : déduire les débits (annulations/avoirs)
-            if (accNum.startsWith('7')) ca += credit - debit;
+            if (accNum.startsWith('7')) { ca += credit - debit; if (mIdx >= 0) caM[mIdx] += credit - debit; }
             // Charges (cl.6) = solde débiteur NET : déduire les crédits (avoirs/RRR obtenus)
-            else if (accNum.startsWith('6')) charges += debit - credit;
+            else if (accNum.startsWith('6')) { charges += debit - credit; if (mIdx >= 0) chM[mIdx] += debit - credit; }
             // Impôt sur le résultat (cl.89 : IMF/IS) — requis pour obtenir le résultat NET
             else if (accNum.startsWith('89')) impots += debit - credit;
             // Trésorerie = comptes de disponibilités classe 5, HORS 58 (virements internes en transit)
-            if (accNum.startsWith('5') && !accNum.startsWith('58')) treasury += debit - credit;
+            if (accNum.startsWith('5') && !accNum.startsWith('58')) { treasury += debit - credit; if (mIdx >= 0) trM[mIdx] += debit - credit; }
           }
         }
         // Marge nette = résultat net / CA ; résultat net = produits − charges − impôt (cl.89)
         const resultatNet = ca - charges - impots;
         const marge = ca > 0 ? (resultatNet / ca) * 100 : 0;
+        let run = 0;
+        setMgrSeries({ ca: caM, charges: chM, treasury: trM.map((v) => (run += v)) });
         setMgrStats({ ca, charges, marge, treasury });
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
@@ -216,7 +229,7 @@ const ManagerWorkspace: React.FC = () => {
   const renderSettings = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">Parametres</h2>
+        <h2 className="text-lg font-bold">Paramètres</h2>
         <button onClick={() => setActiveSection('workspace')} className="px-4 py-2 text-sm text-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/10 rounded-lg">Retour</button>
       </div>
       <div className="bg-white rounded-xl p-6 border">
@@ -285,67 +298,129 @@ const ManagerWorkspace: React.FC = () => {
         ))}
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Chat</h4><button onClick={() => { setActiveSection('chat'); }} className="w-full py-3 bg-[var(--color-secondary)] text-white rounded-lg">Demarrer</button></div>
-        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Telephone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><MessageCircle className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Chat</h4><button onClick={() => { setActiveSection('chat'); }} className="w-full py-3 bg-[var(--color-secondary)] text-white rounded-lg">Démarrer</button></div>
+        <div className="bg-white rounded-xl p-6 border"><h4 className="font-semibold mb-4 flex items-center"><Headphones className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Téléphone</h4><p className="text-lg font-bold">{companyPhone || '—'}</p></div>
       </div>
     </div>
   );
 
   const renderWorkspace = () => (
-    <div className="p-6 space-y-6">
-      {/* W14: skeleton pendant le chargement */}
-      <div className="grid grid-cols-4 gap-4">
+    <div className="p-6 space-y-5">
+      <WorkspaceHero
+        userName={userData.name}
+        spaceLabel="Espace Manager"
+        subtitle={statsLoading ? 'Chargement des indicateurs…' : 'Pilotage de la performance'}
+        icon={<Briefcase />}
+        chips={statsLoading ? [] : [
+          { label: "Chiffre d'affaires", value: formatCurrency(stats.ca) },
+          { label: 'Marge nette', value: `${stats.marge.toFixed(1)} %` },
+          { label: 'Trésorerie', value: formatCurrency(stats.treasury) },
+        ]}
+        actions={
+          <>
+            <button
+              onClick={() => navigate('/reporting')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{ background: '#FFFFFF', color: 'var(--color-secondary)' }}
+            >
+              <FileText className="h-4 w-4" />Rapports
+            </button>
+            <button
+              onClick={() => navigate('/budget')}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white"
+              style={{ background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.24)' }}
+            >
+              <Target className="h-4 w-4" />Budgets
+            </button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {statsLoading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-lg p-4 border animate-pulse">
-                <div className="w-10 h-10 rounded-lg bg-gray-200 mb-3" />
-                <div className="h-6 bg-gray-200 rounded w-2/3 mb-2" />
-                <div className="h-4 bg-gray-100 rounded w-1/2" />
+              <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+                <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
+                <div className="mb-2 h-6 w-2/3 rounded bg-gray-200" />
+                <div className="h-4 w-1/2 rounded bg-gray-100" />
               </div>
             ))
-          /* W25: clés stables basées sur le titre */
-          : [{title:"Chiffre d'affaires",value:formatCurrency(stats.ca),icon:DollarSign,color:'var(--color-secondary)',change:'',up:true},{title:'Marge',value:`${stats.marge.toFixed(1)}%`,icon:Target,color:'var(--color-primary)',change:'',up:stats.marge >= 0},{title:'Charges',value:formatCurrency(stats.charges),icon:Layers,color:'var(--color-text-tertiary)',change:'',up:false},{title:'Tresorerie',value:formatCurrency(stats.treasury),icon:DollarSign,color:'var(--color-secondary)',change:'',up:stats.treasury >= 0}].map((m) => (
-            <div key={m.title} className="bg-white rounded-lg p-4 border hover:shadow-md">
-              <div className="flex justify-between mb-3"><div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{backgroundColor:`color-mix(in srgb, ${m.color} 12%, transparent)`}}><m.icon className="w-5 h-5" style={{color:m.color}} /></div><span className={m.up?'text-green-600 text-xs':'text-red-600 text-xs'}>{m.change}</span></div>
-              <h3 className="text-lg font-bold">{m.value}</h3><p className="text-sm text-gray-600">{m.title}</p>
-            </div>
-          ))
-        }
+          : (
+            <>
+              <StatBadgeCard
+                label="Chiffre d'affaires" value={formatCurrency(stats.ca)} badge="petrol"
+                icon={<DollarSign />} series={mgrSeries.ca} valueSize={20} meta="produits nets (cl. 7)"
+              />
+              <StatBadgeCard
+                label="Marge nette" value={`${stats.marge.toFixed(1)}`} unit="%" badge={stats.marge >= 0 ? 'success' : 'error'}
+                icon={<Target />} valueTone={stats.marge < 0 ? 'error' : 'default'}
+                meta="résultat net / CA"
+              />
+              <StatBadgeCard
+                label="Charges" value={formatCurrency(stats.charges)} badge="amber"
+                icon={<Layers />} series={mgrSeries.charges} valueSize={20} meta="charges nettes (cl. 6)"
+              />
+              <StatBadgeCard
+                label="Trésorerie" value={formatCurrency(stats.treasury)} badge={stats.treasury >= 0 ? 'petrol' : 'error'}
+                icon={<DollarSign />} series={mgrSeries.treasury} valueSize={20}
+                valueTone={stats.treasury < 0 ? 'error' : 'default'} meta="comptes 5 hors 58"
+              />
+            </>
+          )}
       </div>
-      <div className="bg-white rounded-lg p-6 border">
-        <h2 className="text-lg font-semibold mb-4">Raccourcis Atlas FnA</h2>
-        {/* W25: clés stables basées sur le path */}
-        <div className="grid grid-cols-4 gap-3">
-          {[{label:'Rapports',icon:FileText,path:'/reporting',color:'var(--color-secondary)'},{label:'Budgets',icon:Target,path:'/budget',color:'var(--color-primary)'},{label:'Trésorerie',icon:DollarSign,path:'/treasury',color:'var(--color-text-tertiary)'},{label:'Équipe',icon:Users,path:'/security/users',color:'var(--color-secondary)'}].map((a) => (
-            <button key={a.path} onClick={() => navigate(a.path)} className="p-4 rounded-lg border hover:border-gray-400 hover:shadow-sm transition-all">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2" style={{backgroundColor:`color-mix(in srgb, ${a.color} 8%, transparent)`}}><a.icon className="w-5 h-5" style={{color:a.color}} /></div>
-              <span className="text-sm font-medium block text-center">{a.label}</span>
+
+      <WorkspaceSection title="Raccourcis Atlas FnA" icon={<Zap />} subtitle="Les vues de pilotage les plus consultées">
+        <QuickActionGrid
+          actions={[
+            { label: 'Rapports', hint: 'Reporting & états', icon: FileText, onClick: () => navigate('/reporting'), color: 'var(--color-secondary)' },
+            { label: 'Budgets', hint: 'Élaboration & suivi', icon: Target, onClick: () => navigate('/budget'), color: 'var(--color-primary)' },
+            { label: 'Trésorerie', hint: 'Positions & prévisions', icon: DollarSign, onClick: () => navigate('/treasury'), color: 'var(--color-secondary)' },
+            { label: 'Équipe', hint: 'Utilisateurs & droits', icon: Users, onClick: () => navigate('/security/users'), color: 'var(--color-primary)' },
+          ]}
+        />
+      </WorkspaceSection>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <WorkspaceSection title="Bloc-notes" icon={<NotebookPen />} subtitle="Privé, enregistré automatiquement">
+          <WorkspaceNotepad storageKey={notesKey} load={loadNote} save={saveNote} />
+        </WorkspaceSection>
+
+        <WorkspaceSection
+          title="Mes tâches" icon={<ListTodo />}
+          action={
+            <button onClick={() => setActiveSection('tasks')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-secondary)' }}>
+              Ouvrir
             </button>
-          ))}
-        </div>
+          }
+        >
+          <WorkspaceTaskList
+            tasks={feedTasks}
+            loading={feedLoading}
+            onToggle={(t) => void toggleTask(t as never)}
+            onAdd={(title) => addTask(title)}
+            accent="var(--color-secondary)"
+          />
+        </WorkspaceSection>
       </div>
-      {/* W20: Tâches — délégué à CompleteTasksModule */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><ListTodo className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Mes Taches</h2>
-          <button onClick={() => setActiveSection('tasks')} className="text-sm text-[var(--color-secondary)] hover:underline">Voir tout</button>
-        </div>
-        <div className="text-center py-4 text-gray-400 text-sm">
-          Accédez à la section <button onClick={() => setActiveSection('tasks')} className="underline text-[var(--color-secondary)]">Mes taches</button> pour voir et gérer vos tâches.
-        </div>
-      </div>
+
       {/* Alertes Fiscales */}
       <ManagerFiscalWidget navigate={navigate} />
-      {/* W21: Messages — délégué au module Collaboration */}
-      <div className="bg-white rounded-lg p-6 border">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold flex items-center"><MessageSquare className="w-5 h-5 mr-2 text-[var(--color-secondary)]" />Messages recents</h2>
-          <button onClick={() => setActiveSection('chat')} className="text-sm text-[var(--color-secondary)] hover:underline">Voir tout</button>
-        </div>
-        <div className="text-center py-4 text-gray-400 text-sm">
-          Accédez à la section <button onClick={() => setActiveSection('chat')} className="underline text-[var(--color-secondary)]">Chat équipe</button> pour consulter vos messages.
-        </div>
-      </div>
+
+      <WorkspaceSection
+        title="Messages récents" icon={<MessageSquare />}
+        action={
+          <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-secondary)' }}>
+            Ouvrir le chat
+          </button>
+        }
+      >
+        <WorkspaceMessageList
+          messages={feedMessages}
+          loading={feedLoading}
+          onOpen={() => setActiveSection('chat')}
+          accent="var(--color-secondary)"
+        />
+      </WorkspaceSection>
     </div>
   );
 
@@ -408,7 +483,7 @@ const ManagerWorkspace: React.FC = () => {
               {userMenuOpen && (
                 <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border py-2 z-50">
                   <button onClick={() => { setActiveSection('profile'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><User className="w-5 h-5 text-[var(--color-secondary)]" /><span>Mon profil</span></button>
-                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-secondary)]" /><span>Parametres</span></button>
+                  <button onClick={() => { setActiveSection('settings'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><Settings className="w-5 h-5 text-[var(--color-secondary)]" /><span>Paramètres</span></button>
                   <button onClick={() => { setActiveSection('help'); setUserMenuOpen(false); }} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50"><HelpCircle className="w-5 h-5 text-[var(--color-secondary)]" /><span>Aide</span></button>
                   <div className="border-t my-2"></div>
                   <button onClick={handleLogout} className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 text-red-600"><LogOut className="w-5 h-5" /><span>Deconnexion</span></button>
@@ -429,10 +504,10 @@ const ManagerWorkspace: React.FC = () => {
                 {[
                   {id:'workspace',label:'Accueil',icon:LayoutDashboard,badge: undefined as string | undefined},
                   {id:'bannette',label:'Bannette',icon:Inbox,badge: undefined as string | undefined},
-                  {id:'tasks',label:'Mes taches',icon:ListTodo,badge: undefined as string | undefined},
-                  {id:'chat',label:'Chat equipe',icon:MessageSquare,badge: undefined as string | undefined},
+                  {id:'tasks',label:'Mes tâches',icon:ListTodo,badge: undefined as string | undefined},
+                  {id:'chat',label:'Chat équipe',icon:MessageSquare,badge: undefined as string | undefined},
                   {id:'profile',label:'Mon profil',icon:User,badge: undefined as string | undefined},
-                  {id:'settings',label:'Parametres',icon:Settings,badge: undefined as string | undefined},
+                  {id:'settings',label:'Paramètres',icon:Settings,badge: undefined as string | undefined},
                   {id:'help',label:'Aide',icon:HelpCircle,badge: undefined as string | undefined}
                 ].map(item => (
                   <button key={item.id} onClick={() => setActiveSection(item.id as typeof activeSection)} className={`${activeSection===item.id?'bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]':'text-gray-600 hover:bg-gray-50'} w-full flex items-center justify-between px-3 py-2 rounded-lg`}>

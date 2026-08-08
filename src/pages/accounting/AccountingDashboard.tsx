@@ -42,6 +42,7 @@ const AccountingDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
   // Affichage de la Balance SYSCOHADA : liste / grille / kanban.
   const [balanceView, setBalanceView] = useState<'liste' | 'grille' | 'kanban'>('liste');
+  const [entriesView, setEntriesView] = useState<'cartes' | 'tableau' | 'kanban'>('cartes');
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -97,16 +98,26 @@ const AccountingDashboard: React.FC = () => {
   }, [entries, accounts, period]);
 
   // Recent entries (last 5 posted)
-  const recentEntries = useMemo(() => {
-    return entries
-      .filter((e: any) => e.status === 'posted' || e.status === 'validated')
-      .sort((a: any, b: any) => {
-        const da = a.date || a.createdAt || '';
-        const db = b.date || b.createdAt || '';
-        return db.localeCompare(da);
-      })
-      .slice(0, 5);
+  // Toutes les écritures triées du plus récent au plus ancien, tous statuts
+  // confondus : le kanban a besoin des brouillons, que « Écritures Récentes »
+  // masquait. Chaque vue puise dedans la profondeur qu'elle sait afficher.
+  const sortedEntries = useMemo(() => {
+    return [...entries].sort((a: any, b: any) => {
+      const da = a.date || a.createdAt || '';
+      const db = b.date || b.createdAt || '';
+      return db.localeCompare(da);
+    });
   }, [entries]);
+
+  const entryTotal = (entry: any): number =>
+    entry.lines ? entry.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0) : entry.totalDebit || 0;
+
+  const STATUS_META: Record<string, { label: string; tone: string; bg: string }> = {
+    draft: { label: 'Brouillon', tone: 'var(--color-text-secondary)', bg: 'var(--color-surface-hover, #F3F3F0)' },
+    validated: { label: 'Validée', tone: 'var(--color-primary)', bg: 'color-mix(in srgb, var(--color-primary) 10%, transparent)' },
+    posted: { label: 'Comptabilisée', tone: 'var(--color-success)', bg: 'color-mix(in srgb, var(--color-success) 12%, transparent)' },
+  };
+  const statusMeta = (s: string) => STATUS_META[s] || { label: s || '—', tone: 'var(--color-text-secondary)', bg: 'var(--color-surface-hover, #F3F3F0)' };
 
   // Chart data from real class soldes
   const chartData = useMemo(() => {
@@ -209,79 +220,182 @@ const AccountingDashboard: React.FC = () => {
     </div>
   );
 
-  const renderEntriesTab = () => (
-    <UnifiedCard variant="elevated" size="lg">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-3">
-          <div className="p-3 bg-white/90">
-            <FileText className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-neutral-900">
-              Écritures Récentes
-            </h2>
-            <p className="text-neutral-600">{stats.ecritures_total} écritures au total</p>
-          </div>
-        </div>
-        <ElegantButton
-          variant="outline"
-          icon={Zap}
-          onClick={() => setIsJournalModalOpen(true)}
-        >
-          Nouvelle Écriture
-        </ElegantButton>
-      </div>
-      <div className="space-y-4">
-        {recentEntries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
-            <FileText className="w-12 h-12 mb-3 opacity-30" />
-            <p className="font-medium mb-1">Aucune écriture validée</p>
-            <p className="text-sm">Saisissez et validez des écritures pour les voir ici</p>
-          </div>
-        ) : recentEntries.map((entry: any, index: number) => {
-          const totalDebit = entry.lines
-            ? entry.lines.reduce((s: number, l: any) => s + (l.debit || 0), 0)
-            : entry.totalDebit || 0;
-
-          return (
-            <motion.div
-              key={entry.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.08 }}
-              className="group flex items-center justify-between p-5 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center justify-center w-12 h-12 bg-neutral-100 rounded-lg text-xs font-bold text-neutral-700">
-                  {entry.entryNumber || entry.journal || '—'}
-                </div>
-                <div>
-                  <h4 className="font-semibold text-neutral-900 group-hover:text-[var(--color-primary-dark)] transition-colors">
-                    {entry.label || entry.reference || 'Écriture comptable'}
-                  </h4>
-                  <p className="text-sm text-neutral-600">
-                    {entry.journal ? `Journal ${entry.journal}` : ''}{entry.date ? ` • ${formatDate(new Date(entry.date))}` : ''}
-                  </p>
-                </div>
+  /* Vue Cartes — l'existant : les dernières écritures, en pleine largeur. */
+  const EntriesCards: React.FC<{ rows: any[] }> = ({ rows }) => (
+    <div className="space-y-4">
+      {rows.map((entry: any, index: number) => {
+        const meta = statusMeta(entry.status);
+        return (
+          <motion.div
+            key={entry.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: Math.min(index, 8) * 0.05 }}
+            className="group flex items-center justify-between p-5 border border-neutral-200 rounded-2xl hover:border-neutral-400 hover:shadow-lg transition-all duration-300"
+          >
+            <div className="flex items-center space-x-4 min-w-0">
+              <div className="flex items-center justify-center w-12 h-12 flex-none bg-neutral-100 rounded-lg text-xs font-bold text-neutral-700 overflow-hidden">
+                {entry.journal || '—'}
               </div>
-              <div className="text-right">
-                <p className="font-bold text-neutral-900 text-lg">
-                  {fmt(totalDebit)}
+              <div className="min-w-0">
+                <h4 className="font-semibold text-neutral-900 truncate group-hover:text-[var(--color-primary-dark)] transition-colors">
+                  {entry.label || entry.reference || entry.entryNumber || 'Écriture comptable'}
+                </h4>
+                <p className="text-sm text-neutral-600 truncate">
+                  {entry.entryNumber ? `${entry.entryNumber} • ` : ''}{entry.journal ? `Journal ${entry.journal}` : ''}{entry.date ? ` • ${formatDate(new Date(entry.date))}` : ''}
                 </p>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                  entry.status === 'posted' ? 'bg-green-100 text-green-700'
-                    : entry.status === 'validated' ? 'bg-blue-100 text-blue-700'
-                    : 'bg-neutral-100 text-neutral-700'
-                }`}>
-                  {entry.status === 'posted' ? 'Comptabilisée' : entry.status === 'validated' ? 'Validée' : entry.status}
-                </span>
               </div>
-            </motion.div>
+            </div>
+            <div className="text-right flex-none pl-4">
+              <p className="font-bold text-neutral-900 text-lg num-tabular">{fmt(entryTotal(entry))}</p>
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium" style={{ background: meta.bg, color: meta.tone }}>
+                {meta.label}
+              </span>
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+
+  /* Vue Tableau — densité maximale : on compare des lignes, pas des cartes. */
+  const EntriesTable: React.FC<{ rows: any[] }> = ({ rows }) => (
+    <div className="overflow-x-auto -mx-2">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-neutral-200">
+            {['N° écriture', 'Date', 'Journal', 'Libellé', 'Montant', 'Statut'].map((h, i) => (
+              <th
+                key={h}
+                className={`px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-neutral-500 ${i === 4 ? 'text-right' : 'text-left'}`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-100">
+          {rows.map((entry: any) => {
+            const meta = statusMeta(entry.status);
+            return (
+              <tr key={entry.id} className="hover:bg-neutral-50 transition-colors">
+                <td className="px-3 py-2.5 font-mono text-xs text-neutral-700 whitespace-nowrap">{entry.entryNumber || '—'}</td>
+                <td className="px-3 py-2.5 text-neutral-600 whitespace-nowrap">{entry.date ? formatDate(new Date(entry.date)) : '—'}</td>
+                <td className="px-3 py-2.5 text-neutral-600 whitespace-nowrap">{entry.journal || '—'}</td>
+                <td className="px-3 py-2.5 text-neutral-900 max-w-[28ch] truncate" title={entry.label || entry.reference || ''}>
+                  {entry.label || entry.reference || '—'}
+                </td>
+                <td className="px-3 py-2.5 text-right font-semibold text-neutral-900 num-tabular whitespace-nowrap">{fmt(entryTotal(entry))}</td>
+                <td className="px-3 py-2.5">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap" style={{ background: meta.bg, color: meta.tone }}>
+                    {meta.label}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  /* Vue Kanban — une colonne par statut : ce qui reste à traiter saute aux yeux. */
+  const EntriesKanban: React.FC<{ rows: any[] }> = ({ rows }) => {
+    const columns = ['draft', 'validated', 'posted'] as const;
+    return (
+      <div className="grid grid-flow-col auto-cols-[minmax(260px,1fr)] gap-4 overflow-x-auto pb-2">
+        {columns.map((col) => {
+          const meta = statusMeta(col);
+          const items = rows.filter((e: any) => (e.status || 'draft') === col);
+          const total = items.reduce((s: number, e: any) => s + entryTotal(e), 0);
+          return (
+            <div key={col} className="rounded-2xl border border-neutral-200 bg-neutral-50/60 flex flex-col min-h-[120px]">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
+                <span className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full" style={{ background: meta.tone }} />
+                  <span className="text-sm font-semibold text-neutral-900">{meta.label}</span>
+                  <span className="text-xs num-tabular text-neutral-500">{items.length}</span>
+                </span>
+                <span className="text-xs font-semibold num-tabular text-neutral-600">{fmt(total)}</span>
+              </div>
+              <div className="p-3 space-y-2">
+                {items.length === 0 ? (
+                  <p className="py-6 text-center text-xs text-neutral-400">Aucune écriture</p>
+                ) : items.map((entry: any) => (
+                  <div key={entry.id} className="rounded-xl bg-white border border-neutral-200 p-3 hover:shadow-sm transition-shadow">
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-mono text-[11px] text-neutral-500">{entry.entryNumber || '—'}</span>
+                      <span className="text-[11px] text-neutral-500 whitespace-nowrap">{entry.date ? formatDate(new Date(entry.date)) : ''}</span>
+                    </div>
+                    <p className="mt-1 text-[13px] font-medium text-neutral-900 line-clamp-2">
+                      {entry.label || entry.reference || 'Écriture comptable'}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-[11px] text-neutral-500">{entry.journal ? `Journal ${entry.journal}` : ''}</span>
+                      <span className="text-sm font-bold num-tabular text-neutral-900">{fmt(entryTotal(entry))}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           );
         })}
       </div>
-    </UnifiedCard>
-  );
+    );
+  };
+
+  const renderEntriesTab = () => {
+    // Chaque vue montre ce qu'elle sait montrer sans devenir illisible : la carte
+    // est haute, le tableau est dense, le kanban répartit sur trois colonnes.
+    const depth = entriesView === 'cartes' ? 6 : entriesView === 'tableau' ? 25 : 60;
+    const rows = sortedEntries.slice(0, depth);
+
+    return (
+      <UnifiedCard variant="elevated" size="lg">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-white/90">
+              <FileText className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-neutral-900">Écritures</h2>
+              <p className="text-neutral-600">
+                {rows.length} affichée{rows.length > 1 ? 's' : ''} sur {stats.ecritures_total} au total
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Bascule d'affichage : Cartes / Tableau / Kanban */}
+            <div className="flex items-center gap-1 bg-neutral-100 rounded-lg p-1">
+              {([['cartes', 'Cartes'], ['tableau', 'Tableau'], ['kanban', 'Kanban']] as const).map(([k, lbl]) => (
+                <button
+                  key={k}
+                  onClick={() => setEntriesView(k)}
+                  aria-pressed={entriesView === k}
+                  className={`px-3 py-1.5 text-sm rounded-md transition-all ${entriesView === k ? 'bg-white text-[var(--color-primary)] shadow-sm font-medium' : 'text-neutral-600 hover:bg-white/60'}`}
+                >
+                  {lbl}
+                </button>
+              ))}
+            </div>
+            <ElegantButton variant="outline" icon={Zap} onClick={() => setIsJournalModalOpen(true)}>
+              Nouvelle Écriture
+            </ElegantButton>
+          </div>
+        </div>
+
+        {rows.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
+            <FileText className="w-12 h-12 mb-3 opacity-30" />
+            <p className="font-medium mb-1">Aucune écriture</p>
+            <p className="text-sm">Saisissez des écritures pour les voir ici</p>
+          </div>
+        ) : entriesView === 'cartes' ? <EntriesCards rows={rows} />
+          : entriesView === 'tableau' ? <EntriesTable rows={rows} />
+          : <EntriesKanban rows={rows} />}
+      </UnifiedCard>
+    );
+  };
 
   const renderBalanceTab = () => {
     const items = [
