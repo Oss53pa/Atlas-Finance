@@ -1276,7 +1276,7 @@ const ClientsModule: React.FC = () => {
                 </div>
 
                 {/* Graphique en barres empilées */}
-                <div className="mt-6 bg-gray-50 rounded-lg p-6">
+                <div className="mt-6 bg-white rounded-lg border border-[var(--color-border)] p-6">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('clients.evolutionByClient')}</h4>
                   {(() => {
                     // ECharts empile l'axe catégoriel du bas vers le haut : on inverse

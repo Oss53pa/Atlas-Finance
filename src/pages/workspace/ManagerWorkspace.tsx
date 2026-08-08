@@ -55,7 +55,7 @@ const ManagerWorkspace: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
-  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, openCount: feedOpenCount, unreadCount: feedUnreadCount, addTask, toggleTask } = useWorkspaceFeed();
   const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('manager');
 
   // W15 / W14: state distinguishes null (not yet loaded) from 0 (réellement zéro)
@@ -311,10 +311,12 @@ const ManagerWorkspace: React.FC = () => {
         spaceLabel="Espace Manager"
         subtitle={statsLoading ? 'Chargement des indicateurs…' : 'Pilotage de la performance'}
         icon={<Briefcase />}
-        chips={statsLoading ? [] : [
-          { label: "Chiffre d'affaires", value: formatCurrency(stats.ca) },
-          { label: 'Marge nette', value: `${stats.marge.toFixed(1)} %` },
-          { label: 'Trésorerie', value: formatCurrency(stats.treasury) },
+        /* Les pastilles ne répètent PAS les cartes KPI juste en dessous : elles
+           disent ce qui attend la personne, pas ce que les cartes montrent déjà. */
+        chips={[
+          { label: 'Exercice', value: String(new Date().getFullYear()) },
+          { label: 'Tâches ouvertes', value: String(feedOpenCount) },
+          { label: 'Messages non lus', value: String(feedUnreadCount) },
         ]}
         actions={
           <>
@@ -380,7 +382,9 @@ const ManagerWorkspace: React.FC = () => {
         />
       </WorkspaceSection>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      {/* Bloc-notes · Tâches · Messages : une seule rangée de trois
+          colonnes, qui retombe à deux puis une sur écran étroit. */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <WorkspaceSection title="Bloc-notes" icon={<NotebookPen />} subtitle="Privé, enregistré automatiquement">
           <WorkspaceNotepad storageKey={notesKey} load={loadNote} save={saveNote} />
         </WorkspaceSection>
@@ -401,26 +405,26 @@ const ManagerWorkspace: React.FC = () => {
             accent="var(--color-secondary)"
           />
         </WorkspaceSection>
+        <WorkspaceSection
+          title="Messages récents" icon={<MessageSquare />}
+          action={
+            <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-secondary)' }}>
+              Ouvrir le chat
+            </button>
+          }
+        >
+          <WorkspaceMessageList
+            messages={feedMessages}
+            loading={feedLoading}
+            onOpen={() => setActiveSection('chat')}
+            accent="var(--color-secondary)"
+          />
+        </WorkspaceSection>
       </div>
 
       {/* Alertes Fiscales */}
       <ManagerFiscalWidget navigate={navigate} />
 
-      <WorkspaceSection
-        title="Messages récents" icon={<MessageSquare />}
-        action={
-          <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-secondary)' }}>
-            Ouvrir le chat
-          </button>
-        }
-      >
-        <WorkspaceMessageList
-          messages={feedMessages}
-          loading={feedLoading}
-          onOpen={() => setActiveSection('chat')}
-          accent="var(--color-secondary)"
-        />
-      </WorkspaceSection>
     </div>
   );
 

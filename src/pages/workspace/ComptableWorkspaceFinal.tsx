@@ -54,7 +54,7 @@ const ComptableWorkspaceFinal: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { adapter } = useData();
-  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, openCount: feedOpenCount, unreadCount: feedUnreadCount, addTask, toggleTask } = useWorkspaceFeed();
   const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('comptable');
 
   // W4 / W2: state distinguishes null (not yet loaded) from 0 (réellement zéro)
@@ -319,10 +319,12 @@ const ComptableWorkspaceFinal: React.FC = () => {
         spaceLabel="Espace Comptable"
         subtitle={statsLoading ? 'Chargement du dossier…' : `${formatNumber(stats.entries)} écritures au dossier`}
         icon={<Calculator />}
-        chips={statsLoading ? [] : [
-          { label: 'À valider', value: formatNumber(stats.drafts) },
-          { label: 'Validées', value: formatNumber(stats.posted) },
-          { label: 'Trésorerie', value: formatCurrency(stats.treasury) },
+        /* Les pastilles ne répètent PAS les cartes KPI juste en dessous : elles
+           disent ce qui attend la personne, pas ce que les cartes montrent déjà. */
+        chips={[
+          { label: 'Exercice', value: String(new Date().getFullYear()) },
+          { label: 'Tâches ouvertes', value: String(feedOpenCount) },
+          { label: 'Messages non lus', value: String(feedUnreadCount) },
         ]}
         actions={
           <>
@@ -396,7 +398,9 @@ const ComptableWorkspaceFinal: React.FC = () => {
 
       {/* Bloc-notes + tâches côte à côte : la colonne de droite reste utile
           même quand aucune tâche n'est enregistrée. */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      {/* Bloc-notes · Tâches · Messages : une seule rangée de trois
+          colonnes, qui retombe à deux puis une sur écran étroit. */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <WorkspaceSection
           title="Bloc-notes" icon={<NotebookPen />}
           subtitle="Privé, enregistré automatiquement"
@@ -420,26 +424,26 @@ const ComptableWorkspaceFinal: React.FC = () => {
             accent="var(--color-primary)"
           />
         </WorkspaceSection>
+        <WorkspaceSection
+          title="Messages récents" icon={<MessageSquare />}
+          action={
+            <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+              Ouvrir le chat
+            </button>
+          }
+        >
+          <WorkspaceMessageList
+            messages={feedMessages}
+            loading={feedLoading}
+            onOpen={() => setActiveSection('chat')}
+            accent="var(--color-primary)"
+          />
+        </WorkspaceSection>
       </div>
 
       {/* Alertes Fiscales */}
       <FiscalAlertsWidget navigate={navigate} />
 
-      <WorkspaceSection
-        title="Messages récents" icon={<MessageSquare />}
-        action={
-          <button onClick={() => setActiveSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
-            Ouvrir le chat
-          </button>
-        }
-      >
-        <WorkspaceMessageList
-          messages={feedMessages}
-          loading={feedLoading}
-          onOpen={() => setActiveSection('chat')}
-          accent="var(--color-primary)"
-        />
-      </WorkspaceSection>
     </div>
   );
 

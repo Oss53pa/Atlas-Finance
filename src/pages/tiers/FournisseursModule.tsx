@@ -965,7 +965,7 @@ const FournisseursModule: React.FC = () => {
                 </div>
 
                 {/* Graphique en barres empilées */}
-                <div className="mt-6 bg-gray-50 rounded-lg p-6">
+                <div className="mt-6 bg-white rounded-lg border border-[var(--color-border)] p-6">
                   <h4 className="text-md font-semibold text-[var(--color-primary)] mb-4">{t('suppliers.evolutionBySupplier')}</h4>
                   {(() => {
                     // ECharts empile l'axe catégoriel du bas vers le haut : on inverse
@@ -980,7 +980,9 @@ const FournisseursModule: React.FC = () => {
                     ];
                     return (
                       <AtlasBar
-                        categories={top.map(d => d.fournisseurCode)}
+                        // Un code seul ne dit pas de qui il s'agit : on nomme le tiers,
+                        // le code restant en préfixe pour le rapprochement comptable.
+                        categories={top.map(d => (d.fournisseurNom ? `${d.fournisseurCode} · ${d.fournisseurNom.slice(0, 22)}` : d.fournisseurCode))}
                         series={buckets.map((b, i) => ({ name: b.name, data: top.map(b.get), color: AGING_RAMP[i] }))}
                         horizontal
                         stacked
