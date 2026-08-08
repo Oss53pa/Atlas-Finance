@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../../utils/formatters';
+
+/** Graduations d'axe : un montant XAF en entier déborde de l'axe. */
+const compactAmount = (n: number) => {
+  const a = Math.abs(n), sign = n < 0 ? '−' : '';
+  if (a >= 1e9) return `${sign}${(a / 1e9).toFixed(1).replace('.', ',')} Md`;
+  if (a >= 1e6) return `${sign}${(a / 1e6).toFixed(1).replace('.', ',')} M`;
+  if (a >= 1e3) return `${sign}${Math.round(a / 1e3)} k`;
+  return `${sign}${Math.round(a)}`;
+};
 import { useData } from '../../contexts/DataContext';
 import PageHeaderActions from '../../components/ui/PageHeaderActions';
 import {
@@ -10,34 +19,8 @@ import {
   Info, Clock, CreditCard, Wallet, PiggyBank, Landmark, ChevronRight, ChevronDown
 } from 'lucide-react';
 import { StatBadgeCard } from '../../components/premium';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { AtlasBar, AtlasDonut, AtlasLine, AtlasWaterfall, ATLAS_SUCCESS, ATLAS_ERROR, ATLAS_PETROL, ATLAS_AMBER } from '../../components/charts';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
 
 const FinancialAnalysisDashboard: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('ytd');
@@ -86,6 +69,8 @@ const FinancialAnalysisDashboard: React.FC = () => {
 
   const liveFinancials = useMemo(() => {
     let revenue = 0, expenses = 0, treasury = 0;
+    // Cascade de trésorerie : les deux sens du flux, pas seulement le solde net.
+    let encaissements = 0, decaissements = 0;
     let actifCirculant = 0, passifCirculant = 0;
     let impots = 0;          // cl.89 (IS/IMF) — pour le résultat NET
     let chargesFin = 0;      // cl.66 (charges financières) — add-back EBITDA
@@ -125,7 +110,11 @@ const FinancialAnalysisDashboard: React.FC = () => {
         // Immobilisations (cl.2, net des amortissements 28) — pour le ROA
         if (l.accountCode.startsWith('2')) immobilisations += (l.debit || 0) - (l.credit || 0);
         // Trésorerie = classe 5 HORS 58 (virements internes en transit)
-        if (l.accountCode.startsWith('5') && !l.accountCode.startsWith('58')) treasury += (l.debit || 0) - (l.credit || 0);
+        if (l.accountCode.startsWith('5') && !l.accountCode.startsWith('58')) {
+          treasury += (l.debit || 0) - (l.credit || 0);
+          encaissements += l.debit || 0;
+          decaissements += l.credit || 0;
+        }
         // Actif circulant: classes 3 (stocks) and 4 debit (créances)
         if (l.accountCode.startsWith('3')) {
           const v = (l.debit || 0) - (l.credit || 0);
@@ -151,6 +140,8 @@ const FinancialAnalysisDashboard: React.FC = () => {
       revenue,
       expenses,
       treasury,
+      encaissements,
+      decaissements,
       impots,
       chargesFin,
       dotations,
@@ -236,18 +227,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
     { key: 'charges', category: 'Charges (classe 6)', actual: -liveFinancials.expenses, budget: 0, previous: 0, byClass: liveFinancials.expenseByClass, sign: -1 },
   ];
 
-  // Cash Flow from live treasury
-  const cashFlowData = {
-    labels: ['Trésorerie nette'],
-    datasets: [{
-      label: 'Flux de Trésorerie',
-      data: [liveFinancials.treasury],
-      backgroundColor: (context: any) => {
-        const value = context.raw;
-        return value >= 0 ? 'rgba(21,128,61,0.85)' : 'rgba(192,50,43,0.85)';
-      }
-    }]
-  };
+  // Cascade de trésorerie : encaissements → décaissements → solde net.
+  // Le bloc s'intitulait « Cascade » mais ne traçait qu'UNE barre (le solde),
+  // ce qui ne cascade rien : ni l'origine des flux, ni leur compensation.
+  const cashFlowSteps = useMemo(() => ([
+    { name: 'Encaissements', value: liveFinancials.encaissements },
+    { name: 'Décaissements', value: -liveFinancials.decaissements },
+    { name: 'Trésorerie nette', value: liveFinancials.treasury, isTotal: true },
+  ]), [liveFinancials.encaissements, liveFinancials.decaissements, liveFinancials.treasury]);
 
   // Revenue mix computed from real entries grouped by account class
   const revAccountLabels: Record<string, string> = {
@@ -256,79 +243,37 @@ const FinancialAnalysisDashboard: React.FC = () => {
     '76': 'Produits financiers', '77': 'Produits except.', '78': 'Reprises', '79': 'Transferts',
   };
   const revColors = ['#235A6E','#E89A2E','#15803D','#4E7E8D','#C77E2C','#7FA3AF','#3E7A8C','#B26A12'];
-  const revenueMixData = useMemo(() => {
-    const entries = Object.entries(liveFinancials.revenueByClass).filter(([, v]) => v > 0);
-    if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
-    }
-    return {
-      labels: entries.map(([cls]) => revAccountLabels[cls] || `Classe ${cls}`),
-      datasets: [{ data: entries.map(([, v]) => Math.round(v)), backgroundColor: entries.map((_, i) => revColors[i % revColors.length]) }],
-    };
-  }, [liveFinancials.revenueByClass]);
-
+  // Libellés des classes de charges — utilisés par le détail du compte de résultat.
   const expAccountLabels: Record<string, string> = {
     '60': 'Achats', '61': 'Services ext.', '62': 'Autres services', '63': 'Impôts',
     '64': 'Personnel', '65': 'Autres charges', '66': 'Charges fin.', '67': 'Charges except.',
     '68': 'Dotations', '69': 'Participation',
   };
-  const expColors = ['#C0322B','#E89A2E','#C77E2C','#235A6E','#4E7E8D','#15803D','#7FA3AF','#B26A12'];
-  const expenseBreakdownData = useMemo(() => {
-    const entries = Object.entries(liveFinancials.expenseByClass).filter(([, v]) => v > 0);
-    if (entries.length === 0) {
-      return { labels: ['Pas de données'], datasets: [{ data: [100], backgroundColor: ['#E89A2E'] }] };
-    }
-    return {
-      labels: entries.map(([cls]) => expAccountLabels[cls] || `Classe ${cls}`),
-      datasets: [{ data: entries.map(([, v]) => Math.round(v)), backgroundColor: entries.map((_, i) => expColors[i % expColors.length]) }],
-    };
-  }, [liveFinancials.expenseByClass]);
+
+  const revenueMix = useMemo(
+    () => Object.entries(liveFinancials.revenueByClass)
+      .filter(([, v]) => v > 0)
+      .map(([cls, v]) => ({ name: revAccountLabels[cls] || `Classe ${cls}`, value: Math.round(v) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [liveFinancials.revenueByClass],
+  );
 
   // Monthly Trend from Dexie aggregation
   const monthlyProfitData = liveFinancials.monthlyRev.map((r: number, i: number) => r - liveFinancials.monthlyExp[i]);
-  const monthlyTrendData = {
-    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'],
-    datasets: [
-      {
-        label: 'Revenus',
-        data: liveFinancials.monthlyRev,
-        borderColor: '#15803D',
-        backgroundColor: 'rgba(21,128,61,0.12)',
-        tension: 0.4,
-        fill: true
-      },
-      {
-        label: 'Dépenses',
-        data: liveFinancials.monthlyExp,
-        borderColor: '#C0322B',
-        backgroundColor: 'rgba(192,50,43,0.12)',
-        tension: 0.4,
-        fill: true
-      },
-      {
-        label: 'Profit Net',
-        data: monthlyProfitData,
-        borderColor: '#235A6E',
-        backgroundColor: 'rgba(35,90,110,0.12)',
-        tension: 0.4,
-        fill: true
-      }
-    ]
-  };
+  const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 
   // Working Capital — computed from real quarterly balance sheet data
-  const workingCapitalData = useMemo(() => {
+  const workingCapital = useMemo(() => {
     const hasData = liveFinancials.quarterlyCreances.some(v => v !== 0) ||
       liveFinancials.quarterlyStocks.some(v => v !== 0) ||
       liveFinancials.quarterlyDettes.some(v => v !== 0);
-    return {
-      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-      datasets: [
-        { label: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : [0, 0, 0, 0], backgroundColor: '#235A6E' },
-        { label: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : [0, 0, 0, 0], backgroundColor: '#E89A2E' },
-        { label: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : [0, 0, 0, 0], backgroundColor: '#C0322B' },
-      ],
-    };
+    const zero = [0, 0, 0, 0];
+    return [
+      { name: 'Créances Clients', data: hasData ? liveFinancials.quarterlyCreances : zero, color: ATLAS_PETROL },
+      { name: 'Stocks', data: hasData ? liveFinancials.quarterlyStocks : zero, color: ATLAS_AMBER },
+      // Les dettes sont portées en négatif : le BFR se lit comme la somme algébrique.
+      { name: 'Dettes Fournisseurs', data: hasData ? liveFinancials.quarterlyDettes.map(v => -v) : zero, color: ATLAS_ERROR },
+    ];
   }, [liveFinancials]);
 
   const getVarianceColor = (variance: number) => {
@@ -535,9 +480,17 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
             Évolution Mensuelle
           </h3>
-          <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Line data={monthlyTrendData} options={{ responsive: true, maintainAspectRatio: false }} />
-          </div>
+          <AtlasLine
+            categories={MONTH_LABELS}
+            series={[
+              { name: 'Revenus', data: liveFinancials.monthlyRev, color: ATLAS_SUCCESS, area: true },
+              { name: 'Dépenses', data: liveFinancials.monthlyExp, color: ATLAS_ERROR, area: true },
+              { name: 'Profit Net', data: liveFinancials.monthlyRev.map((r: number, i: number) => r - liveFinancials.monthlyExp[i]), color: ATLAS_PETROL },
+            ]}
+            valueFormatter={(v) => formatCurrency(v)}
+            axisFormatter={compactAmount}
+            height={300}
+          />
         </div>
 
         {/* Revenue Mix */}
@@ -545,9 +498,20 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
             Mix Revenus
           </h3>
-          <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Doughnut data={revenueMixData} options={{ responsive: true, maintainAspectRatio: false }} />
-          </div>
+          {revenueMix.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center text-sm text-[var(--color-text-tertiary)]">
+              Aucun produit comptabilisé sur la période.
+            </div>
+          ) : (
+            <AtlasDonut
+              data={revenueMix}
+              colors={revColors}
+              showLegend={false}
+              centerPrimary={compactAmount(revenueMix.reduce((s, d) => s + d.value, 0))}
+              valueFormatter={(v) => formatCurrency(v)}
+              height={300}
+            />
+          )}
         </div>
       </div>
 
@@ -558,15 +522,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
             Cascade de Trésorerie
           </h3>
-          <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Bar data={cashFlowData} options={{ 
-              responsive: true, 
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false }
-              }
-            }} />
-          </div>
+          <AtlasWaterfall
+            items={cashFlowSteps}
+            positiveColor={ATLAS_SUCCESS}
+            negativeColor={ATLAS_ERROR}
+            totalColor={ATLAS_PETROL}
+            valueFormatter={(v) => formatCurrency(Math.round(v))}
+            height={300}
+          />
         </div>
 
         {/* Working Capital */}
@@ -574,16 +537,14 @@ const FinancialAnalysisDashboard: React.FC = () => {
           <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
             Évolution du BFR
           </h3>
-          <div style={{ position: 'relative', height: '300px', width: '100%' }}>
-            <Bar data={workingCapitalData} options={{ 
-              responsive: true, 
-              maintainAspectRatio: false,
-              scales: {
-                x: { stacked: true },
-                y: { stacked: true }
-              }
-            }} />
-          </div>
+          <AtlasBar
+            categories={['Q1', 'Q2', 'Q3', 'Q4']}
+            series={workingCapital}
+            stacked
+            valueFormatter={(v) => formatCurrency(v)}
+            axisFormatter={compactAmount}
+            height={300}
+          />
         </div>
       </div>
 

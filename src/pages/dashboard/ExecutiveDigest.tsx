@@ -21,11 +21,7 @@ import {
   TrendingUp, TrendingDown, Wallet, Percent, Landmark, PieChart as PieIcon,
   BarChart3, ShoppingCart, UserPlus, Timer, Receipt, Activity, RefreshCw,
 } from 'lucide-react';
-import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
-  ArcElement, Tooltip, Legend, Filler,
-} from 'chart.js';
-import { Line, Doughnut } from 'react-chartjs-2';
+import { AtlasDonut, AtlasLine } from '../../components/charts';
 import { useData } from '../../contexts/DataContext';
 import { useMoneyFormat } from '../../hooks/useMoneyFormat';
 import { computeDashboardMetrics, type DashboardPeriod } from '../../utils/dashboardMetrics';
@@ -35,7 +31,6 @@ import {
   DEFAULT_SCHEDULE, type ExecutiveReportSchedule, type ReportFrequency, type ReportPeriode,
 } from '../../services/executiveReportService';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Tooltip, Legend, Filler);
 
 const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
 const WEEKDAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -247,40 +242,6 @@ const ExecutiveDigest: React.FC = () => {
   ];
 
   // ─── Graphe : évolution du CA ───
-  const caChartData = {
-    labels: MONTH_LABELS,
-    datasets: [{
-      label: 'Chiffre d\'affaires',
-      data: caSeries,
-      borderColor: C.navy,
-      backgroundColor: (ctx: any) => {
-        const { ctx: c, chartArea } = ctx.chart;
-        if (!chartArea) return 'rgba(30,58,76,0.12)';
-        const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-        g.addColorStop(0, 'rgba(30,58,76,0.28)'); g.addColorStop(1, 'rgba(30,58,76,0)');
-        return g;
-      },
-      fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 5, borderWidth: 2.5,
-    }],
-  };
-  const caChartOptions = {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => fmt(c.parsed.y) + ' FCFA' } } },
-    scales: {
-      x: { grid: { display: false }, ticks: { color: 'var(--color-text-secondary)', font: { size: 11 } } },
-      y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { color: 'var(--color-text-secondary)', font: { size: 11 }, callback: (v: any) => fmt(Number(v)) } },
-    },
-  };
-
-  const donutData = {
-    labels: chargeBreakdown.items.map((x) => x.label),
-    datasets: [{ data: chargeBreakdown.items.map((x) => Math.round(x.value)), backgroundColor: chargeBreakdown.items.map((x) => x.color), borderWidth: 0, cutout: '68%' }],
-  };
-  const donutOptions = {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c: any) => `${c.label}: ${fmt(c.parsed)} FCFA` } } },
-  };
-
   // ─── Programmation : handlers ───
   const validRecipients = (schedule.recipients || []).filter(isValidEmail);
   const patch = (p: Partial<ExecutiveReportSchedule>) => setSchedule((s) => ({ ...s, ...p }));
@@ -374,7 +335,14 @@ const ExecutiveDigest: React.FC = () => {
           <h3 className="text-sm font-bold uppercase tracking-wide mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
             <BarChart3 className="w-4 h-4" /> Évolution du chiffre d'affaires
           </h3>
-          <div style={{ position: 'relative', height: 240 }}><Line data={caChartData as any} options={caChartOptions as any} /></div>
+          <AtlasLine
+            categories={MONTH_LABELS}
+            series={[{ name: "Chiffre d'affaires", data: caSeries, color: C.navy, area: true }]}
+            showPoints={false}
+            valueFormatter={(v) => `${fmt(v)} FCFA`}
+            axisFormatter={(v) => fmt(v)}
+            height={240}
+          />
         </div>
 
         <div className="rounded-xl p-5 border" style={{ background: 'var(--color-surface, #fff)', borderColor: 'var(--color-border)' }}>
@@ -384,7 +352,14 @@ const ExecutiveDigest: React.FC = () => {
           {chargeBreakdown.items.length > 0 ? (
             <div className="flex items-center gap-5 flex-wrap">
               <div style={{ position: 'relative', width: 160, height: 160 }}>
-                <Doughnut data={donutData as any} options={donutOptions as any} />
+                <AtlasDonut
+                  data={chargeBreakdown.items.map((x) => ({ name: x.label, value: Math.round(x.value) }))}
+                  colors={chargeBreakdown.items.map((x) => x.color)}
+                  showLegend={false}
+                  showSliceLabels={false}
+                  valueFormatter={(v) => `${fmt(v)} FCFA`}
+                  height={160}
+                />
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Total</span>
                   <span className="text-base font-extrabold" style={{ color: C.navy }}>{fmt(chargeBreakdown.total)}</span>

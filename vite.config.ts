@@ -82,10 +82,6 @@ export default defineConfig({
             id.includes('node_modules/d3/') ||
             id.includes('node_modules/d3-')
           ) return 'vendor-d3';
-          if (
-            id.includes('node_modules/chart.js') ||
-            id.includes('node_modules/react-chartjs')
-          ) return 'vendor-chartjs';
           // Infra data
           if (
             id.includes('node_modules/dexie') ||
@@ -127,8 +123,6 @@ export default defineConfig({
       'react-dom',
       'react-router-dom',
       'echarts',
-      'chart.js',
-      'react-chartjs-2',
       'd3',
       'dexie',
       '@supabase/supabase-js',
