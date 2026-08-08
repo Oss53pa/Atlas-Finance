@@ -17,6 +17,7 @@ import { WorkspaceHero, WorkspaceSection, QuickActionGrid, WorkspaceNotepad, Wor
 import { useWorkspaceFeed } from '../../hooks/useWorkspaceFeed';
 import { StatBadgeCard } from '../../components/premium';
 import { useWorkspaceNotes } from '../../hooks/useWorkspaceNotes';
+import { getDafIndicators, type DafIndicators } from '../../features/workspace/services/workspaceKpiService';
 import { toast } from 'sonner';
 import { supabase } from '../../lib/supabase';
 import {
@@ -64,6 +65,7 @@ const ManagerWorkspace: React.FC = () => {
   } | null>(null);
   const [statsLoading, setStatsLoading] = useState(true); // W14: loading state
   const [mgrSeries, setMgrSeries] = useState<{ ca: number[]; charges: number[]; treasury: number[] }>({ ca: [], charges: [], treasury: [] });
+  const [daf, setDaf] = useState<DafIndicators | null>(null);
 
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -160,6 +162,7 @@ const ManagerWorkspace: React.FC = () => {
         let run = 0;
         setMgrSeries({ ca: caM, charges: chM, treasury: trM.map((v) => (run += v)) });
         setMgrStats({ ca, charges, marge, treasury });
+        setDaf(await getDafIndicators(adapter));
         // Téléphone entreprise : source canonique settings.admin_company_legal (companies peut être vide/diverger)
         try {
           const legalRow = await adapter.getById<any>('settings', 'admin_company_legal');
@@ -338,8 +341,10 @@ const ManagerWorkspace: React.FC = () => {
         }
       />
 
+      {/* Indicateurs à référence — un montant nu ne dit pas s'il est bon.
+          Chaque carte porte sa comparaison : prévision, budget, jours de CA. */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {statsLoading
+        {statsLoading || !daf
           ? Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="animate-pulse rounded-2xl border p-5" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
                 <div className="mb-3 h-10 w-10 rounded-xl bg-gray-200" />
@@ -347,28 +352,65 @@ const ManagerWorkspace: React.FC = () => {
                 <div className="h-4 w-1/2 rounded bg-gray-100" />
               </div>
             ))
-          : (
-            <>
-              <StatBadgeCard
-                label="Chiffre d'affaires" value={formatCurrency(stats.ca)} badge="petrol"
-                icon={<DollarSign />} series={mgrSeries.ca} valueSize={20} meta="produits nets (cl. 7)"
-              />
-              <StatBadgeCard
-                label="Marge nette" value={`${stats.marge.toFixed(1)}`} unit="%" badge={stats.marge >= 0 ? 'success' : 'error'}
-                icon={<Target />} valueTone={stats.marge < 0 ? 'error' : 'default'}
-                meta="résultat net / CA"
-              />
-              <StatBadgeCard
-                label="Charges" value={formatCurrency(stats.charges)} badge="amber"
-                icon={<Layers />} series={mgrSeries.charges} valueSize={20} meta="charges nettes (cl. 6)"
-              />
-              <StatBadgeCard
-                label="Trésorerie" value={formatCurrency(stats.treasury)} badge={stats.treasury >= 0 ? 'petrol' : 'error'}
-                icon={<DollarSign />} series={mgrSeries.treasury} valueSize={20}
-                valueTone={stats.treasury < 0 ? 'error' : 'default'} meta="comptes 5 hors 58"
-              />
-            </>
-          )}
+          : (() => {
+            const drift = daf.treasury30 === null ? null : daf.treasury30 - daf.treasury;
+            const v = daf.revenue.variancePct;
+            return (
+              <>
+                <StatBadgeCard
+                  label="Trésorerie nette"
+                  value={formatCurrency(daf.treasury)}
+                  unit=""
+                  badge={daf.treasury >= 0 ? 'petrol' : 'error'}
+                  icon={<DollarSign />}
+                  series={mgrSeries.treasury}
+                  valueSize={19}
+                  valueTone={daf.treasury < 0 ? 'error' : 'default'}
+                  delta={drift === null ? undefined : {
+                    value: `${drift >= 0 ? '+' : ''}${formatCurrency(drift)}`,
+                    trend: drift >= 0 ? 'up' : 'down',
+                    tone: drift >= 0 ? 'good' : 'bad',
+                  }}
+                  meta={daf.treasury30 === null ? 'comptes 5 hors 58' : 'atterrissage à 30 jours'}
+                  onClick={() => navigate('/treasury')}
+                />
+                <StatBadgeCard
+                  label="CA vs budget"
+                  value={formatCurrency(daf.revenue.actual)}
+                  badge={v === null ? 'petrol' : v >= 0 ? 'success' : 'error'}
+                  icon={<Target />}
+                  valueSize={19}
+                  delta={v === null ? undefined : {
+                    value: `${v >= 0 ? '+' : ''}${v.toFixed(1)} %`,
+                    trend: v >= 0 ? 'up' : 'down',
+                    tone: v >= 0 ? 'good' : 'bad',
+                  }}
+                  meta={v === null ? 'aucun budget saisi — pas de référence' : `budget ${formatCurrency(daf.revenue.budget)}`}
+                  onClick={() => navigate('/budget/exploitation')}
+                />
+                <StatBadgeCard
+                  label="BFR"
+                  value={daf.workingCapital.days === null ? formatCurrency(daf.workingCapital.amount) : String(daf.workingCapital.days)}
+                  unit={daf.workingCapital.days === null ? undefined : 'jours de CA'}
+                  badge={daf.workingCapital.days !== null && daf.workingCapital.days > 90 ? 'error' : 'amber'}
+                  icon={<Layers />}
+                  valueTone={daf.workingCapital.days !== null && daf.workingCapital.days > 90 ? 'error' : 'default'}
+                  meta={formatCurrency(daf.workingCapital.amount) + ' immobilisés'}
+                  onClick={() => navigate('/treasury')}
+                />
+                <StatBadgeCard
+                  label="Créances échues > 60 j"
+                  value={daf.overdue60 === 0 ? 'Aucune' : formatCurrency(daf.overdue60)}
+                  badge={daf.overdue60 > 0 ? 'error' : 'success'}
+                  icon={<AlertTriangle />}
+                  valueSize={daf.overdue60 === 0 ? 20 : 19}
+                  valueTone={daf.overdue60 > 0 ? 'error' : 'success'}
+                  meta={daf.overdue60 === 0 ? 'aucun retard avéré' : 'risque client à provisionner'}
+                  onClick={() => navigate('/third-party')}
+                />
+              </>
+            );
+          })()}
       </div>
 
       <WorkspaceSection title="Raccourcis Atlas FnA" icon={<Zap />} subtitle="Les vues de pilotage les plus consultées">

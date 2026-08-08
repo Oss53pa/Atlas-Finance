@@ -1,0 +1,168 @@
+/**
+ * Indicateurs des espaces de travail.
+ *
+ * Les cartes affichaient de la volumétrie : nombre d'écritures, nombre validées,
+ * pourcentage validé — trois façons de dire la même chose, et aucune ne répondait
+ * à la question du poste. Un comptable a besoin de CONTRÔLES (mes livres sont-ils
+ * justes et clôturables ?), un DAF de RÉFÉRENCES (ce chiffre est-il bon ?).
+ *
+ * Tout est calculé sur les données réelles du grand livre et des services
+ * existants — balance âgée, prévision de trésorerie, exécution budgétaire.
+ */
+import type { DataAdapter } from '@atlas/data';
+import type { DBJournalEntry } from '../../../lib/db';
+import { money } from '../../../utils/money';
+import { getAgedReceivables } from '../../balance/services/balanceService';
+import { forecastCashFlow } from '../../treasury/services/cashFlowForecastService';
+import { getBudgetVsActual } from '../../budget/services/budgetService';
+
+const DAY = 86_400_000;
+
+/* ══════════════════════ Espace Comptable — contrôles ══════════════════════ */
+
+export interface ComptableControls {
+  /** Écart débit − crédit sur les écritures non brouillon. Doit valoir 0. */
+  ecartDebitCredit: number;
+  /** Brouillons en attente de validation. */
+  drafts: { count: number; oldestDays: number | null };
+  /** Comptes d'attente 47x non soldés — bloquent la clôture. */
+  suspense: { amount: number; accounts: number };
+  /** Encours de tiers (401/411) non lettré. */
+  unmatched: { amount: number; lines: number };
+}
+
+export async function getComptableControls(adapter: DataAdapter): Promise<ComptableControls> {
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+
+  let debit = 0, credit = 0;
+  let draftCount = 0, oldestDraft: number | null = null;
+  // Solde par compte d'attente : un 471 débiteur et un 472 créditeur ne se
+  // compensent pas, chacun doit être justifié avant clôture.
+  const suspenseByAccount = new Map<string, number>();
+  let unmatchedAmount = 0, unmatchedLines = 0;
+  const today = Date.now();
+
+  for (const entry of entries) {
+    const isDraft = entry.status === 'draft';
+    if (isDraft) {
+      draftCount += 1;
+      const d = new Date(entry.date || entry.createdAt || '').getTime();
+      if (!Number.isNaN(d)) {
+        const age = Math.floor((today - d) / DAY);
+        oldestDraft = oldestDraft === null ? age : Math.max(oldestDraft, age);
+      }
+      // Un brouillon n'est pas comptabilisé : ni dans l'équilibre, ni dans les
+      // soldes. Il ne compte que comme travail restant.
+      continue;
+    }
+
+    for (const line of entry.lines || []) {
+      const code = String(line.accountCode || '');
+      if (!code) continue;
+      const d = line.debit || 0, c = line.credit || 0;
+      debit = money(debit).add(d).toNumber();
+      credit = money(credit).add(c).toNumber();
+
+      if (code.startsWith('47')) {
+        suspenseByAccount.set(code, money(suspenseByAccount.get(code) || 0).add(d - c).toNumber());
+      }
+      if ((code.startsWith('401') || code.startsWith('411')) && !line.lettrageCode) {
+        unmatchedAmount = money(unmatchedAmount).add(Math.abs(d - c)).toNumber();
+        unmatchedLines += 1;
+      }
+    }
+  }
+
+  let suspenseAmount = 0, suspenseAccounts = 0;
+  for (const solde of suspenseByAccount.values()) {
+    if (Math.abs(solde) < 0.005) continue;   // soldé au centime près
+    suspenseAmount = money(suspenseAmount).add(Math.abs(solde)).toNumber();
+    suspenseAccounts += 1;
+  }
+
+  return {
+    ecartDebitCredit: money(debit).subtract(credit).toNumber(),
+    drafts: { count: draftCount, oldestDays: oldestDraft },
+    suspense: { amount: suspenseAmount, accounts: suspenseAccounts },
+    unmatched: { amount: unmatchedAmount, lines: unmatchedLines },
+  };
+}
+
+/* ═══════════════════ Espace Manager / DAF — références ════════════════════ */
+
+export interface DafIndicators {
+  /** Trésorerie nette : comptes 5 hors 58 (virements internes en transit). */
+  treasury: number;
+  /** Atterrissage à 30 jours — null si la prévision n'est pas calculable. */
+  treasury30: number | null;
+  /** Chiffre d'affaires réalisé et budgété, et l'écart en %. */
+  revenue: { actual: number; budget: number; variancePct: number | null };
+  /** Besoin en fonds de roulement, en valeur et en jours de chiffre d'affaires. */
+  workingCapital: { amount: number; days: number | null };
+  /** Créances échues de plus de 60 jours — dernière tranche de la balance âgée
+   *  (getAgedReceivables : non échu · 0-30 · 31-60 · 60+). Le seuil affiché suit
+   *  donc la donnée : annoncer « > 90 j » sur une tranche « > 60 j » ferait
+   *  passer pour du risque avéré des créances de deux mois. */
+  overdue60: number;
+}
+
+export async function getDafIndicators(adapter: DataAdapter): Promise<DafIndicators> {
+  const entries = await adapter.getAll<DBJournalEntry>('journalEntries');
+
+  let ca = 0, treasury = 0, stocks = 0, creances = 0, dettes = 0;
+  for (const entry of entries) {
+    if (entry.status === 'draft') continue;
+    for (const line of entry.lines || []) {
+      const code = String(line.accountCode || '');
+      if (!code) continue;
+      const d = line.debit || 0, c = line.credit || 0;
+      if (code.startsWith('7')) ca = money(ca).add(c - d).toNumber();
+      if (code.startsWith('5') && !code.startsWith('58')) treasury = money(treasury).add(d - c).toNumber();
+      if (code.startsWith('3')) stocks = money(stocks).add(d - c).toNumber();
+      if (code.startsWith('4')) {
+        const net = d - c;
+        if (net > 0) creances = money(creances).add(net).toNumber();
+        else dettes = money(dettes).add(-net).toNumber();
+      }
+    }
+  }
+
+  // BFR = (stocks + créances) − dettes d'exploitation, exprimé en jours de CA :
+  // un montant seul ne dit pas s'il est soutenable, un nombre de jours si.
+  const bfr = money(stocks).add(creances).subtract(dettes).toNumber();
+  const bfrDays = ca > 0 ? Math.round((bfr / ca) * 365) : null;
+
+  // Les trois blocs suivants s'appuient sur des services existants ; chacun peut
+  // échouer indépendamment (données absentes, vue SQL non déployée) sans priver
+  // le tableau des autres indicateurs.
+  const [forecast, aged, budgetRows] = await Promise.all([
+    forecastCashFlow(adapter, 3).catch(() => null),
+    getAgedReceivables(adapter).catch(() => []),
+    getBudgetVsActual(adapter).catch(() => []),
+  ]);
+
+  const firstMonth = forecast?.central?.projections?.[0];
+  const treasury30 = firstMonth ? money(treasury).add(firstMonth.netCashFlow).toNumber() : null;
+
+  const overdue60 = aged.reduce((s, r) => money(s).add(r.days60plus || 0).toNumber(), 0);
+
+  let budgetCa = 0, actualCa = 0;
+  for (const r of budgetRows) {
+    if (!String(r.account_code || '').startsWith('7')) continue;
+    budgetCa = money(budgetCa).add(r.budget || 0).toNumber();
+    actualCa = money(actualCa).add(r.realise || 0).toNumber();
+  }
+  // Sans budget saisi, l'écart n'a pas de sens : on affiche le réel sans référence
+  // plutôt qu'un « +100 % » trompeur.
+  const variancePct = budgetCa > 0
+    ? Math.round(((actualCa - budgetCa) / budgetCa) * 1000) / 10
+    : null;
+
+  return {
+    treasury,
+    treasury30,
+    revenue: { actual: actualCa || ca, budget: budgetCa, variancePct },
+    workingCapital: { amount: bfr, days: bfrDays },
+    overdue60,
+  };
+}
