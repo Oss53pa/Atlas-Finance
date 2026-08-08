@@ -43,12 +43,17 @@ export function useWorkspaceFeed(limit = 5) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [messages, setMessages] = useState<WorkspaceMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  // Totaux, distincts des listes tronquées à `limit` : le bandeau annonce ce
+  // qui reste à traiter, pas ce qui tient dans l'aperçu.
+  const [openCount, setOpenCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const loadTasks = useCallback(async () => {
     const all = await listTasks(adapter, tenantId);
     // Priorité au travail qui m'incombe : mes tâches ouvertes d'abord, puis les
     // non assignées. Les tâches terminées ne remontent pas dans un aperçu.
     const open = all.filter((t) => t.status !== 'done');
+    setOpenCount(open.length);
     const mine = open.filter((t) => t.assigneeId === me.id);
     const rest = open.filter((t) => t.assigneeId !== me.id);
     const rank = { urgent: 0, high: 1, medium: 2, low: 3 } as Record<string, number>;
@@ -68,9 +73,11 @@ export function useWorkspaceFeed(limit = 5) {
     ]);
     const channelName = new Map(channels.map((c) => [c.id, c.name]));
     const seen = readSeen();
+    const visible = rows.filter((m) => m.tenantId === tenantId && !m.deletedAt && m.type !== 'system');
+    setUnreadCount(visible.filter((m) => m.authorId !== me.id && m.createdAt > (seen[m.channelId] || '')).length);
     setMessages(
-      rows
-        .filter((m) => m.tenantId === tenantId && !m.deletedAt && m.type !== 'system')
+      visible
+        .slice()
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, limit)
         .map((m) => ({
@@ -111,7 +118,7 @@ export function useWorkspaceFeed(limit = 5) {
     await loadTasks();
   }, [adapter, loadTasks]);
 
-  return { tasks, messages, loading, addTask, toggleTask, reload };
+  return { tasks, messages, loading, openCount, unreadCount, addTask, toggleTask, reload };
 }
 
 /**

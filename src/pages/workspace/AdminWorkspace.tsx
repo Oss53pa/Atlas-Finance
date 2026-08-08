@@ -61,7 +61,7 @@ const AdminWorkspace: React.FC = () => {
   const { user, logout } = useAuth();
   const { adapter } = useData();
   const [adminStats, setAdminStats] = useState({ entries: 0, accounts: 0, thirdParties: 0, drafts: 0 });
-  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, addTask, toggleTask } = useWorkspaceFeed();
+  const { tasks: feedTasks, messages: feedMessages, loading: feedLoading, openCount: feedOpenCount, unreadCount: feedUnreadCount, addTask, toggleTask } = useWorkspaceFeed();
   const { storageKey: notesKey, load: loadNote, save: saveNote } = useWorkspaceNotes('admin');
   const [companyPhone, setCompanyPhone] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -271,10 +271,12 @@ const AdminWorkspace: React.FC = () => {
         spaceLabel="Espace Admin"
         subtitle="Administration du dossier et de la plateforme"
         icon={<Shield />}
+        /* Les pastilles ne répètent PAS les cartes KPI juste en dessous : elles
+           disent ce qui attend la personne, pas ce que les cartes montrent déjà. */
         chips={[
-          { label: 'Écritures', value: formatNumber(adminStats.entries) },
-          { label: 'Comptes', value: formatNumber(adminStats.accounts) },
-          { label: 'Tiers', value: formatNumber(adminStats.thirdParties) },
+          { label: 'Exercice', value: String(new Date().getFullYear()) },
+          { label: 'Tâches ouvertes', value: String(feedOpenCount) },
+          { label: 'Messages non lus', value: String(feedUnreadCount) },
         ]}
         actions={
           <>
@@ -334,7 +336,9 @@ const AdminWorkspace: React.FC = () => {
         </div>
       </WorkspaceSection>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      {/* Bloc-notes · Tâches · Messages : une seule rangée de trois
+          colonnes, qui retombe à deux puis une sur écran étroit. */}
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
         <WorkspaceSection title="Bloc-notes" icon={<NotebookPen />} subtitle="Privé, enregistré automatiquement">
           <WorkspaceNotepad storageKey={notesKey} load={loadNote} save={saveNote} />
         </WorkspaceSection>
@@ -355,23 +359,23 @@ const AdminWorkspace: React.FC = () => {
             accent="var(--color-primary)"
           />
         </WorkspaceSection>
+        <WorkspaceSection
+          title="Messages support" icon={<MessageSquare />}
+          action={
+            <button onClick={() => changeSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
+              Ouvrir le chat
+            </button>
+          }
+        >
+          <WorkspaceMessageList
+            messages={feedMessages}
+            loading={feedLoading}
+            onOpen={() => changeSection('chat')}
+            accent="var(--color-primary)"
+          />
+        </WorkspaceSection>
       </div>
 
-      <WorkspaceSection
-        title="Messages support" icon={<MessageSquare />}
-        action={
-          <button onClick={() => changeSection('chat')} className="text-sm font-semibold hover:underline" style={{ color: 'var(--color-primary)' }}>
-            Ouvrir le chat
-          </button>
-        }
-      >
-        <WorkspaceMessageList
-          messages={feedMessages}
-          loading={feedLoading}
-          onOpen={() => changeSection('chat')}
-          accent="var(--color-primary)"
-        />
-      </WorkspaceSection>
     </div>
   );
 
